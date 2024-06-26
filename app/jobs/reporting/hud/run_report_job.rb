@@ -7,37 +7,49 @@
 module Reporting::Hud
   class RunReportJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-    WAIT_MINUTES = 10
+    WAIT_MINUTES = 4
 
     def perform(class_name, report_id, email: true)
+      raise "Unknown HUD Report class: #{class_name}" unless Rails.application.config.hud_reports[class_name].present?
+
       # Load the report so we can key the advisory lock off of the specific report
       report = HudReports::ReportInstance.find_by(id: report_id)
       # Occassionally people delete the report before it actually runs
       return unless report.present?
 
-      puts "LOCK: #{advisory_lock_name(report.report_name)} exists? #{HudReports::ReportInstance.advisory_lock_exists?(advisory_lock_name(report.report_name))} ID: #{report_id}"
-      lock_obtained = HudReports::ReportInstance.with_advisory_lock(advisory_lock_name(report.report_name), timeout_seconds: 0) do
-        raise "Unknown HUD Report class: #{class_name}" unless Rails.application.config.hud_reports[class_name].present?
+      # advisory lock to check the number of jobs running for this generator so we don't
+      # all check at exactly the same time and get the same result
+      @generator = class_name.constantize.new(report)
+      HudReports::ReportInstance.with_advisory_lock(@generator.class.name, timeout_seconds: 20) do
+        running_reports_count = HudReports::ReportInstance.
+          created_recently.
+          incomplete.
+          started.
+          for_report(report.report_name).
+          count
 
-        report.start_report
-        @generator = class_name.constantize.new(report)
-        @generator.class.questions.each do |q, klass|
-          next unless report.build_for_questions.include?(q)
-
-          klass.new(@generator, report).run!
+        # We can't only count the running delayed jobs because we start a DJ every time we check
+        # So, we'll check the report class for running reports as well
+        # Because a report can fail without noticing, we need to instantiate the report instance
+        # and inspect it for status
+        if running_reports_count > 1
+          puts "Found #{running_reports_count} running reports, for #{@generator.class.name} (#{report.report_name}), postponing run of #{report_id}"
+          requeue_job(class_name)
+          return
         end
-
-        report_completed = report.complete_report
-        NotifyUser.driver_hud_report_finished(@generator).deliver_now if report.user_id && email
-        report_completed
       end
-      return if lock_obtained
 
-      requeue_job(class_name)
-    end
+      puts "Running: #{@generator.class.name} Report ID: #{report_id}"
+      report.start_report
+      @generator.class.questions.each do |q, klass|
+        next unless report.build_for_questions.include?(q)
 
-    private def advisory_lock_name(class_name)
-      "hud_report_#{class_name.parameterize}"
+        klass.new(@generator, report).run!
+      end
+
+      report_completed = report.complete_report
+      NotifyUser.driver_hud_report_finished(@generator).deliver_now if report.user_id && email
+      report_completed
     end
 
     private def requeue_job(class_name)
