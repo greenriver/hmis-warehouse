@@ -34,7 +34,19 @@ class Hmis::Form::DefinitionValidator
 
   def check_json_schema(document)
     schema_errors = Hmis::Form::Definition.validate_schema(document)
-    schema_errors.each { |msg| add_issue(msg) }
+    schema_errors.each do |e|
+      # Try to figure out which Link ID the error is on
+      item_path = /(\/item\/[0-9]){1,}/.match(e.to_s)&.try(:[], 0)&.split('/')&.
+        compact_blank&.
+        map { |s| Integer(s, exception: false) || s }
+      link_id = document.dig(*item_path, 'link_id') if item_path
+      if link_id
+        msg = "Schema error on item '#{link_id}': #{e}"
+        @issues.add(msg)
+      else
+        @issues.add(e.to_s)
+      end
+    end
   end
 
   def check_ids(document)

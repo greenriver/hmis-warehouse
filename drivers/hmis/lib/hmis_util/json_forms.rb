@@ -262,17 +262,8 @@ module HmisUtil
       # raise "hud rules wrong for #{identifier}" if changed
 
       # Validate final definition
-      begin
-        validate_definition(record.definition, record.role)
-      rescue JsonFormException => e
-        # If there was an error, _try_ to print out the exact value that failed by traversing the json path
-        match_path = /property '(.*)'/.match(e.to_s)
-        if match_path&.size == 2
-          dig_path = match_path[1].split('/').map(&:presence).compact.map { |s| Integer(s, exception: false) || s }
-          problem_item = record.definition.dig(*dig_path)
-        end
-        raise "Failed to validate #{role}/#{identifier} (item##{problem_item || 'unknown'}): #{e}"
-      end
+      errors = record.validate_json
+      raise(JsonFormException, errors.first.full_message) if errors.any?
 
       record.save!
     end
@@ -434,13 +425,6 @@ module HmisUtil
           title: role.to_s.titlecase,
         )
       end
-    end
-
-    # on_error allows customization of error handling incase we want to collect them instead of raising
-    # TODO make this not public anymore. it is only used by some one-time-migrations. OK to make private now?
-    public def validate_definition(json, role = nil)
-      issues = Hmis::Form::DefinitionValidator.perform(json, role)
-      raise(JsonFormException, issues.first.full_message) if issues.any?
     end
   end
 end
