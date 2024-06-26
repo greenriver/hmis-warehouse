@@ -21,6 +21,47 @@ module HudUtility2024
     _translate map, field, reverse
   end
 
+  def ethnicities
+    {
+      hispanic_latinaeo: 'Hispanic/Latina/e/o',
+      non_hispanic_latinaeo: 'Non-Hispanic/Latina/e/o',
+      unknown: 'Unknown (Missing, Prefers not to answer, Unknown)',
+    }.freeze
+  end
+
+  def ethnicity(field, reverse = false)
+    map = ethnicities
+
+    _translate map, field, reverse
+  end
+
+  def race_ethnicity_combinations
+    {
+      am_ind_ak_native: 'American Indian, Alaska Native, or Indigenous (only)',
+      am_ind_ak_native_hispanic_latinaeo: 'American Indian, Alaska Native, or Indigenous & Hispanic/Latina/e/o',
+      asian: 'Asian or Asian American (only)',
+      asian_hispanic_latinaeo: 'Asian or Asian American & Hispanic/Latina/e/o',
+      black_af_american: 'Black, African American, or African (only)',
+      black_af_american_hispanic_latinaeo: 'Black, African American, or African & Hispanic/Latina/e/o',
+      hispanic_latinaeo: 'Hispanic/Latina/e/o (only)',
+      mid_east_n_african: 'Middle Eastern or North African (only)',
+      mid_east_n_african_hispanic_latinaeo: 'Middle Eastern or North African & Hispanic/Latina/e/o',
+      native_hi_pacific: 'Native Hawaiian or Pacific Islander (only)',
+      native_hi_pacific_hispanic_latinaeo: 'Native Hawaiian or Pacific Islander & Hispanic/Latina/e/o',
+      white: 'White (only)',
+      white_hispanic_latinaeo: 'White & Hispanic/Latina/e/o',
+      multi_racial: 'Multi-racial (all other)',
+      multi_racial_hispanic_latinaeo: 'Multi-racial & Hispanic/Latina/e/o',
+      race_none: 'Unknown (Missing, Prefers not to answer, Unknown)',
+    }.freeze
+  end
+
+  def race_ethnicity_combination(field, reverse = false)
+    map = race_ethnicity_combinations
+
+    _translate map, field, reverse
+  end
+
   # 1.6
   def gender_none(id, reverse = false)
     race_none(id, reverse)

@@ -59,6 +59,8 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
   }
 
   createTable(data, link_base, link_params) {
+    let container = document.createElement('div')
+    container.classList.add('overflow-x-scroll')
     let table = document.createElement('table');
     table.classList.add('table', 'table-striped')
     // TODO: break table header out
@@ -91,7 +93,8 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
       tableBody.appendChild(row);
     });
     table.appendChild(tableBody);
-    return table;
+    container.appendChild(table)
+    return container;
   }
 
   enableLoader() {

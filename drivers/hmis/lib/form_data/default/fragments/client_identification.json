@@ -1,6 +1,5 @@
 {
   "type": "GROUP",
-  "required": false,
   "text": "Identification",
   "link_id": "identification",
   "item": [

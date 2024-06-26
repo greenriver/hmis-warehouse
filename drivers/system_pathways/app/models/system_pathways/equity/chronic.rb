@@ -12,10 +12,10 @@ module SystemPathways::Equity::Chronic
       chart: 'chronic_at_entry',
       config: {
         size: {
-          height: 800,
+          height: node_names.count * 30,
         },
       },
-      data: chronic_at_entry_data,
+      data: chronic_at_entry_data.merge(stack: { normalize: true }),
       table: as_table(chronic_at_entry_counts, ['Project Type'] + chronic_at_entries.values),
       # array for rows and array for columns to indicate which link params
       # should be attached for each

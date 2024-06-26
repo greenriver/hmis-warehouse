@@ -1398,7 +1398,7 @@ module HmisDataQualityTool
         },
         cash_income_as_expected_at_entry: {
           title: 'Cash Income Matches Expected Value at Entry',
-          description: 'Cash Income from any source at entry is yes, but no cash income sources are identified, or cash income form any source is no, but cash income sources are identified, or cash income information is missing.',
+          description: 'Cash Income from any source at entry is yes, but no cash income sources are identified, or cash income from any source is no, but cash income sources are identified, or cash income information is missing.',
           required_for: 'Adults and HoH',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
@@ -1414,7 +1414,7 @@ module HmisDataQualityTool
         },
         cash_income_as_expected_at_annual: {
           title: 'Cash Income Matches Expected Value at Annual Assessment',
-          description: 'Cash Income from any source at annual assessment is yes, but no cash income sources are identified, or cash income form any source is no, but cash income sources are identified, or cash income information is missing.',
+          description: 'Cash Income from any source at annual assessment is yes, but no cash income sources are identified, or cash income from any source is no, but cash income sources are identified, or cash income information is missing.',
           required_for: 'Adults and HoH staying longer than 1 year',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
@@ -1430,7 +1430,7 @@ module HmisDataQualityTool
         },
         cash_income_as_expected_at_exit: {
           title: 'Cash Income Matches Expected Value at Exit',
-          description: 'Cash Income from any source at exit is yes, but no cash income sources are identified, or cash income form any source is no, but cash income sources are identified, or cash income information is missing.',
+          description: 'Cash Income from any source at exit is yes, but no cash income sources are identified, or cash income from any source is no, but cash income sources are identified, or cash income information is missing.',
           required_for: 'Adults and HoH exiting during report range',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
@@ -1446,7 +1446,7 @@ module HmisDataQualityTool
         },
         ncb_as_expected_at_entry: {
           title: 'Non-Cash Benefits Matches Expected Value at Entry',
-          description: 'Non-cash benefits from any source at entry is yes, but no Non-cash benefit sources are identified, or Non-cash benefit form any source is no, but Non-cash benefit sources are identified, or Non-cash benefit information is missing.',
+          description: 'Non-cash benefits from any source at entry is yes, but no Non-cash benefit sources are identified, or Non-cash benefit from any source is no, but Non-cash benefit sources are identified, or Non-cash benefit information is missing.',
           required_for: 'Adults and HoH',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
@@ -1462,7 +1462,7 @@ module HmisDataQualityTool
         },
         ncb_as_expected_at_annual: {
           title: 'Non-Cash Benefits Matches Expected Value at Annual Assessment',
-          description: 'Non-cash benefits from any source at annual assessment is yes, but no Non-cash benefit sources are identified, or Non-cash benefit form any source is no, but Non-cash benefit sources are identified, or Non-cash benefit information is missing.',
+          description: 'Non-cash benefits from any source at annual assessment is yes, but no Non-cash benefit sources are identified, or Non-cash benefit from any source is no, but Non-cash benefit sources are identified, or Non-cash benefit information is missing.',
           required_for: 'Adults and HoH staying longer than 1 year',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
@@ -1478,7 +1478,7 @@ module HmisDataQualityTool
         },
         ncb_as_expected_at_exit: {
           title: 'Non-Cash Benefits Matches Expected Value at Exit',
-          description: 'Non-cash benefits from any source at exit is yes, but no Non-cash benefit sources are identified, or Non-cash benefit form any source is no, but Non-cash benefit sources are identified, or Non-cash benefit information is missing.',
+          description: 'Non-cash benefits from any source at exit is yes, but no Non-cash benefit sources are identified, or Non-cash benefit from any source is no, but Non-cash benefit sources are identified, or Non-cash benefit information is missing.',
           required_for: 'Adults and HoH exiting during report range',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
@@ -1494,7 +1494,7 @@ module HmisDataQualityTool
         },
         insurance_as_expected_at_entry: {
           title: 'Insurance Matches Expected Value at Entry',
-          description: 'Insurance from any source at entry is yes, but no insurance sources are identified, or insurance form any source is no, but insurance sources are identified, or insurance information is missing.',
+          description: 'Insurance from any source at entry is yes, but no insurance sources are identified, or insurance from any source is no, but insurance sources are identified, or insurance information is missing.',
           required_for: 'All',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
@@ -1510,7 +1510,7 @@ module HmisDataQualityTool
         },
         insurance_as_expected_at_annual: {
           title: 'Insurance Matches Expected Value at Annual Assessment',
-          description: 'Insurance from any source at annual assessment is yes, but no insurance sources are identified, or insurance form any source is no, but insurance sources are identified, or insurance information is missing.',
+          description: 'Insurance from any source at annual assessment is yes, but no insurance sources are identified, or insurance from any source is no, but insurance sources are identified, or insurance information is missing.',
           required_for: 'All staying longer than 1 year',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
@@ -1526,7 +1526,7 @@ module HmisDataQualityTool
         },
         insurance_as_expected_at_exit: {
           title: 'Insurance Matches Expected Value at Exit',
-          description: 'Insurance from any source at exit is yes, but no insurance sources are identified, or insurance form any source is no, but insurance sources are identified, or insurance information is missing.',
+          description: 'Insurance from any source at exit is yes, but no insurance sources are identified, or insurance from any source is no, but insurance sources are identified, or insurance information is missing.',
           required_for: 'All exiting during report range',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
