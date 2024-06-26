@@ -188,6 +188,25 @@ enum AnnualPercentAMI {
 }
 
 """
+Applicable project for a form, including information about which clients in this project the form is applicable to.
+"""
+type ApplicableProject {
+  id: ID!
+  organizationName: String!
+  projectName: String!
+}
+
+type ApplicableProjectsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ApplicableProject!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+"""
 User account for a user of the system
 """
 type ApplicationUser {
@@ -3948,6 +3967,7 @@ type FilesPaginated {
 FormDefinition
 """
 type FormDefinition {
+  applicableProjects(limit: Int, offset: Int): ApplicableProjectsPaginated!
   cacheKey: ID!
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
