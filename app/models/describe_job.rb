@@ -4,10 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# TODO: Maybe move other items from DelayedJob initializer code into here?
 class DescribeJob < OpenStruct
   attr_reader :job
   def initialize(job)
     @job = job
+  end
+
+  def self.queue_status
+    Delayed::Job.where(failed_at: nil).group(:queue).count.transform_keys { |k| k&.humanize }
   end
 
   def job_name

@@ -5,7 +5,7 @@
     .dj-status__queue
       Running:
       %strong= Delayed::Job.where(failed_at: nil).where.not(locked_at: nil).count
-    - Delayed::Job.queue_status.each do |queue_name, count|
+    - DescribeJob.queue_status.each do |queue_name, count|
       .dj-status__queue
         #{queue_name}:
         %strong= count

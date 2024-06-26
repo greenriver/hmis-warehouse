@@ -15,7 +15,7 @@ module Reporting::Hud
       # Occassionally people delete the report before it actually runs
       return unless report.present?
 
-      # puts "LOCK: #{advisory_lock_name(report.report_name)} exists? #{HudReports::ReportInstance.advisory_lock_exists?(advisory_lock_name(report.report_name))}"
+      puts "LOCK: #{advisory_lock_name(report.report_name)} exists? #{HudReports::ReportInstance.advisory_lock_exists?(advisory_lock_name(report.report_name))} ID: #{report_id}"
       lock_obtained = HudReports::ReportInstance.with_advisory_lock(advisory_lock_name(report.report_name), timeout_seconds: 0) do
         raise "Unknown HUD Report class: #{class_name}" unless Rails.application.config.hud_reports[class_name].present?
 
