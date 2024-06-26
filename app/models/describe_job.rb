@@ -16,9 +16,11 @@ class DescribeJob < OpenStruct
 
   def user_id
     @user_id ||= begin
-      user_id = if payload.respond_to?(:job_data) && payload.job_data.try(:[], 'arguments').try(:first).is_a?(Hash)
+      user_id = if job_name.starts_with?('BackgroundRender::')
+        arguments.last['user_id']
+      elsif arguments.try(:first).is_a?(Hash)
         # This should handle `WarehouseReports::GenericReportJob`
-        payload.job_data['arguments'].first.try(:[], 'user_id')
+        arguments.first.try(:[], 'user_id')
       elsif job_name == 'Reporting::Hud::RunReportJob'
         hud_report_instance&.user_id
       end
@@ -45,6 +47,13 @@ class DescribeJob < OpenStruct
     hud_report_instance&.created_at
   end
 
+  def report_id
+    @report_id ||= arguments.try(:[], 'report_id') if arguments.is_a?(Hash)
+    @report_id ||= arguments.first.try(:[], 'report_id')
+    @report_id ||= arguments&.last if arguments&.last.is_a?(Integer)
+    @report_id
+  end
+
   def payload
     @payload ||= job.payload_object
   end
@@ -52,7 +61,9 @@ class DescribeJob < OpenStruct
   def job_class
     return nil unless arguments
 
-    if arguments.is_a?(Hash)
+    @job_class ||= if job_name.starts_with?('BackgroundRender::')
+      job_name
+    elsif arguments.is_a?(Hash)
       arguments.try(:[], 'report_class')
     else
       return arguments.first if arguments.first.is_a?(String)

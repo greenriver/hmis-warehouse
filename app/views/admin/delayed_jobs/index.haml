@@ -3,9 +3,9 @@
 %h1= content_for(:title)
 = render partial: 'menus/admin_tabs'
 
-- if @jobs.any?
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'report'
   - users = User.active.map { |u| [u.id, u.name_with_email] }.to_h
-  %p Showing #{pluralize(@jobs.count, 'job')}
   .card.table-responsive
     %table.table.table-striped.mb-0
       %thead
@@ -20,23 +20,33 @@
           - describe = DescribeJob.new(job)
           %tr
             %td
-              %strong= job.id
+              %strong Job ID:
+              = job.id
               %br
+              %strong Job Name:
               = describe.job_name
-              - user_id = describe.user_id
-              - if user_id
-                %br
-                %strong Run by user:
-                = users[user_id] || user_id
 
-              - detail = describe.job_class
-              - if detail
+              - if describe.user_id
                 %br
-                = detail
+                %strong Run by User:
+                = users[describe.user_id] || describe.user_id
+
+              - if describe.job_class
+                %br
+                %strong Job Item:
+                = describe.job_class
+                -# only useful if we have a job class
+                - if describe.report_id
+                  %br
+                  %strong Report ID:
+                  = describe.report_id
+
                 - if describe.created_at
-                  Requested: #{describe.created_at}
+                  %br
+                  %strong Item Originally Requested:
+                  = describe.created_at
               %br
-              %strong Run after:
+              %strong Run After:
               = job.run_at
               - if job.locked_by
                 %br
@@ -63,6 +73,6 @@
               = link_to admin_delayed_job_path(job), method: :delete, class: 'btn btn-sm btn-danger', data: { confirm: 'Are you sure you want to DELETE this job?, there is no going back.'} do
                 %i.icon-cross
                 Delete
-
+  = render 'common/pagination_bottom', item_name: 'report'
 - else
   %p No current jobs.
