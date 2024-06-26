@@ -14,7 +14,8 @@ module Mutations
       raise 'not allowed' unless current_user.can_manage_forms?
 
       attrs = input.to_attributes
-      attrs[:definition] = attrs[:definition] || { item: [{ link_id: 'name', type: 'STRING' }] }
+      # TODO(#6277) support starting off with an empty definition
+      attrs[:definition] = attrs[:definition] || { item: [{ link_id: 'name', type: 'STRING', text: 'Question Item' }] }
 
       definition = Hmis::Form::Definition.new(
         version: 0,
