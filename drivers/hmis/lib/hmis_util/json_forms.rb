@@ -243,20 +243,9 @@ module HmisUtil
 
       # Resolve all fragments, so we have a full definition
       resolve_all_fragments!(form_definition)
+
       # Apply any client-specific patches
       apply_all_patches!(form_definition, identifier: identifier)
-      # Validate final definition
-      begin
-        validate_definition(form_definition, role)
-      rescue JsonFormException => e
-        # If there was an error, _try_ to print out the exact value that failed by traversing the json path
-        match_path = /property '(.*)'/.match(e.to_s)
-        if match_path&.size == 2
-          dig_path = match_path[1].split('/').map(&:presence).compact.map { |s| Integer(s, exception: false) || s }
-          problem_item = form_definition.dig(*dig_path)
-        end
-        raise "Failed to validate #{role}/#{identifier} (item##{problem_item || 'unknown'}): #{e}"
-      end
 
       # Create or update definition
       record = Hmis::Form::Definition.where(
@@ -267,6 +256,24 @@ module HmisUtil
       record.definition = form_definition
       record.title = title if title.present?
       record.status = Hmis::Form::Definition::PUBLISHED
+
+      # Ensure HUD rules are set
+      # changed = record.set_hud_requirements
+      # raise "hud rules wrong for #{identifier}" if changed
+
+      # Validate final definition
+      begin
+        validate_definition(record.definition, record.role)
+      rescue JsonFormException => e
+        # If there was an error, _try_ to print out the exact value that failed by traversing the json path
+        match_path = /property '(.*)'/.match(e.to_s)
+        if match_path&.size == 2
+          dig_path = match_path[1].split('/').map(&:presence).compact.map { |s| Integer(s, exception: false) || s }
+          problem_item = record.definition.dig(*dig_path)
+        end
+        raise "Failed to validate #{role}/#{identifier} (item##{problem_item || 'unknown'}): #{e}"
+      end
+
       record.save!
     end
 
@@ -430,38 +437,10 @@ module HmisUtil
     end
 
     # on_error allows customization of error handling incase we want to collect them instead of raising
+    # TODO make this not public anymore. it is only used by some one-time-migrations. OK to make private now?
     public def validate_definition(json, role = nil)
-      on_error = ->(err) { block_given? ? yield(err) : raise(JsonFormException, err) }
-      Hmis::Form::Definition.validate_json(json, valid_pick_lists: valid_pick_lists, &on_error)
-      schema_errors = Hmis::Form::Definition.validate_schema(json)
-      return unless schema_errors.present?
-
-      schema_errors.each { |err| on_error.call(err) }
-      pp schema_errors
-      if role
-        on_error.call("schema invalid for role: #{role}")
-      else
-        on_error.call('schema invalid')
-      end
-    end
-
-    def valid_pick_lists
-      @valid_pick_lists ||= begin
-        enums = []
-        collect_enums = ->(parent) {
-          parent.constants.each do |name|
-            child = parent.const_get(name)
-            if child.is_a? Class
-              enums << child.graphql_name if child < Types::BaseEnum
-            elsif child.is_a? Module
-              collect_enums.call(child)
-            end
-          end
-        }
-        collect_enums.call(Types::HmisSchema::Enums)
-        collect_enums.call(Types::Forms::Enums)
-        enums + Types::Forms::Enums::PickListType.values.keys
-      end
+      issues = Hmis::Form::DefinitionValidator.perform(json, role)
+      raise(JsonFormException, issues.first.full_message) if issues.any?
     end
   end
 end

@@ -10,23 +10,34 @@ class Hmis::Form::DefinitionValidator
   end
 
   # @param [Hash] document is a form definition document {'item' => [{...}] }
-  # @param [Hash] valid_pick_lists validate that pick list references are in this set
-  def perform(document, valid_pick_lists: [])
-    @issues = []
-    all_ids = check_ids(document, valid_pick_lists.to_set)
+  def perform(document, role)
+    @issues = HmisErrors::Errors.new
+
+    # Validate JSON shape against JSON Schema
+    check_json_schema(document)
+    # Check Link IDs
+    all_ids = check_ids(document)
+    # Check references
     check_references(document, all_ids)
-    # we have cyclic dependencies and they seem to be supported by the front-end
-    # check_cycles(dependencies)
-    @issues
+    # Check HUD requirements
+    check_hud_requirements(all_ids, role)
+
+    @issues.errors
   end
 
   protected
 
   def add_issue(msg)
-    @issues.push(msg)
+    # TODO: resolve more details (e.g. link id as attribute, group as section, real severity level)
+    @issues.add(:definition, full_message: msg, severity: :error)
   end
 
-  def check_ids(document, valid_pick_lists)
+  def check_json_schema(document)
+    schema_errors = Hmis::Form::Definition.validate_schema(document)
+    schema_errors.each { |msg| add_issue(msg) }
+  end
+
+  def check_ids(document)
     seen_link_ids = Set.new
 
     recur_check = lambda do |item|
@@ -38,7 +49,7 @@ class Hmis::Form::DefinitionValidator
         seen_link_ids.add(link_id)
 
         # Ensure pick list reference is valid
-        add_issue("Invalid pick list for Link ID #{link_id}: #{child_item['pick_list_reference']}") if child_item['pick_list_reference'] && valid_pick_lists.exclude?(child_item['pick_list_reference'])
+        add_issue("Invalid pick list for Link ID #{link_id}: #{child_item['pick_list_reference']}") if child_item['pick_list_reference'] && allowed_pick_list_references.exclude?(child_item['pick_list_reference'])
 
         recur_check.call(child_item)
       end
@@ -77,5 +88,44 @@ class Hmis::Form::DefinitionValidator
       end
     end
     link_check.call(document)
+  end
+
+  # Fail if there are link_ids that are required for this role that aren't present in the form,
+  # For example if Destination missing on the Exit Assessment
+  def check_hud_requirements(all_ids, role)
+    # rule_module = HmisUtil::HudAssessmentFormRules2024.new
+
+    # required_link_ids = rule_module.required_link_ids_for_role(role)
+    # return unless required_link_ids.any?
+
+    # missing_link_ids = required_link_ids - all_ids
+    # add_issue("Missing required link IDs for role #{role}: #{missing_link_ids}") if missing_link_ids.any?
+  end
+
+  # Introspect on GraphQL schema to get a superset of allowed values for `pick_list_reference`.
+  # This list includes ALL enums in the HUD schema, so it includes some enums
+  # that don't make sense as pick lists.
+  def allowed_pick_list_references
+    @allowed_pick_list_references ||= begin
+      enums = []
+      collect_enums = ->(parent) {
+        parent.constants.each do |name|
+          child = parent.const_get(name)
+          if child.is_a? Class
+            enums << child.graphql_name if child < Types::BaseEnum
+          elsif child.is_a? Module
+            collect_enums.call(child)
+          end
+        end
+      }
+
+      # Include all enums in Types::HmisSchema::Enums namespace
+      collect_enums.call(Types::HmisSchema::Enums)
+      # Include all enums in Types::Forms::Enums namespace
+      collect_enums.call(Types::Forms::Enums)
+      # Include all pick list types
+      enums += Types::Forms::Enums::PickListType.values.keys
+      enums.to_set
+    end
   end
 end

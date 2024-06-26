@@ -16,22 +16,17 @@ module Mutations
       attrs = input.to_attributes
       attrs[:definition] = attrs[:definition] || { item: [{ link_id: 'name', type: 'STRING' }] }
 
-      errors = HmisErrors::Errors.new
-      ::HmisUtil::JsonForms.new.tap do |builder|
-        builder.validate_definition(attrs[:definition]) { |err| errors.add(:definition, message: err) }
-      end
+      definition = Hmis::Form::Definition.new(
+        version: 0,
+        status: Hmis::Form::Definition::DRAFT,
+        **attrs,
+      )
 
-      return { errors: errors } if errors.present?
+      validation_errors = definition.validate_json
+      return { errors: validation_errors } if validation_errors.any?
 
-      definition = Hmis::Form::Definition.create!(version: 0, status: Hmis::Form::Definition::DRAFT, **attrs)
-
-      if definition.valid?
-        definition.save!
-        { form_definition: definition }
-      else
-        errors.add_ar_errors(definition.errors)
-        { errors: errors }
-      end
+      definition.save!
+      { form_definition: definition }
     end
   end
 end

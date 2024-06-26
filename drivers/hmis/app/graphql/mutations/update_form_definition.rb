@@ -30,13 +30,9 @@ module Mutations
       # to be transformed, but calling recursively_transform on it is not harmful either.
       definition.definition = recursively_transform(JSON.parse(input.definition)) if input.definition
 
-      errors = HmisErrors::Errors.new
-      ::HmisUtil::JsonForms.new.tap do |builder|
-        builder.validate_definition(definition.definition) { |err| errors.add(:definition, message: err) }
-      end
-
       # Return user-facing validation errors for the form content
-      return { errors: errors } if errors.present?
+      validation_errors = definition.validate_json
+      return { errors: validation_errors } if validation_errors.any?
 
       # Raise if the definition is not valid (invalid role/status/identifier; not expected)
       raise "Definition invalid: #{definition.errors.full_messages}" unless definition.valid?

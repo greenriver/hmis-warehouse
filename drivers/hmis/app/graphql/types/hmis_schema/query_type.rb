@@ -241,9 +241,7 @@ module Types
     def parsed_form_definition(input:)
       json = JSON.parse(input)
       errors = []
-      ::HmisUtil::JsonForms.new.tap do |builder|
-        builder.validate_definition(json) { |err| errors << err }
-      end
+      Hmis::Form::Definition.validate_schema(json) { |err| errors << err }
 
       return { errors: errors, definition: nil } if errors.present?
 

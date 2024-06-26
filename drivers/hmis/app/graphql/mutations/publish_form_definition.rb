@@ -24,6 +24,9 @@ module Mutations
 
       definition.status = Hmis::Form::Definition::PUBLISHED
 
+      validation_errors = definition.validate_json
+      return { errors: validation_errors } if validation_errors.any?
+
       Hmis::Form::Definition.transaction do
         previous_published_form&.update!(status: Hmis::Form::Definition::RETIRED)
         definition.save!
