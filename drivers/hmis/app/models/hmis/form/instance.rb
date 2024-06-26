@@ -88,9 +88,8 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     end
   end
 
-  def applicable_project_ids
-    # todo @martha - debug, is this working correctly
-    Hmis::Hud::Project.all.map { |project| project.id if project_match(project) }.compact
+  def applicable_project_matches
+    Hmis::Hud::Project.all.map { |project| project_match(project) }.compact
   end
 
   def self.apply_filters(input)
