@@ -98,6 +98,7 @@ module Mutations
       while Hmis::Hud::CustomDataElementDefinition.exists?(owner_type: owner_type, key: possible_key)
         count += 1
         possible_key = "#{key}_#{count}"
+        raise if count > 50 # Prevent infinite loop
       end
       possible_key
     end
