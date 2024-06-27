@@ -26,6 +26,12 @@
           "variable": "projectType",
           "operator": "EQUAL",
           "value": 1
+        },
+        {
+          "_comment": "Exception for a HUD CoC-funded SSO project that wants to collect",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "1174"
         }
       ]
     }
@@ -44,6 +50,12 @@
           "variable": "projectFunders",
           "operator": "INCLUDE",
           "value": 34
+        },
+        {
+          "_comment": "Exception for a HUD CoC-funded SSO project that wants to collect",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "1174"
         }
       ]
     }
@@ -62,6 +74,12 @@
           "variable": "projectFunders",
           "operator": "INCLUDE",
           "value": 34
+        },
+        {
+          "_comment": "Exception for a HUD CoC-funded SSO project that wants to collect",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "1174"
         }
       ]
     }
@@ -80,6 +98,12 @@
           "variable": "projectFunders",
           "operator": "INCLUDE",
           "value": 34
+        },
+        {
+          "_comment": "Exception for a HUD CoC-funded SSO project that wants to collect",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "1174"
         }
       ]
     }
@@ -98,6 +122,12 @@
           "variable": "projectFunders",
           "operator": "INCLUDE",
           "value": 34
+        },
+        {
+          "_comment": "Exception for a HUD CoC-funded SSO project that wants to collect",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "1174"
         }
       ]
     }
@@ -116,6 +146,12 @@
           "variable": "projectFunders",
           "operator": "INCLUDE",
           "value": 34
+        },
+        {
+          "_comment": "Exception for a HUD CoC-funded SSO project that wants to collect",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "1174"
         }
       ]
     }
