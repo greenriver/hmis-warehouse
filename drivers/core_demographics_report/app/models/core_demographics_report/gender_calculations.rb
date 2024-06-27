@@ -36,9 +36,10 @@ module
     end
 
     def gender_age_count(gender:, age_range:, coc_code: base_count_sym)
-      age_range.to_a.map do |age|
-        mask_small_population(gender_age_breakdowns(coc_code)[[gender_column_to_numeric(gender), age]]&.count&.presence || 0)
+      population_count = age_range.to_a.map do |age|
+        gender_age_breakdowns(coc_code)[[gender_column_to_numeric(gender), age]]&.count&.presence || 0
       end.sum
+      mask_small_population(population_count)
     end
 
     def gender_age_percentage(gender:, age_range:, coc_code: base_count_sym)
@@ -151,8 +152,12 @@ module
             each do |row|
               client_id, age, _, *gender_values = row
               client = genders.keys.zip(gender_values).to_h
+              # HudUtility2024.gender_id_to_field_name includes multiple :GenderNone records. We are mapping
+              # all of these to the id "8" so they all will be included in the Unknown Gender counts.
+              gender = GrdaWarehouse::Hud::Client.gender_binary(client).presence || 8
+              gender = 8 if gender.in?([9, 99])
               clients[base_count_sym][client_id] ||= {
-                gender: GrdaWarehouse::Hud::Client.gender_binary(client).presence || 99,
+                gender: gender,
                 age: age,
               }
             end
@@ -163,8 +168,12 @@ module
               each do |row|
                 client_id, age, _, *gender_values = row
                 client = genders.keys.zip(gender_values).to_h
+                # HudUtility2024.gender_id_to_field_name includes multiple :GenderNone records. We are mapping
+                # all of these to the id "8" so they all will be included in the Unknown Gender counts.
+                gender = GrdaWarehouse::Hud::Client.gender_binary(client).presence || 8
+                gender = 8 if gender.in?([9, 99])
                 clients[coc_code.to_sym][client_id] ||= {
-                  gender: GrdaWarehouse::Hud::Client.gender_binary(client).presence || 99,
+                  gender: gender,
                   age: age,
                 }
               end
