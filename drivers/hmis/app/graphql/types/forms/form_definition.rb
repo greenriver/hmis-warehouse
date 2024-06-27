@@ -56,8 +56,7 @@ module Types
       # - Intake form A has a rule that specifies that it's used for all projects
       # - Intake form B has a rule that specifies that it's used for all Emergency Shelter projects
       # - Intake form C has a rule that specifies that it's used for Project X, an ES project
-      # ...then form A would still return a match for Project X.
-      # is out of
+      # ...then forms A and B would still return a match for Project X.
       object.instances.
         active.
         map(&:project_matches).
