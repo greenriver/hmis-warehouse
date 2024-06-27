@@ -159,8 +159,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1 }
 
     let!(:form) { create :hmis_form_definition, identifier: 'form-def' }
-    let!(:all_clients) { create :hmis_form_instance, definition_identifier: 'form-def', entity: o1, active: true, data_collected_about: 'ALL_CLIENTS' }
-    let!(:hoh_and_adults) { create :hmis_form_instance, definition_identifier: 'form-def', entity: p1, active: true, data_collected_about: 'HOH_AND_ADULTS' }
+    let!(:all_clients) { create :hmis_form_instance, definition: form, entity: o1, active: true, data_collected_about: 'ALL_CLIENTS' }
+    let!(:hoh_and_adults) { create :hmis_form_instance, definition: form, entity: p1, active: true, data_collected_about: 'HOH_AND_ADULTS' }
 
     it 'should return one match per project' do
       response, result = post_graphql(id: form.id) { query }
