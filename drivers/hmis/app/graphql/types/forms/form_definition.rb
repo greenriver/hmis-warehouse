@@ -60,13 +60,8 @@ module Types
       # - Intake form C has a rule that specifies that it's used for Project X, an ES project
       # ...then forms A and B would still return a match for Project X.
 
+      # Fetching all projects is slow, so here we do it only once and pass the scope to project_matches below.
       instance_scope = object.instances.active
-
-      # Fetching all projects is slow, so do it only once and pass the scope to project_matches below.
-      project_scope = Hmis::Hud::Project.hmis.preload(:organization)
-
-      # Preload funders only if any of these rules are funder-based (micro-optimizing)
-      project_scope = project_scope.preload(:funders) if instance_scope.find { |inst| inst.funder.present? }
 
       # If there is a default, then all projects are fair game.
       unless instance_scope.defaults.exists?
@@ -87,6 +82,10 @@ module Types
               or(matches_any_org),
           )
       end
+
+      # Preload organization, and funders only if any of these rules are funder-based (micro-optimizing)
+      project_scope = Hmis::Hud::Project.hmis.preload(:organization)
+      project_scope = project_scope.preload(:funders) if instance_scope.find { |inst| inst.funder.present? }
 
       # Despite all the scope refinement, we still need this second pass with the InstanceProjectMatch,
       # to express the full logic (e.g. "funder AND project type" match), and to get the matches sorted by rank.
