@@ -66,13 +66,11 @@ module Types
       project_scope = Hmis::Hud::Project.hmis.preload(:organization)
 
       # Preload funders only if any of these rules are funder-based (micro-optimizing)
-      project_scope = project_scope.preload(:funders) if instance_scope.where.not(funder: nil).exists?
+      project_scope = project_scope.preload(:funders) if instance_scope.find { |inst| inst.funder.present? }
 
-      # Further refine project_scope down to only projects that could be matched by any of the instances
-
+      # If there is a default, then all projects are fair game.
       unless instance_scope.defaults.exists?
-        # If there is a default, then all projects are fair game.
-        # Otherwise, glom together all the projects that might match any of the rules.
+        # Otherwise, further refine project_scope down to only projects that could be matched by any of the instances
 
         matches_any_project = p_t[:id].in(instance_scope.select { |inst| inst.entity_type == 'Hmis::Hud::Project' }.map(&:entity_id))
         matches_any_org = o_t[:id].in(instance_scope.select { |inst| inst.entity_type == 'Hmis::Hud::Organization' }.map(&:entity_id))

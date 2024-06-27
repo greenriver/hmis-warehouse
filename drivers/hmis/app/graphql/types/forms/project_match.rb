@@ -28,7 +28,7 @@ module Types
     end
 
     def data_collected_about
-      object.instance.data_collected_about
+      object.instance.data_collected_about || 'ALL_CLIENTS'
     end
   end
 end
