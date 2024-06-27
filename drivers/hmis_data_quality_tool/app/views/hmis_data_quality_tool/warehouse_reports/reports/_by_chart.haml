@@ -1,10 +1,5 @@
 
 
-.ppj_test
-  - @per_page_js.each do |js_file|
-    .temp
-      = "#{Rails.application.assets.find_asset(js_file, base_path: Rails.application.root.to_s)}"
-    inline_javascript_include_tag js_file
 %br
 .display_error 
   Error Content Here
