@@ -1,6 +1,5 @@
-
-
 %br
+= debug @pdf
 .display_error 
   Error Content Here
 = content_for :page_js do
@@ -9,8 +8,43 @@
     window.onerror = function(e){
       $('.display_error').html(e.toString());
     }
+:ruby
+  js_content = ['hmis_dq_tool_chart','hmis_dq_tool_completeness','hmis_dq_tool_time_to_enter','hmis_dq_tool_time_in_enrollment'].collect do |source|
+    IO.read(AssetHelper.asset_pathname(source))
+  end.join("\n").html_safe
 = render 'chart_targets'
 = render 'client_completeness'
 = render 'enrollment_completeness'
 = render 'timeliness'
 = render 'time_in_enrollment'
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      #{js_content}
+      var completeness_clients = new globalThis.HmisDqToolCompleteness(
+        #{@report.completeness('Clients').to_json.html_safe},
+        '.completeness-chart-clients',
+        );
+      completeness_clients.build_chart();
+
+      var completeness_enrollments = new globalThis.HmisDqToolCompleteness(
+        #{@report.completeness('Enrollments').to_json.html_safe},
+        '.completeness-chart-enrollments',
+        );
+      completeness_enrollments.build_chart();
+      
+      var time_to_enter = new globalThis.HmisDqToolTimeToEnter(
+        #{@report.average_time_to_enter_date(:entry).to_json.html_safe},
+        '.time-to-enter-chart',
+        );
+      time_to_enter.build_chart();
+
+      var time_to_exit = new globalThis.HmisDqToolTimeToEnter(
+        #{@report.average_time_to_enter_date(:exit).to_json.html_safe},
+        '.time-to-exit-chart',
+        );
+      time_to_exit.build_chart();
+      
+      var time_in_program = new globalThis.HmisDqToolTimeInEnrollment(#{@report.time_in_enrollment_chart.to_json.html_safe}, '.time-in-program-chart');
+      time_in_program.build_chart();
+    });

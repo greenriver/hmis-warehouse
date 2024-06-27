@@ -2,6 +2,5 @@
 .well.report-listing.warehouse-reports__completed.mb-0
   .d-flex
     = @report.describe_filter_as_html(@report.known_params)
-- @per_page_js.each do |js_file|
-  = inline_javascript_include_tag js_file
+= debug @pdf
 = render 'by_chart'

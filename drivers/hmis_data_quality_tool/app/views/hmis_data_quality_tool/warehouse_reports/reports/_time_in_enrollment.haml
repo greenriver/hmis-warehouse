@@ -27,7 +27,4 @@
 = content_for :page_js do
   :javascript
     $(document).ready(function() {
-      'use strict';
-      var time_in_program = new globalThis.HmisDqToolTimeInEnrollment(#{@report.time_in_enrollment_chart.to_json.html_safe}, '.time-in-program-chart');
-      time_in_program.build_chart();
     });
