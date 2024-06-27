@@ -139,15 +139,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'Form definition project matches' do
     let(:query) do
       <<~GRAPHQL
-        query GetFormProjectMatches($id: ID!) {
+        query GetFormProjectMatches($id: ID!, $limit: Int = 25, $offset: Int = 0) {
            formDefinition(id: $id) {
             id
             cacheKey
-            projectMatches {
-              id
-              projectName
-              organizationName
-              dataCollectedAbout
+            projectMatches(limit: $limit, offset: $offset) {
+              nodes {
+                id
+                projectName
+                organizationName
+                dataCollectedAbout
+              }
             }
           }
         }
@@ -168,7 +170,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'should return the most specific match per project' do
         response, result = post_graphql(id: form.id) { query }
         expect(response.status).to eq(200), result.inspect
-        matches = result.dig('data', 'formDefinition', 'projectMatches')
+        matches = result.dig('data', 'formDefinition', 'projectMatches', 'nodes')
         expect(matches.size).to eq(2)
         expect(matches).to contain_exactly(
           a_hash_including('projectName' => p1.name, 'dataCollectedAbout' => 'HOH_AND_ADULTS'),
@@ -196,7 +198,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'should return the project with this funder' do
         response, result = post_graphql(id: form2.id) { query }
         expect(response.status).to eq(200), result.inspect
-        matches = result.dig('data', 'formDefinition', 'projectMatches')
+        matches = result.dig('data', 'formDefinition', 'projectMatches', 'nodes')
         expect(matches.size).to eq(1)
         expect(matches).to contain_exactly(
           a_hash_including('projectName' => p3.name),
@@ -212,7 +214,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'should return the project with this funder' do
         response, result = post_graphql(id: form3.id) { query }
         expect(response.status).to eq(200), result.inspect
-        matches = result.dig('data', 'formDefinition', 'projectMatches')
+        matches = result.dig('data', 'formDefinition', 'projectMatches', 'nodes')
         expect(matches.size).to eq(1)
         expect(matches).to contain_exactly(
           a_hash_including('projectName' => p4.name),
