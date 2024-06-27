@@ -23,7 +23,7 @@ class Hmis::Form::DefinitionValidator
     # Check HUD requirements
     check_hud_requirements(all_ids, role)
 
-    @issues
+    @issues.errors
   end
 
   protected
@@ -115,7 +115,7 @@ class Hmis::Form::DefinitionValidator
     return unless required_link_ids.any?
 
     missing_link_ids = required_link_ids - all_ids
-    add_issue("Missing required link IDs for role #{role}: #{missing_link_ids}") if missing_link_ids.any?
+    add_issue("Missing required link IDs for role #{role}: #{missing_link_ids.join(', ')}") if missing_link_ids.any?
   end
 
   # Introspect on GraphQL schema to get a superset of allowed values for `pick_list_reference`.

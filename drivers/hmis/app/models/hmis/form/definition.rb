@@ -507,28 +507,30 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     super(value.blank? ? nil : value.strip)
   end
 
-  def walk_definition_nodes(&block)
-    definition_struct&.item&.each do |node|
-      walk_definition_node(node, &block)
+  # Walk definition items either as open structs or hashes
+  def walk_definition_nodes(as_open_struct: false, &block)
+    if as_open_struct
+      # yields each Item as an OpenStruct (easy access for read-only operations)
+      definition_struct&.item&.each do |node|
+        walk_definition_node_as_open_struct(node, &block)
+      end
+    else
+      # yields each Item as a Hash (for mutating the items)
+      definition.dig('item').each do |node|
+        walk_definition_node_as_hash(node, &block)
+      end
     end
   end
 
-  # Walk definition items as hashes
-  def walk_definition_items(&block)
-    definition.dig('item').each do |node|
-      walk_definition_item(node, &block)
-    end
-  end
-
-  protected def walk_definition_node(node, &block)
+  protected def walk_definition_node_as_open_struct(node, &block)
     # if item has children, recur into them first
-    node.item&.each { |child| walk_definition_node(child, &block) }
+    node.item&.each { |child| walk_definition_node_as_open_struct(child, &block) }
     block.call(node)
   end
 
-  protected def walk_definition_item(node, &block)
+  protected def walk_definition_node_as_hash(node, &block)
     # if item has children, recur into them first
-    node['item']&.each { |child| walk_definition_item(child, &block) }
+    node['item']&.each { |child| walk_definition_node_as_hash(child, &block) }
     block.call(node)
   end
 
@@ -548,7 +550,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     cdeds_by_key = cded_scope.index_by(&:key)
 
     cded_records = []
-    walk_definition_nodes do |item|
+    walk_definition_nodes(as_open_struct: true) do |item|
       # skip unless custom_field_key specified for this item
       key = item.mapping&.custom_field_key
       next unless key
@@ -596,7 +598,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     changed = [] # list of Link IDs that were changed
     rule_module = HmisUtil::HudAssessmentFormRules2024.new
 
-    walk_definition_items do |item|
+    walk_definition_nodes do |item|
       link_id = item['link_id']
 
       # Check if there is a required data collection rule for this link_id for this data collection stage (ie role)
@@ -604,7 +606,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       if hud_rule
         # If the rule is different from what's on the item, update it
         difference = Hashdiff.diff(hud_rule, item['rule'], ignore_keys: '_comment')
-        if difference
+        if difference.present?
           # puts "changing rule for #{link_id}: #{difference}"
           item['rule'] = hud_rule
           changed << link_id
@@ -617,13 +619,18 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         # Choose the less strict "data collected about". Examples:
         #   if HUD requires collection for 'HOH', but the form specifies 'HOH_AND_ADULTS', then leave it as-is (HOH_AND_ADULTS)
         #   if HUD requires collection for 'HOH_AND_ADULTS', but the form specifies it for 'HOH', "downgrade" the value to the less strict HUD value (HOH_AND_ADULTS)
-        current_dca = item['data_collected_about'].to_s
-        chosen_dca = [required_dca, current_dca].compact.min_by { |val| Hmis::Form::InstanceEnrollmentMatch::MATCHES.find_index(val) }
+        current_dca = item['data_collected_about']&.to_s
+        chosen_dca = [required_dca, current_dca].compact_blank.min_by do |val|
+          rank = Hmis::Form::InstanceEnrollmentMatch::MATCHES.find_index(val)
+          raise "invalid data_collected_about: #{val}" if rank.nil?
+
+          rank
+        end
 
         if chosen_dca != current_dca
           # puts "changing data_collected_about for #{link_id}: (#{current_dca}=>#{chosen_dca})"
           item['data_collected_about'] = chosen_dca
-          changed << link_id unless current_dca.nil? && chosen_dca == 'ALL_CLIENTS' # nil is equivalent to ALL_CLIENTS
+          changed << link_id unless current_dca.blank? && chosen_dca == 'ALL_CLIENTS' # nil is functionally equivalent to ALL_CLIENTS, so don't consider it "changed"
         end
       end
     end
