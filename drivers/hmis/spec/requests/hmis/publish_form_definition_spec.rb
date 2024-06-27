@@ -10,12 +10,12 @@ require_relative '../../support/hmis_base_setup'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
   let!(:access_control) { create_access_control(hmis_user, ds1) }
-  let!(:fd1) { create :hmis_form_definition, status: Hmis::Form::Definition::DRAFT }
-  let!(:fd2) { create :hmis_form_definition }
+  let!(:fd1) { create :hmis_form_definition, role: :SERVICE, status: Hmis::Form::Definition::DRAFT }
+  let!(:fd2) { create :hmis_form_definition, role: :SERVICE }
 
-  let!(:fd3_v0) { create :hmis_form_definition, identifier: 'fd3', version: 0, status: Hmis::Form::Definition::RETIRED }
-  let!(:fd3_v1) { create :hmis_form_definition, identifier: 'fd3', version: 1, status: Hmis::Form::Definition::PUBLISHED }
-  let!(:fd3_v2) { create :hmis_form_definition, identifier: 'fd3', version: 2, status: Hmis::Form::Definition::DRAFT }
+  let!(:fd3_v0) { create :hmis_form_definition, identifier: 'fd3', version: 0, role: :SERVICE, status: Hmis::Form::Definition::RETIRED }
+  let!(:fd3_v1) { create :hmis_form_definition, identifier: 'fd3', version: 1, role: :SERVICE, status: Hmis::Form::Definition::PUBLISHED }
+  let!(:fd3_v2) { create :hmis_form_definition, identifier: 'fd3', version: 2, role: :SERVICE, status: Hmis::Form::Definition::DRAFT }
 
   before(:each) do
     hmis_login(user)
