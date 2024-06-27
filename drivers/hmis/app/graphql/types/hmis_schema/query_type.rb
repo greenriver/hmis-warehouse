@@ -240,8 +240,8 @@ module Types
     end
     def parsed_form_definition(input:)
       json = JSON.parse(input)
-      errors = Hmis::Form::Definition.validate_schema(json)
-      return { errors: errors } if errors.present?
+      errors = Hmis::Form::DefinitionValidator.perform(json)
+      return { errors: errors.map(&:full_message) } if errors.any?
 
       { definition: json, errors: [] }
     end

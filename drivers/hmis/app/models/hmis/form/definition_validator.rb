@@ -10,7 +10,8 @@ class Hmis::Form::DefinitionValidator
   end
 
   # @param [Hash] document is a form definition document {'item' => [{...}] }
-  def perform(document, _role)
+  # @param [role] role of the form as string ('INTAKE', 'CLIENT', etc). If not provided, HUD rule validation will not occur.
+  def perform(document, _role = nil)
     @issues = HmisErrors::Errors.new
 
     # Validate JSON shape against JSON Schema
@@ -93,6 +94,9 @@ class Hmis::Form::DefinitionValidator
         if child_item.key?('autofill_values')
           child_item['autofill_values'].map { |h| h.values_at('value_question', 'sum_questions') }.flatten.compact.each do |reference|
             add_issue("Invalid link ID reference: #{reference} in 'autofill_values' prop of #{link_id}") unless all_ids.include?(reference)
+          end
+          child_item['autofill_values'].map { |h| h.values_at('autofill_when') }.flatten.compact.flat_map { |h| h.values_at('question', 'compare_question') }.compact.each do |reference|
+            add_issue("Invalid link ID reference: #{reference} in 'autofill_when' prop of #{link_id}") unless all_ids.include?(reference)
           end
         end
 
