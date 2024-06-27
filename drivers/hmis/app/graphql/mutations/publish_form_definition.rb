@@ -44,7 +44,8 @@ module Mutations
     end
 
     # Adds missing `{mapping: {custom_field_key: '...'}}` to all questions in the form definition
-    # Returns list of new CustomDataElementDefinitions to be saved
+    # Mutates definition.items, adds `mapping.custom_field_key`
+    # Returns array of initialized CustomDataElementDefinitions to be saved (for new questions only)
     def add_missing_custom_field_keys(definition)
       # CustomDataElementDefinitions to be saved
       cdeds = []
