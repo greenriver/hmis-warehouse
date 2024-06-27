@@ -88,7 +88,7 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     end
   end
 
-  def applicable_project_matches
+  def project_matches
     Hmis::Hud::Project.all.map { |project| project_match(project) }.compact
   end
 

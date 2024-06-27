@@ -4,7 +4,7 @@
 #
 
 module Types
-  class Forms::ApplicableProject < Types::BaseObject
+  class Forms::ProjectMatch < Types::BaseObject
     # object is a Hmis::Form::InstanceProjectMatch
     skip_activity_log
     description 'Applicable project for a form, including information about which clients in this project the form is applicable to.'

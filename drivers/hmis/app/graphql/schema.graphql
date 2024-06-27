@@ -188,16 +188,6 @@ enum AnnualPercentAMI {
 }
 
 """
-Applicable project for a form, including information about which clients in this project the form is applicable to.
-"""
-type ApplicableProject {
-  dataCollectedAbout: DataCollectedAbout!
-  id: ID!
-  organizationName: String!
-  projectName: String!
-}
-
-"""
 User account for a user of the system
 """
 type ApplicationUser {
@@ -3958,7 +3948,6 @@ type FilesPaginated {
 FormDefinition
 """
 type FormDefinition {
-  applicableProjects: [ApplicableProject!]!
   cacheKey: ID!
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
@@ -3966,6 +3955,7 @@ type FormDefinition {
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
   id: ID!
   identifier: String!
+  projectMatches: [ProjectMatch!]!
   rawDefinition: JsonObject!
   role: FormRole!
   status: FormStatus!
@@ -8557,6 +8547,16 @@ input ProjectFilterOptions {
   projectType: [ProjectType!]
   searchTerm: String
   status: [ProjectFilterOptionStatus!]
+}
+
+"""
+Applicable project for a form, including information about which clients in this project the form is applicable to.
+"""
+type ProjectMatch {
+  dataCollectedAbout: DataCollectedAbout!
+  id: ID!
+  organizationName: String!
+  projectName: String!
 }
 
 """

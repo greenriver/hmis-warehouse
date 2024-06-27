@@ -33,7 +33,7 @@ module Types
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false, method: :updated_at
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false, method: :created_at
     field :updated_by, Types::Application::User, null: true
-    field :applicable_projects, [Types::Forms::ApplicableProject], null: false
+    field :project_matches, [Types::Forms::ProjectMatch], null: false
     form_rules_field :form_rules, method: :instances
 
     # Filtering is implemented within this resolver rather than a separate concern. This
@@ -49,15 +49,14 @@ module Types
       )
     end
 
-    def applicable_projects
-      # todo @martha - rename applicable_projects and applicable_project_matches since they aren't a type Project anymore
+    def project_matches
       object.instances.
         active.
-        map(&:applicable_project_matches).
+        map(&:project_matches).
         flatten.
         sort_by(&:rank).
-        reverse.
-        map { |match| [match.project.id, match] }.
+        reverse. # lower rank means a better match
+        map { |match| [match.project.id, match] }. # per project ID, the later added (lower ranked) matches overwrite the earlier ones
         to_h.values
     end
 

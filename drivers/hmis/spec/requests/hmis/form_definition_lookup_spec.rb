@@ -135,6 +135,44 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
   end
+
+  describe 'Form definition project matches' do
+    let(:query) do
+      <<~GRAPHQL
+        query GetFormProjectMatches($id: ID!) {
+           formDefinition(id: $id) {
+            id
+            cacheKey
+            projectMatches {
+              id
+              projectName
+              organizationName
+              dataCollectedAbout
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    let!(:o1) { create :hmis_hud_organization, data_source: ds1 }
+    let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1 }
+    let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1 }
+
+    let!(:form) { create :hmis_form_definition, identifier: 'form-def' }
+    let!(:all_clients) { create :hmis_form_instance, definition_identifier: 'form-def', entity: o1, active: true, data_collected_about: 'ALL_CLIENTS' }
+    let!(:hoh_and_adults) { create :hmis_form_instance, definition_identifier: 'form-def', entity: p1, active: true, data_collected_about: 'HOH_AND_ADULTS' }
+
+    it 'should return one match per project' do
+      response, result = post_graphql(id: form.id) { query }
+      expect(response.status).to eq(200), result.inspect
+      matches = result.dig('data', 'formDefinition', 'projectMatches')
+      expect(matches.size).to eq(2)
+      expect(matches).to contain_exactly(
+        a_hash_including('projectName' => p1.name, 'dataCollectedAbout' => 'HOH_AND_ADULTS'),
+        a_hash_including('projectName' => p2.name, 'dataCollectedAbout' => 'ALL_CLIENTS'),
+      )
+    end
+  end
 end
 
 RSpec.configure do |c|
