@@ -8,7 +8,7 @@
   :javascript
     $(function() {
       'use strict';
-      var completeness_clients = new HmisDqToolCompleteness(
+      var completeness_clients = new globalThis.HmisDqToolCompleteness(
         #{@report.completeness('Clients').to_json.html_safe},
         '.completeness-chart-clients',
         );
