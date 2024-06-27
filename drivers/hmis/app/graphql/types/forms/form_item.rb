@@ -48,24 +48,5 @@ module Types
 
     # nested children
     field :item, ['Types::Forms::FormItem'], 'Nested items', null: true
-
-    # make these all nullable, since the validation explicitly fails if they are present in some cases
-
-    # Most boolean attributes default to false.
-    # [:required, :prefill, :hidden, :read_only, :repeats, :warn_if_empty].each do |bool_attr|
-    #   define_method(bool_attr) do
-    #     object[bool_attr.to_s] || false
-    #   end
-    # end
-
-    # # By default, disabled items are hidden
-    # def disabled_display
-    #   object['disabled_display'] || 'HIDDEN'
-    # end
-
-    # # By default, item is enabled if any rules match
-    # def enable_behavior
-    #   object['enable_behavior'] || 'ANY'
-    # end
   end
 end
