@@ -21,7 +21,7 @@ class Hmis::Form::DefinitionValidator
     # Check references
     check_references(document, all_ids)
     # Check HUD requirements
-    check_hud_requirements(all_ids, role)
+    check_hud_requirements(all_ids, role) if role
 
     @issues.errors
   end
