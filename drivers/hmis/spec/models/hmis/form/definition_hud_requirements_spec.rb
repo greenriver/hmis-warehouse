@@ -18,6 +18,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
             'link_id': 'q_3_917A', # HUD link id
             'label': 'fake',
           },
+          { 'type': 'DISPLAY', 'link_id': 'foo', 'label': 'non-hud field' },
         ],
       }
       fd = create(:hmis_form_definition, definition: mock_definition, role: :INTAKE, identifier: 'test_intake_form')
@@ -82,10 +83,4 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       end
     end
   end
-
-  # do nothing for different role
-
-  # do nothing for non-hud fields
-
-  # error if hud field is missing from the form
 end

@@ -107,7 +107,9 @@ class Hmis::Form::DefinitionValidator
   end
 
   # Fail if there are link_ids that are required for this role that aren't present in the form,
-  # For example if Destination missing on the Exit Assessment
+  # For example if Destination missing on the Exit Assessment.
+  # This only validates presence of particular Link IDs, it does NOT validate that they are collecting the correct fields, have the
+  # correct type and rule, etc. It is expected that the caller uses `set_hud_requirements` to set the correct HUD rules.
   def check_hud_requirements(all_ids, role)
     rule_module = HmisUtil::HudAssessmentFormRules2024.new
 
