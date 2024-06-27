@@ -247,7 +247,7 @@ module HmisUtil
       # Apply any client-specific patches
       apply_all_patches!(form_definition, identifier: identifier)
 
-      # Create or update definition
+      # Find or initialize the definition record
       record = Hmis::Form::Definition.where(
         identifier: identifier,
         role: role,
@@ -258,21 +258,12 @@ module HmisUtil
       record.status = Hmis::Form::Definition::PUBLISHED
 
       # Ensure HUD rules are set
-      changed = record.set_hud_requirements
+      changed = record.set_hud_requirements # return chagned link ids
       raise "hud rules wrong for #{identifier}" if changed
 
-      # Validate final definition
-      begin
-        validate_definition(record.definition, role)
-      rescue JsonFormException => e
-        # If there was an error, _try_ to print out the exact value that failed by traversing the json path
-        match_path = /property '(.*)'/.match(e.to_s)
-        if match_path&.size == 2
-          dig_path = match_path[1].split('/').map(&:presence).compact.map { |s| Integer(s, exception: false) || s }
-          problem_item = record.definition.dig(*dig_path)
-        end
-        raise "Failed to validate #{role}/#{identifier} (item##{problem_item || 'unknown'}): #{e}"
-      end
+      # Validate definition
+      errors = record.validate_json_form
+      raise(JsonFormException, errors.first.full_message) if errors.any?
 
       record.save!
     end
@@ -433,41 +424,6 @@ module HmisUtil
           role: role,
           title: role.to_s.titlecase,
         )
-      end
-    end
-
-    # on_error allows customization of error handling incase we want to collect them instead of raising
-    public def validate_definition(json, role = nil)
-      on_error = ->(err) { block_given? ? yield(err) : raise(JsonFormException, err) }
-      Hmis::Form::Definition.validate_json(json, valid_pick_lists: valid_pick_lists, &on_error)
-      schema_errors = Hmis::Form::Definition.validate_schema(json)
-      return unless schema_errors.present?
-
-      schema_errors.each { |err| on_error.call(err) }
-      pp schema_errors
-      if role
-        on_error.call("schema invalid for role: #{role}")
-      else
-        on_error.call('schema invalid')
-      end
-    end
-
-    def valid_pick_lists
-      @valid_pick_lists ||= begin
-        enums = []
-        collect_enums = ->(parent) {
-          parent.constants.each do |name|
-            child = parent.const_get(name)
-            if child.is_a? Class
-              enums << child.graphql_name if child < Types::BaseEnum
-            elsif child.is_a? Module
-              collect_enums.call(child)
-            end
-          end
-        }
-        collect_enums.call(Types::HmisSchema::Enums)
-        collect_enums.call(Types::Forms::Enums)
-        enums + Types::Forms::Enums::PickListType.values.keys
       end
     end
   end
