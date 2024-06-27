@@ -511,29 +511,30 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     super(value.blank? ? nil : value.strip)
   end
 
-  # Walk definition items as OpenStructs
-  def walk_definition_nodes(&block)
-    definition_struct&.item&.each do |node|
-      walk_definition_node(node, &block)
+  # Walk definition items either as open structs or hashes
+  def walk_definition_nodes(as_open_struct: false, &block)
+    if as_open_struct
+      # yields each Item as an OpenStruct (easy access for read-only operations)
+      definition_struct&.item&.each do |node|
+        walk_definition_node_as_open_struct(node, &block)
+      end
+    else
+      # yields each Item as a Hash (for mutating the items)
+      definition.dig('item').each do |node|
+        walk_definition_node_as_hash(node, &block)
+      end
     end
   end
 
-  # Walk definition items as hashes
-  def walk_definition_items(&block)
-    definition.dig('item').each do |node|
-      walk_definition_item(node, &block)
-    end
-  end
-
-  protected def walk_definition_node(node, &block)
+  protected def walk_definition_node_as_open_struct(node, &block)
     # if item has children, recur into them first
-    node.item&.each { |child| walk_definition_node(child, &block) }
+    node.item&.each { |child| walk_definition_node_as_open_struct(child, &block) }
     block.call(node)
   end
 
-  protected def walk_definition_item(node, &block)
+  protected def walk_definition_node_as_hash(node, &block)
     # if item has children, recur into them first
-    node['item']&.each { |child| walk_definition_item(child, &block) }
+    node['item']&.each { |child| walk_definition_node_as_hash(child, &block) }
     block.call(node)
   end
 
@@ -550,7 +551,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     cdeds_by_key = cded_scope.index_by(&:key)
 
     cded_records = []
-    walk_definition_nodes do |item|
+    walk_definition_nodes(as_open_struct: true) do |item|
       # Skip non-questions items (Groups and Display items)
       next if NON_QUESTION_ITEM_TYPES.include?(item.type)
       # Skip items that already map to a standard (HUD) field

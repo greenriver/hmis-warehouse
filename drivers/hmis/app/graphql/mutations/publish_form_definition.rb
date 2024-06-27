@@ -63,7 +63,7 @@ module Mutations
       }
 
       # Walk Definition to initialize CustomDataElementDefinitions for any questions that don't already have a mapping
-      definition.walk_definition_items do |item_hash|
+      definition.walk_definition_nodes do |item_hash|
         item = Oj.load(item_hash.to_json, mode: :compat, object_class: OpenStruct)
 
         # Skip non-questions items (Groups and Display items)
