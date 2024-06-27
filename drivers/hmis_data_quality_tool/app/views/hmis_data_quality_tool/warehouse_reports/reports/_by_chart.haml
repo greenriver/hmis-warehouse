@@ -1,7 +1,10 @@
 
 
 .ppj_test
-  "#{@per_page_js}"
+  - @per_page_js.each do |js_file|
+    .temp
+      = "#{AssetHelper.wicked_pdf_javascript_src_tag(js_file)}"
+%br
 .display_error 
   Error Content Here
 = content_for :page_js do
