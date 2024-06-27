@@ -10,7 +10,8 @@
     }
 :ruby
   js_content = ['hmis_dq_tool_chart','hmis_dq_tool_completeness','hmis_dq_tool_time_to_enter','hmis_dq_tool_time_in_enrollment'].collect do |source|
-    IO.read(AssetHelper.asset_pathname(source))
+    path = ActionController::Base.helpers.compute_asset_path("#{source}.js")
+    IO.read("public#{path}")
   end.join("\n").html_safe
 = render 'chart_targets'
 = render 'client_completeness'
