@@ -592,50 +592,41 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     cded_records
   end
 
-  def set_hud_requirements(year: '2024')
-    changed = false
-    rule_module = case year
-    when '2024'
-      HmisUtil::HudAssessmentFormRules2024.new
-    else
-      raise "Unsupported year: #{year}"
-    end
+  def set_hud_requirements
+    changed = [] # list of Link IDs that were changed
+    rule_module = HmisUtil::HudAssessmentFormRules2024.new
 
     walk_definition_items do |item|
-      # Rule will only return if the role represents a data collection stage that requires this data element (per HUD)
       link_id = item['link_id']
+
+      # Check if there is a required data collection rule for this link_id for this data collection stage (ie role)
       hud_rule = rule_module.hud_data_element_rule(role, link_id)
-      # Hashdiff.diff(hud_rule, item['rule'], ignore_keys: "_comment")
-      puts ">>>no rule found #{link_id}" if item['rule'] && !hud_rule
-      if hud_rule && hud_rule.to_json != item['rule'].to_json
-        # binding.pry
-        puts "changing #{link_id}"
-        puts Hashdiff.diff(hud_rule, item['rule'], ignore_keys: '_comment')
-        item['rule'] = hud_rule
-        changed = true
+      if hud_rule
+        # If the rule is different from what's on the item, update it
+        difference = Hashdiff.diff(hud_rule, item['rule'], ignore_keys: '_comment')
+        if difference
+          # puts "changing rule for #{link_id}: #{difference}"
+          item['rule'] = hud_rule
+          changed << link_id
+        end
       end
 
-      # Set Data Collected About, or ensure current value doesn't violate HUD requirements
-      required_dca = rule_module.hud_data_element_data_collected_about(role, link_id)
-      next unless required_dca
+      # Check if there is a "Data Collected About" requirement for this link_id for this data collection stage
+      required_dca = rule_module.hud_data_element_data_collected_about(role, link_id)&.to_s
+      if required_dca
+        # Choose the less strict "data collected about". Examples:
+        #   if HUD requires collection for 'HOH', but the form specifies 'HOH_AND_ADULTS', then leave it as-is (HOH_AND_ADULTS)
+        #   if HUD requires collection for 'HOH_AND_ADULTS', but the form specifies it for 'HOH', "downgrade" the value to the less strict HUD value (HOH_AND_ADULTS)
+        current_dca = item['data_collected_about'].to_s
+        chosen_dca = [required_dca, current_dca].compact.min_by { |val| Hmis::Form::InstanceEnrollmentMatch::MATCHES.find_index(val) }
 
-      # choose the less strict "data collected about". e.g. if HUD requires it for HOH, it's OK to collect it for HOH and Adults
-      current_dca = item['data_collected_about']
-      chosen_dca = [required_dca, current_dca].compact.min_by { |val| Hmis::Form::InstanceEnrollmentMatch::MATCHES.find_index(val.to_s) }&.to_s
-
-      if chosen_dca != current_dca.to_s
-        item['data_collected_about'] = chosen_dca
-        puts "changing dca for #{link_id} (#{current_dca}=>#{chosen_dca})"
-        changed = true unless current_dca.nil? && chosen_dca == 'ALL_CLIENTS'
+        if chosen_dca != current_dca
+          # puts "changing data_collected_about for #{link_id}: (#{current_dca}=>#{chosen_dca})"
+          item['data_collected_about'] = chosen_dca
+          changed << link_id unless current_dca.nil? && chosen_dca == 'ALL_CLIENTS' # nil is equivalent to ALL_CLIENTS
+        end
       end
     end
     changed
-
-    # Fail if there are link_ids that are required for this role that aren't present in the form (e.g. destination missing on Exit)
-    # This should probably move to the validator
-    # required_link_ids = rule_module.required_link_ids_for_role(role)
-    # present_link_ids = link_id_item_hash.keys
-    # missing_link_ids = required_link_ids - present_link_ids
-    # raise "Missing required link IDs for role #{role}: #{missing_link_ids}" if missing_link_ids.any?
   end
 end
