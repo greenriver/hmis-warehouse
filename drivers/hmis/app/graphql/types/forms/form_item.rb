@@ -47,5 +47,10 @@ module Types
 
     # nested children
     field :item, ['Types::Forms::FormItem'], 'Nested items', null: true
+
+    # By default, disabled items are hidden. Leaving here to match legacy behavior.
+    def disabled_display
+      object['disabled_display'] || 'HIDDEN'
+    end
   end
 end
