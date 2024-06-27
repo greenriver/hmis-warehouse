@@ -597,7 +597,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   # Helper for determining CustomDataElementDefinition attributes
   def self.generate_cded_field_label(item)
-    label = item.readonly_text || item.brief_text || item.text || key.humanize
+    label = item.readonly_text.presence || item.brief_text.presence || item.text.presence || item.link_id.humanize
     ActionView::Base.full_sanitizer.sanitize(label)[0..100].strip
   end
 end
