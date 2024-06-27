@@ -247,7 +247,7 @@ module HmisUtil
       # Apply any client-specific patches
       apply_all_patches!(form_definition, identifier: identifier)
 
-      # Create or update definition
+      # Find or initialize the definition record
       record = Hmis::Form::Definition.where(
         identifier: identifier,
         role: role,
