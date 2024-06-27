@@ -75,18 +75,18 @@ module Types
         # Otherwise, glom together all the projects that might match any of the rules.
 
         matches_any_project = p_t[:id].in(instance_scope.select { |inst| inst.entity_type == 'Hmis::Hud::Project' }.map(&:entity_id))
-        matches_org = o_t[:id].in(instance_scope.select { |inst| inst.entity_type == 'Hmis::Hud::Organization' }.map(&:entity_id))
-        matches_funders = f_t[:funder].in(instance_scope.map(&:funder))
-        matches_project_types = p_t[:project_type].in(instance_scope.map(&:project_type))
+        matches_any_org = o_t[:id].in(instance_scope.select { |inst| inst.entity_type == 'Hmis::Hud::Organization' }.map(&:entity_id))
+        matches_any_funder = f_t[:funder].in(instance_scope.map(&:funder))
+        matches_any_project_type = p_t[:project_type].in(instance_scope.map(&:project_type))
 
         project_scope = project_scope.
           joins(:organization).
           left_outer_joins(:funders).
           where(
             matches_any_project.
-              or(matches_funders).
-              or(matches_project_types).
-              or(matches_org),
+              or(matches_any_funder).
+              or(matches_any_project_type).
+              or(matches_any_org),
           )
       end
 
