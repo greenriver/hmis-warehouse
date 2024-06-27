@@ -88,8 +88,8 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     end
   end
 
-  def project_matches
-    Hmis::Hud::Project.all.map { |project| project_match(project) }.compact
+  def project_matches(project_scope)
+    project_scope.map { |project| project_match(project) }.compact
   end
 
   def self.apply_filters(input)
