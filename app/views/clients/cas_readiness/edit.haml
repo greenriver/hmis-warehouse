@@ -18,5 +18,7 @@
     = render 'tc_hat'
   - elsif GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::Mdha'
     = render 'mdha'
+  - elsif GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::Springfield'
+    = render 'springfield'
   - else
     = render GrdaWarehouse::Config.get(:cas_flag_method).to_s

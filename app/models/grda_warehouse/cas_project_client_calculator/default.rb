@@ -30,5 +30,9 @@ module GrdaWarehouse::CasProjectClientCalculator
     def most_recent_assessment_for_destination(_)
       nil
     end
+
+    def chronically_homeless_for_cas(client)
+      client.chronically_homeless_for_cas?
+    end
   end
 end

@@ -229,6 +229,10 @@ module CasClientData
       active_by_data || sync_with_cas
     end
 
+    def calculated_chronically_homeless_for_cas?
+      GrdaWarehouse::Config.get(:cas_calculator).constantize.new.chronically_homeless_for_cas(self)
+    end
+
     # If we aren't using the manual CAS flag method of sync-ing, but have marked the client
     # as "force sync", then also force make them available
     def force_remove_unavailable_fors
