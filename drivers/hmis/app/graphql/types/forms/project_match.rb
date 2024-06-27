@@ -6,8 +6,9 @@
 module Types
   class Forms::ProjectMatch < Types::BaseObject
     # object is a Hmis::Form::InstanceProjectMatch
+    graphql_name 'FormProjectMatch'
     skip_activity_log
-    description 'Applicable project for a form, including information about which clients in this project the form is applicable to.'
+    description 'Project match for a form, including information about which clients in this project the form is applicable to.'
 
     field :id, ID, null: false
     field :project_name, String, null: false

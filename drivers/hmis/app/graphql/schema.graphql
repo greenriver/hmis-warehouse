@@ -3955,7 +3955,7 @@ type FormDefinition {
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
   id: ID!
   identifier: String!
-  projectMatches: [ProjectMatch!]!
+  projectMatches: [FormProjectMatch!]!
   rawDefinition: JsonObject!
   role: FormRole!
   status: FormStatus!
@@ -4164,6 +4164,16 @@ type FormItem {
   Whether to show a warning if this question is unanswered
   """
   warnIfEmpty: Boolean!
+}
+
+"""
+Project match for a form, including information about which clients in this project the form is applicable to.
+"""
+type FormProjectMatch {
+  dataCollectedAbout: DataCollectedAbout!
+  id: ID!
+  organizationName: String!
+  projectName: String!
 }
 
 enum FormRole {
@@ -8547,16 +8557,6 @@ input ProjectFilterOptions {
   projectType: [ProjectType!]
   searchTerm: String
   status: [ProjectFilterOptionStatus!]
-}
-
-"""
-Applicable project for a form, including information about which clients in this project the form is applicable to.
-"""
-type ProjectMatch {
-  dataCollectedAbout: DataCollectedAbout!
-  id: ID!
-  organizationName: String!
-  projectName: String!
 }
 
 """

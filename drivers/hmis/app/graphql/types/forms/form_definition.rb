@@ -50,6 +50,14 @@ module Types
     end
 
     def project_matches
+      # Returns one match per project that this form applies to. (See InstanceProjectMatch for match ranking logic.)
+      # This DOES still return a match for a project if the match is overridden by a more specific rule on another form.
+      # For example, if:
+      # - Intake form A has a rule that specifies that it's used for all projects
+      # - Intake form B has a rule that specifies that it's used for all Emergency Shelter projects
+      # - Intake form C has a rule that specifies that it's used for Project X, an ES project
+      # ...then form A would still return a match for Project X.
+      # is out of
       object.instances.
         active.
         map(&:project_matches).
