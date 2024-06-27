@@ -23,7 +23,7 @@ module Mutations
         **attrs,
       )
 
-      validation_errors = definition.validate_json
+      validation_errors = definition.validate_json_form
       return { errors: validation_errors } if validation_errors.any?
 
       definition.save!

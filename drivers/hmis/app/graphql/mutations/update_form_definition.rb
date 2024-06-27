@@ -31,7 +31,7 @@ module Mutations
       definition.definition = recursively_transform(JSON.parse(input.definition)) if input.definition
 
       # Return user-facing validation errors for the form content
-      validation_errors = definition.validate_json
+      validation_errors = definition.validate_json_form
       return { errors: validation_errors } if validation_errors.any?
 
       # Raise if the definition is not valid (invalid role/status/identifier; not expected)

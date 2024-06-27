@@ -10,7 +10,7 @@ class Hmis::Form::DefinitionValidator
   end
 
   # @param [Hash] document is a form definition document {'item' => [{...}] }
-  def perform(document, role)
+  def perform(document, _role)
     @issues = HmisErrors::Errors.new
 
     # Validate JSON shape against JSON Schema
@@ -19,8 +19,8 @@ class Hmis::Form::DefinitionValidator
     all_ids = check_ids(document)
     # Check references
     check_references(document, all_ids)
-    # Check HUD requirements
-    check_hud_requirements(all_ids, role)
+
+    # TODO: Check HUD requirements (requires 'role')
 
     @issues.errors
   end
@@ -28,7 +28,7 @@ class Hmis::Form::DefinitionValidator
   protected
 
   def add_issue(msg)
-    # TODO: resolve more details (e.g. link id as attribute, group as section, real severity level)
+    # TODO: resolve more details (e.g. link_id, section, actual severity level)
     @issues.add(:definition, full_message: msg, severity: :error)
   end
 
@@ -100,18 +100,6 @@ class Hmis::Form::DefinitionValidator
       end
     end
     link_check.call(document)
-  end
-
-  # Fail if there are link_ids that are required for this role that aren't present in the form,
-  # For example if Destination missing on the Exit Assessment
-  def check_hud_requirements(all_ids, role)
-    # rule_module = HmisUtil::HudAssessmentFormRules2024.new
-
-    # required_link_ids = rule_module.required_link_ids_for_role(role)
-    # return unless required_link_ids.any?
-
-    # missing_link_ids = required_link_ids - all_ids
-    # add_issue("Missing required link IDs for role #{role}: #{missing_link_ids}") if missing_link_ids.any?
   end
 
   # Introspect on GraphQL schema to get a superset of allowed values for `pick_list_reference`.

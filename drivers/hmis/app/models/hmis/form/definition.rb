@@ -336,9 +336,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     Hmis::Form::Definition.for_project(project: project, role: :SERVICE, service_type: service_type)
   end
 
-  # returns list of HmisErrors::Error objects
-  # rename to like validate_form or something?
-  def validate_json
+  # Validate the JSON form content
+  # Returns an array of HmisErrors::Error objects
+  def validate_json_form
     Hmis::Form::DefinitionValidator.perform(definition, role)
   end
 
