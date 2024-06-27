@@ -7,4 +7,9 @@
 = content_for :page_js do
   :javascript
     $(document).ready(function() {
+      var completeness_clients = new globalThis.HmisDqToolCompleteness(
+        #{@report.completeness('Clients').to_json.html_safe},
+        '.completeness-chart-clients',
+        );
+      completeness_clients.build_chart();
     });

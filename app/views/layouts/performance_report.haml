@@ -23,8 +23,8 @@
     = svg 'symbol-defs'
     = inline_javascript_include_tag 'application_esbuild', 'data-turbo-track': 'reload', defer: false
     - if @per_page_js.present?
-      - @per_page_js.each do |js_file|
-        = inline_javascript_include_tag js_file
+      %script{ type:'text/javascript' }
+        = AssetHelper.js_file_content_merged(@per_page_js)
     = yield :page_js
     :css
       p {

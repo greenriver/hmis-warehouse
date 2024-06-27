@@ -7,4 +7,9 @@
 = content_for :page_js do
   :javascript
     $(document).ready(function() {
+      var completeness_enrollments = new globalThis.HmisDqToolCompleteness(
+        #{@report.completeness('Enrollments').to_json.html_safe},
+        '.completeness-chart-enrollments',
+        );
+      completeness_enrollments.build_chart();
     });

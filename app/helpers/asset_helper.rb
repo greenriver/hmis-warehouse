@@ -7,7 +7,7 @@
 require 'net/http'
 
 module AssetHelper
-  ASSET_URL_REGEX = /url\(['"]?([^'"]+?)['"]?\)/.freeze
+  ASSET_URL_REGEX = /url\(['"]?([^'"]+?)['"]?\)/
 
   def self.add_extension(filename, extension)
     filename.to_s.split('.').include?(extension) ? filename : "#{filename}.#{extension}"
@@ -75,7 +75,18 @@ module AssetHelper
   end
 
   # borrowed from actionpack/lib/action_view/helpers/asset_url_helper.rb
-  URI_REGEXP = /^[-a-z]+:\/\/|^(?:cid|data):|^\/\//.freeze
+  URI_REGEXP = /^[-a-z]+:\/\/|^(?:cid|data):|^\/\//
+
+  def self.js_file_content_merged(sources)
+    sources.map do |source|
+      path = if Rails.env.development?
+        ActionController::Base.helpers.asset_path(add_extension(source, 'js'))
+      else
+        ActionController::Base.helpers.compute_asset_path(add_extension(source, 'js'))
+      end
+      IO.read(File.join(Rails.public_path, path))
+    end.join("\n").html_safe
+  end
 
   def self.asset_pathname(source)
     if precompiled_or_absolute_asset?(source)
