@@ -15,7 +15,7 @@
 
 = content_for :page_js do
   :javascript
-    $(function() {
+    $(document).ready(function() {
       'use strict';
       var time_to_enter = new globalThis.HmisDqToolTimeToEnter(
         #{@report.average_time_to_enter_date(:entry).to_json.html_safe},

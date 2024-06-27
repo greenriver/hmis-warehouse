@@ -6,7 +6,7 @@
         %p.jLoading Loading
 = content_for :page_js do
   :javascript
-    $(function() {
+    $(document).ready(function() {
       'use strict';
       var completeness_clients = new globalThis.HmisDqToolCompleteness(
         #{@report.completeness('Clients').to_json.html_safe},
