@@ -62,7 +62,7 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
         arel_table[:custom_service_type_id].eq(cst.id).
           or(
             arel_table[:RecordType].eq(cst.hud_record_type).
-              or(arel_table[:TypeProvided].eq(cst.hud_type_provided)),
+              and(arel_table[:TypeProvided].eq(cst.hud_type_provided)),
           )
       else
         arel_table[:custom_service_type_id].eq(cst.id)
