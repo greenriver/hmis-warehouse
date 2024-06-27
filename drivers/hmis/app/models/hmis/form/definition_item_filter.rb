@@ -33,8 +33,10 @@ class Hmis::Form::DefinitionItemFilter
 
     items.filter do |item|
       # 'rule' is HUD system rule that cannot be overridden
+      passed_eval = eval_rule(item['rule'])
       # 'custom_rule' is custom rule that can be managed by admins
-      if eval_rule(item['rule']) || eval_rule(item['custom_rule'])
+      passed_eval ||= eval_rule(item['custom_rule']) if item['custom_rule']
+      if passed_eval
         if item['item']
           # filter children
           item['item'] = eval_items(item['item'])
