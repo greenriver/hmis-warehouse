@@ -9,6 +9,9 @@ require_relative '../login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
+  let(:today) do
+    Date.current
+  end
   before(:all) do
     cleanup_test_environment
   end
@@ -20,7 +23,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: today - 2.weeks }
   let!(:fd1) { create :hmis_form_definition }
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
 
@@ -143,7 +146,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Validity tests' do
     let!(:e1_exit) { create :hmis_hud_exit, data_source: ds1, enrollment: e1, client: e1.client }
-    before(:each) { e1_exit.update(exit_date: 3.days.ago) }
+    before(:each) { e1_exit.update(exit_date: today - 3.days) }
 
     [
       [
@@ -175,57 +178,84 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     [
       [
         'should error if assessment date is missing',
-        nil,
-        {
-          'fullMessage' => 'Information Date must exist',
-          'type' => 'required',
-          'severity' => 'error',
-        },
+        ->(_date) { nil },
+        ->(_date) do
+          [
+            {
+              'fullMessage' => 'Information Date must exist',
+              'type' => 'required',
+              'severity' => 'error',
+            },
+          ]
+        end,
       ],
       [
         'should error if assessment date is before entry date',
-        3.weeks.ago,
-        {
-          'message' => Hmis::Hud::Validators::BaseValidator.before_entry_message(2.weeks.ago),
-          'type' => 'out_of_range',
-          'severity' => 'error',
-        },
+        ->(date) { date - 3.weeks },
+        ->(date) do
+          [
+            {
+              'message' => Hmis::Hud::Validators::BaseValidator.before_entry_message(date - 2.weeks),
+              'type' => 'out_of_range',
+              'severity' => 'error',
+            },
+          ]
+        end,
       ],
       [
         'should error if assessment date is after exit date',
-        1.day.ago,
-        {
-          'message' => Hmis::Hud::Validators::BaseValidator.after_exit_message(3.days.ago),
-          'type' => 'out_of_range',
-          'severity' => 'error',
-        },
+        ->(date) { date - 1.day },
+        ->(date) do
+          [
+            {
+              'message' => Hmis::Hud::Validators::BaseValidator.after_exit_message(date - 3.days),
+              'type' => 'out_of_range',
+              'severity' => 'error',
+            },
+          ]
+        end,
       ],
       [
         'should error if assessment date is in the future',
-        Date.current + 5.days,
-        {
-          'message' => Hmis::Hud::Validators::BaseValidator.future_message,
-          'severity' => 'error',
-        },
+        ->(date) { date + 5.days },
+        ->(_date) do
+          [
+            {
+              'message' => Hmis::Hud::Validators::BaseValidator.future_message,
+              'severity' => 'error',
+            },
+          ]
+        end,
       ],
       [
         'should error if assessment date is >20 years ago',
-        25.years.ago,
-        {
-          'message' => Hmis::Hud::Validators::BaseValidator.over_twenty_years_ago_message,
-          'severity' => 'error',
-        },
+        ->(date) { date - 25.years },
+        ->(_date) do
+          [
+            {
+              'message' => Hmis::Hud::Validators::BaseValidator.over_twenty_years_ago_message,
+              'severity' => 'error',
+            },
+          ]
+        end,
       ],
       [
         'should not warn if assessment date is >30 days ago',
-        2.months.ago,
-        {
-          'message' => Hmis::Hud::Validators::BaseValidator.before_entry_message(2.weeks.ago),
-          'severity' => 'error',
-        },
+        ->(date) { date - 2.months },
+        ->(date) do
+          [
+            {
+              'message' => Hmis::Hud::Validators::BaseValidator.before_entry_message(date - 2.weeks),
+              'severity' => 'error',
+            },
+          ]
+        end,
       ],
-    ].each do |test_name, date, *expected_errors|
+    ].each do |test_name, date_cb, expected_errors_cb|
       it test_name do
+        date = date_cb.call(today)
+        expected_errors = expected_errors_cb.call(today)
+
         input = test_input.merge(
           hud_values: { 'informationDate' => date&.strftime('%Y-%m-%d') },
           values: { 'linkid_date' => date&.strftime('%Y-%m-%d') },
