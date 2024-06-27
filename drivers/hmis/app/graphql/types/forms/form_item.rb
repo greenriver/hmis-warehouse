@@ -20,7 +20,7 @@ module Types
     field :bounds, [Forms::ValueBound], 'Bounds applied to the input value', null: true
 
     # field display
-    field :type, Types::Forms::Enums::ItemType, null: true
+    field :type, Types::Forms::Enums::ItemType, null: false
     field :prefill, Boolean, 'Whether to allow pre-filling this section from a previous assessment', null: true
     field :component, Types::Forms::Enums::Component, 'Component to use for display/input of this item', null: true
     field :text, String, 'Primary text for the item', null: true

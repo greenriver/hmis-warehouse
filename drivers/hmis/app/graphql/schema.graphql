@@ -4157,7 +4157,7 @@ type FormItem {
   Primary text for the item
   """
   text: String
-  type: ItemType
+  type: ItemType!
 
   """
   Whether to show a warning if this question is unanswered
