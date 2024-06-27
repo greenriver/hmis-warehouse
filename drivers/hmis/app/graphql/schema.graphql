@@ -3955,7 +3955,7 @@ type FormDefinition {
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
   id: ID!
   identifier: String!
-  projectMatches: [FormProjectMatch!]!
+  projectMatches(limit: Int, offset: Int): FormProjectMatchesPaginated!
   rawDefinition: JsonObject!
   role: FormRole!
   status: FormStatus!
@@ -4174,6 +4174,16 @@ type FormProjectMatch {
   id: ID!
   organizationName: String!
   projectName: String!
+}
+
+type FormProjectMatchesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [FormProjectMatch!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 enum FormRole {

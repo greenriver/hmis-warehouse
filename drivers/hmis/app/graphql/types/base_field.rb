@@ -56,6 +56,9 @@ module Types
         end
 
         resolved_object = yield(object, cleaned_arguments)
+
+        return Types::PaginatedArray.new(resolved_object, **pagination_arguments) if resolved_object.instance_of?(::Array)
+
         Types::PaginatedScope.new(resolved_object, **pagination_arguments)
       end
     end
