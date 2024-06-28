@@ -220,9 +220,6 @@ module HmisUtil
       # track the origin of this fragment so it can be managed in the editor. Note this is not
       # tracking the whole fragment chain, just the first one
       item['source_fragment'] ||= "#{fragment_key}/#{fragment.version}"
-
-      # If the fragment ALSO had a fragment key on it, resolve that.
-      resolve_fragment(item, fragment_lookup, safety: safety + 1)
     end
 
     def resolve_all_fragments(definition)
