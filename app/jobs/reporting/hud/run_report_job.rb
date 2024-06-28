@@ -21,6 +21,8 @@ module Reporting::Hud
       # all check at exactly the same time and get the same result
       @generator = class_name.constantize.new(report)
       HudReports::ReportInstance.with_advisory_lock(@generator.class.name, timeout_seconds: 20) do
+        # We can't only count the running delayed jobs because we start a DJ every time we check
+        # So, we'll check the report class for running reports instead.
         running_reports_count = HudReports::ReportInstance.
           created_recently.
           incomplete.
@@ -28,10 +30,6 @@ module Reporting::Hud
           for_report(report.report_name).
           count
 
-        # We can't only count the running delayed jobs because we start a DJ every time we check
-        # So, we'll check the report class for running reports as well
-        # Because a report can fail without noticing, we need to instantiate the report instance
-        # and inspect it for status
         if running_reports_count > 1
           puts "Found #{running_reports_count} running reports, for #{@generator.class.name} (#{report.report_name}), postponing run of #{report_id}"
           requeue_job(class_name)

@@ -17,7 +17,7 @@
         %th
       %tbody
         - @jobs.each do |job|
-          - describe = DescribeJob.new(job)
+          - describe = JobDetail.new(job)
           %tr
             %td
               %strong Job ID:

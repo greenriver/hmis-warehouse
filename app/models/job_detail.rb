@@ -5,7 +5,7 @@
 ###
 
 # TODO: Maybe move other items from DelayedJob initializer code into here?
-class DescribeJob < OpenStruct
+class JobDetail
   attr_reader :job
   def initialize(job)
     @job = job
@@ -27,6 +27,7 @@ class DescribeJob < OpenStruct
         # This should handle `WarehouseReports::GenericReportJob`
         arguments.first.try(:[], 'user_id')
       elsif job_name == 'Reporting::Hud::RunReportJob'
+        # HUD report, pull user from the report
         hud_report_instance&.user_id
       end
 
@@ -40,7 +41,6 @@ class DescribeJob < OpenStruct
     nil
   end
 
-  # HUD report, pull user from the report
   def hud_report_instance
     report_id = arguments.try(:second)
     return nil unless report_id
