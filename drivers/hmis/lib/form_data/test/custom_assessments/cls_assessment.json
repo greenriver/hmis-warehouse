@@ -3,7 +3,7 @@
     {
       "text": "Assessment Date",
       "type": "DATE",
-      "link_id": "assmt-date",
+      "link_id": "assmt_date",
       "required": true,
       "assessment_date": true,
       "mapping": {
@@ -12,7 +12,8 @@
     },
     {
       "type": "DATE",
-      "link_id": "4.12.1",
+      "link_id": "q_4_12_1",
+      "text": "Information Date",
       "required": true,
       "mapping": {
         "record_type": "CURRENT_LIVING_SITUATION",
@@ -22,7 +23,9 @@
     {
       "type": "CHOICE",
       "required": true,
-      "link_id": "4.12.2",
+      "link_id": "q_4_12_2",
+      "text": "Current Living Situation",
+      "pick_list_reference": "CURRENT_LIVING_SITUATION",
       "mapping": {
         "record_type": "CURRENT_LIVING_SITUATION",
         "field_name": "currentLivingSituation"

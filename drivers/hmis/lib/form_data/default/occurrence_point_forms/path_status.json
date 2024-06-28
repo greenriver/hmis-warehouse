@@ -2,7 +2,7 @@
   "item": [
     {
       "type": "DATE",
-      "link_id": "P3.1",
+      "link_id": "P3_1",
       "required": false,
       "warn_if_empty": true,
       "text": "Date of Status Determination",
@@ -13,7 +13,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "P3.2",
+      "link_id": "P3_2",
       "required": false,
       "warn_if_empty": true,
       "text": "Client Became Enrolled in PATH?",
@@ -26,7 +26,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "P3.A",
+      "link_id": "P3_A",
       "required": false,
       "warn_if_empty": true,
       "text": "Reason Not Enrolled",
@@ -37,7 +37,7 @@
       },
       "enable_when": [
         {
-          "question": "P3.2",
+          "question": "P3_2",
           "operator": "EQUAL",
           "answer_code": "NO"
         }

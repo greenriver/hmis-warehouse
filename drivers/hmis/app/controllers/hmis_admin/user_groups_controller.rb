@@ -31,8 +31,12 @@ class HmisAdmin::UserGroupsController < ApplicationController
   end
 
   def update
-    @user_group.update(user_group_params)
-    @user_group.save
+    users = Hmis::User.where(id: user_group_params[:user_ids])
+    users_to_remove = @user_group.users - users
+    @user_group.add(users) # add with papertrail
+    @user_group.remove(users_to_remove) # destroy with paranoia
+
+    @user_group.update!(user_group_params.except(:user_ids)) # update name
 
     redirect_to({ action: :index }, notice: "User Group #{@user_group.name} updated.")
   end

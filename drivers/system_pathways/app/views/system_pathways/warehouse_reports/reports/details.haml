@@ -49,9 +49,9 @@
           - @clients.find_each.with_index do |enrollment, i|
             %tr
               %th= number_with_delimiter(i + 1)
-              - @report.detail_headers.each do |label, lamda|
+              - @report.detail_headers.each do |label, lambda|
                 %td{style: 'max-width: 600px;'}
-                  - value = lamda.(enrollment)
+                  - value = lambda.(enrollment)
                   - if label == 'Warehouse ID'
                     = link_to value, appropriate_client_path(id: value)
                   - else

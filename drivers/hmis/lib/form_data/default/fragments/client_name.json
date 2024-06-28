@@ -2,17 +2,16 @@
   "type": "GROUP",
   "link_id": "name",
   "text": "Name",
-  "required": false,
   "item": [
     {
       "type": "GROUP",
-      "link_id": "name-group",
+      "link_id": "name_group",
       "component": "HORIZONTAL_GROUP",
       "item": [
         {
           "type": "STRING",
           "required": false,
-          "link_id": "first-name",
+          "link_id": "first_name",
           "text": "First Name",
           "mapping": {
             "record_type": "CLIENT",
@@ -22,7 +21,7 @@
         {
           "type": "STRING",
           "required": false,
-          "link_id": "middle-name",
+          "link_id": "middle_name",
           "text": "Middle Name",
           "mapping": {
             "record_type": "CLIENT",
@@ -32,7 +31,7 @@
         {
           "type": "STRING",
           "required": false,
-          "link_id": "last-name",
+          "link_id": "last_name",
           "text": "Last Name",
           "mapping": {
             "record_type": "CLIENT",
@@ -42,7 +41,7 @@
         {
           "type": "STRING",
           "required": false,
-          "link_id": "name-suffix",
+          "link_id": "name_suffix",
           "text": "Suffix",
           "mapping": {
             "record_type": "CLIENT",
@@ -55,12 +54,12 @@
     {
       "type": "GROUP",
       "component": "INFO_GROUP",
-      "link_id": "dq-group",
+      "link_id": "dq_group",
       "item": [
         {
           "type": "CHOICE",
           "required": false,
-          "link_id": "name-dq",
+          "link_id": "name_dq",
           "size": "MEDIUM",
           "text": "Name Data Quality",
           "mapping": {
