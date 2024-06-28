@@ -16,16 +16,22 @@
 #   end
 #
 module HmisCsvImporter::Cleanup
-  class ExpireBaseJob < ApplicationJob
+  class ExpireBaseJob < BaseJob
     include ReportingConcern
 
+    BATCH_SIZE = 50_000
+
     # @param data_source_id [Integer] the ID of the data source
-    # @param retain_log_count [Integer] the number of retained log records
+    # @param retain_item_count [Integer] the number of retained imported records to retain beyond the retention date
     # @param retain_after_date [DateTime] the date after which records are retained
-    def perform(data_source_id: nil, retain_log_count: 10, retain_after_date: DateTime.current)
+    def perform(data_source_id:, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks)
       @data_source_id = data_source_id
-      @retain_log_count = retain_log_count
+      @retain_item_count = retain_item_count
       @retain_after_date = retain_after_date
+
+      # If we don't have any imports, we don't need to do cleanup
+      return unless min_age_protected_id.present?
+      return unless sufficient_imports?
 
       models.each do |model|
         benchmark model.table_name.to_s do
@@ -37,69 +43,74 @@ module HmisCsvImporter::Cleanup
     protected
 
     def process_model(model)
-      candidates = model.
-        with_deleted.
-        where(data_source_id: @data_source_id).
-        select(:id, model.hud_key, log_id_field, :expired)
-
-      cnt = 0
-      log "#{model.table_name} total: #{candidates.size}"
-      candidates.in_batches(of: 5_000) do |batch|
-        sequence_protected_id_map = query_sequence_protected_ids(model, batch)
-        expired_ids = []
-        retained_ids = []
-        batch.each do |record|
-          next if record.expired # don't update records we've already expired
-
-          record_log_id = record[log_id_field]
-          if record_log_id.in?(age_protected_ids)
-            # retain because log is more recent than retain_after_date
-            retained_ids << record.id
-            next
-          end
-
-          sequence_protected_ids = sequence_protected_id_map[record[model.hud_key]]
-          if sequence_protected_ids.present? && record_log_id.in?(sequence_protected_ids)
-            # retain because log is part of recent import sequence (retain_log_count)
-            retained_ids << record.id
-            next
-          end
-
-          expired_ids << record.id
-        end.map(&:id)
-
-        model.where(id: retained_ids).update_all(expired: false) if retained_ids.any?
-        model.where(id: expired_ids).update_all(expired: true) if expired_ids.any?
-        # GC every 10 batches
-        cnt += 1
-        GC.start if cnt % 10 == 9
+      # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
+      log "Expiring: #{model.table_name} in data source #{@data_source_id}, rows overall: #{model.where(data_source_id: @data_source_id).count}"
+      # NOTE: this step is very slow, do we need it?
+      model.with_deleted.where(data_source_id: @data_source_id).update_all(expired: false)
+      batches(model).each do |batch|
+        model.connection.execute(mark_expired_query(model, batch))
       end
-      log "#{model.table_name} expired: #{candidates.where(expired: true).size}"
+      # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
+      log "Expired: #{model.table_name} in data source #{@data_source_id}, rows expired: #{model.where(data_source_id: @data_source_id, expired: true).count}"
     end
 
-    def query_sequence_protected_ids(model, batch)
+    private def mark_expired_query(model, batch)
       key_field = model.hud_key
-      sql = <<~SQL
-        SELECT subquery."#{key_field}", #{log_id_field} FROM (
-          SELECT #{log_id_field}, "#{key_field}", row_number() OVER (PARTITION BY "#{key_field}" ORDER BY id DESC) AS row_num
-          FROM "#{model.table_name}"
-          WHERE id IN (#{batch.map(&:id).join(',')})
-        ) subquery
-        WHERE subquery.row_num <= #{@retain_log_count}
+      <<~SQL
+        UPDATE "#{model.table_name}" set expired = true where id in (
+          select id from (
+            select id, row_number() OVER (
+              PARTITION BY "#{key_field}", data_source_id ORDER BY id DESC
+            ) as row_num
+            from "#{model.table_name}"
+            where #{log_id_field} < #{min_age_protected_id}
+            and data_source_id = #{@data_source_id}
+            and id >= #{batch[:min]}
+            and id <= #{batch[:max]}
+          ) subquery
+           where subquery.row_num > #{@retain_item_count} -- ignore latest N beyond age protected
+        )
       SQL
+    end
 
-      results = model.connection.select_rows(sql)
-      results.each_with_object({}) do |(key, id), h|
-        h[key] ||= []
-        h[key].push(id)
+    private def batches(model)
+      sql = <<~SQL
+        WITH numbered_rows AS (
+          SELECT id, row_number() OVER (ORDER BY id) AS row_num
+          FROM "#{model.table_name}"
+          where data_source_id = #{@data_source_id}
+        ),
+        batches AS (
+          SELECT
+            id,
+            row_num,
+            ((row_num - 1) / #{BATCH_SIZE} + 1) AS batch_number
+          FROM numbered_rows
+        )
+        SELECT
+          MIN(id) AS batch_start,
+          MAX(id) AS batch_end,
+          batch_number
+        FROM batches
+        GROUP BY batch_number
+        ORDER BY batch_number;
+      SQL
+      GrdaWarehouseBase.connection.select_rows(sql).map do |start_id, end_id, _|
+        {
+          min: start_id,
+          max: end_id,
+        }
       end
     end
 
-    def age_protected_ids
-      @age_protected_ids ||= log_model.
-        where(data_source_id: @data_source_id).
+    private def min_age_protected_id
+      @min_age_protected_id ||= log_model.
         where(created_at: @retain_after_date...).
-        pluck(:id).to_set
+        minimum(:id).presence || log_model.maximum(:id)
+    end
+
+    private def sufficient_imports?
+      log_model.where(data_source_id: @data_source_id).count > @retain_item_count
     end
   end
 end
