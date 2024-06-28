@@ -7,7 +7,7 @@
 require 'net/http'
 
 module AssetHelper
-  ASSET_URL_REGEX = /url\(['"]?([^'"]+?)['"]?\)/.freeze
+  ASSET_URL_REGEX = /url\(['"]?([^'"]+?)['"]?\)/
 
   def self.add_extension(filename, extension)
     filename.to_s.split('.').include?(extension) ? filename : "#{filename}.#{extension}"
@@ -66,6 +66,20 @@ module AssetHelper
     end.join("\n").html_safe
   end
 
+  def self.inline_js_for_es_build(sources)
+    content = sources.map do |source|
+      # In deployed environments the asset gets a fancy cache busting hash appended
+      # so we need to take that into account before reading it
+      if Rails.env.development?
+        find_asset(add_extension(source, 'js')).to_s
+      else
+        path = File.join(Rails.public_path, ActionController::Base.helpers.compute_asset_path(add_extension(source, 'js')))
+        File.read(path)
+      end
+    end.join("\n")
+    "<script type='text/javascript'>#{content}</script>".html_safe
+  end
+
   def self.wicked_pdf_asset_path(asset)
     if (pathname = asset_pathname(asset).to_s) =~ URI_REGEXP
       pathname
@@ -75,7 +89,7 @@ module AssetHelper
   end
 
   # borrowed from actionpack/lib/action_view/helpers/asset_url_helper.rb
-  URI_REGEXP = /^[-a-z]+:\/\/|^(?:cid|data):|^\/\//.freeze
+  URI_REGEXP = /^[-a-z]+:\/\/|^(?:cid|data):|^\/\//
 
   def self.asset_pathname(source)
     if precompiled_or_absolute_asset?(source)
