@@ -68,7 +68,14 @@ module AssetHelper
 
   def self.inline_js_for_es_build(sources)
     content = sources.map do |source|
-      find_asset(add_extension(source, 'js')).to_s
+      # In deployed environments the asset gets a fancy cache busting hash appended
+      # so we need to take that into account before reading it
+      if Rails.env.development?
+        find_asset(add_extension(source, 'js')).to_s
+      else
+        path = File.join(Rails.public_path, ActionController::Base.helpers.compute_asset_path(add_extension(source, 'js')))
+        IO.read(path)
+      end
     end.join("\n")
     "<script type='text/javascript'>#{content}</script>".html_safe
   end
