@@ -35,7 +35,7 @@ module Types
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false, method: :updated_at
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false, method: :created_at
     field :updated_by, Types::Application::User, null: true
-    field :project_matches, Types::Forms::ProjectMatch.page_type, null: false
+    field :project_matches, Types::Forms::ProjectMatch.array_page_type, null: false
     form_rules_field :form_rules, method: :instances
 
     # Filtering is implemented within this resolver rather than a separate concern. This
