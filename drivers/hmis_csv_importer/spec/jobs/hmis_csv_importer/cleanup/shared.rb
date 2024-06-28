@@ -26,6 +26,11 @@ RSpec.shared_context 'HmisCsvImporter cleanup context' do
   end
 end
 
+# imports are retained with the following logic
+# 1. Any imports newer than retain_after_date are kept
+# 2. Any imports older than retain_after_date but within the last retain_item_count are kept
+# 3. If no imports are newer than retain_after_date, the latest import is kept PLUS retain_item_count imports
+# TODO: these don't follow the above logic currently
 RSpec.shared_context 'HmisCsvImporter cleanup record expiration' do
   describe 'with 3 daily imports' do
     let(:run_times) do
