@@ -1,12 +1,12 @@
 {
   "type": "GROUP",
-  "link_id": "r20.postExitInformationDate",
+  "link_id": "r20_postExitInformationDate",
   "data_collected_about": "HOH_AND_ADULTS",
   "text": "Date Collected",
   "item": [
     {
       "type": "DATE",
-      "link_id": "R20.1",
+      "link_id": "R20_1",
       "required": false,
       "warn_if_empty": true,
       "text": "Aftercare Information Date",

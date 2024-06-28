@@ -38,7 +38,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "R19.1",
+      "link_id": "R19_1",
       "required": false,
       "component": "RADIO_BUTTONS",
       "warn_if_empty": true,
@@ -51,7 +51,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "R19.2",
+      "link_id": "R19_2",
       "required": false,
       "warn_if_empty": true,
       "text": "Exit destination safe - as determined by the project/caseworker",
@@ -63,7 +63,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "R19.3",
+      "link_id": "R19_3",
       "required": false,
       "warn_if_empty": true,
       "text": "Client has permanent positive adult connections outside of project",
@@ -75,7 +75,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "R19.4",
+      "link_id": "R19_4",
       "required": false,
       "warn_if_empty": true,
       "text": "Client has permanent positive peer connections outside of project",
@@ -87,7 +87,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "R19.5",
+      "link_id": "R19_5",
       "required": false,
       "warn_if_empty": true,
       "text": "Client has permanent positive community connections outside of project",

@@ -8,7 +8,7 @@
         {
           "text": "Assessment Date",
           "type": "DATE",
-          "link_id": "assmt-date",
+          "link_id": "assmt_date",
           "required": true,
           "assessment_date": true,
           "mapping": {
@@ -18,14 +18,14 @@
         {
           "text": "Collect Event?",
           "type": "BOOLEAN",
-          "link_id": "evt-boolean"
+          "link_id": "evt_boolean"
         },
         {
           "type": "GROUP",
-          "link_id": "evt-group",
+          "link_id": "evt_group",
           "enable_when": [
             {
-              "question": "evt-boolean",
+              "question": "evt_boolean",
               "operator": "EQUAL",
               "answer_boolean": true
             }
@@ -34,7 +34,7 @@
             {
               "text": "Event Date",
               "type": "DATE",
-              "link_id": "event-date",
+              "link_id": "event_date",
               "required": true,
               "mapping": {
                 "record_type": "EVENT",
@@ -46,7 +46,7 @@
               "required": true,
               "text": "Event Type",
               "pick_list_reference": "CE_EVENTS",
-              "link_id": "4.20.2",
+              "link_id": "q_4_20_2",
               "mapping": {
                 "record_type": "EVENT",
                 "field_name": "event"
@@ -61,7 +61,7 @@
                 "record_type": "EVENT",
                 "field_name": "probSolDivRrResult"
               },
-              "link_id": "4.20.A"
+              "link_id": "q_4_20_A"
             }
           ]
         }

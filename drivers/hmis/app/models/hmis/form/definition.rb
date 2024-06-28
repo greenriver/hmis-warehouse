@@ -376,6 +376,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     role.to_sym == :EXIT
   end
 
+  def draft?
+    status == DRAFT
+  end
+
   def owner_class
     return unless FORM_ROLE_CONFIG[role.to_sym].present?
 
@@ -442,7 +446,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     @definition_struct ||= Oj.load(definition.to_json, mode: :compat, object_class: OpenStruct)
   end
 
-  # Hash { link_id => FormItem }
+  # Hash { link_id => FormItem }. Excludes group items
   def link_id_item_hash
     @link_id_item_hash ||= begin
       item_map = {}

@@ -16,6 +16,7 @@ module Mutations
 
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
+      raise 'only allowed to modify draft forms' unless definition.draft?
       raise 'not allowed to change identifier' if input.identifier.present? && input.identifier != definition.identifier
 
       # This mutation can be used to update the definition or the title/role, which is why definition is optional.
@@ -34,15 +35,16 @@ module Mutations
         builder.validate_definition(definition.definition) { |err| errors.add(:definition, message: err) }
       end
 
+      # Return user-facing validation errors for the form content
       return { errors: errors } if errors.present?
 
-      if definition.valid?
-        definition.save!
-        { form_definition: definition }
-      else
-        errors.add_ar_errors(definition.errors)
-        { errors: errors }
-      end
+      # Raise if the definition is not valid (invalid role/status/identifier; not expected)
+      raise "Definition invalid: #{definition.errors.full_messages}" unless definition.valid?
+
+      # Manually save a PaperTrail version, so we know who made the change. Because we `skip` the definition
+      # field, a PaperTrail record will not automatically get created if only the definition changed.
+      definition.paper_trail.save_with_version
+      { form_definition: definition }
     end
 
     private
@@ -59,8 +61,9 @@ module Mutations
 
       # If it's a hash, first drop unneeded keys and transform them all to snake case
       converted = form_element.
-        excluding('__typename'). # drop typescript artifact
+        excluding('__typename', ''). # drop typescript artifacts and empty keys
         compact. # drop keys with nil values
+        delete_if { |_key, value| value.is_a?(Array) && value.empty? }. # drop empty arrays
         transform_keys(&:underscore) # transform keys to snake case
 
       # Then map through all the sub-elements in the hash and return them
