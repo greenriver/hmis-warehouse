@@ -74,7 +74,7 @@ module AssetHelper
         find_asset(add_extension(source, 'js')).to_s
       else
         path = File.join(Rails.public_path, ActionController::Base.helpers.compute_asset_path(add_extension(source, 'js')))
-        IO.read(path)
+        File.read(path)
       end
     end.join("\n")
     "<script type='text/javascript'>#{content}</script>".html_safe
