@@ -27,7 +27,6 @@
       "type": "GROUP",
       "text": "Inventory Details",
       "link_id": "inventory_detail",
-      "required": false,
       "item": [
         {
           "type": "CHOICE",
@@ -235,7 +234,6 @@
               "mapping": {
                 "field_name": "bedInventory"
               },
-              "required": true,
               "initial": [
                 {
                   "initial_behavior": "IF_EMPTY",

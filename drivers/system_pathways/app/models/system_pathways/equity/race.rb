@@ -12,10 +12,10 @@ module SystemPathways::Equity::Race
       chart: 'race',
       config: {
         size: {
-          height: 800,
+          height: node_names.count * 30,
         },
       },
-      data: race_data,
+      data: race_data.merge(stack: { normalize: true }),
       table: as_table(race_counts, ['Project Type'] + races.values),
       link_params: {
         columns: [[]] + races.keys.map { |k| ['details[races][]', k] },
@@ -26,15 +26,19 @@ module SystemPathways::Equity::Race
 
   def race_counts
     @race_counts ||= node_names.map do |label|
-      counts = race_columns.values.map { |m| [m, 0] }.to_h
+      columns = race_columns.merge('multi_racial' => 'Multi-Racial')
+      counts = columns.values.map { |m| [m, 0] }.to_h
       # Get rid of the distinct from node_clients
       scope = SystemPathways::Enrollment.joins(:client).where(id: node_clients(label).select(:id))
-      race_data = pluck_to_hash(race_columns.except('race_none').map { |k, v| [sp_c_t[k], v] }.to_h, scope)
-      race_columns.each do |k, race|
+      race_data = pluck_to_hash(columns.except('race_none', 'multi_racial').map { |k, v| [sp_c_t[k], v] }.to_h, scope)
+      race_data_except_latin = pluck_to_hash(columns.except('race_none', 'hispanic_latinaeo', 'multi_racial').map { |k, v| [sp_c_t[k], v] }.to_h, scope)
+      columns.each do |k, race|
         counts[race] = if k == 'race_none'
           race_data.map(&:values).count { |m| m.all?(false) }
+        elsif k == 'multi_racial'
+          race_data_except_latin.map(&:values).count { |m| m.count(true) > 1 }
         else
-          race_data.select { |r| r[sp_c_t[k]] == true }.count
+          race_data.select { |r| r[sp_c_t[k]] == true }.map(&:values).count { |m| m.count(true) == 1 }
         end
       end
       [

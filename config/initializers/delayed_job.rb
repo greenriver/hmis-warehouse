@@ -47,10 +47,6 @@ module Delayed
           where(sql)
         end
 
-        def self.queue_status
-          where(failed_at: nil).group(:queue).count.transform_keys { |k| k&.humanize }
-        end
-
         # You can pass things you'd like to match that exist within the handlers column
         # Often this is something like ['ClassName', 'method_name'] which will check to see
         # if there's a call to ClassName.method_name in the handler

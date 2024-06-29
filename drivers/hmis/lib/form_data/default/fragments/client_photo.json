@@ -1,6 +1,5 @@
 {
   "type": "GROUP",
-  "required": false,
   "link_id": "image",
   "text": "Image",
   "enable_behavior": "ANY",

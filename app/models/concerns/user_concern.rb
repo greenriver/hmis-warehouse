@@ -152,11 +152,15 @@ module UserConcern
     end
 
     def self.anyone_using_acls?
-      active.not_system.using_acls.exists?
+      Rails.cache.fetch('user/anyone_using_acls', expires_in: 1.minutes) do
+        active.not_system.using_acls.exists?
+      end
     end
 
     def self.all_using_acls?
-      ! active.not_system.using_role_based.exists?
+      Rails.cache.fetch('user/all_using_acls', expires_in: 1.minutes) do
+        ! active.not_system.using_role_based.exists?
+      end
     end
 
     # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }

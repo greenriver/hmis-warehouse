@@ -28,6 +28,12 @@
           "value": 1
         },
         {
+          "_comment": "Exception for a HUD CoC-funded SSO project that wants to collect",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "1174"
+        },
+        {
           "operator": "ALL",
           "_comment": "HUD: CoC – Collection required for all components except SSO Coordinated Entry",
           "parts": [
@@ -280,6 +286,12 @@
               "value": 34
             }
           ]
+        },
+        {
+          "_comment": "Exception for a HUD CoC-funded SSO project that wants to collect",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "1174"
         },
         {
           "operator": "ALL",
@@ -541,6 +553,12 @@
           ]
         },
         {
+          "_comment": "Exception for a HUD CoC-funded SSO project that wants to collect",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "1174"
+        },
+        {
           "operator": "ALL",
           "_comment": "HUD: CoC – Collection required for all components except SSO Coordinated Entry",
           "parts": [
@@ -780,6 +798,12 @@
           ]
         },
         {
+          "_comment": "Exception for a HUD CoC-funded SSO project that wants to collect",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "1174"
+        },
+        {
           "operator": "ALL",
           "_comment": "HUD: CoC – Collection required for all components except SSO Coordinated Entry",
           "parts": [
@@ -993,6 +1017,12 @@
           ]
         },
         {
+          "_comment": "Exception for a HUD CoC-funded SSO project that wants to collect",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "1174"
+        },
+        {
           "operator": "ALL",
           "_comment": "HUD: CoC – Collection required for all components except SSO Coordinated Entry",
           "parts": [
@@ -1192,6 +1222,12 @@
               "value": 34
             }
           ]
+        },
+        {
+          "_comment": "Exception for a HUD CoC-funded SSO project that wants to collect",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "1174"
         },
         {
           "operator": "ALL",

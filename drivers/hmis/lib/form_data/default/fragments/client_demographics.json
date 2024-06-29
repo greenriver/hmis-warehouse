@@ -1,6 +1,5 @@
 {
   "type": "GROUP",
-  "required": false,
   "link_id": "demographics",
   "text": "Demographics",
   "item": [
