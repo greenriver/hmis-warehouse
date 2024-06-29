@@ -16,6 +16,8 @@ module HmisUtil
     end
 
     def seed_all
+      # Hmis::Form::DefinitionFragment.delete_all if Rails.env.development?
+
       # seed system fragments for all installations
       sync_fragments_to_db(dir: 'default', system_managed: true)
 
@@ -30,9 +32,35 @@ module HmisUtil
       seed_custom_assessment_form_definitions
       # Load admin forms (not configurable)
       seed_static_forms
+      # print fingerprints for  debugging
+      fingerprint_form_definitions if Rails.env.development?
     end
 
     protected
+
+    def fingerprint_form_definitions
+      puts "identifier, fingerprint"
+      Hmis::Form::Definition.latest_versions.order(:identifier).each do |fd|
+        # next unless fd.identifier == 'enrollment'
+        normalized = deep_sort_keys(fd.definition, ignore_keys: ['source_fragment'])
+        fingerprint = Digest::MD5.hexdigest(normalized.to_json)
+        puts "#{fd.identifier}, #{fingerprint}"
+      end
+    end
+
+    def deep_sort_keys(hash, ignore_keys: [])
+      case hash
+      when Hash
+        ignore_keys.each { |key| hash.delete(key) }
+        sorted_hash = hash.sort.to_h
+        sorted_hash.transform_values { |value| deep_sort_keys(value, ignore_keys: ignore_keys) }
+        sorted_hash
+      when Array
+        hash.map { |element| deep_sort_keys(element, ignore_keys: ignore_keys) }
+      else
+        hash
+      end
+    end
 
     def env_key
       @env_key ||= if Rails.env.test?
@@ -56,11 +84,25 @@ module HmisUtil
         record ||= Hmis::Form::DefinitionFragment.new(identifier: identifier)
         json = JSON.parse(File.read(file_path))
 
-        # skip if the template contents are identical
-        next if record.template == json
+        # this is a bit awkward but it's only temporary. Apply patches to fragment
+        # puts "patch fragment #{identifier}"
+        applied_ids = nil
+        patched = {'item' => [json]}.yield_self do |doc|
+          applied_ids = apply_all_patches!(doc, identifier: identifier)
+          doc.fetch('item')[0]
+        end
 
-        record.system_managed = system_managed
-        record.template = json
+        # skip if the template contents are identical
+        next if record.template == patched
+
+        if applied_ids.any?
+          # if we applied patches, mark this form as non-system-managed since it's been customized
+          record.system_managed = false
+        else
+          record.system_managed = system_managed
+        end
+
+        record.template = patched
         record.title = identifier.titleize if record.new_record?
         Hmis::Form::DefinitionFragment.publish_new_version!(record)
       end
@@ -186,6 +228,19 @@ module HmisUtil
         end
       end
       puts "Patches applied to #{identifier}: #{applied_patches.compact.uniq.join(', ')}" if applied_patches.any?
+
+      # because fragments contain patched versions, running apply_all_patches may add duplicates due
+      # to 'append_items' - remove the dupes before saving
+      if applied_patches.any?
+        walk_nodes(definition) do |node|
+          items = node['item'].presence
+          if items&.many?
+            # reverse so we keep the last dupe, in case a patch changes under us
+            node['item'] = items.reverse.uniq { |i| i['link_id']} .reverse
+          end
+        end
+      end
+      applied_patches
     end
 
     def walk_nodes(node, &block)
