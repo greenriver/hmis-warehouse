@@ -16,22 +16,26 @@
       %table.table
         %thead
           %tr
-            %th Date of Service
-            %th Locations
+            %th
+            %th Project
+            %th Entry Date
+            %th Date Provided
             %th Record Type
             %th Type Provided
             %th
         %tbody
           - services.each do |service|
             %tr
-              %td= service.DateProvided
               %td
-                - project = service.project
                 .client__full-service-project
                   %span
                     .ds{class: "ds-color-#{service.data_source_id}"}= ds_short_name_for(service.client.id)
-                  %span{ data: { toggle: 'tooltip', title: project&.organization_and_name(current_user), project: projects[project] } }
-                    = project&.name(current_user) || 'Unable to determine project name'
+              %td
+                - project = service.project
+                %span{ data: { toggle: 'tooltip', title: project&.organization_and_name(current_user), project: projects[project] } }
+                  = project&.name(current_user) || 'Unable to determine project name'
+              %td= service.enrollment.EntryDate
+              %td= service.DateProvided
               %td= HudUtility2024.record_type(service.record_type)
               %td= HudUtility2024.service_type_provided(service.record_type, service.type_provided)
               %td
