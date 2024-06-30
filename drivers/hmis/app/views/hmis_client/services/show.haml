@@ -1,0 +1,34 @@
+- title = @service.service_name
+- content_for :modal_title, title
+= content_for :crumbs do
+  = link_to appropriate_client_path(@client) do
+    &laquo; Client
+
+.well
+  .d-flex
+    .service
+      %h3 Service Details
+      %dl
+        %dt Project
+        %dd= @service.enrollment.project.warehouse_project.name(current_user)
+        %dt Date Provided
+        %dd= @service.DateProvided
+        %dt Created
+        %dd= @service.DateCreated
+        %dt Updated
+        %dd= @service.DateUpdated
+- if @service.custom_data_elements.any?
+  %h2 Questions
+  .well
+    - @service.custom_data_elements.group_by(&:data_element_definition).each do |cded, cdes|
+      -# values of the CustomDataElement(s)
+      - values_arr = cdes.map(&:value)
+      - display_value = values_arr.join(', ')
+      - display_value = yes_no(values_arr.first) if [true, false].include?(values_arr.first) && values_arr.size == 1
+      %dl
+        %dt= cded.label # label of the CustomDataElementDefinition
+        %dd= display_value
+  .none-found
+    %a{href: @service.data_source.hmis_url_for(@service), target: :blank}
+      Open in HMIS
+      %i.icon-link-ext.ml-2{style: 'color: inherit; font-size: inherit;'}
