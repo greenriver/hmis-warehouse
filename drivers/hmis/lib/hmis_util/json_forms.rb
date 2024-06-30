@@ -16,8 +16,6 @@ module HmisUtil
     end
 
     def seed_all
-      # Hmis::Form::DefinitionFragment.delete_all if Rails.env.development?
-
       # seed system fragments for all installations
       sync_fragments_to_db(dir: 'default', system_managed: true)
 
@@ -32,14 +30,14 @@ module HmisUtil
       seed_custom_assessment_form_definitions
       # Load admin forms (not configurable)
       seed_static_forms
-      # print fingerprints for  debugging
-      fingerprint_form_definitions if Rails.env.development?
+      # print fingerprints csv for debugging
+      fingerprint_form_definitions if ENV['FINGERPRINT_FORM_DEFINITIONS'].present?
     end
 
     protected
 
     def fingerprint_form_definitions
-      puts "identifier, fingerprint"
+      puts 'identifier, fingerprint'
       Hmis::Form::Definition.latest_versions.order(:identifier).each do |fd|
         # next unless fd.identifier == 'enrollment'
         normalized = deep_sort_keys(fd.definition, ignore_keys: ['source_fragment'])
@@ -87,7 +85,7 @@ module HmisUtil
         # this is a bit awkward but it's only temporary. Apply patches to fragment
         # puts "patch fragment #{identifier}"
         applied_ids = nil
-        patched = {'item' => [json]}.yield_self do |doc|
+        patched = { 'item' => [json] }.yield_self do |doc|
           applied_ids = apply_all_patches!(doc, identifier: identifier)
           doc.fetch('item')[0]
         end
@@ -236,7 +234,7 @@ module HmisUtil
           items = node['item'].presence
           if items&.many?
             # reverse so we keep the last dupe, in case a patch changes under us
-            node['item'] = items.reverse.uniq { |i| i['link_id']} .reverse
+            node['item'] = items.reverse.uniq { |i| i['link_id'] }.reverse
           end
         end
       end
