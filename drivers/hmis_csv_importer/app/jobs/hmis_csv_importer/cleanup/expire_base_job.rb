@@ -18,6 +18,12 @@
 module HmisCsvImporter::Cleanup
   class ExpireBaseJob < BaseJob
     include ReportingConcern
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+
+    # low priority
+    def self.default_priority
+      10
+    end
 
     BATCH_SIZE = 50_000
 
@@ -57,12 +63,12 @@ module HmisCsvImporter::Cleanup
     private def mark_expired_query(model, batch)
       key_field = model.hud_key
       <<~SQL
-        UPDATE "#{model.table_name}" set expired = true where id in (
+        UPDATE #{model.quoted_table_name} set expired = true where id in (
           select id from (
             select id, row_number() OVER (
               PARTITION BY "#{key_field}", data_source_id ORDER BY id DESC
             ) as row_num
-            from "#{model.table_name}"
+            from #{model.quoted_table_name}
             where #{log_id_field} < #{min_age_protected_id}
             and data_source_id = #{@data_source_id}
             and id >= #{batch[:min]}
@@ -77,7 +83,7 @@ module HmisCsvImporter::Cleanup
       sql = <<~SQL
         WITH numbered_rows AS (
           SELECT id, row_number() OVER (ORDER BY id) AS row_num
-          FROM "#{model.table_name}"
+          FROM #{model.quoted_table_name}
           where data_source_id = #{@data_source_id}
         ),
         batches AS (
