@@ -17,6 +17,7 @@
           %th Entry Date
           %th Information Date
           %th Current Living Situation
+          %th Location Details
           %th
       %tbody
         - current_living_situations.each do |situation|
@@ -28,6 +29,7 @@
             %td.date-cell= situation.enrollment.EntryDate
             %td= situation.InformationDate
             %td= HudUtility2024.living_situation situation.CurrentLivingSituation
+            %td= situation.LocationDetails
             %td.text-right
               - if @client.hmis_source_visible_by?(current_user)
                 = link_to 'HMIS', source_datum_path(situation, type: 'CurrentLivingSituation'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'

@@ -1,4 +1,4 @@
-= cache(['clients', 'zip_details', @client, can_view_projects?, controller_path, current_user], expires_in: 4.hours) do
+= cache(['clients', 'zip_details', @client, can_view_projects?, controller_path, current_user], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
   - addresses = @client.previous_permanent_locations_for_display(current_user)
   - if addresses.present?
     %table.table
