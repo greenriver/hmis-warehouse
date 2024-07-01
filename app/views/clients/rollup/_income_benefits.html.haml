@@ -1,4 +1,4 @@
-= cache(['clients', 'income_benefits', @client, can_view_projects?, controller_path, current_user], expires_in: 1.hours) do
+= cache(['clients', 'income_benefits', @client, can_view_projects?, controller_path, current_user], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
   :ruby
     e_t = GrdaWarehouse::Hud::Enrollment.arel_table
     ib_t = GrdaWarehouse::Hud::IncomeBenefit.arel_table

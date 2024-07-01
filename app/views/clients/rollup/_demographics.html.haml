@@ -1,4 +1,4 @@
-= cache(['clients', 'demographics', @client, can_view_full_ssn?, controller_path, current_user], expires_in: 4.hours) do
+= cache(['clients', 'demographics', @client, can_view_full_ssn?, controller_path, current_user], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
   - authoritative_data_source_ids = GrdaWarehouse::DataSource.authoritative.pluck(:id)
   - source_clients = @client.source_clients.source_visible_to(current_user, client_ids: @client.source_client_ids)
   - pii = @client.pii_provider(user: current_user)

@@ -1,4 +1,4 @@
-= cache(['clients', 'services_all', @client, can_view_projects?, controller_path, current_user], expires_in: 1.hours) do
+= cache(['clients', 'services_all', @client, can_view_projects?, controller_path, current_user], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
   :ruby
     services = @client.source_enrollment_services.
       joins(:client).
