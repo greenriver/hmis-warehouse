@@ -7,29 +7,7 @@
 module HmisUtil
   class HudAssessmentFormRules2024
     # Keys match Link IDs in our default HUD Assessments.
-
-    # def walk_definition_item(node, &block)
-    #   # if item has children, recur into them first
-    #   node['item']&.each { |child| walk_definition_item(child, &block) }
-    #   block.call(node)
-    # end
-    # default_rules = {}
-    # def process_item(default_rules, item)
-    #   return unless item['data_collected_about'] || item['rule']
-
-    #   key = item['link_id'].to_sym
-    #   default_rules[key] ||= {}
-    #   default_rules[key][:stages] ||= []
-    #   default_rules[key][:data_collected_about] ||= item['data_collected_about']
-    #   default_rules[key][:rule] ||= item['rule']
-    # end
-    # HmisUtil::JsonForms.new.send(:fragment_map).map do |_k, fragment|
-    #   process_item(default_rules, fragment)
-    #   proc = Proc.new { |item| process_item(default_rules, item) }
-    #   walk_definition_item(fragment, &proc)
-    # end
-    # default_rules
-
+    #
     # KNOWN HUD COMPLIANCE ISSUES:
     # - q_4_11 (DV) should enforce collection for `HOH_AND_ADULTS`
     # - P4.1 should enforce collection for `HOH_AND_ADULTS`
@@ -971,24 +949,6 @@ module HmisUtil
             'operator' => 'INCLUDE',
             'value' => 43 },
         ] } },
-      # :V1=>
-      #  {:stages=>[],
-      #   :data_collected_about=>"ALL_CLIENTS",
-      #   :rule=>
-      #    {"operator"=>"ANY",
-      #     "parts"=>
-      #      [{"variable"=>"projectFunderComponents", "operator"=>"INCLUDE", "value"=>"HUD: HUD-VASH"},
-      #       {"operator"=>"ALL",
-      #        "_comment"=>"VA: SSVF – Collection required for RRH and Homelessness Prevention",
-      #        "parts"=>
-      #         [{"variable"=>"projectFunderComponents", "operator"=>"INCLUDE", "value"=>"VA: SSVF"},
-      #          {"operator"=>"ANY",
-      #           "parts"=>
-      #            [{"variable"=>"projectType", "operator"=>"EQUAL", "value"=>12},
-      #             {"variable"=>"projectType", "operator"=>"EQUAL", "value"=>13}]}]},
-      #       {"variable"=>"projectFunderComponents", "operator"=>"INCLUDE", "value"=>"VA: GPD"},
-      #       {"variable"=>"projectFunderComponents", "operator"=>"INCLUDE", "value"=>"VA: Community Contract Safe Haven"},
-      #       {"variable"=>"projectFunderComponents", "operator"=>"INCLUDE", "value"=>"VA: CRS Contract Residential Services"}]}},
       V4: { stages: ['INTAKE'],
             data_collected_about: 'HOH',
             rule: { 'operator' => 'ANY',

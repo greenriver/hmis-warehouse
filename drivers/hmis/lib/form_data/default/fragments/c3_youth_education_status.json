@@ -4,17 +4,6 @@
   "text": "Youth Education Status",
   "data_collected_about": "HOH",
   "prefill": true,
-  "rule": {
-    "operator": "ALL",
-    "_comment": "YHDP-funded program should collect this instead of R5",
-    "parts": [
-      {
-        "variable": "projectFunders",
-        "operator": "INCLUDE",
-        "value": 43
-      }
-    ]
-  },
   "item": [
     {
       "type": "CHOICE",
