@@ -21,6 +21,12 @@ module Types
       @page_type ||= BasePaginated.build(self)
     end
 
+    def self.array_page_type
+      # Making this a separate attribute from page_type, as opposed to just detecting a scope vs. an array,
+      # helps ensure that we won't accidentally cause slowness by resolving an array when we should use a scope.
+      @array_page_type ||= ArrayPaginated.build(self)
+    end
+
     def self.filter_options_type(name = nil, omit: [])
       raise 'Name must be supplied for filter options type if filter options are omitted' if name.nil? && omit.present?
 
