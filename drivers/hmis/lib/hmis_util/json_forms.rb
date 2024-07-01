@@ -258,8 +258,7 @@ module HmisUtil
       record.status = Hmis::Form::Definition::PUBLISHED
 
       # Ensure HUD rules are set
-      changed_link_ids = record.set_hud_requirements # return chagned link ids
-      raise "hud rules wrong for #{identifier}: #{changed_link_ids}" if changed_link_ids.any?
+      record.set_hud_requirements
 
       # Validate definition
       errors = record.validate_json_form
