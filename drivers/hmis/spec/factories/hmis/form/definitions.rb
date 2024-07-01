@@ -7,7 +7,7 @@
 FactoryBot.define do
   factory :hmis_form_definition, class: 'Hmis::Form::Definition' do
     version { 1 }
-    sequence(:identifier, 100)
+    sequence(:identifier) { |n| "form_#{n}" }
     role { 'UPDATE' }
     status { Hmis::Form::Definition::PUBLISHED }
     title { 'Form' }
