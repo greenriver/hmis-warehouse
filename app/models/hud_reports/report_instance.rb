@@ -22,6 +22,11 @@ module HudReports
     scope :manual, -> { where(manual: true) }
     scope :automated, -> { where(manual: false) }
     scope :complete, -> { where.not(completed_at: nil) }
+    scope :incomplete, -> { where(completed_at: nil) }
+    scope :started, -> { where(state: 'Started') }
+    scope :created_recently, -> { where(created_at: 24.hours.ago .. Time.current) }
+    scope :diet, -> { select(column_names - ['options', 'project_ids', 'build_for_questions', 'question_names']) }
+    scope :for_report, ->(report_name) { where(report_name: report_name) }
 
     def self.from_filter(filter, report_name, build_for_questions:)
       new(
