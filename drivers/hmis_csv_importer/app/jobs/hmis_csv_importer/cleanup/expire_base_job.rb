@@ -37,31 +37,25 @@ module HmisCsvImporter::Cleanup
       @retain_after_date = retain_after_date
       @batch_size = batch_size
 
-      # If we don't have any imports, we don't need to do cleanup
-      return unless min_age_protected_id.present?
-      return unless sufficient_imports?
-
       model, next_model = find_model_by_name(model_name)
       raise "invalid model #{model_name}" unless model
 
       with_lock(model) do
         benchmark(model.table_name.to_s) do
-          process_model(model)
+          process_model(model) if sufficient_imports?
         end
       end
 
-      if next_model
-        # enqueue the job for the next model in series
-        self.class.set(wait: 1.minute).perform_later(
-          model_name: next_model.name,
-          retain_item_count: retain_item_count,
-          retain_after_date: retain_after_date,
-          batch_size: batch_size
-        )
-      end
-    end
+      return unless next_model
 
-    protected
+      # enqueue the job for the next model in series
+      self.class.perform_later(
+        model_name: next_model.name,
+        retain_item_count: retain_item_count,
+        retain_after_date: retain_after_date,
+        batch_size: batch_size,
+      )
+    end
 
     # returns tuple of [model, next_model]
     def find_model_by_name(model_name)
@@ -98,17 +92,17 @@ module HmisCsvImporter::Cleanup
     private def mark_expired_query(model, batch)
       key_field = model.hud_key
       <<~SQL
-        UPDATE #{model.quoted_table_name} set expired = true where id in (
-          select id from (
-            select id, row_number() OVER (
+        UPDATE #{model.quoted_table_name} SET expired = true WHERE id IN (
+          SELECT id FROM (
+            SELECT id, row_number() OVER (
               PARTITION BY "#{key_field}", data_source_id ORDER BY id DESC
-            ) as row_num
-            from #{model.quoted_table_name}
-            where #{log_id_field} < #{min_age_protected_id}
-            AND id BETWEEN #{batch[:min]} AND #{batch[:max]}
+            ) AS row_num
+            FROM #{model.quoted_table_name}
           ) subquery
-           where subquery.row_num > #{@retain_item_count} -- ignore latest N beyond age protected
+          WHERE subquery.row_num > #{@retain_item_count}
         )
+        AND #{log_id_field} < #{min_age_protected_id}
+        AND id BETWEEN #{batch[:min]} AND #{batch[:max]}
       SQL
     end
 
@@ -141,10 +135,12 @@ module HmisCsvImporter::Cleanup
       end
     end
 
+    # if there no matching imports in the date range, return MAX_IDX SO we don't have conditionally fiddle with the SQL if it's nil
+    MAX_IDX = 2**63
     private def min_age_protected_id
       @min_age_protected_id ||= log_model.
         where(created_at: @retain_after_date...).
-        minimum(:id).presence || log_model.maximum(:id)
+        minimum(:id).presence || MAX_IDX
     end
 
     private def sufficient_imports?

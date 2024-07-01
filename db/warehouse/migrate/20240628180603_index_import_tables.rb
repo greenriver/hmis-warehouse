@@ -1,5 +1,4 @@
 class IndexImportTables < ActiveRecord::Migration[7.0]
-
   def tables
     [
       HmisCsvImporter::Loader::Loader.loadable_files,
