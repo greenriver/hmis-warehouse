@@ -9,7 +9,7 @@ require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Form::Definition, type: :model do
   # set rule if unset/changed
-  context 'with mock PLS A' do
+  context 'with mock PriorLivingSituation A' do
     let!(:fd) do
       mock_definition = {
         'item': [
@@ -21,8 +21,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
           { 'type': 'DISPLAY', 'link_id': 'foo', 'label': 'non-hud field' },
         ],
       }
-      fd = create(:hmis_form_definition, definition: mock_definition, role: :INTAKE, identifier: 'test_intake_form')
-      fd
+      create(:hmis_form_definition, definition: mock_definition, role: :INTAKE, identifier: 'test_intake_form')
     end
 
     def perform_and_reload
@@ -66,7 +65,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       expect(fd.definition['item'][0]['rule']).to be_nil
     end
 
-    # Test against the PLS field which requires 'HOH_AND_ADULTS'
+    # Test against the Prior Living Situation field which requires 'HOH_AND_ADULTS'
     [
       [nil, 'HOH_AND_ADULTS'],               # Upgrade nil to required level
       ['HOH_AND_ADULTS', 'HOH_AND_ADULTS'],  # Same as required
