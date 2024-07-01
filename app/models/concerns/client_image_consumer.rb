@@ -31,7 +31,7 @@ module ClientImageConsumer
       return image_data || fake_client_image_data || self.class.no_image_on_file_image unless Rails.env.production?
 
       # In prod only, check the ETO API. This caches its results in the client_files db
-      image_data || eto_source_image_data || self.class.no_image_on_file_image
+      image_data || eto_source_image_data.presence || self.class.no_image_on_file_image
     end
 
     def local_client_image_data
@@ -50,7 +50,7 @@ module ClientImageConsumer
       available = Dir[File.join(image_directory, '*.jpg')]
       image_id = "#{self.FirstName}#{self.LastName}".sum % available.count
       Rails.logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Style/RedundantSelf
-      image_data = File.read(available[image_id]) # rubocop:disable Lint/UselessAssignment
+      File.read(available[image_id])
     end
 
     def headshot_visible?
@@ -62,13 +62,13 @@ module ClientImageConsumer
     end
 
     def eto_source_image_data
-      return '' unless GrdaWarehouse::Config.get(:eto_api_available)
+      return unless GrdaWarehouse::Config.get(:eto_api_available)
 
       api_configs = EtoApi::Base.api_configs
       image_data = nil
       eto_client_lookups.detect do |c_lookup|
         api_key = api_configs.select { |_k, v| v['data_source_id'] == c_lookup.data_source_id }&.keys&.first
-        return '' unless api_key.present?
+        next unless api_key.present?
 
         api ||= EtoApi::Base.new(api_connection: api_key).tap(&:connect)
         image_data = api.client_image( # rubocop:disable Style/RescueModifier
@@ -77,7 +77,7 @@ module ClientImageConsumer
         ) rescue nil
         image_data&.length&.positive?
       end
-      return '' unless image_data.present?
+      return unless image_data.present?
 
       set_local_client_image_cache(image_data)
       image_data
