@@ -843,8 +843,8 @@
         },
         {
           "type": "object",
+          "$comment": "child item array should be required, but cant because when you add a new group to the form builder its empty and we validate on save. maybe add an exception?",
           "required": [
-            "item"
           ],
           "properties": {
             "component": {
