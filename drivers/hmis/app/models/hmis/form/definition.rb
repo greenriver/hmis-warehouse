@@ -337,11 +337,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     Hmis::Form::Definition.for_project(project: project, role: :SERVICE, service_type: service_type)
   end
 
-  # Validate JSON definition when loading, to ensure no duplicate link IDs
-  def self.validate_json(...)
-    Hmis::Form::DefinitionValidator.perform(...).each do |issue|
-      yield issue
-    end
+  # Validate the JSON form content
+  # Returns an array of HmisErrors::Error objects
+  def validate_json_form
+    Hmis::Form::DefinitionValidator.perform(definition, role)
   end
 
   def self.validate_schema(json)

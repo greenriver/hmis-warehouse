@@ -34,6 +34,7 @@ class HmisExternalApis::TcHmis::Importers::SpdatAssessmentFormDefinitionBuilder 
       ] }.to_json)
     end
 
+    # NOTE: validate_definition no longer exists, use DefinitionValidator for validation. Not fixing since this is one-time code
     HmisUtil::JsonForms.new.validate_definition(content)
     form_definition.definition = content
     form_definition.save!
