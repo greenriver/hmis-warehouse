@@ -395,7 +395,9 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def default_shelter_agency_contacts(client)
-      client.client_contacts.shelter_agency_contacts.where.not(email: nil).pluck(:email)
+      contact_emails = client.client_contacts.shelter_agency_contacts.where.not(email: nil).pluck(:email)
+      contact_emails << client.source_assessments.max_by(&:assessment_date)&.user&.user_email
+      contact_emails.compact.uniq
     end
 
     private def contact_info_for_rrh_assessment(client)
