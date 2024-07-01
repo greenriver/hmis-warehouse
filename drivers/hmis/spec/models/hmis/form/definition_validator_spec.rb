@@ -45,6 +45,16 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
     end
   end
 
+  context 'with invalid link ID' do
+    let(:definition) do
+      { "item": [{ **valid_display_item, "link_id": 'has-hyphens' }] }.deep_stringify_keys
+    end
+
+    it 'should error' do
+      expect_validation_errors(definition: definition, expected_errors: [/does not match pattern/])
+    end
+  end
+
   context 'with invalid pick list reference' do
     let(:definition) do
       {
