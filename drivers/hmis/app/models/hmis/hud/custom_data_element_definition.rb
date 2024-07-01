@@ -32,5 +32,11 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
     where(owner_type: owner_type)
   end
 
+  scope :for_custom_assessments, -> { for_type(Hmis::Hud::CustomAssessment.sti_name) }
+  scope :for_hud_services, -> { for_type(Hmis::Hud::Service.sti_name) }
+  scope :for_custom_services, -> { for_type(Hmis::Hud::CustomService.sti_name) }
+  scope :for_hud_or_custom_services, -> { for_type([Hmis::Hud::Service.sti_name, Hmis::Hud::CustomService.sti_name]) }
+  scope :for_clients, -> { for_type(Hmis::Hud::Client.sti_name) }
+
   use_enum_with_same_key :form_role_enum_map, FIELD_TYPES.map { |f| [f, f.to_s.humanize] }.to_h
 end
