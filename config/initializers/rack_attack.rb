@@ -1,8 +1,6 @@
 # Rails.logger.debug "Running initializer in #{__FILE__}"
 
 class Rack::Attack
-  PRIVATE_IP = /(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)|(^127\.0\.0\.1)/
-
   def self.tracking_enabled?(request)
     return false if internal_lb_checks?(request)
 
@@ -12,26 +10,28 @@ class Rack::Attack
   def self.internal_lb_checks?(request)
     return false unless request.env['HTTP_USER_AGENT'] == 'ELB-HealthChecker/2.0'
     return false unless request.path.include?('status')
-    return true if request.ip.match?(PRIVATE_IP)
+    ActionDispatch::RemoteIp::TRUSTED_PROXIES.any? do |range|
+      range.include?(request_ip(request))
+    end
   end
 
-  def self.sign_in_path(request)
+  def self.sign_in_path?(request)
     request.path == '/users/sign_in' && request.post?
   end
 
-  def self.hmis_sign_in_path(request)
+  def self.hmis_sign_in_path?(request)
     request.path == '/hmis/login' && request.post?
   end
 
-  def self.rapid_paths(request)
-    request.path.include?('rollup') || request.path.include?('cohort') || request.path.include?('core_demographics') || asset_paths(request)
+  def self.rapid_paths?(request)
+    request.path.include?('rollup') || request.path.include?('cohort') || request.path.include?('core_demographics') || asset_paths?(request)
   end
 
-  def self.asset_paths(request)
+  def self.asset_paths?(request)
     request.path.include?('assets')
   end
 
-  def self.history_pdf_path(request)
+  def self.history_pdf_path?(request)
     request.path.include?('history/pdf')
   end
 
@@ -41,6 +41,19 @@ class Rack::Attack
 
   def self.hmis_user_email_present?(request)
     request.params['hmis_user'].present? && request.params['hmis_user']['email'].present?
+  end
+
+  # @param request [Rack::Attack::Request]
+  def self.request_ip(request)
+    # Check shared secret key to see if we can trust remote_ip. Could also use ip(?)
+    if request.env['HTTP_X_PROXY_SECRET_KEY'] == ENV['PROXY_SECRET_KEY']
+      result = request.env['action_dispatch.remote_ip']
+      raise "could not find remote_ip, check middleware for ActionDispatch::RemoteIp" unless result
+
+      result
+    else
+      request.ip
+    end
   end
 
   WARDEN_CHECK_EXCLUDE_URLS = ['/hmis/app_settings', '/hmis/user', '/messages/poll'].to_set.freeze
@@ -63,42 +76,42 @@ class Rack::Attack
 
   send(tracker, 'requests per unauthenticated user per ip', limit: 10, period: 1.seconds) do |request|
     if tracking_enabled?(request)
-      if !warden_user_present?(request) && !(sign_in_path(request) || hmis_sign_in_path(request) || history_pdf_path(request) || asset_paths(request))
-        request.ip
+      if !warden_user_present?(request) && !(sign_in_path?(request) || hmis_sign_in_path?(request) || history_pdf_path?(request) || asset_paths?(request))
+        request_ip(request)
       end
     end
   end
   send(tracker, 'requests per unauthenticated user to history pdf', limit: 25, period: 10.seconds) do |request|
     if tracking_enabled?(request)
-      if !warden_user_present?(request) && history_pdf_path(request)
-        request.ip
+      if !warden_user_present?(request) && history_pdf_path?(request)
+        request_ip(request)
       end
     end
   end
   send(tracker, 'requests per unauthenticated user to assets', limit: 200, period: 10.seconds) do |request|
     if tracking_enabled?(request)
-      if !warden_user_present?(request) && asset_paths(request)
-        request.ip
+      if !warden_user_present?(request) && asset_paths?(request)
+        request_ip(request)
       end
     end
   end
   send(tracker, 'requests per logged-in user per ip', limit: 150, period: 5.seconds) do |request|
     if tracking_enabled?(request)
-      if warden_user_present?(request) && !(rapid_paths(request))
-        request.ip
+      if warden_user_present?(request) && !(rapid_paths?(request))
+        request_ip(request)
       end
     end
   end
   send(tracker, 'requests per logged-in user per ip special', limit: 250, period: 5.seconds) do |request|
     if tracking_enabled?(request)
-      if warden_user_present?(request) && (rapid_paths(request))
-        request.ip
+      if warden_user_present?(request) && (rapid_paths?(request))
+        request_ip(request)
       end
     end
   end
   send(tracker, 'logins per account', limit: 10, period: 180.seconds) do |request|
     if tracking_enabled?(request)
-      if sign_in_path(request) && user_email_present?(request)
+      if sign_in_path?(request) && user_email_present?(request)
         request.params['user']['email']
       end
     end
@@ -106,14 +119,14 @@ class Rack::Attack
   # limit to 25 logins per user per hour
   send(tracker, 'block script logins per account', limit: 25, period: 3600.seconds) do |request|
     if tracking_enabled?(request)
-      if sign_in_path(request) && user_email_present?(request)
+      if sign_in_path?(request) && user_email_present?(request)
         request.params['user']['email']
       end
     end
   end
   send(tracker, 'hmis logins per account', limit: 10, period: 180.seconds) do |request|
     if tracking_enabled?(request)
-      if hmis_sign_in_path(request) && hmis_user_email_present?(request)
+      if hmis_sign_in_path?(request) && hmis_user_email_present?(request)
         request.params['hmis_user']['email']
       end
     end
