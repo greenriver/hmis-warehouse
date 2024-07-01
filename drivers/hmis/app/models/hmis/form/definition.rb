@@ -214,6 +214,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     POST_EXIT: 6,
     CUSTOM_ASSESSMENT: 99,
   }.freeze
+  NON_QUESTION_ITEM_TYPES = ['DISPLAY', 'GROUP'].freeze
 
   # All form roles
   use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CE)
@@ -336,11 +337,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     Hmis::Form::Definition.for_project(project: project, role: :SERVICE, service_type: service_type)
   end
 
-  # Validate JSON definition when loading, to ensure no duplicate link IDs
-  def self.validate_json(...)
-    Hmis::Form::DefinitionValidator.perform(...).each do |issue|
-      yield issue
-    end
+  # Validate the JSON form content
+  # Returns an array of HmisErrors::Error objects
+  def validate_json_form
+    Hmis::Form::DefinitionValidator.perform(definition, role)
   end
 
   def self.validate_schema(json)
@@ -366,6 +366,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def owner_class
+    return Hmis::Hud::CustomAssessment if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
+
     return unless FORM_ROLE_CONFIG[role.to_sym].present?
 
     FORM_ROLE_CONFIG[role.to_sym][:owner_class].constantize
@@ -508,26 +510,38 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     super(value.blank? ? nil : value.strip)
   end
 
-  def walk_definition_nodes(&block)
-    definition_struct&.item&.each do |node|
-      walk_definition_node(node, &block)
+  # Walk definition items either as open structs or hashes
+  def walk_definition_nodes(as_open_struct: false, &block)
+    if as_open_struct
+      # yields each Item as an OpenStruct (easy access for read-only operations)
+      definition_struct&.item&.each do |node|
+        walk_definition_node_as_open_struct(node, &block)
+      end
+    else
+      # yields each Item as a Hash (for mutating the items)
+      definition.dig('item').each do |node|
+        walk_definition_node_as_hash(node, &block)
+      end
     end
   end
 
-  protected def walk_definition_node(node, &block)
+  protected def walk_definition_node_as_open_struct(node, &block)
     # if item has children, recur into them first
-    node.item&.each { |child| walk_definition_node(child, &block) }
+    node.item&.each { |child| walk_definition_node_as_open_struct(child, &block) }
     block.call(node)
   end
 
-  # Find and/or initialize CustomDataElementDefinitions that are collected by this form. Eventually this should be done as part of the
-  # Form Editor admin tool. For now, it is called by a rake task manually.
+  protected def walk_definition_node_as_hash(node, &block)
+    # if item has children, recur into them first
+    node['item']&.each { |child| walk_definition_node_as_hash(child, &block) }
+    block.call(node)
+  end
+
+  # Find and/or initialize CustomDataElementDefinitions that are collected by this form.
+  # This is used by PublishExternalFormsJob.
+  # This should eventually be removed as we're now moving towards relying on Publish Form to generate CDEDs.
   def introspect_custom_data_element_definitions(set_definition_identifier: false)
-    owner_type = if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
-      Hmis::Hud::CustomAssessment.sti_name
-    else
-      FORM_ROLE_CONFIG.dig(role.to_sym, :owner_class)
-    end
+    owner_type = owner_class.sti_name
     raise "unable to determine owner class for form role: #{role}" unless owner_type
 
     data_source = GrdaWarehouse::DataSource.hmis.first # TODO: needs adjustment to support multiple data sources
@@ -536,40 +550,23 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     cdeds_by_key = cded_scope.index_by(&:key)
 
     cded_records = []
-    walk_definition_nodes do |item|
-      # skip unless custom_field_key specified for this item
-      key = item.mapping&.custom_field_key
-      next unless key
+    walk_definition_nodes(as_open_struct: true) do |item|
+      # Skip non-questions items (Groups and Display items)
+      next if NON_QUESTION_ITEM_TYPES.include?(item.type)
+      # Skip items that already map to a standard (HUD) field
+      next if item.mapping&.field_name
 
+      key = item.mapping&.custom_field_key
       # find CDED if it exists, or initialize a new one with defaults
       cded = cdeds_by_key[key] || cded_scope.new(key: key, UserID: hud_user_id)
 
-      field_type = case item.type
-      when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'
-        'string'
-      when 'BOOLEAN'
-        'boolean'
-      when 'DATE'
-        'date'
-      when 'INTEGER'
-        'integer'
-      when 'CURRENCY'
-        'float'
-      when 'DISPLAY', 'GROUP'
-        puts "Skipping unexpected custom_field_key on non-question item. Unable to determine type. form: #{identifier}, link_id: #{item.link_id}, key: #{key}"
-        next
-      else
-        # nil
-        raise "unable to determine cded type for #{item&.type} (#{key})"
-      end
-
       # Infer CDED attributes based on Item
       cded.owner_type = owner_type
-      cded.field_type = field_type
+      cded.field_type = self.class.infer_cded_field_type(item.type)
       cded.repeats = item.repeats || false
 
       # Infer label for CustomDataElementDefinition based on various labels
-      cded.label = ActionView::Base.full_sanitizer.sanitize(item.readonly_text || item.brief_text || item.text || key.humanize)
+      cded.label = self.class.generate_cded_field_label(item)
 
       # If specified, set the definition identifier to specify that this CustomDataElementDefinition is ONLY collected by this form type.
       cded.form_definition_identifier = identifier if set_definition_identifier
@@ -578,5 +575,29 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     end
 
     cded_records
+  end
+
+  # Helper for determining CustomDataElementDefinition attributes
+  def self.infer_cded_field_type(item_type)
+    case item_type
+    when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'
+      'string'
+    when 'BOOLEAN'
+      'boolean'
+    when 'DATE'
+      'date'
+    when 'INTEGER'
+      'integer'
+    when 'CURRENCY'
+      'float'
+    else
+      raise "unable to determine cded type for #{item_type}"
+    end
+  end
+
+  # Helper for determining CustomDataElementDefinition attributes
+  def self.generate_cded_field_label(item)
+    label = item.readonly_text.presence || item.brief_text.presence || item.text.presence || item.link_id.humanize
+    ActionView::Base.full_sanitizer.sanitize(label)[0..100].strip
   end
 end
