@@ -13,6 +13,15 @@
         %dd= @service.enrollment.project.warehouse_project.name(current_user)
         %dt Date Provided
         %dd= @service.DateProvided
+        - if @service.FAAmount
+          %dt Financial Assistance Amount
+          %dd= @service.FAAmount
+        - if @service.FAStartDate
+          %dt Financial Assistance Start Date
+          %dd= @service.FAStartDate
+        - if @service.FAEndDate
+          %dt Financial Assistance End Date
+          %dd= @service.FAEndDate
         %dt Created
         %dd= @service.DateCreated
         %dt Updated
@@ -28,7 +37,4 @@
       %dl
         %dt= cded.label # label of the CustomDataElementDefinition
         %dd= display_value
-  .none-found
-    %a{href: @service.data_source.hmis_url_for(@service), target: :blank}
-      Open in HMIS
-      %i.icon-link-ext.ml-2{style: 'color: inherit; font-size: inherit;'}
+  = hmis_external_link(@service, user: current_user, wrapper_class: 'none-found', icon_class: 'icon-link-ext ml-2', icon_style: 'color: inherit; font-size: inherit;')
