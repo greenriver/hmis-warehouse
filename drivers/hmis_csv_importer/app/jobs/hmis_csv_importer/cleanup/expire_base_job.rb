@@ -21,6 +21,7 @@
 module HmisCsvImporter::Cleanup
   class ExpireBaseJob < BaseJob
     include ReportingConcern
+    include ElapsedTimeHelper
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     # low priority
@@ -77,11 +78,12 @@ module HmisCsvImporter::Cleanup
     end
 
     def process_model(model)
+      start_time = Time.current
       # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
-      log "Start Processing: #{model.table_name}, rows overall: #{model.count}"
+      log "Start Processing: #{model.table_name}, rows overall: #{model.with_deleted.count}"
       model.connection.execute(mark_expired_query(model))
       # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
-      log "Completed Processing: #{model.table_name}, rows expired: #{model.where(expired: true).count}"
+      log "Completed Processing: #{model.table_name}, rows expired: #{model.with_deleted.where(expired: true).count} in #{elapsed_time(Time.current - start_time)}"
     end
 
     private def mark_expired_query(model)
