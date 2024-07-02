@@ -31,11 +31,9 @@ module HmisCsvImporter::Cleanup
     # @param model_name[String] the model to process
     # @param retain_item_count [Integer] the number of retained imported records to retain beyond the retention date
     # @param retain_after_date [DateTime] the date after which records are retained
-    # @param batch_size [Integer] processing batch size
-    def perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks, batch_size: 50_000)
+    def perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks)
       @retain_item_count = retain_item_count
       @retain_after_date = retain_after_date
-      @batch_size = batch_size
 
       model, next_model = find_model_by_name(model_name)
       raise "invalid model #{model_name}" unless model
@@ -53,7 +51,6 @@ module HmisCsvImporter::Cleanup
         model_name: next_model.name,
         retain_item_count: retain_item_count,
         retain_after_date: retain_after_date,
-        batch_size: batch_size,
       )
     end
 
@@ -82,14 +79,12 @@ module HmisCsvImporter::Cleanup
     def process_model(model)
       # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
       log "Start Processing: #{model.table_name}, rows overall: #{model.count}"
-      batches(model).each do |batch|
-        model.connection.execute(mark_expired_query(model, batch))
-      end
+      model.connection.execute(mark_expired_query(model))
       # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
       log "Completed Processing: #{model.table_name}, rows expired: #{model.where(expired: true).count}"
     end
 
-    private def mark_expired_query(model, batch)
+    private def mark_expired_query(model)
       key_field = model.hud_key
       <<~SQL
         UPDATE #{model.quoted_table_name} SET expired = true WHERE id IN (
@@ -102,37 +97,7 @@ module HmisCsvImporter::Cleanup
           WHERE subquery.row_num > #{@retain_item_count}
         )
         AND #{log_id_field} < #{min_age_protected_id}
-        AND id BETWEEN #{batch[:min]} AND #{batch[:max]}
       SQL
-    end
-
-    private def batches(model)
-      sql = <<~SQL
-        WITH numbered_rows AS (
-          SELECT id, row_number() OVER (ORDER BY id) AS row_num
-          FROM #{model.quoted_table_name}
-        ),
-        batches AS (
-          SELECT
-            id,
-            row_num,
-            ((row_num - 1) / #{@batch_size} + 1) AS batch_number
-          FROM numbered_rows
-        )
-        SELECT
-          MIN(id) AS batch_start,
-          MAX(id) AS batch_end,
-          batch_number
-        FROM batches
-        GROUP BY batch_number
-        ORDER BY batch_number;
-      SQL
-      GrdaWarehouseBase.connection.select_rows(sql).map do |start_id, end_id, _|
-        {
-          min: start_id,
-          max: end_id,
-        }
-      end
     end
 
     # if there no matching imports in the date range, return MAX_IDX SO we don't have conditionally fiddle with the SQL if it's nil
