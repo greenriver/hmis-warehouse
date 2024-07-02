@@ -12,7 +12,7 @@ module ClientImageConsumer
 
     # Cache time limit not yet implemented
     # This method must return a string (not nil) or the display will break
-    # @return [String, nil] actual image bytes.
+    # @return [String] actual image bytes.
     def image(_cache_for = 10.minutes)
       # If we call `image` on a source client, return the attached image
       return image_for_source_client || '' if source?
