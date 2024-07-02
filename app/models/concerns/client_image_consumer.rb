@@ -19,7 +19,7 @@ module ClientImageConsumer
 
       # Check first for locally uploaded image or a cached ETO image
       # Otherwise, check for an image connected to any source client
-      local_client_image_data || source_clients.detect { |sc| (sc.image_for_source_client || '').length > 100 }&.image_for_source_client || ''
+      local_client_image_data || source_clients.detect { |sc| (sc.image_for_source_client || '').length > 100 }&.image_for_source_client || self.class.no_image_on_file_image
     end
 
     def image_for_source_client
@@ -58,7 +58,7 @@ module ClientImageConsumer
       File.read(available[image_id])
     end
 
-    private def headshot_visible?
+    def headshot_visible?
       GrdaWarehouse::Config.get(:eto_api_available) || HmisEnforcement.hmis_enabled?
     end
 

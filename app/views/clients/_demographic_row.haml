@@ -5,9 +5,9 @@
   %td.client-name
     = pii.brief_name
     - if pii.image?
-      - image = image_tag(polymorphic_path(source_client_image_path_generator, id: client.id), width: '250').html_safe
-      =# image_tag(polymorphic_path(source_client_image_path_generator, id: client.id), style: 'opacity: 1; width: 250px', data: {toggle: :tooltip, html: :true, placement: :right, title: image}}
-      = image_tag(polymorphic_path(source_client_image_path_generator, id: client.id), style: 'width: 50px', data: {toggle: :tooltip, html: :true, placement: :right, title: image})
+      - image = image_tag(polymorphic_path([:image, :source_client], id: client.id), width: '250').html_safe
+      =# image_tag(polymorphic_path([:image, :source_client], id: client.id), style: 'opacity: 1; width: 250px', data: {toggle: :tooltip, html: :true, placement: :right, title: image}}
+      = image_tag(polymorphic_path([:image, :source_client], id: client.id), style: 'width: 50px', data: {toggle: :tooltip, html: :true, placement: :right, title: image})
 
   %td= pii.ssn
   %td= pii.dob_and_age
@@ -16,7 +16,7 @@
   %td= HudUtility2024.no_yes_reasons_for_missing_data client.VeteranStatus
   %td
     - if authoritative_data_source_ids.include?(client.data_source_id) && !client.data_source.hmis? && can_create_clients?
-      = link_to 'Edit', polymorphic_path([:edit] + source_client_path_generator, id: client.id), class: 'btn btn-sm btn-secondary', data: {loads_in_pjax_modal: true}
+      = link_to 'Edit', polymorphic_path([:edit, :source_client], id: client.id), class: 'btn btn-sm btn-secondary', data: {loads_in_pjax_modal: true}
   %td.text-right
     - if client.data_source.hmis?
       - path = client.data_source.hmis_url_for(client, user: current_user)
