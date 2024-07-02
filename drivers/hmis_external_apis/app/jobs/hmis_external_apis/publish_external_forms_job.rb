@@ -9,7 +9,7 @@ require 'nokogiri'
 #
 # currently this needs to be run manually
 class HmisExternalApis::PublishExternalFormsJob
-  queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+  # queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
   include SafeInspectable
 
   def perform(definition_id)
