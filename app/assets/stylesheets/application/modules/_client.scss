@@ -609,6 +609,7 @@ $client-image-height: 200px;
   margin-bottom: space(4);
   border-radius: 5px;
   @include media-breakpoint-up(sm) {
+    background-size: cover;
     max-width: rem($client-image-height);
     min-width: rem($client-image-height);
     min-height: rem($client-image-height);
