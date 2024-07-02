@@ -5,6 +5,9 @@
 ###
 
 # Base class for loader and importer expiration jobs
+#   * marks expired records in model
+#   * enqueues a new job to process the next model in models()
+#
 #   Subclasses should define these methods
 #   def log_id_field
 #   end
@@ -18,99 +21,95 @@
 module HmisCsvImporter::Cleanup
   class ExpireBaseJob < BaseJob
     include ReportingConcern
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
-    BATCH_SIZE = 50_000
+    # low priority
+    def self.default_priority
+      10
+    end
 
-    # @param data_source_id [Integer] the ID of the data source
+    # @param model_name[String] the model to process
     # @param retain_item_count [Integer] the number of retained imported records to retain beyond the retention date
     # @param retain_after_date [DateTime] the date after which records are retained
-    def perform(data_source_id:, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks)
-      @data_source_id = data_source_id
+    def perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks)
       @retain_item_count = retain_item_count
       @retain_after_date = retain_after_date
 
-      # If we don't have any imports, we don't need to do cleanup
-      return unless min_age_protected_id.present?
-      return unless sufficient_imports?
+      model, next_model = find_model_by_name(model_name)
+      raise "invalid model #{model_name}" unless model
 
-      models.each do |model|
-        benchmark model.table_name.to_s do
-          process_model(model)
+      with_lock(model) do
+        benchmark(model.table_name.to_s) do
+          process_model(model) if sufficient_imports?
         end
       end
+
+      return unless next_model
+
+      # enqueue the job for the next model in series
+      self.class.perform_later(
+        model_name: next_model.name,
+        retain_item_count: retain_item_count,
+        retain_after_date: retain_after_date,
+      )
     end
 
-    protected
+    # returns tuple of [model, next_model]
+    def find_model_by_name(model_name)
+      list = models
+      # if no model_name was provided, start at the beginning
+      model_name ||= list.first.name
+
+      list.each_with_index do |model, idx|
+        if model.name == model_name
+          next_model = list[idx + 1]
+          return [model, next_model]
+        end
+      end
+      nil
+    end
+
+    def with_lock(model)
+      lock_name = "#{self.class.name.demodulize}:#{model.table_name}"
+      log_model.with_advisory_lock(lock_name, timeout_seconds: 0) do
+        yield
+      end
+    end
 
     def process_model(model)
       # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
-      log "Expiring: #{model.table_name} in data source #{@data_source_id}, rows overall: #{model.where(data_source_id: @data_source_id).count}"
-      # NOTE: this step is very slow, do we need it?
-      model.with_deleted.where(data_source_id: @data_source_id).update_all(expired: false)
-      batches(model).each do |batch|
-        model.connection.execute(mark_expired_query(model, batch))
-      end
+      log "Start Processing: #{model.table_name}, rows overall: #{model.count}"
+      model.connection.execute(mark_expired_query(model))
       # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
-      log "Expired: #{model.table_name} in data source #{@data_source_id}, rows expired: #{model.where(data_source_id: @data_source_id, expired: true).count}"
+      log "Completed Processing: #{model.table_name}, rows expired: #{model.where(expired: true).count}"
     end
 
-    private def mark_expired_query(model, batch)
+    private def mark_expired_query(model)
       key_field = model.hud_key
       <<~SQL
-        UPDATE "#{model.table_name}" set expired = true where id in (
-          select id from (
-            select id, row_number() OVER (
+        UPDATE #{model.quoted_table_name} SET expired = true WHERE id IN (
+          SELECT id FROM (
+            SELECT id, row_number() OVER (
               PARTITION BY "#{key_field}", data_source_id ORDER BY id DESC
-            ) as row_num
-            from "#{model.table_name}"
-            where #{log_id_field} < #{min_age_protected_id}
-            and data_source_id = #{@data_source_id}
-            and id >= #{batch[:min]}
-            and id <= #{batch[:max]}
+            ) AS row_num
+            FROM #{model.quoted_table_name}
           ) subquery
-           where subquery.row_num > #{@retain_item_count} -- ignore latest N beyond age protected
+          WHERE subquery.row_num > #{@retain_item_count}
         )
+        AND #{log_id_field} < #{min_age_protected_id}
       SQL
     end
 
-    private def batches(model)
-      sql = <<~SQL
-        WITH numbered_rows AS (
-          SELECT id, row_number() OVER (ORDER BY id) AS row_num
-          FROM "#{model.table_name}"
-          where data_source_id = #{@data_source_id}
-        ),
-        batches AS (
-          SELECT
-            id,
-            row_num,
-            ((row_num - 1) / #{BATCH_SIZE} + 1) AS batch_number
-          FROM numbered_rows
-        )
-        SELECT
-          MIN(id) AS batch_start,
-          MAX(id) AS batch_end,
-          batch_number
-        FROM batches
-        GROUP BY batch_number
-        ORDER BY batch_number;
-      SQL
-      GrdaWarehouseBase.connection.select_rows(sql).map do |start_id, end_id, _|
-        {
-          min: start_id,
-          max: end_id,
-        }
-      end
-    end
-
+    # if there no matching imports in the date range, return MAX_IDX SO we don't have conditionally fiddle with the SQL if it's nil
+    MAX_IDX = 2**63
     private def min_age_protected_id
       @min_age_protected_id ||= log_model.
         where(created_at: @retain_after_date...).
-        minimum(:id).presence || log_model.maximum(:id)
+        minimum(:id).presence || MAX_IDX
     end
 
     private def sufficient_imports?
-      log_model.where(data_source_id: @data_source_id).count > @retain_item_count
+      log_model.count > @retain_item_count
     end
   end
 end

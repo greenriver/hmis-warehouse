@@ -17,7 +17,7 @@ RSpec.describe HmisCsvImporter::Cleanup::ExpireImportersJob, type: :model do
 
   def run_job(retain_after_date:, retain_item_count:)
     HmisCsvImporter::Cleanup::ExpireImportersJob.new.perform(
-      data_source_id: data_source.id,
+      model_name: 'HmisCsvTwentyTwentyFour::Importer::Organization',
       retain_item_count: retain_item_count,
       retain_after_date: retain_after_date,
     )

@@ -19,7 +19,14 @@ module HmisCsvImporter::Cleanup
     protected
 
     def models
-      ::HmisCsvImporter::Importer::Importer.expiring_models + ::HmisCsvImporter::Loader::Loader.expiring_models
+      (
+        ::HmisCsvImporter::Importer::Importer.expiring_models +
+        ::HmisCsvImporter::Loader::Loader.expiring_models +
+        ::HmisCsvTwentyTwentyTwo.expiring_importer_classes +
+        ::HmisCsvTwentyTwentyTwo.expiring_loader_classes +
+        ::HmisCsvTwentyTwenty.expiring_importer_classes +
+        ::HmisCsvTwentyTwenty.expiring_loader_classes
+      )
     end
   end
 end
