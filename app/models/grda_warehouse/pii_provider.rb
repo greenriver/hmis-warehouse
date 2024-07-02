@@ -102,13 +102,28 @@ class GrdaWarehouse::PiiProvider
 
   # @return [String, nil] (client.image is a string)
   def image
-    result = policy.can_view_client_photo? ? record.image : ''
+    return '' unless image?
+
+    image_content
+  end
+
+  # Because the string is actually binary, calling .present? or presence on it
+  # will throw an error.  Use .image? instead
+  def image?
     # using length > 100 instead of present?  present? doesn't like
     # some UTF-8/binary
-    result && result.length > 100 ? result : ''
+    (image_content || '').length > 100
   end
 
   protected
+
+  def image_content
+    @image_content ||= if policy.can_view_client_photo?
+      record.image
+    else
+      ''
+    end
+  end
 
   def format_ssn(value, mask: true)
     padded_ssn = pad_ssn(value)
