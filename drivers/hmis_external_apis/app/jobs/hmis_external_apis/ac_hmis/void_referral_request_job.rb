@@ -7,7 +7,8 @@
 # Void a previously made referral request
 # We should only call it if we have no Postings for this request
 module HmisExternalApis::AcHmis
-  class VoidReferralRequestJob < ApplicationJob
+  class VoidReferralRequestJob < BaseJob
+    queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
     include HmisExternalApis::AcHmis::ReferralJobMixin
 
     # @param referral_request [HmisExternalApis::AcHmis::ReferralRequest]
