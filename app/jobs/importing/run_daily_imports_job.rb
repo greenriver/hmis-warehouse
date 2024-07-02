@@ -169,11 +169,8 @@ module Importing
         generate_logging_info
 
         # Cleanup old import data
-        # Disabled until we're confident on timing and performance
-        # GrdaWarehouse::DataSource.with_deleted.pluck(:id).each do |ds_id|
-        #   HmisCsvImporter::Cleanup::ExpireLoadersJob.perform_later
-        #   HmisCsvImporter::Cleanup::ExpireImportersJob.perform_later
-        # end
+        # HmisCsvImporter::Cleanup::ExpireLoadersJob.perform_later
+        # HmisCsvImporter::Cleanup::ExpireImportersJob.perform_later
 
         finish_processing
       end
