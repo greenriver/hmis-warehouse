@@ -108,6 +108,12 @@ class GrdaWarehouse::PiiProvider
     result && result.length > 100 ? result : ''
   end
 
+  # Because the string is actually binary, calling .present? on it
+  # will throw an error.  Use .image? instead
+  def image?
+    image && image.length > 100
+  end
+
   protected
 
   def format_ssn(value, mask: true)

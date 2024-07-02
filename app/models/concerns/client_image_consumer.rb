@@ -31,7 +31,7 @@ module ClientImageConsumer
       return image_data || fake_client_image_data || self.class.no_image_on_file_image unless Rails.env.production?
 
       # In prod only, check the ETO API. This caches its results in the client_files db
-      image_data || eto_source_image_data.presence || self.class.no_image_on_file_image
+      image_data || eto_source_image_data || self.class.no_image_on_file_image
     end
 
     def local_client_image_data
@@ -46,6 +46,10 @@ module ClientImageConsumer
     def fake_client_image_data
       gender = if self[:Male].in?([1]) then 'male' else 'female' end
       age_group = if age.blank? || age > 18 then 'adults' else 'children' end
+
+      # Randomly fail so we can see the "image not found" image
+      return nil if rand(100) < 15
+
       image_directory = File.join('public', 'fake_photos', age_group, gender)
       available = Dir[File.join(image_directory, '*.jpg')]
       image_id = "#{self.FirstName}#{self.LastName}".sum % available.count
@@ -62,7 +66,7 @@ module ClientImageConsumer
     end
 
     def eto_source_image_data
-      return unless GrdaWarehouse::Config.get(:eto_api_available)
+      return nil unless GrdaWarehouse::Config.get(:eto_api_available)
 
       api_configs = EtoApi::Base.api_configs
       image_data = nil
@@ -77,7 +81,7 @@ module ClientImageConsumer
         ) rescue nil
         image_data&.length&.positive?
       end
-      return unless image_data.present?
+      return nil unless image_data.present?
 
       set_local_client_image_cache(image_data)
       image_data
@@ -85,7 +89,7 @@ module ClientImageConsumer
 
     # Caches images on the source client
     def set_local_client_image_cache(image_data) # rubocop:disable Naming/AccessorMethodName
-      return unless image_data.present?
+      return unless image_data
 
       user = ::User.setup_system_user
       self.class.transaction do
