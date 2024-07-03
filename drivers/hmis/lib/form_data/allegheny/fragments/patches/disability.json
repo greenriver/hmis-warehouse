@@ -1,7 +1,7 @@
 [
   {
     "link_id": "disability_table",
-    "rule": {
+    "custom_rule": {
       "operator": "ANY",
       "_comment": "Collect for all HUD-funded programs, plus some local funding sources. Some HUD funder components are excluded because there are no programs with funding from them.",
       "parts": [
@@ -120,7 +120,7 @@
   },
   {
     "link_id": "disability_table_r4",
-    "rule": {
+    "custom_rule": {
       "operator": "ANY",
       "_comment": "Same as above, but without PATH",
       "parts": [

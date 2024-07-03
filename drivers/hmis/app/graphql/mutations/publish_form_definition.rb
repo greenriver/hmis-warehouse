@@ -23,6 +23,11 @@ module Mutations
       )
 
       definition.status = Hmis::Form::Definition::PUBLISHED
+      # Ensure HUD requirements are set correctly (if applicable). This could mutate the definition.
+      definition.set_hud_requirements
+      # Validate form structure, including HUD requirements
+      validation_errors = definition.validate_json_form
+      return { errors: validation_errors } if validation_errors.any?
 
       validation_errors = definition.validate_json_form
       return { errors: validation_errors } if validation_errors.any?

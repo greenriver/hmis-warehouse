@@ -3,22 +3,6 @@
   "link_id": "R18",
   "text": "Counseling",
   "data_collected_about": "HOH_AND_ADULTS",
-  "rule": {
-    "operator": "ALL",
-    "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
-    "parts": [
-      {
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "HHS: RHY"
-      },
-      {
-        "variable": "projectType",
-        "operator": "NOT_EQUAL",
-        "value": 4
-      }
-    ]
-  },
   "item": [
     {
       "type": "CHOICE",
