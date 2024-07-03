@@ -20,6 +20,7 @@ class Hmis::Form::DefinitionValidator
     all_ids = check_ids(document)
     # Check references
     check_references(document, all_ids)
+    check_mutually_exclusive_attributes(document)
 
     # TODO: Check HUD requirements (requires 'role')
 
@@ -97,6 +98,77 @@ class Hmis::Form::DefinitionValidator
           end
           child_item['autofill_values'].map { |h| h.values_at('autofill_when') }.flatten.compact.flat_map { |h| h.values_at('question', 'compare_question') }.compact.each do |reference|
             add_issue("Invalid link ID reference: #{reference} in 'autofill_when' prop of #{link_id}") unless all_ids.include?(reference)
+          end
+        end
+
+        link_check.call(child_item)
+      end
+    end
+    link_check.call(document)
+  end
+
+  # Keys that are mutually exclusive. Exactly 1 of these keys must be present on their parent object.
+  ONE_OF_BOUND_VALUES = ['value_number', 'value_date', 'value_local_constant', 'question'].freeze
+  ONE_OF_ENABLE_WHEN_SOURCES = ['question', 'local_constant'].freeze
+  ONE_OF_ENABLE_WHEN_ANSWERS = ['answer_code', 'answer_codes', 'answer_group_code', 'answer_number', 'answer_boolean', 'compare_question'].freeze
+  ONE_OF_AUTOFILL_VALUES = ['value_code', 'value_number', 'value_boolean', 'value_question', 'sum_questions', 'formula'].freeze
+
+  # TODO gig: finish testing this and write tests in the definition validator spec once that gets merged in and i rebase
+  # Hmis::Form::DefinitionValidator.new.perform({ "item": [ { "link_id": "foo", "type":"STRING",  "enable_behavior": "ANY",  "enable_when": [{"question": "this", "answer_code": "foooo"}] } ] }.deep_stringify_keys).map(&:full_message)
+  # very_invalid = {
+  #   item: [
+  #     {
+  #       link_id: 'foo',
+  #       type: 'INTEGER',
+  #       text: 'foo',
+  #       bounds: [
+  #         {
+  #           severity: 'error',
+  #           type: 'max',
+  #           value_number: 10,
+  #           value_local_constant: 'something', # invalid
+  #         },
+  #       ],
+  #     },
+  #   ],
+  # }.deep_stringify_keys
+
+  # Ensure that mutually exclusive attributes are set correctly. These are objects where there must be exactly 1 key present, out of a set of keys.
+  def check_mutually_exclusive_attributes(document)
+    validate_one_of = lambda do |hash, keys, message_prefix:|
+      keys_present = hash.slice(*keys).compact.keys
+      return if keys_present.size == 1 # exactly 1 key present, so it's valid
+
+      add_issue("#{message_prefix} must have exactly one of: [#{keys.join(', ')}]. Found keys: [#{keys_present.join(', ')}]")
+    end
+
+    link_check = lambda do |item|
+      (item['item'] || []).each do |child_item|
+        link_id = child_item['link_id']
+
+        if child_item.key?('bounds')
+          child_item['bounds'].each_with_index do |bound, idx|
+            validate_one_of.call(bound, ONE_OF_BOUND_VALUES, message_prefix: "Bound #{idx + 1} on Link ID #{link_id}")
+          end
+        end
+
+        if child_item.key?('enable_when')
+          child_item['enable_when'].each_with_index do |enable_when, idx|
+            msg = "EnableWhen #{idx + 1} on Link ID #{link_id}"
+            validate_one_of.call(enable_when, ONE_OF_ENABLE_WHEN_SOURCES, message_prefix: msg)
+            validate_one_of.call(enable_when, ONE_OF_ENABLE_WHEN_ANSWERS, message_prefix: msg)
+          end
+        end
+
+        if child_item.key?('autofill_values')
+          child_item['autofill_values'].each_with_index do |autofill_value, idx|
+            validate_one_of.call(autofill_value, ONE_OF_AUTOFILL_VALUES, message_prefix: "EnableWhen #{idx + 1} on Link ID #{link_id}")
+
+            autofill_value.dig('autofill_when', []).each_with_index do |autofill_when, idx2|
+              msg = "Autofill #{idx} condition #{idx2 + 1} on Link ID #{link_id}"
+              validate_one_of.call(autofill_when, ONE_OF_ENABLE_WHEN_SOURCES, message_prefix: msg)
+              validate_one_of.call(autofill_when, ONE_OF_ENABLE_WHEN_ANSWERS, message_prefix: msg)
+            end
           end
         end
 
