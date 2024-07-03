@@ -22,7 +22,7 @@ module HmisCsvImporter
             batch_id integer,
             PRIMARY KEY ("id")
           );
-        CREATE INDEX #{table_name}_batch_id ON batch_id;
+        CREATE INDEX #{table_name}_batch_id ON #{table_name} USING btree (batch_id);
       SQL
 
       Object.const_set(
