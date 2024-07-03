@@ -257,6 +257,9 @@ module HmisUtil
       record.title = title if title.present?
       record.status = Hmis::Form::Definition::PUBLISHED
 
+      # Ensure HUD rules are set
+      record.set_hud_requirements
+
       # Validate definition
       errors = record.validate_json_form
       raise(JsonFormException, errors.first.full_message) if errors.any?

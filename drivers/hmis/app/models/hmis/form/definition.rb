@@ -600,4 +600,47 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     label = item.readonly_text.presence || item.brief_text.presence || item.text.presence || item.link_id.humanize
     ActionView::Base.full_sanitizer.sanitize(label)[0..100].strip
   end
+
+  def set_hud_requirements
+    changed = [] # list of Link IDs that were changed
+    rule_module = HmisUtil::HudAssessmentFormRules2024.new
+
+    walk_definition_nodes do |item|
+      link_id = item['link_id']
+
+      # Check if there is a required data collection rule for this link_id for this data collection stage (ie role)
+      hud_rule = rule_module.hud_data_element_rule(role, link_id)
+      if hud_rule
+        # If the rule is different from what's on the item, update it
+        difference = Hashdiff.diff(hud_rule, item['rule'], ignore_keys: '_comment')
+        if difference.present?
+          # puts "changing rule for #{link_id}: #{difference}"
+          item['rule'] = hud_rule
+          changed << link_id
+        end
+      end
+
+      # Check if there is a "Data Collected About" requirement for this link_id for this data collection stage
+      required_dca = rule_module.hud_data_element_data_collected_about(role, link_id)&.to_s
+      if required_dca
+        # Choose the less strict "data collected about". Examples:
+        #   if HUD requires collection for 'HOH', but the form specifies 'HOH_AND_ADULTS', then leave it as-is (HOH_AND_ADULTS)
+        #   if HUD requires collection for 'HOH_AND_ADULTS', but the form specifies it for 'HOH', "downgrade" the value to the less strict HUD value (HOH_AND_ADULTS)
+        current_dca = item['data_collected_about']&.to_s
+        chosen_dca = [required_dca, current_dca].compact_blank.min_by do |val|
+          rank = Hmis::Form::InstanceEnrollmentMatch::MATCHES.find_index(val)
+          raise "invalid data_collected_about: #{val}" if rank.nil?
+
+          rank
+        end
+
+        if chosen_dca != current_dca
+          # puts "changing data_collected_about for #{link_id}: (#{current_dca}=>#{chosen_dca})"
+          item['data_collected_about'] = chosen_dca
+          changed << link_id unless current_dca.blank? && chosen_dca == 'ALL_CLIENTS' # nil is functionally equivalent to ALL_CLIENTS, so don't consider it "changed"
+        end
+      end
+    end
+    changed
+  end
 end

@@ -19,12 +19,7 @@
       = link_to 'Edit', polymorphic_path([:edit, :source_client], id: client.id), class: 'btn btn-sm btn-secondary', data: {loads_in_pjax_modal: true}
   %td.text-right
     - if client.data_source.hmis?
-      - path = client.data_source.hmis_url_for(client, user: current_user)
-      - if path.present?
-        .mb-2.text-teeny
-          %a{href: path, target: :blank}
-            Open in HMIS
-            %i.icon-link-ext
+      = hmis_external_link(client, user: current_user, wrapper_class: 'mb-2 text-teeny')
     - if @client.hmis_source_visible_by?(current_user) && (!authoritative_data_source_ids.include?(client.data_source_id) || client.data_source.hmis?)
       = link_to 'HMIS Client', source_datum_path(client.id, type: 'Client'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
       .text-teeny.font-weight-light

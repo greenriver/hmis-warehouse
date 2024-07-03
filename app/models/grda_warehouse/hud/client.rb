@@ -36,7 +36,7 @@ module GrdaWarehouse::Hud
     self.table_name = :Client
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-    CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.seconds end
+    CACHE_EXPIRY = if Rails.env.production? then 1.hours else 30.seconds end
 
     has_many :client_files
     has_many :health_files
@@ -1717,7 +1717,12 @@ module GrdaWarehouse::Hud
 
     def services_for_rollup
       custom_services.
-        preload(:warehouse_project, enrollment: [:project, :client], custom_service_type: [:custom_service_category]).
+        preload(
+          :warehouse_project,
+          enrollment: [:project, :client],
+          custom_service_type: [:custom_service_category],
+          form_processor: :definition,
+        ).
         order(date_provided: :desc).
         order(id: :desc)
     end
