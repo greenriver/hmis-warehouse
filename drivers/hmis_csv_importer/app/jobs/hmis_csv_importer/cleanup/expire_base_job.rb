@@ -81,9 +81,61 @@ module HmisCsvImporter::Cleanup
       start_time = Time.current
       # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
       log "Start Processing: #{model.table_name}, rows overall: #{model.with_deleted.count}"
-      model.connection.execute(mark_expired_query(model))
+
+      expire_data(model)
+
       # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
       log "Completed Processing: #{model.table_name}, rows expired: #{model.with_deleted.where(expired: true).count} in #{elapsed_time(Time.current - start_time)}"
+    end
+
+    private def expire_data(model)
+      tmp_table_prefix = model.table_name.downcase
+      tmp_table_name = "#{tmp_table_prefix}_#{export.id}_tmp_exp"
+      tmp_model_name = "#{model.class.name.demodulize}Expire"
+      tmp_class = HmisCsvImporter::TempTable.create_temporary_table(table_name: tmp_table_name, model_name: tmp_model_name)
+      begin
+        populate_tmp_table(model, tmp_table_name)
+        write_expirations(model, tmp_table_name)
+      ensure
+        tmp_class.drop
+      end
+    end
+
+    private def write_expirations(model, tmp_table_name)
+      model.connection.execute(expiration_update_query(model, tmp_table_name))
+    end
+
+    private def expiration_update_query(model, tmp_table_name)
+      <<~SQL
+        UPDATE #{model.quoted_table_name} SET expired = true
+        INNER JOIN #{tmp_table_name} on
+        #{tmp_table_name}.source_id = #{model.quoted_table_name}.id
+        WHERE #{tmp_table_name}.batch_id < #{min_age_protected_id}
+      SQL
+    end
+
+    private def populate_tmp_table(model, tmp_table_name)
+      model.connection.execute(populate_tmp_table_query(model, tmp_table_name))
+    end
+
+    private def populate_tmp_table_query(model, tmp_table_name)
+      <<~SQL
+        INSERT INTO #{tmp_table_name} (source_id, batch_id)
+        SELECT id, #{log_id_field} from #{relevant_id_query(model)}
+      SQL
+    end
+
+    private def relevant_id_query(model)
+      key_field = model.hud_key
+      <<~SQL
+        SELECT id, #{log_id_field} FROM (
+          SELECT id, #{log_id_field}, row_number() OVER (
+            PARTITION BY "#{key_field}", data_source_id ORDER BY id DESC
+          ) AS row_num
+          FROM #{model.quoted_table_name}
+        ) subquery
+        WHERE subquery.row_num > #{@retain_item_count}
+      SQL
     end
 
     private def mark_expired_query(model)
