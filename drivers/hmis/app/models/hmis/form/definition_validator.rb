@@ -130,6 +130,7 @@ class Hmis::Form::DefinitionValidator
         if child_item.key?('bounds')
           child_item['bounds'].each_with_index do |bound, idx|
             validate_one_of.call(bound, ONE_OF_BOUND_VALUES, message_prefix: "Bound #{idx + 1} on Link ID #{link_id}")
+            # TODO: validate that the value_x field is compatible with teh current question type
           end
         end
 

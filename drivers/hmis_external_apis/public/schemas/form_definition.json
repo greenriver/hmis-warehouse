@@ -624,6 +624,7 @@
             ],
             "properties": {
               "type": {
+                // if one of int, currency, minutes, date => comparableNode (bounds/boundable/bounded?)
                 "const": "INTEGER"
               }
             }
@@ -740,6 +741,7 @@
                 "$ref": "#/$defs/pickListOption"
               }
             },
+            // add repeats here?
             "component": {
               "enum": [
                 "CHECKBOX",
@@ -997,7 +999,7 @@
             "required": {
               "type": "boolean"
             },
-            "assessment_date": {
+            "assessment_date": { // only if type is date
               "type": "boolean"
             },
             "read_only": {
@@ -1006,23 +1008,23 @@
             "warn_if_empty": {
               "type": "boolean"
             },
-            "mapping": {
+            "mapping": { // require?
               "$ref": "#/$defs/mapping"
             },
-            "bounds": {
+            "bounds": { // only if type is comparable
               "type": "array",
               "minItems": 1,
               "items": {
                 "$ref": "#/$defs/bounds"
               }
             },
-            "repeats": {
+            "repeats": { // only if type is CHOICE or OPEN_CHOICE
               "type": "boolean"
             },
             "size": {
               "type": "string"
             },
-            "service_detail_type": {
+            "service_detail_type": { // deprecated
               "type": "string"
             },
             "initial": {
