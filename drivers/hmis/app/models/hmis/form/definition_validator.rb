@@ -138,6 +138,12 @@ class Hmis::Form::DefinitionValidator
             msg = "EnableWhen #{idx + 1} on Link ID #{link_id}"
             validate_one_of.call(enable_when, ONE_OF_ENABLE_WHEN_SOURCES, message_prefix: msg)
             validate_one_of.call(enable_when, ONE_OF_ENABLE_WHEN_ANSWERS, message_prefix: msg)
+            # TODO: validate that the {source}{operator}{answer} are all compatible. We attempt to ensure this validity in the form property editor,
+            # but we do not validate it here. For example:
+            # - if source is a question, the answer field should be compatible with the question type (eg shouldn't compare STRING=DATE)
+            # - if source is a local constant, the answer field should be compatible local constant type (eg shouldn't compare STRING=DATE)
+            # - if operator is special boolean operator (EXISTS/ENABLED), then the answer type should always be boolean
+            # - certain comparison operators should only be used for certain question types (eg can't use LESS_THAN on a STRING type)
           end
         end
 
