@@ -13,7 +13,7 @@ module HmisCsvImporter
         return
       end
 
-      GrdaWarehouseBase.connection.execute <<~SQL
+      sql = <<~SQL
         CREATE SEQUENCE IF NOT EXISTS #{table_name}_id_seq;
         CREATE TABLE IF NOT EXISTS
           #{GrdaWarehouseBase.connection.quote_table_name(table_name)} (
@@ -22,15 +22,16 @@ module HmisCsvImporter
             batch_id integer,
             PRIMARY KEY ("id")
           );
-        CREATE INDEX #{table_name}_batch_id ON #{table_name} USING btree (batch_id);
+        CREATE INDEX IF NOT EXISTS #{table_name}_batch_id ON #{table_name} USING btree (batch_id);
       SQL
+      GrdaWarehouseBase.connection.execute(sql)
 
       Object.const_set(
         model_name,
         Class.new(GrdaWarehouseBase) do
           self.table_name = table_name
           def self.drop
-            GrdaWarehouseBase.connection.execute "DROP TABLE #{GrdaWarehouseBase.connection.quote_table_name(table_name)};"
+            GrdaWarehouseBase.connection.execute "DROP TABLE IF EXISTS #{GrdaWarehouseBase.connection.quote_table_name(table_name)};"
             GrdaWarehouseBase.connection.execute "DROP SEQUENCE IF EXISTS \"#{table_name}_id_seq\";"
             Object.send(:remove_const, name.to_sym)
           end

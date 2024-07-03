@@ -32,7 +32,7 @@ module HmisCsvImporter::Cleanup
     # @param model_name[String] the model to process
     # @param retain_item_count [Integer] the number of retained imported records to retain beyond the retention date
     # @param retain_after_date [DateTime] the date after which records are retained
-    def perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks)
+    def perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks, delay: false)
       @retain_item_count = retain_item_count
       @retain_after_date = retain_after_date
 
@@ -48,11 +48,17 @@ module HmisCsvImporter::Cleanup
       return unless next_model
 
       # enqueue the job for the next model in series
-      self.class.perform_later(
+      options = {
         model_name: next_model.name,
         retain_item_count: retain_item_count,
         retain_after_date: retain_after_date,
-      )
+        delay: delay,
+      }
+      if delay
+        self.class.perform_later(**options)
+      else
+        self.class.perform_now(**options)
+      end
     end
 
     # returns tuple of [model, next_model]
@@ -107,10 +113,11 @@ module HmisCsvImporter::Cleanup
 
     private def expiration_update_query(model, tmp_table_name)
       <<~SQL
-        UPDATE #{model.quoted_table_name} SET expired = true
-        INNER JOIN #{tmp_table_name} on
-        #{tmp_table_name}.source_id = #{model.quoted_table_name}.id
-        WHERE #{tmp_table_name}.batch_id < #{min_age_protected_id}
+        UPDATE #{model.quoted_table_name} source_table
+        SET expired = true
+        FROM #{tmp_table_name} tmp_table
+        WHERE tmp_table.source_id = source_table.id
+        AND tmp_table.batch_id < #{min_age_protected_id}
       SQL
     end
 
@@ -121,7 +128,7 @@ module HmisCsvImporter::Cleanup
     private def populate_tmp_table_query(model, tmp_table_name)
       <<~SQL
         INSERT INTO #{tmp_table_name} (source_id, batch_id)
-        SELECT id, #{log_id_field} from #{relevant_id_query(model)}
+        SELECT id, #{log_id_field} from (#{relevant_id_query(model)}) as relevant_ids
       SQL
     end
 
