@@ -29,7 +29,7 @@ module Mutations
       validation_errors = definition.validate_json_form
       return { errors: validation_errors } if validation_errors.any?
 
-      validation_errors = definition.validate_json_form
+      validation_errors = definition.validate_json_form(is_publishing: true)
       return { errors: validation_errors } if validation_errors.any?
 
       Hmis::Form::Definition.transaction do

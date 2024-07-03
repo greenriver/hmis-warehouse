@@ -339,8 +339,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   # Validate the JSON form content
   # Returns an array of HmisErrors::Error objects
-  def validate_json_form
-    Hmis::Form::DefinitionValidator.perform(definition, role)
+  def validate_json_form(is_publishing = false)
+    Hmis::Form::DefinitionValidator.perform(definition, role, owner_class.to_s, is_publishing)
   end
 
   def self.validate_schema(json)
