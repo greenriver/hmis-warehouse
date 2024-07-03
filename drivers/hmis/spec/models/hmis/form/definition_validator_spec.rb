@@ -99,6 +99,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
   context 'mutually exclusive attribute validation' do
     let(:definition) do
       {
+        # valid definition
         item: [
           {
             link_id: 'string',
@@ -116,17 +117,14 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
                 severity: 'error',
                 type: 'MAX',
                 value_number: 10,
-                # value_local_constant: 'something', # invalid
               },
             ],
             enable_when: [
               # valid enable_when
               {
                 question: 'string',
-                # local_constant: '$projectName',
                 operator: 'EQUAL',
                 answer_code: 'foo',
-                # answer_boolean: false,
               },
             ],
             autofill_values: [

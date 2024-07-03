@@ -20,6 +20,7 @@ class Hmis::Form::DefinitionValidator
     all_ids = check_ids(document)
     # Check references
     check_references(document, all_ids)
+    # Check mutually exclusive attributes ("one of" on conditional objects)
     check_mutually_exclusive_attributes(document)
     # Check HUD requirements
     check_hud_requirements(all_ids, role) if role
