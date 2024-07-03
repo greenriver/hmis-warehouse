@@ -113,31 +113,11 @@ class Hmis::Form::DefinitionValidator
   ONE_OF_ENABLE_WHEN_ANSWERS = ['answer_code', 'answer_codes', 'answer_group_code', 'answer_number', 'answer_boolean', 'compare_question'].freeze
   ONE_OF_AUTOFILL_VALUES = ['value_code', 'value_number', 'value_boolean', 'value_question', 'sum_questions', 'formula'].freeze
 
-  # TODO gig: finish testing this and write tests in the definition validator spec once that gets merged in and i rebase
-  # Hmis::Form::DefinitionValidator.new.perform({ "item": [ { "link_id": "foo", "type":"STRING",  "enable_behavior": "ANY",  "enable_when": [{"question": "this", "answer_code": "foooo"}] } ] }.deep_stringify_keys).map(&:full_message)
-  # very_invalid = {
-  #   item: [
-  #     {
-  #       link_id: 'foo',
-  #       type: 'INTEGER',
-  #       text: 'foo',
-  #       bounds: [
-  #         {
-  #           severity: 'error',
-  #           type: 'max',
-  #           value_number: 10,
-  #           value_local_constant: 'something', # invalid
-  #         },
-  #       ],
-  #     },
-  #   ],
-  # }.deep_stringify_keys
-
   # Ensure that mutually exclusive attributes are set correctly. These are objects where there must be exactly 1 key present, out of a set of keys.
   def check_mutually_exclusive_attributes(document)
     validate_one_of = lambda do |hash, keys, message_prefix:|
       keys_present = hash.slice(*keys).compact.keys
-      return if keys_present.size == 1 # exactly 1 key present, so it's valid
+      return if keys_present.size == 1 # valid
 
       add_issue("#{message_prefix} must have exactly one of: [#{keys.join(', ')}]. Found keys: [#{keys_present.join(', ')}]")
     end
@@ -163,8 +143,9 @@ class Hmis::Form::DefinitionValidator
         if child_item.key?('autofill_values')
           child_item['autofill_values'].each_with_index do |autofill_value, idx|
             validate_one_of.call(autofill_value, ONE_OF_AUTOFILL_VALUES, message_prefix: "EnableWhen #{idx + 1} on Link ID #{link_id}")
+            next unless autofill_value.key?('autofill_when')
 
-            autofill_value.dig('autofill_when', []).each_with_index do |autofill_when, idx2|
+            autofill_value['autofill_when'].each_with_index do |autofill_when, idx2|
               msg = "Autofill #{idx} condition #{idx2 + 1} on Link ID #{link_id}"
               validate_one_of.call(autofill_when, ONE_OF_ENABLE_WHEN_SOURCES, message_prefix: msg)
               validate_one_of.call(autofill_when, ONE_OF_ENABLE_WHEN_ANSWERS, message_prefix: msg)
