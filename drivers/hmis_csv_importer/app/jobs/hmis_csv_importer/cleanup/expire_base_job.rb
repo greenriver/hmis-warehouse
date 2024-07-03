@@ -90,7 +90,7 @@ module HmisCsvImporter::Cleanup
 
     private def expire_data(model)
       tmp_table_prefix = model.table_name.downcase
-      tmp_table_name = "#{tmp_table_prefix}_#{export.id}_tmp_exp"
+      tmp_table_name = "#{tmp_table_prefix}_tmp_exp"
       tmp_model_name = "#{model.class.name.demodulize}Expire"
       tmp_class = HmisCsvImporter::TempTable.create_temporary_table(table_name: tmp_table_name, model_name: tmp_model_name)
       begin
