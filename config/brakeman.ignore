@@ -908,29 +908,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "443d89cfed8675869009a882988329db93d1c4069e1bab597cdf2f33ce913942",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "drivers/hmis_csv_importer/app/models/hmis_csv_importer/temp_table.rb",
-      "line": 27,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "GrdaWarehouseBase.connection.execute(\"CREATE SEQUENCE IF NOT EXISTS #{table_name}_id_seq;\\nCREATE TABLE IF NOT EXISTS\\n  #{GrdaWarehouseBase.connection.quote_table_name(table_name)} (\\n    id int8 NOT NULL DEFAULT nextval('#{table_name}_id_seq'::regclass),\\n    source_id integer,\\n    batch_id integer,\\n    PRIMARY KEY (\\\"id\\\")\\n  );\\nCREATE INDEX IF NOT EXISTS #{table_name}_batch_id ON #{table_name} USING btree (batch_id);\\n\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "HmisCsvImporter::TempTable",
-        "method": "HmisCsvImporter::TempTable.create_temporary_table"
-      },
-      "user_input": "table_name",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "473ca8588df62336dd0e01e2d9695c7643b543e986c48cadceb7641d2acd2e25",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -3229,6 +3206,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-07-03 16:59:44 +0000",
+  "updated": "2024-07-04 19:24:31 +0000",
   "brakeman_version": "6.1.2"
 }
