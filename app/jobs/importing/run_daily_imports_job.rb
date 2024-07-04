@@ -168,10 +168,6 @@ module Importing
         create_statistical_matches
         generate_logging_info
 
-        # Cleanup old import data
-        # HmisCsvImporter::Cleanup::ExpireLoadersJob.perform_later
-        # HmisCsvImporter::Cleanup::ExpireImportersJob.perform_later
-
         finish_processing
       end
     end

@@ -127,29 +127,6 @@
       "note": ""
     },
     {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "0a02440fb3fa7e8c6c44dafa0ed47f54bb8b9f4a7d765b2d94647ab94fbdf793",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "drivers/hmis_csv_importer/app/jobs/hmis_csv_importer/cleanup/expire_base_job.rb",
-      "line": 98,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "GrdaWarehouseBase.connection.select_rows(\"WITH numbered_rows AS (\\n  SELECT id, row_number() OVER (ORDER BY id) AS row_num\\n  FROM \\\"#{model.table_name}\\\"\\n  where data_source_id = #{@data_source_id}\\n),\\nbatches AS (\\n  SELECT\\n    id,\\n    row_num,\\n    ((row_num - 1) / #{50000} + 1) AS batch_number\\n  FROM numbered_rows\\n)\\nSELECT\\n  MIN(id) AS batch_start,\\n  MAX(id) AS batch_end,\\n  batch_number\\nFROM batches\\nGROUP BY batch_number\\nORDER BY batch_number;\\n\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "HmisCsvImporter::Cleanup::ExpireBaseJob",
-        "method": "batches"
-      },
-      "user_input": "@data_source_id",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "File Access",
       "warning_code": 16,
       "fingerprint": "0a8413f58bac50c36a5c6154a71747e5b6dcc2c7c345f8388fd7d4f42e2350d3",
@@ -3229,6 +3206,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-06-28 19:03:51 +0000",
+  "updated": "2024-07-04 19:24:31 +0000",
   "brakeman_version": "6.1.2"
 }
