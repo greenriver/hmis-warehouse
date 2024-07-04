@@ -29,46 +29,26 @@ module HmisCsvImporter::Cleanup
       10
     end
 
-    # @param model_name[String] the model to process
+    # @param model_name[String] only run against one model, defaults to all models
     # @param retain_item_count [Integer] the number of retained imported records to retain beyond the retention date
     # @param retain_after_date [DateTime] the date after which records are retained
     def perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks)
       @retain_item_count = retain_item_count
       @retain_after_date = retain_after_date
 
-      model, next_model = find_model_by_name(model_name)
-      raise "invalid model #{model_name}" unless model
-
-      with_lock(model) do
-        benchmark(model.table_name.to_s) do
-          process_model(model) if sufficient_imports?
-        end
+      models_to_run = models
+      if model_name
+        models_to_run.filter! { |m| m.name == model_name }
+        raise "invalid model #{model_name}" if models_to_run.empty?
       end
 
-      return unless next_model
-
-      # enqueue the job for the next model in series
-      options = {
-        model_name: next_model.name,
-        retain_item_count: retain_item_count,
-        retain_after_date: retain_after_date,
-      }
-      self.class.perform_later(**options)
-    end
-
-    # returns tuple of [model, next_model]
-    def find_model_by_name(model_name)
-      list = models
-      # if no model_name was provided, start at the beginning
-      model_name ||= list.first.name
-
-      list.each_with_index do |model, idx|
-        if model.name == model_name
-          next_model = list[idx + 1]
-          return [model, next_model]
+      models_to_run.each do |model|
+        with_lock(model) do
+          benchmark(model.table_name.to_s) do
+            process_model(model) if sufficient_imports?
+          end
         end
       end
-      nil
     end
 
     def with_lock(model)
