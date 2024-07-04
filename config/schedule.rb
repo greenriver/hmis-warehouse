@@ -172,12 +172,13 @@ tasks = [
     at: '11:00am',
     interruptable: true,
   },
-  {
-    task: 'driver:hmis_csv_importer:cleanup:expire_and_delete',
-    frequency: 1.week,
-    at: import_cleanup_time,
-    interruptable: false,
-  },
+  # TODO: re-enable when we're happy with the functionality
+  # {
+  #   task: 'driver:hmis_csv_importer:cleanup:expire_and_delete',
+  #   frequency: 1.week,
+  #   at: import_cleanup_time,
+  #   interruptable: false,
+  # },
 ]
 
 job_type :rake_short, 'cd :path && :environment_variable=:environment bundle exec rake :task --silent #capacity_provider:short-term'
