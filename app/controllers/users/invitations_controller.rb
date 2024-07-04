@@ -101,6 +101,7 @@ class Users::InvitationsController < Devise::InvitationsController
       :skip_invitation,
       :permission_context,
       user_group_ids: [],
+      superset_roles: [],
       # TODO: START_ACL remove when ACL transition complete
       legacy_role_ids: [],
       access_group_ids: [],
