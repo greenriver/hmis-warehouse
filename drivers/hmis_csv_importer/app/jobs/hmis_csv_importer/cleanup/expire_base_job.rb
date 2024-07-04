@@ -32,7 +32,7 @@ module HmisCsvImporter::Cleanup
     # @param model_name[String] the model to process
     # @param retain_item_count [Integer] the number of retained imported records to retain beyond the retention date
     # @param retain_after_date [DateTime] the date after which records are retained
-    def perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks, delay: false)
+    def perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks)
       @retain_item_count = retain_item_count
       @retain_after_date = retain_after_date
 
@@ -52,13 +52,8 @@ module HmisCsvImporter::Cleanup
         model_name: next_model.name,
         retain_item_count: retain_item_count,
         retain_after_date: retain_after_date,
-        delay: delay,
       }
-      if delay
-        self.class.perform_later(**options)
-      else
-        self.class.perform_now(**options)
-      end
+      self.class.perform_later(**options)
     end
 
     # returns tuple of [model, next_model]
@@ -88,36 +83,39 @@ module HmisCsvImporter::Cleanup
       # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
       log "Start Processing: #{model.table_name}, rows overall: #{model.with_deleted.count}"
 
-      expire_data(model)
+      with_tmp_table(model) do |table_name|
+        populate_tmp_table(model, table_name)
+        write_expirations(model, table_name)
+      end
 
       # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
       log "Completed Processing: #{model.table_name}, rows expired: #{model.with_deleted.where(expired: true).count} in #{elapsed_time(Time.current - start_time)}"
     end
 
-    private def expire_data(model)
-      tmp_table_prefix = model.table_name.downcase
-      tmp_table_name = "#{tmp_table_prefix}_tmp_exp"
-      tmp_model_name = "#{model.class.name.demodulize}Expire"
-      tmp_class = HmisCsvImporter::TempTable.create_temporary_table(table_name: tmp_table_name, model_name: tmp_model_name)
-      begin
-        populate_tmp_table(model, tmp_table_name)
-        write_expirations(model, tmp_table_name)
-      ensure
-        tmp_class.drop
+    private def with_tmp_table(model)
+      prefix = model.table_name.downcase
+      table_name = "#{prefix}_tmp_exp"
+      model.connection.create_table table_name, id: false, temporary: true do |t|
+        t.references :source, null: false, index: false
       end
+      yield(table_name)
+    ensure
+      # drop tmp table explicitly since we will continue processing additional tables with this session
+      model.connection.drop_table table_name
     end
 
     private def write_expirations(model, tmp_table_name)
       model.connection.execute(expiration_update_query(model, tmp_table_name))
     end
 
+    # this could be batched if needed
     private def expiration_update_query(model, tmp_table_name)
       <<~SQL
         UPDATE #{model.quoted_table_name} source_table
         SET expired = true
         FROM #{tmp_table_name} tmp_table
         WHERE tmp_table.source_id = source_table.id
-        AND tmp_table.batch_id < #{min_age_protected_id}
+        AND #{log_id_field} < #{min_age_protected_id}
       SQL
     end
 
@@ -127,8 +125,8 @@ module HmisCsvImporter::Cleanup
 
     private def populate_tmp_table_query(model, tmp_table_name)
       <<~SQL
-        INSERT INTO #{tmp_table_name} (source_id, batch_id)
-        SELECT id, #{log_id_field} from (#{relevant_id_query(model)}) as relevant_ids
+        INSERT INTO #{tmp_table_name} (source_id)
+        SELECT id FROM (#{relevant_id_query(model)}) as relevant_ids
       SQL
     end
 
@@ -142,22 +140,6 @@ module HmisCsvImporter::Cleanup
           FROM #{model.quoted_table_name}
         ) subquery
         WHERE subquery.row_num > #{@retain_item_count}
-      SQL
-    end
-
-    private def mark_expired_query(model)
-      key_field = model.hud_key
-      <<~SQL
-        UPDATE #{model.quoted_table_name} SET expired = true WHERE id IN (
-          SELECT id FROM (
-            SELECT id, row_number() OVER (
-              PARTITION BY "#{key_field}", data_source_id ORDER BY id DESC
-            ) AS row_num
-            FROM #{model.quoted_table_name}
-          ) subquery
-          WHERE subquery.row_num > #{@retain_item_count}
-        )
-        AND #{log_id_field} < #{min_age_protected_id}
       SQL
     end
 
