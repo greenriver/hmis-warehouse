@@ -60,8 +60,9 @@ module HmisCsvImporter::Cleanup
 
     def process_model(model)
       start_time = Time.current
+      overall_count = model.with_deleted.count
       # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
-      log "Start Processing: #{model.table_name}, rows overall: #{model.with_deleted.count}"
+      log "Start Processing: #{model.table_name}, rows overall: #{overall_count}"
 
       with_tmp_table(model) do |table_name|
         populate_tmp_table(model, table_name)
@@ -69,7 +70,8 @@ module HmisCsvImporter::Cleanup
       end
 
       # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
-      log "Completed Processing: #{model.table_name}, rows expired: #{model.with_deleted.where(expired: true).count} in #{elapsed_time(Time.current - start_time)}"
+      expired_count = model.with_deleted.where(expired: true).count
+      log "Completed Processing: #{model.table_name}, rows expired: #{expired_count} rows not_expired: #{overall_count - expired_count} in #{elapsed_time(Time.current - start_time)}"
     end
 
     private def with_tmp_table(model)
@@ -120,20 +122,20 @@ module HmisCsvImporter::Cleanup
     private def populate_tmp_table_query(model, tmp_table_name)
       <<~SQL
         INSERT INTO #{tmp_table_name} (source_id)
-        SELECT id FROM (#{relevant_id_query(model)}) as relevant_ids
+        #{relevant_id_query(model)}
       SQL
     end
 
     private def relevant_id_query(model)
       key_field = model.hud_key
       <<~SQL
-        SELECT id, #{log_id_field} FROM (
+        SELECT id FROM (
           SELECT id, #{log_id_field}, expired, row_number() OVER (
             PARTITION BY "#{key_field}", data_source_id ORDER BY id DESC
-          ) AS row_num
+          )
           FROM #{model.quoted_table_name}
         ) subquery
-        WHERE subquery.row_num > #{@retain_item_count}
+        WHERE subquery.row_number > #{@retain_item_count}
         AND subquery.expired = false OR subquery.expired is NULL
       SQL
     end
