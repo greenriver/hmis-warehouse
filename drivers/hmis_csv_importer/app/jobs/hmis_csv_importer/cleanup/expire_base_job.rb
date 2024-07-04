@@ -73,29 +73,43 @@ module HmisCsvImporter::Cleanup
     end
 
     private def with_tmp_table(model)
-      prefix = model.table_name.downcase
-      table_name = "#{prefix}_tmp_exp"
-      model.connection.create_table table_name, id: false, temporary: true do |t|
+      model.connection.create_table tmp_table_name(model), temporary: true do |t|
         t.references :source, null: false, index: false
       end
-      yield(table_name)
+      yield(tmp_table_name(model))
     ensure
       # drop tmp table explicitly since we will continue processing additional tables with this session
-      model.connection.drop_table table_name
+      model.connection.drop_table tmp_table_name(model)
+    end
+
+    private def tmp_table_name(model)
+      "#{model.table_name.downcase}_tmp_exp"
     end
 
     private def write_expirations(model, tmp_table_name)
-      model.connection.execute(expiration_update_query(model, tmp_table_name))
+      max_id = max_id_from_tmp_table(model, tmp_table_name) || 0
+      batch_size = 50_000
+      start_id = 0
+      end_id = [batch_size, max_id].min
+      while start_id < max_id
+        model.connection.execute(expiration_update_query(model, tmp_table_name, start_id, end_id))
+        start_id = end_id + 1
+        end_id += batch_size
+      end
     end
 
-    # this could be batched if needed
-    private def expiration_update_query(model, tmp_table_name)
+    private def max_id_from_tmp_table(model, tmp_table_name)
+      model.connection.execute("SELECT max(id) from #{tmp_table_name}").first['max']
+    end
+
+    private def expiration_update_query(model, tmp_table_name, start_id, end_id)
       <<~SQL
         UPDATE #{model.quoted_table_name} source_table
         SET expired = true
         FROM #{tmp_table_name} tmp_table
         WHERE tmp_table.source_id = source_table.id
         AND #{log_id_field} < #{min_age_protected_id}
+        AND tmp_table.id BETWEEN #{start_id} AND #{end_id}
       SQL
     end
 
@@ -114,12 +128,13 @@ module HmisCsvImporter::Cleanup
       key_field = model.hud_key
       <<~SQL
         SELECT id, #{log_id_field} FROM (
-          SELECT id, #{log_id_field}, row_number() OVER (
+          SELECT id, #{log_id_field}, expired, row_number() OVER (
             PARTITION BY "#{key_field}", data_source_id ORDER BY id DESC
           ) AS row_num
           FROM #{model.quoted_table_name}
         ) subquery
         WHERE subquery.row_num > #{@retain_item_count}
+        AND subquery.expired = false OR subquery.expired is NULL
       SQL
     end
 
