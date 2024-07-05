@@ -110,7 +110,6 @@ module HmisCsvImporter::Cleanup
         SET expired = true
         FROM #{tmp_table_name} tmp_table
         WHERE tmp_table.source_id = source_table.id
-        AND #{log_id_field} < #{min_age_protected_id}
         AND tmp_table.id BETWEEN #{start_id} AND #{end_id}
       SQL
     end
@@ -122,21 +121,29 @@ module HmisCsvImporter::Cleanup
     private def populate_tmp_table_query(model, tmp_table_name)
       <<~SQL
         INSERT INTO #{tmp_table_name} (source_id)
-        #{relevant_id_query(model)}
+        SELECT id FROM (#{relevant_id_query(model)}) as relevant_ids
       SQL
     end
 
     private def relevant_id_query(model)
+      <<~SQL
+        -- Need to re-select the same columns so the where on "subquery" can correctly limit the rows
+        SELECT id, #{log_id_field}, expired, row_num FROM (
+          #{partitioned_query(model)}
+        ) as subquery
+        WHERE row_num > #{@retain_item_count}
+        AND #{log_id_field} < #{min_age_protected_id}
+        AND expired = false OR expired is NULL
+      SQL
+    end
+
+    # This inner query can't have any where clause so that the partition and row_number calculation work correctly
+    private def partitioned_query(model)
       key_field = model.hud_key
       <<~SQL
-        SELECT id FROM (
-          SELECT id, #{log_id_field}, expired, row_number() OVER (
-            PARTITION BY "#{key_field}", data_source_id ORDER BY id DESC
-          )
-          FROM #{model.quoted_table_name}
-        ) subquery
-        WHERE subquery.row_number > #{@retain_item_count}
-        AND subquery.expired = false OR subquery.expired is NULL
+        SELECT id, #{log_id_field}, expired,
+          rank() OVER (PARTITION BY "#{key_field}", data_source_id ORDER BY id DESC) as row_num
+        FROM #{model.quoted_table_name}
       SQL
     end
 
