@@ -12,7 +12,9 @@
 # use with caution!
 RailsDrivers.loaded << :hmis_csv_importer
 
-Rails.application.config.queued_tasks[:initial_expiration_hmis_imports] = -> do
-  HmisCsvImporter::Cleanup::ExpireLoadersJob.perform_later
-  HmisCsvImporter::Cleanup::ExpireImportersJob.perform_later
+unless Rails.env.production?
+  Rails.application.config.queued_tasks[:initial_expiration_hmis_imports] = -> do
+    HmisCsvImporter::Cleanup::ExpireLoadersJob.perform_later
+    HmisCsvImporter::Cleanup::ExpireImportersJob.perform_later
+  end
 end
