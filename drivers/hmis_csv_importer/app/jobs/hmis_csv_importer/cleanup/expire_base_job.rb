@@ -121,19 +121,19 @@ module HmisCsvImporter::Cleanup
     private def populate_tmp_table_query(model, tmp_table_name)
       <<~SQL
         INSERT INTO #{tmp_table_name} (source_id)
-        SELECT id FROM (#{relevant_id_query(model)}) as relevant_ids
+        #{relevant_id_query(model)}
       SQL
     end
 
+    # Need to re-select the same columns so the where on "subquery" can correctly limit the rows
     private def relevant_id_query(model)
       <<~SQL
-        -- Need to re-select the same columns so the where on "subquery" can correctly limit the rows
-        SELECT id, #{log_id_field}, expired, row_num FROM (
+        SELECT id FROM (
           #{partitioned_query(model)}
         ) as subquery
         WHERE row_num > #{@retain_item_count}
         AND #{log_id_field} < #{min_age_protected_id}
-        AND expired = false OR expired is NULL
+        AND (expired = false OR expired is NULL)
       SQL
     end
 
