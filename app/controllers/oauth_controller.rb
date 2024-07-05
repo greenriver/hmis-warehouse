@@ -21,7 +21,7 @@ class OauthController < ApplicationController
       email: user.email,
       # These need to match the human-readable names of the roles available in
       # the corresponding superset environment. "Admin" for example. Roles
-      # currently only change on login and aren't instantanious.
+      # currently only change on login and aren't instantaneous.
       superset_roles: user.superset_roles,
     }
 

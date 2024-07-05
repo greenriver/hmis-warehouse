@@ -2404,6 +2404,29 @@
       "note": ""
     },
     {
+      "warning_type": "Redirect",
+      "warning_code": 18,
+      "fingerprint": "bd9f8cdc95ec9905f13a5cf6a7c5d3c477b24d145188564f6a93c2df51d089b7",
+      "check_name": "Redirect",
+      "message": "Possible unprotected redirect",
+      "file": "app/controllers/user_training_controller.rb",
+      "line": 41,
+      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
+      "code": "redirect_to(Talentlms::Facade.new.course_url(current_user, Talentlms::Config.first.courseid, (clients_url or root_url), logout_talentlms_url), :allow_other_host => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "UserTrainingController",
+        "method": "index"
+      },
+      "user_input": "Talentlms::Facade.new.course_url(current_user, Talentlms::Config.first.courseid, (clients_url or root_url), logout_talentlms_url)",
+      "confidence": "Weak",
+      "cwe_id": [
+        601
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "c001b77515db71c33c42f71ebb9f55b97fc3fa1dc0f7c8bc3c6255abcf416607",
@@ -3206,6 +3229,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-07-04 19:24:31 +0000",
+  "updated": "2024-07-04 00:35:30 +0000",
   "brakeman_version": "6.1.2"
 }

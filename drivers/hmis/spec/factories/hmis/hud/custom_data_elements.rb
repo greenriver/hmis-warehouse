@@ -32,9 +32,19 @@ FactoryBot.define do
       repeats { false }
     end
 
+    trait :housing_preference do
+      owner_type { 'Hmis::Hud::CustomAssessment' }
+      field_type { :housing_preference }
+      key { 'housing_preference' }
+      label { 'Housing preference, can pick only one' }
+      repeats { false }
+    end
+
     factory :hmis_custom_data_element_definition_for_primary_language, traits: [:primary_language]
 
     factory :hmis_custom_data_element_definition_for_color, traits: [:color]
+
+    factory :hmis_custom_data_element_definition_for_housing_preference, traits: [:housing_preference]
   end
 
   factory :hmis_custom_data_element, class: 'Hmis::Hud::CustomDataElement' do

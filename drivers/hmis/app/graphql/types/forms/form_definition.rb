@@ -8,6 +8,8 @@
 
 module Types
   class Forms::FormDefinition < Types::BaseObject
+    include ::Hmis::Concerns::HmisArelHelper
+
     skip_activity_log
     description 'FormDefinition'
 
@@ -33,6 +35,7 @@ module Types
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false, method: :updated_at
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false, method: :created_at
     field :updated_by, Types::Application::User, null: true
+    field :project_matches, Types::Forms::ProjectMatch.array_page_type, null: false
     form_rules_field :form_rules, method: :instances
 
     # Filtering is implemented within this resolver rather than a separate concern. This
@@ -46,6 +49,52 @@ module Types
         project_funders: project_funders,
         active_date: active_date,
       )
+    end
+
+    def project_matches
+      # Returns one match per project that this form applies to. (See InstanceProjectMatch for match ranking logic.)
+      # This DOES still return a match for a project if the match is overridden by a more specific rule on another form.
+      # For example, if:
+      # - Intake form A has a rule that specifies that it's used for all projects
+      # - Intake form B has a rule that specifies that it's used for all Emergency Shelter projects
+      # - Intake form C has a rule that specifies that it's used for Project X, an ES project
+      # ...then forms A and B would still return a match for Project X.
+
+      # Fetching all projects is slow, so here we do it only once and pass the scope to project_matches below.
+      project_scope = Hmis::Hud::Project.hmis
+      instance_scope = object.instances.active
+
+      # If there is a default, then all projects are fair game.
+      unless instance_scope.defaults.exists?
+        # Otherwise, further refine project_scope down to only projects that could be matched by any of the instances
+
+        matches_any_project = p_t[:id].in(instance_scope.select { |inst| inst.entity_type == 'Hmis::Hud::Project' }.map(&:entity_id))
+        matches_any_org = o_t[:id].in(instance_scope.select { |inst| inst.entity_type == 'Hmis::Hud::Organization' }.map(&:entity_id))
+        matches_any_funder = f_t[:funder].in(instance_scope.map(&:funder))
+        matches_any_project_type = p_t[:project_type].in(instance_scope.map(&:project_type))
+
+        project_scope = project_scope.
+          joins(:organization).
+          left_outer_joins(:funders).
+          where(
+            matches_any_project.
+              or(matches_any_funder).
+              or(matches_any_project_type).
+              or(matches_any_org),
+          )
+      end
+
+      # Preload organization, and funders only if any of these rules are funder-based (micro-optimizing)
+      project_scope = project_scope.preload(:organization)
+      project_scope = project_scope.preload(:funders) if instance_scope.find { |inst| inst.funder.present? }
+
+      # Despite all the scope refinement, we still need this second pass with the InstanceProjectMatch,
+      # to express the full logic (e.g. "funder AND project type" match), and to get the matches sorted by rank.
+      # returns `Hmis::Form::InstanceProjectMatch`
+      instance_scope.map { |instance| instance.project_matches(project_scope) }.
+        flatten.sort_by(&:rank).reverse. # lower rank means a better match
+        map { |match| [match.project.id, match] }. # map per project ID, the later added to the hash (lower ranked) matches overwrite the earlier ones
+        to_h.values
     end
 
     def raw_definition

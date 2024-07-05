@@ -200,7 +200,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       pregnant_or_parenting_pathway_response = most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_pathway_pregnant_parentingchild')&.AssessmentAnswer&.to_i&.positive?
       household_size_pathway_response = most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_pathways_Household_size')&.AssessmentAnswer&.to_i || 0
+        question_matching_requirement('c_pathways_Household_size')&.AssessmentAnswer.to_i || 0
       household_members_response || pregnant_or_parenting_pathway_response || household_size_pathway_response > 1
     end
 
@@ -341,7 +341,7 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def total_homeless_nights_unsheltered(client)
       most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_pathways_nights_unsheltered_warehouse_added_total')&.AssessmentAnswer&.to_i || 0
+        question_matching_requirement('c_pathways_nights_unsheltered_warehouse_added_total')&.AssessmentAnswer.to_i || 0
     end
 
     private def max_extra_homeless_days(client)
@@ -356,7 +356,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     # IF a client has more than 548 self-reported days (combination of sheltered and unsheltered) AND does NOT have a verification uploaded, COUNT unsheltered days FIRST, THEN COUNT sheltered days UP TO 548.
     def additional_homeless_nights_sheltered(client)
       sheltered = most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer&.to_i || 0
+        question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer.to_i || 0
       return sheltered if ce_self_certification_client_ids.include?(client.id)
 
       unsheltered = additional_homeless_nights_unsheltered(client)
@@ -372,7 +372,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     # IF a client has more than 548 self-reported days (combination of sheltered and unsheltered) AND does NOT have a verification uploaded, COUNT unsheltered days FIRST, THEN COUNT sheltered days UP TO 548.
     def additional_homeless_nights_unsheltered(client)
       unsheltered = most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer&.to_i || 0
+        question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer.to_i || 0
       return unsheltered if ce_self_certification_client_ids.include?(client.id)
 
       # 1. Cap the total unsheltered at 548 days if it is greater than this amount.
@@ -381,21 +381,23 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     def calculated_homeless_nights_sheltered(client)
       most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_boston_homeless_nights_sheltered_wiw')&.AssessmentAnswer&.to_i || 0
+        question_matching_requirement('c_boston_homeless_nights_sheltered_wiw')&.AssessmentAnswer.to_i || 0
     end
 
     def calculated_homeless_nights_unsheltered(client)
       most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_boston_homeless_nights_outside_wiw')&.AssessmentAnswer&.to_i || 0
+        question_matching_requirement('c_boston_homeless_nights_outside_wiw')&.AssessmentAnswer.to_i || 0
     end
 
     def total_homeless_nights_sheltered(client)
       most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_pathways_nights_sheltered_warehouse_added_total')&.AssessmentAnswer&.to_i || 0
+        question_matching_requirement('c_pathways_nights_sheltered_warehouse_added_total')&.AssessmentAnswer.to_i || 0
     end
 
     private def default_shelter_agency_contacts(client)
-      client.client_contacts.shelter_agency_contacts.where.not(email: nil).pluck(:email)
+      contact_emails = client.client_contacts.shelter_agency_contacts.where.not(email: nil).pluck(:email)
+      contact_emails << client.source_assessments.max_by(&:assessment_date)&.user&.user_email
+      contact_emails.compact.uniq
     end
 
     private def contact_info_for_rrh_assessment(client)

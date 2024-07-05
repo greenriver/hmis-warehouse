@@ -15,60 +15,6 @@
       "mapping": {
         "record_type": "EMPLOYMENT_EDUCATION",
         "field_name": "lastGradeCompleted"
-      },
-      "rule": {
-        "operator": "ANY",
-        "parts": [
-          {
-            "_comment": "HUD: HUD-VASH – – Collection required for HUD/VASH- Continuum",
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HUD: HUD-VASH"
-          },
-          {
-            "operator": "ALL",
-            "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
-            "parts": [
-              {
-                "variable": "projectFunderComponents",
-                "operator": "INCLUDE",
-                "value": "HHS: RHY"
-              },
-              {
-                "variable": "projectType",
-                "operator": "NOT_EQUAL",
-                "value": 4
-              }
-            ]
-          },
-          {
-            "operator": "ALL",
-            "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
-            "parts": [
-              {
-                "variable": "projectFunderComponents",
-                "operator": "INCLUDE",
-                "value": "VA: SSVF"
-              },
-              {
-                "operator": "ANY",
-                "_comment": "RRH or HP",
-                "parts": [
-                  {
-                    "variable": "projectType",
-                    "operator": "EQUAL",
-                    "value": 12
-                  },
-                  {
-                    "variable": "projectType",
-                    "operator": "EQUAL",
-                    "value": 13
-                  }
-                ]
-              }
-            ]
-          }
-        ]
       }
     },
     {
@@ -81,87 +27,11 @@
       "mapping": {
         "record_type": "EMPLOYMENT_EDUCATION",
         "field_name": "schoolStatus"
-      },
-      "rule": {
-        "operator": "ALL",
-        "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HHS: RHY"
-          },
-          {
-            "variable": "projectType",
-            "operator": "NOT_EQUAL",
-            "value": 4
-          }
-        ]
       }
     },
     {
       "type": "GROUP",
       "link_id": "R6",
-      "rule": {
-        "operator": "ANY",
-        "parts": [
-          {
-            "_comment": "HUD: HUD-VASH – – Collection required for HUD/VASH- Continuum",
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HUD: HUD-VASH"
-          },
-          {
-            "operator": "ALL",
-            "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
-            "parts": [
-              {
-                "variable": "projectFunderComponents",
-                "operator": "INCLUDE",
-                "value": "HHS: RHY"
-              },
-              {
-                "variable": "projectType",
-                "operator": "NOT_EQUAL",
-                "value": 4
-              }
-            ]
-          },
-          {
-            "operator": "ALL",
-            "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
-            "parts": [
-              {
-                "variable": "projectFunderComponents",
-                "operator": "INCLUDE",
-                "value": "VA: SSVF"
-              },
-              {
-                "operator": "ANY",
-                "_comment": "RRH or HP",
-                "parts": [
-                  {
-                    "variable": "projectType",
-                    "operator": "EQUAL",
-                    "value": 12
-                  },
-                  {
-                    "variable": "projectType",
-                    "operator": "EQUAL",
-                    "value": 13
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "_comment": "VA: GPD – collection required for all components",
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "VA: GPD"
-          }
-        ]
-      },
       "item": [
         {
           "type": "CHOICE",

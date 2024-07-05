@@ -3,32 +3,6 @@
   "link_id": "V7",
   "data_collected_about": "HOH",
   "text": "HP Targeting Criteria",
-  "rule": {
-    "operator": "ANY",
-    "parts": [
-      {
-        "operator": "ALL",
-        "_comment": "VA: SSVF – Collection required for Homelessness Prevention",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "VA: SSVF"
-          },
-          {
-            "operator": "ANY",
-            "parts": [
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 12
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
   "item": [
     {
       "type": "CHOICE",

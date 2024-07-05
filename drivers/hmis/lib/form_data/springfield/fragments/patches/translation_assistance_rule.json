@@ -1,7 +1,7 @@
 [
   {
     "link_id": "C4_group",
-    "rule": {
+    "custom_rule": {
       "operator": "ANY",
       "parts": [
         {
@@ -38,56 +38,6 @@
           "variable": "projectId",
           "operator": "EQUAL",
           "value": "202dac9edb964811891c9cea77d5db32"
-        },
-        {
-          "_comment": "HUD: CoC – Collection required for all components",
-          "variable": "projectFunderComponents",
-          "operator": "INCLUDE",
-          "value": "HUD: CoC"
-        },
-        {
-          "_comment": "HUD: ESG – Collection required for all components ",
-          "variable": "projectFunderComponents",
-          "operator": "INCLUDE",
-          "value": "HUD: ESG"
-        },
-        {
-          "operator": "ALL",
-          "_comment": "HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach",
-          "parts": [
-            {
-              "variable": "projectFunderComponents",
-              "operator": "INCLUDE",
-              "value": "HUD: ESG RUSH"
-            },
-            {
-              "variable": "projectType",
-              "operator": "NOT_EQUAL",
-              "value": 0
-            },
-            {
-              "variable": "projectType",
-              "operator": "NOT_EQUAL",
-              "value": 1
-            },
-            {
-              "variable": "projectType",
-              "operator": "NOT_EQUAL",
-              "value": 4
-            }
-          ]
-        },
-        {
-          "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components",
-          "variable": "projectFunderComponents",
-          "operator": "INCLUDE",
-          "value": "HUD: Unsheltered Special NOFO"
-        },
-        {
-          "_comment": "HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry",
-          "variable": "projectFunders",
-          "operator": "INCLUDE",
-          "value": 55
         }
       ]
     }
