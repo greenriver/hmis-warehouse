@@ -6,48 +6,46 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Rack::Attack
-  def self.tracking_enabled?(request)
-    return false if internal_lb_checks?(request)
+require 'memery'
 
-    !Rails.env.test? || /t|1/.match?(request.params['rack_attack_enabled'].to_s)
+# app-specific helper methods
+module RackAttackRequestHelpers
+  include Memery
+  extend ActiveSupport::Concern
+
+  memoize def tracking_enabled?
+    return false if internal_lb_check?
+
+    !Rails.env.test? || /t|1/.match?(params['rack_attack_enabled'].to_s)
   end
 
-  def self.internal_lb_checks?(request)
-    return false unless request.env['HTTP_USER_AGENT'] == 'ELB-HealthChecker/2.0'
-    return false unless request.path.include?('status')
-    ActionDispatch::RemoteIp::TRUSTED_PROXIES.any? do |range|
-      range.include?(request_ip(request))
-    end
+  def warehouse_authentication_attempt?
+    path == '/users/sign_in' && post?
   end
 
-  def self.sign_in_path?(request)
-    request.path == '/users/sign_in' && request.post?
+  def hmis_authentication_attempt?
+    path == '/hmis/login' && post?
   end
 
-  def self.hmis_sign_in_path?(request)
-    request.path == '/hmis/login' && request.post?
+  def password_reset_attempt?
+    get? && path == '/users/password'
   end
 
-  def self.rapid_paths?(request)
-    request.path.include?('rollup') || request.path.include?('cohort') || request.path.include?('core_demographics') || asset_paths?(request)
+  def okta_callback?
+    get? && path =~ /\A(\/hmis)?\/users\/auth\/okta\/callback\z/
   end
 
-  def self.asset_paths?(request)
-    request.path.include?('assets')
+  def rapid_paths?
+    path.include?('rollup') || path.include?('cohort') || path.include?('core_demographics')
   end
 
-  def self.history_pdf_path?(request)
-    request.path.include?('history/pdf')
+  def history_pdf_path?
+    path.include?('history/pdf')
   end
 
-  def self.user_email_present?(request)
-    request.params['user'].present? && request.params['user']['email'].present?
-  end
-
-  # str should be a json document but it is user supplied and could be anything
-  def self.parse_json_input(request)
-    input = request.env['rack.input']
+  # extract the params from a JSON submission
+  def json_params
+    input = env['rack.input']
     str = input&.read
     input&.rewind
     # some preflight sanity checks before we parse
@@ -58,105 +56,135 @@ class Rack::Attack
     nil
   end
 
-  def self.request_params(request)
-    case request.content_type
-    when 'application/json'
-      parse_json_input(request)
-    else
-      request.params
-    end
-  end
-
-  # @param request [Rack::Attack::Request]
-  def self.request_ip(request)
-    # Check shared secret key to see if we can trust remote_ip. Could also use ip(?)
-    if request.env['HTTP_X_PROXY_SECRET_KEY'] == ENV['PROXY_SECRET_KEY']
-      result = request.env['action_dispatch.remote_ip']
-      raise "could not find remote_ip, check middleware for ActionDispatch::RemoteIp" unless result
+  # returns the x-forward-for ip if we think the sending ip is trusted. Uses the RemoteIp rails middleware
+  def request_ip
+    if env['HTTP_X_PROXY_SECRET_KEY'] == ENV['PROXY_SECRET_KEY'] || trusted_proxy?
+      result = env['action_dispatch.remote_ip']
+      raise 'could not find remote_ip, check middleware for ActionDispatch::RemoteIp' unless result
 
       result
     else
-      request.ip
+      ip
     end
   end
 
+  def anonymous?
+    !authenticated?
+  end
+
+  def authenticated?
+    warden_user.present?
+  end
+
+  protected
+
   WARDEN_CHECK_EXCLUDE_URLS = ['/hmis/app_settings', '/hmis/user', '/messages/poll'].to_set.freeze
-  def self.warden_user_present?(request)
+  private_constant :WARDEN_CHECK_EXCLUDE_URLS
+  memoize def warden_user
     # Avoid calling warden for user status endpoints. Calling warden here bumps
     # last_request_at, regardless of skip_trackable in the controller. This means
     # sessions may not expire as expected
-    strip_path = request.path.split('.', 2)[0]
-    return false if strip_path.in?(WARDEN_CHECK_EXCLUDE_URLS)
+    strip_path = path.split('.', 2)[0]
+    return nil if strip_path.in?(WARDEN_CHECK_EXCLUDE_URLS)
 
     # If we explicitly added a parameter to avoid updating last_request_at, honor it
-    return false if request.env['QUERY_STRING'].include?('skip_trackable=true')
+    return nil if env['QUERY_STRING'].include?('skip_trackable=true')
 
-    request.env['warden']&.user.present? || request.env['warden']&.user(:hmis_user).present?
+    env['warden']&.user.presence || env['warden']&.user(:hmis_user).presence
   end
 
-  # track any remote ip that exceeds our basic request rate limits
-  # tracker = if Rails.env.test? then :throttle else :track end
-  tracker = :throttle
+  def internal_lb_check?
+    env['HTTP_USER_AGENT'] == 'ELB-HealthChecker/2.0' && path.include?('status') && trusted_proxy?
+  end
 
-  send(tracker, 'requests per unauthenticated user per ip', limit: 10, period: 1.seconds) do |request|
-    if tracking_enabled?(request)
-      if !warden_user_present?(request) && !(sign_in_path?(request) || hmis_sign_in_path?(request) || history_pdf_path?(request) || asset_paths?(request))
-        request_ip(request)
-      end
-    end
-  end
-  send(tracker, 'requests per unauthenticated user to history pdf', limit: 25, period: 10.seconds) do |request|
-    if tracking_enabled?(request)
-      if !warden_user_present?(request) && history_pdf_path?(request)
-        request_ip(request)
-      end
-    end
-  end
-  send(tracker, 'requests per unauthenticated user to assets', limit: 200, period: 10.seconds) do |request|
-    if tracking_enabled?(request)
-      if !warden_user_present?(request) && asset_paths?(request)
-        request_ip(request)
-      end
-    end
-  end
-  send(tracker, 'requests per logged-in user per ip', limit: 150, period: 5.seconds) do |request|
-    if tracking_enabled?(request)
-      if warden_user_present?(request) && !(rapid_paths?(request))
-        request_ip(request)
-      end
-    end
-  end
-  send(tracker, 'requests per logged-in user per ip special', limit: 250, period: 5.seconds) do |request|
-    if tracking_enabled?(request)
-      if warden_user_present?(request) && (rapid_paths?(request))
-        request_ip(request)
-      end
-    end
-  end
-  send(tracker, 'logins per account', limit: 10, period: 180.seconds) do |request|
-    if tracking_enabled?(request)
-      if sign_in_path?(request) && user_email_present?(request)
-        request.params['user']['email']
-      end
-    end
-  end
-  # limit to 25 logins per user per hour
-  send(tracker, 'block script logins per account', limit: 25, period: 3600.seconds) do |request|
-    if tracking_enabled?(request)
-      if sign_in_path?(request) && user_email_present?(request)
-        request.params['user']['email']
-      end
-    end
-  end
-  send(tracker, 'hmis logins per account', limit: 10, period: 180.seconds) do |request|
-    if tracking_enabled?(request) && hmis_sign_in_path?(request)
-      params = request_params(request)
-      if params.is_a?(Hash) && params['hmis_user'].is_a?(Hash)
-        params['hmis_user']['email'].presence
-      end
+  # is the source ip on a local or private network?
+  def trusted_proxy?
+    ActionDispatch::RemoteIp::TRUSTED_PROXIES.any? do |range|
+      range.include?(request.ip)
     end
   end
 end
+
+class Rack::Attack::Request
+  include RackAttackRequestHelpers
+end
+
+# rubocop:disable Style/IfUnlessModifier
+Rack::Attack.tap do |config|
+  # Description: per-ip limit on auth requests
+  # Goal: prevent brute-force enumeration of credentials and password reset tokens
+  config.throttle(
+    'authentication attempts per ip',
+    limit: 60,
+    period: 5.minutes
+  ) do |request|
+    if request.tracking_enabled? && request.anonymous?
+      if request.hmis_authentication_attempt? ||
+        request.warehouse_authentication_attempt? ||
+        request.password_reset_attempt? ||
+        request.okta_callback?
+
+        request.request_ip
+      end
+    end
+  end
+
+  # Description: per-email limit on auth requests
+  # Goal: prevent brute-force enumeration of passwords for one account. Perhaps this could be removed since devise should handle this already
+  config.throttle(
+    'logins per account',
+    limit: 10,
+    period: 180.seconds
+  ) do |request|
+    if request.tracking_enabled? && request.anonymous?
+      params = nil
+      if request.hmis_authentication_attempt?
+        # hmis uses json
+        params = request.json_params['hmis_user']
+      elsif request.warehouse_authentication_attempt?
+        params = request.params['user']
+      end
+      params['email']&.strip&.downcase&.presence if params.is_a?(Hash)
+    end
+  end
+
+  # Description: per-ip limit on unauthenticated requests
+  # Goal: limit burst requests from unauthenticated clients, such as spiders
+  config.throttle(
+    'authentication attempts per ip',
+    limit: 10,
+    period: 1.second
+  ) do |request|
+    if request.tracking_enabled? && request.anonymous?
+      request.request_ip
+    end
+  end
+
+  # Description: per-ip limit on authenticated requests where some 'rapid' paths are less throttled
+  # Goal: the idea seems to be to prevent scripts run through authenticated user accounts with an allowance for known poor behavior for cohort management interface
+  config.throttle(
+    'authenticated requests per ip',
+    limit: ->(request) { request.rapid_paths? ? 250 : 150 },
+    period: 5.seconds,
+  ) do |request|
+    if request.tracking_enabled? && request.authenticated?
+      request.request_ip
+    end
+  end
+
+  # Description: per-ip limit on unauthenticated requests a 'history pdf'
+  # Goal: TBD
+  config.throttle(
+    'requests per unauthenticated user to history pdf',
+    limit: 25,
+    period: 10.seconds
+  ) do |request|
+    if request.tracking_enabled? && request.anonymous? && request.history_pdf_path?
+      request_ip(request)
+    end
+  end
+end
+# rubocop:enable Style/IfUnlessModifier
 
 # #Custom limit response
 # Rack::Attack.throttled_response = lambda do |env|
@@ -173,23 +201,18 @@ end
 #   [ 429, headers, ["Throttled\n"]]
 # end
 
-ActiveSupport::Notifications.subscribe(/rack_attack/) do |name, start, finish, request_id, payload|
-  request =  payload[:request]
+ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish, _request_id, payload|
+  request = payload[:request]
 
   # safelist matches are un-interesting
-  next if request.env['rack.attack.match_type'].to_s.in?(%w/safelist/)
+  next if request.env['rack.attack.match_type'].to_s.in?(['safelist'])
 
   # collect some useful data
   data = {
     rails_env: Rails.env.to_s,
   }
   # ... the attach match
-  data.merge! request.env.slice(*%w/
-    rack.attack.match_type
-    rack.attack.matched
-    rack.attack.match_discriminator
-    rack.attack.match_data
-  /)
+  data.merge! request.env.slice('rack.attack.match_type', 'rack.attack.matched', 'rack.attack.match_discriminator', 'rack.attack.match_data')
   # ... the request
   data.merge!(
     server_protocol: request.env['SERVER_PROTOCOL'],
@@ -197,8 +220,8 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |name, start, finish, r
     method: request.request_method,
     path: request.fullpath,
     amzn_trace_id: request.env['HTTP_X_AMZN_TRACE_ID'],
-    request_start: (request.env['HTTP_X_REQUEST_START'].try(:gsub, /\At=/,'').presence || start),
-    remote_ip:  request.env['action_dispatch.remote_ip'],
+    request_start: request.env['HTTP_X_REQUEST_START'].try(:gsub, /\At=/, '').presence || start,
+    remote_ip: request.env['action_dispatch.remote_ip'],
     user_id: request.env['warden'].user&.id,
     session_id: request.env['rack.session'].id,
     user_agent: request.env['HTTP_USER_AGENT'],
@@ -206,7 +229,7 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |name, start, finish, r
     accept_language: request.accept_language,
   )
   # ... get a record on disk
-  Rails.logger.warn JSON::generate(data)
+  Rails.logger.warn JSON.generate(data)
 
   # ... and now try to send to somewhere useful
   if defined?(Slack::Notifier) && ENV['EXCEPTION_WEBHOOK_URL'].present?
@@ -217,18 +240,18 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |name, start, finish, r
       username: 'Rack-Attack',
     )
 
-    fields =  data.map do |k,v|
-      {title: k.to_s, value: v.to_s}
+    fields = data.map do |k, v|
+      { title: k.to_s, value: v.to_s }
     end
     attachment = {
-      fallback: JSON::pretty_generate(data),
+      fallback: JSON.pretty_generate(data),
       color: :warning,
-      fields: fields
+      fields: fields,
     }
     notifier.ping(
       text: '*Rack attack event*',
       attachments: [attachment],
-      http_options: { open_timeout: 1 }
+      http_options: { open_timeout: 1 },
     )
   end
 end
