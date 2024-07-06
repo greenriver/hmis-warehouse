@@ -52,14 +52,11 @@ describe Rack::Attack, type: :request do
     describe 'and posting to the hmis sign-in end point' do
       let(:throttled_at) { 11 }
       let(:request_limit) { (throttled_at * 4).to_i }
-      let(:path) { '/hmis/login' }
+      let(:path) { hmis_user_session_path(rack_attack_enabled: true) }
 
       it 'throttle excessive requests by user - enabled' do
-        req_count = 0
         requests_sent = till_throttled(requests_to_send: request_limit) do
-          post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
-          payload = { user: { email: 'test@example.com', password: 'password' } }
-          post hmis_user_session_path, params: payload.to_json, headers: { "CONTENT_TYPE" => "application/json" }
+          post(path, params:{ hmis_user: { email: 'test@example.com', password: 'password' } }, as: :json)
         end
         expect(requests_sent).to be_between(throttled_at, throttled_at + 1)
       end
@@ -73,20 +70,21 @@ describe Rack::Attack, type: :request do
     describe 'and hitting the homepage' do
       let(:throttled_at) { 151 }
       let(:request_limit) { (throttled_at * 4).to_i }
-      let(:path) { '/' }
+      let(:path) { root_path(rack_attack_enabled: true) }
 
       it 'throttle excessive requests by IP address - enabled' do
-        requests_sent = till_throttled(:get, path, params: { rack_attack_enabled: true }, requests_to_send: request_limit)
+        requests_sent = till_throttled(requests_to_send: request_limit) { get(path) }
         expect(requests_sent).to be_between(throttled_at, throttled_at + 1)
       end
     end
     describe 'and hitting client rollups' do
       let(:throttled_at) { 251 }
       let(:request_limit) { (throttled_at * 4).to_i }
-      let(:path) { '/clients/1/rollup/residential_enrollments' }
+      # /clients/1/rollup/residential_enrollments
+      let(:path) { rollup_client_path(id: 1, partial: 'residential_enrollments', rack_attack_enabled: true) }
 
       it 'throttle excessive requests by IP address - enabled' do
-        requests_sent = till_throttled(:get, path, params: { rack_attack_enabled: true }, requests_to_send: request_limit)
+        requests_sent = till_throttled(requests_to_send: request_limit) {get(path) }
         expect(requests_sent).to be_between(throttled_at, throttled_at + 1)
       end
     end

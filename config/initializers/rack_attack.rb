@@ -1,4 +1,10 @@
-# Rails.logger.debug "Running initializer in #{__FILE__}"
+# frozen_string_literal: true
+
+###
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
 
 class Rack::Attack
   def self.tracking_enabled?(request)
@@ -39,8 +45,26 @@ class Rack::Attack
     request.params['user'].present? && request.params['user']['email'].present?
   end
 
-  def self.hmis_user_email_present?(request)
-    request.params['hmis_user'].present? && request.params['hmis_user']['email'].present?
+  # str should be a json document but it is user supplied and could be anything
+  def self.parse_json_input(request)
+    input = request.env['rack.input']
+    str = input&.read
+    input&.rewind
+    # some preflight sanity checks before we parse
+    return nil unless str.present? && str[0] == '{' && str[-1] == '}' && str.size <= 5_000
+
+    JSON.parse(str)
+  rescue JSON::ParserError
+    nil
+  end
+
+  def self.request_params(request)
+    case request.content_type
+    when 'application/json'
+      parse_json_input(request)
+    else
+      request.params
+    end
   end
 
   # @param request [Rack::Attack::Request]
@@ -125,9 +149,10 @@ class Rack::Attack
     end
   end
   send(tracker, 'hmis logins per account', limit: 10, period: 180.seconds) do |request|
-    if tracking_enabled?(request)
-      if hmis_sign_in_path?(request) && hmis_user_email_present?(request)
-        request.params['hmis_user']['email']
+    if tracking_enabled?(request) && hmis_sign_in_path?(request)
+      params = request_params(request)
+      if params.is_a?(Hash) && params['hmis_user'].is_a?(Hash)
+        params['hmis_user']['email'].presence
       end
     end
   end
