@@ -14,9 +14,7 @@ module RackAttackRequestHelpers
   extend ActiveSupport::Concern
 
   memoize def tracking_enabled?
-    return false if internal_lb_check?
-
-    !Rails.env.test? || /t|1/.match?(params['rack_attack_enabled'].to_s)
+    !internal_lb_check?
   end
 
   def warehouse_authentication_attempt?
@@ -43,20 +41,7 @@ module RackAttackRequestHelpers
     path.include?('history/pdf')
   end
 
-  # extract the params from a JSON submission
-  def json_params
-    input = env['rack.input']
-    str = input&.read
-    input&.rewind
-    # some preflight sanity checks before we parse
-    return nil unless str.present? && str[0] == '{' && str[-1] == '}' && str.size <= 5_000
-
-    JSON.parse(str)
-  rescue JSON::ParserError
-    nil
-  end
-
-  # returns the x-forward-for ip if we think the sending ip is trusted. Uses the RemoteIp rails middleware
+  # returns the x-forward-for ip if we think the sending ip is trusted. Depends the RemoteIp rails middleware installed higher in the stack
   def request_ip
     if env['HTTP_X_PROXY_SECRET_KEY'] == ENV['PROXY_SECRET_KEY'] || trusted_proxy?
       result = env['action_dispatch.remote_ip']
@@ -111,76 +96,73 @@ end
 
 # rubocop:disable Style/IfUnlessModifier
 Rack::Attack.tap do |config|
-  # Description: per-ip limit on auth requests
-  # Goal: prevent brute-force enumeration of credentials and password reset tokens
+  # Throttling configuration
+  # * Multiple throttles can match the same request
+  # * Names must be unique or they will be silently overwritten
+
+  # Goal: prevent brute-force enumeration of credentials
   config.throttle(
-    'authentication attempts per ip',
-    limit: 60,
-    period: 5.minutes
+    'per-ip limit on auth requests',
+    limit: 20,
+    period: 3.minutes,
   ) do |request|
     if request.tracking_enabled? && request.anonymous?
-      if request.hmis_authentication_attempt? ||
-        request.warehouse_authentication_attempt? ||
-        request.password_reset_attempt? ||
-        request.okta_callback?
-
-        request.request_ip
-      end
+      request.request_ip if request.hmis_authentication_attempt? || request.warehouse_authentication_attempt?
     end
   end
 
-  # Description: per-email limit on auth requests
-  # Goal: prevent brute-force enumeration of passwords for one account. Perhaps this could be removed since devise should handle this already
+  # Goal: prevent brute-force enumeration of password reset tokens
   config.throttle(
-    'logins per account',
-    limit: 10,
-    period: 180.seconds
+    'per-ip limit on password resets',
+    limit: 20,
+    period: 3.minutes,
   ) do |request|
-    if request.tracking_enabled? && request.anonymous?
-      params = nil
-      if request.hmis_authentication_attempt?
-        # hmis uses json
-        params = request.json_params['hmis_user']
-      elsif request.warehouse_authentication_attempt?
-        params = request.params['user']
-      end
-      params['email']&.strip&.downcase&.presence if params.is_a?(Hash)
+    if request.tracking_enabled? && request.anonymous? && request.password_reset_attempt?
+      request.request_ip
     end
   end
 
-  # Description: per-ip limit on unauthenticated requests
+  # Goal: prevent brute-force enumeration of okta redirects
+  config.throttle(
+    'per-ip limit on okta redirects',
+    limit: 20,
+    period: 3.minutes,
+  ) do |request|
+    if request.tracking_enabled? && request.anonymous? && request.okta_callback?
+      request.request_ip
+    end
+  end
+
+  # Goal: TBD
+  config.throttle(
+    ' per-ip limit on unauthenticated requests for history pdf',
+    limit: 25,
+    period: 10.seconds,
+  ) do |request|
+    if request.tracking_enabled? && request.anonymous? && request.history_pdf_path?
+      request_ip(request)
+    end
+  end
+
   # Goal: limit burst requests from unauthenticated clients, such as spiders
   config.throttle(
-    'authentication attempts per ip',
+    'General per-ip limit on unauthenticated requests',
     limit: 10,
-    period: 1.second
+    period: 1.second,
   ) do |request|
     if request.tracking_enabled? && request.anonymous?
       request.request_ip
     end
   end
 
-  # Description: per-ip limit on authenticated requests where some 'rapid' paths are less throttled
   # Goal: the idea seems to be to prevent scripts run through authenticated user accounts with an allowance for known poor behavior for cohort management interface
   config.throttle(
-    'authenticated requests per ip',
+    'General per-ip limit on authenticated requests',
     limit: ->(request) { request.rapid_paths? ? 250 : 150 },
     period: 5.seconds,
   ) do |request|
     if request.tracking_enabled? && request.authenticated?
       request.request_ip
-    end
-  end
-
-  # Description: per-ip limit on unauthenticated requests a 'history pdf'
-  # Goal: TBD
-  config.throttle(
-    'requests per unauthenticated user to history pdf',
-    limit: 25,
-    period: 10.seconds
-  ) do |request|
-    if request.tracking_enabled? && request.anonymous? && request.history_pdf_path?
-      request_ip(request)
     end
   end
 end
