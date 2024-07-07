@@ -40,7 +40,4 @@
   .none-found No questions provided.
 -# Always link to HMIS for HUD Assessments, since the majority of data is non-Custom so wont be shown here.
 - if @assessment.hud_assessment?
-  .none-found
-    %a{href: @assessment.data_source.hmis_url_for(@assessment), target: :blank}
-      Open in HMIS
-      %i.icon-link-ext.ml-2{style: 'color: inherit; font-size: inherit;'}
+  = hmis_external_link(@assessment, user: current_user, wrapper_class: 'none-found', icon_class: 'icon-link-ext ml-2', icon_style: 'color: inherit; font-size: inherit;')

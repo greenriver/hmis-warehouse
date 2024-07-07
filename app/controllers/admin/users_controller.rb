@@ -219,6 +219,7 @@ module Admin
         :copy_form_id,
         :permission_context,
         user_group_ids: [],
+        superset_roles: [],
         # TODO: START_ACL remove when ACL transition complete
         legacy_role_ids: [],
         access_group_ids: [],

@@ -2,23 +2,6 @@
   "type": "GROUP",
   "link_id": "R10",
   "data_collected_about": "HOH_AND_ADULTS",
-  "rule": {
-    "operator": "ANY",
-    "parts": [
-      {
-        "_comment": "HHS: RHY – Collection required for all components",
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "HHS: RHY"
-      },
-      {
-        "_comment": "Included in YHDP Supplemental CSV. Recommended for YHDP projects.",
-        "variable": "projectFunders",
-        "operator": "INCLUDE",
-        "value": 43
-      }
-    ]
-  },
   "item": [
     {
       "type": "CHOICE",

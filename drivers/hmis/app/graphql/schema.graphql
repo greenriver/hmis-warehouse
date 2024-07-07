@@ -3955,6 +3955,7 @@ type FormDefinition {
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
   id: ID!
   identifier: String!
+  projectMatches(limit: Int, offset: Int): FormProjectMatchesPaginated!
   rawDefinition: JsonObject!
   role: FormRole!
   status: FormStatus!
@@ -4073,8 +4074,8 @@ type FormItem {
   """
   How to display item if it is disabled
   """
-  disabledDisplay: DisabledDisplay!
-  enableBehavior: EnableBehavior!
+  disabledDisplay: DisabledDisplay
+  enableBehavior: EnableBehavior
   enableWhen: [EnableWhen!]
 
   """
@@ -4085,7 +4086,7 @@ type FormItem {
   """
   Whether the item should always be hidden
   """
-  hidden: Boolean!
+  hidden: Boolean
 
   """
   Initial value(s) when item is first rendered
@@ -4116,7 +4117,7 @@ type FormItem {
   """
   Whether to allow pre-filling this section from a previous assessment
   """
-  prefill: Boolean!
+  prefill: Boolean
 
   """
   Prefix for the item label
@@ -4126,7 +4127,7 @@ type FormItem {
   """
   Whether human editing is allowed
   """
-  readOnly: Boolean!
+  readOnly: Boolean
 
   """
   Text to use for the item when displayed in read-only view
@@ -4136,17 +4137,17 @@ type FormItem {
   """
   Whether the item may repeat (for choice types, this means multiple choice)
   """
-  repeats: Boolean!
+  repeats: Boolean
 
   """
   Whether the item must be included in data results
   """
-  required: Boolean!
+  required: Boolean
 
   """
   Whether to apply this field to all clients or a single client when bulk creating
   """
-  serviceDetailType: ServiceDetailType
+  serviceDetailType: ServiceDetailType @deprecated(reason: "from old bulk services implementation, no longer supported")
 
   """
   Size of the input element
@@ -4162,7 +4163,27 @@ type FormItem {
   """
   Whether to show a warning if this question is unanswered
   """
-  warnIfEmpty: Boolean!
+  warnIfEmpty: Boolean
+}
+
+"""
+Project match for a form, including information about which clients in this project the form is applicable to.
+"""
+type FormProjectMatch {
+  dataCollectedAbout: DataCollectedAbout!
+  id: ID!
+  organizationName: String!
+  projectName: String!
+}
+
+type FormProjectMatchesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [FormProjectMatch!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 enum FormRole {

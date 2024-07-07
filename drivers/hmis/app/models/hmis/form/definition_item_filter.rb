@@ -32,7 +32,11 @@ class Hmis::Form::DefinitionItemFilter
     # return items if Rails.env.development?
 
     items.filter do |item|
-      if eval_rule(item['rule'])
+      # 'rule' is HUD system rule that cannot be overridden
+      passed_eval = eval_rule(item['rule'])
+      # 'custom_rule' is custom rule that can be managed by admins
+      passed_eval ||= eval_rule(item['custom_rule']) if item['custom_rule']
+      if passed_eval
         if item['item']
           # filter children
           item['item'] = eval_items(item['item'])

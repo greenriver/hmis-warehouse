@@ -1,4 +1,4 @@
-= cache(['clients', 'family', @client, can_view_full_ssn?, controller_path, current_user], expires_in: 4.hours) do
+= cache(['clients', 'family', @client, can_view_full_ssn?, controller_path, current_user], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
   %table.table.table-striped
     %thead
       %tr

@@ -1,142 +1,282 @@
 [
   {
     "link_id": "q_4_11",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "c3_youth_education_status",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "C4_group",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "disability_table",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "disability_table_r4",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "health_insurance",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "income_and_sources",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "non_cash_benefits",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "P4_1",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R1",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R2",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R3",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R4",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R5",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R6",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R7",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R8",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R9",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R10",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R11",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R12",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "family_critical_issues",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R15",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R16",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R17",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R18",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R19",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "R20",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "V1",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "V4",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "V6",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "V7",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "V9",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "medical_assistance",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   },
   {
     "link_id": "W4",
-    "rule": null
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
   }
 ]

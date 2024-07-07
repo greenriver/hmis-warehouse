@@ -239,6 +239,7 @@
         "project_types_excluded": { "type": "array", "items": { "type": "string" } },
         "enable_when": { "type": "array", "items": { "$ref": "#/definitions/enable_when" } },
         "rule": { "$ref": "#/definitions/rule" },
+        "custom_rule": { "$ref": "#/definitions/rule" },
         "disabled_display": { "type": "string" },
         "bounds": { "type": "array", "items": { "$ref": "#/definitions/bounds" } },
         "repeats": { "type": "boolean" },

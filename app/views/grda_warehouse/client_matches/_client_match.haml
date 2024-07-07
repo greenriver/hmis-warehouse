@@ -43,13 +43,13 @@
         %tr
           %th
           %td
-            - if client_a.pii_provider(user: current_user).image
-              = image_tag(polymorphic_path(source_client_image_path_generator, id: client_a.id), style: 'width: 125px;')
+            - if client_a.pii_provider(user: current_user).image?
+              = image_tag(polymorphic_path([:image, :source_client], id: client_a.id), style: 'width: 125px;')
           %td
           %td
           %td
-            - if client_b.pii_provider(user: current_user).image
-              = image_tag(polymorphic_path(source_client_image_path_generator, id: client_b.id), style: 'width: 125px;')
+            - if client_b.pii_provider(user: current_user).image?
+              = image_tag(polymorphic_path([:image, :source_client], id: client_b.id), style: 'width: 125px;')
           %td
         %tr
           %th Name

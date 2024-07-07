@@ -14,4 +14,13 @@ module Superset
     a_t = Doorkeeper::Application.arel_table
     Doorkeeper::Application.where(a_t[:redirect_uri].matches("%#{superset_base_url}%")).exists?
   end
+
+  # NOTE: this needs to be kept in sync with
+  # https://github.com/greenriver/superset-sync/blob/main/docker/superset/superset_config.py
+  def self.available_superset_roles
+    [
+      'Admin',
+      'Reports Dashboard Read',
+    ].freeze
+  end
 end
