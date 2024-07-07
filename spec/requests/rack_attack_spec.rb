@@ -26,7 +26,6 @@ describe Rack::Attack, type: :request do
         block.arity == 1 ? yield(cnt) : yield
         requests_sent += 1
         status_encountered = response.status == throttled_status
-        puts [cnt, response.status].inspect
         break if status_encountered
       end
     ensure
@@ -41,7 +40,7 @@ describe Rack::Attack, type: :request do
 
   describe 'when not-logged in' do
     describe 'when hitting the homepage' do
-      let(:path) { root_path() }
+      let(:path) { root_path }
 
       it 'throttle burst requests' do
         throttled_at = 10
@@ -51,36 +50,36 @@ describe Rack::Attack, type: :request do
     end
 
     describe 'and posting to the sign-in page' do
-      let(:path) { user_session_path() }
+      let(:path) { user_session_path }
       it 'throttles brute-force requests' do
         throttled_at = 20
         requests_sent = till_throttled(requests_to_send: throttled_at, time_scale: 1.0) do |i|
           post(path, params: { user: { email: "test-#{i}@example.com", password: 'incorrect' } })
-          sleep 0.1
+          sleep 0.2
         end
         expect(requests_sent).to eq(throttled_at)
       end
     end
 
     describe 'HMIS sign-in end point' do
-      let(:path) { hmis_user_session_path() }
-
+      let(:path) { hmis_user_session_path }
       it 'throttles brute-force requests' do
-        throttled_at = 10
-        requests_sent = till_throttled(requests_to_send: throttled_at) do |i|
+        throttled_at = 20
+        requests_sent = till_throttled(requests_to_send: throttled_at, time_scale: 1.0) do |i|
           post(path, params: { hmis_user: { email: "test-#{i}@example.com", password: 'password' } }, as: :json)
+          sleep 0.2
         end
         expect(requests_sent).to eq(throttled_at)
       end
     end
 
     describe 'Password Reset Throttling' do
-      let(:path) { user_password_path() }
+      let(:path) { edit_user_password_path }
       it 'throttles brute-force password reset requests' do
         throttled_at = 20
         requests_sent = till_throttled(requests_to_send: throttled_at, time_scale: 1.0) do |i|
-          get(path, params: {reset_password_token: 'Y57vKKE0g0J9z84nuAcs'})
-          sleep 0.1
+          get(path, params: { reset_password_token: "FFFFFFFFFFFFFFFFFFF#{i}" })
+          sleep 0.2
         end
         expect(requests_sent).to eq(throttled_at)
       end
@@ -93,7 +92,7 @@ describe Rack::Attack, type: :request do
     end
 
     describe 'and hitting the homepage' do
-      let(:path) { root_path() }
+      let(:path) { root_path }
 
       it 'throttle excessive requests by IP address - enabled' do
         throttled_at = 150
@@ -108,7 +107,7 @@ describe Rack::Attack, type: :request do
       it 'throttle excessive requests by IP address - enabled' do
         throttled_at = 250
         # /clients/1/rollup/residential_enrollments
-        path = rollup_client_path(id: 1, partial: 'residential_enrollments', )
+        path = rollup_client_path(id: 1, partial: 'residential_enrollments')
         requests_sent = till_throttled(requests_to_send: throttled_at) { get(path) }
         expect(requests_sent).to eq(throttled_at)
       end

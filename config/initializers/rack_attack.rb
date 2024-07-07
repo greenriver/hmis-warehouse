@@ -26,7 +26,7 @@ module RackAttackRequestHelpers
   end
 
   def password_reset_attempt?
-    get? && path == '/users/password'
+    get? && path == '/users/password/edit'
   end
 
   def okta_callback?
