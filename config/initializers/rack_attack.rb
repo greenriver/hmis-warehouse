@@ -100,34 +100,27 @@ Rack::Attack.tap do |config|
   # * Multiple throttles can match the same request
   # * Names must be unique or they will be silently overwritten
 
-  # Goal: prevent brute-force enumeration of credentials
-  config.throttle(
-    'per-ip limit on auth requests',
+  brute_force_options = {
     limit: 20,
     period: 3.minutes,
-  ) do |request|
+  }
+
+  # Goal: prevent brute-force enumeration of credentials
+  config.throttle('per-ip limit on auth requests', **brute_force_options) do |request|
     if request.tracking_enabled? && request.anonymous?
       request.request_ip if request.hmis_authentication_attempt? || request.warehouse_authentication_attempt?
     end
   end
 
   # Goal: prevent brute-force enumeration of password reset tokens
-  config.throttle(
-    'per-ip limit on password resets',
-    limit: 20,
-    period: 3.minutes,
-  ) do |request|
+  config.throttle('per-ip limit on password resets', **brute_force_options) do |request|
     if request.tracking_enabled? && request.anonymous? && request.password_reset_attempt?
       request.request_ip
     end
   end
 
   # Goal: prevent brute-force enumeration of okta redirects
-  config.throttle(
-    'per-ip limit on okta redirects',
-    limit: 20,
-    period: 3.minutes,
-  ) do |request|
+  config.throttle('per-ip limit on okta redirects', **brute_force_options) do |request|
     if request.tracking_enabled? && request.anonymous? && request.okta_callback?
       request.request_ip
     end
