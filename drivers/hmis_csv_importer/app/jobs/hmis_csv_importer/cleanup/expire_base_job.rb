@@ -95,6 +95,8 @@ module HmisCsvImporter::Cleanup
       end_id = [batch_size, max_id].min
       while start_id < max_id
         model.connection.execute(expiration_update_query(model, tmp_table_name, start_id, end_id))
+        # vacuum every iteration to prevent bloat
+        model.vacuum_table if model.connection.open_transactions.zero?
         start_id = end_id + 1
         end_id += batch_size
       end
