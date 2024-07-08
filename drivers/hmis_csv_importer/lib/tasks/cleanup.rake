@@ -12,7 +12,6 @@ namespace :cleanup do
     # HmisCsvImporter::Cleanup::ExpireImportersJob.DeleteExpiredJob.perform_now
 
     # Determine if we should expire any new data
-    HmisCsvImporter::Cleanup::ExpireLoadersJob.perform_later
-    HmisCsvImporter::Cleanup::ExpireImportersJob.perform_later
+    HmisCsvImporter::Cleanup::ExpireImportersAndLoadersJob.perform_now
   end
 end
