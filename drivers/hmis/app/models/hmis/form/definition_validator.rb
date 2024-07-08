@@ -12,7 +12,7 @@ class Hmis::Form::DefinitionValidator
   # @param [Hash] document is a form definition document {'item' => [{...}] }
   # @param [role] role of the form as string ('INTAKE', 'CLIENT', etc). If not provided, HUD rule validation will not occur.
   # @param [boolean] skip_cded_validation if true, skip validating CDEDs
-  def perform(document, role = nil, skip_cded_validation = false)
+  def perform(document, role = nil, skip_cded_validation: false)
     @issues = HmisErrors::Errors.new
 
     # Validate JSON shape against JSON Schema
@@ -151,7 +151,7 @@ class Hmis::Form::DefinitionValidator
   end
 
   def check_cdeds(document, role)
-    owner_type = role ? Hmis::Form::Definition.owner_class_for_role(role).sti_name : nil
+    owner_type = role ? Hmis::Form::Definition.owner_class_for_role(role)&.sti_name : nil
 
     cdeds_by_key = Hmis::Hud::CustomDataElementDefinition.where(owner_type: owner_type).index_by(&:key)
 

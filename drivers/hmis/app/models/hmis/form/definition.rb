@@ -596,8 +596,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     when 'CURRENCY'
       'float'
     else
-      'string'
-      # raise "unable to determine cded type for #{item_type}"
+      raise "unable to determine cded type for #{item_type}"
     end
   end
 
