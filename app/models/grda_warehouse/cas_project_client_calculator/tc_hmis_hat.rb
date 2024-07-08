@@ -35,6 +35,8 @@ module GrdaWarehouse::CasProjectClientCalculator
         :ssvf_eligible,
         :child_in_household,
         :default_shelter_agency_contacts,
+        :days_homeless_in_last_three_years_cached,
+        :literally_homeless_last_three_years_cached,
       ].freeze
     end
 
@@ -138,8 +140,6 @@ module GrdaWarehouse::CasProjectClientCalculator
         :housing_for_formerly_homeless,
         :neighborhood_ids_for_cas,
         :cas_assessment_collected_at, # note this is really just assessment_collected_at
-        :days_homeless_in_last_three_years_cached,
-        :literally_homeless_last_three_years_cached,
         :drug_test,
         :heavy_drug_use,
         :sober,
@@ -271,14 +271,14 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def days_homeless_in_last_three_years_cached(client)
       days = 0
-      days += (client.tc_hat_additional_days_homeless || 0)
+      days += client.tc_hat_additional_days_homeless || 0
 
       days + (client.processed_service_history&.days_homeless_last_three_years || 0)
     end
 
     private def literally_homeless_last_three_years_cached(client)
       days = 0
-      days += (client.tc_hat_additional_days_homeless || 0)
+      days += client.tc_hat_additional_days_homeless || 0
 
       days + (client.processed_service_history&.literally_homeless_last_three_years || 0)
     end
