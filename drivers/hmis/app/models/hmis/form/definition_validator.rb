@@ -11,9 +11,8 @@ class Hmis::Form::DefinitionValidator
 
   # @param [Hash] document is a form definition document {'item' => [{...}] }
   # @param [role] role of the form as string ('INTAKE', 'CLIENT', etc). If not provided, HUD rule validation will not occur.
-  # @param [owner_type] owner_type of the form, such as Hmis::Hud::CustomAssessment
-  # @param [boolean] is_publishing if true, validate CDEDs
-  def perform(document, role = nil, owner_type = nil, is_publishing = false)
+  # @param [boolean] skip_cded_validation if true, skip validating CDEDs
+  def perform(document, role = nil, skip_cded_validation = false)
     @issues = HmisErrors::Errors.new
 
     # Validate JSON shape against JSON Schema
@@ -25,7 +24,7 @@ class Hmis::Form::DefinitionValidator
     # Check HUD requirements
     check_hud_requirements(all_ids, role) if role
 
-    check_cdeds(document, owner_type) if is_publishing
+    check_cdeds(document, role) unless skip_cded_validation
 
     @issues.errors
   end
@@ -151,19 +150,21 @@ class Hmis::Form::DefinitionValidator
     end
   end
 
-  def check_cdeds(document, owner_type)
+  def check_cdeds(document, role)
+    owner_type = role ? Hmis::Form::Definition.owner_class_for_role(role).sti_name : nil
+
+    cdeds_by_key = Hmis::Hud::CustomDataElementDefinition.where(owner_type: owner_type).index_by(&:key)
+
     cded_check = lambda do |item|
       (item['item'] || []).each do |child_item|
         cded_check.call(child_item)
 
+        link_id = child_item['link_id']
         mapping = child_item['mapping']
         next unless mapping&.key?('custom_field_key')
 
         cded_key = mapping['custom_field_key']
-        cded = Hmis::Hud::CustomDataElementDefinition.where(key: cded_key, owner_type: owner_type).first
-
-        link_id = child_item['link_id']
-
+        cded = cdeds_by_key[cded_key]
         raise("Item #{link_id} has a custom_field_key mapping, but the CDED does not exist in the database. key = #{cded_key}, owner_type = #{owner_type}") unless cded
 
         item_type = child_item['type']

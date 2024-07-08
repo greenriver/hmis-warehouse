@@ -146,7 +146,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
           ],
         }
 
-        expect(definition.validate_json_form(is_publishing: true)).to be_empty
+        expect(definition.validate_json_form).to be_empty
       end
     end
 
@@ -163,7 +163,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
       }
 
       expect do
-        definition.validate_json_form(is_publishing: true)
+        definition.validate_json_form
       end.to raise_error('Item a_string has a custom_field_key mapping, but the CDED does not exist in the database. key = invalid_key, owner_type = Hmis::Hud::CustomAssessment')
     end
 
@@ -181,7 +181,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
       }
 
       expect do
-        definition.validate_json_form(is_publishing: true)
+        definition.validate_json_form
       end.to raise_error("Item a_string has a custom_field_key mapping, but the CDED does not exist in the database. key = #{cded.key}, owner_type = Hmis::Hud::HmisService")
     end
 
@@ -198,7 +198,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
       }
 
       expect do
-        definition.validate_json_form(is_publishing: true)
+        definition.validate_json_form
       end.to raise_error("Item a_bool has type BOOLEAN, but its custom field key #{cded.key} has an incompatible type string")
     end
   end
