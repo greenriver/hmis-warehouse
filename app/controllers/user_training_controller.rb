@@ -38,7 +38,7 @@ class UserTrainingController < ApplicationController
           end
           course_url = lms.course_url(current_user, config.courseid, redirect_url, logout_talentlms_url)
 
-          redirect_to course_url
+          redirect_to course_url, allow_other_host: true
         end
       rescue RuntimeError => e
         @message = e.message

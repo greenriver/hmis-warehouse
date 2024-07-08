@@ -78,4 +78,22 @@ module HmisCsvTwentyTwenty
       'User.csv' => 'User',
     }.freeze
   end
+
+  def self.expiring_loader_classes
+    importable_files_map.values.map do |name|
+      # Never expire Export or Project
+      next if name.in?(['Export', 'Project'])
+
+      "HmisCsvTwentyTwenty::Loader::#{name}".constantize
+    end.compact.freeze
+  end
+
+  def self.expiring_importer_classes
+    importable_files_map.values.map do |name|
+      # Never expire Export or Project
+      next if name.in?(['Export', 'Project'])
+
+      "HmisCsvTwentyTwenty::Importer::#{name}".constantize
+    end.compact.freeze
+  end
 end
