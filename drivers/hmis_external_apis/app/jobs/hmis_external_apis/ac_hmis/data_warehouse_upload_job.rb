@@ -7,6 +7,7 @@
 # job = HmisExternalApis::AcHmis::DataWarehouseUploadJob.new
 module HmisExternalApis::AcHmis
   class DataWarehouseUploadJob < BaseJob
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     include NotifierConfig
 
     attr_accessor :state

@@ -6,6 +6,7 @@
 
 module HmisExternalApis::AcHmis
   class WarehouseChangesJob < BaseJob
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     include NotifierConfig
     include ArelHelper
 

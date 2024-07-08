@@ -8,6 +8,7 @@
 
 module HmisExternalApis::AcHmis
   class UpdateMciClientJob < BaseJob
+    queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
     include NotifierConfig
 
     MCI_CLIENT_COLS = [

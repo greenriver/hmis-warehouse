@@ -6,6 +6,7 @@
 
 module HmisExternalApis::AcHmis
   class ImportProjectsJob < BaseJob
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     include NotifierConfig
 
     def perform
