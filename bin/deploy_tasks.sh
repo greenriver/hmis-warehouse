@@ -10,7 +10,7 @@ sed -i.bak '/EXTENSION/d' db/reporting_structure.sql
 sed -i.bak '/EXTENSION/d' db/warehouse_structure.sql
 
 # Protections in this script make this okay to call on every deployment
-./bin/db_prep --no-create-databases
+bundle exec ./bin/db_prep --no-create-databases
 
 echo Storing Themed Maintenance Page
 T1=`date +%s`
@@ -56,11 +56,13 @@ bundle exec rake db:seed
 T2=`date +%s`
 echo "...rake db:seed took $(expr $T2 - $T1) seconds"
 
-echo 'Installing cron'
-T1=`date +%s`
-bundle exec rails runner ./config/deploy/docker/lib/cron_installer.rb
-T2=`date +%s`
-echo "..../bin/cron_installer.rb took $(expr $T2 - $T1) seconds"
+if [[ "$EKS" != "true" ]]; then
+  echo 'Installing cron'
+  T1=`date +%s`
+  bundle exec rails runner ./config/deploy/docker/lib/cron_installer.rb
+  T2=`date +%s`
+  echo "..../bin/cron_installer.rb took $(expr $T2 - $T1) seconds"
+fi
 
 # keep this always at the end of this file
 echo Making interface aware this script completed
