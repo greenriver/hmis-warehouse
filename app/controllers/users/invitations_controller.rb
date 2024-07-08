@@ -11,7 +11,9 @@ class Users::InvitationsController < Devise::InvitationsController
   # GET /resource/invitation/new
   def new
     @agencies = Agency.order(:name)
-    @user = User.new
+    user_options = {}
+    user_options[:permission_context] = 'acls' if User.anyone_using_acls?
+    @user = User.new(user_options)
   end
 
   def confirm
@@ -90,8 +92,15 @@ class Users::InvitationsController < Devise::InvitationsController
       :notify_on_anomaly_identified,
       :expired_at,
       :copy_form_id,
+      :credentials,
+      :exclude_from_directory,
+      :exclude_phone_from_directory,
+      :notify_on_new_account,
+      :otp_required_for_login,
+      :training_completed,
       :skip_invitation,
-      access_control_ids: [],
+      :permission_context,
+      user_group_ids: [],
       # TODO: START_ACL remove when ACL transition complete
       legacy_role_ids: [],
       access_group_ids: [],

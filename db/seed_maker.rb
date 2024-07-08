@@ -13,9 +13,12 @@ class SeedMaker
 
     User.transaction do
       # Add roles
-      admin = Role.where(name: 'Admin').first_or_create
+      admin = Role.where(name: 'Green River Developer').first_or_create
       # a role that can edit permissions and create users
-      admin.update(can_edit_users: true, can_edit_roles: true)
+      admin.update(
+        can_edit_users: true,
+        can_edit_roles: true,
+      )
       coc_staff = Role.where(name: 'CoC Staff').first_or_create
       # a role with some basic access
       coc_staff.update(
@@ -46,7 +49,7 @@ class SeedMaker
       # legacy access
       admin.add(user)
       coc_staff.add(user)
-      user_group = UserGroup.where(name: 'Fake Admins').first_or_create
+      user_group = UserGroup.where(name: 'Green River Developers').first_or_create
       user_group.add(user)
       all_ds_entity_collection = Collection.system_collection(:data_sources)
       AccessControl.create(role: admin, collection: all_ds_entity_collection, user_group: user_group)

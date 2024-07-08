@@ -131,6 +131,14 @@ module UserConcern
         where.not(unique_session_id: nil)
     end
 
+    scope :using_acls, -> do
+      where(permission_context: 'acls')
+    end
+
+    scope :using_role_based, -> do
+      where(permission_context: [nil, 'role_based'])
+    end
+
     def using_acls?
       # Note using hash syntax to get around lack of column for some data migrations
       self[:permission_context].to_s == 'acls'
@@ -144,11 +152,15 @@ module UserConcern
     end
 
     def self.anyone_using_acls?
-      active.not_system.where(permission_context: 'acls').exists?
+      Rails.cache.fetch('user/anyone_using_acls', expires_in: 1.minutes) do
+        active.not_system.using_acls.exists?
+      end
     end
 
     def self.all_using_acls?
-      ! active.not_system.where(permission_context: [nil, 'role_based']).exists?
+      Rails.cache.fetch('user/all_using_acls', expires_in: 1.minutes) do
+        ! active.not_system.using_role_based.exists?
+      end
     end
 
     # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }

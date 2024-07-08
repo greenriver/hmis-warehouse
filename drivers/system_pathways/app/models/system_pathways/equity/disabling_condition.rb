@@ -12,10 +12,10 @@ module SystemPathways::Equity::DisablingCondition
       chart: 'disabling_condition',
       config: {
         size: {
-          height: 800,
+          height: node_names.count * 30,
         },
       },
-      data: disabling_condition_data,
+      data: disabling_condition_data.merge(stack: { normalize: true }),
       table: as_table(disabling_condition_counts, ['Project Type'] + disabling_conditions.values),
       # array for rows and array for columns to indicate which link params
       # should be attached for each

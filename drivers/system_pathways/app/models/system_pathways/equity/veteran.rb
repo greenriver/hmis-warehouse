@@ -12,10 +12,10 @@ module SystemPathways::Equity::Veteran
       chart: 'veteran_status',
       config: {
         size: {
-          height: 800,
+          height: node_names.count * 30,
         },
       },
-      data: veteran_status_data,
+      data: veteran_status_data.merge(stack: { normalize: true }),
       table: as_table(veteran_status_counts, ['Project Type'] + veteran_statuses.values),
       # array for rows and array for columns to indicate which link params
       # should be attached for each

@@ -41,6 +41,8 @@ module SystemPathways::ChartBase
         :chronic_status,
         :disabling_condition,
         :chronic_status, # don't ask, but we use this in the details section
+        :race_ethnicity_combinations,
+        :ethnicities,
       ]
     end
 
@@ -124,7 +126,10 @@ module SystemPathways::ChartBase
     private def filter_for_race(scope)
       scope = filter_for_race_with_filter(scope, filter)
       scope = filter_for_race_with_filter(scope, show_filter) if show_filter
-      scope = filter_for_race_with_filter(scope, details_filter) if details_filter
+      scope = filter_for_race_with_details_filter(scope, details_filter) if details_filter&.races.present?
+      scope = filter_for_ethnicity_with_details_filter(scope, details_filter) if details_filter&.ethnicities.present?
+      scope = filter_for_race_and_ethnicity_with_details_filter(scope, details_filter) if details_filter&.race_ethnicity_combinations.present?
+
       scope
     end
 
@@ -141,16 +146,80 @@ module SystemPathways::ChartBase
       scope.merge(race_scope)
     end
 
-    private def multi_racial_clients(scope)
-      # Looking at all races with responses of 1, where we have a sum > 1
-      a_t = SystemPathways::Client.arel_table
-      columns = [
+    private def filter_for_race_with_details_filter(scope, race_filter)
+      return scope.where(id: multi_racial_clients(scope).select(:id)) if race_filter.races.include?('MultiRacial')
+
+      # While the DB columns are nullable, the report table is populated with true/false in the race columns
+      query = races.except('MultiRacial', 'RaceNone').keys.map { |k| [k.underscore.to_sym, false] }.to_h
+      race_filter.races.each do |column|
+        next if column.in?(['MultiRacial', 'RaceNone'])
+
+        query[column.underscore.to_sym] = true
+      end
+      scope.where(query)
+    end
+
+    private def filter_for_ethnicity_with_details_filter(scope, filter)
+      unknown_query = races.except('MultiRacial', 'RaceNone').keys.map { |k| [k.underscore.to_sym, false] }.to_h
+
+      # These are mutually exclusive, so, although the filter is an array, ignore multiples
+      case filter.ethnicities.first
+      when :hispanic_latinaeo
+        scope.where(hispanic_latinaeo: true)
+      when :non_hispanic_latinaeo
+        scope.where(hispanic_latinaeo: false).
+          where.not(unknown_query.except(:hispanic_latinaeo)) # Must have at least one race response
+      when :unknown
+        scope.where(unknown_query)
+      end
+    end
+
+    # Enumerate the query clauses for the race and ethnicity values. (e.g., asian: all races columns must be false
+    # except for asian, which must be true)
+    private def race_column_clauses
+      @race_column_clauses ||= begin
+        all_races_false = races.except('MultiRacial', 'RaceNone').keys.map { |k| [k.underscore.to_sym, false] }.to_h
+
+        combinations = {}.tap do |item|
+          system_pathways_race_columns.each do |column|
+            item[column] = all_races_false.merge(column => true)
+            item["#{column}_hispanic_latinaeo".to_sym] = all_races_false.merge(column => true, hispanic_latinaeo: true)
+          end
+        end
+
+        # Special case clauses
+        combinations[:hispanic_latinaeo] = all_races_false.merge(hispanic_latinaeo: true) # There is no hispanic_latinaeo_hispanic_latinaeo
+        combinations[:multi_racial] = { hispanic_latinaeo: false } # Other values may be true
+        combinations[:multi_racial_hispanic_latinaeo] = { hispanic_latinaeo: true }
+        combinations[:race_none] = all_races_false
+        combinations
+      end.freeze
+    end
+
+    private def filter_for_race_and_ethnicity_with_details_filter(scope, filter)
+      # The combinations are mutually exclusive, so, although the filter is an array, ignore multiples
+      combination = filter.race_ethnicity_combinations.first
+      query = race_column_clauses[combination]
+
+      scope = scope.where(id: multi_racial_clients(scope).select(:id)) if combination.in?([:multi_racial, :multi_racial_hispanic_latinaeo])
+      scope.where(query)
+    end
+
+    private def system_pathways_race_columns
+      [
         :am_ind_ak_native,
         :asian,
         :black_af_american,
+        :mid_east_n_african,
         :native_hi_pacific,
         :white,
-      ].map do |col|
+      ].freeze
+    end
+
+    private def multi_racial_clients(scope)
+      # Looking at all races with responses of 1, where we have a sum > 1
+      a_t = SystemPathways::Client.arel_table
+      columns = system_pathways_race_columns.map do |col|
         "CASE WHEN #{a_t[col].to_sql} THEN 1 ELSE 0 END"
       end
       scope.where(Arel.sql(columns.join(' + ')).gt(1))
@@ -318,7 +387,15 @@ module SystemPathways::ChartBase
     end
 
     private def races
-      @races ||= HudUtility2024.races
+      @races ||= HudUtility2024.races(multi_racial: true)
+    end
+
+    private def ethnicities
+      @ethnicities ||= HudUtility2024.ethnicities
+    end
+
+    private def race_ethnicity_combinations
+      @race_ethnicity_combinations ||= HudUtility2024.race_ethnicity_combinations
     end
 
     private def veteran_statuses
@@ -369,6 +446,10 @@ module SystemPathways::ChartBase
 
     private def race_columns
       @report.race_col_lookup.map { |k, hud_k| [k, HudUtility2024.race(hud_k)] }.to_h
+    end
+
+    private def known_individual_race_columns
+      race_columns.except('race_none', 'multi_racial')
     end
 
     private def race_col_lookup

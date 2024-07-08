@@ -373,6 +373,7 @@ module AllNeighborsSystemDashboard
       "<iframe width='800' height='1200' src='#{generate_publish_url}' frameborder='0'><a href='#{generate_publish_url}'>#{instance_title}</a></iframe>"
     end
 
+    # This should probably use something like what we do in AssetHelper.inline_js_for_es_build
     private def per_page_js_asset_path(asset)
       return Rails.root.join('app', 'assets', 'builds', asset) if Rails.env.development?
 

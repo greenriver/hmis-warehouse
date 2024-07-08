@@ -36,7 +36,6 @@
       "link_id": "W4_A",
       "required": false,
       "text": "T-Cell Count",
-      "pick_list_reference": "NoYesReasonsForMissingData",
       "mapping": {
         "record_type": "DISABILITY_GROUP",
         "field_name": "tCellCount"

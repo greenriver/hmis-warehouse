@@ -18,8 +18,8 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
   let(:rank) { build :rank, cohort: cohort }
 
   let!(:no_permission_role) { create :role }
-  let!(:empty_collection) { create :collection }
-  let!(:cohort_collection) { create :collection }
+  let!(:empty_collection) { create :collection, collection_type: 'Cohorts' }
+  let!(:cohort_collection) { create :collection, collection_type: 'Cohorts' }
 
   before(:each) do
     cohort_collection.set_viewables({ cohorts: [cohort.id] })
