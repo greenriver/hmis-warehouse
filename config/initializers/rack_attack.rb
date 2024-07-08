@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+#
+# frozen_string_literal: true
 
 require 'memery'
 
@@ -37,6 +37,7 @@ module RackAttackRequestHelpers
     path.include?('rollup') || path.include?('cohort') || path.include?('core_demographics')
   end
 
+  # Seems to be client history path `pdf_client_history`. Unsure if this needs to be a relative path
   def history_pdf_path?
     path.include?('history/pdf')
   end
@@ -133,7 +134,7 @@ Rack::Attack.tap do |config|
     period: 10.seconds,
   ) do |request|
     if request.tracking_enabled? && request.anonymous? && request.history_pdf_path?
-      request_ip(request)
+      request.request_ip
     end
   end
 
