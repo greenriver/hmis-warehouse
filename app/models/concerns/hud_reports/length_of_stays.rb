@@ -111,7 +111,7 @@ module HudReports::LengthOfStays
       move_in_date = enrollment.move_in_date
       return move_in_date if move_in_date.present?
 
-      hoh_move_in_date = hoh_entry_dates[enrollment[:head_of_household_id]]
+      hoh_move_in_date = hoh_move_in_dates[enrollment[:head_of_household_id]]
       return nil unless hoh_move_in_date.present?
       return hoh_move_in_date if enrollment.first_date_in_program < hoh_move_in_date
 
