@@ -32,9 +32,10 @@ module HmisCsvImporter::Cleanup
     # @param model_name[String] only run against one model, defaults to all models
     # @param retain_item_count [Integer] the number of retained imported records to retain beyond the retention date
     # @param retain_after_date [DateTime] the date after which records are retained
-    def perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks)
+    def perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks, sweep: false)
       @retain_item_count = retain_item_count
       @retain_after_date = retain_after_date
+      @sweep = sweep
 
       models_to_run = models
       if model_name
@@ -66,11 +67,12 @@ module HmisCsvImporter::Cleanup
 
       with_tmp_table(model) do |table_name|
         populate_tmp_table(model, table_name)
-        write_expirations(model, table_name)
+        # write_expirations(model, table_name)
+        expired_count = model.connection.execute("SELECT count(*) from #{table_name}").first['count']
+        sweep(model, table_name) if sweep
+        log "Completed Processing: #{model.table_name}, rows expired: #{expired_count} rows not_expired: #{overall_count - expired_count} in #{elapsed_time(Time.current - start_time)}"
       end
 
-      # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
-      expired_count = model.with_deleted.where(expired: true).count
       log "Completed Processing: #{model.table_name}, rows expired: #{expired_count} rows not_expired: #{overall_count - expired_count} in #{elapsed_time(Time.current - start_time)}"
     end
 
@@ -88,33 +90,56 @@ module HmisCsvImporter::Cleanup
       "#{model.table_name.downcase}_tmp_exp"
     end
 
-    private def write_expirations(model, tmp_table_name)
-      max_id = max_id_from_tmp_table(model, tmp_table_name) || 0
+    private def sweep(model, tmp_table_name)
+      max = max_id_from_tmp_table(model, tmp_table_name) || 0
       batch_size = 50_000
-      start_id = 0
-      end_id = [batch_size, max_id].min
-      while start_id < max_id
-        model.connection.execute(expiration_update_query(model, tmp_table_name, start_id, end_id))
-        # vacuum every iteration to prevent bloat
-        model.vacuum_table if model.connection.open_transactions.zero?
-        start_id = end_id + 1
-        end_id += batch_size
+      min = 0
+      max = [batch_size, max].min
+      i = 0
+      while min < max
+        model.execute(sweep_query(model, tmp_table_name, min, min + batch_size))
+        # vacuum every 10 iterations to prevent bloat
+        min += batch_size
+        model.vacuum_table if model.connection.open_transactions.zero? && i.positive? && (i % 10) == 0
+        i += 1
       end
     end
+
+    private def sweep_query(model, tmp_table_name, min, max)
+      <<~SQL
+        WITH rows AS (select source_id from #{tmp_table_name} WHERE id BETWEEN #{min} AND #{max})
+        DELETE FROM #{model.quoted_table_name}
+        WHERE EXISTS (SELECT * FROM rows WHERE rows.source_id = #{model.quoted_table_name}.id)
+      SQL
+    end
+
+    # private def write_expirations(model, tmp_table_name)
+    #   max_id = max_id_from_tmp_table(model, tmp_table_name) || 0
+    #   batch_size = 50_000
+    #   start_id = 0
+    #   end_id = [batch_size, max_id].min
+    #   while start_id < max_id
+    #     model.connection.execute(expiration_update_query(model, tmp_table_name, start_id, end_id))
+    #     # vacuum every iteration to prevent bloat
+    #     model.vacuum_table if model.connection.open_transactions.zero?
+    #     start_id = end_id + 1
+    #     end_id += batch_size
+    #   end
+    # end
 
     private def max_id_from_tmp_table(model, tmp_table_name)
       model.connection.execute("SELECT max(id) from #{tmp_table_name}").first['max']
     end
 
-    private def expiration_update_query(model, tmp_table_name, start_id, end_id)
-      <<~SQL
-        UPDATE #{model.quoted_table_name} source_table
-        SET expired = true
-        FROM #{tmp_table_name} tmp_table
-        WHERE tmp_table.source_id = source_table.id
-        AND tmp_table.id BETWEEN #{start_id} AND #{end_id}
-      SQL
-    end
+    # private def expiration_update_query(model, tmp_table_name, start_id, end_id)
+    #   <<~SQL
+    #     UPDATE #{model.quoted_table_name} source_table
+    #     SET expired = true
+    #     FROM #{tmp_table_name} tmp_table
+    #     WHERE tmp_table.source_id = source_table.id
+    #     AND tmp_table.id BETWEEN #{start_id} AND #{end_id}
+    #   SQL
+    # end
 
     private def populate_tmp_table(model, tmp_table_name)
       model.connection.execute(populate_tmp_table_query(model, tmp_table_name))
