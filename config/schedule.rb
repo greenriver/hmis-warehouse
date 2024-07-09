@@ -25,16 +25,15 @@ Dotenv.load('.env', '.env.local')
 # setup
 daily_schedule = ENV['DAILY_SCHEDULE'] || '3:10 am'
 import_schedule = ENV['IMPORT_SCHEDULE'] || '5:30 pm'
-glacier_import_schedule = ENV['IMPORT_SCHEDULE'] || '5:30 pm'
+
 export_schedule = if ENV['DAILY_EXPORT_SCHEDULE'].nil? || ENV['DAILY_EXPORT_SCHEDULE'].empty? then (Time.parse(daily_schedule) - 2.hours).strftime('%I:%M %P') else ENV['DAILY_EXPORT_SCHEDULE'] end
 file_cleaning_schedule = (Time.parse(daily_schedule) - 5.minutes).strftime('%I:%M %P')
 import_prefetch_schedule = (Time.parse(import_schedule) - 4.hours).strftime('%I:%M %P')
 census_schedule = (Time.parse(import_schedule) - 5.hours).strftime('%I:%M %P')
-# database_backup_time = Time.parse(import_schedule) - 3.hours
+# import_cleanup_time = Time.parse(import_schedule) + 9.hours
 
 health_trigger = ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
-backup_glacier_trigger = ENV['GLACIER_NEEDS_BACKUP'] == 'true'
-# glacier_files_backup_trigger = backup_glacier_trigger && ENV['GLACIER_FILESYSTEM_BACKUP'] == 'true'
+
 tasks = [
   # temporary task to move files to S3 and ActiveStorage
   {
@@ -173,18 +172,11 @@ tasks = [
     at: '11:00am',
     interruptable: true,
   },
+  # TODO: re-enable when we're happy with the functionality
   # {
-  #   task: 'glacier:backup:database',
-  #   frequency: 1.month,
-  #   at: database_backup_time,
-  #   trigger: backup_glacier_trigger,
-  #   interruptable: false,
-  # },
-  # {
-  #   task: 'glacier:backup:files',
-  #   frequency: 1.month,
-  #   at: database_backup_time - 1.hours,
-  #   trigger: glacier_files_backup_trigger,
+  #   task: 'driver:hmis_csv_importer:cleanup:expire_and_delete',
+  #   frequency: 1.week,
+  #   at: import_cleanup_time,
   #   interruptable: false,
   # },
 ]

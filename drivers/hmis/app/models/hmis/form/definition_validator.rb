@@ -20,6 +20,8 @@ class Hmis::Form::DefinitionValidator
     all_ids = check_ids(document)
     # Check references
     check_references(document, all_ids)
+    # Check mutually exclusive attributes ("one of" on conditional objects)
+    check_mutually_exclusive_attributes(document)
     # Check HUD requirements
     check_hud_requirements(all_ids, role) if role
 
@@ -97,6 +99,65 @@ class Hmis::Form::DefinitionValidator
           end
           child_item['autofill_values'].map { |h| h.values_at('autofill_when') }.flatten.compact.flat_map { |h| h.values_at('question', 'compare_question') }.compact.each do |reference|
             add_issue("Invalid link ID reference: #{reference} in 'autofill_when' prop of #{link_id}") unless all_ids.include?(reference)
+          end
+        end
+
+        link_check.call(child_item)
+      end
+    end
+    link_check.call(document)
+  end
+
+  # Keys that are mutually exclusive. Exactly 1 of these keys must be present on their parent object.
+  ONE_OF_BOUND_VALUES = ['value_number', 'value_date', 'value_local_constant', 'question'].freeze
+  ONE_OF_ENABLE_WHEN_SOURCES = ['question', 'local_constant'].freeze
+  ONE_OF_ENABLE_WHEN_ANSWERS = ['answer_code', 'answer_codes', 'answer_group_code', 'answer_number', 'answer_boolean', 'compare_question'].freeze
+  ONE_OF_AUTOFILL_VALUES = ['value_code', 'value_number', 'value_boolean', 'value_question', 'sum_questions', 'formula'].freeze
+
+  # Ensure that mutually exclusive attributes are set correctly. These are objects where there must be exactly 1 key present, out of a set of keys.
+  def check_mutually_exclusive_attributes(document)
+    validate_one_of = lambda do |hash, keys, message_prefix:|
+      keys_present = hash.slice(*keys).compact.keys
+      return if keys_present.size == 1 # valid
+
+      add_issue("#{message_prefix} must have exactly one of: [#{keys.join(', ')}]. Found keys: [#{keys_present.join(', ')}]")
+    end
+
+    link_check = lambda do |item|
+      (item['item'] || []).each do |child_item|
+        link_id = child_item['link_id']
+
+        if child_item.key?('bounds')
+          child_item['bounds'].each_with_index do |bound, idx|
+            validate_one_of.call(bound, ONE_OF_BOUND_VALUES, message_prefix: "Bound #{idx + 1} on Link ID #{link_id}")
+            # TODO: validate that the value_x field is compatible with the current question type
+          end
+        end
+
+        if child_item.key?('enable_when')
+          child_item['enable_when'].each_with_index do |enable_when, idx|
+            msg = "EnableWhen #{idx + 1} on Link ID #{link_id}"
+            validate_one_of.call(enable_when, ONE_OF_ENABLE_WHEN_SOURCES, message_prefix: msg)
+            validate_one_of.call(enable_when, ONE_OF_ENABLE_WHEN_ANSWERS, message_prefix: msg)
+            # TODO: validate that the {source}{operator}{answer} are all compatible. We attempt to ensure this validity in the form property editor,
+            # but we do not validate it here. For example:
+            # - if source is a question, the answer field should be compatible with the question type (eg shouldn't compare STRING=DATE)
+            # - if source is a local constant, the answer field should be compatible local constant type (eg shouldn't compare STRING=DATE)
+            # - if operator is special boolean operator (EXISTS/ENABLED), then the answer type should always be boolean
+            # - certain comparison operators should only be used for certain question types (eg can't use LESS_THAN on a STRING type)
+          end
+        end
+
+        if child_item.key?('autofill_values')
+          child_item['autofill_values'].each_with_index do |autofill_value, idx|
+            validate_one_of.call(autofill_value, ONE_OF_AUTOFILL_VALUES, message_prefix: "EnableWhen #{idx + 1} on Link ID #{link_id}")
+            next unless autofill_value.key?('autofill_when')
+
+            autofill_value['autofill_when'].each_with_index do |autofill_when, idx2|
+              msg = "Autofill #{idx} condition #{idx2 + 1} on Link ID #{link_id}"
+              validate_one_of.call(autofill_when, ONE_OF_ENABLE_WHEN_SOURCES, message_prefix: msg)
+              validate_one_of.call(autofill_when, ONE_OF_ENABLE_WHEN_ANSWERS, message_prefix: msg)
+            end
           end
         end
 
