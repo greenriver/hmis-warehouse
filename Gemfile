@@ -116,7 +116,6 @@ gem 'yabeda-rails'
 gem 'yabeda-prometheus'
 gem 'yabeda-puma-plugin'
 gem 'yabeda-http_requests'
-gem 'yabeda-activerecord'
 
 gem 'activerecord-session_store'
 gem 'attribute_normalizer'

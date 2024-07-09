@@ -379,12 +379,12 @@ module HudApr::Generators::Shared::Fy2024
         )
         sheet.update_cell_value(
           cell: "#{letter}4",
-          value: group_scope.pluck(Arel.sql("AVG(#{move_in_col.to_sql})")).first&.to_d&.round,
+          value: group_scope.pluck(Arel.sql("AVG(#{move_in_col.to_sql})")).first&.to_f&.round(4),
         )
         sheet.update_cell_value(
           cell: "#{letter}5",
           # median in pg
-          value: group_scope.pluck(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{move_in_col.to_sql})")).first&.to_i,
+          value: group_scope.pluck(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{move_in_col.to_sql})")).first&.to_f,
         )
       end
     end

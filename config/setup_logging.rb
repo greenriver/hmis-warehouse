@@ -3,6 +3,19 @@
 class SetupLogging
   attr_accessor :config
 
+  STANDARD_TAGS = {
+    gr_client: 'openpath',
+
+    # If there are more apps, these would differ. Some other examples:
+    # airflow, superset, or other microservices that would conceivably run on
+    # the same cluster and/or have some close relationship with the main application.
+    app: 'warehouse',
+
+    # Some Green River clients have multiple tenants running the same general
+    # code (but with different databases or environment variables)
+    tenant: ENV.fetch('CLIENT', 'unknown-client-set-CLIENT-env-var'),
+  }.freeze
+
   def initialize(config)
     self.config = config
   end
@@ -19,7 +32,7 @@ class SetupLogging
     elsif Rails.env.production?
       _production
     else
-      raise "Set up logging for your environment and try again"
+      raise 'Set up logging for your environment and try again'
     end
   end
 
@@ -67,8 +80,8 @@ class SetupLogging
         message: message,
         rails_env: Rails.env,
         request_time: time,
-        application: 'BostonHmis::Application',
-      }.reverse_merge(@tags).to_json + "\r\n"
+        # application: 'BostonHmis::Application',
+      }.merge(STANDARD_TAGS).reverse_merge(@tags).to_json + "\r\n"
     end
   end
 
@@ -81,7 +94,7 @@ class SetupLogging
     config.lograge.custom_options = ->(event) do
       {
         request_time: Time.current,
-        application: Rails.application.class,
+        # application: Rails.application.class,
         server_protocol: event.payload[:server_protocol],
         host: event.payload[:host],
         remote_ip: event.payload[:remote_ip],
@@ -96,7 +109,7 @@ class SetupLogging
         rails_env: Rails.env,
         exception: event.payload[:exception]&.first,
         x_amzn_trace_id: event.payload[:request]&.headers&.env.try(:[], 'HTTP_X_AMZN_TRACE_ID'),
-      }
+      }.merge(STANDARD_TAGS)
     end
   end
 

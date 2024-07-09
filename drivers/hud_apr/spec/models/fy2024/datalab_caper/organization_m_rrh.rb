@@ -248,8 +248,7 @@ RSpec.shared_context 'datalab organization m rrh caper', shared_context: :metada
       )
     end
 
-    # TODO: Off by a bit - looks like issue identifying between persons moved into housing and persons who were exited without move-in
-    xit 'Q22f' do
+    it 'Q22f' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22f',
