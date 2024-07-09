@@ -3,7 +3,7 @@ module HmisCsvImporter::Cleanup
     include ReportingConcern
 
     def perform
-      batch_size = 5_000
+      batch_size = 250_000
       models.each do |model|
         benchmark "delete expired from #{model.table_name}" do
           min_id = model.minimum(:id) || 0
