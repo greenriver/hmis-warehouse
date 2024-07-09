@@ -236,6 +236,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   scope :with_role, ->(role) { where(role: role) }
 
+  before_destroy :can_be_destroyed, prepend: true
+  private def can_be_destroyed
+    return if draft?
+
+    errors.add(:base, 'Non-draft form cannot be destroyed')
+    throw :abort
+  end
+
   # Finding the appropriate form definition for a project:
   #  * find the active published definitions for the required role (i.e. INTAKE)
   #  * choose the form instance with the most specific match that is also associated with any of those definitions
