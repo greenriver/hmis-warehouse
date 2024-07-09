@@ -61,6 +61,7 @@ module HmisCsvImporter::Cleanup
 
     def process_model(model)
       start_time = Time.current
+      expired_count = 0
       overall_count = model.with_deleted.count
       # TODO: this can be removed (or at least the count query could be removed once we're comfortable with the results)
       log "Start Processing: #{model.table_name}, rows overall: #{overall_count}"
@@ -160,7 +161,6 @@ module HmisCsvImporter::Cleanup
         ) as subquery
         WHERE row_num > #{@retain_item_count}
         AND #{log_id_field} < #{min_age_protected_id}
-        AND (expired = false OR expired is NULL)
       SQL
     end
 
@@ -168,7 +168,7 @@ module HmisCsvImporter::Cleanup
     private def partitioned_query(model)
       key_field = model.hud_key
       <<~SQL
-        SELECT id, #{log_id_field}, expired,
+        SELECT id, #{log_id_field},
           rank() OVER (PARTITION BY "#{key_field}", data_source_id ORDER BY id DESC) as row_num
         FROM #{model.quoted_table_name}
       SQL
