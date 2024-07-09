@@ -24,5 +24,47 @@ module GrdaWarehouse::Hud
       hmis_class = "Hmis::Hud::#{self.class.name.demodulize}".constantize
       hmis_class.find(id)
     end
+
+    def self.enrollment_related_hud_class_names
+      [
+        'Disability',
+        'EmploymentEducation',
+        'Exit',
+        'HealthAndDv',
+        'IncomeBenefit',
+        'Service',
+        'CurrentLivingSituation',
+        'Assessment',
+        'AssessmentQuestion',
+        'AssessmentResult',
+        'Event',
+        'YouthEducationStatus',
+      ].freeze
+    end
+
+    def self.hud_class_names
+      [
+        *enrollment_related_hud_class_names,
+        'Export',
+        'Organization',
+        'Project',
+        'Client',
+        'Enrollment',
+        'HmisParticipation',
+        'CeParticipation',
+        'Funder',
+        'Inventory',
+        'ProjectCoc',
+        'Affiliation',
+        'User',
+      ].freeze
+    end
+
+    def self.class_for(name)
+      class_name = hud_class_names.detect { |m| m == name }
+      return unless class_name.present?
+
+      "GrdaWarehouse::Hud::#{class_name}".constantize
+    end
   end
 end
