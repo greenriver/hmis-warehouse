@@ -70,7 +70,7 @@ module HmisCsvImporter::Cleanup
         populate_tmp_table(model, table_name)
         # write_expirations(model, table_name)
         expired_count = model.connection.execute("SELECT count(*) from #{table_name}").first['count']
-        sweep(model, table_name) if sweep
+        sweep(model, table_name) if @sweep
         log "Completed Processing: #{model.table_name}, rows expired: #{expired_count} rows not_expired: #{overall_count - expired_count} in #{elapsed_time(Time.current - start_time)}"
       end
 
@@ -114,33 +114,9 @@ module HmisCsvImporter::Cleanup
       SQL
     end
 
-    # private def write_expirations(model, tmp_table_name)
-    #   max_id = max_id_from_tmp_table(model, tmp_table_name) || 0
-    #   batch_size = 50_000
-    #   start_id = 0
-    #   end_id = [batch_size, max_id].min
-    #   while start_id < max_id
-    #     model.connection.execute(expiration_update_query(model, tmp_table_name, start_id, end_id))
-    #     # vacuum every iteration to prevent bloat
-    #     model.vacuum_table if model.connection.open_transactions.zero?
-    #     start_id = end_id + 1
-    #     end_id += batch_size
-    #   end
-    # end
-
     private def max_id_from_tmp_table(model, tmp_table_name)
       model.connection.execute("SELECT max(id) from #{tmp_table_name}").first['max']
     end
-
-    # private def expiration_update_query(model, tmp_table_name, start_id, end_id)
-    #   <<~SQL
-    #     UPDATE #{model.quoted_table_name} source_table
-    #     SET expired = true
-    #     FROM #{tmp_table_name} tmp_table
-    #     WHERE tmp_table.source_id = source_table.id
-    #     AND tmp_table.id BETWEEN #{start_id} AND #{end_id}
-    #   SQL
-    # end
 
     private def populate_tmp_table(model, tmp_table_name)
       model.connection.execute(populate_tmp_table_query(model, tmp_table_name))
