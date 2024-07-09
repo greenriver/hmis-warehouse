@@ -539,7 +539,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/genericInputFormNode"
+            "$ref": "#/$defs/currencyFormNode"
           }
         },
         {
@@ -554,7 +554,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/genericInputFormNode"
+            "$ref": "#/$defs/dateFormNode"
           }
         },
         {
@@ -624,7 +624,6 @@
             ],
             "properties": {
               "type": {
-                // if one of int, currency, minutes, date => comparableNode (bounds/boundable/bounded?)
                 "const": "INTEGER"
               }
             }
@@ -741,7 +740,6 @@
                 "$ref": "#/$defs/pickListOption"
               }
             },
-            // add repeats here?
             "component": {
               "enum": [
                 "CHECKBOX",
@@ -884,6 +882,9 @@
           "$ref": "#/$defs/genericInputFormNode"
         },
         {
+          "$ref": "#/$defs/boundedInputNode"
+        },
+        {
           "type": "object",
           "properties": {
             "component": {
@@ -892,6 +893,16 @@
               ]
             }
           }
+        }
+      ]
+    },
+    "currencyFormNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/genericInputFormNode"
+        },
+        {
+          "$ref": "#/$defs/boundedInputNode"
         }
       ]
     },
@@ -954,6 +965,36 @@
         ]
       }
     },
+    "boundedInputNode": {
+      "$comment": "Input that supports min/max bounds",
+      "properties": {
+        "bounds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/bounds"
+          }
+        }
+      }
+    },
+    "dateFormNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/genericInputFormNode"
+        },
+        {
+          "$ref": "#/$defs/boundedInputNode"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "assessment_date": {
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "genericInputFormNode": {
       "$comment": "Generic form input",
       "type": "object",
@@ -999,32 +1040,23 @@
             "required": {
               "type": "boolean"
             },
-            "assessment_date": { // only if type is date
-              "type": "boolean"
-            },
             "read_only": {
               "type": "boolean"
             },
             "warn_if_empty": {
               "type": "boolean"
             },
-            "mapping": { // require?
+            "mapping": {
               "$ref": "#/$defs/mapping"
-            },
-            "bounds": { // only if type is comparable
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "$ref": "#/$defs/bounds"
-              }
-            },
-            "repeats": { // only if type is CHOICE or OPEN_CHOICE
-              "type": "boolean"
             },
             "size": {
               "type": "string"
             },
-            "service_detail_type": { // deprecated
+            "repeats": {
+              "type": "boolean"
+            },
+            "service_detail_type": {
+              "$comment": "deprecated field",
               "type": "string"
             },
             "initial": {
@@ -1080,6 +1112,9 @@
           }
         },
         "rule": {
+          "$ref": "#/$defs/rule"
+        },
+        "custom_rule": {
           "$ref": "#/$defs/rule"
         },
         "disabled_display": {
