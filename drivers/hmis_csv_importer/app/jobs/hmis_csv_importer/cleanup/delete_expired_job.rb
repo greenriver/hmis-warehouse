@@ -3,13 +3,21 @@ module HmisCsvImporter::Cleanup
     include ReportingConcern
 
     def perform
+      batch_size = 5_000
       models.each do |model|
         benchmark "delete expired from #{model.table_name}" do
-          expired = model.with_deleted.where(expired: true)
+          min_id = model.minimum(:id) || 0
+          max_id = model.maximum(:id) || 0
+          i = 0
           # delete in batches to reduce impact on db
-          expired.in_batches(of: 50_000).delete_all
-          # can't vacuum in a transaction (running in a test context)
-          model.vacuum_table if model.connection.open_transactions.zero?
+          while min_id <= max_id
+            model.where(id: min_id .. min_id + batch_size, expired: true).delete_all
+            min_id += batch_size
+
+            # can't vacuum in a transaction (running in a test context)
+            model.vacuum_table if model.connection.open_transactions.zero? && i.positive? && (i % 10) == 0
+            i += 1
+          end
         end
       end
     end
