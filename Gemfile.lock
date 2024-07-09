@@ -938,7 +938,7 @@ GEM
       net-ssh (>= 2.8.0)
     ssrf_filter (1.0.8)
     stackprof (0.2.26)
-    stringio (3.1.0)
+    stringio (3.1.1)
     strong_migrations (1.8.0)
       activerecord (>= 5.2)
     strscan (3.1.0)
