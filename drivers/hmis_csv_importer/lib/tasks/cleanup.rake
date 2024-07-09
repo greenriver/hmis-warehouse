@@ -15,27 +15,28 @@ namespace :cleanup do
     HmisCsvImporter::Cleanup::ExpireImportersJob.perform_later
   end
 
-  def check_client_expiration(client:, model:, log_model:, log_id_field:)
+  def check_item_expiration(item:, model:, log_model:, log_id_field:)
+    hud_key_column = item.class.hud_key
     active_ids = model.
-      where(data_source_id: client.data_source_id, PersonalID: client.PersonalID).
+      where(data_source_id: item.data_source_id, hud_key_column => item[hud_key_column]).
       where(expired: [nil, false]).
       distinct.
       pluck(log_id_field)
     return if active_ids.empty?
 
-    raise "#{client.id} has too many active ids in #{model.table_name}" if active_ids.size > 500
+    raise "#{item.id} has too many active ids in #{model.table_name}" if active_ids.size > 500
 
     max_id = model.
-      where(data_source_id: client.data_source_id, PersonalID: client.PersonalID).
+      where(data_source_id: item.data_source_id, hud_key_column => item[hud_key_column]).
       maximum(log_id_field)
 
     timestamps = log_model.
-      where(data_source_id: client.data_source_id).
+      where(data_source_id: item.data_source_id).
       where(id: active_ids).order(:id).
       map(&:completed_at).compact.sort.map(&:to_date).uniq
 
     [
-      client.id,
+      item.id,
       model.table_name,
       timestamps.join('|'),
       active_ids.join('|'),
@@ -45,24 +46,30 @@ namespace :cleanup do
   end
 
   # prints csv
-  # sample [50] clients, optional data source. Check that the most recent row in the data/importer table is not expired.
+  # sample [50] items, optional data source. Check that the most recent row in the data/importer table is not expired.
   # also print timestamps and ids of unexpired records
-  # rails driver:hmis_csv_importer:cleanup:spot_check_clients[8]
-  task :spot_check_clients, [:data_source_id, :limit] => [:environment] do |_task, args|
-    # sample some clients
-    clients = GrdaWarehouse::Hud::Client.with_deleted
-    clients = clients.where(data_source_id: args.data_source_id) if args.data_source_id
-    clients = clients.order('RANDOM()').limit(args.limit || 50)
+  # rails driver:hmis_csv_importer:cleanup:spot_check_items[8,Organization]
+  # rails driver:hmis_csv_importer:cleanup:spot_check_items[25,Enrollment]
+  # rails driver:hmis_csv_importer:cleanup:spot_check_items[50,Client]
+  task :spot_check_items, [:limit, :class_name, :data_source_id] => [:environment] do |_task, args|
+    # sample some items
+    class_name = args.class_name || 'Client'
+    klass = GrdaWarehouse::Hud::Base.class_for(class_name)
+    exit unless klass
+
+    items = klass.with_deleted
+    items = items.where(data_source_id: args.data_source_id) if args.data_source_id
+    items = items.order('RANDOM()').limit(args.limit || 50)
     report = []
-    clients.each do |client|
-      # puts "Client #{client.data_source_id}:#{client.personal_id}"
+    items.each do |item|
+      # puts "Client #{item.data_source_id}:#{item.personal_id}"
       [
-        HmisCsvTwentyTwentyFour::Importer::Client,
-        HmisCsvTwentyTwentyTwo::Importer::Client,
-        HmisCsvTwentyTwenty::Importer::Client,
+        "HmisCsvTwentyTwentyFour::Importer::#{class_name}".constantize,
+        "HmisCsvTwentyTwentyTwo::Importer::#{class_name}".constantize,
+        "HmisCsvTwentyTwenty::Importer::#{class_name}".constantize,
       ].each do |model|
-        row = check_client_expiration(
-          client: client,
+        row = check_item_expiration(
+          item: item,
           model: model,
           log_model: HmisCsvImporter::Importer::ImporterLog,
           log_id_field: :importer_log_id,
@@ -71,12 +78,12 @@ namespace :cleanup do
       end
 
       [
-        HmisCsvTwentyTwentyFour::Loader::Client,
-        HmisCsvTwentyTwentyTwo::Loader::Client,
-        HmisCsvTwentyTwenty::Loader::Client,
+        "HmisCsvTwentyTwentyFour::Loader::#{class_name}".constantize,
+        "HmisCsvTwentyTwentyTwo::Loader::#{class_name}".constantize,
+        "HmisCsvTwentyTwenty::Loader::#{class_name}".constantize,
       ].each do |model|
-        row = check_client_expiration(
-          client: client,
+        row = check_item_expiration(
+          item: item,
           model: model,
           log_model: HmisCsvImporter::Loader::LoaderLog,
           log_id_field: :loader_id,
@@ -87,7 +94,7 @@ namespace :cleanup do
 
     CSV($stdout) do |csv|
       csv << [
-        'client_id',
+        'warehouse_id',
         'table_name',
         'timestamps',
         'active_ids',
