@@ -56,4 +56,34 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(errors).to be_empty
     end.to change(Hmis::Hud::Enrollment.where(id: e1.id).exited, :count).by(1)
   end
+
+  context 'when an enrollment already exists' do
+    let!(:coc1) { create :hud_project_coc, data_source: ds1, project_id: p1.project_id, state: 'MA' }
+    let!(:access_control) { create_access_control(hmis_user, p1) }
+
+    let!(:c2) { create(:hmis_hud_client, data_source: ds1) }
+    let!(:r2) { create :hmis_external_api_ac_hmis_referral }
+    let!(:r2_hhm) { create :hmis_external_api_ac_hmis_referral_household_member, client: c2, referral: r2 }
+    let!(:rp2) { create :hmis_external_api_ac_hmis_referral_posting, identifier: nil, referral: r2, project: p1, status: 'assigned_status', unit_type: nil }
+
+    it 'should error on both WIP and non-WIP enrollment' do
+      input = {
+        status: 'accepted_pending_status',
+        statusNote: 'test',
+        referralResult: 'SUCCESSFUL_REFERRAL_CLIENT_ACCEPTED',
+      }
+
+      enrollment = create(:hmis_hud_enrollment, data_source: ds1, client: c2, project: p1, entry_date: Date.current - 2.months)
+      wip_enrollment = create(:hmis_hud_wip_enrollment, data_source: ds1, client: c2, project: p1, entry_date: Date.current - 1.month)
+
+      response, result = post_graphql(id: rp2.id, input: input) { mutation }
+      expect(response.status).to eq(200), result.inspect
+      errors = result.dig('data', 'updateReferralPosting', 'errors')
+      expect(errors).not_to be_empty
+      expect(errors.size).to eq(2)
+
+      expect(errors.pluck('fullMessage')).to include(match(/#{c2.full_name} already has an open enrollment in this project \(entry date: #{enrollment.entry_date}\)/))
+      expect(errors.pluck('fullMessage')).to include(match(/#{c2.full_name} already has an open enrollment in this project \(entry date: #{wip_enrollment.entry_date}\)/))
+    end
+  end
 end

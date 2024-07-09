@@ -131,6 +131,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     )
   end
 
+  scope :receiving_referrals, -> do
+    # See note below about performance
+    where(id: Hmis::Hud::Project.receiving_referrals_project_ids)
+  end
+
   SORT_OPTIONS = [:organization_and_name, :name].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
@@ -160,6 +165,24 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   def self.apply_filters(input)
     Hmis::Filter::ProjectFilter.new(input).filter_scope(self)
+  end
+
+  def self.receiving_referrals_project_ids
+    # Find all active instances that enable the Referral functionality
+    instance_scope = Hmis::Form::Instance.active.with_role(:REFERRAL)
+    # Find open projects that have an instance that match the criteria, which indicates that the
+    # project accepts referrals.
+    #
+    # We do not check `viewable_by` because providers can refer to projects they can't otherwise view.
+    # NOTE: is not optimized, could be refactored if performance is an issue. Used this approach to minimize
+    # duplication of project_match logic.
+    Hmis::Hud::Project.open_on_date(Date.current).select do |project|
+      instance_scope.any? { |instance| instance.project_match(project) }
+    end.map(&:id)
+  end
+
+  def receiving_referrals?
+    Hmis::Hud::Project.receiving_referrals_project_ids.include?(id)
   end
 
   def active

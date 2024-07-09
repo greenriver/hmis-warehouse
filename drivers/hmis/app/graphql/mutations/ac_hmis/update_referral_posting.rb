@@ -16,6 +16,7 @@ module Mutations
 
     def resolve(id:, input:)
       posting = HmisExternalApis::AcHmis::ReferralPosting.active.viewable_by(current_user).find(id)
+      handle_error('access denied') unless current_user.can_view_enrollment_details_for?(posting.project)
       handle_error('referral not found') unless posting
       handle_error('connection not configured') if posting.from_link? && !HmisExternalApis::AcHmis::LinkApi.enabled?
 
@@ -47,6 +48,21 @@ module Mutations
             errors.add :base, :invalid, full_message: "Unable to accept this referral because there are no #{posting.unit_type.description} units available." unless unit_to_assign.present?
           end
           raise ActiveRecord::Rollback if errors.any?
+
+          # This is similar to the logic in query_type.rb:can_project_accept_referral, but differs in a couple ways:
+          # - Here, we do use viewable_by when querying Enrollments. (We already threw an error above if the user doesn't have this permission)
+          # - We return information about each conflicting enrollment, so the user can fix the errors.
+          personal_ids = Hmis::Hud::Client.where(id: posting.referral.household_members.pluck(:client_id)).pluck(:PersonalID)
+          # use project_pk so that wip enrollments are included
+          conflicting_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(project_pk: posting.project.id, personal_id: personal_ids)
+
+          unless conflicting_enrollments.empty?
+            conflicting_enrollments.each do |e|
+              errors.add :base, :invalid, full_message: "#{e.client.full_name} already has an open enrollment in this project (entry date: #{e.entry_date}). Please exit the client if the enrollment is invalid or out-of-date, and otherwise deny the referral."
+            end
+
+            raise ActiveRecord::Rollback
+          end
 
           # build new household of WIP enrollments
           household_id ||= Hmis::Hud::Enrollment.generate_household_id

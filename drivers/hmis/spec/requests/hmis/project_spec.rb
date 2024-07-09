@@ -15,6 +15,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   after(:all) do
     cleanup_test_environment
   end
+  before(:each) do
+    hmis_login(user)
+  end
 
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:ds1) { create :hmis_data_source }
@@ -46,10 +49,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:a4) { create(:hmis_custom_assessment, enrollment: e2, client: e2.client) }
 
   describe 'project query' do
-    before(:each) do
-      hmis_login(user)
-    end
-
     let(:query) do
       <<~GRAPHQL
         query GetProject($id: ID!) {
@@ -135,10 +134,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'project assessments query' do
-    before(:each) do
-      hmis_login(user)
-    end
-
     let(:project_assessments_query) do
       <<~GRAPHQL
         query GetProjectAssessments(
@@ -215,10 +210,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'omni search projects' do
-    before(:each) do
-      hmis_login(user)
-    end
-
     let(:project_omni_search) do
       <<~GRAPHQL
         query OmniSearchProjects($searchTerm: String!, $limit: Int) {
@@ -238,6 +229,52 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = post_graphql(searchTerm: '73892738928') { project_omni_search }
       expect(response.status).to eq(200), result.inspect
       expect(result.dig('data', 'projects', 'nodes').count).to eq(0)
+    end
+  end
+
+  describe 'canProjectAcceptReferral query' do
+    let(:can_accept_referral) do
+      <<~GRAPHQL
+        query GetCanProjectAcceptReferral($projectId: ID!, $referrerEnrollmentId: ID!) {
+          canProjectAcceptReferral(projectId:$projectId, referrerEnrollmentId:$referrerEnrollmentId)
+        }
+      GRAPHQL
+    end
+
+    let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+    let!(:referral_instance) { create :hmis_form_instance, role: :REFERRAL, entity: p2 }
+
+    let!(:c2) { create :hmis_hud_client, data_source: ds1 }
+
+    # p1 is the referring project
+    let!(:p1_ac) { create_access_control(hmis_user, p1) }
+    let!(:referrer_enrollment) { create :hmis_hud_enrollment, client: c2, project: p1, data_source: ds1 }
+
+    it 'raises an error when the project doesnt accept referrals' do
+      response, result = post_graphql(project_id: p1.id, referrer_enrollment_id: referrer_enrollment.id) { can_accept_referral }
+      expect(response.status).to eq 500
+      expect(result.dig('errors')[0]['message']).to eq 'access denied'
+    end
+
+    it 'raises an error when the current user doesnt have can_manage_outgoing_referrals permission' do
+      remove_permissions(access_control, :can_manage_outgoing_referrals)
+      remove_permissions(p1_ac, :can_manage_outgoing_referrals)
+      response, result = post_graphql(project_id: p2.id, referrer_enrollment_id: referrer_enrollment.id) { can_accept_referral }
+      expect(response.status).to eq 500
+      expect(result.dig('errors')[0]['message']).to eq 'access denied'
+    end
+
+    it 'returns true when the client has no existing referral' do
+      response, result = post_graphql(project_id: p2.id, referrer_enrollment_id: referrer_enrollment.id) { can_accept_referral }
+      expect(response.status).to eq 200
+      expect(result.dig('data', 'canProjectAcceptReferral')).to be_truthy
+    end
+
+    it 'returns false when the client has an existing referral' do
+      create :hmis_hud_enrollment, client: c2, project: p2, data_source: ds1
+      response, result = post_graphql(project_id: p2.id, referrer_enrollment_id: referrer_enrollment.id) { can_accept_referral }
+      expect(response.status).to eq 200
+      expect(result.dig('data', 'canProjectAcceptReferral')).to be_falsey
     end
   end
 end

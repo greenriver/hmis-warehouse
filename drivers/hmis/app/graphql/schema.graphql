@@ -8722,6 +8722,7 @@ type Query {
     """
     role: AssessmentRole
   ): FormDefinition
+  canProjectAcceptReferral(projectId: ID!, referrerEnrollmentId: ID!): Boolean!
 
   """
   Client lookup
