@@ -40,13 +40,15 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # convenience attr for passing graphql args
   attr_accessor :filter_context
 
-  has_many :instances, foreign_key: :definition_identifier, primary_key: :identifier, dependent: :restrict_with_exception
+  # --- Relations by id ----
   has_many :form_processors, dependent: :restrict_with_exception
-  has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
   has_many :external_form_submissions, class_name: 'HmisExternalApis::ExternalForms::FormSubmission', dependent: :restrict_with_exception
   has_many :external_form_publications, class_name: 'HmisExternalApis::ExternalForms::FormPublication', dependent: :destroy
-  has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition', dependent: :nullify,
-                                             primary_key: 'identifier', foreign_key: 'form_definition_identifier'
+
+  # --- Relations by identifier ----
+  has_many :instances, foreign_key: 'definition_identifier', primary_key: 'identifier'
+  has_many :custom_service_types, through: :instances, foreign_key: 'identifier', primary_key: 'form_definition_identifier'
+  has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition', primary_key: 'identifier', foreign_key: 'form_definition_identifier'
   has_one :published_version, -> { order(version: :desc).published }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
   has_one :draft_version, -> { order(version: :desc).draft }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
   has_many :all_versions, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
