@@ -36,7 +36,11 @@ module Types
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false, method: :created_at
     field :updated_by, Types::Application::User, null: true
     field :project_matches, Types::Forms::ProjectMatch.array_page_type, null: false
-    form_rules_field :form_rules, method: :instances
+    form_rules_field
+
+    def form_rules(**args)
+      resolve_form_rules(object.instances, **args)
+    end
 
     # Filtering is implemented within this resolver rather than a separate concern. This
     # gives us convenient to access the lazy batch loader for records (funder, orgs) that
