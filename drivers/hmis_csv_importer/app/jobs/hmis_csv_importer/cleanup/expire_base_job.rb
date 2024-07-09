@@ -24,6 +24,8 @@ module HmisCsvImporter::Cleanup
     include ElapsedTimeHelper
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
+    MAX_PER_RUN = 30_000_000
+
     # low priority
     def self.default_priority
       10
@@ -36,6 +38,7 @@ module HmisCsvImporter::Cleanup
       @retain_item_count = retain_item_count
       @retain_after_date = retain_after_date
       @sweep = sweep
+      @rows_deleted = 0
 
       models_to_run = models
       if model_name
@@ -46,6 +49,8 @@ module HmisCsvImporter::Cleanup
       models_to_run.each do |model|
         with_lock(model) do
           benchmark(model.table_name.to_s) do
+            break if @rows_deleted > MAX_PER_RUN
+
             process_model(model) if sufficient_imports?
           end
         end
@@ -93,16 +98,17 @@ module HmisCsvImporter::Cleanup
 
     private def sweep(model, tmp_table_name)
       max = max_id_from_tmp_table(model, tmp_table_name) || 0
-      batch_size = 50_000
+      batch_size = 500_000
       min = 0
-      max = [batch_size, max].min
-      i = 0
       while min < max
+        # To prevent too many IO operations, limit total number of deletes per run
+        break if @rows_deleted > MAX_PER_RUN
+
         model.execute(sweep_query(model, tmp_table_name, min, min + batch_size))
-        # vacuum every 10 iterations to prevent bloat
+
+        # Note number of deleted rows
+        @rows_deleted += [max, batch_size].min
         min += batch_size
-        model.vacuum_table if model.connection.open_transactions.zero? && i.positive? && (i % 10) == 0
-        i += 1
       end
     end
 
@@ -137,6 +143,7 @@ module HmisCsvImporter::Cleanup
         ) as subquery
         WHERE row_num > #{@retain_item_count}
         AND #{log_id_field} < #{min_age_protected_id}
+        limit #{MAX_PER_RUN}
       SQL
     end
 
