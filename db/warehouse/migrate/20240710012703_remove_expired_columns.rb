@@ -11,10 +11,8 @@ class RemoveExpiredColumns < ActiveRecord::Migration[7.0]
   end
 
   def change
-    safety_assured do
-      tables.each do |table|
-        remove_column(table, :expired, :boolean) if column_exists?(table, :expired)
-      end
+    tables.each do |table|
+      remove_column(table, :expired, :boolean) if column_exists?(table, :expired)
     end
   end
 end
