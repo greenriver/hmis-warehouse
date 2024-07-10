@@ -26,7 +26,7 @@ class Hmis::Form::DefinitionValidator
     # Check HUD requirements
     check_hud_requirements(all_ids, role) if role
 
-    check_cdeds(document, role) unless skip_cded_validation
+    check_cdeds(document, role) if role && !skip_cded_validation
 
     @issues.errors
   end
@@ -212,7 +212,9 @@ class Hmis::Form::DefinitionValidator
   end
 
   def check_cdeds(document, role)
-    owner_type = role ? Hmis::Form::Definition.owner_class_for_role(role)&.sti_name : nil
+    owner_type = Hmis::Form::Definition.owner_class_for_role(role)&.sti_name
+
+    return unless owner_type
 
     cdeds_by_key = Hmis::Hud::CustomDataElementDefinition.where(owner_type: owner_type).index_by(&:key)
 
