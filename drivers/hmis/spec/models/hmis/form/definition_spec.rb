@@ -207,49 +207,22 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   end
 
   describe 'deletion' do
-    let!(:fd1) { create :hmis_form_definition, identifier: 'p1-intake', role: :INTAKE, version: 3, status: :published }
+    let!(:fd1) { create :hmis_form_definition, identifier: 'p1-intake', role: :INTAKE, version: 3, status: :draft }
     let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1, active: true }
 
-    it 'should error if form has active instance' do
-      expect(fd1.instances).to contain_exactly(fi1)
-
-      # not allowed because this form might be actively in use
-      expect { fd1.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
-    end
-
-    it 'should error if form has inactive instance' do
-      fi1.update(active: false)
-      expect(fd1.instances).to contain_exactly(fi1)
-
-      # not allowed because historical data may use this form
-      expect { fd1.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
-    end
-
-    # Note: Maybe in the future we want to support deleting old versions of FormDefinitions.
-    # For now we restrict deleting the FormDefinition if there is ANY Form Instance referencing it via `identifier.`
-    it 'should error if form has instances, even if there are newer versions of this form' do
-      new_fd_version = fd1.dup
-      new_fd_version.version = fd1.version + 1
-      fd1.status = Hmis::Form::Definition::RETIRED
-      fd1.save!
-      new_fd_version.save!
-
-      # the form instance points to both form definitions, by identifier
-      expect(fi1.definition_identifier).to eq(fd1.identifier)
-      expect(fi1.definition_identifier).to eq(new_fd_version.identifier)
-
-      # cant delete either form because the newer one is in use
-      expect { new_fd_version.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
-      expect { fd1.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
-    end
-
-    it 'should succeed if form has no instances' do
-      fi1.delete
-      expect(fd1.instances).to be_empty
-
+    it 'should succeed if form is a draft' do
       fd1.destroy!
-
       expect(fd1.deleted_at).to be_present
+    end
+
+    it 'should error if form is published' do
+      fd1.update!(status: :published)
+      expect { fd1.destroy! }.to raise_error(ActiveRecord::RecordNotDestroyed)
+    end
+
+    it 'should error if form is retired' do
+      fd1.update!(status: :retired)
+      expect { fd1.destroy! }.to raise_error(ActiveRecord::RecordNotDestroyed)
     end
 
     it 'should error if there are form processors linked to this form' do

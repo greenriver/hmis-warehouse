@@ -93,9 +93,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     response, result = post_graphql(id: p1.id, filters: { assessment_name: ['INTAKE', 'fully-custom-assessment-identifier'] }) { project_assessments_query }
     expect(response.status).to eq 200
     assessments = result.dig('data', 'project', 'assessments', 'nodes')
-    expect(assessments.count).to eq 2
-    expect(assessments.first['id']).to eq(intake_assessment.id.to_s)
-    expect(assessments.second['id']).to eq(fully_custom_assessment.id.to_s)
+    expect(assessments).to contain_exactly(
+      a_hash_including('id' => intake_assessment.id.to_s),
+      a_hash_including('id' => fully_custom_assessment.id.to_s),
+    )
   end
 
   it 'should return intake even if it is not tied to a definition' do
