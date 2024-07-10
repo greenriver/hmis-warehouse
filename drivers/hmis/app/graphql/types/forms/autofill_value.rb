@@ -19,7 +19,7 @@ module Types
     field :sum_questions, [String], 'Link IDs of numeric questions to sum up and set as the value if condition is met', null: true
     field :formula, String, 'Expression with mathematical or logical function defining the value', null: true
 
-    # Condition specifying when to perform this autofill
+    # Condition specifying when to perform this autofill. If not provided, the autofill will always run.
     field :autofill_behavior, Types::Forms::Enums::EnableBehavior, null: true
     field :autofill_when, [Types::Forms::EnableWhen], null: true
     field :autofill_readonly, Boolean, 'Whether to perform autofill when displaying a read-only view (defaults to false)', null: true
