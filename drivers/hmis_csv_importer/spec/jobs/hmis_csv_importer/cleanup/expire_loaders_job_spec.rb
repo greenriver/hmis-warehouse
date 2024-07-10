@@ -20,6 +20,7 @@ RSpec.describe HmisCsvImporter::Cleanup::ExpireLoadersJob, type: :model do
       model_name: 'HmisCsvTwentyTwentyFour::Loader::Organization',
       retain_item_count: retain_item_count,
       retain_after_date: retain_after_date,
+      dry_run: false,
     )
   end
 end

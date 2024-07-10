@@ -24,8 +24,6 @@ module HmisCsvImporter::Cleanup
     include ElapsedTimeHelper
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
-    MAX_PER_RUN = 30_000_000
-
     # low priority
     def self.default_priority
       10
@@ -34,11 +32,14 @@ module HmisCsvImporter::Cleanup
     # @param model_name[String] only run against one model, defaults to all models
     # @param retain_item_count [Integer] the number of retained imported records to retain beyond the retention date
     # @param retain_after_date [DateTime] the date after which records are retained
-    def perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks, sweep: false)
+    # @param max_per_run [Integer] stop processing if we delete more records than this
+    # @param dry_run [Boolean] do not run delete statements
+    def perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks, max_per_run: 30_000_0000, dry_run: true)
       @retain_item_count = retain_item_count
       @retain_after_date = retain_after_date
-      @sweep = sweep
+      @dry_run = dry_run
       @rows_deleted = 0
+      @max_per_run = max_per_run
 
       models_to_run = models
       if model_name
@@ -46,12 +47,14 @@ module HmisCsvImporter::Cleanup
         raise "invalid model #{model_name}" if models_to_run.empty?
       end
 
-      models_to_run.each do |model|
-        with_lock(model) do
-          benchmark(model.table_name.to_s) do
-            break if @rows_deleted > MAX_PER_RUN
+      catch(:max_rows_exceeded) do
+        models_to_run.each do |model|
+          with_lock(model) do
+            benchmark(model.table_name.to_s) do
+              throw_if_done
 
-            process_model(model) if sufficient_imports?
+              process_model(model) if sufficient_imports?
+            end
           end
         end
       end
@@ -75,7 +78,7 @@ module HmisCsvImporter::Cleanup
         populate_tmp_table(model, table_name)
         # write_expirations(model, table_name)
         expired_count = model.connection.execute("SELECT count(*) from #{table_name}").first['count']
-        sweep(model, table_name) if @sweep
+        sweep(model, table_name) unless @dry_run
         log "Completed Processing: #{model.table_name}, rows expired: #{expired_count} rows not_expired: #{overall_count - expired_count} in #{elapsed_time(Time.current - start_time)}"
       end
 
@@ -101,15 +104,17 @@ module HmisCsvImporter::Cleanup
       batch_size = 500_000
       min = 0
       while min < max
-        # To prevent too many IO operations, limit total number of deletes per run
-        break if @rows_deleted > MAX_PER_RUN
+        throw_if_done
 
-        model.execute(sweep_query(model, tmp_table_name, min, min + batch_size))
-
-        # Note number of deleted rows
+        model.connection.execute(sweep_query(model, tmp_table_name, min, min + batch_size))
         @rows_deleted += [max, batch_size].min
         min += batch_size
       end
+    end
+
+    # To prevent too many IO operations, limit total number of deletes per run
+    private def throw_if_done
+      throw(:max_rows_exceeded) if @rows_deleted > @max_per_run
     end
 
     private def sweep_query(model, tmp_table_name, min, max)
@@ -140,10 +145,10 @@ module HmisCsvImporter::Cleanup
       <<~SQL
         SELECT id FROM (
           #{partitioned_query(model)}
-        ) as subquery
+        ) AS subquery
         WHERE row_num > #{@retain_item_count}
         AND #{log_id_field} < #{min_age_protected_id}
-        limit #{MAX_PER_RUN}
+        LIMIT #{@max_per_run}
       SQL
     end
 
