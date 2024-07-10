@@ -12,7 +12,7 @@ require 'yaml'
 APP_ROOT = Pathname.new File.expand_path('..', __dir__)
 DONT_CREATE_DATABASES = (ARGV[0] == '--no-create-databases')
 NO_PRINT_DONE = (ARGV[1] == '--no-print-done')
-binding.irb
+puts ARGV.inspect
 CREATE_DATABASES = ! DONT_CREATE_DATABASES
 
 def db(db_section)
