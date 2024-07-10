@@ -852,7 +852,10 @@
                 "DISABILITY_TABLE",
                 "HORIZONTAL_GROUP",
                 "INFO_GROUP",
-                "INPUT_GROUP"
+                "INPUT_GROUP",
+                "TABLE",
+                "SIGNATURE_GROUP",
+                "SIGNATURE"
               ]
             },
             "item": {
