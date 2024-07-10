@@ -7,11 +7,10 @@
 namespace :cleanup do
   # rails driver:hmis_csv_importer:cleanup:expire_and_delete
   task :expire_and_delete, [] => [:environment] do
-    # Remove any we expired previously
-    HmisCsvImporter::Cleanup::DeleteExpiredJob.perform_now
-
     # Determine if we should expire any new data
-    HmisCsvImporter::Cleanup::ExpireImportersAndLoadersJob.perform_now
+    HmisCsvImporter::Cleanup::ExpireImportersAndLoadersJob.perform_now # DRY Run for now
+    # Enable for full mark and sweep
+    # HmisCsvImporter::Cleanup::ExpireImportersAndLoadersJob.perform_now(sweep: true)
   end
 
   def check_item_expiration(item:, model:, log_model:, log_id_field:)
