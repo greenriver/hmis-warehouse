@@ -73,8 +73,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     describe 'form definition with projectType custom_rule' do
       let(:project_type) { 5 }
       before(:each) do
-        assign_rule(custom_rule:
-          { operator: 'ANY', parts: [{ variable: 'projectType', operator: 'EQUAL', value: project_type }] })
+        assign_rule(
+          custom_rule: { operator: 'ANY', parts: [{ variable: 'projectType', operator: 'EQUAL', value: project_type }] },
+        )
       end
       it 'excludes filtered items' do
         expect(query_form_definition_items.size).to eq(base_items.size - 1)
@@ -96,7 +97,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           custom_rule: { operator: 'ANY', parts: [{ variable: 'projectType', operator: 'EQUAL', value: project_type_2 }] },
         )
       end
-      it 'excludes filtered items' do
+      it 'excludes filtered items (neither rules match)' do
         expect(query_form_definition_items.size).to eq(base_items.size - 1)
       end
       describe 'with match on HUD Rule (and no match on Custom rule)' do
