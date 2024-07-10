@@ -1,4 +1,5 @@
 class RemoveExpiredColumns < ActiveRecord::Migration[7.0]
+  disable_ddl_transaction!
   def tables
     (
       HmisCsvTwentyTwenty.expiring_loader_classes +
