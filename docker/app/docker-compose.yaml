@@ -8,10 +8,10 @@ x-app: &app
     context: ../..
     dockerfile: docker/app/Dockerfile
     args:
-      BUILD_TAG: 3.1.5-alpine3.18
+      BUILD_TAG: 3.1.6-alpine3.20
       USER_ID: ${USER_ID:-1001}
       GROUP_ID: ${GROUP_ID:-1001}
-      #RUBY_VERSION: 3.1.5
+      #RUBY_VERSION: 3.1.6
       BUNDLER_VERSION: '2.4.13'
       GITHASH: 12345
 

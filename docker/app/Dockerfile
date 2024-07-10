@@ -27,7 +27,7 @@ ARG GROUP_ID=10000
 ARG BUNDLER_VERSION=2.4.13
 
 LABEL "app"=open-path-warehouse
-LABEL "ruby-version"=3.1.5
+LABEL "ruby-version"=3.1.6
 
 ENV LANG=C.UTF-8
 ENV GEM_HOME=/bundle
