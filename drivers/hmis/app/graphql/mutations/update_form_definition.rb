@@ -6,6 +6,8 @@
 
 module Mutations
   class UpdateFormDefinition < CleanBaseMutation
+    include ConfigToolPermissionHelper
+
     argument :id, ID, required: true
     argument :input, Types::Admin::FormDefinitionInput, required: true
 
@@ -14,8 +16,13 @@ module Mutations
     def resolve(id:, input:)
       access_denied! unless current_user.can_manage_forms?
 
+      ensure_form_role_permission(input.role) if input.role
+
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
+
+      ensure_form_role_permission(definition.role)
+
       raise 'only allowed to modify draft forms' unless definition.draft?
       raise 'not allowed to change identifier' if input.identifier.present? && input.identifier != definition.identifier
 

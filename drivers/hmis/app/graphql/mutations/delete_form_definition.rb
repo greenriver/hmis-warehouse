@@ -6,6 +6,8 @@
 
 module Mutations
   class DeleteFormDefinition < CleanBaseMutation
+    include ConfigToolPermissionHelper
+
     argument :id, ID, required: true
 
     field :form_definition, Types::Forms::FormDefinition, null: true
@@ -15,6 +17,9 @@ module Mutations
 
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
+
+      ensure_form_role_permission(definition.role)
+
       raise 'can only delete draft forms' unless definition.draft?
 
       has_other_versions = definition.all_versions.count > 1

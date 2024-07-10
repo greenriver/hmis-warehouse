@@ -6,12 +6,16 @@
 
 module Mutations
   class CreateFormDefinition < CleanBaseMutation
+    include ConfigToolPermissionHelper
+
     argument :input, Types::Admin::FormDefinitionInput, required: true
 
     field :form_definition, Types::Forms::FormDefinition, null: true
 
     def resolve(input:)
-      raise 'not allowed' unless current_user.can_manage_forms?
+      access_denied! unless current_user.can_manage_forms?
+
+      ensure_form_role_permission(input.role) if input.role # (if form_role isn't provided, will hit 'Definition invalid' below)
 
       attrs = input.to_attributes
       # TODO(#6277) support starting off with an empty definition
@@ -22,6 +26,9 @@ module Mutations
         status: Hmis::Form::Definition::DRAFT,
         **attrs,
       )
+
+      # Raise if the definition model is not valid (invalid role/status/identifier; not expected)
+      raise "Definition invalid: #{definition.errors.full_messages}" unless definition.valid?
 
       validation_errors = definition.validate_json_form
       return { errors: validation_errors } if validation_errors.any?
