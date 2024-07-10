@@ -12,9 +12,10 @@ module Mutations
     field :form_rule, Types::Admin::FormRule, null: false
 
     def resolve(definition_id:, input:)
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
       definition = Hmis::Form::Definition.find(definition_id)
+      ensure_form_role_permission(definition.role)
 
       instance = Hmis::Form::Instance.new(definition_identifier: definition.identifier)
       instance.assign_attributes(input.to_attributes)

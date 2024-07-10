@@ -21,6 +21,7 @@ module Types
     include Types::HmisSchema::HasReferralPostings
     include Types::Admin::HasFormRules
     include ::Hmis::Concerns::HmisArelHelper
+    include ConfigToolPermissionHelper
 
     projects_field :projects
 
@@ -389,9 +390,12 @@ module Types
       # NOTE: this query is only used for form management. It probably should
       # not be used for the application, because there is no project context passed
       # to the definition.
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
-      Hmis::Form::Definition.find(id)
+      definition = Hmis::Form::Definition.find(id)
+      ensure_form_role_permission(definition.role)
+
+      definition
     end
 
     field :external_form_definition, Types::Forms::FormDefinition, null: true do
@@ -407,25 +411,31 @@ module Types
       argument :identifier, String, required: true
     end
     def form_identifier(identifier:)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
-      Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier).first
+      definition = Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier).first
+      raise 'not found' unless definition
+
+      ensure_form_role_permission(definition.role)
+
+      definition
     end
 
     field :form_identifiers, Types::Forms::FormIdentifier.page_type, null: false do
       filters_argument Forms::FormIdentifier
     end
     def form_identifiers(filters: nil)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
       scope = Hmis::Form::Definition.non_static.valid.latest_versions
+      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
       scope = scope.apply_filters(filters) if filters
       scope.order(updated_at: :desc)
     end
 
     form_rules_field
     def form_rules(**args)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
       resolve_form_rules(Hmis::Form::Instance.all, **args)
     end
@@ -436,7 +446,15 @@ module Types
     def form_rule(id:)
       raise 'not allowed' unless current_user.can_configure_data_collection?
 
-      Hmis::Form::Instance.find_by(id: id)
+      instance = Hmis::Form::Instance.find_by(id: id)
+      ensure_form_role_permission(instance.definition.role)
+
+      instance
+    end
+
+    field :non_admin_form_role, Forms::Enums::NonAdminFormRole, null: false
+    def non_admin_form_role
+      'SERVICE'
     end
 
     field :project_configs, Types::HmisSchema::ProjectConfig.page_type, null: false
