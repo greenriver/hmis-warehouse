@@ -52,7 +52,7 @@ module HmisCsvImporter::Cleanup
         models_to_run.each do |model|
           with_lock(model) do
             benchmark(model.table_name.to_s) do
-              throw_if_done
+              throw(:max_rows_exceeded) if max_rows_exceeded?
 
               process_model(model) if sufficient_imports?
             end
@@ -102,7 +102,7 @@ module HmisCsvImporter::Cleanup
       max = max_id_from_tmp_table(model, tmp_table_name) || 0
       min = 0
       while min < max
-        throw_if_done
+        break if max_rows_exceeded?
 
         model.connection.execute(sweep_query(model, tmp_table_name, min, min + @batch_size))
         @rows_deleted += [max, @batch_size].min
@@ -111,8 +111,8 @@ module HmisCsvImporter::Cleanup
     end
 
     # To prevent too many IO operations, limit total number of deletes per run
-    private def throw_if_done
-      throw(:max_rows_exceeded) if @rows_deleted > @max_per_run
+    def max_rows_exceeded?
+      @rows_deleted > @max_per_run
     end
 
     private def sweep_query(model, tmp_table_name, min, max)
