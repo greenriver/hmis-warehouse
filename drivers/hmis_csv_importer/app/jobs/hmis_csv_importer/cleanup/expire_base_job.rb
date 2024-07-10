@@ -105,14 +105,16 @@ module HmisCsvImporter::Cleanup
         break if max_rows_exceeded?
 
         model.connection.execute(sweep_query(model, tmp_table_name, min, min + @batch_size))
-        @rows_deleted += [max, @batch_size].min
+        deleted_this_time = [max, @batch_size].min
+        @rows_deleted += deleted_this_time
+        log("Deleted #{deleted_this_time} rows from #{model.table_name}")
         min += @batch_size
       end
     end
 
     # To prevent too many IO operations, limit total number of deletes per run
     def max_rows_exceeded?
-      @rows_deleted > @max_per_run
+      @rows_deleted >= @max_per_run
     end
 
     private def sweep_query(model, tmp_table_name, min, max)
