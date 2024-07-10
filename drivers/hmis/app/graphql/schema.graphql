@@ -9429,11 +9429,6 @@ Referral Posting Status
 """
 enum ReferralPostingStatus {
   """
-  Accepted By Other Program
-  """
-  accepted_by_other_program_status
-
-  """
   Accepted Pending
   """
   accepted_pending_status
@@ -9449,11 +9444,6 @@ enum ReferralPostingStatus {
   assigned_status
 
   """
-  Assigned To Other Program
-  """
-  assigned_to_other_program_status
-
-  """
   Closed
   """
   closed_status
@@ -9467,21 +9457,6 @@ enum ReferralPostingStatus {
   Denied
   """
   denied_status
-
-  """
-  New
-  """
-  new_status
-
-  """
-  Not Selected
-  """
-  not_selected_status
-
-  """
-  Void
-  """
-  void_status
 }
 
 type ReferralPostingsPaginated {
