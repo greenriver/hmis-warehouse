@@ -114,7 +114,8 @@
             "enable_when": [
               {
                 "question": "exit_reason",
-                "operator": "EXISTS"
+                "operator": "EXISTS",
+                "answer_boolean": true
               }
             ],
             "item": [
