@@ -12,7 +12,6 @@ require 'yaml'
 APP_ROOT = Pathname.new File.expand_path('..', __dir__)
 DONT_CREATE_DATABASES = (ARGV[0] == '--no-create-databases')
 NO_PRINT_DONE = (ARGV[1] == '--no-print-done')
-puts ARGV.inspect
 CREATE_DATABASES = ! DONT_CREATE_DATABASES
 
 def db(db_section)
@@ -144,5 +143,5 @@ Dir.chdir APP_ROOT do
     puts "\n== NOT Seeding test Database =="
   end
 end
-# do not modify this line:
+# do not modify the next line, it is used to determine when to stop during deployment
 puts '---DONE---' unless NO_PRINT_DONE
