@@ -34,24 +34,48 @@ end
 RSpec.shared_context 'HmisCsvImporter cleanup record expiration' do
   describe 'with 3 daily imports' do
     let(:run_times) do
-      time = now - 1.minute
-      [time - 2.days, time - 1.days, time]
+      5.times.map { |day| now - day.days }.reverse
     end
 
     before(:each) do
       run_times.each { |run_time| import_csv_records(run_at: run_time) }
     end
 
+    it 'deletes at most max_per_run records' do
+      max_per_run = 2
+      expect do
+        run_job(retain_after_date: now, retain_item_count: 1, max_per_run: max_per_run, batch_size: max_per_run + 1)
+      end.to change { records.count }.from(5).to(3)
+    end
+
     it 'retains records within period' do
       expect do
-        run_job(retain_after_date: run_times[1] - 1.minute, retain_item_count: 1)
-      end.to change { records.where(expired: true).count }.from(0).to(1)
+        run_job(retain_after_date: run_times[-2] - 1.minute, retain_item_count: 0)
+      end.to change { records.count }.from(5).to(2)
     end
 
     it 'retains only the last X records' do
       expect do
         run_job(retain_after_date: now, retain_item_count: 1)
-      end.to change { records.where(expired: true).count }.from(0).to(2)
+      end.to change { records.count }.from(5).to(1)
     end
+
+    it 'retains all records when retain_item_count is higher than total records' do
+      expect do
+        run_job(retain_after_date: now, retain_item_count: 6)
+      end.not_to(change { records.count })
+    end
+
+    it 'does not delete records in dry run mode' do
+      expect do
+        run_job(retain_after_date: now, retain_item_count: 1, dry_run: true)
+      end.not_to(change { records.count })
+    end
+  end
+
+  it 'handles case with no records' do
+    expect do
+      run_job(retain_after_date: now, retain_item_count: 1)
+    end.not_to(change { records.count })
   end
 end
