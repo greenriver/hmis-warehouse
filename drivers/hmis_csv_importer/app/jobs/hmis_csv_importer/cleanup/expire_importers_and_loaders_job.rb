@@ -9,9 +9,9 @@ module HmisCsvImporter::Cleanup
     protected
 
     # Sequential processing so we don't use quite as many resources at a time
-    def perform(dry_run:)
-      HmisCsvImporter::Cleanup::ExpireLoadersJob.perform_now(dry_run: dry_run)
-      HmisCsvImporter::Cleanup::ExpireImportersJob.perform_now(dry_run: dry_run)
+    def perform(options)
+      HmisCsvImporter::Cleanup::ExpireLoadersJob.perform_now(**options)
+      HmisCsvImporter::Cleanup::ExpireImportersJob.perform_now(**options)
     end
   end
 end
