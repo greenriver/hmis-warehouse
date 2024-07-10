@@ -19,6 +19,16 @@ module HealthQaFactory
       careplan_completed_qa.present?
     end
 
+    def missing_components?
+      ! [
+        hrsn_screening_qa.present?,
+        careplan_development_qa.present?,
+        ca_completed_qa.present?,
+        careplan_development_qa.present?,
+        careplan_completed_qa.present?,
+      ].all?
+    end
+
     def complete_hrsn(screener)
       # HRSN QAs are delayed until careplan approval
     end

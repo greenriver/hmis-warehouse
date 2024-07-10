@@ -203,6 +203,7 @@ module WarehouseReports::Health
       @unpayable = {}
       @duplicate = {}
       @valid_unpayable = {}
+      @missing_components = {}
       return unless @report
 
       @report.qualifying_activities.joins(:patient).
@@ -222,6 +223,11 @@ module WarehouseReports::Health
         else
           @payable[qa.patient_id] ||= []
           @payable[qa.patient_id] << qa
+        end
+
+        if qa.claim_metadata&.missing_components?
+          @missing_components[qa.patient_id] ||= []
+          @missing_components[qa.patient_id] << qa
         end
       end
     end
