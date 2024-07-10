@@ -34,7 +34,7 @@ module HmisCsvImporter::Cleanup
     # @param retain_after_date [DateTime] the date after which records are retained
     # @param max_per_run [Integer] stop processing if we delete more records than this
     # @param dry_run [Boolean] do not run delete statements
-    def perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks, max_per_run: 300_000_000, batch_size: 500_000, dry_run: true)
+    def perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks, max_per_run: 30_000_000, batch_size: 500_000, dry_run: true)
       @retain_item_count = retain_item_count
       @retain_after_date = retain_after_date
       @dry_run = dry_run
