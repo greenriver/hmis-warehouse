@@ -451,10 +451,6 @@
     "autofillValues": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "autofill_behavior",
-        "autofill_when"
-      ],
       "properties": {
         "_comment": {
           "type": "string"

@@ -465,13 +465,13 @@ enum AuditEventType {
 Value to autofill based on conditional logic
 """
 type AutofillValue {
-  autofillBehavior: EnableBehavior!
+  autofillBehavior: EnableBehavior
 
   """
   Whether to perform autofill when displaying a read-only view (defaults to false)
   """
   autofillReadonly: Boolean
-  autofillWhen: [EnableWhen!]!
+  autofillWhen: [EnableWhen!]
 
   """
   Expression with mathematical or logical function defining the value
