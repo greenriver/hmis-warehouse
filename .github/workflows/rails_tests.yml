@@ -30,7 +30,7 @@ jobs:
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
-    container: ruby:3.1.4-alpine3.18
+    container: ruby:3.1.5-alpine3.18
 
     # Service containers to run with job
     services:
