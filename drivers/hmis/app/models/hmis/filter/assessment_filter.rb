@@ -17,6 +17,8 @@ class Hmis::Filter::AssessmentFilter < Hmis::Filter::BaseFilter
   protected
 
   def with_assessment_name(scope)
+    return scope unless input.assessment_name
+
     # "assessment_name" is either a HUD Role ('INTAKE') or a custom assessment form identifier ('my_assessment_form')
     hud_data_collection_stages = []
     custom_identifiers = []

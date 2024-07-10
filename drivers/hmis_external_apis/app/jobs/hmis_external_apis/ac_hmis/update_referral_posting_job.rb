@@ -22,7 +22,8 @@
 # Accepted(20)           | Closed(13)
 
 module HmisExternalApis::AcHmis
-  class UpdateReferralPostingJob < ApplicationJob
+  class UpdateReferralPostingJob < BaseJob
+    queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
     include HmisExternalApis::AcHmis::ReferralJobMixin
 
     # map from HudUtility.referral_results to implementation-specific codes
