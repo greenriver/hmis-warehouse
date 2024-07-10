@@ -6,6 +6,8 @@
 
 module Mutations
   class CreateFormRule < BaseMutation
+    include ConfigToolPermissionHelper
+
     argument :definition_id, ID, required: true
     argument :input, Types::Admin::FormRuleInput, required: true
 
