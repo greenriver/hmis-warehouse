@@ -56,6 +56,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         update_all(definition: { 'item' => [{ 'type': 'GROUP', 'link_id': 'group-1', 'item': base_items }] })
     end
 
+    describe 'form definition with no rules' do
+      it 'includes all items' do
+        expect(query_form_definition_items.size).to eq(base_items.size)
+      end
+    end
+
     describe 'form definition with projectType rule' do
       let(:project_type) { 5 }
       before(:each) { assign_rule(rule: { variable: 'projectType', operator: 'EQUAL', value: project_type }) }
