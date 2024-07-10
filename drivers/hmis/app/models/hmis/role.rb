@@ -397,6 +397,13 @@ class Hmis::Role < ::ApplicationRecord
         category: 'Administration',
         sub_category: 'Admin Tools',
       },
+      can_administrate_config: {
+        description: 'Ability to use the JSON form editor, full Form Builder, and fragment management.',
+        administrative: true,
+        access: [:editable],
+        category: 'Administration',
+        sub_category: 'Admin Tools',
+      },
       can_manage_scan_cards: {
         description: 'Ability to create and deactivate Scan Cards',
         administrative: true,

@@ -8854,6 +8854,7 @@ type Query {
 
 type QueryAccess {
   canAdministerHmis: Boolean!
+  canAdministrateConfig: Boolean!
   canAuditClients: Boolean!
   canAuditEnrollments: Boolean!
   canAuditUsers: Boolean!
