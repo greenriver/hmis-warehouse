@@ -173,6 +173,7 @@ module Health
     belongs_to :epic_source, polymorphic: true, optional: true
     belongs_to :user, optional: true
     belongs_to :patient, optional: true
+    belongs_to :claim_metadata, polymorphic: true, optional: true
 
     def modes_of_contact
       qa_version.modes_of_contact
@@ -644,12 +645,10 @@ module Health
       contributing_care_plans = pcp_signed_plans.select do |cp|
         # Not sure on this... dont penalize the patient if the provider was late signing it
         cp_date = [cp.provider_signed_on, cp.patient_signed_on].compact.min
-        (
-          # 8/3/2021 -- JS asked that careplan expiration dates be ignored when deciding if it was missing.
-          # (cp.expires_on.nil? || date_of_activity <= cp.expires_on) &&
-          (cp_date >= first_enrollment_date) &&
-          (last_enrollment_date.nil? || cp_date <= last_enrollment_date)
-        )
+
+        # 8/3/2021 -- JS asked that careplan expiration dates be ignored when deciding if it was missing.
+        # (cp.expires_on.nil? || date_of_activity <= cp.expires_on) &&
+        (cp_date >= first_enrollment_date) && (last_enrollment_date.nil? || cp_date <= last_enrollment_date)
       end
       return false if contributing_care_plans.any? && !activity.in?(['care_planning', 'pctp_signed'])
 
