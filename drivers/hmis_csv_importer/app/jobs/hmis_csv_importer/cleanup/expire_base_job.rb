@@ -82,8 +82,6 @@ module HmisCsvImporter::Cleanup
         sweep(model, table_name) unless @dry_run
         log "Completed Processing: #{model.table_name}, rows expired: #{expired_count} rows not_expired: #{overall_count - expired_count} in #{elapsed_time(Time.current - start_time)}"
       end
-
-      log "Completed Processing: #{model.table_name}, rows expired: #{expired_count} rows not_expired: #{overall_count - expired_count} in #{elapsed_time(Time.current - start_time)}"
     end
 
     private def with_tmp_table(model)
