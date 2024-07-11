@@ -198,8 +198,12 @@ module HudApr::Generators::Shared::Fy2024
       # This will catch the edge case where an HoH left, but other members remain
       heads_of_household = universe.members.where(a_t[:head_of_household].eq(true))
       pit_date = pit_date(month: month, before: @report.end_date)
+
+      # Logic for step 4 is enforced when addding PIT dates to the client record
+      # If a client doesn't have any overlapping enrollments that qualify, they won't
+      # have a record for the PIT date
       # "?" is a jsonb postgres operator, true if value is contained in array
-      active_members = universe.members.where("pit_enrollments ? '#{pit_date}'").where(a_t[:first_date_in_program].lteq(pit_date))
+      active_members = universe.members.where("pit_enrollments ? '#{pit_date}'")
       heads_of_household.where(a_t[:household_id].in(active_members.pluck(a_t[:household_id])))
     end
   end
