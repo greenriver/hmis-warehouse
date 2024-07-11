@@ -15,11 +15,11 @@ RSpec.describe HmisCsvImporter::Cleanup::ExpireLoadersJob, type: :model do
     HmisCsvTwentyTwentyFour::Loader::Organization
   end
 
-  def run_job(retain_after_date:, retain_item_count:)
-    HmisCsvImporter::Cleanup::ExpireLoadersJob.new.perform(
+  def run_job(**options)
+    default_options = {
       model_name: 'HmisCsvTwentyTwentyFour::Loader::Organization',
-      retain_item_count: retain_item_count,
-      retain_after_date: retain_after_date,
-    )
+      dry_run: false,
+    }
+    HmisCsvImporter::Cleanup::ExpireLoadersJob.new.perform(**default_options.merge(options))
   end
 end
