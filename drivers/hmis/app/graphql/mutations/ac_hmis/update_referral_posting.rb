@@ -49,12 +49,10 @@ module Mutations
           end
           raise ActiveRecord::Rollback if errors.any?
 
-          # This is similar to the logic in query_type.rb:can_project_accept_referral, but differs in a couple ways:
-          # - Here, we do use viewable_by when querying Enrollments. (We already threw an error above if the user doesn't have this permission)
-          # - We return information about each conflicting enrollment, so the user can fix the errors.
-          personal_ids = Hmis::Hud::Client.where(id: posting.referral.household_members.pluck(:client_id)).pluck(:PersonalID)
-          # use project_pk so that wip enrollments are included
-          conflicting_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(project_pk: posting.project.id, personal_id: personal_ids)
+          # Similar to query_type.rb:project_can_accept_referral, but returns info about each conflicting enrollment, so the user can fix the errors.
+          personal_ids = posting.referral.household_members.map(&:client).pluck(:PersonalID)
+          # no need to check viewable_by on the enrollments, since we would have already raised 'access denied' above
+          conflicting_enrollments = posting.project.enrollments.open_including_wip.where(personal_id: personal_ids)
 
           unless conflicting_enrollments.empty?
             conflicting_enrollments.each do |e|

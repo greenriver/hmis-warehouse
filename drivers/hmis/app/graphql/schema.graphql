@@ -8722,7 +8722,6 @@ type Query {
     """
     role: AssessmentRole
   ): FormDefinition
-  canProjectAcceptReferral(projectId: ID!, referrerEnrollmentId: ID!): Boolean!
 
   """
   Client lookup
@@ -8807,6 +8806,11 @@ type Query {
   Project lookup
   """
   project(id: ID!): Project
+
+  """
+  Whether the destination project is able to accept a referral for the client(s) belonging to the source enrollment
+  """
+  projectCanAcceptReferral(destinationProjectId: ID!, sourceEnrollmentId: ID!): Boolean!
 
   """
   Project CoC lookup
