@@ -73,12 +73,12 @@ class MemoryAnalyzer
         begin
           if task_definition_name.match?(/dj-(all|long)/)
             # Percentage of maximum RAM
-            puts '[INFO][MEMORY_ANALYZER] Soft limit 95% of maximum'
-            ((current_soft_limit_mb * (_overall_stats.maximum / 100.0)) * 0.95).ceil
+            puts '[INFO][MEMORY_ANALYZER] Soft limit 105% of maximum'
+            ((current_soft_limit_mb * (_overall_stats.maximum / 100.0)) * 1.05).ceil
           else
             # 1 stddev above mean
-            puts '[INFO][MEMORY_ANALYZER] Soft limit via 1 stddev'
-            (current_soft_limit_mb * ((_overall_stats.average + 1.0 * _overall_stats.stddev) / 100.0)).ceil
+            puts '[INFO][MEMORY_ANALYZER] Soft limit via 1.2 stddev'
+            (current_soft_limit_mb * ((_overall_stats.average + 1.2 * _overall_stats.stddev) / 100.0)).ceil
           end
         end
 
