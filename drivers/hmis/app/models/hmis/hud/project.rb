@@ -257,7 +257,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
       active.
       for_project_through_entities(self).
       joins(:definition).
-      where(fd_t[:role].eq(:SERVICE)).
+      where(fd_t[:role].eq(:SERVICE).and(fd_t[:status].eq(Hmis::Form::Definition::PUBLISHED))).
       pluck(:custom_service_type_id, :custom_service_category_id)
 
     type_matches = cst_t[:id].in(ids.map(&:first))

@@ -32,10 +32,23 @@ class Hmis::Form::DefinitionItemFilter
     # return items if Rails.env.development?
 
     items.filter do |item|
-      # 'rule' is HUD system rule that cannot be overridden
-      passed_eval = eval_rule(item['rule'])
-      # 'custom_rule' is custom rule that can be managed by admins
-      passed_eval ||= eval_rule(item['custom_rule']) if item['custom_rule']
+      has_hud_rule = item['rule'].present?
+      has_custom_rule = item['custom_rule'].present?
+
+      passed_eval = if has_hud_rule && has_custom_rule
+        # Show if HUD rule passes or if Custom rule passes
+        eval_rule(item['rule']) || eval_rule(item['custom_rule'])
+      elsif has_hud_rule
+        # Show if HUD rule passes
+        eval_rule(item['rule'])
+      elsif has_custom_rule
+        # Show if custom rule passes
+        eval_rule(item['custom_rule'])
+      else
+        # No rule specified, always show
+        true
+      end
+
       if passed_eval
         if item['item']
           # filter children
@@ -51,12 +64,9 @@ class Hmis::Form::DefinitionItemFilter
     end
   end
 
-  # @param rule [nil, Array, Hash]
+  # @param rule [Hash]
   # @return [Boolean]
   def eval_rule(rule)
-    # if there's no rule, default to true
-    return true if rule.nil?
-
     # If there's no project, default to true.
     # This let's us have rules on the Client form, for example V1 Veteran Info,
     # that can be hidden when creating a Client in the context of a non-Veteran program,

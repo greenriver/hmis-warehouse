@@ -36,4 +36,22 @@ module HmisCsvTwentyTwentyTwo
       'YouthEducationStatus.csv' => 'YouthEducationStatus',
     }.freeze
   end
+
+  def self.expiring_loader_classes
+    importable_files_map.values.map do |name|
+      # Never expire Export or Project
+      next if name.in?(['Export', 'Project'])
+
+      "HmisCsvTwentyTwentyTwo::Loader::#{name}".constantize
+    end.compact.freeze
+  end
+
+  def self.expiring_importer_classes
+    importable_files_map.values.map do |name|
+      # Never expire Export or Project
+      next if name.in?(['Export', 'Project'])
+
+      "HmisCsvTwentyTwentyTwo::Importer::#{name}".constantize
+    end.compact.freeze
+  end
 end

@@ -168,12 +168,14 @@
             {
               "_comment": "Institutional Break message is shown",
               "question": "q_3_917B_A",
-              "operator": "ENABLED"
+              "operator": "ENABLED",
+              "answer_boolean": true
             },
             {
               "_comment": "Temporary/Permanent/Other Break message is shown",
               "question": "q_3_917B_B",
-              "operator": "ENABLED"
+              "operator": "ENABLED",
+              "answer_boolean": true
             }
           ]
         },
