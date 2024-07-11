@@ -6,7 +6,7 @@
         %th Status
         %th Completed By
     %tbody
-      - @patient&.comprehensive_assessments&.each do |assessment|
+      - @patient&.comprehensive_assessments.newest_first&.each do |assessment|
         %tr
           %td
             = link_to client_health_comprehensive_assessment_assessment_path(@client, assessment), data: { loads_in_pjax_modal: true } do
