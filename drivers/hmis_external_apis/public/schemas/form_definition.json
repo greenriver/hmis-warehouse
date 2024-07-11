@@ -867,6 +867,9 @@
             "readonly_text": {
               "type": "string"
             },
+            "helper_text": {
+              "type": "string"
+            },
             "prefill": {
               "$comment": "Enables the 'fill' button (select a previous assessment to populate from). It's only used on HUD assessments and only on top-level nodes",
               "type": "boolean"
@@ -928,6 +931,10 @@
       "allOf": [
         {
           "$ref": "#/$defs/genericInputFormNode"
+        },
+        {
+          "$comment": "String inputs can have min/max bounds for character count",
+          "$ref": "#/$defs/boundedInputNode"
         },
         {
           "type": "object",
