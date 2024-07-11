@@ -168,6 +168,15 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       pick_list_options = Types::Forms::PickListOption.available_service_types_picklist(project)
       expect(pick_list_options).to be_empty
     end
+
+    it 'does not return service types that only have unpublished forms' do
+      # Form is "active,"" but it is not published. The service type should not be considered available
+      instance = create(:hmis_form_instance, role: role, entity: nil, custom_service_type: cst)
+      instance.definition.update!(status: :retired)
+
+      pick_list_options = Types::Forms::PickListOption.available_service_types_picklist(project)
+      expect(pick_list_options).to be_empty
+    end
   end
 
   describe 'occurrence_point_form_instances' do
