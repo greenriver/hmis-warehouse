@@ -479,19 +479,7 @@ module Types
     end
 
     def self.projects_receiving_referrals
-      # Find all active instances that enable the Referral functionality
-      instance_scope = Hmis::Form::Instance.active.with_role(:REFERRAL)
-      # Find open projects that have an instance that match the criteria, which indicates that the
-      # project accepts referrals.
-      #
-      # We do not check `viewable_by` because providers can refer to projects they can't otherwise view.
-      # NOTE: is not optimized, could be refactored if performance is an issue. Used this approach to minimize
-      # duplication of project_match logic.
-      project_ids = Hmis::Hud::Project.open_on_date(Date.current).select do |project|
-        instance_scope.any? { |instance| instance.project_match(project) }
-      end.map(&:id)
-
-      Hmis::Hud::Project.where(id: project_ids).
+      Hmis::Hud::Project.receiving_referrals.
         joins(:organization).preload(:organization).
         sort_by_option(:organization_and_name).
         map(&:to_pick_list_option)

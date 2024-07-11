@@ -8808,6 +8808,11 @@ type Query {
   project(id: ID!): Project
 
   """
+  Whether the destination project is able to accept a referral for the client(s) belonging to the source enrollment
+  """
+  projectCanAcceptReferral(destinationProjectId: ID!, sourceEnrollmentId: ID!): Boolean!
+
+  """
   Project CoC lookup
   """
   projectCoc(id: ID!): ProjectCoc

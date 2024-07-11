@@ -446,6 +446,30 @@ module Types
       Hmis::ProjectConfig.all
     end
 
+    field :project_can_accept_referral, Boolean, 'Whether the destination project is able to accept a referral for the client(s) belonging to the source enrollment', null: false do
+      argument :destination_project_id, ID, required: true
+      argument :source_enrollment_id, ID, required: true
+    end
+    def project_can_accept_referral(destination_project_id:, source_enrollment_id:)
+      source_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(source_enrollment_id)
+      raise 'access denied' unless current_permission?(permission: :can_manage_outgoing_referrals, entity: source_enrollment.project)
+
+      # This doesn't check viewable_by! Users are able to ask whether the project receiving referrals can accept
+      # this client, even if they don't otherwise have permission to view the project or its enrollments.
+      # This is an acceptable permission leak because:
+      # - it is only available for projects that receive referrals
+      # - it is only available to users who can manage outgoing referrals
+      # - it doesn't expose any info about the actual enrollment(s), just a yes/no
+      project = Hmis::Hud::Project.find_by(id: destination_project_id)
+      raise 'access denied' unless project.receives_referrals?
+
+      # Can't accept the referral if any client in the household has an existing open enrollment in the project.
+      personal_ids = source_enrollment.household_members.pluck(:PersonalID)
+
+      # This doesn't check viewable_by either, see comment above
+      !project.enrollments.open_including_wip.where(personal_id: personal_ids).exists?
+    end
+
     field :client_detail_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)'
     def client_detail_forms
       # No authorization required, this just resolving application configuration
