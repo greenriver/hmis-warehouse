@@ -11,6 +11,7 @@ require 'amazing_print'
 class MemoryAnalyzer
   attr_accessor :cluster_name
   attr_accessor :task_definition_name
+  attr_accessor :service_name
 
   attr_accessor :bootstrapped_hard_limit_mb
   attr_accessor :bootstrapped_soft_limit_mb
@@ -208,7 +209,7 @@ class MemoryAnalyzer
             dimensions: [
               {
                 name: 'ServiceName',
-                value: task_definition_name,
+                value: service_name,
               },
               {
                 name: 'ClusterName',
