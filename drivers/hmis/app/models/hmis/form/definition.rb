@@ -350,7 +350,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # Validate the JSON form content
   # Returns an array of HmisErrors::Error objects
   def validate_json_form
-    Hmis::Form::DefinitionValidator.perform(definition, role)
+    # Skip validation of CustomDataElementDefinitions on draft form, because new CDEDs won't be created yet
+    Hmis::Form::DefinitionValidator.perform(definition, role, skip_cded_validation: draft?)
   end
 
   def self.validate_schema(json)
@@ -375,12 +376,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     status == DRAFT
   end
 
-  def owner_class
+  def self.owner_class_for_role(role)
     return Hmis::Hud::CustomAssessment if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 
     return unless FORM_ROLE_CONFIG[role.to_sym].present?
 
     FORM_ROLE_CONFIG[role.to_sym][:owner_class].constantize
+  end
+
+  def owner_class
+    self.class.owner_class_for_role(role)
   end
 
   def record_editing_permissions

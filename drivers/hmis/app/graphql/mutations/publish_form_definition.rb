@@ -25,12 +25,6 @@ module Mutations
       definition.status = Hmis::Form::Definition::PUBLISHED
       # Ensure HUD requirements are set correctly (if applicable). This could mutate the definition.
       definition.set_hud_requirements
-      # Validate form structure, including HUD requirements
-      validation_errors = definition.validate_json_form
-      return { errors: validation_errors } if validation_errors.any?
-
-      validation_errors = definition.validate_json_form
-      return { errors: validation_errors } if validation_errors.any?
 
       Hmis::Form::Definition.transaction do
         # Retire the previously published version
@@ -40,7 +34,10 @@ module Mutations
         new_cdeds = add_missing_custom_field_keys(definition)
         # Save any new CustomDataElementDefinitions
         new_cdeds.each(&:save!)
-        # TODO: call new validation function, which should also validate that all referenced CDEDs exist
+
+        # Validate form structure, including HUD requirements
+        validation_errors = definition.validate_json_form
+        return { errors: validation_errors } if validation_errors.any?
 
         # Save the updated form definition
         definition.save!

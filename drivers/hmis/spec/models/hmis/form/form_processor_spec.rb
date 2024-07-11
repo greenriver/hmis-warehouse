@@ -2071,6 +2071,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       }
     end
 
+    let!(:definition) { create :housing_needs_assessment }
+    let!(:cded) { create :hmis_custom_data_element_definition, key: 'assessment_question', owner_type: 'Hmis::Hud::CustomAssessment' }
+
     it 'should work when CE Assessment is the form owner' do
       definition = Hmis::Form::Definition.find_by(role: :CE_ASSESSMENT)
       assessment = Hmis::Hud::Assessment.new(client: c1, enrollment: e1, data_source: ds1)
@@ -2081,9 +2084,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
 
     it 'should work when CustomAssessment is the form owner' do
-      # note: definition is loaded in test environment because it is in the form_data/test/ directory
-      definition = Hmis::Form::Definition.find_by(identifier: 'housing_needs_assessment')
-
       assessment = build(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1)
       process_record(record: assessment, hud_values: hud_values, user: hmis_user, definition: definition)
 
@@ -2093,9 +2093,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
 
     it 'should send non-HMIS values to AssessmentQuestions' do
-      # note: definition is loaded in test environment because it is in the form_data/test/ directory
-      definition = Hmis::Form::Definition.find_by(identifier: 'housing_needs_assessment')
-      create(:hmis_custom_data_element_definition, key: 'assessment_question', owner_type: 'Hmis::Hud::CustomAssessment')
       hud_values.merge!({ 'assessment_question' => 'answer' })
 
       assessment = build(:hmis_wip_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1)
@@ -2107,9 +2104,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
 
     it 'should truncate if an answer is too long' do
-      # note: definition is loaded in test environment because it is in the form_data/test/ directory
-      definition = Hmis::Form::Definition.find_by(identifier: 'housing_needs_assessment')
-      create(:hmis_custom_data_element_definition, key: 'assessment_question', owner_type: 'Hmis::Hud::CustomAssessment')
       extra_long_string = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque ac turpis congue, '\
         'placerat felis id, porta leo. Sed volutpat nunc mi, pretium aliquet enim imperdiet sed.Aliquam et facilisis '\
         'quam, in pulvinar elit. Mauris egestas arcu eu turpis fermentum laoreet. Phasellus molestie lorem quam, sit '\
