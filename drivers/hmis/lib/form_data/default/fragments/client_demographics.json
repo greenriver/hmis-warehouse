@@ -121,13 +121,206 @@
       ]
     },
     {
-      "fragment": "#v1_veteran_info",
+      "type": "GROUP",
+      "link_id": "V1",
+      "text": "Military Service Information",
+      "data_collected_about": "ALL_CLIENTS",
       "enable_behavior": "ALL",
       "enable_when": [
         {
           "question": "veteran_status",
           "operator": "EQUAL",
           "answer_code": "YES"
+        }
+      ],
+      "rule": {
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HUD: HUD-VASH"
+          },
+          {
+            "operator": "ALL",
+            "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
+            "parts": [
+              {
+                "variable": "projectFunderComponents",
+                "operator": "INCLUDE",
+                "value": "VA: SSVF"
+              },
+              {
+                "operator": "ANY",
+                "parts": [
+                  {
+                    "variable": "projectType",
+                    "operator": "EQUAL",
+                    "value": 12
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "EQUAL",
+                    "value": 13
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "VA: GPD"
+          },
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "VA: Community Contract Safe Haven"
+          },
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "VA: CRS Contract Residential Services"
+          }
+        ]
+      },
+      "item": [
+        {
+          "type": "INTEGER",
+          "link_id": "V1_1",
+          "required": false,
+          "text": "Year Entered Military Service",
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "yearEnteredService"
+          }
+        },
+        {
+          "type": "INTEGER",
+          "link_id": "V1_2",
+          "required": false,
+          "text": "Year Separated from Military Service",
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "yearSeparated"
+          }
+        },
+        {
+          "type": "GROUP",
+          "link_id": "theater_of_operations_group",
+          "text": "Theater of Operations",
+          "item": [
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesReasonsForMissingData",
+              "component": "RADIO_BUTTONS",
+              "link_id": "V1_3",
+              "text": "World War II",
+              "mapping": {
+                "record_type": "CLIENT",
+                "field_name": "worldWarIi"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesReasonsForMissingData",
+              "component": "RADIO_BUTTONS",
+              "link_id": "V1_4",
+              "text": "Korean War",
+              "mapping": {
+                "record_type": "CLIENT",
+                "field_name": "koreanWar"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesReasonsForMissingData",
+              "component": "RADIO_BUTTONS",
+              "link_id": "V1_5",
+              "text": "Vietnam War",
+              "mapping": {
+                "record_type": "CLIENT",
+                "field_name": "vietnamWar"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesReasonsForMissingData",
+              "component": "RADIO_BUTTONS",
+              "link_id": "V1_6",
+              "text": "Persian Gulf War (Operation Desert Storm)",
+              "mapping": {
+                "record_type": "CLIENT",
+                "field_name": "desertStorm"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesReasonsForMissingData",
+              "component": "RADIO_BUTTONS",
+              "link_id": "V1_7",
+              "text": "Afghanistan (Operation Enduring Freedom)",
+              "mapping": {
+                "record_type": "CLIENT",
+                "field_name": "afghanistanOef"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesReasonsForMissingData",
+              "component": "RADIO_BUTTONS",
+              "link_id": "V1_8",
+              "text": "Iraq (Operation Iraqi Freedom)",
+              "mapping": {
+                "record_type": "CLIENT",
+                "field_name": "iraqOif"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesReasonsForMissingData",
+              "component": "RADIO_BUTTONS",
+              "link_id": "V1_9",
+              "text": "Iraq (Operation New Dawn)",
+              "mapping": {
+                "record_type": "CLIENT",
+                "field_name": "iraqOnd"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesReasonsForMissingData",
+              "component": "RADIO_BUTTONS",
+              "link_id": "V1_10",
+              "text": "Other Peace-keeping Operations or Military Interventions (such as Lebanon, Panama, Somalia, Bosnia, Kosovo)",
+              "mapping": {
+                "record_type": "CLIENT",
+                "field_name": "otherTheater"
+              }
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "V1_11",
+          "required": false,
+          "text": "Branch of the Military",
+          "pick_list_reference": "MilitaryBranch",
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "militaryBranch"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "V1_12",
+          "required": false,
+          "text": "Discharge Status",
+          "pick_list_reference": "DischargeStatus",
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "dischargeStatus"
+          }
         }
       ]
     }
