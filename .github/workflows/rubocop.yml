@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     # Docker Hub image that the job executes in
-    container: ruby:3.1.4-alpine3.18
+    container: ruby:3.1.6-alpine3.20
     steps:
       - id: dependencies
         name: Set up dependencies

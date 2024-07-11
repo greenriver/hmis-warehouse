@@ -10,7 +10,7 @@ sed -i.bak '/EXTENSION/d' db/reporting_structure.sql
 sed -i.bak '/EXTENSION/d' db/warehouse_structure.sql
 
 # Protections in this script make this okay to call on every deployment
-bundle exec ./bin/db_prep --no-create-databases
+bundle exec ./bin/db_prep --no-create-databases --no-print-done
 
 echo Storing Themed Maintenance Page
 T1=`date +%s`

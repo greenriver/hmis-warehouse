@@ -11,7 +11,8 @@ class Hmis::Form::DefinitionValidator
 
   # @param [Hash] document is a form definition document {'item' => [{...}] }
   # @param [role] role of the form as string ('INTAKE', 'CLIENT', etc). If not provided, HUD rule validation will not occur.
-  def perform(document, role = nil)
+  # @param [boolean] skip_cded_validation if true, skip validating CDEDs
+  def perform(document, role = nil, skip_cded_validation: false)
     @issues = HmisErrors::Errors.new
 
     # Validate JSON shape against JSON Schema
@@ -24,6 +25,8 @@ class Hmis::Form::DefinitionValidator
     check_mutually_exclusive_attributes(document)
     # Check HUD requirements
     check_hud_requirements(all_ids, role) if role
+
+    check_cdeds(document, role) if role && !skip_cded_validation
 
     @issues.errors
   end
@@ -206,5 +209,57 @@ class Hmis::Form::DefinitionValidator
       enums += Types::Forms::Enums::PickListType.values.keys
       enums.to_set
     end
+  end
+
+  def check_cdeds(document, role)
+    owner_type = Hmis::Form::Definition.owner_class_for_role(role)&.sti_name
+
+    return unless owner_type
+
+    cdeds_by_key = Hmis::Hud::CustomDataElementDefinition.where(owner_type: owner_type).index_by(&:key)
+
+    cded_check = lambda do |item|
+      (item['item'] || []).each do |child_item|
+        cded_check.call(child_item)
+
+        link_id = child_item['link_id']
+        mapping = child_item['mapping']
+        next unless mapping&.key?('custom_field_key')
+
+        cded_key = mapping['custom_field_key']
+        cded = cdeds_by_key[cded_key]
+        raise("Item #{link_id} has a custom_field_key mapping, but the CDED does not exist in the database. key = #{cded_key}, owner_type = #{owner_type}") unless cded
+
+        item_type = child_item['type']
+        cded_type = cded.field_type
+
+        case item_type
+        when 'GROUP', 'OBJECT', 'FILE', 'IMAGE'
+          # We don't expect these types to have custom field mappings. If they do, raise an error
+          raise "Item #{link_id} has type #{item_type}, so it should not have a custom_field_key"
+        when 'DISPLAY'
+          # DISPLAY types should really be in the above category too,
+          # but we have existing cases that store an autofill value
+          next
+        when 'STRING', 'TEXT', 'TIME_OF_DAY', 'CHOICE', 'OPEN_CHOICE'
+          raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['string', 'text'].include?(cded_type)
+        when 'BOOLEAN'
+          raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless cded_type == 'boolean'
+        when 'DATE'
+          raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['date', 'string', 'text'].include?(cded_type)
+        when 'CURRENCY'
+          raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['float', 'string', 'text'].include?(cded_type)
+        when 'INTEGER'
+          raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['float', 'integer', 'string', 'text'].include?(cded_type)
+        else
+          raise "Item #{link_id} has unexpected item type #{item_type}"
+        end
+      end
+    end
+    cded_check.call(document)
+  end
+
+  private def raise_bad_type_match(link_id, item_type, cded_key, cded_type)
+    raise "Item #{link_id} has type #{item_type}, but its custom field key #{cded_key} has an incompatible type #{cded_type}"
   end
 end

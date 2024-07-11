@@ -451,10 +451,6 @@
     "autofillValues": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "autofill_behavior",
-        "autofill_when"
-      ],
       "properties": {
         "_comment": {
           "type": "string"
@@ -852,7 +848,10 @@
                 "DISABILITY_TABLE",
                 "HORIZONTAL_GROUP",
                 "INFO_GROUP",
-                "INPUT_GROUP"
+                "INPUT_GROUP",
+                "TABLE",
+                "SIGNATURE_GROUP",
+                "SIGNATURE"
               ]
             },
             "item": {
@@ -866,6 +865,9 @@
               "type": "string"
             },
             "readonly_text": {
+              "type": "string"
+            },
+            "helper_text": {
               "type": "string"
             },
             "prefill": {
@@ -929,6 +931,10 @@
       "allOf": [
         {
           "$ref": "#/$defs/genericInputFormNode"
+        },
+        {
+          "$comment": "String inputs can have min/max bounds for character count",
+          "$ref": "#/$defs/boundedInputNode"
         },
         {
           "type": "object",
