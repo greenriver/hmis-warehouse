@@ -36,6 +36,21 @@ module Mutations
 
       posting_status_change = posting.changes['status']
 
+      if posting_status_change == ['assigned_status', 'accepted_pending_status']
+        # Similar to query_type.rb:project_can_accept_referral, but returns info about each conflicting enrollment, so the user can fix the errors.
+        personal_ids = posting.referral.household_members.map(&:client).pluck(:personal_id)
+        # no need to check viewable_by on the enrollments, since we would have already raised 'access denied' above
+        conflicting_enrollments = posting.project.enrollments.open_including_wip.where(personal_id: personal_ids)
+
+        unless conflicting_enrollments.empty?
+          conflicting_enrollments.each do |e|
+            errors.add :base, :invalid, full_message: "#{e.client.full_name} already has an open enrollment in this project (entry date: #{e.entry_date}). Please exit the client if the enrollment is invalid or out-of-date, and otherwise deny the referral."
+          end
+
+          return { errors: errors }
+        end
+      end
+
       with_logging_transaction(posting) do |logger|
         posting.save(context: validation_context) # context for validations
         errors.add_ar_errors(posting.errors.errors)
@@ -48,19 +63,6 @@ module Mutations
             errors.add :base, :invalid, full_message: "Unable to accept this referral because there are no #{posting.unit_type.description} units available." unless unit_to_assign.present?
           end
           raise ActiveRecord::Rollback if errors.any?
-
-          # Similar to query_type.rb:project_can_accept_referral, but returns info about each conflicting enrollment, so the user can fix the errors.
-          personal_ids = posting.referral.household_members.map(&:client).pluck(:PersonalID)
-          # no need to check viewable_by on the enrollments, since we would have already raised 'access denied' above
-          conflicting_enrollments = posting.project.enrollments.open_including_wip.where(personal_id: personal_ids)
-
-          unless conflicting_enrollments.empty?
-            conflicting_enrollments.each do |e|
-              errors.add :base, :invalid, full_message: "#{e.client.full_name} already has an open enrollment in this project (entry date: #{e.entry_date}). Please exit the client if the enrollment is invalid or out-of-date, and otherwise deny the referral."
-            end
-
-            raise ActiveRecord::Rollback
-          end
 
           # build new household of WIP enrollments
           household_id ||= Hmis::Hud::Enrollment.generate_household_id
