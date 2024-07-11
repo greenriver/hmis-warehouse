@@ -3,17 +3,6 @@
   "link_id": "V9",
   "text": "HUD-VASH Exit Information",
   "data_collected_about": "HOH",
-  "rule": {
-    "operator": "ANY",
-    "parts": [
-      {
-        "_comment": "HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management",
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "HUD: HUD-VASH"
-      }
-    ]
-  },
   "item": [
     {
       "type": "CHOICE",

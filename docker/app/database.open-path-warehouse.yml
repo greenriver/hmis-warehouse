@@ -3,7 +3,7 @@ default: &default
   timeout: 5000
   port: <%= ENV.fetch('DATABASE_PORT') { 5432 }.to_i  %>
   <% if ENV['RAILS_ENV'] == 'production' || ENV['RAILS_ENV'] == 'staging' %>
-  sslmode: 'verify-full'
+  sslmode: <%= ENV.fetch('SSLMODE', 'verify-full') %>
   sslrootcert: /etc/ssl/certs/us-east-1-bundle.pem
   <% end %>
 
@@ -42,10 +42,10 @@ default: &default
   <% if ENV['DATABASE_CAS_DB'] != '' && ENV['DATABASE_CAS_DB'] != nil %>
   cas:
     <<: *default
-    adapter: <%= ENV['DATABASE_ADAPTER'] %>
-    database: <%= ENV['DATABASE_CAS_DB'] %>
-    host: <%= ENV['DATABASE_HOST'] %>
-    password: <%= ENV['DATABASE_PASS'] %>
-    username: <%= ENV['DATABASE_USER'] %>
+    adapter: <%= ENV.fetch('CAS_DATABASE_ADAPTER', ENV['DATABASE_ADAPTER']) %>
+    database: <%= ENV.fetch('CAS_DATABASE_DB', ENV['DATABASE_CAS_DB']) %>
+    host: <%= ENV.fetch('CAS_DATABASE_HOST', ENV['DATABASE_HOST']) %>
+    password: <%= ENV.fetch('CAS_DATABASE_PASS', ENV['DATABASE_PASS']) %>
+    username: <%= ENV.fetch('CAS_DATABASE_USER', ENV['DATABASE_USER']) %>
     migrations_paths: db/cas/migrate
   <% end %>

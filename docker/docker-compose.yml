@@ -182,6 +182,7 @@ services:
   db:
     build:
       context: docker/pg13
+      shm_size: 1g
     container_name: hmis-warehouse-db
     environment:
       POSTGRES_PASSWORD: postgres
@@ -207,6 +208,7 @@ services:
     expose:
       - 5432
     stop_grace_period: 30s
+    shm_size: 1g # used during vacuum operations
 
   redis:
     container_name: hmis-warehouse-redis

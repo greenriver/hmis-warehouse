@@ -3,12 +3,6 @@
   "link_id": "R2",
   "text": "RHY-BCP Status",
   "data_collected_about": "ALL_CLIENTS",
-  "rule": {
-    "_comment": "HHS: RHY – Collection required for BCP only",
-    "variable": "projectFunders",
-    "operator": "INCLUDE",
-    "value": 22
-  },
   "item": [
     {
       "type": "DATE",

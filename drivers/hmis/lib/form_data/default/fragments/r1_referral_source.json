@@ -2,33 +2,6 @@
   "type": "GROUP",
   "link_id": "R1",
   "data_collected_about": "HOH_AND_ADULTS",
-  "rule": {
-    "operator": "ANY",
-    "parts": [
-      {
-        "variable": "projectFunders",
-        "operator": "INCLUDE",
-        "_comment": "All YHDP",
-        "value": 43
-      },
-      {
-        "operator": "ALL",
-        "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HHS: RHY"
-          },
-          {
-            "variable": "projectType",
-            "operator": "NOT_EQUAL",
-            "value": 4
-          }
-        ]
-      }
-    ]
-  },
   "item": [
     {
       "type": "CHOICE",

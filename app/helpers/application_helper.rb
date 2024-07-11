@@ -120,6 +120,22 @@ module ApplicationHelper
     end
   end
 
+  def hmis_external_link(entity, data_source: entity.data_source, user: nil, wrapper_class: 'text-teeny', text: 'Open in HMIS ', icon_class: 'icon-link-ext', icon_style: nil)
+    path = data_source.hmis_url_for(entity, user: user)
+    return unless path.present?
+
+    capture do
+      content_tag(:div, class: wrapper_class) do
+        content_tag(:a, href: path, target: :_blank) do
+          concat(
+            content_tag(:span, text) +
+            content_tag(:i, '', class: icon_class, style: icon_style),
+          )
+        end
+      end
+    end
+  end
+
   def ssn(number)
     if can_view_full_ssn?
       # pad with leading 0s if we don't have enough characters

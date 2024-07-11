@@ -3955,6 +3955,7 @@ type FormDefinition {
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
   id: ID!
   identifier: String!
+  projectMatches(limit: Int, offset: Int): FormProjectMatchesPaginated!
   rawDefinition: JsonObject!
   role: FormRole!
   status: FormStatus!
@@ -4163,6 +4164,26 @@ type FormItem {
   Whether to show a warning if this question is unanswered
   """
   warnIfEmpty: Boolean
+}
+
+"""
+Project match for a form, including information about which clients in this project the form is applicable to.
+"""
+type FormProjectMatch {
+  dataCollectedAbout: DataCollectedAbout!
+  id: ID!
+  organizationName: String!
+  projectName: String!
+}
+
+type FormProjectMatchesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [FormProjectMatch!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 enum FormRole {
@@ -9408,11 +9429,6 @@ Referral Posting Status
 """
 enum ReferralPostingStatus {
   """
-  Accepted By Other Program
-  """
-  accepted_by_other_program_status
-
-  """
   Accepted Pending
   """
   accepted_pending_status
@@ -9428,11 +9444,6 @@ enum ReferralPostingStatus {
   assigned_status
 
   """
-  Assigned To Other Program
-  """
-  assigned_to_other_program_status
-
-  """
   Closed
   """
   closed_status
@@ -9446,21 +9457,6 @@ enum ReferralPostingStatus {
   Denied
   """
   denied_status
-
-  """
-  New
-  """
-  new_status
-
-  """
-  Not Selected
-  """
-  not_selected_status
-
-  """
-  Void
-  """
-  void_status
 }
 
 type ReferralPostingsPaginated {

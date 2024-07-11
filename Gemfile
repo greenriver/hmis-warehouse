@@ -116,7 +116,6 @@ gem 'yabeda-rails'
 gem 'yabeda-prometheus'
 gem 'yabeda-puma-plugin'
 gem 'yabeda-http_requests'
-gem 'yabeda-activerecord'
 
 gem 'activerecord-session_store'
 gem 'attribute_normalizer'
@@ -239,6 +238,7 @@ gem 'sentry-rails', '~> 5.5'
 gem 'sentry-ruby'
 gem 'sentry-delayed_job'
 gem 'warning'
+gem 'hashdiff'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

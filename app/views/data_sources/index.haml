@@ -23,7 +23,11 @@
         %th Short Name
         %th Client Records
         %th Project Count
-        %th Visible in Window
+        - if hmis_enabled?
+          %th
+            HMIS
+        %th
+          Visible in Window
         %th Authoritative?
         %th Last Import Run
         %th
@@ -43,7 +47,13 @@
             .ds{class: "ds-color-#{data_source.id}"}= data_source.short_name
           %td= number_with_delimiter(@client_counts[data_source.id])
           %td= number_with_delimiter(@project_counts[data_source.id])
-          %td.text-center= checkmark(data_source.visible_in_window)
+          - if hmis_enabled?
+            %td.text-center
+              - if data_source.hmis?
+                = link_to "https://#{data_source.hmis}" do
+                  %i.icon-link-ext
+          %td.text-center
+            = checkmark(data_source.visible_in_window)
           %td.text-center= checkmark(data_source.authoritative)
           %td
             = most_recently_completed

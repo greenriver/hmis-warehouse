@@ -71,6 +71,7 @@ BostonHmis::Application.routes.draw do
     namespace :hmis_client do
       resources :clients, only: [:none] do
         resources :assessments, only: [:show]
+        resources :services, only: [:show]
       end
     end
   end
