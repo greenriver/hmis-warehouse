@@ -30,7 +30,7 @@ export_schedule = if ENV['DAILY_EXPORT_SCHEDULE'].nil? || ENV['DAILY_EXPORT_SCHE
 file_cleaning_schedule = (Time.parse(daily_schedule) - 5.minutes).strftime('%I:%M %P')
 import_prefetch_schedule = (Time.parse(import_schedule) - 4.hours).strftime('%I:%M %P')
 census_schedule = (Time.parse(import_schedule) - 5.hours).strftime('%I:%M %P')
-# import_cleanup_time = Time.parse(import_schedule) + 9.hours
+import_cleanup_time = Time.parse(import_schedule) + 9.hours
 
 health_trigger = ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
 
@@ -172,13 +172,13 @@ tasks = [
     at: '11:00am',
     interruptable: true,
   },
-  # TODO: re-enable when we're happy with the functionality
-  # {
-  #   task: 'driver:hmis_csv_importer:cleanup:expire_and_delete',
-  #   frequency: 1.week,
-  #   at: import_cleanup_time,
-  #   interruptable: false,
-  # },
+  {
+    task: 'driver:hmis_csv_importer:cleanup:expire_and_delete',
+    frequency: 1.day,
+    at: import_cleanup_time,
+    interruptable: false,
+    trigger: ENV['RAILS_ENV'] != 'production', # Don't run in production for now; TODO: remove this once we're happy with it
+  },
 ]
 
 job_type :rake_short, 'cd :path && :environment_variable=:environment bundle exec rake :task --silent #capacity_provider:short-term'

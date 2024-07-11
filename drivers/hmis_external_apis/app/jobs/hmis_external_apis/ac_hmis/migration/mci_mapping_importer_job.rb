@@ -6,6 +6,7 @@
 
 module HmisExternalApis::AcHmis::Migration
   class MciMappingImporterJob < BaseJob
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     attr_accessor :aws
 
     def initialize

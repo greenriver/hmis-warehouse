@@ -6,6 +6,7 @@
 
 # warm cache from db translations
 class BuildTranslationCacheJob < BaseJob
+  queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
   LOCK_NAME = 'build_translation_cache'.freeze
 
   def perform
