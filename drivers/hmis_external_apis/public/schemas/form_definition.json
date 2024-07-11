@@ -451,10 +451,6 @@
     "autofillValues": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "autofill_behavior",
-        "autofill_when"
-      ],
       "properties": {
         "_comment": {
           "type": "string"
@@ -852,7 +848,10 @@
                 "DISABILITY_TABLE",
                 "HORIZONTAL_GROUP",
                 "INFO_GROUP",
-                "INPUT_GROUP"
+                "INPUT_GROUP",
+                "TABLE",
+                "SIGNATURE_GROUP",
+                "SIGNATURE"
               ]
             },
             "item": {
