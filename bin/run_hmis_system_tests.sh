@@ -6,6 +6,13 @@
 # usage
 # BRANCH_NAME=186406279-hmis-system-e2e-tests bin/run_hmis_system_tests.sh
 
+if [[ "$1" = "--dev" ]]; then
+  echo "Running in dev mode"
+  dev_mode=true
+else
+  dev_mode=false
+fi
+
 if [ -z "$REPO_URL" ]; then
   # If not set, assign a default value
   REPO_URL="https://github.com/greenriver/hmis-frontend.git"
@@ -35,7 +42,9 @@ cleanup() {
 }
 
 # Register the cleanup function to be called on the EXIT signal
-trap cleanup EXIT
+if [ "$dev_mode" = false ] ; then
+  trap cleanup EXIT
+fi
 
 set -x
 # Change to the temporary directory
@@ -61,6 +70,11 @@ HOSTNAME=`hostname`
 # Start in the background
 SERVER_HTTPS=false HMIS_SERVER_URL="http://localhost:4444" HMIS_HOST=$HOSTNAME yarn --cwd $CWD preview &
 SERVER_PID=$!
+
+if [ "$dev_mode" = true ] ; then
+  exit 0
+fi
+
 sleep 5
 
 cd /app
