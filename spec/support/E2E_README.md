@@ -25,7 +25,7 @@ Since E2E tests are expensive -- slow to run and fiddly to write/update -- we sh
 3. In the Docker shell, run the `run_hmis_system_tests` script, indicating the branch of the `hmis-frontend` repo you want to test. This script will start the vite "preview" as a background process. The script will exit when complete, but the process will remaing running. You can use `ps aux` to find the PID.
 
     ```bash
-    BRANCH_NAME=release-123 ./bin/run_hmis_system_tests.sh --dev
+    BRANCH_NAME=release-X ./bin/run_hmis_system_tests.sh --dev
     ```
 
 4. Once that process has completed, you can kick off your `rspec` test(s).
@@ -38,7 +38,9 @@ Since E2E tests are expensive -- slow to run and fiddly to write/update -- we sh
     ```bash
     docker exec -it $(docker ps -aqf "name=^hmis-warehouse_shell_run" | head -1) /bin/bash
     ```
-   
+
+  If you want to restart with a different branch of the frontend, or need to re-pull the branch: exit and create a new shell (`dcr shell`), and re-start the run_hmis_system_tests script.
+
 ### Debugging
 The `debug` helper, defined in [e2e_tests.rb](e2e_tests.rb), enables pausing the driver and inspecting what is going on at the moment in the browserless Chrome.
 - Add `debug` on its own line. The test will pause execution at that line, output "Cuprite execution paused" to stdout, and output a localhost link to open the Chrome inspector. Open that localhost link.
