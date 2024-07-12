@@ -175,7 +175,7 @@ module Filters
       self.active_roi = filters.dig(:active_roi).in?(['1', 'true', true]) unless filters.dig(:active_roi).nil?
       self.secondary_project_ids = filters.dig(:secondary_project_ids)&.reject(&:blank?)&.map(&:to_i).presence || secondary_project_ids
       self.secondary_project_group_ids = filters.dig(:secondary_project_group_ids)&.reject(&:blank?)&.map(&:to_i).presence || secondary_project_group_ids
-      self.ethnicities = filters.dig(:ethnicities)&.select { |ethnicity| HudUtility2024.ethnicities.keys.include?(ethnicity.to_sym) }.presence&.map(&:to_sym) || ethnicities
+      self.ethnicities = filters.dig(:ethnicities)&.select { |ethnicity| HudUtility2024.ethnicities.keys.include?(ethnicity.to_s.to_sym) }.presence&.map(&:to_sym) || ethnicities
       self.race_ethnicity_combinations = filters.dig(:race_ethnicity_combinations)&.select { |value| HudUtility2024.race_ethnicity_combinations.keys.include?(value.to_sym) }.presence&.map(&:to_sym) || race_ethnicity_combinations
 
       ensure_dates_work if valid?
