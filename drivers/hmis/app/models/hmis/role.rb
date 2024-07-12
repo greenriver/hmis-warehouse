@@ -398,7 +398,7 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Admin Tools',
       },
       can_administrate_config: {
-        description: 'Ability to use the JSON form editor, full Form Builder, and fragment management.',
+        description: 'Ability to use the JSON form editor and administer all form types [GR Staff Only]',
         administrative: true,
         access: [:editable],
         category: 'Administration',
