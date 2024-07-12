@@ -438,10 +438,7 @@ module Types
       access_denied! unless current_user.can_configure_data_collection?
 
       scope = Hmis::Form::Instance.all
-      unless current_user.can_administrate_config?
-        identifiers = Hmis::Form::Definition.where(role: Hmis::Form::Definition::NON_ADMIN_FORM_ROLES).pluck(:identifier)
-        scope = scope.where(definition_identifier: identifiers)
-      end
+      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
 
       resolve_form_rules(scope, **args)
     end
