@@ -12,7 +12,7 @@ Since E2E tests are expensive -- slow to run and fiddly to write/update -- we sh
 
 ## Develop E2E Tests Locally
 
-1. Bring up chrome
+1.Start the docker container for headless Chrome. This is in our `docker-compose.yml` file, but it's part of the `test` profile, so it isn't started when running `docker-compose up` normally.
     ```bash
     docker-compose up chrome
     ```
@@ -52,7 +52,7 @@ The `debug` helper, defined in [e2e_tests.rb](e2e_tests.rb), enables pausing the
 
 This script is designed to be run as part of a CI pipeline. It clones the frontend repo into a temporary directory, serves the frontend using yarn preview, runs the system tests against that frontend, and then shuts everything down and cleans up after the tests finish running.
 
-1. Start the docker container for headless Chrome. This is in our `docker-compose.yml` file, but it's part of the `test` profile, so it isn't started when running `docker-compose up` normally.
+1. Bring up chrome.
     ```bash
     docker-compose up chrome
     ```
