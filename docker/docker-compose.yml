@@ -219,7 +219,7 @@ services:
       - 6379
 
   chrome:
-    image: browserless/chrome:1-chrome-stable
+    image: browserless/chrome:latest
     profiles: ["test"]
     ports:
       - "3333:3333"
