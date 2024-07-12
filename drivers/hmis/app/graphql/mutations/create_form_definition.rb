@@ -13,6 +13,14 @@ module Mutations
     def resolve(input:)
       raise 'not allowed' unless current_user.can_manage_forms?
 
+      errors = HmisErrors::Errors.new
+      errors.add(:role, :required) if input.role.blank?
+      errors.add(:title, :required) if input.title.blank?
+      errors.add(:identifier, :required) if input.identifier.blank?
+      non_unique_identifier = Hmis::Form::Definition.with_role(input.role).where(identifier: input.identifier).exists?
+      errors.add(:identifier, :invalid, message: 'is not unique. Please choose another identifier.') if non_unique_identifier
+      return { errors: errors } if errors.any?
+
       attrs = input.to_attributes
       attrs[:definition] = attrs[:definition] || { item: initial_form_definition_items(attrs[:role]) }
 
@@ -23,12 +31,6 @@ module Mutations
       )
 
       validation_errors = definition.validate_json_form
-      # rubocop:disable Style/IfUnlessModifier
-      if Hmis::Form::Definition.with_role(definition.role).where(identifier: definition.identifier).exists?
-        validation_errors << HmisErrors::Error.new(:identifier, :invalid, message: 'is not unique. Please choose another identifier')
-      end
-      # rubocop:enable Style/IfUnlessModifier
-
       return { errors: validation_errors } if validation_errors.any?
 
       definition.save!
