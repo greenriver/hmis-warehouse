@@ -37,7 +37,7 @@ Since E2E tests are expensive -- slow to run and fiddly to write/update -- we sh
 
 ## Develop E2E Tests Locally
 
-1.Start the docker container for headless Chrome. This is in our `docker-compose.yml` file, but it's part of the `test` profile, so it isn't started when running `docker-compose up` normally.
+1. Start the docker container for headless Chrome. This is in our `docker-compose.yml` file, but it's part of the `test` profile, so it isn't started when running `docker-compose up` normally.
     ```bash
     docker-compose up chrome
     ```
