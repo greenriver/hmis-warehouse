@@ -131,7 +131,7 @@ module Filter::FilterScopes
       scope.merge(race_scope)
     end
 
-    private def multi_racial_clients
+    private def multi_racial_clients(include_hispanic_latinaeo: true)
       # Looking at all races with responses of 1, where we have a sum > 1
       columns = [
         c_t[:AmIndAKNative],
@@ -139,9 +139,10 @@ module Filter::FilterScopes
         c_t[:BlackAfAmerican],
         c_t[:NativeHIPacific],
         c_t[:White],
-        c_t[:HispanicLatinaeo],
         c_t[:MidEastNAfrican],
       ]
+      columns << c_t[:HispanicLatinaeo] if include_hispanic_latinaeo
+
       report_scope_source.joins(:client).
         where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
     end
@@ -156,6 +157,83 @@ module Filter::FilterScopes
 
     private def race_alternative(key)
       report_scope_source.joins(:client).where(c_t[key].eq(1))
+    end
+
+    private def filter_for_race_ethnicity_combinations(scope)
+      return scope unless @filter.race_ethnicity_combinations.present?
+
+      race_ethnicity_scope = nil
+      @filter.race_ethnicity_combinations.each do |combination|
+        alternative = case combination.to_sym
+        when :am_ind_ak_native
+          race_ethnicity_alternative(scope, :AmIndAKNative)
+        when :am_ind_ak_native_hispanic_latinaeo
+          race_ethnicity_alternative(scope, :AmIndAKNative, true)
+        when :asian
+          race_ethnicity_alternative(scope, :Asian)
+        when :asian_hispanic_latinaeo
+          race_ethnicity_alternative(scope, :Asian, true)
+        when :black_af_american
+          race_ethnicity_alternative(scope, :BlackAfAmerican)
+        when :black_af_american_hispanic_latinaeo
+          race_ethnicity_alternative(scope, :BlackAfAmerican, true)
+        when :hispanic_latinaeo
+          race_ethnicity_alternative(scope, :HispanicLatinaeo)
+        when :mid_east_n_african
+          race_ethnicity_alternative(scope, :MidEastNAfrican)
+        when :mid_east_n_african_hispanic_latinaeo
+          race_ethnicity_alternative(scope, :MidEastNAfrican, true)
+        when :native_hi_pacific
+          race_ethnicity_alternative(scope, :NativeHIPacific)
+        when :native_hi_pacific_hispanic_latinaeo
+          race_ethnicity_alternative(scope, :NativeHIPacific, true)
+        when :white
+          race_ethnicity_alternative(scope, :White)
+        when :white_hispanic_latinaeo
+          race_ethnicity_alternative(scope, :White, true)
+        when :multi_racial
+          race_ethnicity_alternative(scope, :MultiRacial)
+        when :multi_racial_hispanic_latinaeo
+          race_ethnicity_alternative(scope, :MultiRacial, true)
+        when :race_none
+          race_ethnicity_alternative(scope, :RaceNone)
+        end
+        race_ethnicity_scope = add_alternative(race_ethnicity_scope, alternative)
+      end
+
+      scope.joins(:client).merge(race_ethnicity_scope)
+    end
+
+    private def race_ethnicity_alternative(scope, key, hispanic_latinaeo = false)
+      columns = {
+        AmIndAKNative: 0,
+        Asian: 0,
+        BlackAfAmerican: 0,
+        NativeHIPacific: 0,
+        White: 0,
+        HispanicLatinaeo: 0,
+        MidEastNAfrican: 0,
+      }
+
+      if key == :MultiRacial
+        query = multi_racial_clients(include_hispanic_latinaeo: false)
+        query = query.where(c_t[:HispanicLatinaeo].eq(hispanic_latinaeo ? 1 : 0))
+        return scope.merge(query)
+      elsif key == :RaceNone
+        return scope.where(c_t[:RaceNone].in([8, 9, 99]))
+      else
+        columns[key] = 1
+        columns[:HispanicLatinaeo] = 1 if hispanic_latinaeo
+        query = nil
+        columns.each do |k, v|
+          if query.nil?
+            query = c_t[k].eq(v)
+          else
+            query = query.and(c_t[k].eq(v))
+          end
+        end
+        scope.where(query)
+      end
     end
 
     private def filter_for_veteran_status(scope)

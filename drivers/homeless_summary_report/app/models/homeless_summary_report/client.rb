@@ -22,15 +22,31 @@ module HomelessSummaryReport
     ].freeze
     DEMOGRAPHIC_VARIANTS = [
       :all,
-      :mid_east_n_african,
-      :hispanic_latinaeo,
-      :black_african_american,
+      :am_ind_ak_native,
+      :am_ind_ak_native_hispanic_latinaeo,
       :asian,
-      :american_indian_alaskan_native,
-      :native_hawaiian_other_pacific_islander,
+      :asian_hispanic_latinaeo,
+      :black_af_american,
+      :black_af_american_hispanic_latinaeo,
+      :hispanic_latinaeo,
+      :mid_east_n_african,
+      :mid_east_n_african_hispanic_latinaeo,
+      :native_hi_pacific,
+      :native_hi_pacific_hispanic_latinaeo,
       :white,
+      :white_hispanic_latinaeo,
       :multi_racial,
+      :multi_racial_hispanic_latinaeo,
       :race_none,
+      # :mid_east_n_african,
+      # :hispanic_latinaeo,
+      # :black_african_american,
+      # :asian,
+      # :american_indian_alaskan_native,
+      # :native_hawaiian_other_pacific_islander,
+      # :white,
+      # :multi_racial,
+      # :race_none,
       :fleeing_dv,
       :veteran,
       :has_disability,
@@ -40,11 +56,28 @@ module HomelessSummaryReport
       :returned_to_homelessness_from_permanent_destination,
     ].freeze
 
+    # Some field names are too long for postgres, so this provides some shortening rules
+    def self.adjust_attribute_name(name)
+      name = name.to_s
+      return name.to_sym if name.length <= 63
+
+      {
+        without_children_and_fifty_five_plus: :nc_55,
+        adults_with_children_where_parenting_adult_18_to_24: :wc_18_to_24,
+        returned_to_homelessness_from_permanent_destination: :returned,
+      }.each do |raw, abbrev|
+        name.gsub!(raw.to_s, abbrev.to_s)
+        return name.to_sym if name.length <= 63
+      end
+
+      raise "Couldn't truncate attribute name #{name}"
+    end
+
     HOUSEHOLD_VARIANTS.each do |variant_slug|
       DEMOGRAPHIC_VARIANTS.each do |sub_variant_slug|
         variant = "spm_#{variant_slug}__#{sub_variant_slug}".to_sym
-        scope variant, -> { where(arel_table[variant[0..62]].gt(0)) }
-        alias_attribute(variant, variant[0..62]) # Some fields are too long for postgres
+        scope variant, -> { where(arel_table[adjust_attribute_name(variant)].gt(0)) }
+        alias_attribute(variant, adjust_attribute_name(variant))
       end
     end
 
@@ -76,7 +109,7 @@ module HomelessSummaryReport
       new.tap do |defaulted|
         HOUSEHOLD_VARIANTS.each do |household_category|
           DEMOGRAPHIC_VARIANTS.each do |demographic_category|
-            defaulted["spm_#{household_category}__#{demographic_category}"[0..62]] = 0
+            defaulted[adjust_attribute_name("spm_#{household_category}__#{demographic_category}")] = 0
           end
         end
       end
