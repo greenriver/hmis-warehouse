@@ -81,8 +81,7 @@
       "text": "Amount",
       "mapping": {
         "field_name": "faAmount"
-      },
-      "service_detail_type": "CLIENT"
+      }
     }
   ]
 }
