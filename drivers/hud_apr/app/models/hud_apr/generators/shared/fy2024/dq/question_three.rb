@@ -110,8 +110,11 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionThree
     def q3_client_location_row(sheet, universe_members)
       hoh_scope = universe_members.where(hoh_clause)
 
+      valid_cocs = HudUtility2024.cocs.keys
+      valid_cocs -= ['XX-502', 'XX-518'] # remove "invalid" testkit CoCs
+
       missing_cell = sheet.update_cell_members(cell: 'C5', members: hoh_scope.where(a_t[:enrollment_coc].eq(nil)))
-      issue_cell = sheet.update_cell_members(cell: 'D5', members: hoh_scope.where(a_t[:enrollment_coc].not_in(HudUtility2024.cocs.keys)))
+      issue_cell = sheet.update_cell_members(cell: 'D5', members: hoh_scope.where(a_t[:enrollment_coc].not_in(valid_cocs)))
 
       # Totals
       total_cell = sheet.update_cell_value(cell: 'E5', value: missing_cell.value + issue_cell.value)
@@ -151,7 +154,7 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionThree
       total_cell = sheet.update_cell_value(cell: 'E6', value: [dkpntr_cell, missing_cell, issue_cell].map(&:value).sum)
       total_cell.add_members([dkpntr_cell, missing_cell, issue_cell].map(&:members).sum([]))
       # Issue Rate
-      sheet.update_cell_value(cell: 'F6', value: percentage(issue_cell.value / universe_members.count.to_f))
+      sheet.update_cell_value(cell: 'F6', value: percentage(total_cell.value / universe_members.count.to_f))
     end
   end
 end
