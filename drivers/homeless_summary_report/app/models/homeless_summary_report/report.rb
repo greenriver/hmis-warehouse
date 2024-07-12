@@ -836,69 +836,6 @@ module HomelessSummaryReport
       end
 
       variants.merge!(
-        # hispanic_latinaeo: {
-        #   name: HudUtility2024.race('HispanicLatinaeo'), # non-hispanic latino
-        #   extra_filters: {
-        #     races: ['HispanicLatinaeo'],
-        #   },
-        #   demographic_filters: [:filter_for_race],
-        # },
-        # black_african_american: {
-        #   name: HudUtility2024.race('BlackAfAmerican'),
-        #   extra_filters: {
-        #     races: ['BlackAfAmerican'],
-        #   },
-        #   demographic_filters: [:filter_for_race],
-        # },
-        # asian: {
-        #   name: HudUtility2024.race('Asian'),
-        #   extra_filters: {
-        #     races: ['Asian'],
-        #   },
-        #   demographic_filters: [:filter_for_race],
-        # },
-        # american_indian_alaskan_native: {
-        #   name: HudUtility2024.race('AmIndAKNative'),
-        #   extra_filters: {
-        #     races: ['AmIndAKNative'],
-        #   },
-        #   demographic_filters: [:filter_for_race],
-        # },
-        # native_hawaiian_other_pacific_islander: {
-        #   name: HudUtility2024.race('NativeHIPacific'),
-        #   extra_filters: {
-        #     races: ['NativeHIPacific'],
-        #   },
-        #   demographic_filters: [:filter_for_race],
-        # },
-        # white: {
-        #   name: HudUtility2024.race('White'),
-        #   extra_filters: {
-        #     races: ['White'],
-        #   },
-        #   demographic_filters: [:filter_for_race],
-        # },
-        # mid_east_n_african: {
-        #   name: HudUtility2024.race('MidEastNAfrican'),
-        #   extra_filters: {
-        #     races: ['MidEastNAfrican'],
-        #   },
-        #   demographic_filters: [:filter_for_race],
-        # },
-        # multi_racial: {
-        #   name: HudUtility2024.race('MultiRacial'),
-        #   extra_filters: {
-        #     races: ['MultiRacial'],
-        #   },
-        #   demographic_filters: [:filter_for_race],
-        # },
-        # race_none: {
-        #   name: 'Unknown Race',
-        #   extra_filters: {
-        #     races: ['RaceNone'],
-        #   },
-        #   demographic_filters: [:filter_for_race],
-        # },
         fleeing_dv: {
           name: 'Currently Fleeing DV',
           extra_filters: {
