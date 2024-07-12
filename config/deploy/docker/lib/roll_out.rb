@@ -52,6 +52,8 @@ class RollOut
 
   DEFAULT_CPU_SHARES = 256
 
+  SERVICE_NAME_VERSION = '-2'.freeze
+
   def initialize(args:, image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, capacity_providers:, service_registry_arns:) # rubocop:disable Metrics/ParameterLists
     self.cluster                  = _cluster_name
     self.image_base               = image_base
@@ -271,7 +273,7 @@ class RollOut
     # Keep production web containers on long-term providers
     _start_service!(
       capacity_provider: _long_term_capacity_provider_name,
-      name: name + '-2', # version bump for change from port 443 -> 3000
+      name: name + SERVICE_NAME_VERSION,
       load_balancers: lb,
       desired_count: web_options['container_count'] || 1,
       minimum_healthy_percent: minimum,
@@ -402,6 +404,7 @@ class RollOut
     ma = MemoryAnalyzer.new
     ma.cluster_name         = self.cluster
     ma.task_definition_name = name
+    ma.service_name = name + SERVICE_NAME_VERSION
     ma.bootstrapped_hard_limit_mb = hard_mem_limit_mb
     ma.bootstrapped_soft_limit_mb = soft_mem_limit_mb
     ma.run!
