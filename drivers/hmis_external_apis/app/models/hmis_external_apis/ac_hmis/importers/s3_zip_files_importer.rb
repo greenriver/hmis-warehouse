@@ -47,6 +47,10 @@ module HmisExternalApis::AcHmis::Importers
 
       # Choose which file to import (most recent)
       s3_object = s3.list_objects(prefix: prefix).first
+      if !s3_object
+        Rails.logger.info "No objects found in #{bucket_name}. Stopping."
+        return
+      end
 
       if skip_lambda.call(s3_object)
         # Note: to force re-run, delete the latest HmisExternalApis::AcHmis::Importers::ProjectsImportAttempt
