@@ -105,7 +105,6 @@ RSpec.feature 'Enrollment/household management', type: :system do
         within(:xpath, '//table/tbody/tr[2]') do
           with_hidden { choose('HoH') }
         end
-        # These radio selects need better a11y
         assert_text("Head of Household will change from #{c1.brief_name} to #{c2.brief_name}")
         expect do
           click_button('Confirm')
