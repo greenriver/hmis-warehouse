@@ -389,10 +389,9 @@ module Types
       # NOTE: this query is only used for form management. It probably should
       # not be used for the application, because there is no project context passed
       # to the definition.
-      definition = Hmis::Form::Definition.find(id)
-      access_denied! unless current_user.can_configure_data_collection_for_role?(definition.role)
+      access_denied! unless current_user.can_configure_data_collection?
 
-      definition
+      Hmis::Form::Definition.find(id)
     end
 
     field :external_form_definition, Types::Forms::FormDefinition, null: true do
@@ -408,12 +407,9 @@ module Types
       argument :identifier, String, required: true
     end
     def form_identifier(identifier:)
-      definition = Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier).first
-      raise 'not found' unless definition
+      access_denied! unless current_user.can_configure_data_collection?
 
-      access_denied! unless current_user.can_configure_data_collection_for_role?(definition.role)
-
-      definition
+      Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier).first
     end
 
     field :form_identifiers, Types::Forms::FormIdentifier.page_type, null: false do
@@ -442,12 +438,9 @@ module Types
       argument :id, ID, required: true
     end
     def form_rule(id:)
-      instance = Hmis::Form::Instance.find_by(id: id)
-      raise 'not found' unless instance
+      access_denied! unless current_user.can_configure_data_collection?
 
-      access_denied! unless current_user.can_configure_data_collection_for_role?(instance.definition.role)
-
-      instance
+      Hmis::Form::Instance.find_by(id: id)
     end
 
     field :non_admin_form_role, Forms::Enums::NonAdminFormRole, null: false
