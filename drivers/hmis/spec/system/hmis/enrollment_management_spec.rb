@@ -112,7 +112,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
 
       it 'can remove a non-HoH member' do
         expect do
-          click_button "aria-label='Remove #{c2.brief_name}'" # no confirmation here, since enrollment is WIP
+          find("button[aria-label='Remove #{c2.brief_name}']").click # no confirmation here, since enrollment is WIP
           assert_no_text(c2.brief_name)
         end.to change(c2.enrollments, :count).by(-1)
       end
