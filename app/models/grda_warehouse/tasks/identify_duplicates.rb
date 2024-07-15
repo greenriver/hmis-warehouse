@@ -53,7 +53,7 @@ module GrdaWarehouse::Tasks
           if match_id.present?
             matched += 1
             matched_ids << match_id
-            destination_client = basic_client_matcher.destination_clients_by_id[match_id]
+            destination_client = basic_client_matcher.get_client_by_id(match_id)
 
             # Set SSN & DOB if we have it in the incoming client, but not in the destination
             should_save = false

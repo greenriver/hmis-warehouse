@@ -6,38 +6,55 @@
 ###
 
 class IdentifyExternalClientsJob < BaseJob
-  #include NotifierConfig
-
-  def perform(s3_slug:)
-    s3 = GrdaWarehouse::RemoteCredentials::S3.for_active_slug(s3_slug)&.s3
-    return unless s3
+  def perform(inbox_s3_slug:, outbox_s3_slug:)
+    inbox_s3 = s3_for_slug(inbox_s3_slug)
+    outbox_s3 = s3_for_slug(inbox_s3_slug)
+    return unless inbox_s3 && outbox_s3
 
     with_lock do
-      s3.list_objects.each do |object|
-        handle_object(object)
+      inbox_s3.list_objects.each do |input_object|
+        input_key = input_object.key
+        raw_input = inpbox_s3.get_as_io(key: input_key)&.read
+        output_csv = process_input(raw_input)
+
+        # if we successfully processed the input object, delete it from the bucket
+        output_object = upload_to_s3(outbox_s3, output_csv, key: "#{input_key}_results.csv")
+        if output_object
+          s3.delete(key: input_key)
+        else
+          log('failed to upload output', object_key: input_key)
+        end
       end
     end
   end
 
   protected
 
-  def handle_object(object)
-    raw_input = s3.get_as_io(key: object.key)&.read
+  def upload_to_s3(s3, output_csv, key: "#{input_key}_results.csv")
+    return if Rails.env.development? || Rails.env.test?
+
+    # use bucket/object rather than AwsS3 methods here since we want to publish the form without access restrictions.
+    # Maybe this could be DRYed up in the future if we find more use cases
+    object = s3.bucket.object(publication.object_key)
+    object.put(body: publication.content, content_type: 'text/csv; charset=utf-8')
+  end
+
+  def s3_for_slug(slug)
+    GrdaWarehouse::RemoteCredentials::S3.for_active_slug(slug)&.s3
+  end
+
+  def process_input(raw_input)
     input_rows = raw_input ? process_csv_string(raw_input) : nil
-    if input_rows.blank?
+    if input_rows.empty?
       log('invalid CSV content', object_key: object.key)
       return
     end
 
-    output_csv = process_rows(input_rows)
-
-    # if we successfully processed the submission, delete it
-    output_object =  upload_to_s3(output_csv)
-    if output_object
-      s3.delete(key: object.key)
-    else
-      log('failed to upload output', object_key: object.key)
+    output_rows = input_rows.map do |row|
+      process_rows(input_row)
     end
+    output_csv = format_as_csv(output_rows)
+
   end
 
   def with_lock(&block)
@@ -56,23 +73,31 @@ class IdentifyExternalClientsJob < BaseJob
     end
   end
 
-  def process_rows(rows)
-    rows.each do |row|
-      client_lookup.check_for_obvious_match(client_id)
-      first_name, last_name ssn4, dob, hmis_id, ghocid = row.values_at(:first_name, :last_name :ssn4, :dob, :hmis_id, :ghocid)
+  def process_row(row)
+    client_lookup.check_for_obvious_match(client_id)
+    first_name, last_name, ssn4, dob = row.values_at(:first_name, :last_name :ssn4, :dob, :ghocid)
 
-      ssn_matches = basic_client_matcher.check_social(ssn: ssn4)
-      birthdate_matches = basic_client_matcher.check_birthday(dob: dob)
-      name_matches = basic_client_matcher.check_name(first_name: first_name, last_name: last_name)
+    matches = [
+      basic_client_matcher.check_social(ssn: ssn4),
+      basic_client_matcher.check_birthday(dob: dob),
+      basic_client_matcher.check_name(first_name: first_name, last_name: last_name),
+    ]
 
-      all_matches = ssn_matches + birthdate_matches + name_matches
-      obvious_matches.compact!
+    match = get_first_match(matches)
+    [ghocid, match]
+  end
 
-      return obvious_matches.first if obvious_matches.any?
-
-      return nil
-
+  # If no integer is found in at least two arrays
+  def get_first_match(matches, required_number: 2)
+    count = Hash.new(0)
+    matches.each do |match|
+      match.each do |id|
+        count[id] += 1
+        return id if count[id] >= required_number
+      end
     end
+
+    nil
   end
 
   def client_lookup
