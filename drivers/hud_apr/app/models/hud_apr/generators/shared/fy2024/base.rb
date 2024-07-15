@@ -594,6 +594,7 @@ module HudApr::Generators::Shared::Fy2024
             project_type: enrollment.project_type,
             project_tracking_method: enrollment.project_tracking_method,
             move_in_date: enrollment.move_in_date,
+            relationship_to_hoh: enrollment.enrollment.relationship_to_hoh,
           }
         end
         [pit_date, enrollments_for_date]
