@@ -97,16 +97,21 @@ RSpec.feature 'Enrollment/household management', type: :system do
       end
 
       it 'can change relationship to HoH' do
-        assert_text(c2.brief_name) # non-HoH
-        assert_text(c1.brief_name) # HoH
+        assert_text(c2.brief_name)
+        assert_text(c1.brief_name)
 
+        # choose second row. These radio selects need better a11y
+        # find(:xpath, "//table/tbody/tr[2]/td/*[normalize-space()='HoH']").click
+        within(:xpath, '//table/tbody/tr[2]') do
+          with_hidden { choose('HoH') }
+        end
         # These radio selects need better a11y
-        find("[aria-label='HoH status for #{c2.brief_name}']", visible: false).click
         assert_text("Head of Household will change from #{c1.brief_name} to #{c2.brief_name}")
         expect do
           click_button('Confirm')
-          expect(find("[aria-label='HoH status for #{c1.brief_name}']", visible: false)).not_to be_checked
-          expect(find("[aria-label='HoH status for #{c2.brief_name}']", visible: false)).to be_checked
+          within(:xpath, '//table/tbody/tr[2]') do
+            with_hidden { expect(page).to have_checked_field('HoH') }
+          end
         end.to change(c2.enrollments.where(relationship_to_hoh: 1), :count).by(1)
       end
 
