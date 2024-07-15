@@ -164,40 +164,9 @@ module Filter::FilterScopes
 
       race_ethnicity_scope = nil
       @filter.race_ethnicity_combinations.each do |combination|
-        alternative = case combination.to_sym
-        when :am_ind_ak_native
-          race_ethnicity_alternative(scope, :AmIndAKNative)
-        when :am_ind_ak_native_hispanic_latinaeo
-          race_ethnicity_alternative(scope, :AmIndAKNative, true)
-        when :asian
-          race_ethnicity_alternative(scope, :Asian)
-        when :asian_hispanic_latinaeo
-          race_ethnicity_alternative(scope, :Asian, true)
-        when :black_af_american
-          race_ethnicity_alternative(scope, :BlackAfAmerican)
-        when :black_af_american_hispanic_latinaeo
-          race_ethnicity_alternative(scope, :BlackAfAmerican, true)
-        when :hispanic_latinaeo
-          race_ethnicity_alternative(scope, :HispanicLatinaeo)
-        when :mid_east_n_african
-          race_ethnicity_alternative(scope, :MidEastNAfrican)
-        when :mid_east_n_african_hispanic_latinaeo
-          race_ethnicity_alternative(scope, :MidEastNAfrican, true)
-        when :native_hi_pacific
-          race_ethnicity_alternative(scope, :NativeHIPacific)
-        when :native_hi_pacific_hispanic_latinaeo
-          race_ethnicity_alternative(scope, :NativeHIPacific, true)
-        when :white
-          race_ethnicity_alternative(scope, :White)
-        when :white_hispanic_latinaeo
-          race_ethnicity_alternative(scope, :White, true)
-        when :multi_racial
-          race_ethnicity_alternative(scope, :MultiRacial)
-        when :multi_racial_hispanic_latinaeo
-          race_ethnicity_alternative(scope, :MultiRacial, true)
-        when :race_none
-          race_ethnicity_alternative(scope, :RaceNone)
-        end
+        hispanic_latinaeo = combination.to_s.ends_with?('_hispanic_latinaeo')
+        race_column = HudUtility2024.race_column_name(combination.to_s.gsub('_hispanic_latinaeo', ''))
+        alternative = race_ethnicity_alternative(scope, race_column, hispanic_latinaeo)
         race_ethnicity_scope = add_alternative(race_ethnicity_scope, alternative)
       end
 
@@ -205,21 +174,14 @@ module Filter::FilterScopes
     end
 
     private def race_ethnicity_alternative(scope, key, hispanic_latinaeo = false)
-      columns = {
-        AmIndAKNative: 0,
-        Asian: 0,
-        BlackAfAmerican: 0,
-        NativeHIPacific: 0,
-        White: 0,
-        HispanicLatinaeo: 0,
-        MidEastNAfrican: 0,
-      }
+      columns = (HudUtility2024.race_fields - [:RaceNone]).map { |k| [k, 0] }.to_h
 
-      if key == :MultiRacial
+      key = key.to_sym
+      if key.in?([:MultiRacial, :multi_racial])
         query = multi_racial_clients(include_hispanic_latinaeo: false)
         query = query.where(c_t[:HispanicLatinaeo].eq(hispanic_latinaeo ? 1 : 0))
         return scope.merge(query)
-      elsif key == :RaceNone
+      elsif key.in?([:RaceNone, :race_none])
         return scope.where(c_t[:RaceNone].in([8, 9, 99]))
       else
         columns[key] = 1
