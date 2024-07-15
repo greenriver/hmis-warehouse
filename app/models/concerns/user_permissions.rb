@@ -218,11 +218,11 @@ module UserPermissions
     end
 
     def can_manage_forms_for_role(role)
-      can_manage_forms? && (Hmis::Form::Definition::NON_ADMIN_FORM_ROLES.include?(role) || can_administrate_config?)
+      can_manage_forms? && (Hmis::Form::Definition::NON_ADMIN_FORM_ROLES.include?(role.to_s) || can_administrate_config?)
     end
 
     def can_configure_data_collection_for_role(role)
-      can_configure_data_collection? && (Hmis::Form::Definition::NON_ADMIN_FORM_ROLES.include?(role) || can_administrate_config?)
+      can_configure_data_collection? && (Hmis::Form::Definition::NON_ADMIN_FORM_ROLES.include?(role.to_s) || can_administrate_config?)
     end
 
     # Allow all methods above to respond with or without a ?
