@@ -130,9 +130,13 @@ module Types
       when 'PROJECTS_RECEIVING_REFERRALS'
         projects_receiving_referrals
       when 'FORM_TYPES'
+        # Used in the dropdown of form roles when creating/editing a form. We need a permission check here because
+        # not all users can access all form types:
         form_types = if user.can_administrate_config?
+          # Super-admins should be able to select any form type when creating a form
           Hmis::Form::Definition.form_role_enum_map.members
         else
+          # Other users should only see the limited list roles that we have designated for general editing, like service and custom assessment
           Hmis::Form::Definition.non_admin_form_role_enum_map.members
         end
 
