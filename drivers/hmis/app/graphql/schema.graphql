@@ -6278,18 +6278,6 @@ enum NoYesReasonsForMissingData {
   YES
 }
 
-enum NonAdminFormRole {
-  """
-  Custom assessment
-  """
-  CUSTOM_ASSESSMENT
-
-  """
-  Service
-  """
-  SERVICE
-}
-
 """
 HUD NotEmployedReason (R6.B)
 """
@@ -6529,6 +6517,11 @@ enum PickListType {
   External form types for the project.
   """
   EXTERNAL_FORM_TYPES_FOR_PROJECT
+
+  """
+  Form Types
+  """
+  FORM_TYPES
   GEOCODE
 
   """
@@ -8801,7 +8794,6 @@ type Query {
   inventory(id: ID!): Inventory
   mergeAuditHistory(filters: MergeAuditEventFilterOptions, limit: Int, offset: Int): MergeAuditEventsPaginated!
   mergeCandidates(limit: Int, offset: Int): ClientMergeCandidatesPaginated!
-  nonAdminFormRole: NonAdminFormRole!
 
   """
   Organization lookup

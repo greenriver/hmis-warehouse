@@ -7,7 +7,7 @@
       "mapping": {
         "field_name": "role"
       },
-      "pick_list_reference": "NonAdminFormRole",
+      "pick_list_reference": "FORM_TYPES",
       "required": true,
       "component": "DROPDOWN"
     },

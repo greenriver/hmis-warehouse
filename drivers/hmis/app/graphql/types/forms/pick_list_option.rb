@@ -129,6 +129,14 @@ module Types
         client_audit_event_record_type_picklist
       when 'PROJECTS_RECEIVING_REFERRALS'
         projects_receiving_referrals
+      when 'FORM_TYPES'
+        form_types = if user.can_administrate_config?
+          Hmis::Form::Definition.form_role_enum_map.members
+        else
+          Hmis::Form::Definition.non_admin_form_role_enum_map.members
+        end
+
+        form_types.map { |ft| { code: ft[:value], label: ft[:desc] } }
       end
     end
 

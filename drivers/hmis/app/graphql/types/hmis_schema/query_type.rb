@@ -443,11 +443,6 @@ module Types
       Hmis::Form::Instance.find_by(id: id)
     end
 
-    field :non_admin_form_role, Forms::Enums::NonAdminFormRole, null: false
-    def non_admin_form_role
-      'SERVICE'
-    end
-
     field :project_configs, Types::HmisSchema::ProjectConfig.page_type, null: false
     def project_configs
       raise 'not allowed' unless current_user.can_configure_data_collection?
