@@ -11,9 +11,6 @@ module Mutations
     field :form_definition, Types::Forms::FormDefinition, null: true
 
     def resolve(input:)
-      # todo @Martha - put this permission check after the check for input.role coming from release-124.
-      access_denied! unless current_user.can_manage_forms_for_role?(input.role)
-
       errors = HmisErrors::Errors.new
       errors.add(:role, :required) if input.role.blank?
       errors.add(:title, :required) if input.title.blank?
@@ -21,6 +18,10 @@ module Mutations
       non_unique_identifier = Hmis::Form::Definition.with_role(input.role).where(identifier: input.identifier).exists?
       errors.add(:identifier, :invalid, message: 'is not unique. Please choose another identifier.') if non_unique_identifier
       return { errors: errors } if errors.any?
+
+      # Check permission after validation; otherwise the error message may be confusing to a user who does have
+      # permission, but filled out the form wrong and didn't provide input.role
+      access_denied! unless current_user.can_manage_forms_for_role?(input.role)
 
       attrs = input.to_attributes
       attrs[:definition] = attrs[:definition] || { item: initial_form_definition_items(attrs[:role]) }
