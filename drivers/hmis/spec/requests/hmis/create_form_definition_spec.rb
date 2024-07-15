@@ -52,7 +52,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       definition: '',
       role: 'CLIENT',
       title: 'Client',
-      identifier: 'client',
+      identifier: 'a-new-client',
     }
     expect_access_denied post_graphql(input: input) { mutation }
   end
