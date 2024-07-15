@@ -59,6 +59,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
       entry_date = today - 2.days
       expect do
         submit_enrollment_form(entry_date: entry_date)
+        assert_no_selector "[role='dialog']" # wait for dialog to close
       end.to change(c1.enrollments, :count).by(1)
       assert_text(c1.brief_name)
 
@@ -68,6 +69,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
       household = c1.households.where(earliest_entry: entry_date).first!
       expect do
         submit_enrollment_form(entry_date: entry_date, relationship_to_hoh: 'Other relative')
+        assert_no_selector "[role='dialog']" # wait for dialog to close
       end.to change(household.enrollments.where(personal_id: c2.personal_id), :count).by(1)
       # should see both clients
       assert_text(c1.brief_name)
@@ -95,28 +97,22 @@ RSpec.feature 'Enrollment/household management', type: :system do
       end
 
       it 'can change relationship to HoH' do
-        assert_text(c2.brief_name)
-        assert_text(c1.brief_name)
+        assert_text(c2.brief_name) # non-HoH
+        assert_text(c1.brief_name) # HoH
 
-        # choose second row. These radio selects need better a11y
-        # find(:xpath, "//table/tbody/tr[2]/td/*[normalize-space()='HoH']").click
-        within(:xpath, '//table/tbody/tr[2]') do
-          with_hidden { choose('HoH') }
-        end
+        # These radio selects need better a11y
+        find("[aria-label='HoH status for #{c2.brief_name}']", visible: false).click
         assert_text("Head of Household will change from #{c1.brief_name} to #{c2.brief_name}")
         expect do
           click_button('Confirm')
-          within(:xpath, '//table/tbody/tr[2]') do
-            with_hidden { expect(page).to have_checked_field('HoH') }
-          end
+          expect(find("[aria-label='HoH status for #{c1.brief_name}']", visible: false)).not_to be_checked
+          expect(find("[aria-label='HoH status for #{c2.brief_name}']", visible: false)).to be_checked
         end.to change(c2.enrollments.where(relationship_to_hoh: 1), :count).by(1)
       end
 
-      it 'can change remove a non-HoH member' do
+      it 'can remove a non-HoH member' do
         expect do
-          within(:xpath, '//table/tbody/tr[2]') do
-            click_button('Remove') # no confirmation here
-          end
+          click_button "aria-label='Remove #{c2.brief_name}'" # no confirmation here, since enrollment is WIP
           assert_no_text(c2.brief_name)
         end.to change(c2.enrollments, :count).by(-1)
       end
@@ -144,6 +140,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
         search_for_client(c1)
         click_button('Enroll Client')
         submit_enrollment_form(entry_date: entry_date)
+        assert_no_selector "[role='dialog']" # wait for dialog to close
 
         # now we have to go back and find the enrollment again to see prev members
         click_link 'Enrollments', match: :first
@@ -177,6 +174,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
       entry_date = today - 2.days
       expect do
         submit_enrollment_form(entry_date: entry_date, coc_code: pc1.coc_code)
+        assert_no_selector "[role='dialog']" # wait for dialog to close
       end.to change(c1.enrollments, :count).by(1)
       assert_text(c1.brief_name)
     end
