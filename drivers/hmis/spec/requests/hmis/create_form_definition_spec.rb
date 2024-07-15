@@ -58,6 +58,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should fail if no role is provided' do
+    # todo @Martha - this fails, but will fix after merging release-124
     input = {
       definition: '',
       title: 'Client',

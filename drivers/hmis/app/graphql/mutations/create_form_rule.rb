@@ -6,18 +6,14 @@
 
 module Mutations
   class CreateFormRule < BaseMutation
-    include ConfigToolPermissionHelper
-
     argument :definition_id, ID, required: true
     argument :input, Types::Admin::FormRuleInput, required: true
 
     field :form_rule, Types::Admin::FormRule, null: false
 
     def resolve(definition_id:, input:)
-      access_denied! unless current_user.can_configure_data_collection?
-
-      definition = Hmis::Form::Definition.find(definition_id)
-      ensure_form_role_permission(definition.role)
+      definition = Hmis::Form::Definition.exclude_definition_from_select.find(definition_id)
+      access_denied! unless current_user.can_configure_data_collection_for_role?(definition.role)
 
       instance = Hmis::Form::Instance.new(definition_identifier: definition.identifier)
       instance.assign_attributes(input.to_attributes)

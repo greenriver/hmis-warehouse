@@ -218,7 +218,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   }.freeze
   NON_QUESTION_ITEM_TYPES = ['DISPLAY', 'GROUP'].freeze
 
-  # NON_ADMIN_FORM_ROLES are editable by everyone with can_manage_forms permission
+  # Forms that are editable by users with can_manage_forms permission, and viewable/configurable (e.g. form rules)
+  # by users with can_configure_data_collection (without needing the 'super-admin' permission can_administrate_config)
   NON_ADMIN_FORM_ROLES = [
     'SERVICE',
     'CUSTOM_ASSESSMENT',
@@ -234,8 +235,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   use_enum_with_same_key :data_collection_feature_role_enum_map, DATA_COLLECTION_FEATURE_ROLES
   # Form roles that are static
   use_enum_with_same_key :static_form_role_enum_map, STATIC_FORM_ROLES
-
-  # Forms that are editable by users with can_manage_forms permission.
+  # Form roles that are non-admin; see comment above on NON_ADMIN_FORM_ROLES
   use_enum_with_same_key :non_admin_form_role_enum_map, NON_ADMIN_FORM_ROLES
 
   scope :exclude_definition_from_select, -> {

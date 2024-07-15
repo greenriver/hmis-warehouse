@@ -6,21 +6,17 @@
 
 module Mutations
   class UpdateFormRule < BaseMutation
-    include ConfigToolPermissionHelper
-
     argument :id, ID, required: true
     argument :input, Types::Admin::FormRuleInput, required: true
 
     field :form_rule, Types::Admin::FormRule, null: false
 
     def resolve(id:, input:)
-      access_denied! unless current_user.can_configure_data_collection?
-
       instance = Hmis::Form::Instance.find_by(id: id)
       raise 'not found' unless instance
       raise 'cannot modify system rule' if instance.system
 
-      ensure_form_role_permission(instance.definition.role)
+      access_denied! unless current_user.can_configure_data_collection_for_role?(instance.definition.role)
 
       instance.assign_attributes(input.to_attributes)
 

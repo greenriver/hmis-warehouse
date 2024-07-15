@@ -6,19 +6,15 @@
 
 module Mutations
   class DeleteFormDefinition < CleanBaseMutation
-    include ConfigToolPermissionHelper
-
     argument :id, ID, required: true
 
     field :form_definition, Types::Forms::FormDefinition, null: true
 
     def resolve(id:)
-      access_denied! unless current_user.can_manage_forms?
-
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
 
-      ensure_form_role_permission(definition.role)
+      access_denied! unless current_user.can_manage_forms_for_role?(definition.role)
 
       raise 'can only delete draft forms' unless definition.draft?
 

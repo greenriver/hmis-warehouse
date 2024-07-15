@@ -21,7 +21,6 @@ module Types
     include Types::HmisSchema::HasReferralPostings
     include Types::Admin::HasFormRules
     include ::Hmis::Concerns::HmisArelHelper
-    include ConfigToolPermissionHelper
 
     projects_field :projects
 
@@ -390,10 +389,8 @@ module Types
       # NOTE: this query is only used for form management. It probably should
       # not be used for the application, because there is no project context passed
       # to the definition.
-      access_denied! unless current_user.can_configure_data_collection?
-
       definition = Hmis::Form::Definition.find(id)
-      ensure_form_role_permission(definition.role)
+      access_denied! unless current_user.can_configure_data_collection_for_role?(definition.role)
 
       definition
     end
@@ -411,12 +408,10 @@ module Types
       argument :identifier, String, required: true
     end
     def form_identifier(identifier:)
-      access_denied! unless current_user.can_configure_data_collection?
-
       definition = Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier).first
       raise 'not found' unless definition
 
-      ensure_form_role_permission(definition.role)
+      access_denied! unless current_user.can_configure_data_collection_for_role?(definition.role)
 
       definition
     end
@@ -447,10 +442,10 @@ module Types
       argument :id, ID, required: true
     end
     def form_rule(id:)
-      raise 'not allowed' unless current_user.can_configure_data_collection?
-
       instance = Hmis::Form::Instance.find_by(id: id)
-      ensure_form_role_permission(instance.definition.role)
+      raise 'not found' unless instance
+
+      access_denied! unless current_user.can_configure_data_collection_for_role?(instance.definition.role)
 
       instance
     end
