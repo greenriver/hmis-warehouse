@@ -13,6 +13,8 @@ module GrdaWarehouse::Tasks
       setup_notifier('IdentifyDuplicates')
       @run_post_processing = run_post_processing
       super()
+      build_source_lookups
+      build_destinatinon_lookups
     end
 
     def run!
@@ -53,7 +55,7 @@ module GrdaWarehouse::Tasks
           if match_id.present?
             matched += 1
             matched_ids << match_id
-            destination_client = basic_client_matcher.get_client_by_id(match_id)
+            destination_client = @dest_client_lookup.get_client(match_id)
 
             # Set SSN & DOB if we have it in the incoming client, but not in the destination
             should_save = false
@@ -182,9 +184,9 @@ module GrdaWarehouse::Tasks
         splits = splits_by_from[dest_id]&.flatten || [] # Don't re-merge anybody that was split off from this candidate
         splits += splits_by_into[dest_id]&.flatten || [] # Don't merge with anybody that this candidate was split off from
 
-        matches_name = (basic_client_matcher.check_name(first_name: first_name, last_name: last_name) - [dest_id])
-        matches_ssn = (basic_client_matcher.check_social(ssn:ssn) - [dest_id])
-        matches_dob = (basic_client_matcher.check_birthday(dob: dob) - [dest_id])
+        matches_name = (@source_name_lookup.get_ids(first_name: first_name, last_name: last_name) - [dest_id])
+        matches_ssn = (@source_ssn_lookup.get_ids(ssn) - [dest_id])
+        matches_dob = (@source_dob_lookup.get_ids(dob) - [dest_id])
         all_matching_dest_ids = (matches_name + matches_ssn + matches_dob) - splits
         # to_merge_by_dest_id = Set.new
         # seen = Set.new
@@ -202,21 +204,6 @@ module GrdaWarehouse::Tasks
         to_merge += to_merge_by_dest_id.keys.map { |source_id| [dest_id, source_id].sort } if to_merge_by_dest_id.any?
       end
       return to_merge
-    end
-
-    def source_clients_grouped_by_name
-      @source_clients_grouped_by_name ||= all_source_clients.group_by { |first_name, last_name, _, _, _| [first_name.downcase, last_name.downcase] }.
-        transform_values { |values| values.map(&:last) }
-    end
-
-    def source_clients_grouped_by_ssn
-      @source_clients_grouped_by_ssn ||= all_source_clients.group_by { |_, _, ssn, _, _| ssn }.
-        transform_values { |values| values.map(&:last) }
-    end
-
-    def source_clients_grouped_by_dob
-      @source_clients_grouped_by_dob ||= all_source_clients.group_by { |_, _, _, dob, _| dob }.
-        transform_values { |values| values.map(&:last) }
     end
 
     def all_source_clients
@@ -254,10 +241,6 @@ module GrdaWarehouse::Tasks
       )
     end
 
-    private def basic_client_matcher
-      @basic_client_matcher ||= GrdaWarehouse::ClientBasicMatcher.new
-    end
-
     # fetch a list of existing clients from the DND Warehouse DataSource (current destinations)
     private def client_destinations
       GrdaWarehouse::Hud::Client.destination
@@ -268,9 +251,9 @@ module GrdaWarehouse::Tasks
     #   2. birthdate matches
     #   3. perfect name matches
     private def check_for_obvious_match(client)
-      ssn_matches = basic_client_matcher.check_social(ssn: client.SSN)
-      birthdate_matches = basic_client_matcher.check_birthday(dob: client.DOB)
-      name_matches = basic_client_matcher.check_name(first_name: client.first_name, last_name: client.last_name)
+      ssn_matches = @dest_ssn_lookup.get_ids(client.SSN)
+      birthdate_matches = @dest_dob_lookup.get_ids(client.DOB)
+      name_matches = @dest_name_lookup.get_ids(first_name: client.first_name, last_name: client.last_name)
 
       all_matches = ssn_matches + birthdate_matches + name_matches
       if Rails.env.development?
@@ -292,6 +275,23 @@ module GrdaWarehouse::Tasks
       return [] if personal_id.to_i.to_s == personal_id.to_s
 
       client_destinations.where(PersonalID: personal_id).pluck(:id)
+    end
+
+    private def build_destinatinon_lookups
+      builder = GrdaWarehouse::ClientMatcherLookups.new
+      @dest_name_lookup = builder.register(:proper_name)
+      @dest_ssn_lookup = builder.register(:ssn)
+      @dest_dob_lookup = builder.register(:dob)
+      @dest_client_lookup = builder.register(:client_stub)
+      builder.perform(client_destinations)
+    end
+
+    private def build_source_lookups
+      builder = GrdaWarehouse::ClientMatcherLookups.new
+      @source_name_lookup = builder.register(:proper_name)
+      @source_ssn_lookup = builder.register(:ssn)
+      @source_dob_lookup = builder.register(:dob)
+      builder.perform(all_source_clients)
     end
   end
 end
