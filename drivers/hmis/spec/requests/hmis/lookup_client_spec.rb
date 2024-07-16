@@ -46,6 +46,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             id
             name
           }
+          createdBy {
+            id
+            name
+          }
           addresses {
             line1
           }
@@ -120,9 +124,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
+  describe 'without version history' do
+    it 'should have nil users' do
+      _response, result = post_graphql(id: c1.id) { query }
+      expect(response.status).to eq 200
+      expect(result.dig('data', 'client', 'createdBy', 'id')).to be_nil
+      expect(result.dig('data', 'client', 'user', 'id')).to be_nil
+    end
+  end
+
   context 'with version history' do
+    let(:c1) do
+      PaperTrail.request(whodunnit: user.id) { super() }
+    end
     let(:user2) do
-      create(:user).related_hmis_user(ds1)
+      create(:user, first_name: 'someone', last_name: 'else').related_hmis_user(ds1)
     end
 
     before(:each) do
@@ -131,9 +147,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       PaperTrail.request(whodunnit: user2.id) { c1.update!(first_name: 'test2') }
     end
 
-    it 'should return the most recent user' do
+    it 'should return the last users to create and update' do
       _response, result = post_graphql(id: c1.id) { query }
       expect(response.status).to eq 200
+      expect(result.dig('data', 'client', 'createdBy', 'id')).to eq user.id.to_s
+      expect(result.dig('data', 'client', 'createdBy', 'name')).to eq [user.first_name, user.last_name].join(' ')
       expect(result.dig('data', 'client', 'user', 'id')).to eq user2.id.to_s
       expect(result.dig('data', 'client', 'user', 'name')).to eq [user2.first_name, user2.last_name].join(' ')
     end
