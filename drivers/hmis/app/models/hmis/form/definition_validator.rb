@@ -214,9 +214,9 @@ class Hmis::Form::DefinitionValidator
   def check_cdeds(document, role)
     owner_type = Hmis::Form::Definition.owner_class_for_role(role)&.sti_name
     # For Service forms, the CDED owner is allowed to be Service OR CustomService
-    owner_type = ['Hmis::Hud::Service', 'Hmis::Hud::CustomService'] if role == 'SERVICE'
+    owner_type = ['Hmis::Hud::Service', 'Hmis::Hud::CustomService'] if role.to_s == 'SERVICE'
     # For New Client Enrollment forms, the CDED owner is allowed to be Client OR Enrollment
-    owner_type = ['Hmis::Hud::Client', 'Hmis::Hud::Enrollment'] if role == 'NEW_CLIENT_ENROLLMENT'
+    owner_type = ['Hmis::Hud::Client', 'Hmis::Hud::Enrollment'] if role.to_s == 'NEW_CLIENT_ENROLLMENT'
     return unless owner_type
 
     cdeds_by_owner_key = Hmis::Hud::CustomDataElementDefinition.where(owner_type: owner_type).index_by { |cded| [cded.owner_type, cded.key] }
