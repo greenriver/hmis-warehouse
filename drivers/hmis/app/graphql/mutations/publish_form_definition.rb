@@ -11,10 +11,11 @@ module Mutations
     field :form_identifier, Types::Forms::FormIdentifier, null: false
 
     def resolve(id:)
-      access_denied! unless current_user.can_manage_forms?
-
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
+
+      access_denied! unless current_user.can_manage_forms_for_role?(definition.role)
+
       raise 'only draft forms can be published' unless definition.draft?
 
       previous_published_form = Hmis::Form::Definition.find_by(
@@ -60,8 +61,12 @@ module Mutations
 
       # Common attributes for any CDEDs we will initialize
       data_source = GrdaWarehouse::DataSource.hmis.first
+      # FIXME: some definitions support multiple owner_types (SERVICE, NEW_CLIENT_ENROLLMENT).
+      # This needs to be updated to account for that. The mapping.record_type field should specify the record type.
+      owner_type = definition.owner_class.sti_name
+
       cded_attributes = {
-        owner_type: definition.owner_class.sti_name,
+        owner_type: owner_type,
         form_definition_identifier: definition.identifier,
         data_source: data_source,
         user_id: Hmis::Hud::User.from_user(current_user).user_id,
@@ -79,7 +84,7 @@ module Mutations
         next if item.mapping&.custom_field_key
 
         cded_key = "#{cded_key_prefix}_#{item.link_id}"
-        cded_key = ensure_unique_key(definition.owner_class.sti_name, cded_key)
+        cded_key = ensure_unique_key(owner_type, cded_key)
 
         cdeds << Hmis::Hud::CustomDataElementDefinition.new(
           key: cded_key,
