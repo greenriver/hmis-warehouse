@@ -4,30 +4,59 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Reads objects from the inbox S3 bucket, processes each CSV file, matches clients to warehouse db, and then writes the results to the outbox S3 bucket.
 class IdentifyExternalClientsJob < BaseJob
-  def perform(inbox_s3_slug:, outbox_s3_slug:)
-    inbox_s3 = s3_for_slug(inbox_s3_slug)
-    outbox_s3 = s3_for_slug(inbox_s3_slug)
-    return unless inbox_s3 && outbox_s3
-
+  # @param inbox_s3 [AwsS3] read from this bucket
+  # @param outbox_s3 [AwsS3] write into this bucket
+  def perform(inbox_s3:, outbox_s3:)
     with_lock do
+      build_lookups
       inbox_s3.list_objects.each do |input_object|
         input_key = input_object.key
-        raw_input = inpbox_s3.get_as_io(key: input_key)&.read
-        output_csv = process_input(raw_input)
+        content_type = inbox_s3.get_file_type(key: input_key)
+        if content_type.present? && content_type != 'text/csv'
+          log("invalid content type #{content_type}", object_key: input_key)
+          next
+        end
+
+        data_string = inbox_s3.get_as_io(key: input_key)
+
+        input_rows = data_string ? parse_csv_string(data_string, key: input_key) : nil
+        if input_rows.blank?
+          log('invalid CSV content', object_key: input_key)
+          next
+        end
+
+        output_rows = input_rows.map { |row| process_row(row) }.compact
+        if output_rows.empty?
+          log('skipping empty output', object_key: input_key)
+          next
+        end
+
+        log("matched #{output_rows.size} of #{input_rows.size} rows", type: :info, object_key: input_key)
+
+        # s3.store raises on failure
+        outbox_s3.store(
+          content: format_as_csv(output_rows.compact),
+          name: upload_name(input_key),
+          content_type: 'text/csv; charset=utf-8',
+        )
 
         # if we successfully processed the input object, delete it from the bucket
-        output_object = upload_to_s3(outbox_s3, output_csv, key: "#{input_key}_results.csv")
-        if output_object
-          s3.delete(key: input_key)
-        else
-          log('failed to upload output', object_key: input_key)
-        end
+        inbox_s3.delete(key: input_key)
       end
     end
   end
 
   protected
+
+  def upload_name(filename)
+    dir = File.dirname(filename)
+    dir = dir == '.' ? nil : dir
+    base = File.basename(filename, '.*')
+    ext = File.extname(filename)
+    [dir, "#{base}-results#{ext}"].compact.join('/')
+  end
 
   private def build_lookups
     @name_lookup = GrdaWarehouse::ClientMatcherLookups::ProperNameLookup.new
@@ -42,63 +71,47 @@ class IdentifyExternalClientsJob < BaseJob
     end
   end
 
-  def upload_to_s3(s3, _output_csv, key: "#{input_key}_results.csv")
-    return if Rails.env.development? || Rails.env.test?
-
-    # use bucket/object rather than AwsS3 methods here since we want to publish the form without access restrictions.
-    # Maybe this could be DRYed up in the future if we find more use cases
-    object = s3.bucket.object(publication.object_key)
-    object.put(body: publication.content, content_type: 'text/csv; charset=utf-8')
-  end
-
-  def s3_for_slug(slug)
-    GrdaWarehouse::RemoteCredentials::S3.for_active_slug(slug)&.s3
-  end
-
-  def process_input(raw_input)
-    input_rows = raw_input ? process_csv_string(raw_input) : nil
-    if input_rows.empty?
-      log('invalid CSV content', object_key: object.key)
-      return
-    end
-
-    output_rows = input_rows.map do |_row|
-      process_rows(input_row)
-    end
-    format_as_csv(output_rows)
-  end
-
   def with_lock(&block)
     GrdaWarehouseBase.with_advisory_lock('identify_external_clients', timeout_seconds: 0, &block)
   end
 
-  def process_csv_string(csv_string)
-    csv = CSV.parse(csv_string, headers: true)
-    headers = csv.headers.map { |header| header.strip.downcase }
+  def parse_csv_string(csv_string, key:)
+    results = []
+    begin
+      csv = CSV.parse(csv_string, headers: true)
+      headers = csv.headers.map { |header| header.strip.downcase }
 
-    csv.map do |row|
-      # normalize headers
-      headers.each_with_object({}) do |header, hash|
-        hash[header] = row[header]
+      results = csv.map do |row|
+        # normalize headers
+        headers.each_with_object({}) do |header, hash|
+          hash[header] = row[header]
+        end
       end
+    rescue CSV::MalformedCSVError => e
+      log("CSV parsing error: #{e.message}", object_key: key)
+    rescue ArgumentError => e
+      log("Argument error (possibly encoding related): #{e.message}", object_key: key)
+    rescue StandardError => e
+      log("An unexpected error occurred: #{e.message}", object_key: key)
     end
+    results
   end
 
   def process_row(row)
-    client_lookup.check_for_obvious_match(client_id)
-    first_name, last_name, ssn4, dob = row.values_at(:first_name, :last_name, :ssn4, :dob, :ghocid)
+    first_name, last_name, ssn4, dob, ghocid = row.values_at('first_name', 'last_name', 'ssn4', 'dob', 'ghocid')
+    return if ghocid.blank?
 
     matches = [
-      @ssn_lookup.get_ids(ssn4: ssn4),
+      @ssn_lookup.get_ids(ssn: ssn4),
       @dob_lookup.get_ids(dob: dob),
       @name_lookup.get_ids(first_name: first_name, last_name: last_name),
     ]
 
     match = get_first_match(matches)
-    [ghocid, match]
+    match ? { 'GHOCID' => ghocid, 'Client ID' => match } : nil
   end
 
-  # If no integer is found in at least two arrays
+  # integer is found in at least two match sets
   def get_first_match(matches, required_number: 2)
     count = Hash.new(0)
     matches.each do |match|
@@ -111,12 +124,16 @@ class IdentifyExternalClientsJob < BaseJob
     nil
   end
 
-  def client_lookup
-    @client_lookup.GrdaWarehouse::ClientBasicMatcher
-  end
+  def format_as_csv(rows)
+    return if rows.empty?
 
-  def upload_to_s3(_output_csv)
-    raise
+    headers = rows.first.keys
+    CSV.generate do |csv|
+      csv << headers
+      rows.each do |row|
+        csv << headers.map { |header| row[header] }
+      end
+    end
   end
 
   def log(message, object_key:, type: :error)

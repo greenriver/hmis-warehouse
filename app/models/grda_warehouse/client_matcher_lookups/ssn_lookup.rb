@@ -22,7 +22,7 @@ module GrdaWarehouse::ClientMatcherLookups
 
     def add(client)
       key = client.ssn
-      key = key[-4..-1] if key && format == :last_four
+      key = key[-4..] if key && format == :last_four
       return unless key
 
       @values[key] ||= []
