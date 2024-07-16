@@ -1,4 +1,3 @@
-
 ###
 # Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
@@ -30,7 +29,20 @@ class IdentifyExternalClientsJob < BaseJob
 
   protected
 
-  def upload_to_s3(s3, output_csv, key: "#{input_key}_results.csv")
+  private def build_lookups
+    @name_lookup = GrdaWarehouse::ClientMatcherLookups::ProperNameLookup.new
+    @ssn_lookup = GrdaWarehouse::ClientMatcherLookups::SSNLookup.new(format: :last_four)
+    @dob_lookup = GrdaWarehouse::ClientMatcherLookups::DOBLookup.new
+
+    clients = GrdaWarehouse::Hud::Client.all
+    GrdaWarehouse::ClientMatcherLookups::ClientStub.from_scope(clients) do |client|
+      @name_lookup.add(client)
+      @ssn_lookup.add(client)
+      @dob_lookup.add(client)
+    end
+  end
+
+  def upload_to_s3(s3, _output_csv, key: "#{input_key}_results.csv")
     return if Rails.env.development? || Rails.env.test?
 
     # use bucket/object rather than AwsS3 methods here since we want to publish the form without access restrictions.
@@ -50,11 +62,10 @@ class IdentifyExternalClientsJob < BaseJob
       return
     end
 
-    output_rows = input_rows.map do |row|
+    output_rows = input_rows.map do |_row|
       process_rows(input_row)
     end
-    output_csv = format_as_csv(output_rows)
-
+    format_as_csv(output_rows)
   end
 
   def with_lock(&block)
@@ -75,12 +86,12 @@ class IdentifyExternalClientsJob < BaseJob
 
   def process_row(row)
     client_lookup.check_for_obvious_match(client_id)
-    first_name, last_name, ssn4, dob = row.values_at(:first_name, :last_name :ssn4, :dob, :ghocid)
+    first_name, last_name, ssn4, dob = row.values_at(:first_name, :last_name, :ssn4, :dob, :ghocid)
 
     matches = [
-      basic_client_matcher.check_social(ssn: ssn4),
-      basic_client_matcher.check_birthday(dob: dob),
-      basic_client_matcher.check_name(first_name: first_name, last_name: last_name),
+      @ssn_lookup.get_ids(ssn4: ssn4),
+      @dob_lookup.get_ids(dob: dob),
+      @name_lookup.get_ids(first_name: first_name, last_name: last_name),
     ]
 
     match = get_first_match(matches)
@@ -104,11 +115,11 @@ class IdentifyExternalClientsJob < BaseJob
     @client_lookup.GrdaWarehouse::ClientBasicMatcher
   end
 
-  def upload_to_s3(output_csv)
+  def upload_to_s3(_output_csv)
     raise
   end
 
   def log(message, object_key:, type: :error)
-    Rails.logger.send(type, "#{class.name} s3:#{object_key}: #{message}")
+    Rails.logger.send(type, "#{self.class.name} s3:#{object_key}: #{message}")
   end
 end

@@ -14,7 +14,7 @@ module GrdaWarehouse::Tasks
       @run_post_processing = run_post_processing
       super()
       build_source_lookups
-      build_destinatinon_lookups
+      build_destination_lookups
     end
 
     def run!
@@ -55,7 +55,7 @@ module GrdaWarehouse::Tasks
           if match_id.present?
             matched += 1
             matched_ids << match_id
-            destination_client = @dest_client_lookup.get_client(match_id)
+            destination_client = @dest_client_lookup.get(match_id)
 
             # Set SSN & DOB if we have it in the incoming client, but not in the destination
             should_save = false
@@ -180,14 +180,15 @@ module GrdaWarehouse::Tasks
       splits_by_from = all_splits.group_by(&:first)
       splits_by_into = all_splits.group_by(&:last)
 
-      all_source_clients.each do |first_name, last_name, ssn, dob, dest_id|
-        splits = splits_by_from[dest_id]&.flatten || [] # Don't re-merge anybody that was split off from this candidate
-        splits += splits_by_into[dest_id]&.flatten || [] # Don't merge with anybody that this candidate was split off from
+      @source_client_lookup.values.each_value do |target|
+        splits = splits_by_from[target.id]&.flatten || [] # Don't re-merge anybody that was split off from this candidate
+        splits += splits_by_into[target.id]&.flatten || [] # Don't merge with anybody that this candidate was split off from
 
-        matches_name = (@source_name_lookup.get_ids(first_name: first_name, last_name: last_name) - [dest_id])
-        matches_ssn = (@source_ssn_lookup.get_ids(ssn) - [dest_id])
-        matches_dob = (@source_dob_lookup.get_ids(dob) - [dest_id])
+        matches_name = @source_name_lookup.get_ids(first_name: target.first_name, last_name: target.last_name)
+        matches_ssn = @source_ssn_lookup.get_ids(ssn: target.ssn)
+        matches_dob = @source_dob_lookup.get_ids(dob: target.dob)
         all_matching_dest_ids = (matches_name + matches_ssn + matches_dob) - splits
+        all_matching_dest_ids.filter { |id| id != target.id }
         # to_merge_by_dest_id = Set.new
         # seen = Set.new
         # all_matching_dest_ids.each do |num|
@@ -201,19 +202,9 @@ module GrdaWarehouse::Tasks
           map { |num| [num, all_matching_dest_ids.count(num)] }.to_h.
           select { |_, v| v > 1 }
 
-        to_merge += to_merge_by_dest_id.keys.map { |source_id| [dest_id, source_id].sort } if to_merge_by_dest_id.any?
+        to_merge += to_merge_by_dest_id.keys.map { |source_id| [target.id, source_id].sort } if to_merge_by_dest_id.any?
       end
       return to_merge
-    end
-
-    def all_source_clients
-      @all_source_clients ||= GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).source.
-        pluck(:FirstName, :LastName, :SSN, :DOB, Arel.sql(wc_t[:destination_id].to_sql)).
-        map do |first_name, last_name, ssn, dob, id|
-          clean_first_name = first_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
-          clean_last_name = last_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
-          [clean_first_name, clean_last_name, ssn, dob, id]
-        end
     end
 
     # Find any destination clients that have been marked deleted where the source client is not deleted
@@ -251,8 +242,8 @@ module GrdaWarehouse::Tasks
     #   2. birthdate matches
     #   3. perfect name matches
     private def check_for_obvious_match(client)
-      ssn_matches = @dest_ssn_lookup.get_ids(client.SSN)
-      birthdate_matches = @dest_dob_lookup.get_ids(client.DOB)
+      ssn_matches = @dest_ssn_lookup.get_ids(ssn: client.SSN)
+      birthdate_matches = @dest_dob_lookup.get_ids(dob: client.DOB)
       name_matches = @dest_name_lookup.get_ids(first_name: client.first_name, last_name: client.last_name)
 
       all_matches = ssn_matches + birthdate_matches + name_matches
@@ -277,21 +268,53 @@ module GrdaWarehouse::Tasks
       client_destinations.where(PersonalID: personal_id).pluck(:id)
     end
 
-    private def build_destinatinon_lookups
-      builder = GrdaWarehouse::ClientMatcherLookups.new
-      @dest_name_lookup = builder.register(:proper_name)
-      @dest_ssn_lookup = builder.register(:ssn)
-      @dest_dob_lookup = builder.register(:dob)
-      @dest_client_lookup = builder.register(:client_stub)
-      builder.perform(client_destinations)
+    private def build_destination_lookups
+      @dest_name_lookup = GrdaWarehouse::ClientMatcherLookups::ProperNameLookup.new
+      @dest_ssn_lookup = GrdaWarehouse::ClientMatcherLookups::SSNLookup.new
+      @dest_dob_lookup = GrdaWarehouse::ClientMatcherLookups::DOBLookup.new
+      @dest_client_lookup = ClientLookup.new
+
+      GrdaWarehouse::ClientMatcherLookups::ClientStub.from_scope(client_destinations) do |client|
+        @dest_name_lookup.add(client)
+        @dest_ssn_lookup.add(client)
+        @dest_dob_lookup.add(client)
+        @dest_client_lookup.add(client)
+      end
     end
 
     private def build_source_lookups
-      builder = GrdaWarehouse::ClientMatcherLookups.new
-      @source_name_lookup = builder.register(:proper_name)
-      @source_ssn_lookup = builder.register(:ssn)
-      @source_dob_lookup = builder.register(:dob)
-      builder.perform(all_source_clients)
+      @source_name_lookup = GrdaWarehouse::ClientMatcherLookups::ProperNameLookup.new
+      @source_ssn_lookup = GrdaWarehouse::ClientMatcherLookups::SSNLookup.new
+      @source_dob_lookup = GrdaWarehouse::ClientMatcherLookups::DOBLookup.new
+      @source_client_lookup = ClientLookup.new
+
+      clients = GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).source
+      id_field = Arel.sql(wc_t[:destination_id].to_sql)
+      GrdaWarehouse::ClientMatcherLookups::ClientStub.from_scope(clients, id_field: id_field) do |client|
+        @source_name_lookup.add(client)
+        @source_ssn_lookup.add(client)
+        @source_dob_lookup.add(client)
+        @source_client_lookup.add(client)
+      end
+    end
+
+    class ClientLookup
+      attr_accessor :values
+      def initialize
+        self.values = {}
+      end
+
+      def add(client)
+        values[client.id] = client
+      end
+
+      def get(id)
+        found = @values[id]
+        return unless found
+
+        # reshape for upsert, exclude names
+        { SSN: found.ssn, DOB: found.dob, id: found.id }
+      end
     end
   end
 end
