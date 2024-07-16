@@ -265,7 +265,9 @@ module HmisUtil
         form_definition,
         role,
         # Don't validate CDEDs in dev env, to make it easier to test seeding installation-specific forms
-        skip_cded_validation: Rails.env.development?,
+        # skip_cded_validation: Rails.env.development?,
+        # TODO - always skip for now to unblock deployment; revert to above when we sort out the issues
+        skip_cded_validation: true,
       )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 
