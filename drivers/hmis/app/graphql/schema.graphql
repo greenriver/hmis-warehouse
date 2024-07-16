@@ -6517,6 +6517,11 @@ enum PickListType {
   External form types for the project.
   """
   EXTERNAL_FORM_TYPES_FOR_PROJECT
+
+  """
+  Form Types
+  """
+  FORM_TYPES
   GEOCODE
 
   """
@@ -8859,6 +8864,7 @@ type Query {
 
 type QueryAccess {
   canAdministerHmis: Boolean!
+  canAdministrateConfig: Boolean!
   canAuditClients: Boolean!
   canAuditEnrollments: Boolean!
   canAuditUsers: Boolean!
