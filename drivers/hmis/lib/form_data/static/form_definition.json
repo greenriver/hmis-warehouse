@@ -7,9 +7,9 @@
       "mapping": {
         "field_name": "role"
       },
-      "_comment": "FIXME this dropdown should be restrictied to form types that can be created/managed through the UI. Maybe start small initially.",
-      "pick_list_reference": "FormRole",
-      "required": true
+      "pick_list_reference": "FORM_TYPES",
+      "required": true,
+      "component": "DROPDOWN"
     },
     {
       "type": "STRING",

@@ -43,5 +43,6 @@ module Types
     value 'ENROLLMENT_AUDIT_EVENT_RECORD_TYPES'
     value 'CLIENT_AUDIT_EVENT_RECORD_TYPES'
     value 'USERS', 'User Accounts'
+    value 'FORM_TYPES', 'Form Types'
   end
 end

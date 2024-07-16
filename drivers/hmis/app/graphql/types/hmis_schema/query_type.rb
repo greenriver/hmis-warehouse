@@ -389,7 +389,7 @@ module Types
       # NOTE: this query is only used for form management. It probably should
       # not be used for the application, because there is no project context passed
       # to the definition.
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
       Hmis::Form::Definition.find(id)
     end
@@ -407,7 +407,7 @@ module Types
       argument :identifier, String, required: true
     end
     def form_identifier(identifier:)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
       Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier).first
     end
@@ -416,25 +416,29 @@ module Types
       filters_argument Forms::FormIdentifier
     end
     def form_identifiers(filters: nil)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
       scope = Hmis::Form::Definition.non_static.valid.latest_versions
+      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
       scope = scope.apply_filters(filters) if filters
       scope.order(updated_at: :desc)
     end
 
     form_rules_field
     def form_rules(**args)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
-      resolve_form_rules(Hmis::Form::Instance.all, **args)
+      scope = Hmis::Form::Instance.all
+      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
+
+      resolve_form_rules(scope, **args)
     end
 
     field :form_rule, Types::Admin::FormRule, null: true do
       argument :id, ID, required: true
     end
     def form_rule(id:)
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
       Hmis::Form::Instance.find_by(id: id)
     end
