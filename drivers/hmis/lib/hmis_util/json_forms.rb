@@ -261,7 +261,12 @@ module HmisUtil
       record.set_hud_requirements
 
       # Validate definition
-      errors = record.validate_json_form
+      errors = Hmis::Form::DefinitionValidator.perform(
+        form_definition,
+        role,
+        # Don't validate CDEDs in dev env, to make it easier to test seeding installation-specific forms
+        skip_cded_validation: Rails.env.development?,
+      )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 
       record.save!

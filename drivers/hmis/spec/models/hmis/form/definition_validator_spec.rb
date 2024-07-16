@@ -238,7 +238,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
     let!(:cded) { create :hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment' }
 
     context 'with a valid mapping' do
-      it 'should pass' do
+      before(:each) do
         definition.definition = {
           'item': [
             {
@@ -249,11 +249,23 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
             },
           ],
         }
+        definition.save!
+      end
 
+      it 'should pass' do
+        expect(definition.validate_json_form).to be_empty
+      end
+      it 'should pass with CDED tied to HUD Service' do
+        definition.role = 'SERVICE'
+        create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Service', key: cded.key)
+        expect(definition.validate_json_form).to be_empty
+      end
+      it 'should pass with CDED tied to Custom Service' do
+        definition.role = 'SERVICE'
+        create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomService', key: cded.key)
         expect(definition.validate_json_form).to be_empty
       end
     end
-
     it 'should fail when the CDED key does not exist' do
       definition.definition = {
         'item': [
@@ -268,7 +280,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
 
       expect do
         definition.validate_json_form
-      end.to raise_error('Item a_string has a custom_field_key mapping, but the CDED does not exist in the database. key = invalid_key, owner_type = Hmis::Hud::CustomAssessment')
+      end.to raise_error(/CDED does not exist/)
     end
 
     it 'should fail when the CDED key exists but is associated with the wrong owner type for this form role' do
@@ -286,7 +298,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
 
       expect do
         definition.validate_json_form
-      end.to raise_error("Item a_string has a custom_field_key mapping, but the CDED does not exist in the database. key = #{cded.key}, owner_type = Hmis::Hud::HmisService")
+      end.to raise_error(/CDED does not exist/)
     end
 
     it 'should fail if the CDED field type is incompatible with the item type' do
