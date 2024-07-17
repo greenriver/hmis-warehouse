@@ -59,7 +59,7 @@ class IdentifyExternalClientsJob < BaseJob
   end
 
   private def build_lookups
-    @name_lookup = GrdaWarehouse::ClientMatcherLookups::ProperNameLookup.new
+    @name_lookup = GrdaWarehouse::ClientMatcherLookups::ProperNameLookup.new(transliterate: true)
     @ssn_lookup = GrdaWarehouse::ClientMatcherLookups::SSNLookup.new(format: :last_four)
     @dob_lookup = GrdaWarehouse::ClientMatcherLookups::DOBLookup.new
 
@@ -111,7 +111,7 @@ class IdentifyExternalClientsJob < BaseJob
     match ? { 'GHOCID' => ghocid, 'Client ID' => match } : nil
   end
 
-  # integer is found in at least two match sets
+  # id is found in at least two match sets
   def get_first_match(matches, required_number: 2)
     count = Hash.new(0)
     matches.each do |match|

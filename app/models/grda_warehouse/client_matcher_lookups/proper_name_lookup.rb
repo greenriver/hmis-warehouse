@@ -6,6 +6,12 @@
 
 module GrdaWarehouse::ClientMatcherLookups
   class ProperNameLookup < BaseLookup
+    attr_accessor :transliterate
+    def initialize(transliterate: false)
+      self.transliterate = transliterate
+      super()
+    end
+
     def get_ids(first_name:, last_name:)
       first_name = normalize(first_name)
       last_name = normalize(last_name)
@@ -29,6 +35,7 @@ module GrdaWarehouse::ClientMatcherLookups
 
     def normalize(str)
       str ? str.downcase.strip.gsub(/[^a-z0-9]/i, '').presence : nil
+      transliterate ? I18n.transliterate(str) : str
     end
   end
 end

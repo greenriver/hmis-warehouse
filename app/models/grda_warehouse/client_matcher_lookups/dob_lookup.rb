@@ -8,6 +8,7 @@ module GrdaWarehouse::ClientMatcherLookups
   class DOBLookup < BaseLookup
     def get_ids(dob:)
       return [] unless dob
+      dob = dob.to_date
 
       @values[dob]&.uniq || []
     end
