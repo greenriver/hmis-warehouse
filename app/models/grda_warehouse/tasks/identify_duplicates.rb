@@ -188,7 +188,7 @@ module GrdaWarehouse::Tasks
         matches_ssn = @source_ssn_lookup.get_ids(ssn: target.ssn)
         matches_dob = @source_dob_lookup.get_ids(dob: target.dob)
         all_matching_dest_ids = (matches_name + matches_ssn + matches_dob) - splits
-        all_matching_dest_ids.filter { |id| id != target.id }
+        all_matching_dest_ids.filter! { |id| id != target.id }
         # to_merge_by_dest_id = Set.new
         # seen = Set.new
         # all_matching_dest_ids.each do |num|
