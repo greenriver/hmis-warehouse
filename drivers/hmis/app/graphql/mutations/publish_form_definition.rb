@@ -8,7 +8,7 @@ module Mutations
   class PublishFormDefinition < CleanBaseMutation
     argument :id, ID, required: true
 
-    field :form_identifier, Types::Forms::FormIdentifier, null: false
+    field :form_identifier, Types::Forms::FormIdentifier, null: true
 
     def resolve(id:)
       definition = Hmis::Form::Definition.find_by(id: id)
