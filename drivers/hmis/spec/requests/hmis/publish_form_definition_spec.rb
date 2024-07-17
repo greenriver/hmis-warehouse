@@ -149,4 +149,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     # Check that FormDefinition was updated with the new CustomDataElementDefinition key
     expect(fd1.reload.link_id_item_hash['linkid_num'].mapping&.custom_field_key).to eq(new_cded.key)
   end
+
+  it 'should generate CustomDataElementDefinitions with CustomService owner for SERVICE role' do
+    fd1.update!(role: 'SERVICE')
+    string_cded.update!(owner_type: 'Hmis::Hud::CustomService') # update existing CDED to have the right type
+
+    expect do
+      response, result = post_graphql(id: fd1.id) { mutation }
+      expect(response.status).to eq(200), result.inspect
+    end.to change(fd1.custom_data_element_definitions, :count).by(1)
+
+    # Check that the new CustomDataElementDefinition was created correctly
+    new_cded = Hmis::Hud::CustomDataElementDefinition.find_by(label: 'Ranking')
+    expect(new_cded).to be_present
+    expect(new_cded.attributes).to include('owner_type' => 'Hmis::Hud::CustomService')
+
+    # Check that FormDefinition was updated with the new CustomDataElementDefinition key
+    expect(fd1.reload.link_id_item_hash['linkid_num'].mapping&.custom_field_key).to eq(new_cded.key)
+  end
 end
