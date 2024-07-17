@@ -61,9 +61,13 @@ module Mutations
 
       # Common attributes for any CDEDs we will initialize
       data_source = GrdaWarehouse::DataSource.hmis.first
-      # FIXME: some definitions support multiple owner_types (SERVICE, NEW_CLIENT_ENROLLMENT).
-      # This needs to be updated to account for that. The mapping.record_type field should specify the record type.
+
+      # FIXME(#6362): For some Definition types (SERVICE, NEW_CLIENT_ENROLLMENT), the desired owner_type may be ambiguous.
+      # This code does not handle that ambiguity.
+      # Instead, it assumes that the CDED "owner_type" should be the same as the definition's "owner_class".
+      # For SERVICE forms, it assumes that the CDED owner should be `CustomService` (as opposed to HUD `Service`).
       owner_type = definition.owner_class.sti_name
+      owner_type = 'Hmis::Hud::CustomService' if owner_type == 'Hmis::Hud::HmisService'
 
       cded_attributes = {
         owner_type: owner_type,
