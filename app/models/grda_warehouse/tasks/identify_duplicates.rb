@@ -55,7 +55,7 @@ module GrdaWarehouse::Tasks
           if match_id.present?
             matched += 1
             matched_ids << match_id
-            destination_client = @dest_client_lookup.get(match_id)
+            destination_client = get_destination_client_by_id(match_id)
 
             # Set SSN & DOB if we have it in the incoming client, but not in the destination
             should_save = false
@@ -180,7 +180,7 @@ module GrdaWarehouse::Tasks
       splits_by_from = all_splits.group_by(&:first)
       splits_by_into = all_splits.group_by(&:last)
 
-      @source_client_lookup.values.each_value do |target|
+      @source_clients.each do |target|
         splits = splits_by_from[target.id]&.flatten || [] # Don't re-merge anybody that was split off from this candidate
         splits += splits_by_into[target.id]&.flatten || [] # Don't merge with anybody that this candidate was split off from
 
@@ -272,13 +272,13 @@ module GrdaWarehouse::Tasks
       @dest_name_lookup = GrdaWarehouse::ClientMatcherLookups::ProperNameLookup.new
       @dest_ssn_lookup = GrdaWarehouse::ClientMatcherLookups::SSNLookup.new
       @dest_dob_lookup = GrdaWarehouse::ClientMatcherLookups::DOBLookup.new
-      @dest_client_lookup = ClientLookup.new
+      @dest_clients_by_id = {}
 
       GrdaWarehouse::ClientMatcherLookups::ClientStub.from_scope(client_destinations) do |client|
         @dest_name_lookup.add(client)
         @dest_ssn_lookup.add(client)
         @dest_dob_lookup.add(client)
-        @dest_client_lookup.add(client)
+        @dest_clients_by_id[client.id] = client
       end
     end
 
@@ -286,7 +286,7 @@ module GrdaWarehouse::Tasks
       @source_name_lookup = GrdaWarehouse::ClientMatcherLookups::ProperNameLookup.new
       @source_ssn_lookup = GrdaWarehouse::ClientMatcherLookups::SSNLookup.new
       @source_dob_lookup = GrdaWarehouse::ClientMatcherLookups::DOBLookup.new
-      @source_client_lookup = ClientLookup.new
+      @source_clients = []
 
       clients = GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).source
       id_field = Arel.sql(wc_t[:destination_id].to_sql)
@@ -294,27 +294,14 @@ module GrdaWarehouse::Tasks
         @source_name_lookup.add(client)
         @source_ssn_lookup.add(client)
         @source_dob_lookup.add(client)
-        @source_client_lookup.add(client)
+        @source_clients.push(client)
       end
     end
 
-    class ClientLookup
-      attr_accessor :values
-      def initialize
-        self.values = {}
-      end
-
-      def add(client)
-        values[client.id] = client
-      end
-
-      def get(id)
-        found = @values[id]
-        return unless found
-
-        # reshape for upsert, exclude names
-        { SSN: found.ssn, DOB: found.dob, id: found.id }
-      end
+    # reshape for upsert, exclude names
+    private def get_destination_client_by_id(id)
+      found = @dest_clients_by_id[id]
+      { SSN: found.ssn, DOB: found.dob, id: found.id }
     end
   end
 end
