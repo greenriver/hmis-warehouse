@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-20.04
     container: ruby:3.1.6-alpine3.20
     env:
-      CAPYBARA_APP_HOST: "http://${{ env.HOSTNAME }}:5173"
       CLIENT: test
       DATABASE_ADAPTER: postgresql
       DATABASE_APP_DB_TEST: warehouse_app_test
