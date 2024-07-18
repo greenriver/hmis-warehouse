@@ -25,7 +25,7 @@ module BuiltForZeroReport
 
     cohort_keys = {
       veterans: :veteran_cohort,
-      chronic_veterans: :chronic_cohort,
+      chronic_veterans: :chronic_adult_only_cohort,
       chronic: :chronic_adult_only_cohort,
       adults: :adult_only_cohort,
       youth: :youth_cohort,
