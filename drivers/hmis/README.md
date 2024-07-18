@@ -26,7 +26,6 @@ Some things need to be done manually for a new deployment:
 # E2E Testing
 
 We have a few end-to-end tests located in [drivers/hmis/spec/system/hmis](drivers/hmis/spec/system/hmis).
-We are working on adding more coverage and running them in CI!
 Below are instructions for getting set up to run and write E2E tests locally.
 
 ## Background and Testing Philosophy
@@ -39,12 +38,12 @@ Since E2E tests are expensive -- slow to run and fiddly to write/update -- we sh
 
 1. Start the docker container for headless Chrome. This is in our `docker-compose.yml` file, but it's part of the `test` profile, so it isn't started when running `docker-compose up` normally.
     ```bash
-    docker-compose up chrome
+    docker compose up chrome
     ```
 
 2. In another tab, open a Docker shell.
     ```bash
-    docker-compose run --rm shell  # `dcr shell` if you have that alias
+    docker compose run --rm shell  # `dcr shell` if you have that alias
     ```
 
 3. In the Docker shell, run the `run_hmis_system_tests` script, indicating the branch of the `hmis-frontend` repo you want to test. This script will start the vite "preview" process
@@ -77,14 +76,14 @@ This script is designed to be run as part of a CI pipeline. It clones the fronte
 
 1. Bring up chrome.
     ```bash
-    docker-compose up chrome
+    docker compose up chrome
     ```
 
 2. In another tab, open a Docker shell.
     ```bash
-    docker-compose run --rm shell  # `dcr shell` if you have that alias
+    docker compose run --rm shell  # `dcr shell` if you have that alias
     ```
-   
+
 3. In the Docker shell, run the `run_hmis_system_tests` script, indicating the branch of the `hmis-frontend` repo you want to test:
     ```bash
     BRANCH_NAME=branch-name-to-test ./bin/run_hmis_system_tests.sh
