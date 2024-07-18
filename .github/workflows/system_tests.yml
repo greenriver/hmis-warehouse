@@ -148,6 +148,6 @@ jobs:
           LOG_LEVEL: INFO
           RUN_SYSTEM_TESTS: true
           BRANCH_NAME: release-125
-          CHROME_URL: http://localhost:3333
+          CHROME_URL: http://chrome:3333
         run:
           bash ./bin/run_hmis_system_tests.sh
