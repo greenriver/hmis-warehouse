@@ -52,6 +52,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :clients, through: :enrollments
   has_many :hmis_services, through: :enrollments
   has_many :current_living_situations, through: :enrollments
+  has_many :project_staff_assignment_configs, class_name: 'Hmis::ProjectStaffAssignmentConfig'
 
   has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
 

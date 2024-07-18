@@ -14,6 +14,7 @@ module Types
     field :short_id, ID, null: false
     field :household_clients, [HmisSchema::HouseholdClient], null: false
     field :household_size, Int, null: false
+    field :staff_assignments, [HmisSchema::StaffAssignment], null: true
 
     assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForHousehold' }
 
@@ -45,6 +46,10 @@ module Types
 
     def assessments(**args)
       resolve_assessments(**args)
+    end
+
+    def staff_assignments
+      load_ar_association(object, :staff_assignments)
     end
   end
 end
