@@ -140,7 +140,7 @@ jobs:
 
           bundle exec rake assets:precompile
 
-      - name: Run Front-end
+      - name: Build front end and run tests
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -148,5 +148,6 @@ jobs:
           LOG_LEVEL: INFO
           RUN_SYSTEM_TESTS: true
           BRANCH_NAME: release-125
+          CHROME_URL: http://localhost:3333
         run:
           bash ./bin/run_hmis_system_tests.sh
