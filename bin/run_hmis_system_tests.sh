@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Checkout, build, and run the HMIS frontend locally
@@ -46,6 +45,9 @@ if [ "$dev_mode" = false ] ; then
   trap cleanup EXIT
 fi
 
+# Save the current working directory
+ORIGINAL_CWD=$(pwd)
+
 set -x
 # Change to the temporary directory
 cd "$TEMP_DIR"
@@ -80,7 +82,9 @@ SERVER_PID=$!
 
 sleep 5
 
-cd /app
+# Change back to the original working directory
+cd "$ORIGINAL_CWD"
+
 # skip okta if it's set in our local env
 unset HMIS_OKTA_CLIENT_ID
 unset OKTA_DOMAIN
