@@ -1,0 +1,153 @@
+name: System Tests
+on: [pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-system-tests
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-20.04
+    container: ruby:3.1.6-alpine3.20
+    env:
+      CAPYBARA_APP_HOST: "http://${{ env.HOSTNAME }}:5173"
+      CLIENT: test
+      DATABASE_ADAPTER: postgresql
+      DATABASE_APP_DB_TEST: warehouse_app_test
+      DATABASE_DB_TEST: warehouse_test
+      DATABASE_APP_DB: warehouse_app_test
+      DATABASE_HOST: postgres
+      DATABASE_PASS: postgres
+      DATABASE_USER: postgres
+      DATABASE_WAREHOUSE_DB_TEST: warehouse_test
+      DEFAULT_FROM: greenriver.testing@mailinator.com
+      ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
+      FQDN: openpath.host
+      HEALTH_DATABASE_ADAPTER: postgresql
+      HEALTH_DATABASE_DB_TEST: health_test
+      HEALTH_DATABASE_HOST: postgres
+      HEALTH_DATABASE_PASS: postgres
+      HEALTH_DATABASE_USER: postgres
+      HEALTH_FROM: greenriver.testing@mailinator.com
+      HOSTNAME: openpath.host
+      MINIO_ENDPOINT: http://minio:9000
+      USE_MINIO_ENDPOINT: true
+      PORT: 80
+      RAILS_ENV: test
+      REPORTING_DATABASE_ADAPTER: postgresql
+      REPORTING_DATABASE_DB_TEST: reporting_test
+      REPORTING_DATABASE_HOST: postgres
+      REPORTING_DATABASE_PASS: postgres
+      REPORTING_DATABASE_USER: postgres
+      WAREHOUSE_DATABASE_ADAPTER: postgis
+      WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+      WAREHOUSE_DATABASE_HOST: postgres
+      WAREHOUSE_DATABASE_PASS: postgres
+      WAREHOUSE_DATABASE_USER: postgres
+      WAREHOUSE_DATABASE_DB: warehouse_test
+      HEALTH_DATABASE_DB: health_test
+      REPORTING_DATABASE_DB: reporting_test
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+
+    services:
+      postgres:
+        image: postgis/postgis:12-3.1-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASS: postgres
+          POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+
+      minio:
+        image: ghcr.io/greenriver/openpath-minio:1.0
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          MINIO_ACCESS_KEY: local_access_key
+          MINIO_SECRET_KEY: local_secret_key
+        ports:
+          - '9000:9000'
+
+      chrome:
+        image: browserless/chrome:1-chrome-stable
+        ports:
+          - 3333:3333
+        env:
+          PORT: 3333
+          CONNECTION_TIMEOUT: 600000
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up dependencies
+        run: |
+          apk add --no-cache \
+            nodejs yarn npm \
+            tzdata \
+            git \
+            bash \
+            freetds-dev \
+            icu icu-dev \
+            curl libcurl curl-dev \
+            imagemagick \
+            libmagic file-dev file \
+            build-base libxml2-dev libxslt-dev postgresql-dev \
+            libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
+            chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+            lftp postgresql tmux postgis geos geos-dev \
+            shared-mime-info gpg gpg-agent
+
+          echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
+          chmod 600 ~/.pgpass
+
+          yarn install --frozen-lockfile
+          gem install bundler --version=2.5.7
+
+      - name: Install gems
+        run: |
+          bundle config set --local without 'production staging development'
+          bundle install --jobs 4 --retry 3
+
+      - name: 'App setup'
+        run: |
+          cp config/secrets.yml.sample config/secrets.yml
+          mkdir app/assets/stylesheets/theme/styles
+          touch app/assets/stylesheets/theme/styles/_variables.scss
+          cp .rspec.sample .rspec
+          cp config/database.yml.ci config/database.yml
+
+      - name: Prepare test db
+        run: |
+          pg_isready -h postgres -U postgres
+          bin/db_prep
+
+          echo "Setting up .pgpass"
+          echo "postgres:*:*:postgres:postgres" > ~/.pgpass
+          chmod 600 ~/.pgpass
+
+          bundle exec rake assets:precompile
+
+      - name: Run Front-end
+        env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          MAX_FAILURES: 60
+          LOG_LEVEL: INFO
+          RUN_SYSTEM_TESTS: true
+          BRANCH_NAME: release-125
+        run:
+          bash ./bin/run_hmis_system_tests.sh
