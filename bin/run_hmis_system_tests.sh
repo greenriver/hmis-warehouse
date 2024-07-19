@@ -17,6 +17,7 @@ if [ -z "$REPO_URL" ]; then
   REPO_URL="https://github.com/greenriver/hmis-frontend.git"
 fi
 
+echo "Branch list: $BRANCH_NAME"
 if [ -z "$BRANCH_NAME" ]; then
   echo "Error: The BRANCH_NAME environment variable is not set."
   exit 1
