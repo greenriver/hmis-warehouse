@@ -272,7 +272,6 @@ jobs:
       - name: Archive artifacts
         if: matrix.test_group == 'system_tests'
         uses: actions/upload-artifact@v3
-        if: always()
         with:
           name: artifacts
           path: |
