@@ -84,7 +84,22 @@ jobs:
         PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
         PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
       run: |
-        apk add --no-cache $(cat .github/dependencies.txt)
+        apk add --no-cache \
+          nodejs yarn \
+          tzdata \
+          git \
+          bash \
+          freetds-dev \
+          icu icu-dev \
+          curl libcurl curl-dev \
+          imagemagick \
+          libmagic file-dev file \
+          build-base libxml2-dev libxslt-dev postgresql-dev \
+          libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
+          chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+          lftp postgresql tmux postgis geos geos-dev \
+          shared-mime-info \
+          python3 aws-cli
 
         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
         chmod 600 ~/.pgpass
@@ -96,7 +111,7 @@ jobs:
     # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
     # isn't supported on Alpine.
     - name: cache gems
-      uses: actions/cache@v4
+      uses: actions/cache@v3
       id: gemcache
       with:
         path: |

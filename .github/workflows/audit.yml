@@ -18,10 +18,24 @@ jobs:
     container: ruby:3.1.6-alpine3.20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
       - name: Set up dependencies
         run: |
-          apk add --no-cache $(cat .github/dependencies.txt)
+          apk add --no-cache \
+            nodejs yarn npm \
+            tzdata \
+            git \
+            bash \
+            freetds-dev \
+            icu icu-dev \
+            curl libcurl curl-dev \
+            imagemagick \
+            libmagic file-dev file \
+            build-base libxml2-dev libxslt-dev postgresql-dev \
+            libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
+            chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+            lftp postgresql postgis geos geos-dev \
+            shared-mime-info
           gem install bundler --version=2.5.7
 
       - name: Install gems

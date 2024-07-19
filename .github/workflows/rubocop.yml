@@ -17,19 +17,33 @@ jobs:
     # Docker Hub image that the job executes in
     container: ruby:3.1.6-alpine3.20
     steps:
+      - id: dependencies
+        name: Set up dependencies
+        run: |
+          apk add --no-cache \
+            nodejs yarn npm \
+            tzdata \
+            git \
+            bash \
+            freetds-dev \
+            icu icu-dev \
+            curl libcurl curl-dev \
+            imagemagick \
+            libmagic file-dev file \
+            build-base libxml2-dev libxslt-dev postgresql-dev \
+            libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
+            chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+            lftp postgresql postgis geos geos-dev \
+            shared-mime-info
+          gem install bundler --version=2.5.7
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - id: dependencies
-        name: Set up dependencies
-        run: |
-          apk add --no-cache $(cat .github/dependencies.txt)
-          gem install bundler --version=2.5.7
-
       # ensure changed-files can read repo files from git
       - name: Configure Git Safe Directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+        run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
 
       - id: gems
         name: Install gems
