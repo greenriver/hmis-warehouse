@@ -1,0 +1,183 @@
+name: Build, Scan, and Lint Images
+
+# If scanning fails, you can delete the cache and have it rebuild from scratch.
+# This _may_ fix the vulnerability.  Delete the caches prefixed with Linux-buildx-warehouse,
+# specifically, if you look in the failed action at the Cache Docker Layers step, the
+# layer listed under `Cache restored from key:`
+# https://github.com/greenriver/hmis-warehouse/actions/caches?query=linux-buildx
+on:
+  push:
+    branches:
+      - "*"
+      - "**/*"
+
+# Branch pushes will cancel any running jobs to the same branch
+concurrency:
+  group: ${{ github.ref }}-newbuild
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+
+    runs-on: ubuntu-22.04
+
+    # Supports OIDC to fetch/push images from/to ECR
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Open Path Warehouse
+            context: .
+            dockerfile: docker/app/Dockerfile
+            keep_latest_tag: true
+            cache_key: warehouse
+            hadolint_ignore: DL3018
+            trivy_skip_files: /app/config/key.pem,/app/docker/sftp/ssh_host_ed25519_key,/app/docker/sftp/ssh_host_rsa_key,/app/spec/fixtures/files/health/secret.key
+            build-args: |
+              BUILD_TAG=3.1.6-alpine3.20
+              BUNDLER_VERSION=2.4.13
+            tags: |
+              type=sha,prefix=githash-
+              # type=ref,event=branch,prefix=branch-
+              # type=raw,event=branch,value=branch-{{branch}}-{{sha}}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dockerfile Lint
+        shell: bash
+        run: |
+          docker run -v $(pwd)/.hadolint.yaml:/.hadolint.yaml \
+            -e HADOLINT_IGNORE=${{ matrix.hadolint_ignore }} \
+            -v $(pwd)/${{ matrix.dockerfile }}:/Dockerfile \
+            --rm -i ghcr.io/hadolint/hadolint:latest-alpine hadolint /Dockerfile
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ matrix.cache_key }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-${{ matrix.cache_key }}
+
+      - name: Configure AWS credentials for OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_NAME }}
+          role-session-name: warehouse-github-action
+
+      - name: Prepare
+        id: prep
+        env:
+          SHA: ${{ github.sha }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          echo $SHA > docker/app/REVISION
+          echo $BRANCH > docker/app/GIT_BRANCH
+          bin/error_if_githash_is_latest.rb base
+
+      # https://github.com/docker/metadata-action#images-input
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.ECR_REPOSITORY_URI }}
+          flavor: ${{ matrix.flavor }}
+          tags: ${{ matrix.tags }}
+
+      - name: Log in to ECR
+        shell: bash
+        env:
+          image: ${{ secrets.ECR_REPOSITORY_URI }}
+        run: |
+          username=AWS
+          export AWS_REGION=us-east-1
+          echo Getting password for ECR
+          password=$(aws ecr get-login-password --region us-east-1)
+          host=$(echo $image | cut -d/ -f1)
+          echo Logging in to $host
+          echo $password | docker login $host -u $username --password-stdin
+
+      # https://github.com/docker/build-push-action
+      - name: Build image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          builder: ${{ steps.buildx.outputs.name }}
+          labels: ${{ steps.meta.outputs.labels }}
+          target: ${{ matrix.target }}
+          file: ${{ matrix.dockerfile }}
+          load: true
+          tags: ${{ secrets.ECR_REPOSITORY_URI }}
+          build-args: ${{ matrix.build-args }}
+          cache-from: type=local,src=/tmp/.buildx-cache/${{ matrix.cache_key }}
+          cache-to: type=local,dest=/tmp/.buildx-cache/${{ matrix.cache_key }},mode=max
+
+      - name: Push scanned image with tags
+        env:
+          image: ${{ secrets.ECR_REPOSITORY_URI }}
+        run: |
+          echo "${{ steps.meta.outputs.tags }}" | xargs -I TAG -n1 docker tag ${image} TAG
+
+          # docker image ls
+
+          if [[ "${{ matrix.keep_latest_tag }}" != "true" ]]
+          then
+            docker image rm ${image}:latest
+          fi
+
+          docker push --all-tags ${image}
+
+      - name: Check trivy db sha
+        id: trivy-db
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          endpoint='/orgs/aquasecurity/packages/container/trivy-db/versions'
+          headers='Accept: application/vnd.github+json'
+          jqFilter='.[] | select(.metadata.container.tags[] | contains("latest")) | .name | sub("sha256:";"")'
+          sha=$(gh api -H "${headers}" "${endpoint}" | jq --raw-output "${jqFilter}")
+          echo "Trivy DB sha256:${sha}"
+          echo "sha=${sha}" >> $GITHUB_OUTPUT
+
+      - name: Cache trivy db
+        uses: actions/cache@v4
+        with:
+          path: .trivy
+          key: ${{ runner.os }}-trivy-db-${{ steps.trivy-db.outputs.sha }}
+
+      # https://github.com/aquasecurity/trivy-action
+      - name: Run vulnerability scan
+        id: vuln_scan
+        uses: aquasecurity/trivy-action@0.14.0
+        with:
+          image-ref: ${{ secrets.ECR_REPOSITORY_URI }}
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+          cache-dir: .trivy
+          skip-files: ${{ matrix.trivy_skip_files }}
+
+      - name: Fix .trivy permissions
+        run: sudo chown -R $(stat . -c %u:%g) .trivy
+
+      # Not completely sure this remains private
+      # - name: Report
+      #   shell: bash
+      #   run: |
+      #     echo "### Tags" >> $GITHUB_STEP_SUMMARY
+      #     echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+      #     echo '' >> $GITHUB_STEP_SUMMARY
