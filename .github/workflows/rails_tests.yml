@@ -284,7 +284,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifacts-${{ matrix.test_group }}
-          name: artifacts
           path: |
             tmp/capybara/screenshots/
             var/deprecations/*.yml
