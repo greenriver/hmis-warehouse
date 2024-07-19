@@ -22,7 +22,25 @@ if [ -z "$BRANCH_NAME" ]; then
   exit 1
 fi
 
-echo "Branch name is set to: $BRANCH_NAME"
+# Function to find the first branch that exists
+find_existing_branch() {
+  IFS=':' read -r -a branches <<< "$BRANCH_NAME"
+  for branch in "${branches[@]}"; do
+    if git ls-remote --exit-code --heads "$REPO_URL" "$branch" &> /dev/null; then
+      echo "$branch"
+      return
+    fi
+  done
+  echo ""
+}
+
+branch_to_checkout=$(find_existing_branch)
+if [ -z "$branch_to_checkout" ]; then
+  echo "Error: None of the specified branches exist."
+  exit 1
+fi
+
+echo "Branch to checkout: $branch_to_checkout"
 
 # Create a temporary directory
 TEMP_DIR=$(mktemp -d)
@@ -56,7 +74,7 @@ cd "$TEMP_DIR"
 set -e
 
 # Clone the specific branch from the repository
-git clone --depth 1 --branch "$BRANCH_NAME" "$REPO_URL" .
+git clone --depth 1 --branch "$branch_to_checkout" "$REPO_URL" .
 
 CWD=$(pwd)
 yarn config set ignore-engines true
@@ -88,7 +106,7 @@ cd "$ORIGINAL_CWD"
 # skip okta if it's set in our local env
 unset HMIS_OKTA_CLIENT_ID
 unset OKTA_DOMAIN
-RUN_SYSTEM_TESTS=true RAILS_ENV=test CAPYBARA_APP_HOST="http://$HOSTNAME:5173" rspec -f d -P "drivers/hmis/spec/system/hmis/*"
+RUN_SYSTEM_TESTS=true RAILS_ENV=test CAPYBARA_APP_HOST="http://$HOSTNAME:5173" rspec "drivers/hmis/spec/system/hmis/*"
 
 TEST_EXIT_CODE=$?
 
