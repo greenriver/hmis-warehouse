@@ -147,7 +147,16 @@ jobs:
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
           RUN_SYSTEM_TESTS: true
-          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'main' }}:main"
+          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
           CHROME_URL: http://chrome:3333
         run:
           bash ./bin/run_hmis_system_tests.sh
+
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: artifacts
+          path: |
+            tmp/capybara/screenshots/
+            var/deprecations/*.yml
