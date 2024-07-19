@@ -11,7 +11,11 @@ class AddStaffAssignmentTables < ActiveRecord::Migration[7.0]
       t.timestamp :deleted_at
     end
     create_table(:hmis_staff_assignments) do |t|
-      t.references :user, null: false, foreign_key: { to_table: :User }, index: false
+      # Actually setting the foreign key to the User table caused an exception in rspec when truncating tables from
+      # app/models/grda_warehouse/utility.rb. Is it ok to not set up the fk relationship here?
+      # similar to t.references :created_by for scan cards and client alerts?
+      # t.references :user, null: false, foreign_key: { to_table: :User }, index: false
+      t.references :user, null: false, index: false
       t.references :hmis_staff_assignment_type, null: false, foreign_key: { to_table: :hmis_staff_assignment_types }, index: false
       # hmis_households is not actually a table, but a view; the source for HouseholdID is the Enrollments table,
       # which is the reason to not use t.references here.
