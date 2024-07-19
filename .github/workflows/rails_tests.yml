@@ -126,24 +126,22 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Enable cache debugging
         run: echo "ACTIONS_CACHE_DEBUG=true" >> $GITHUB_ENV
-
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: /var/cache/apk
-          key: ${{ runner.os }}-apk-${{ hashFiles('.github/dependencies.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-apk-
 
       - name: Set up dependencies
         run: |
           apk add --no-cache $(cat .github/dependencies.txt)
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
+
+      - name: cache gems
+        uses: actions/cache@v2
+        with:
+          path: /usr/local/bundle
+          key: ${{ runner.os }}-gem-bundler-${{ hashFiles('**/Gemfile.lock') }}
 
       - name: Install gems
         run: |
@@ -152,7 +150,7 @@ jobs:
           bundle install --jobs 4 --retry 3
 
       - name: Cache Node.js modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
@@ -181,17 +179,12 @@ jobs:
 
       - name: Cache precompiled assets
         id: cache-assets
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: public/assets
           key: ${{ runner.os }}-assets-${{ hashFiles('**/app/assets/**/*', '**/app/javascript/**/*', '**/config/initializers/assets.rb') }}
           restore-keys: |
             ${{ runner.os }}-assets-
-
-      - name: Log cache result
-        run: echo "Cache hit - \"${{ steps.cache-nodemodules.outputs.cache-hit }}\""
-
-
 
       - name: Precompile assets
         if: steps.cache-assets.outputs.cache-hit != 'true'

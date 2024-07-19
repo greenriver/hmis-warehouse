@@ -37,6 +37,7 @@ postgis
 postgresql
 postgresql-dev
 shared-mime-info
+tar
 tmux
 ttf-dejavu
 ttf-droid

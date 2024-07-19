@@ -18,7 +18,7 @@ jobs:
     container: ruby:3.1.6-alpine3.20
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up dependencies
         run: |
           apk add --no-cache $(cat .github/dependencies.txt)

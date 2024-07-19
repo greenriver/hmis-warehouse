@@ -17,15 +17,15 @@ jobs:
     # Docker Hub image that the job executes in
     container: ruby:3.1.6-alpine3.20
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - id: dependencies
         name: Set up dependencies
         run: |
           apk add --no-cache $(cat .github/dependencies.txt)
           gem install bundler --version=2.5.7
-
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       # ensure changed-files can read repo files from git
       - name: Configure Git Safe Directory
