@@ -21,12 +21,12 @@ jobs:
       fail-fast: false
       matrix:
         test_group:
-          # - drivers/{a,b,c,d,e,f,g}*
-          # - drivers/{h,i}*
-          # - drivers/{j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
-          # - spec
+          - drivers/{a,b,c,d,e,f,g}*
+          - drivers/{h,i}*
+          - drivers/{j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
+          - spec
           - system_tests
-          #- logging_tests
+          - logging_tests
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
 
