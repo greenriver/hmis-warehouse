@@ -96,7 +96,7 @@ jobs:
     # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
     # isn't supported on Alpine.
     - name: cache gems
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       id: gemcache
       with:
         path: |
