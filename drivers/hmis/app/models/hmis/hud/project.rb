@@ -148,6 +148,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: referral_project_ids)
   end
 
+  scope :with_staff_assignments_enabled, -> do
+    joins(:project_staff_assignment_configs)
+  end
+
   SORT_OPTIONS = [:organization_and_name, :name].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
@@ -246,6 +250,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
         instance: best_instance, # just for testing
       )
     end.compact
+  end
+
+  def staff_assignments_enabled?
+    Hmis::ProjectStaffAssignmentConfig.where(project: self).exists?
   end
 
   # Service types that are collected in this project. They are collected if they have an active form definition and instance.
