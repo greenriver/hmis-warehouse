@@ -229,8 +229,8 @@ jobs:
           flags: --recursive
 
   tests:
+    needs: setup
     steps:
-      needs: setup
       - name: Run tests
         env:
           AWS_ACCESS_KEY_ID: local_access_key
@@ -256,8 +256,8 @@ jobs:
           TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color --format p spec/models/logging_spec.rb
 
   system_tests:
+    needs: setup
     steps:
-      needs: setup
       - name: Build front end and run tests
         env:
           AWS_ACCESS_KEY_ID: local_access_key
