@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   # Label of the container job
-  tests:
+  setup:
     strategy:
       fail-fast: false
       matrix:
@@ -73,6 +73,13 @@ jobs:
           MINIO_SECRET_KEY: local_secret_key
         ports:
           - '9000:9000'
+    chrome:
+        image: browserless/chrome:1-chrome-stable
+        ports:
+          - 3333:3333
+        env:
+          PORT: 3333
+          CONNECTION_TIMEOUT: 600000
 
     env:
       CLIENT: test
@@ -221,6 +228,9 @@ jobs:
           aws_region: us-east-1
           flags: --recursive
 
+  tests:
+    steps:
+      needs: setup
       - name: Run tests
         env:
           AWS_ACCESS_KEY_ID: local_access_key
@@ -244,3 +254,31 @@ jobs:
           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
           TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color --format p spec/models/logging_spec.rb
+
+  system_tests:
+    steps:
+      needs: setup
+      - name: Build front end and run tests
+        env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          MAX_FAILURES: 60
+          LOG_LEVEL: INFO
+          RUN_SYSTEM_TESTS: true
+          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
+          CHROME_URL: http://chrome:3333
+        run:
+          bash ./bin/run_hmis_system_tests.sh
+
+  artifacts:
+    if: ${{ always() }}
+    needs: [tests, system_tests]
+    steps:
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: artifacts
+          path: |
+            tmp/capybara/screenshots/
+            var/deprecations/*.yml
