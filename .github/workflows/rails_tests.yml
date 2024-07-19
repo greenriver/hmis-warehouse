@@ -178,7 +178,7 @@ jobs:
             ${{ runner.os }}-assets-
 
       - name: Precompile assets
-        if: steps.cache-assets.outputs.cache-hit != 'true'
+        # if: steps.cache-assets.outputs.cache-hit != 'true'
         run: bundle exec rails assets:precompile
 
       # Regenerate the graphql schema and fail if it has changed
