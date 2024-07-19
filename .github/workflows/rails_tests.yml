@@ -25,7 +25,7 @@ jobs:
           - drivers/{h,i}*
           - drivers/{j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
           - spec
-          - frontend_tests
+          - system_tests
           - logging_tests
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
@@ -177,6 +177,7 @@ jobs:
 
       # Regenerate the graphql schema and fail if it has changed
       - name: 'Check HMIS GraphQL schema'
+        if: matrix.test_group == 'system_tests'
         run: |
           bundle exec rake driver:hmis:dump_graphql_schema
 
@@ -231,7 +232,7 @@ jobs:
           flags: --recursive
 
       - name: Run tests
-        if: matrix.test_group != 'frontend_tests' && matrix.test_group != 'logging_tests'
+        if: matrix.test_group != 'system_tests' && matrix.test_group != 'logging_tests'
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
