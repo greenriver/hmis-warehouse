@@ -189,7 +189,9 @@ jobs:
             ${{ runner.os }}-assets-
 
       - name: Log cache result
-        run: echo "Cache hit: ${{ steps.cache-nodemodules.outputs.cache-hit }}"
+        run: echo "Cache hit - \"${{ steps.cache-nodemodules.outputs.cache-hit }}\""
+
+
 
       - name: Precompile assets
         if: steps.cache-assets.outputs.cache-hit != 'true'
