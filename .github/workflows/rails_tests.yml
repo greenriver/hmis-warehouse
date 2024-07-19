@@ -73,7 +73,7 @@ jobs:
           MINIO_SECRET_KEY: local_secret_key
         ports:
           - '9000:9000'
-    chrome:
+      chrome:
         image: browserless/chrome:1-chrome-stable
         ports:
           - 3333:3333
