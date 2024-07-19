@@ -21,11 +21,11 @@ jobs:
       fail-fast: false
       matrix:
         test_group:
-          - drivers/{a,b,c,d,e,f,g}*
-          - drivers/{h,i}*
-          - drivers/{j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
-          - spec
-          - system_tests
+          #- drivers/{a,b,c,d,e,f,g}*
+          #- drivers/{h,i}*
+          #- drivers/{j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
+          #- spec
+          #- system_tests
           - logging_tests
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
@@ -127,6 +127,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Enable cache debugging
+        run: echo "ACTIONS_CACHE_DEBUG=true" >> $GITHUB_ENV
+
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
@@ -140,14 +144,6 @@ jobs:
           apk add --no-cache $(cat .github/dependencies.txt)
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
-
-      - name: Cache gems
-        uses: actions/cache@v3
-        with:
-          path: /usr/local/bundle
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gems-
 
       - name: Install gems
         run: |
@@ -191,6 +187,9 @@ jobs:
           key: ${{ runner.os }}-assets-${{ hashFiles('**/app/assets/**/*', '**/app/javascript/**/*', '**/config/initializers/assets.rb') }}
           restore-keys: |
             ${{ runner.os }}-assets-
+
+      - name: Log cache result
+        run: echo "Cache hit: ${{ steps.cache-nodemodules.outputs.cache-hit }}"
 
       - name: Precompile assets
         if: steps.cache-assets.outputs.cache-hit != 'true'

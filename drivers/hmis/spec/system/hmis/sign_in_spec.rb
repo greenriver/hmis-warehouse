@@ -28,9 +28,4 @@ RSpec.feature 'HMIS Sign In', type: :system do
       end
     end
   end
-
-  it 'Fails on purpose' do
-    visit '/'
-    expect(page).to have_content 'Nonsense that should fail'
-  end
 end
