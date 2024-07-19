@@ -29,7 +29,7 @@ jobs:
 
       # ensure changed-files can read repo files from git
       - name: Configure Git Safe Directory
-        run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - id: gems
         name: Install gems

@@ -76,7 +76,7 @@ jobs:
         ports:
           - '9000:9000'
       chrome:
-        image: ghcr.io/browserless/chrome:1-chrome-stable
+        image: browserless/chrome:1-chrome-stable
         ports:
           - 3333:3333
         env:
