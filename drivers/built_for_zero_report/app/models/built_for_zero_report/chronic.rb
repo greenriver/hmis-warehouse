@@ -11,7 +11,7 @@ module BuiltForZeroReport
     alias data chronic
 
     def initialize(start_date, end_date, user:)
-      @chronic = Calculator.new(:chronic_cohort, start_date, end_date, user: user)
+      @chronic = Calculator.new(:chronic_adult_only_cohort, start_date, end_date, user: user)
     end
 
     def self.sub_population_name
