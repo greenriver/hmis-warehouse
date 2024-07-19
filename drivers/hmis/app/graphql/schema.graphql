@@ -5011,7 +5011,7 @@ type Household {
   householdSize: Int!
   id: ID!
   shortId: ID!
-  staffAssignments: [StaffAssignment!]
+  staffAssignments(isCurrentlyAssigned: Boolean): [StaffAssignment!]
 }
 
 """
@@ -10979,9 +10979,11 @@ enum SexualOrientation {
 Staff Assignment
 """
 type StaffAssignment {
+  assignedAt: ISO8601Date!
   household: Household!
   id: ID!
   staffAssignmentType: String!
+  unassignedAt: ISO8601Date
   user: ApplicationUser!
 }
 
