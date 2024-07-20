@@ -133,14 +133,15 @@ jobs:
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
-    - name: cache gems
-      uses: actions/cache@v4
-      id: gemcache
-      with:
-        path: |
-          vendor/bundle
-          /usr/local/bundle/
-        key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
+      - name: cache gems
+        uses: actions/cache@v4
+        id: gemcache
+        with:
+          path: |
+            vendor/bundle
+            /usr/local/bundle/
+          key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
+
       - name: Install gems
         run: |
           gem install bundler --version=2.5.7

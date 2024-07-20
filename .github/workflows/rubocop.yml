@@ -45,6 +45,15 @@ jobs:
       - name: Configure Git Safe Directory
         run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
 
+      - name: cache gems
+        uses: actions/cache@v4
+        id: gemcache
+        with:
+          path: |
+            vendor/bundle
+            /usr/local/bundle/
+          key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
+
       - id: gems
         name: Install gems
         run: |

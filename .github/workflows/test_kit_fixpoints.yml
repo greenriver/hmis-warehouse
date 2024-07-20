@@ -113,6 +113,15 @@ jobs:
           yarn install --frozen-lockfile
           gem install bundler --version=2.5.7
 
+    - name: cache gems
+      uses: actions/cache@v4
+      id: gemcache
+      with:
+        path: |
+          vendor/bundle
+          /usr/local/bundle/
+        key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
+
       - name: Install gems
         run: |
           bundle config set --local without 'production staging development'
