@@ -26,7 +26,6 @@ jobs:
           - drivers/{j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
           - spec
           - system_tests
-          - logging_tests
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
 
@@ -134,6 +133,14 @@ jobs:
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
+    - name: cache gems
+      uses: actions/cache@v4
+      id: gemcache
+      with:
+        path: |
+          vendor/bundle
+          /usr/local/bundle/
+        key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
       - name: Install gems
         run: |
           gem install bundler --version=2.5.7
@@ -238,7 +245,7 @@ jobs:
           flags: --recursive
 
       - name: Run tests
-        if: matrix.test_group != 'system_tests' && matrix.test_group != 'logging_tests'
+        if: matrix.test_group != 'system_tests'
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -251,7 +258,7 @@ jobs:
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
 
       - name: Run logging tests
-        if: matrix.test_group == 'logging_tests'
+        if: matrix.test_group != 'system_tests'
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
