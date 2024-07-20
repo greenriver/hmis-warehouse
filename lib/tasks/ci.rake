@@ -1,10 +1,9 @@
-
 require 'json'
 
 namespace :ci do
   # rails ci:update_spec_tags[/tmp/rspec_profiles]
-  desc "Update RSpec test tags based on profiling data"
-  task :update_spec_tags, [:profile_dir] => :environment do |t, args|
+  desc 'Update RSpec test tags based on profiling data'
+  task :update_spec_tags, [:profile_dir] => :environment do |_t, args|
     profile_dir = args[:profile_dir] || 'rspec_profiles'
 
     unless Dir.exist?(profile_dir)
@@ -25,7 +24,7 @@ namespace :ci do
 
     # Initialize buckets
     buckets = []
-    current_bucket = { id: "bucket-1", total_time: 0, specs: [] }
+    current_bucket = { id: 'bucket-1', total_time: 0, specs: [] }
     bucket_index = 1
 
     # get a better distribution
@@ -55,7 +54,7 @@ namespace :ci do
     # Update the source files
     buckets.each do |bucket|
       bucket[:specs].each do |spec|
-        file_path, line_number = spec[:location].split(':')
+        file_path, = spec[:location].split(':')
 
         # Read the file content
         content = File.readlines(file_path)
