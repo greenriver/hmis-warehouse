@@ -21,11 +21,10 @@ jobs:
       fail-fast: false
       matrix:
         test_group:
-          - {id: 1, pattern: 'drivers/{a,b,c,d,e,f,g}*'}
-          - {id: 2, pattern: 'drivers/{h,i}*'}
-          - {id: 3, pattern: 'drivers/{j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*'}
-          - {id: 4, pattern: 'spec'}
-          - {id: 5, pattern: 'system_tests'}
+          - {id: 'ci_group_lg', tag: 'ci_group:lg'}
+          - {id: 'ci_group_md', tag: 'ci_group:md'}
+          - {id: 'ci_group_default', tag: '~ci_group'}
+          - {id: 'other', system_tests: true, logging_tests: true, okta_tests: true}
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
 
@@ -177,12 +176,6 @@ jobs:
       - name: Precompile assets
         run: bundle exec rails assets:precompile
 
-      # Regenerate the graphql schema and fail if it has changed
-      - name: 'Check HMIS GraphQL schema'
-        if: matrix.test_group.pattern == 'system_tests'
-        run: |
-          bundle exec rake driver:hmis:dump_graphql_schema
-
       # fetch some closed source files
       - name: 'Fetch testkit source files'
         uses: keithweaver/aws-s3-github-action@v1.0.0
@@ -233,8 +226,14 @@ jobs:
           aws_region: us-east-1
           flags: --recursive
 
+      # Regenerate the graphql schema and fail if it has changed
+      - name: 'Check HMIS GraphQL schema'
+        if: matrix.test_group.system_tests
+        run: |
+          bundle exec rake driver:hmis:dump_graphql_schema
+
       - name: Run tests
-        if: matrix.test_group.pattern != 'system_tests'
+        if: matrix.test_group.tag
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -244,11 +243,22 @@ jobs:
           LOG_LEVEL: INFO
         run: |
           mkdir -p tmp/rspec_profiles
-          bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --color -P "${{ matrix.test_group.pattern }}/**/*_spec.rb"
+          bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --color --tag "${{ matrix.test_group.tag }}"
+
+      - name: Run okta tests
+        if: matrix.test_group.okta_tests
+        env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          GROVER_NO_SANDBOX: true
+          CHROMIUM_PATH: /usr/bin/chromium-browser
+          MAX_FAILURES: 60
+          LOG_LEVEL: INFO
+        run: |
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
 
       - name: Run logging tests
-        if: matrix.test_group.pattern != 'system_tests'
+        if: matrix.test_group.logging_tests
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -261,7 +271,7 @@ jobs:
           TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color --format p spec/models/logging_spec.rb
 
       - name: Build front end and run tests
-        if: matrix.test_group.pattern == 'system_tests'
+        if: matrix.test_group.system_tests
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
