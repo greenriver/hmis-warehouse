@@ -21,9 +21,9 @@ jobs:
       fail-fast: false
       matrix:
         test_group:
-          - {id: 'ci_group_lg', tag: 'ci_group:lg'}
-          - {id: 'ci_group_md', tag: 'ci_group:md'}
-          - {id: 'ci_group_default', tag: '~ci_group'}
+          - {id: 'ci_bucket_lg', tag: 'ci_bucket:lg'}
+          - {id: 'ci_bucket_md', tag: 'ci_bucket:md'}
+          - {id: 'ci_bucket_default', tag: '~ci_bucket'}
           - {id: 'other', system_tests: true, logging_tests: true, okta_tests: true}
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
