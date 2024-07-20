@@ -60,7 +60,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install GNU tar (required by cache step and checksumming)
       run: |
@@ -89,9 +89,6 @@ jobs:
         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
         chmod 600 ~/.pgpass
 
-        yarn install --frozen-lockfile
-        gem install bundler --version=2.5.7
-
     # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
     # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
     # isn't supported on Alpine.
@@ -113,8 +110,20 @@ jobs:
     - name: Install gems
       if: always()
       run: |
+        gem install bundler --version=2.5.7
         bundle config set --local without 'production staging development'
         bundle install --jobs 10 --retry 3
+
+    - name: Cache Node.js modules
+      uses: actions/cache@v4
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-node_modules-
+
+    - name: Install Node.js modules
+      run: yarn install --frozen-lockfile
 
     - name: Generate checksum and compile
       shell: bash

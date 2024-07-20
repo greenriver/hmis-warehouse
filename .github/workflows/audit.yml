@@ -23,10 +23,10 @@ jobs:
       - name: Set up dependencies
         run: |
           apk add --no-cache $(cat .github/dependencies.txt)
-          gem install bundler --version=2.5.7
 
       - name: Install gems
         run: |
+          gem install bundler --version=2.5.7
           bundle config set --local without 'production staging development'
           bundle install --jobs 4 --retry 3
 
