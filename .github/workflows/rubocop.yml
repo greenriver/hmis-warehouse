@@ -42,7 +42,6 @@ jobs:
             vendor/bundle
             /usr/local/bundle/
           key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
-          restore-keys: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
 
       - id: gems
         name: Install gems
