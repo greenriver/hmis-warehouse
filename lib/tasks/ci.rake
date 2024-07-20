@@ -1,7 +1,11 @@
 require 'json'
 
 namespace :ci do
+  # WARNING: this modifies ruby source code to assign tags to specs.
+  # After running this, you may need to update the matrix in rails_tests.yaml for new buckets
   # rails ci:update_spec_tags[/tmp/rspec_profiles]
+  # profile information is generated from: rspec --format json --out rspec_results.json
+  # or profile information cab be downloaded from gh actions archives
   desc 'Update RSpec test tags based on profiling data'
   task :update_spec_tags, [:profile_dir] => :environment do |_t, args|
     profile_dir = args[:profile_dir] || 'rspec_profiles'
@@ -27,7 +31,7 @@ namespace :ci do
     current_bucket = { id: 'bucket-1', total_time: 0, specs: [] }
     bucket_index = 1
 
-    # get a better distribution
+    # Get a random distribution. Could iterate on this to pack bins
     rng = Random.new(3)
     profile_groups = profile_groups.shuffle(random: rng)
 
