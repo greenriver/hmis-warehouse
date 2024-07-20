@@ -1,3 +1,4 @@
+aws-cli
 bash
 build-base
 ca-certificates
@@ -36,13 +37,12 @@ nss
 postgis
 postgresql
 postgresql-dev
+python3
 shared-mime-info
 tar
 tmux
 ttf-dejavu
 ttf-droid
-ttf-freefont
-ttf-freefont
 ttf-freefont
 ttf-liberation
 tzdata
