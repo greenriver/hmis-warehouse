@@ -176,17 +176,7 @@ jobs:
           echo "postgres:*:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
-      - name: Cache precompiled assets
-        id: cache-assets
-        uses: actions/cache@v4
-        with:
-          path: public/assets
-          key: ${{ runner.os }}-assets-${{ hashFiles('**/app/assets/**/*', '**/app/javascript/**/*', '**/config/initializers/assets.rb') }}
-          restore-keys: |
-            ${{ runner.os }}-assets-
-
       - name: Precompile assets
-        # if: steps.cache-assets.outputs.cache-hit != 'true'
         run: bundle exec rails assets:precompile
 
       # Regenerate the graphql schema and fail if it has changed
