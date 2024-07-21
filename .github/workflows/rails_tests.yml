@@ -242,6 +242,7 @@ jobs:
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
         run: |
+          # capture rspec profiling information
           # mkdir -p tmp/rspec_profiles
           # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --color --tag ${{ matrix.test_group.tag }}
           bundle exec rspec --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }}
