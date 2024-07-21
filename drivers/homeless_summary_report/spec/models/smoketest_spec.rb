@@ -7,7 +7,7 @@
 require 'rails_helper'
 require_relative 'report_context'
 
-RSpec.describe HomelessSummaryReport::Report, type: :model do
+RSpec.describe HomelessSummaryReport::Report, type: :model, ci_bucket: 'bucket-1' do
   include_context 'report context'
 
   before(:all) do

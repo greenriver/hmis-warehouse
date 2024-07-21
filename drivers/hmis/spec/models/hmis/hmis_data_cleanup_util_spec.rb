@@ -7,7 +7,7 @@
 require 'rails_helper'
 require_relative '../../support/hmis_base_setup'
 
-RSpec.describe HmisDataCleanup::Util, type: :model do
+RSpec.describe HmisDataCleanup::Util, type: :model, ci_bucket: 'bucket-1' do
   let!(:hmis_ds) { create :hmis_data_source }
   let(:today) { Date.current }
   let(:yesterday) { today - 1.day }

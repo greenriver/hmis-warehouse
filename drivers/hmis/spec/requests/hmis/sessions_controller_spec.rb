@@ -8,7 +8,7 @@ require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
-RSpec.describe Hmis::SessionsController, type: :request do
+RSpec.describe Hmis::SessionsController, type: :request, ci_bucket: 'bucket-1' do
   let(:user) { create :user }
   let(:user_2fa) { create :user_2fa }
   let(:email) { ActionMailer::Base.deliveries.last }

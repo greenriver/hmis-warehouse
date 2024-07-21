@@ -7,7 +7,7 @@
 require 'rails_helper'
 require_relative 'shared'
 
-RSpec.describe HmisCsvImporter::Cleanup::ExpireLoadersJob, type: :model do
+RSpec.describe HmisCsvImporter::Cleanup::ExpireLoadersJob, type: :model, ci_bucket: 'bucket-2' do
   include_context 'HmisCsvImporter cleanup context'
   include_examples 'HmisCsvImporter cleanup record expiration'
 

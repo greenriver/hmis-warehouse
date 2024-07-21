@@ -6,7 +6,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Prepend Organization IDs', type: :model do
+RSpec.describe 'Prepend Organization IDs', type: :model, ci_bucket: 'bucket-1' do
   describe 'without cleanup' do
     before(:all) do
       setup(with_cleanup: false)

@@ -15,7 +15,7 @@ VCR.configure do |c|
   c.configure_rspec_metadata!
 end
 
-RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true do
+RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true, ci_bucket: 'bucket-2' do
   include_context 'visibility test context'
 
   configs_variations = []

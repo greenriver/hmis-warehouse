@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type: :model do
+RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type: :model, ci_bucket: 'bucket-2' do
   let!(:warehouse_client) { create :authoritative_warehouse_client }
   let(:initial_dob) { warehouse_client.destination.DOB }
 

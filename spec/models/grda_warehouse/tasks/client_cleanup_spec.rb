@@ -15,7 +15,7 @@ DEFAULT_DEST_ATTR = {
   pronouns: 'they',
 }.freeze
 
-RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
+RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model, ci_bucket: 'bucket-1' do
   describe 'When Updating destination records from client sources, using db based relationships' do
     let!(:config) { GrdaWarehouse::Config.first || create(:config) }
     let!(:destination_client) { create(:grda_warehouse_hud_client, PersonalID: 2) }

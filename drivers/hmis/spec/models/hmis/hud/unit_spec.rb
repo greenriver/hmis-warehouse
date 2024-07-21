@@ -7,7 +7,7 @@
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
 
-RSpec.describe Hmis::Unit, type: :model do
+RSpec.describe Hmis::Unit, type: :model, ci_bucket: 'bucket-1' do
   before(:all) do
     cleanup_test_environment
   end

@@ -7,7 +7,7 @@
 require 'rails_helper'
 require_relative 'spm_context'
 
-RSpec.describe HudSpmReport::Generators::Fy2020::MeasureOne, type: :model do
+RSpec.describe HudSpmReport::Generators::Fy2020::MeasureOne, type: :model, ci_bucket: 'bucket-1' do
   include_context 'HudSpmReport context'
 
   describe 'measure one example' do

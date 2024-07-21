@@ -7,7 +7,7 @@
 require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
 
-RSpec.describe ClientAccessControl::ClientsController, type: :request do
+RSpec.describe ClientAccessControl::ClientsController, type: :request, ci_bucket: 'bucket-1' do
   include_context 'visibility test context'
   let!(:config) { create :config_b }
   let!(:user) { create :acl_user }

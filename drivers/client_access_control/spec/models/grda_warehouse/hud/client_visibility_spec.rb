@@ -7,7 +7,7 @@
 require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
 
-RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
+RSpec.describe GrdaWarehouse::Hud::Client, type: :model, ci_bucket: 'bucket-2' do
   include_context 'visibility test context'
 
   context 'when config b is in affect' do

@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe Health::ComprehensiveHealthAssessment, type: :model do
+RSpec.describe Health::ComprehensiveHealthAssessment, type: :model, ci_bucket: 'bucket-2' do
   before(:all) do
     GrdaWarehouse::Utility.clear!
   end

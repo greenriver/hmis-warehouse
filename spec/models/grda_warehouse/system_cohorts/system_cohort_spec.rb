@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
+RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model, ci_bucket: 'bucket-1' do
   # Build out:
   # Client with
   # old PH: entry 2/1/2019, move-in 2/2/2019, exit 2/5/2019, destination: 20 - permanent

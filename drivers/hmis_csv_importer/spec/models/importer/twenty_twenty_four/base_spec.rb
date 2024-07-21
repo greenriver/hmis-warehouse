@@ -6,7 +6,7 @@
 
 require 'rails_helper'
 
-RSpec.describe HmisCsvImporter, type: :model do
+RSpec.describe HmisCsvImporter, type: :model, ci_bucket: 'bucket-1' do
   describe 'When handling source files' do
     before(:all) do
       HmisCsvImporter::Utility.clear!
