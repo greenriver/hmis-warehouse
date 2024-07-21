@@ -24,7 +24,8 @@ jobs:
           - {id: 'ci_bucket_1', tag: 'ci_bucket:bucket-1'}
           - {id: 'ci_bucket_2', tag: 'ci_bucket:bucket-2'}
           - {id: 'ci_bucket_3', tag: 'ci_bucket:bucket-3'}
-          - {id: 'ci_bucket_default', tag: '~ci_bucket', system_tests: true, logging_tests: true, okta_tests: true}
+          - {id: 'ci_bucket_default', tag: '~ci_bucket', system_tests: true, logging_tests: true, okta
+_tests: true}
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
 
@@ -242,8 +243,9 @@ jobs:
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
         run: |
-          mkdir -p tmp/rspec_profiles
-          bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --color --tag "${{ matrix.test_group.tag }}"
+          # mkdir -p tmp/rspec_profiles
+          # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --color --tag ${{ matrix.test_group.tag }}
+          bundle exec rspec --fail-fast=$MAX_FAILURES --color --tag ${{ matrix.test_group.tag }}
 
       - name: Run okta tests
         if: matrix.test_group.okta_tests
