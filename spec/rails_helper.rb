@@ -91,6 +91,8 @@ RSpec.configure do |config|
 
     ::HmisUtil::JsonForms.seed_all if ENV['ENABLE_HMIS_API'] == 'true'
   end
+
+  config.filter_run_excluding system: true unless ENV['RUN_SYSTEM_TESTS']
 end
 
 # Drivers
