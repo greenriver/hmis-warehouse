@@ -208,7 +208,10 @@ module BostonReports
     end
 
     def entering_with_community_of_origin
-      entering_clients.joins(**location_joins)
+      entering_clients.
+        joins(**location_joins).
+        joins(places_distinct_join(places_t).join_sources).
+        correlated_exists(GrdaWarehouse::Place.joins(:shape_state), quoted_table_name: ClientLocationHistory::Location.quoted_table_name, column_name: [:lat, :lon], alias_name: :places)
     end
 
     private def location_joins
@@ -265,7 +268,9 @@ module BostonReports
     end
 
     def across_my_state_data
-      @across_my_state_data ||= enrolled_with_community_of_origin_my_state.group(places_coc_t[:cocnum]).count.map do |coc_num, count|
+      # places_coc_t is joined in 'enrolled_with_community_of_origin_my_state' and declares a local table 'places'
+      grouping_column = 'places.cocnum'
+      @across_my_state_data ||= enrolled_with_community_of_origin_my_state.group(grouping_column).count.map do |coc_num, count|
         percentage = percent(numerator: count, denominator: count_enrolled_with_community_of_origin)
         {
           name: HudUtility2024.coc_codes(coc_num),
@@ -278,7 +283,7 @@ module BostonReports
     end
 
     def my_state_data
-      across_the_country_data.detect { |d| d[:name] == GrdaWarehouse::Shape::State.my_state.first.name }
+      across_the_country_data.detect { |d| d[:name] == GrdaWarehouse::Shape::State.my_states.first.name }
     end
 
     private def zip_code_scope
