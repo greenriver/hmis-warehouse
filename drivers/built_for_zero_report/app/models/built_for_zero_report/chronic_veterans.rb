@@ -13,7 +13,7 @@ module BuiltForZeroReport
     def initialize(start_date, end_date, user:)
       @veterans = Calculator.new(:veteran_cohort, start_date, end_date, user: user)
       @chronic_veterans = Calculator.new(
-        :chronic_cohort,
+        :chronic_adult_only_cohort,
         start_date,
         end_date,
         client_ids: @veterans.actively_homeless.keys,

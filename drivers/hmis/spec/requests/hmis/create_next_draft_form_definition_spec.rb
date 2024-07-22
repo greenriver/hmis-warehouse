@@ -47,4 +47,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     definition = result.dig('data', 'createNextDraftFormDefinition', 'formIdentifier', 'draftVersion')
     expect(definition.dig('id')).to eq(fd2.id.to_s)
   end
+
+  it 'should error if the user lacks permission' do
+    remove_permissions(access_control, :can_administrate_config)
+    expect_access_denied post_graphql(identifier: fd2.identifier) { mutation }
+
+    fd2.role = 'CUSTOM_ASSESSMENT'
+    fd2.save!
+
+    response, result = post_graphql(identifier: fd2.identifier) { mutation }
+    expect(response.status).to eq(200), result.inspect
+
+    remove_permissions(access_control, :can_manage_forms)
+    expect_access_denied post_graphql(identifier: fd2.identifier) { mutation }
+  end
 end

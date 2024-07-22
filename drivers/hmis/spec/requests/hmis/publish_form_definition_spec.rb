@@ -60,6 +60,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:fd3_v1) { create :hmis_form_definition, identifier: 'fd3', version: 1, status: Hmis::Form::Definition::PUBLISHED, role: :CUSTOM_ASSESSMENT }
   let!(:fd3_v2) { create :hmis_form_definition, identifier: 'fd3', version: 2, status: Hmis::Form::Definition::DRAFT, role: :CUSTOM_ASSESSMENT }
 
+  let!(:non_assessment_form) { create :hmis_form_definition, status: Hmis::Form::Definition::DRAFT }
+
   before(:each) do
     hmis_login(user)
   end
@@ -89,6 +91,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'should fail if the definition is not a draft' do
     expect_gql_error post_graphql(id: fd2.id) { mutation }, message: 'only draft forms can be published'
+  end
+
+  it 'should fail if the user lacks permission' do
+    remove_permissions(access_control, :can_administrate_config)
+    expect_access_denied post_graphql(id: non_assessment_form.id) { mutation }
+
+    remove_permissions(access_control, :can_manage_forms)
+    expect_access_denied post_graphql(id: fd2.id) { mutation }
   end
 
   it 'should retire the previous published version' do
@@ -135,6 +145,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     new_cded = Hmis::Hud::CustomDataElementDefinition.for_custom_assessments.find_by(label: 'Ranking')
     expect(new_cded).to be_present
     expect(new_cded.key).to eq("#{conflicting_cded.key}_2") # unique key
+
+    # Check that FormDefinition was updated with the new CustomDataElementDefinition key
+    expect(fd1.reload.link_id_item_hash['linkid_num'].mapping&.custom_field_key).to eq(new_cded.key)
+  end
+
+  it 'should generate CustomDataElementDefinitions with CustomService owner for SERVICE role' do
+    fd1.update!(role: 'SERVICE')
+    string_cded.update!(owner_type: 'Hmis::Hud::CustomService') # update existing CDED to have the right type
+
+    expect do
+      response, result = post_graphql(id: fd1.id) { mutation }
+      expect(response.status).to eq(200), result.inspect
+    end.to change(fd1.custom_data_element_definitions, :count).by(1)
+
+    # Check that the new CustomDataElementDefinition was created correctly
+    new_cded = Hmis::Hud::CustomDataElementDefinition.find_by(label: 'Ranking')
+    expect(new_cded).to be_present
+    expect(new_cded.attributes).to include('owner_type' => 'Hmis::Hud::CustomService')
 
     # Check that FormDefinition was updated with the new CustomDataElementDefinition key
     expect(fd1.reload.link_id_item_hash['linkid_num'].mapping&.custom_field_key).to eq(new_cded.key)

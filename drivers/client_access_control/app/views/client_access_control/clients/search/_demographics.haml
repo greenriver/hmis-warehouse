@@ -5,7 +5,7 @@
     client.source_clients_searchable_to(current_user).each do |sc|
       pii = sc.pii_provider(user: current_user)
       ssns.push(pii.ssn(force_mask: true))
-      ages.push(pii.dob_and_age)
+      ages.push(pii.dob_and_age(force_year_only: true))
     end
     ssns = ssns.compact.uniq
     ages = ages.compact.uniq

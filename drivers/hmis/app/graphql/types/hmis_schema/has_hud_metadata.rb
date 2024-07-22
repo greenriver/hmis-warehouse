@@ -14,6 +14,7 @@ module Types
       included do
         # User that most recently touched the record
         field(:user, Application::User, null: true) {}
+        field(:created_by, Application::User, null: true) {}
 
         # Note: while these are required in the HUD spec, they are not (yet) required
         # by the database schema. If/when they become required in the db for all hud tables,
@@ -24,14 +25,11 @@ module Types
         field(:date_deleted, GraphQL::Types::ISO8601DateTime, null: true) {}
 
         define_method(:user) do
-          version_holder = case object
-          when Hmis::Hud::HmisService
-            # service is a database view; it doesn't have its own versions
-            load_ar_association(object, :owner)
-          else
-            object
-          end
-          load_last_user_from_versions(version_holder) if version_holder
+          load_last_user_from_versions(object)
+        end
+
+        define_method(:created_by) do
+          load_created_by_user_from_versions(object)
         end
       end
     end
