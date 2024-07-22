@@ -208,7 +208,10 @@ module BostonReports
     end
 
     def entering_with_community_of_origin
-      entering_clients.joins(**location_joins)
+      entering_clients.
+        joins(**location_joins).
+        joins(places_distinct_join(places_t).join_sources).
+        correlated_exists(GrdaWarehouse::Place.joins(:shape_state), quoted_table_name: ClientLocationHistory::Location.quoted_table_name, column_name: [:lat, :lon], alias_name: :places)
     end
 
     private def location_joins
