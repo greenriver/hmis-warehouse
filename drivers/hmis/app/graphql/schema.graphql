@@ -5011,7 +5011,7 @@ type Household {
   householdSize: Int!
   id: ID!
   shortId: ID!
-  staffAssignments(isCurrentlyAssigned: Boolean): [StaffAssignment!]
+  staffAssignments(isCurrentlyAssigned: Boolean, limit: Int, offset: Int): StaffAssignmentsPaginated
 }
 
 """
@@ -10985,6 +10985,16 @@ type StaffAssignment {
   staffAssignmentType: String!
   unassignedAt: ISO8601Date
   user: ApplicationUser!
+}
+
+type StaffAssignmentsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [StaffAssignment!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """

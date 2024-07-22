@@ -14,7 +14,7 @@ module Types
     field :short_id, ID, null: false
     field :household_clients, [HmisSchema::HouseholdClient], null: false
     field :household_size, Int, null: false
-    field :staff_assignments, [HmisSchema::StaffAssignment], null: true do
+    field :staff_assignments, HmisSchema::StaffAssignment.page_type, null: true do
       argument :is_currently_assigned, Boolean, required: false
     end
 

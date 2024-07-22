@@ -60,8 +60,8 @@ RSpec.describe 'Assign Staff Mutation', type: :request do
         user_id: assignment.user.id,
       }
       response, result = post_graphql(input) { mutation }
-      expect(response.status).to eq(200)
-      expect(result.dig('data', 'assignStaff', 'errors', 0, 'fullMessage')).to eq('Household has already been taken')
+      expect(response.status).to eq(500)
+      expect(result.dig('errors', 0, 'message')).to match(/is already assigned/)
     end
 
     it 'does not assign to project without staff assignment config' do

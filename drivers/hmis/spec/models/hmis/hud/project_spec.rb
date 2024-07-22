@@ -206,4 +206,24 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       expect(selected_instances).to contain_exactly(mid_project, doe_org)
     end
   end
+
+  describe 'staff assignments enabled' do
+    let!(:other_project) { create :hmis_hud_project }
+
+    it 'returns true if a config exists for this project' do
+      Hmis::ProjectStaffAssignmentConfig.new(project_id: project.id).save!
+      expect(project.staff_assignments_enabled?).to eq(true)
+      expect(other_project.staff_assignments_enabled?).to eq(false)
+    end
+
+    it 'returns true if a config exists for this project type' do
+      Hmis::ProjectStaffAssignmentConfig.new(project_type: project.project_type).save!
+      expect(project.staff_assignments_enabled?).to eq(true)
+    end
+
+    it 'returns true if a config exist for this project organization' do
+      Hmis::ProjectStaffAssignmentConfig.new(organization: project.organization).save!
+      expect(project.staff_assignments_enabled?).to eq(true)
+    end
+  end
 end

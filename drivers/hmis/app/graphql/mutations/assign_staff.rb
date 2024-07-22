@@ -19,9 +19,18 @@ module Mutations
 
       raise 'Staff Assignment not enabled' unless household.project.staff_assignments_enabled?
 
-      # raise unless the project has this config
       assignment_type = Hmis::StaffAssignmentType.find(assignment_type_id)
       user = Hmis::User.find(user_id)
+
+      existing = Hmis::StaffAssignment.where(
+        staff_assignment_type: assignment_type,
+        user: user,
+        # todo @martha - ideally can just pass where(household: hh) but it's not working
+        household_id: household.household_id,
+        data_source_id: household.data_source_id,
+      )
+
+      raise "User #{user.name} is already assigned as #{assignment_type.name} for this household" if existing.exists?
 
       assignment = Hmis::StaffAssignment.new(
         household: household,
@@ -29,14 +38,8 @@ module Mutations
         staff_assignment_type: assignment_type,
       )
 
-      if assignment.valid?
-        assignment.save!
-        { staff_assignment: assignment }
-      else
-        errors = HmisErrors::Errors.new
-        errors.add_ar_errors(assignment.errors&.errors)
-        { errors: errors }
-      end
+      assignment.save!
+      { staff_assignment: assignment }
     end
   end
 end

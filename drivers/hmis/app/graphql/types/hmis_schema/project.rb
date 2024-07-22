@@ -209,7 +209,8 @@ module Types
     end
 
     def staff_assignments_enabled
-      load_ar_association(object, :project_staff_assignment_configs).exists?
+      # Should not be used in batch since it doesn't use the data loader
+      object.staff_assignments_enabled?
     end
 
     def arel

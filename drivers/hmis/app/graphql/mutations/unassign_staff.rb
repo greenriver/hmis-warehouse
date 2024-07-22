@@ -15,7 +15,12 @@ module Mutations
 
       access_denied! unless current_user.permissions_for?(record.household.project, :can_edit_enrollments)
 
-      default_delete_record(record: record, field_name: :staff_assignment)
+      record.destroy!
+
+      {
+        staff_assignment => record,
+        errors: [],
+      }
     end
   end
 end
