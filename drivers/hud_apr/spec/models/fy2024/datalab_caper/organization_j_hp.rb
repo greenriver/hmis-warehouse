@@ -5,16 +5,6 @@
 ###
 
 RSpec.shared_context 'datalab organization j hp caper', shared_context: :metadata do
-  # The results for Organization J are all currently including XX-518. This CoC is flagged as
-  # invalid by the test kit instructions, but including it here lets us verify additional tests.
-  def shared_filter_spec
-    {
-      start: Date.parse('2021-10-01'),
-      end: Date.parse('2022-09-30'),
-      user_id: User.setup_system_user.id,
-      coc_codes: ['XX-500', 'XX-501', 'XX-518'],
-    }.freeze
-  end
   describe 'Datalab 2024 CAPER - Organization J HP' do
     let(:results_dir) { 'caper/organization_j_hp' }
     before(:all) do

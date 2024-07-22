@@ -570,7 +570,7 @@ module HudUtility2024
         'XX-500' => 'Test CoC',
         'XX-501' => '2nd Test CoC',
         'XX-502' => '3rd Test CoC', # testkit
-        'XX-518' => '4th Test CoC', # testkit
+        # 'XX-518' => '4th Test CoC', # testkit, removed for CoC APR Organization J HP (TODO: do we need this for the LSA?)
       },
     ).freeze
   end
