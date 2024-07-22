@@ -280,7 +280,7 @@ module BostonReports
     end
 
     def my_state_data
-      across_the_country_data.detect { |d| d[:name] == GrdaWarehouse::Shape::State.my_state.first.name }
+      across_the_country_data.detect { |d| d[:name] == GrdaWarehouse::Shape::State.my_states.first.name }
     end
 
     private def zip_code_scope
