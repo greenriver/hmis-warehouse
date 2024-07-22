@@ -15,6 +15,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   after(:all) do
     cleanup_test_environment
   end
+  before(:each) do
+    hmis_login(user)
+  end
 
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:ds1) { create :hmis_data_source }
@@ -46,10 +49,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:a4) { create(:hmis_custom_assessment, enrollment: e2, client: e2.client) }
 
   describe 'project query' do
-    before(:each) do
-      hmis_login(user)
-    end
-
     let(:query) do
       <<~GRAPHQL
         query GetProject($id: ID!) {
@@ -135,10 +134,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'project assessments query' do
-    before(:each) do
-      hmis_login(user)
-    end
-
     let(:project_assessments_query) do
       <<~GRAPHQL
         query GetProjectAssessments(
@@ -215,10 +210,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'omni search projects' do
-    before(:each) do
-      hmis_login(user)
-    end
-
     let(:project_omni_search) do
       <<~GRAPHQL
         query OmniSearchProjects($searchTerm: String!, $limit: Int) {

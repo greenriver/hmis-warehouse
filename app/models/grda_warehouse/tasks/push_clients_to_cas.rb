@@ -344,7 +344,7 @@ module GrdaWarehouse::Tasks
           CasAccess::Tag.find(id).name
         end&.join('; ')
       elsif key == :default_shelter_agency_contacts
-        value.join('; ')
+        value&.join('; ')
       elsif key == :active_cohort_ids
         value.map do |id|
           GrdaWarehouse::Cohort.find(id).name

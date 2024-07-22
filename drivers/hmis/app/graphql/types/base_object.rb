@@ -43,18 +43,25 @@ module Types
     end
 
     def load_last_user_from_versions(object)
-      refinement = GrdaWarehouse.paper_trail_versions.
-        where.not(whodunnit: nil). # note, filter is okay here since it is constant with respect to object
-        order(:created_at, :id).
-        select(:id, :whodunnit, :item_id, :item_type, :user_id, :true_user_id) # select only fields we need for performance
-      versions = load_ar_association(object, :versions, scope: refinement)
-      latest_version = versions.last # db-ordered so we choose the last record
-      return unless latest_version
+      user_id = papertrail_user_ids(object).fetch(:last_user_id)
+      load_ar_scope(scope: Hmis::User.with_deleted, id: user_id) if user_id
+    end
 
-      last_user_id = latest_version.clean_true_user_id || latest_version.clean_user_id
-      return unless last_user_id
+    def load_created_by_user_from_versions(object)
+      user_id = papertrail_user_ids(object).fetch(:created_by_user_id)
+      load_ar_scope(scope: Hmis::User.with_deleted, id: user_id) if user_id
+    end
 
-      load_ar_scope(scope: Hmis::User.with_deleted, id: last_user_id)
+    private def papertrail_user_ids(object)
+      item_class, item_id = case object
+      when Hmis::Hud::HmisService
+        # service is a database view; it doesn't have its own versions
+        [object.owner_type, object.owner_id]
+      else
+        [object.class.sti_name, object.id]
+      end
+
+      dataloader.with(Sources::PaperTrailVersions, item_class).load(item_id)
     end
 
     # Infers type and nullability from warehouse configuration

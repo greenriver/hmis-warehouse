@@ -213,10 +213,13 @@ class Hmis::Form::DefinitionValidator
 
   def check_cdeds(document, role)
     owner_type = Hmis::Form::Definition.owner_class_for_role(role)&.sti_name
-
+    # For Service forms, the CDED owner is allowed to be Service OR CustomService
+    owner_type = ['Hmis::Hud::Service', 'Hmis::Hud::CustomService'] if role.to_s == 'SERVICE'
+    # For New Client Enrollment forms, the CDED owner is allowed to be Client OR Enrollment
+    owner_type = ['Hmis::Hud::Client', 'Hmis::Hud::Enrollment'] if role.to_s == 'NEW_CLIENT_ENROLLMENT'
     return unless owner_type
 
-    cdeds_by_key = Hmis::Hud::CustomDataElementDefinition.where(owner_type: owner_type).index_by(&:key)
+    cdeds_by_owner_key = Hmis::Hud::CustomDataElementDefinition.where(owner_type: owner_type).index_by { |cded| [cded.owner_type, cded.key] }
 
     cded_check = lambda do |item|
       (item['item'] || []).each do |child_item|
@@ -227,7 +230,7 @@ class Hmis::Form::DefinitionValidator
         next unless mapping&.key?('custom_field_key')
 
         cded_key = mapping['custom_field_key']
-        cded = cdeds_by_key[cded_key]
+        cded = Array.wrap(owner_type).map { |ot| cdeds_by_owner_key[[ot, cded_key]] }.compact.first
         raise("Item #{link_id} has a custom_field_key mapping, but the CDED does not exist in the database. key = #{cded_key}, owner_type = #{owner_type}") unless cded
 
         item_type = child_item['type']

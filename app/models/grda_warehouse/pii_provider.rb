@@ -80,8 +80,13 @@ class GrdaWarehouse::PiiProvider
     dob&.strftime(Date::DATE_FORMATS[:default]) || age&.to_s
   end
 
-  def dob_and_age
-    record.dob ? "#{record.dob&.year} (#{age})" : nil
+  def dob_and_age(force_year_only: false)
+    return nil unless record.dob
+
+    display_dob = record.dob
+    display_dob = display_dob&.year if force_year_only || !policy.can_view_full_dob?
+
+    "#{display_dob} (#{age})"
   end
 
   # return nil rather than 'redacted' for consistent return type

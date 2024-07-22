@@ -12,11 +12,11 @@ module Mutations
     field :form_rule, Types::Admin::FormRule, null: false
 
     def resolve(id:, input:)
-      raise 'not allowed' unless current_user.can_configure_data_collection?
-
       instance = Hmis::Form::Instance.find_by(id: id)
       raise 'not found' unless instance
       raise 'cannot modify system rule' if instance.system
+
+      access_denied! unless current_user.can_configure_data_collection_for_role?(instance.definition.role)
 
       instance.assign_attributes(input.to_attributes)
 
