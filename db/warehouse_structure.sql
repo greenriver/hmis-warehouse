@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -13605,7 +13605,7 @@ CREATE TABLE public.hmis_client_alerts (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    expiration_date date NOT NULL,
+    expiration_date date,
     created_by_id bigint NOT NULL,
     client_id bigint NOT NULL,
     priority character varying
@@ -18955,6 +18955,80 @@ CREATE TABLE public.hmis_staff (
     source_id character varying,
     data_source_id integer
 );
+
+
+--
+-- Name: hmis_staff_assignment_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_staff_assignment_types (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN hmis_staff_assignment_types.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_staff_assignment_types.name IS 'name of role, such as "Case Manager" or "Housing Navigator"';
+
+
+--
+-- Name: hmis_staff_assignment_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_staff_assignment_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_staff_assignment_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_staff_assignment_types_id_seq OWNED BY public.hmis_staff_assignment_types.id;
+
+
+--
+-- Name: hmis_staff_assignments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_staff_assignments (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    household_id character varying,
+    hmis_staff_assignment_type_id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_staff_assignments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_staff_assignments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_staff_assignments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_staff_assignments_id_seq OWNED BY public.hmis_staff_assignments.id;
 
 
 --
@@ -62507,14 +62581,6 @@ ALTER TABLE ONLY public.hmis_staff_assignments
 
 
 --
--- Name: hmis_staff_assignments fk_rails_8dbed08266; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_staff_assignments
-    ADD CONSTRAINT fk_rails_8dbed08266 FOREIGN KEY (user_id) REFERENCES public."User"(id);
-
-
---
 -- Name: service_history_services_2049 fk_rails_9783c16a4a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -62993,7 +63059,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240503170130'),
 ('20240506204908'),
 ('20240510230733'),
-('20240514131401'),
 ('20240519225942'),
 ('20240522132648'),
 ('20240523143921'),
@@ -63013,3 +63078,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240628145249'),
 ('20240710012703'),
 ('20240717205642');
+
+
