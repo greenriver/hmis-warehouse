@@ -289,6 +289,7 @@ module GrdaWarehouse::Tasks
       @source_clients = []
 
       clients = GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).source
+      # Use the Destination Client's ID, but the source client's PII
       id_field = Arel.sql(wc_t[:destination_id].to_sql)
       GrdaWarehouse::ClientMatcherLookups::ClientStub.from_scope(clients, id_field: id_field) do |client|
         @source_name_lookup.add(client)

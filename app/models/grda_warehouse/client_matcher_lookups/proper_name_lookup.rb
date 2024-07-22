@@ -34,8 +34,12 @@ module GrdaWarehouse::ClientMatcherLookups
     protected
 
     def normalize(str)
-      str ? str.downcase.strip.gsub(/[^a-z0-9]/i, '').presence : nil
-      transliterate ? I18n.transliterate(str) : str
+      return nil unless str.present?
+      
+      str = str.downcase.strip.gsub(/[^a-z0-9]/i, '').presence
+      return str unless transliterate
+      
+      I18n.transliterate(str)
     end
   end
 end

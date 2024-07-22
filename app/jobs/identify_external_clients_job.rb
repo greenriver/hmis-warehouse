@@ -63,8 +63,9 @@ class IdentifyExternalClientsJob < BaseJob
     @ssn_lookup = GrdaWarehouse::ClientMatcherLookups::SSNLookup.new(format: :last_four)
     @dob_lookup = GrdaWarehouse::ClientMatcherLookups::DOBLookup.new
 
-    clients = GrdaWarehouse::Hud::Client.all
-    GrdaWarehouse::ClientMatcherLookups::ClientStub.from_scope(clients) do |client|
+    clients = GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).source
+    id_field = Arel.sql(wc_t[:destination_id].to_sql)
+    GrdaWarehouse::ClientMatcherLookups::ClientStub.from_scope(clients, id_field: id_field) do |client|
       @name_lookup.add(client)
       @ssn_lookup.add(client)
       @dob_lookup.add(client)
