@@ -80,6 +80,8 @@ module Types
         assessment_names_for_project(project)
       when 'STAFF_ASSIGNMENT_TYPES'
         staff_assignment_types(project)
+      when 'ELIGIBLE_STAFF_ASSIGNMENT_USERS'
+        eligible_staff_assignment_user_picklist(project)
       else
         raise "Unknown pick list type: #{pick_list_type}"
       end
@@ -125,8 +127,6 @@ module Types
           end.flatten
       when 'USERS', 'AUDITABLE_USERS'
         user_picklist(user)
-      when 'ELIGIBLE_STAFF_ASSIGNMENT_USERS'
-        eligible_staff_assignment_user_picklist(user)
       when 'ENROLLMENT_AUDIT_EVENT_RECORD_TYPES'
         enrollment_audit_event_record_type_picklist
       when 'CLIENT_AUDIT_EVENT_RECORD_TYPES'
@@ -148,15 +148,10 @@ module Types
       end
     end
 
-    def self.eligible_staff_assignment_user_picklist(current_user)
-      return [] unless current_user
+    def self.eligible_staff_assignment_user_picklist(project)
+      return [] unless project&.staff_assignments_enabled?
 
-      # Check that the user has can_edit_enrollments permission on at least one project with staff_assignment_enabled
-      return [] unless Hmis::Hud::Project.with_staff_assignments_enabled.each do |p|
-        current_user.permissions_for?(p, :can_edit_enrollments)
-      end.any?
-
-      Hmis::User.all.map do |user|
+      Hmis::User.can_edit_enrollments_for(project).map do |user|
         {
           code: user.id.to_s,
           label: user.full_name,
