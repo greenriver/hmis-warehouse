@@ -146,28 +146,6 @@ class Hmis::User < ApplicationRecord
     model.where(id: entity_ids)
   end
 
-  # scope :with_permission, ->(permission, entity) do
-  #   # get all the users who have this permission on this entity.
-  #   # 1. get the group viewable entitie for this entity
-  #   # 2. get the access group IDs (collection IDs) for these entities
-  #   # 3. get the access controls for those collections
-  #   #
-  #
-  #
-  #
-  #
-  #   collection_ids = Hmis::GroupViewableEntity.where(entity_type: entity.sti_name)
-  #
-  #   # Get all the roles that have this permission
-  #   roles_with_permission = Hmis::Role.with_permissions(permission).pluck(:id)
-  #
-  #   # Get all the access controls that have any of the approved roles, pluck the collection ID
-  #   access_group_ids = Hmis::AccessControl.where(role_id: roles_with_permission).pluck(:access_group_id)
-  #
-  #   # get all the entities with
-  #   # entities = Hmis::GroupViewableEntity.where(collection_id: access_group_ids, entity_type: entity.sti_name)
-  # end
-
   private def viewable(model)
     # An entity is only considered "viewable" if the user has can_view_project permission for it.
     entities_with_permissions(model, :can_view_project)
