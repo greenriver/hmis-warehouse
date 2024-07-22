@@ -57,6 +57,7 @@ Since E2E tests are expensive -- slow to run and fiddly to write/update -- we sh
     ```bash
     docker exec -it $(docker ps -aqf "name=^hmis-warehouse_shell_run" | head -1) /bin/bash
     ```
+    Note: If that doesn't work for you, just pull the the Container ID from `docker ps` and pass that instead of the `$()` clause.
 
 5. Run the rspec test(s) in that container:
     ```bash

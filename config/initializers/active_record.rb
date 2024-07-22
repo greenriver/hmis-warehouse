@@ -1,4 +1,4 @@
-if Rails.env.test?
+if Rails.env.test? && !ENV['RUN_SYSTEM_TESTS']
   # Fix deadlock during tests with multiple dbs. Looks like this should be patched in rails 7.1
   # https://github.com/rails/rails/pull/46661
   TodoOrDie('delete monkeypatch upgrade to >= rails 7.0', if: Rails.version !~ /\A7\.0/)
