@@ -13,7 +13,6 @@ FactoryBot.define do
       enrollment { association :hmis_hud_enrollment, data_source: data_source }
     end
     after(:build) do |record, evaluator|
-      # enrollment = create :hmis_hud_enrollment, data_source: record.data_source
       record.household = evaluator.enrollment.household
     end
   end
