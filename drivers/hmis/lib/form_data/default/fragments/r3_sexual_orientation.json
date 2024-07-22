@@ -4,61 +4,6 @@
   "text": "Sexual Orientation",
   "data_collected_about": "HOH_AND_ADULTS",
   "prefill": true,
-  "rule": {
-    "operator": "ANY",
-    "parts": [
-      {
-        "_comment": "HUD: CoC – Youth Homeless Demonstration Program (YHDP) – collection required for all components",
-        "variable": "projectFunders",
-        "operator": "INCLUDE",
-        "value": 43
-      },
-      {
-        "_comment": "HHS: RHY – Collection required for all components",
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "HHS: RHY"
-      },
-      {
-        "_comment": "HUD: CoC – Permanent Supportive Housing",
-        "variable": "projectFunders",
-        "operator": "INCLUDE",
-        "value": 2
-      },
-      {
-        "operator": "ALL",
-        "_comment": "HUD: Unsheltered Special NOFO – Collection required for Permanent Supportive Housing",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HUD: Unsheltered Special NOFO"
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 3
-          }
-        ]
-      },
-      {
-        "operator": "ALL",
-        "_comment": "HUD: Rural Special NOFO – Collection required for Permanent Supportive Housing",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HUD: Rural Special NOFO"
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 3
-          }
-        ]
-      }
-    ]
-  },
   "item": [
     {
       "type": "CHOICE",

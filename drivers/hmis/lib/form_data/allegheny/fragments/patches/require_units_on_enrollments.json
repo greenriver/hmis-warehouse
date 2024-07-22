@@ -13,7 +13,7 @@
           "record_type": "ENROLLMENT",
           "field_name": "currentUnit"
         },
-        "rule": {
+        "custom_rule": {
           "operator": "ANY",
           "_comment": "special projects that support multi-unit household",
           "parts": [
@@ -76,7 +76,7 @@
             "answer_boolean": false
           }
         ],
-        "rule": {
+        "custom_rule": {
           "operator": "ALL",
           "_comment": "Hide for the internal CE project, which doesnt have units. Hide for special projects that support multi-unit households",
           "parts": [

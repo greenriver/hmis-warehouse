@@ -8,38 +8,5 @@
   "mapping": {
     "record_type": "HEALTH_AND_DV",
     "field_name": "generalHealthStatus"
-  },
-  "rule": {
-    "operator": "ANY",
-    "parts": [
-      {
-        "_comment": "HUD: HUD-VASH – Collection required for HUD/VASH-Continuum",
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "HUD: HUD-VASH"
-      },
-      {
-        "operator": "ALL",
-        "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HHS: RHY"
-          },
-          {
-            "variable": "projectType",
-            "operator": "NOT_EQUAL",
-            "value": 4
-          }
-        ]
-      },
-      {
-        "_comment": "Included in YHDP Supplemental CSV. Recommended for YHDP projects.",
-        "variable": "projectFunders",
-        "operator": "INCLUDE",
-        "value": 43
-      }
-    ]
   }
 }

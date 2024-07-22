@@ -1127,6 +1127,7 @@ DEPENDENCIES
   haml (~> 5.2.2)
   haml-rails
   handlebars_assets
+  hashdiff
   hellosign-ruby-sdk!
   html2haml
   htmlentities

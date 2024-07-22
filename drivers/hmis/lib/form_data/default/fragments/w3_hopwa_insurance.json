@@ -4,12 +4,6 @@
   "text": "Medical Assistance",
   "data_collected_about": "ALL_CLIENTS",
   "prefill": true,
-  "rule": {
-    "_comment": "HUD: HOPWA – Collection required for all components",
-    "variable": "projectFunderComponents",
-    "operator": "INCLUDE",
-    "value": "HUD: HOPWA"
-  },
   "item": [
     {
       "type": "CHOICE",

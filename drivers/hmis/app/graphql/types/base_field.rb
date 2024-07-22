@@ -13,12 +13,17 @@ module Types
 
       super(*args, **kwargs, &block)
 
-      extension(DefaultValueExtension, default_value: default_value) if default_value.present?
+      extension(DefaultValueExtension, default_value: default_value) if default_value
 
       return_type = kwargs[:type]
       return unless return_type.is_a?(Class) && return_type < BasePaginated
 
-      extension(PaginationWrapperExtension)
+      # ArrayPaginated is an empty class inheriting from BasePaginated
+      if return_type < ArrayPaginated
+        extension(PaginationWrapperExtension, is_array: true)
+      else
+        extension(PaginationWrapperExtension)
+      end
     end
 
     # Field-level authorization
@@ -56,6 +61,9 @@ module Types
         end
 
         resolved_object = yield(object, cleaned_arguments)
+
+        return Types::PaginatedArray.new(resolved_object, **pagination_arguments) if options[:is_array]
+
         Types::PaginatedScope.new(resolved_object, **pagination_arguments)
       end
     end

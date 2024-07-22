@@ -3955,6 +3955,7 @@ type FormDefinition {
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
   id: ID!
   identifier: String!
+  projectMatches(limit: Int, offset: Int): FormProjectMatchesPaginated!
   rawDefinition: JsonObject!
   role: FormRole!
   status: FormStatus!
@@ -4163,6 +4164,26 @@ type FormItem {
   Whether to show a warning if this question is unanswered
   """
   warnIfEmpty: Boolean
+}
+
+"""
+Project match for a form, including information about which clients in this project the form is applicable to.
+"""
+type FormProjectMatch {
+  dataCollectedAbout: DataCollectedAbout!
+  id: ID!
+  organizationName: String!
+  projectName: String!
+}
+
+type FormProjectMatchesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [FormProjectMatch!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 enum FormRole {
