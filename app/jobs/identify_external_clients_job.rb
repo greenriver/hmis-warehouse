@@ -8,7 +8,8 @@
 class IdentifyExternalClientsJob < BaseJob
   # @param inbox_s3 [AwsS3] read from this bucket
   # @param outbox_s3 [AwsS3] write into this bucket
-  def perform(inbox_s3:, outbox_s3:)
+  # @param external_id_field [String] field to return in the results
+  def perform(inbox_s3:, outbox_s3:, external_id_field:)
     with_lock do
       build_lookups
       inbox_s3.list_objects.each do |input_object|
@@ -27,7 +28,7 @@ class IdentifyExternalClientsJob < BaseJob
           next
         end
 
-        output_rows = input_rows.map { |row| process_row(row) }.compact
+        output_rows = input_rows.map { |row| process_row(row, external_id_field) }.compact
         if output_rows.empty?
           log('skipping empty output', object_key: input_key)
           next
@@ -64,6 +65,7 @@ class IdentifyExternalClientsJob < BaseJob
     @dob_lookup = GrdaWarehouse::ClientMatcherLookups::DOBLookup.new
 
     clients = GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).source
+    wc_t = GrdaWarehouse::WarehouseClient.arel_table
     id_field = Arel.sql(wc_t[:destination_id].to_sql)
     GrdaWarehouse::ClientMatcherLookups::ClientStub.from_scope(clients, id_field: id_field) do |client|
       @name_lookup.add(client)
@@ -80,12 +82,10 @@ class IdentifyExternalClientsJob < BaseJob
     results = []
     begin
       csv = CSV.parse(csv_string, headers: true)
-      headers = csv.headers.map { |header| header.strip.downcase }
-
       results = csv.map do |row|
         # normalize headers
-        headers.each_with_object({}) do |header, hash|
-          hash[header] = row[header]
+        csv.headers.each_with_object({}) do |header, hash|
+          hash[header.downcase] = row[header]
         end
       end
     rescue CSV::MalformedCSVError => e
@@ -98,9 +98,9 @@ class IdentifyExternalClientsJob < BaseJob
     results
   end
 
-  def process_row(row)
-    first_name, last_name, ssn4, dob, ghocid = row.values_at('first_name', 'last_name', 'ssn4', 'dob', 'ghocid')
-    return if ghocid.blank?
+  def process_row(row, external_id_field)
+    first_name, last_name, ssn4, dob, external_id = row.values_at('first_name', 'last_name', 'ssn4', 'dob', external_id_field.downcase)
+    return if external_id.blank?
 
     matches = [
       @ssn_lookup.get_ids(ssn: ssn4),
@@ -108,21 +108,30 @@ class IdentifyExternalClientsJob < BaseJob
       @name_lookup.get_ids(first_name: first_name, last_name: last_name),
     ]
 
-    match = get_first_match(matches)
-    match ? { 'GHOCID' => ghocid, 'Client ID' => match } : nil
+    match = get_best_match(matches)
+    match ? { external_id_field => external_id, 'Client ID' => match } : nil
   end
 
-  # id is found in at least two match sets
-  def get_first_match(matches, required_number: 2)
-    count = Hash.new(0)
-    matches.each do |match|
-      match.each do |id|
-        count[id] += 1
-        return id if count[id] >= required_number
-      end
+  # matching id is found in at least two match sets
+  def get_best_match(match_sets, min_rank: 2)
+    ranks = Hash.new(0)
+    match_sets.each do |matches|
+      matches.each { |match| ranks[match] += 1 }
     end
 
-    nil
+    best_match = nil
+    max_rank = match_sets.size
+    ranks.keys.sort.each do |match|
+      rank = ranks[match]
+      # this is below the rank we should consider
+      next if rank < min_rank
+
+      # this our new best_match
+      best_match = match if best_match.nil? || rank > ranks[best_match]
+      # short circuit and return if this is at max rank
+      break if rank == max_rank
+    end
+    best_match
   end
 
   def format_as_csv(rows)
