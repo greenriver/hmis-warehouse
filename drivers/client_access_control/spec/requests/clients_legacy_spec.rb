@@ -6,7 +6,7 @@
 
 require 'rails_helper'
 
-RSpec.describe ClientAccessControl::ClientsController, type: :request, ci_bucket: 'bucket-1' do
+RSpec.describe ClientAccessControl::ClientsController, type: :request do
   let!(:config) { create :config_b }
   let!(:warehouse_data_source) { create :grda_warehouse_data_source, visible_in_window: true }
   let!(:window_data_source) { create :visible_data_source }

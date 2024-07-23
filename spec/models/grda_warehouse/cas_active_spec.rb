@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model, ci_bucket: 'bucket-2' do
+RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
   describe 'when including extrapolated enrollments' do
     before(:all) do
       GrdaWarehouse::Utility.clear!

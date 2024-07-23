@@ -1,7 +1,7 @@
 require 'rails_helper'
 include ArelHelper
 
-RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFour, type: :model, ci_bucket: 'bucket-1' do
+RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFour, type: :model do
   # NOTE: The date range of the report is limited and will not include everyone in the import file
   describe 'project data quality V4' do
     before(:all) do

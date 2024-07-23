@@ -7,7 +7,7 @@
 require 'rails_helper'
 require_relative 'spm_context'
 
-RSpec.describe HudSpmReport::Generators::Fy2020::Generator, type: :model, ci_bucket: 'bucket-1' do
+RSpec.describe HudSpmReport::Generators::Fy2020::Generator, type: :model do
   include_context 'HudSpmReport context'
 
   before(:all) do

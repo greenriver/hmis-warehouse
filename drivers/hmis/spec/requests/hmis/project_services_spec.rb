@@ -8,7 +8,7 @@ require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
-RSpec.describe Hmis::GraphqlController, type: :request, ci_bucket: 'bucket-2' do
+RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
   include_context 'hmis service setup'
   let!(:access_control) { create_access_control(hmis_user, p1) }

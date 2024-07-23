@@ -8,7 +8,7 @@ require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
-RSpec.describe Hmis::GraphqlController, type: :request, ci_bucket: 'bucket-1' do
+RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
     cleanup_test_environment
   end

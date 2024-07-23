@@ -13,7 +13,7 @@
 require 'rails_helper'
 require_relative 'path_context'
 
-RSpec.describe HudPathReport::Generators::Fy2021::QuestionSeventeen, type: :model, ci_bucket: 'bucket-1' do
+RSpec.describe HudPathReport::Generators::Fy2021::QuestionSeventeen, type: :model do
   include_context 'path context FY2021'
 
   before(:all) do

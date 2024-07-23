@@ -8,7 +8,7 @@ require 'rails_helper'
 require_relative '../../../requests/hmis/login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
 
-RSpec.describe Hmis::Form::FormProcessor, type: :model, ci_bucket: 'bucket-2' do
+RSpec.describe Hmis::Form::FormProcessor, type: :model do
   include_context 'hmis base setup'
 
   let(:fd) { Hmis::Form::Definition.find_by!(role: :INTAKE) }

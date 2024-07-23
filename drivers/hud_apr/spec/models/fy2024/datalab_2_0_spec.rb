@@ -21,7 +21,7 @@ require_relative 'datalab_caper/organization_s_es'
 
 require_relative 'datalab_ce_apr/systemwide'
 
-RSpec.describe 'Datalab 2024', type: :model, ci_bucket: 'bucket-1' do
+RSpec.describe 'Datalab 2024', type: :model do
   include_context 'datalab testkit context'
   def project_type_filter(project_type)
     project_ids = GrdaWarehouse::Hud::Project.where(ProjectType: project_type).pluck(:id)

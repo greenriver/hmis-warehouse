@@ -6,7 +6,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Force Assessment Prioritization Status', type: :model, ci_bucket: 'bucket-1' do
+RSpec.describe 'Force Assessment Prioritization Status', type: :model do
   describe 'without cleanup' do
     before(:all) do
       clear
