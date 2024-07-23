@@ -29,8 +29,9 @@ module Mutations
         household_id: household.household_id,
         data_source_id: household.data_source_id,
       )
-
-      raise "User #{user.name} is already assigned as #{assignment_type.name} for this household" if existing.exists?
+      errors = HmisErrors::Errors.new
+      errors.add(:base, :invalid, message: "User #{user.name} is already assigned as #{assignment_type.name} for this household") if existing.exists?
+      return { errors: errors } if errors.any?
 
       assignment = Hmis::StaffAssignment.new(
         household: household,
