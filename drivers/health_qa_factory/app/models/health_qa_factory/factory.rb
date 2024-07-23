@@ -20,13 +20,13 @@ module HealthQaFactory
     end
 
     def missing_components?
-      ! [
+      [
         hrsn_screening_qa.present?,
         careplan_development_qa.present?,
         ca_completed_qa.present?,
         careplan_development_qa.present?,
         careplan_completed_qa.present?,
-      ].all?
+      ].any?(false)
     end
 
     def complete_hrsn(screener)
