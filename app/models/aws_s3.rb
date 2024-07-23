@@ -146,12 +146,12 @@ class AwsS3
     end
   end
 
-  def store(content:, name:)
+  def store(content:, name:, content_type: nil)
     obj = @bucket.object(name)
     if Rails.env.development? || Rails.env.test?
-      obj.put(body: content)
+      obj.put(body: content, content_type: content_type)
     else
-      obj.put(body: content, server_side_encryption: 'AES256')
+      obj.put(body: content, server_side_encryption: 'AES256', content_type: content_type)
     end
   end
 

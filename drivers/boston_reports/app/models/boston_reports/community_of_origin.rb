@@ -265,7 +265,9 @@ module BostonReports
     end
 
     def across_my_state_data
-      @across_my_state_data ||= enrolled_with_community_of_origin_my_state.group(places_coc_t[:cocnum]).count.map do |coc_num, count|
+      # places_coc_t is joined in 'enrolled_with_community_of_origin_my_state' and declares a local table 'places'
+      grouping_column = 'places.cocnum'
+      @across_my_state_data ||= enrolled_with_community_of_origin_my_state.group(grouping_column).count.map do |coc_num, count|
         percentage = percent(numerator: count, denominator: count_enrolled_with_community_of_origin)
         {
           name: HudUtility2024.coc_codes(coc_num),

@@ -90,7 +90,7 @@ HOSTNAME=`hostname`
 
 # If dev mode, start in the foreground
 if [ "$dev_mode" = true ] ; then
-  SERVER_HTTPS=false HMIS_SERVER_URL="http://localhost:4444" HMIS_HOST=$HOSTNAME yarn --cwd $CWD preview
+  SERVER_HTTPS=false HMIS_SERVER_URL="http://localhost:4444" HMIS_HOST=$HOSTNAME yarn --cwd $CWD preview -d
   SERVER_PID=$!
   exit 0
 fi

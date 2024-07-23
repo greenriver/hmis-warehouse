@@ -31,18 +31,18 @@ RSpec.describe HomelessSummaryReport::Report, type: :model, ci_bucket: 'bucket-1
       },
       {
         slug: :spm_all_persons__race_none,
-        count: 3,
+        count: 1,
       },
       {
         slug: :spm_all_persons__asian,
-        count: 2,
+        count: 1,
       },
       {
         slug: :spm_all_persons__hispanic_latinaeo,
-        count: 2,
+        count: 1,
       },
       {
-        slug: :spm_all_persons__black_african_american,
+        slug: :spm_all_persons__black_af_american_hispanic_latinaeo,
         count: 1,
       },
       {
@@ -68,7 +68,7 @@ RSpec.describe HomelessSummaryReport::Report, type: :model, ci_bucket: 'bucket-1
       },
       {
         slug: :spm_without_children__race_none,
-        count: 2,
+        count: 1,
       },
       # 55+ without children
       {
@@ -97,19 +97,7 @@ RSpec.describe HomelessSummaryReport::Report, type: :model, ci_bucket: 'bucket-1
         count: 1,
       },
       {
-        slug: :spm_only_children__hispanic_latinaeo,
-        count: 1,
-      },
-      {
-        slug: :spm_only_children__race_none,
-        count: 1,
-      },
-      {
-        slug: :spm_only_children__black_african_american,
-        count: 1,
-      },
-      {
-        slug: :spm_only_children__asian,
+        slug: :spm_only_children__black_af_american_hispanic_latinaeo,
         count: 1,
       },
       {
@@ -125,23 +113,26 @@ RSpec.describe HomelessSummaryReport::Report, type: :model, ci_bucket: 'bucket-1
     it "doesn't find data not in the dataset" do
       [
         # All persons
-        :spm_all_persons__american_indian_alaskan_native,
+        :spm_all_persons__am_ind_ak_native,
         :spm_all_persons__has_disability,
         :spm_all_persons__has_psh_move_in_date,
         :spm_all_persons__has_rrh_move_in_date,
-        :spm_all_persons__native_hawaiian_other_pacific_islander,
+        :spm_all_persons__native_hi_pacific,
         :spm_all_persons__returned_to_homelessness_from_permanent_destination,
         :spm_all_persons__white,
         # Adult only
-        :spm_without_children__american_indian_alaskan_native,
+        :spm_without_children__am_ind_ak_native,
         :spm_without_children__has_disability,
         :spm_without_children__has_psh_move_in_date,
         :spm_without_children__has_rrh_move_in_date,
-        :spm_without_children__native_hawaiian_other_pacific_islander,
+        :spm_without_children__native_hi_pacific,
         :spm_without_children__returned_to_homelessness_from_permanent_destination,
         :spm_without_children__white,
         :spm_without_children__fleeing_dv,
         :spm_without_children__multi_racial,
+        # Children only
+        :spm_only_children__race_none,
+        :spm_only_children__asian,
       ].each do |slug|
         expect(result(:m1a_es_sh_days, slug)).to be_zero
       end
@@ -166,10 +157,6 @@ RSpec.describe HomelessSummaryReport::Report, type: :model, ci_bucket: 'bucket-1
         slug: :spm_without_children__hispanic_latinaeo,
         count: 1,
       },
-      {
-        slug: :spm_without_children__race_none,
-        count: 1,
-      },
     ].each do |test|
       it "includes #{test[:count]} in #{test[:slug]}" do
         expect(result(:m1a_es_sh_days, test[:slug])).to be == test[:count]
@@ -178,6 +165,7 @@ RSpec.describe HomelessSummaryReport::Report, type: :model, ci_bucket: 'bucket-1
 
     it "doesn't find data not in CoC'" do
       [
+        :spm_without_children__race_none,
         :spm_only_children__all,
         :spm_only_children__hispanic_latinaeo,
         :spm_only_children__race_none,
