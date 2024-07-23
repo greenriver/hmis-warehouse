@@ -91,8 +91,7 @@ class Hmis::User < ApplicationRecord
 
     scope "#{permission}_for", ->(_entity) do
       # todo @martha - we want to query for only users that have permission for this entity, but it's complicated
-      joins(:roles).
-        where(roles: { permission => true })
+      joins(:roles).where(roles: { permission => true }).group(:id)
     end
   end
 
