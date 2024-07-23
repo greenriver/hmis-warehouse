@@ -7,80 +7,85 @@ namespace :ci do
   # profile information is generated from: rspec --format json --out rspec_results.json
   # or profile information cab be downloaded from gh actions archives
   desc 'Update RSpec test tags based on profiling data'
-  task :update_spec_tags, [:profile_dir] => :environment do |_t, args|
+  task :update_spec_tags, [:profile_dir, :max_minutes] => :environment do |_t, args|
     profile_dir = args[:profile_dir] || 'rspec_profiles'
+    max_minutes = (args[:max_minutes] || 20).to_i
 
     unless Dir.exist?(profile_dir)
       puts "Profile dir '#{profile_dir}' not found."
       exit 1
     end
 
+    # Load and process profile data
+    profile_groups = load_profile_data(profile_dir)
+
+    # Filter out specs that run for less than 10 seconds
+    filtered_specs = profile_groups.select { |group| group[:total_time] >= 10 }
+
+    # Calculate total time and estimate number of buckets
+    total_time = filtered_specs.sum { |spec| spec[:total_time] }
+    estimated_buckets = (total_time / (max_minutes * 60.0)).ceil
+
+    # Use bin packing algorithm to distribute specs
+    buckets = bin_packing(filtered_specs, estimated_buckets)
+
+    # Update source files
+    update_source_files(buckets)
+
+    # Print summary
+    print_summary(buckets)
+  end
+
+  def load_profile_data(profile_dir)
     profile_groups = []
-    Dir.foreach(profile_dir) do |filename|
-      next unless filename.end_with?('.json')
+    Dir.glob(File.join(profile_dir, '*.json')) do |file_path|
+      profile_data = JSON.parse(File.read(file_path), symbolize_names: true)
+      profile_groups += profile_data[:profile][:groups]
+    end
+    profile_groups
+  end
 
-      file_path = File.join(profile_dir, filename)
-      File.open(file_path, 'r') do |file|
-        profile_data = JSON.parse(File.read(file), symbolize_names: true)
-        profile_groups += profile_data[:profile][:groups]
-      end
+  def bin_packing(specs, num_buckets)
+    buckets = Array.new(num_buckets) { { id: nil, total_time: 0, specs: [] } }
+
+    # Sort specs by total_time in descending order
+    sorted_specs = specs.sort_by { |spec| -spec[:total_time] }
+
+    sorted_specs.each do |spec|
+      # Find the bucket with the least total time
+      target_bucket = buckets.min_by { |bucket| bucket[:total_time] }
+
+      # Add the spec to the target bucket
+      target_bucket[:total_time] += spec[:total_time]
+      target_bucket[:specs] << spec
     end
 
-    # Initialize buckets
-    buckets = []
-    current_bucket = { id: 'bucket-1', total_time: 0, specs: [] }
-    bucket_index = 1
+    # Assign IDs to non-empty buckets
+    buckets.reject! { |bucket| bucket[:specs].empty? }
+    buckets.each_with_index { |bucket, index| bucket[:id] = "bucket-#{index + 1}" }
 
-    # Get a random distribution. Could iterate on this to pack bins
-    rng = Random.new(3)
-    profile_groups = profile_groups.shuffle(random: rng)
+    buckets
+  end
 
-    # Categorize specs into buckets
-    profile_groups.each do |group|
-      total_time = group[:total_time]
-
-      # Skip specs that run for less than 10 seconds
-      next if total_time < 10
-
-      if current_bucket[:total_time] + total_time > (60 * 40)
-        buckets << current_bucket
-        bucket_index += 1
-        current_bucket = { id: "bucket-#{bucket_index}", total_time: 0, specs: [] }
-      end
-
-      current_bucket[:total_time] += total_time
-      current_bucket[:specs] << { location: group[:location], total_time: total_time }
-    end
-
-    # Add the last bucket if it's not empty
-    buckets << current_bucket if current_bucket[:specs].any?
-
-    # Update the source files
+  def update_source_files(buckets)
     buckets.each do |bucket|
       bucket[:specs].each do |spec|
         file_path, = spec[:location].split(':')
-
-        # Read the file content
         content = File.readlines(file_path)
 
-        # Find the first RSpec.describe line
         describe_line_index = content.index { |line| line.strip.start_with?('RSpec.describe') }
 
         if describe_line_index
           describe_line = content[describe_line_index]
 
-          if describe_line.include?('ci_bucket:')
-            # Update existing ci_bucket
-            updated_line = describe_line.gsub(/ci_bucket:\s*['"][\w\d-]+['"]/, "ci_bucket: '#{bucket[:id]}'")
+          updated_line = if describe_line.include?('ci_bucket:')
+            describe_line.gsub(/ci_bucket:\s*['"][\w\d-]+['"]/, "ci_bucket: '#{bucket[:id]}'")
           else
-            # Add ci_bucket before the 'do'
             parts = describe_line.rstrip.split(/\s*do\s*$/)
-            updated_line = "#{parts[0]}, ci_bucket: '#{bucket[:id]}' do#{parts[1]}\n"
+            "#{parts[0]}, ci_bucket: '#{bucket[:id]}' do#{parts[1]}\n"
           end
 
           content[describe_line_index] = updated_line
-
-          # Write the updated content back to the file
           File.write(file_path, content.join)
           puts "Updated #{file_path} with ci_bucket: '#{bucket[:id]}'"
         else
@@ -88,7 +93,9 @@ namespace :ci do
         end
       end
     end
+  end
 
+  def print_summary(buckets)
     puts "Processed #{buckets.sum { |b| b[:specs].size }} test files across #{buckets.size} buckets."
     buckets.each do |bucket|
       puts "#{bucket[:id]}: #{bucket[:specs].size} specs, total time: #{(bucket[:total_time].round / 60).round} minutes"
