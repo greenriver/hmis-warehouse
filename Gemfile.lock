@@ -782,8 +782,8 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
-    rexml (3.2.8)
-      strscan (>= 3.0.9)
+    rexml (3.3.2)
+      strscan
     rgeo (2.4.0)
     rgeo-activerecord (7.0.1)
       activerecord (>= 5.0)
@@ -938,7 +938,7 @@ GEM
       net-ssh (>= 2.8.0)
     ssrf_filter (1.0.8)
     stackprof (0.2.26)
-    stringio (3.1.0)
+    stringio (3.1.1)
     strong_migrations (1.8.0)
       activerecord (>= 5.2)
     strscan (3.1.0)
@@ -1002,9 +1002,6 @@ GEM
       anyway_config (>= 1.0, < 3)
       concurrent-ruby
       dry-initializer
-    yabeda-activerecord (0.1.1)
-      activerecord (>= 6.0)
-      yabeda (~> 0.6)
     yabeda-http_requests (0.2.1)
       sniffer
       yabeda
@@ -1127,6 +1124,7 @@ DEPENDENCIES
   haml (~> 5.2.2)
   haml-rails
   handlebars_assets
+  hashdiff
   hellosign-ruby-sdk!
   html2haml
   htmlentities
@@ -1188,7 +1186,6 @@ DEPENDENCIES
   reline
   responders
   rest-client (~> 2.0)
-  rexml (>= 3.2.7)
   rgeo (~> 2.4.0)
   rgeo-geojson
   rgeo-proj4
@@ -1241,11 +1238,10 @@ DEPENDENCIES
   webmock
   whenever
   with_advisory_lock
-  yabeda-activerecord
   yabeda-http_requests
   yabeda-prometheus
   yabeda-puma-plugin
   yabeda-rails
 
 BUNDLED WITH
-   2.5.7
+   2.5.15

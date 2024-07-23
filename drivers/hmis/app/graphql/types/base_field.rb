@@ -13,7 +13,7 @@ module Types
 
       super(*args, **kwargs, &block)
 
-      extension(DefaultValueExtension, default_value: default_value) if default_value.present?
+      extension(DefaultValueExtension, default_value: default_value) if default_value
 
       return_type = kwargs[:type]
       return unless return_type.is_a?(Class) && return_type < BasePaginated

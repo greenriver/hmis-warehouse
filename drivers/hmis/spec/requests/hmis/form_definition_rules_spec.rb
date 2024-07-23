@@ -48,16 +48,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       result.dig('data', 'assessmentFormDefinition', 'definition', 'item', 0, 'item')
     end
 
-    def assign_rule(rule)
-      base_items[0]['rule'] = rule
+    def assign_rule(rule: nil, custom_rule: nil)
+      base_items[0]['rule'] = rule if rule
+      base_items[0]['custom_rule'] = custom_rule if custom_rule
       Hmis::Form::Definition.
         where(role: form_role).
         update_all(definition: { 'item' => [{ 'type': 'GROUP', 'link_id': 'group-1', 'item': base_items }] })
     end
 
+    describe 'form definition with no rules' do
+      it 'includes all items' do
+        expect(query_form_definition_items.size).to eq(base_items.size)
+      end
+    end
+
     describe 'form definition with projectType rule' do
       let(:project_type) { 5 }
-      before(:each) { assign_rule({ variable: 'projectType', operator: 'EQUAL', value: project_type }) }
+      before(:each) { assign_rule(rule: { variable: 'projectType', operator: 'EQUAL', value: project_type }) }
       it 'excludes filtered items' do
         expect(query_form_definition_items.size).to eq(base_items.size - 1)
       end
@@ -69,9 +76,53 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    describe 'form definition with projectType custom_rule' do
+      let(:project_type) { 5 }
+      before(:each) do
+        assign_rule(
+          custom_rule: { operator: 'ANY', parts: [{ variable: 'projectType', operator: 'EQUAL', value: project_type }] },
+        )
+      end
+      it 'excludes filtered items' do
+        expect(query_form_definition_items.size).to eq(base_items.size - 1)
+      end
+      describe 'with match' do
+        before(:each) { p1.update!(project_type: project_type) }
+        it 'includes all items' do
+          expect(query_form_definition_items.size).to eq(base_items.size)
+        end
+      end
+    end
+
+    describe 'form definition with projectType rule AND projectType custom_rule' do
+      let(:project_type) { 5 }
+      let(:project_type_2) { 6 }
+      before(:each) do
+        assign_rule(
+          rule: { operator: 'ANY', parts: [{ variable: 'projectType', operator: 'EQUAL', value: project_type }] },
+          custom_rule: { operator: 'ANY', parts: [{ variable: 'projectType', operator: 'EQUAL', value: project_type_2 }] },
+        )
+      end
+      it 'excludes filtered items (neither rules match)' do
+        expect(query_form_definition_items.size).to eq(base_items.size - 1)
+      end
+      describe 'with match on HUD Rule (and no match on Custom rule)' do
+        before(:each) { p1.update!(project_type: project_type) }
+        it 'includes all items' do
+          expect(query_form_definition_items.size).to eq(base_items.size)
+        end
+      end
+      describe 'with match on custom rule (and no match on HUD rule)' do
+        before(:each) { p1.update!(project_type: project_type_2) }
+        it 'includes all items' do
+          expect(query_form_definition_items.size).to eq(base_items.size)
+        end
+      end
+    end
+
     describe 'form definition with projectFunders rule' do
       let(:funder) { 1234 }
-      before(:each) { assign_rule({ variable: 'projectFunders', operator: 'INCLUDE', value: funder }) }
+      before(:each) { assign_rule(rule: { variable: 'projectFunders', operator: 'INCLUDE', value: funder }) }
       it 'excludes filtered items' do
         expect(query_form_definition_items.size).to eq(base_items.size - 1)
       end
@@ -97,7 +148,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     describe 'form definition with projectOtherFunders rule' do
       let(:other_funder) { '123XYZ' }
-      before(:each) { assign_rule({ variable: 'projectOtherFunders', operator: 'INCLUDE', value: other_funder }) }
+      before(:each) { assign_rule(rule: { variable: 'projectOtherFunders', operator: 'INCLUDE', value: other_funder }) }
       it 'excludes filtered items' do
         expect(query_form_definition_items.size).to eq(base_items.size - 1)
       end
@@ -113,15 +164,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let(:project_type) { 5 }
       let(:funder) { 1234 }
       before(:each) do
-        assign_rule(
+        assign_rule(rule:
           {
             operator: 'ALL',
             parts: [
               { variable: 'projectType', operator: 'EQUAL', value: project_type },
               { variable: 'projectFunders', operator: 'INCLUDE', value: funder },
             ],
-          },
-        )
+          })
       end
       it 'excludes filtered items' do
         expect(query_form_definition_items.size).to eq(base_items.size - 1)
@@ -147,15 +197,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let(:project_type) { 5 }
       let(:funder) { 1234 }
       before(:each) do
-        assign_rule(
+        assign_rule(rule:
           {
             operator: 'ANY',
             parts: [
               { variable: 'projectType', operator: 'EQUAL', value: project_type },
               { variable: 'projectFunders', operator: 'INCLUDE', value: funder },
             ],
-          },
-        )
+          })
       end
       it 'excludes filtered items' do
         expect(query_form_definition_items.size).to eq(base_items.size - 1)

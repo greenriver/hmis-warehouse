@@ -6,7 +6,8 @@
 
 # An HMIS User indicates that there is a vacancy in a program.
 module HmisExternalApis::AcHmis
-  class CreateReferralRequestJob < ApplicationJob
+  class CreateReferralRequestJob < BaseJob
+    queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
     include HmisExternalApis::AcHmis::ReferralJobMixin
 
     # @param referral_request [HmisExternalApis::AcHmis::ReferralRequest]

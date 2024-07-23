@@ -1,7 +1,8 @@
 [
   {
     "link_id": "non_cash_benefits",
-    "rule": {
+    "custom_rule": {
+      "_comment": "Collect for all except some non-contracted locally-funded projects",
       "operator": "ALL",
       "parts": [
         {

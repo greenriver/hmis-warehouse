@@ -905,5 +905,7 @@ Rails.application.routes.draw do
     get :exception
   end
 
+  get 'healthz' => 'system_status#operational'
+
   root 'root#index'
 end

@@ -6,6 +6,7 @@
 
 module HmisExternalApis::AcHmis::Migration
   class InitialMciUniqueIdCreationJob < BaseJob
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     def perform(clobber: false)
       delete_all_mci_uniq_ids! if clobber
 

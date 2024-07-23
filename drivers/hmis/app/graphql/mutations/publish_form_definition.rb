@@ -8,13 +8,14 @@ module Mutations
   class PublishFormDefinition < CleanBaseMutation
     argument :id, ID, required: true
 
-    field :form_identifier, Types::Forms::FormIdentifier, null: false
+    field :form_identifier, Types::Forms::FormIdentifier, null: true
 
     def resolve(id:)
-      access_denied! unless current_user.can_manage_forms?
-
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
+
+      access_denied! unless current_user.can_manage_forms_for_role?(definition.role)
+
       raise 'only draft forms can be published' unless definition.draft?
 
       previous_published_form = Hmis::Form::Definition.find_by(
@@ -23,9 +24,8 @@ module Mutations
       )
 
       definition.status = Hmis::Form::Definition::PUBLISHED
-
-      validation_errors = definition.validate_json_form
-      return { errors: validation_errors } if validation_errors.any?
+      # Ensure HUD requirements are set correctly (if applicable). This could mutate the definition.
+      definition.set_hud_requirements
 
       Hmis::Form::Definition.transaction do
         # Retire the previously published version
@@ -35,7 +35,10 @@ module Mutations
         new_cdeds = add_missing_custom_field_keys(definition)
         # Save any new CustomDataElementDefinitions
         new_cdeds.each(&:save!)
-        # TODO: call new validation function, which should also validate that all referenced CDEDs exist
+
+        # Validate form structure, including HUD requirements
+        validation_errors = definition.validate_json_form
+        return { errors: validation_errors } if validation_errors.any?
 
         # Save the updated form definition
         definition.save!
@@ -58,8 +61,16 @@ module Mutations
 
       # Common attributes for any CDEDs we will initialize
       data_source = GrdaWarehouse::DataSource.hmis.first
+
+      # FIXME(#6362): For some Definition types (SERVICE, NEW_CLIENT_ENROLLMENT), the desired owner_type may be ambiguous.
+      # This code does not handle that ambiguity.
+      # Instead, it assumes that the CDED "owner_type" should be the same as the definition's "owner_class".
+      # For SERVICE forms, it assumes that the CDED owner should be `CustomService` (as opposed to HUD `Service`).
+      owner_type = definition.owner_class.sti_name
+      owner_type = 'Hmis::Hud::CustomService' if owner_type == 'Hmis::Hud::HmisService'
+
       cded_attributes = {
-        owner_type: definition.owner_class.sti_name,
+        owner_type: owner_type,
         form_definition_identifier: definition.identifier,
         data_source: data_source,
         user_id: Hmis::Hud::User.from_user(current_user).user_id,
@@ -77,7 +88,7 @@ module Mutations
         next if item.mapping&.custom_field_key
 
         cded_key = "#{cded_key_prefix}_#{item.link_id}"
-        cded_key = ensure_unique_key(definition.owner_class.sti_name, cded_key)
+        cded_key = ensure_unique_key(owner_type, cded_key)
 
         cdeds << Hmis::Hud::CustomDataElementDefinition.new(
           key: cded_key,

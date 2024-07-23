@@ -8,8 +8,6 @@ class Rds
 
   REGION             ||= 'us-east-1'.freeze
   AVAILABILITY_ZONE  ||= 'us-east-1a'.freeze
-  ACCESS_KEY_ID      ||= ENV.fetch('RDS_AWS_ACCESS_KEY_ID')
-  SECRET_ACCESS_KEY  ||= ENV.fetch('RDS_AWS_SECRET_ACCESS_KEY')
   USERNAME           ||= ENV.fetch('RDS_USERNAME')
   PASSWORD           ||= ENV.fetch('RDS_PASSWORD')
   DB_INSTANCE_CLASS  ||= ENV.fetch('RDS_DB_INSTANCE_CLASS')
@@ -37,19 +35,7 @@ class Rds
   end
 
   def initialize
-    # if environment is set up correctly, this can be
-    # self.client = Aws::RDS::Client.new
-    if SECRET_ACCESS_KEY.present? && SECRET_ACCESS_KEY != 'unknown'
-      self.client = Aws::RDS::Client.new({
-                                           region: REGION,
-                                           access_key_id: ACCESS_KEY_ID,
-                                           secret_access_key: SECRET_ACCESS_KEY,
-                                         })
-    else
-      self.client = Aws::RDS::Client.new({
-                                           region: REGION,
-                                         })
-    end
+    self.client = Aws::RDS::Client.new
   end
 
   define_method(:sqlservers) { _list.select { |server| server.engine.match(/sqlserver/) } }

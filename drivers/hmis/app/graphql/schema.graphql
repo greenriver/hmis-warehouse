@@ -259,6 +259,7 @@ type Assessment {
   assessmentDate: ISO8601Date!
   ceAssessment: CeAssessment
   client: Client!
+  createdBy: ApplicationUser
   customDataElements: [CustomDataElement!]!
   dataCollectionStage: DataCollectionStage
   dateCreated: ISO8601DateTime
@@ -630,6 +631,7 @@ type CeAssessment {
   assessmentLocation: String!
   assessmentType: AssessmentType
   client: Client!
+  createdBy: ApplicationUser
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
@@ -653,6 +655,7 @@ type CeParticipation {
   accessPoint: NoYes
   ceParticipationStatusEndDate: ISO8601Date
   ceParticipationStatusStartDate: ISO8601Date
+  createdBy: ApplicationUser
   crisisAssessment: NoYes
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
@@ -722,6 +725,7 @@ type Client {
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(filters: ClientAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
+  createdBy: ApplicationUser
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   customCaseNotes(limit: Int, offset: Int, sortOrder: CustomCaseNoteSortOption): CustomCaseNotesPaginated!
   customDataElements: [CustomDataElement!]!
@@ -829,6 +833,7 @@ type ClientAddress {
   city: String
   client: Client!
   country: String
+  createdBy: ApplicationUser
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
@@ -975,6 +980,7 @@ type ClientAuditEventsPaginated {
 
 type ClientContactPoint {
   client: Client!
+  createdBy: ApplicationUser
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
@@ -1087,6 +1093,7 @@ input ClientMergeInput {
 
 type ClientName {
   client: Client!
+  createdBy: ApplicationUser
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
@@ -1694,6 +1701,7 @@ HUD Current Living Situation
 type CurrentLivingSituation {
   client: Client!
   clsSubsidyType: RentalSubsidyType
+  createdBy: ApplicationUser
   currentLivingSituation: CurrentLivingSituationOptions!
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime
@@ -1899,6 +1907,7 @@ Case Note
 type CustomCaseNote {
   client: Client!
   content: String!
+  createdBy: ApplicationUser
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
@@ -1967,6 +1976,7 @@ enum CustomDataElementType {
 }
 
 type CustomDataElementValue {
+  createdBy: ApplicationUser
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
@@ -2848,6 +2858,7 @@ type DisabilitiesPaginated {
 type Disability {
   antiRetroviral: NoYesReasonsForMissingData
   client: Client!
+  createdBy: ApplicationUser
   dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
@@ -3065,6 +3076,7 @@ HUD Employment Education
 """
 type EmploymentEducation {
   client: Client!
+  createdBy: ApplicationUser
   dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
@@ -3219,6 +3231,7 @@ type Enrollment {
   clientLeaseholder: NoYesMissing
   cocPrioritized: NoYesMissing
   countOutreachReferralApproaches: Int
+  createdBy: ApplicationUser
   criminalRecord: NoYesMissing
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   currentPregnant: NoYesMissing
@@ -3556,6 +3569,7 @@ HUD Event
 """
 type Event {
   client: Client!
+  createdBy: ApplicationUser
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
@@ -3730,6 +3744,7 @@ type Exit {
   counselingMethods: [CounselingMethod!]
   counselingReceived: NoYesMissing
   countOfExchangeForSex: CountExchangeForSex
+  createdBy: ApplicationUser
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
@@ -4443,6 +4458,7 @@ enum FormStatus {
 
 type Funder {
   active: Boolean!
+  createdBy: ApplicationUser
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
@@ -4880,6 +4896,7 @@ enum HOPWAMedAssistedLivingFac {
 
 type HealthAndDv {
   client: Client!
+  createdBy: ApplicationUser
   currentlyFleeing: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime
@@ -4959,6 +4976,7 @@ enum HealthStatus {
 }
 
 type HmisParticipation {
+  createdBy: ApplicationUser
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
@@ -5219,6 +5237,7 @@ type IncomeBenefit {
   client: Client!
   cobra: NoYesMissing
   connectionWithSoar: NoYesReasonsForMissingData
+  createdBy: ApplicationUser
   customDataElements: [CustomDataElement!]!
   dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime
@@ -5363,6 +5382,7 @@ type Inventory {
   chVetBedInventory: Int
   chYouthBedInventory: Int
   cocCode: String
+  createdBy: ApplicationUser
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
@@ -6322,6 +6342,7 @@ union OmnisearchResult = Client | Project
 type Organization {
   access: OrganizationAccess!
   contactInformation: String
+  createdBy: ApplicationUser
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
@@ -6517,6 +6538,11 @@ enum PickListType {
   External form types for the project.
   """
   EXTERNAL_FORM_TYPES_FOR_PROJECT
+
+  """
+  Form Types
+  """
+  FORM_TYPES
   GEOCODE
 
   """
@@ -8381,6 +8407,7 @@ type Project {
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
   contactInformation: String
   continuumProject: NoYes
+  createdBy: ApplicationUser
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   customDataElements: [CustomDataElement!]!
 
@@ -8456,6 +8483,7 @@ type ProjectCoc {
   address2: String
   city: String
   cocCode: String
+  createdBy: ApplicationUser
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
@@ -8686,7 +8714,7 @@ Autogenerated return type of PublishFormDefinition.
 """
 type PublishFormDefinitionPayload {
   errors: [ValidationError!]!
-  formIdentifier: FormIdentifier!
+  formIdentifier: FormIdentifier
 }
 
 type Query {
@@ -8808,6 +8836,11 @@ type Query {
   project(id: ID!): Project
 
   """
+  Whether the destination project is able to accept a referral for the client(s) belonging to the source enrollment
+  """
+  projectCanAcceptReferral(destinationProjectId: ID!, sourceEnrollmentId: ID!): Boolean!
+
+  """
   Project CoC lookup
   """
   projectCoc(id: ID!): ProjectCoc
@@ -8854,6 +8887,7 @@ type Query {
 
 type QueryAccess {
   canAdministerHmis: Boolean!
+  canAdministrateConfig: Boolean!
   canAuditClients: Boolean!
   canAuditEnrollments: Boolean!
   canAuditUsers: Boolean!
@@ -9429,11 +9463,6 @@ Referral Posting Status
 """
 enum ReferralPostingStatus {
   """
-  Accepted By Other Program
-  """
-  accepted_by_other_program_status
-
-  """
   Accepted Pending
   """
   accepted_pending_status
@@ -9449,11 +9478,6 @@ enum ReferralPostingStatus {
   assigned_status
 
   """
-  Assigned To Other Program
-  """
-  assigned_to_other_program_status
-
-  """
   Closed
   """
   closed_status
@@ -9467,21 +9491,6 @@ enum ReferralPostingStatus {
   Denied
   """
   denied_status
-
-  """
-  New
-  """
-  new_status
-
-  """
-  Not Selected
-  """
-  not_selected_status
-
-  """
-  Void
-  """
-  void_status
 }
 
 type ReferralPostingsPaginated {
@@ -10038,6 +10047,7 @@ HUD or Custom Service rendered
 """
 type Service {
   client: Client!
+  createdBy: ApplicationUser
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
@@ -10069,6 +10079,7 @@ type ServiceCategoriesPaginated {
 }
 
 type ServiceCategory {
+  createdBy: ApplicationUser
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
@@ -10303,6 +10314,7 @@ enum ServiceSubTypeProvided {
 
 type ServiceType {
   category: String!
+  createdBy: ApplicationUser
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
@@ -12434,6 +12446,7 @@ HUD Youth Education Status
 """
 type YouthEducationStatus {
   client: Client!
+  createdBy: ApplicationUser
   currentEdStatus: CurrentEdStatus
   currentSchoolAttend: CurrentSchoolAttended
   dataCollectionStage: DataCollectionStage!

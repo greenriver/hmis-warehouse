@@ -40,13 +40,15 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # convenience attr for passing graphql args
   attr_accessor :filter_context
 
-  has_many :instances, foreign_key: :definition_identifier, primary_key: :identifier, dependent: :restrict_with_exception
+  # --- Relations by id ----
   has_many :form_processors, dependent: :restrict_with_exception
-  has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
   has_many :external_form_submissions, class_name: 'HmisExternalApis::ExternalForms::FormSubmission', dependent: :restrict_with_exception
   has_many :external_form_publications, class_name: 'HmisExternalApis::ExternalForms::FormPublication', dependent: :destroy
-  has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition', dependent: :nullify,
-                                             primary_key: 'identifier', foreign_key: 'form_definition_identifier'
+
+  # --- Relations by identifier ----
+  has_many :instances, foreign_key: 'definition_identifier', primary_key: 'identifier'
+  has_many :custom_service_types, through: :instances, foreign_key: 'identifier', primary_key: 'form_definition_identifier'
+  has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition', primary_key: 'identifier', foreign_key: 'form_definition_identifier'
   has_one :published_version, -> { order(version: :desc).published }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
   has_one :draft_version, -> { order(version: :desc).draft }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
   has_many :all_versions, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
@@ -216,6 +218,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   }.freeze
   NON_QUESTION_ITEM_TYPES = ['DISPLAY', 'GROUP'].freeze
 
+  # Forms that are editable by users with can_manage_forms permission, and viewable/configurable (e.g. form rules)
+  # by users with can_configure_data_collection (without needing the 'super-admin' permission can_administrate_config)
+  NON_ADMIN_FORM_ROLES = [
+    'SERVICE',
+    'CUSTOM_ASSESSMENT',
+  ].freeze
+
   # All form roles
   use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CE)
   # Form roles that can be used with SubmitForm for editing records
@@ -226,6 +235,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   use_enum_with_same_key :data_collection_feature_role_enum_map, DATA_COLLECTION_FEATURE_ROLES
   # Form roles that are static
   use_enum_with_same_key :static_form_role_enum_map, STATIC_FORM_ROLES
+  # Form roles that are non-admin; see comment above on NON_ADMIN_FORM_ROLES
+  use_enum_with_same_key :non_admin_form_role_enum_map, NON_ADMIN_FORM_ROLES
 
   scope :exclude_definition_from_select, -> {
     # Get all column names except 'definition'
@@ -233,6 +244,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   }
 
   scope :with_role, ->(role) { where(role: role) }
+
+  before_destroy :can_be_destroyed, prepend: true
+  private def can_be_destroyed
+    return if draft?
+
+    errors.add(:base, 'Non-draft form cannot be destroyed')
+    throw :abort
+  end
 
   # Finding the appropriate form definition for a project:
   #  * find the active published definitions for the required role (i.e. INTAKE)
@@ -340,7 +359,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # Validate the JSON form content
   # Returns an array of HmisErrors::Error objects
   def validate_json_form
-    Hmis::Form::DefinitionValidator.perform(definition, role)
+    # Skip validation of CustomDataElementDefinitions on draft form, because new CDEDs won't be created yet
+    Hmis::Form::DefinitionValidator.perform(definition, role, skip_cded_validation: draft?)
   end
 
   def self.validate_schema(json)
@@ -365,12 +385,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     status == DRAFT
   end
 
-  def owner_class
+  def self.owner_class_for_role(role)
     return Hmis::Hud::CustomAssessment if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 
     return unless FORM_ROLE_CONFIG[role.to_sym].present?
 
     FORM_ROLE_CONFIG[role.to_sym][:owner_class].constantize
+  end
+
+  def owner_class
+    self.class.owner_class_for_role(role)
   end
 
   def record_editing_permissions
@@ -599,5 +623,48 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   def self.generate_cded_field_label(item)
     label = item.readonly_text.presence || item.brief_text.presence || item.text.presence || item.link_id.humanize
     ActionView::Base.full_sanitizer.sanitize(label)[0..100].strip
+  end
+
+  def set_hud_requirements
+    changed = [] # list of Link IDs that were changed
+    rule_module = HmisUtil::HudAssessmentFormRules2024.new
+
+    walk_definition_nodes do |item|
+      link_id = item['link_id']
+
+      # Check if there is a required data collection rule for this link_id for this data collection stage (ie role)
+      hud_rule = rule_module.hud_data_element_rule(role, link_id)
+      if hud_rule
+        # If the rule is different from what's on the item, update it
+        difference = Hashdiff.diff(hud_rule, item['rule'], ignore_keys: '_comment')
+        if difference.present?
+          # puts "changing rule for #{link_id}: #{difference}"
+          item['rule'] = hud_rule
+          changed << link_id
+        end
+      end
+
+      # Check if there is a "Data Collected About" requirement for this link_id for this data collection stage
+      required_dca = rule_module.hud_data_element_data_collected_about(role, link_id)&.to_s
+      if required_dca
+        # Choose the less strict "data collected about". Examples:
+        #   if HUD requires collection for 'HOH', but the form specifies 'HOH_AND_ADULTS', then leave it as-is (HOH_AND_ADULTS)
+        #   if HUD requires collection for 'HOH_AND_ADULTS', but the form specifies it for 'HOH', "downgrade" the value to the less strict HUD value (HOH_AND_ADULTS)
+        current_dca = item['data_collected_about']&.to_s
+        chosen_dca = [required_dca, current_dca].compact_blank.min_by do |val|
+          rank = Hmis::Form::InstanceEnrollmentMatch::MATCHES.find_index(val)
+          raise "invalid data_collected_about: #{val}" if rank.nil?
+
+          rank
+        end
+
+        if chosen_dca != current_dca
+          # puts "changing data_collected_about for #{link_id}: (#{current_dca}=>#{chosen_dca})"
+          item['data_collected_about'] = chosen_dca
+          changed << link_id unless current_dca.blank? && chosen_dca == 'ALL_CLIENTS' # nil is functionally equivalent to ALL_CLIENTS, so don't consider it "changed"
+        end
+      end
+    end
+    changed
   end
 end

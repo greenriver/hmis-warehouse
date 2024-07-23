@@ -50,6 +50,8 @@ module UserPermissions
         :can_manage_some_ad_hoc_ds,
         :can_view_some_vprs,
         :can_edit_some_project_groups,
+        :can_manage_forms_for_role,
+        :can_configure_data_collection_for_role,
       ].freeze
     end
 
@@ -213,6 +215,14 @@ module UserPermissions
 
     def can_edit_some_project_groups
       can_edit_assigned_project_groups? || can_edit_project_groups?
+    end
+
+    def can_manage_forms_for_role(role)
+      can_manage_forms? && (Hmis::Form::Definition::NON_ADMIN_FORM_ROLES.include?(role.to_s) || can_administrate_config?)
+    end
+
+    def can_configure_data_collection_for_role(role)
+      can_configure_data_collection? && (Hmis::Form::Definition::NON_ADMIN_FORM_ROLES.include?(role.to_s) || can_administrate_config?)
     end
 
     # Allow all methods above to respond with or without a ?

@@ -13,6 +13,8 @@
       %tbody
         - group.each do |anomaly|
           - object = anomaly.versions.where(event: :update).first&.reify || anomaly
+          - whodunnit = anomaly.versions.first&.whodunnit
+          - reported_by = whodunnit ? User.find(whodunnit)&.name : nil
           %tr
             %td
               - if anomaly.client.present?
@@ -26,4 +28,4 @@
             %td
               = anomaly.updated_at
             %td
-              = User.find(anomaly.versions.first.whodunnit)&.name
+              = reported_by || 'Unknown User'

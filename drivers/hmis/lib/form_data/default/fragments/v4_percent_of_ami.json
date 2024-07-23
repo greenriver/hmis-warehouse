@@ -3,37 +3,6 @@
   "link_id": "V4",
   "data_collected_about": "HOH",
   "text": "Percent of AMI (SSVF Eligibility)",
-  "rule": {
-    "operator": "ANY",
-    "parts": [
-      {
-        "operator": "ALL",
-        "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "VA: SSVF"
-          },
-          {
-            "operator": "ANY",
-            "parts": [
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 12
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 13
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
   "item": [
     {
       "type": "CHOICE",

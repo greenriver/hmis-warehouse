@@ -34,7 +34,7 @@ FactoryBot.define do
 
     trait :housing_preference do
       owner_type { 'Hmis::Hud::CustomAssessment' }
-      field_type { :housing_preference }
+      field_type { :string }
       key { 'housing_preference' }
       label { 'Housing preference, can pick only one' }
       repeats { false }
