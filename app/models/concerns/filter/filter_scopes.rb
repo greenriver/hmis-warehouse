@@ -131,7 +131,7 @@ module Filter::FilterScopes
       scope.merge(race_scope)
     end
 
-    private def multi_racial_clients
+    private def multi_racial_clients(include_hispanic_latinaeo: true)
       # Looking at all races with responses of 1, where we have a sum > 1
       columns = [
         c_t[:AmIndAKNative],
@@ -139,9 +139,10 @@ module Filter::FilterScopes
         c_t[:BlackAfAmerican],
         c_t[:NativeHIPacific],
         c_t[:White],
-        c_t[:HispanicLatinaeo],
         c_t[:MidEastNAfrican],
       ]
+      columns << c_t[:HispanicLatinaeo] if include_hispanic_latinaeo
+
       report_scope_source.joins(:client).
         where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
     end
@@ -156,6 +157,45 @@ module Filter::FilterScopes
 
     private def race_alternative(key)
       report_scope_source.joins(:client).where(c_t[key].eq(1))
+    end
+
+    private def filter_for_race_ethnicity_combinations(scope)
+      return scope unless @filter.race_ethnicity_combinations.present?
+
+      race_ethnicity_scope = nil
+      @filter.race_ethnicity_combinations.each do |combination|
+        hispanic_latinaeo = combination.to_s.ends_with?('_hispanic_latinaeo')
+        race_column = HudUtility2024.race_column_name(combination.to_s.gsub('_hispanic_latinaeo', ''))
+        alternative = race_ethnicity_alternative(scope, race_column, hispanic_latinaeo)
+        race_ethnicity_scope = add_alternative(race_ethnicity_scope, alternative)
+      end
+
+      scope.joins(:client).merge(race_ethnicity_scope)
+    end
+
+    private def race_ethnicity_alternative(scope, key, hispanic_latinaeo = false)
+      columns = (HudUtility2024.race_fields - [:RaceNone]).map { |k| [k, 0] }.to_h
+
+      key = key.to_sym
+      if key.in?([:MultiRacial, :multi_racial])
+        query = multi_racial_clients(include_hispanic_latinaeo: false)
+        query = query.where(c_t[:HispanicLatinaeo].eq(hispanic_latinaeo ? 1 : 0))
+        return scope.merge(query)
+      elsif key.in?([:RaceNone, :race_none])
+        return scope.where(c_t[:RaceNone].in([8, 9, 99]))
+      else
+        columns[key] = 1
+        columns[:HispanicLatinaeo] = 1 if hispanic_latinaeo
+        query = nil
+        columns.each do |k, v|
+          if query.nil?
+            query = c_t[k].eq(v)
+          else
+            query = query.and(c_t[k].eq(v))
+          end
+        end
+        scope.where(query)
+      end
     end
 
     private def filter_for_veteran_status(scope)

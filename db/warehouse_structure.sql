@@ -161,116 +161,116 @@ $_$;
 
 CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
     LANGUAGE plpgsql
-    AS $$
-      BEGIN
-      IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
-            INSERT INTO service_history_services_2050 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
-            INSERT INTO service_history_services_2049 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
-            INSERT INTO service_history_services_2048 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
-            INSERT INTO service_history_services_2047 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
-            INSERT INTO service_history_services_2046 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
-            INSERT INTO service_history_services_2045 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
-            INSERT INTO service_history_services_2044 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
-            INSERT INTO service_history_services_2043 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
-            INSERT INTO service_history_services_2042 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
-            INSERT INTO service_history_services_2041 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
-            INSERT INTO service_history_services_2040 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
-            INSERT INTO service_history_services_2039 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
-            INSERT INTO service_history_services_2038 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
-            INSERT INTO service_history_services_2037 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
-            INSERT INTO service_history_services_2036 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
-            INSERT INTO service_history_services_2035 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
-            INSERT INTO service_history_services_2034 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
-            INSERT INTO service_history_services_2033 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
-            INSERT INTO service_history_services_2032 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
-            INSERT INTO service_history_services_2031 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
-            INSERT INTO service_history_services_2030 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
-            INSERT INTO service_history_services_2029 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
-            INSERT INTO service_history_services_2028 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
-            INSERT INTO service_history_services_2027 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
-            INSERT INTO service_history_services_2026 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
-            INSERT INTO service_history_services_2025 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
-            INSERT INTO service_history_services_2024 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
-            INSERT INTO service_history_services_2023 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
-            INSERT INTO service_history_services_2022 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
-            INSERT INTO service_history_services_2021 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
-            INSERT INTO service_history_services_2020 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
-            INSERT INTO service_history_services_2019 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
-            INSERT INTO service_history_services_2018 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
-            INSERT INTO service_history_services_2017 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
-            INSERT INTO service_history_services_2016 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
-            INSERT INTO service_history_services_2015 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
-            INSERT INTO service_history_services_2014 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
-            INSERT INTO service_history_services_2013 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
-            INSERT INTO service_history_services_2012 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
-            INSERT INTO service_history_services_2011 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
-            INSERT INTO service_history_services_2010 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
-            INSERT INTO service_history_services_2009 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
-            INSERT INTO service_history_services_2008 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
-            INSERT INTO service_history_services_2007 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
-            INSERT INTO service_history_services_2006 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
-            INSERT INTO service_history_services_2005 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
-            INSERT INTO service_history_services_2004 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
-            INSERT INTO service_history_services_2003 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
-            INSERT INTO service_history_services_2002 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
-            INSERT INTO service_history_services_2001 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
-            INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
-      ELSE
-        INSERT INTO service_history_services_remainder VALUES (NEW.*);
-        END IF;
-        RETURN NULL;
-    END;
+    AS $$
+      BEGIN
+      IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
+            INSERT INTO service_history_services_2050 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
+            INSERT INTO service_history_services_2049 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
+            INSERT INTO service_history_services_2048 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
+            INSERT INTO service_history_services_2047 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
+            INSERT INTO service_history_services_2046 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
+            INSERT INTO service_history_services_2045 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
+            INSERT INTO service_history_services_2044 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
+            INSERT INTO service_history_services_2043 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
+            INSERT INTO service_history_services_2042 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
+            INSERT INTO service_history_services_2041 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
+            INSERT INTO service_history_services_2040 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
+            INSERT INTO service_history_services_2039 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
+            INSERT INTO service_history_services_2038 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
+            INSERT INTO service_history_services_2037 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
+            INSERT INTO service_history_services_2036 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
+            INSERT INTO service_history_services_2035 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
+            INSERT INTO service_history_services_2034 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
+            INSERT INTO service_history_services_2033 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
+            INSERT INTO service_history_services_2032 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
+            INSERT INTO service_history_services_2031 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
+            INSERT INTO service_history_services_2030 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
+            INSERT INTO service_history_services_2029 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
+            INSERT INTO service_history_services_2028 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
+            INSERT INTO service_history_services_2027 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
+            INSERT INTO service_history_services_2026 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
+            INSERT INTO service_history_services_2025 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
+            INSERT INTO service_history_services_2024 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
+            INSERT INTO service_history_services_2023 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
+            INSERT INTO service_history_services_2022 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
+            INSERT INTO service_history_services_2021 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
+            INSERT INTO service_history_services_2020 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
+            INSERT INTO service_history_services_2019 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
+            INSERT INTO service_history_services_2018 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
+            INSERT INTO service_history_services_2017 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
+            INSERT INTO service_history_services_2016 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
+            INSERT INTO service_history_services_2015 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
+            INSERT INTO service_history_services_2014 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
+            INSERT INTO service_history_services_2013 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
+            INSERT INTO service_history_services_2012 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
+            INSERT INTO service_history_services_2011 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
+            INSERT INTO service_history_services_2010 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
+            INSERT INTO service_history_services_2009 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
+            INSERT INTO service_history_services_2008 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
+            INSERT INTO service_history_services_2007 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
+            INSERT INTO service_history_services_2006 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
+            INSERT INTO service_history_services_2005 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
+            INSERT INTO service_history_services_2004 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
+            INSERT INTO service_history_services_2003 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
+            INSERT INTO service_history_services_2002 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
+            INSERT INTO service_history_services_2001 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
+            INSERT INTO service_history_services_2000 VALUES (NEW.*);
+        
+      ELSE
+        INSERT INTO service_history_services_remainder VALUES (NEW.*);
+        END IF;
+        RETURN NULL;
+    END;
     $$;
 
 
@@ -3014,8 +3014,8 @@ ALTER SEQUENCE public.api_client_data_source_ids_id_seq OWNED BY public.api_clie
 CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -6550,8 +6550,8 @@ CREATE TABLE public.configs (
     roi_model character varying DEFAULT 'explicit'::character varying,
     client_dashboard character varying DEFAULT 'default'::character varying NOT NULL,
     require_service_for_reporting_default boolean DEFAULT true NOT NULL,
-    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
     verified_homeless_history_method character varying DEFAULT 'visible_in_window'::character varying,
+    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
     youth_hoh_cohort boolean DEFAULT false NOT NULL,
     youth_hoh_cohort_project_group_id integer,
     chronic_tab_justifications boolean DEFAULT true,
@@ -7420,7 +7420,7 @@ ALTER SEQUENCE public.enrollment_change_histories_id_seq OWNED BY public.enrollm
 
 CREATE TABLE public.enrollment_extras (
     id integer NOT NULL,
-    enrollment_id integer,
+    enrollment_id integer NOT NULL,
     vispdat_grand_total integer,
     vispdat_added_at date,
     vispdat_started_at date,
@@ -7892,10 +7892,10 @@ CREATE TABLE public.external_request_logs (
     request_headers jsonb DEFAULT '{}'::jsonb NOT NULL,
     request text NOT NULL,
     response text NOT NULL,
-    http_status integer,
     requested_at timestamp without time zone NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    http_status integer
 );
 
 
@@ -13041,8 +13041,7 @@ CREATE TABLE public.hmis_2024_projects (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -17302,8 +17301,7 @@ CREATE TABLE public.hmis_csv_2024_projects (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -17712,14 +17710,14 @@ CREATE TABLE public.hmis_dqt_clients (
     overlapping_nbn integer,
     overlapping_pre_move_in integer,
     overlapping_post_move_in integer,
-    ch_at_most_recent_entry boolean DEFAULT false,
-    ch_at_any_entry boolean DEFAULT false,
     veteran_status integer,
     ssn character varying,
     ssn_data_quality integer,
     name_data_quality integer,
     ethnicity integer,
     reporting_age integer,
+    ch_at_most_recent_entry boolean DEFAULT false,
+    ch_at_any_entry boolean DEFAULT false,
     woman integer,
     man integer,
     culturally_specific integer,
@@ -17847,7 +17845,6 @@ CREATE TABLE public.hmis_dqt_enrollments (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     project_type integer,
-    ch_at_entry boolean DEFAULT false,
     project_id integer,
     household_type character varying,
     household_min_age integer,
@@ -17873,19 +17870,20 @@ CREATE TABLE public.hmis_dqt_enrollments (
     cash_income_as_expected_at_entry boolean DEFAULT false,
     cash_income_as_expected_at_annual boolean DEFAULT false,
     cash_income_as_expected_at_exit boolean DEFAULT false,
-    ncb_from_any_source_at_entry_remove integer,
-    ncb_from_any_source_at_annual_remove integer,
-    ncb_from_any_source_at_exit_remove integer,
+    ncb_from_any_source_at_entry_remove boolean DEFAULT false,
+    ncb_from_any_source_at_annual_remove boolean DEFAULT false,
+    ncb_from_any_source_at_exit_remove boolean DEFAULT false,
     ncb_as_expected_at_entry boolean DEFAULT false,
     ncb_as_expected_at_annual boolean DEFAULT false,
     ncb_as_expected_at_exit boolean DEFAULT false,
-    insurance_from_any_source_at_entry_remove integer,
-    insurance_from_any_source_at_annual_remove integer,
-    insurance_from_any_source_at_exit_remove integer,
+    insurance_from_any_source_at_entry_remove boolean DEFAULT false,
+    insurance_from_any_source_at_annual_remove boolean DEFAULT false,
+    insurance_from_any_source_at_exit_remove boolean DEFAULT false,
     insurance_as_expected_at_entry boolean DEFAULT false,
     insurance_as_expected_at_annual boolean DEFAULT false,
     insurance_as_expected_at_exit boolean DEFAULT false,
     disability_at_entry_collected boolean DEFAULT false,
+    ch_at_entry boolean DEFAULT false,
     previous_street_es_sh integer,
     entry_date_entered_at timestamp without time zone,
     exit_date_entered_at timestamp without time zone,
@@ -17897,6 +17895,12 @@ CREATE TABLE public.hmis_dqt_enrollments (
     annual_expected boolean,
     enrollment_anniversary_date date,
     annual_assessment_status json,
+    ncb_from_any_source_at_entry integer,
+    ncb_from_any_source_at_annual integer,
+    ncb_from_any_source_at_exit integer,
+    insurance_from_any_source_at_entry integer,
+    insurance_from_any_source_at_annual integer,
+    insurance_from_any_source_at_exit integer,
     funders jsonb,
     percent_ami integer,
     vamc_station character varying,
@@ -17916,13 +17920,7 @@ CREATE TABLE public.hmis_dqt_enrollments (
     discharge_status integer,
     employed integer,
     employment_type integer,
-    not_employed_reason integer,
-    ncb_from_any_source_at_entry integer,
-    ncb_from_any_source_at_annual integer,
-    ncb_from_any_source_at_exit integer,
-    insurance_from_any_source_at_entry integer,
-    insurance_from_any_source_at_annual integer,
-    insurance_from_any_source_at_exit integer
+    not_employed_reason integer
 );
 
 
@@ -18398,8 +18396,8 @@ CREATE TABLE public.hmis_form_definitions (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     title character varying NOT NULL,
-    external_form_object_key character varying,
     deleted_at timestamp without time zone,
+    external_form_object_key character varying,
     backup_definition jsonb
 );
 
@@ -18958,80 +18956,6 @@ CREATE TABLE public.hmis_staff (
 
 
 --
--- Name: hmis_staff_assignment_types; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_staff_assignment_types (
-    id bigint NOT NULL,
-    name character varying NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: COLUMN hmis_staff_assignment_types.name; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.hmis_staff_assignment_types.name IS 'name of role, such as "Case Manager" or "Housing Navigator"';
-
-
---
--- Name: hmis_staff_assignment_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_staff_assignment_types_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_staff_assignment_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_staff_assignment_types_id_seq OWNED BY public.hmis_staff_assignment_types.id;
-
-
---
--- Name: hmis_staff_assignments; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_staff_assignments (
-    id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    household_id character varying,
-    hmis_staff_assignment_type_id bigint NOT NULL,
-    data_source_id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: hmis_staff_assignments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_staff_assignments_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_staff_assignments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_staff_assignments_id_seq OWNED BY public.hmis_staff_assignments.id;
-
-
---
 -- Name: hmis_staff_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -19412,7 +19336,83 @@ CREATE TABLE public.homeless_summary_report_clients (
     spm_only_children__hispanic_latinaeo integer,
     spm_without_children_and_fifty_five_plus__mid_east_n_african integer,
     spm_without_children_and_fifty_five_plus__hispanic_latinaeo integer,
-    spm_adults_with_children_where_parenting_adult_18_to_24__mid_ea integer
+    spm_adults_with_children_where_parenting_adult_18_to_24__mid_ea integer,
+    spm_all_persons__am_ind_ak_native integer,
+    spm_all_persons__am_ind_ak_native_hispanic_latinaeo integer,
+    spm_all_persons__asian_hispanic_latinaeo integer,
+    spm_all_persons__black_af_american integer,
+    spm_all_persons__black_af_american_hispanic_latinaeo integer,
+    spm_all_persons__mid_east_n_african_hispanic_latinaeo integer,
+    spm_all_persons__native_hi_pacific integer,
+    spm_all_persons__native_hi_pacific_hispanic_latinaeo integer,
+    spm_all_persons__white_hispanic_latinaeo integer,
+    spm_all_persons__multi_racial_hispanic_latinaeo integer,
+    spm_all_persons__returned integer,
+    spm_without_children__am_ind_ak_native integer,
+    spm_without_children__am_ind_ak_native_hispanic_latinaeo integer,
+    spm_without_children__asian_hispanic_latinaeo integer,
+    spm_without_children__black_af_american integer,
+    spm_without_children__black_af_american_hispanic_latinaeo integer,
+    spm_without_children__mid_east_n_african_hispanic_latinaeo integer,
+    spm_without_children__native_hi_pacific integer,
+    spm_without_children__native_hi_pacific_hispanic_latinaeo integer,
+    spm_without_children__white_hispanic_latinaeo integer,
+    spm_without_children__multi_racial_hispanic_latinaeo integer,
+    spm_without_children__returned integer,
+    spm_with_children__am_ind_ak_native integer,
+    spm_with_children__am_ind_ak_native_hispanic_latinaeo integer,
+    spm_with_children__asian_hispanic_latinaeo integer,
+    spm_with_children__black_af_american integer,
+    spm_with_children__black_af_american_hispanic_latinaeo integer,
+    spm_with_children__mid_east_n_african_hispanic_latinaeo integer,
+    spm_with_children__native_hi_pacific integer,
+    spm_with_children__native_hi_pacific_hispanic_latinaeo integer,
+    spm_with_children__white_hispanic_latinaeo integer,
+    spm_with_children__multi_racial_hispanic_latinaeo integer,
+    spm_with_children__returned integer,
+    spm_only_children__am_ind_ak_native integer,
+    spm_only_children__am_ind_ak_native_hispanic_latinaeo integer,
+    spm_only_children__asian_hispanic_latinaeo integer,
+    spm_only_children__black_af_american integer,
+    spm_only_children__black_af_american_hispanic_latinaeo integer,
+    spm_only_children__mid_east_n_african_hispanic_latinaeo integer,
+    spm_only_children__native_hi_pacific integer,
+    spm_only_children__native_hi_pacific_hispanic_latinaeo integer,
+    spm_only_children__white_hispanic_latinaeo integer,
+    spm_only_children__multi_racial_hispanic_latinaeo integer,
+    spm_only_children__returned integer,
+    spm_without_children_and_fifty_five_plus__am_ind_ak_native integer,
+    spm_nc_55__am_ind_ak_native_hispanic_latinaeo integer,
+    spm_nc_55__asian_hispanic_latinaeo integer,
+    spm_without_children_and_fifty_five_plus__black_af_american integer,
+    spm_nc_55__black_af_american_hispanic_latinaeo integer,
+    spm_nc_55__mid_east_n_african_hispanic_latinaeo integer,
+    spm_without_children_and_fifty_five_plus__native_hi_pacific integer,
+    spm_nc_55__native_hi_pacific_hispanic_latinaeo integer,
+    spm_nc_55__white_hispanic_latinaeo integer,
+    spm_nc_55__multi_racial_hispanic_latinaeo integer,
+    spm_nc_55__returned_to_homelessness_from_permanent_destination integer,
+    spm_wc_18_to_24__am_ind_ak_native integer,
+    spm_wc_18_to_24__am_ind_ak_native_hispanic_latinaeo integer,
+    spm_wc_18_to_24__asian_hispanic_latinaeo integer,
+    spm_wc_18_to_24__black_af_american integer,
+    spm_wc_18_to_24__black_af_american_hispanic_latinaeo integer,
+    spm_wc_18_to_24__hispanic_latinaeo integer,
+    spm_wc_18_to_24__mid_east_n_african integer,
+    spm_wc_18_to_24__mid_east_n_african_hispanic_latinaeo integer,
+    spm_wc_18_to_24__native_hi_pacific integer,
+    spm_wc_18_to_24__native_hi_pacific_hispanic_latinaeo integer,
+    spm_wc_18_to_24__white_hispanic_latinaeo integer,
+    spm_wc_18_to_24__multi_racial integer,
+    spm_wc_18_to_24__multi_racial_hispanic_latinaeo integer,
+    spm_wc_18_to_24__race_none integer,
+    spm_wc_18_to_24__fleeing_dv integer,
+    spm_wc_18_to_24__veteran integer,
+    spm_wc_18_to_24__has_disability integer,
+    spm_wc_18_to_24__has_rrh_move_in_date integer,
+    spm_wc_18_to_24__has_psh_move_in_date integer,
+    spm_wc_18_to_24__first_time_homeless integer,
+    spm_wc_18_to_24__returned integer
 );
 
 
@@ -19835,8 +19835,8 @@ CREATE TABLE public.hud_report_apr_clients (
     source_enrollment_id integer,
     los_under_threshold integer,
     project_id integer,
-    client_created_at timestamp without time zone,
     personal_id character varying,
+    client_created_at timestamp without time zone,
     race_multi character varying,
     exit_destination_subsidy_type integer,
     domestic_violence_occurred integer,
@@ -20898,6 +20898,189 @@ CREATE SEQUENCE public.hud_report_universe_members_id_seq
 --
 
 ALTER SEQUENCE public.hud_report_universe_members_id_seq OWNED BY public.hud_report_universe_members.id;
+
+
+--
+-- Name: hud_spm_bed_nights; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_spm_bed_nights (
+    id bigint NOT NULL,
+    date date,
+    service_id bigint,
+    enrollment_id bigint,
+    client_id bigint
+);
+
+
+--
+-- Name: hud_spm_bed_nights_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_spm_bed_nights_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_spm_bed_nights_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_spm_bed_nights_id_seq OWNED BY public.hud_spm_bed_nights.id;
+
+
+--
+-- Name: hud_spm_enrollment_links; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_spm_enrollment_links (
+    id bigint NOT NULL,
+    enrollment_id bigint,
+    episode_type character varying,
+    episode_id bigint
+);
+
+
+--
+-- Name: hud_spm_enrollment_links_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_spm_enrollment_links_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_spm_enrollment_links_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_spm_enrollment_links_id_seq OWNED BY public.hud_spm_enrollment_links.id;
+
+
+--
+-- Name: hud_spm_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_spm_enrollments (
+    id bigint NOT NULL,
+    first_name character varying,
+    last_name character varying,
+    personal_id character varying,
+    data_source_id integer,
+    start_of_homelessness date,
+    entry_date date,
+    exit_date date,
+    move_in_date date,
+    project_type integer,
+    eligible_funding boolean,
+    destination integer,
+    age date,
+    previous_earned_income numeric,
+    previous_non_employment_income numeric,
+    previous_total_income numeric,
+    current_earned_income numeric,
+    current_non_employment_income numeric,
+    current_total_income numeric,
+    report_id bigint,
+    client_id bigint,
+    previous_income_benefits_id bigint,
+    current_income_benefits_id bigint,
+    enrollment_id bigint
+);
+
+
+--
+-- Name: hud_spm_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_spm_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_spm_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_spm_enrollments_id_seq OWNED BY public.hud_spm_enrollments.id;
+
+
+--
+-- Name: hud_spm_episodes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_spm_episodes (
+    id bigint NOT NULL,
+    start_of_homelessness date,
+    entry_date date,
+    exit_date date,
+    move_in_date date,
+    destination integer,
+    age integer,
+    client_id bigint
+);
+
+
+--
+-- Name: hud_spm_episodes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_spm_episodes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_spm_episodes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_spm_episodes_id_seq OWNED BY public.hud_spm_episodes.id;
+
+
+--
+-- Name: hud_spm_returns; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_spm_returns (
+    id bigint NOT NULL,
+    exit_date date,
+    return_date date,
+    exit_destination integer,
+    exit_enrollment_id bigint,
+    return_enrollment_id bigint,
+    client_id bigint
+);
+
+
+--
+-- Name: hud_spm_returns_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_spm_returns_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_spm_returns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_spm_returns_id_seq OWNED BY public.hud_spm_returns.id;
 
 
 --
@@ -21979,33 +22162,6 @@ CREATE SEQUENCE public.non_hmis_uploads_id_seq
 --
 
 ALTER SEQUENCE public.non_hmis_uploads_id_seq OWNED BY public.non_hmis_uploads.id;
-
-
---
--- Name: organization_47_tes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.organization_47_tes (
-    source_id integer
-);
-
-
---
--- Name: organization_48_tes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.organization_48_tes (
-    source_id integer
-);
-
-
---
--- Name: organization_49_tes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.organization_49_tes (
-    source_id integer
-);
 
 
 --
@@ -23265,7 +23421,7 @@ CREATE TABLE public.recent_report_enrollments (
     "CoercedToContinueWork" integer,
     "LaborExploitPastThreeMonths" integer,
     "HPScreeningScore" integer,
-    "VAMCStation" integer,
+    "VAMCStation_deleted" integer,
     "DateCreated" timestamp without time zone,
     "DateUpdated" timestamp without time zone,
     "UserID" character varying(100),
@@ -23318,6 +23474,12 @@ CREATE TABLE public.recent_report_enrollments (
     "CoCPrioritized" integer,
     "TargetScreenReqd" integer,
     "HOHLeaseholder" integer,
+    "EnrollmentCoC" character varying,
+    "RentalSubsidyType" integer,
+    "TranslationNeeded" integer,
+    "PreferredLanguage" integer,
+    "PreferredLanguageDifferent" character varying,
+    "VAMCStation" character varying,
     demographic_id integer,
     client_id integer
 );
@@ -23343,10 +23505,9 @@ CREATE TABLE public.recent_service_history (
     project_type smallint,
     project_tracking_method integer,
     organization_id integer,
-    housing_status_at_entry integer,
-    housing_status_at_exit integer,
+    "LivingSituation" integer,
+    "HousingAssessment" integer,
     service_type smallint,
-    computed_project_type smallint,
     presented_as_individual boolean
 );
 
@@ -25096,17 +25257,17 @@ CREATE TABLE public.service_history_services_2050 (
 --
 
 CREATE MATERIALIZED VIEW public.service_history_services_materialized AS
- SELECT service_history_services.id,
-    service_history_services.service_history_enrollment_id,
-    service_history_services.record_type,
-    service_history_services.date,
-    service_history_services.age,
-    service_history_services.service_type,
-    service_history_services.client_id,
-    service_history_services.project_type,
-    service_history_services.homeless,
-    service_history_services.literally_homeless
-   FROM public.service_history_services
+ SELECT service_history_services_was_for_inheritance.id,
+    service_history_services_was_for_inheritance.service_history_enrollment_id,
+    service_history_services_was_for_inheritance.record_type,
+    service_history_services_was_for_inheritance.date,
+    service_history_services_was_for_inheritance.age,
+    service_history_services_was_for_inheritance.service_type,
+    service_history_services_was_for_inheritance.client_id,
+    service_history_services_was_for_inheritance.project_type,
+    service_history_services_was_for_inheritance.homeless,
+    service_history_services_was_for_inheritance.literally_homeless
+   FROM public.service_history_services_was_for_inheritance
   WITH NO DATA;
 
 
@@ -25758,6 +25919,7 @@ CREATE TABLE public.system_pathways_enrollments (
     final_enrollment boolean DEFAULT false NOT NULL,
     move_in_date date,
     days_to_move_in integer,
+    days_to_exit_after_move_in integer,
     chronic_at_entry boolean,
     disabling_condition integer
 );
@@ -29709,20 +29871,6 @@ ALTER TABLE ONLY public.hmis_staff ALTER COLUMN id SET DEFAULT nextval('public.h
 
 
 --
--- Name: hmis_staff_assignment_types id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_staff_assignment_types ALTER COLUMN id SET DEFAULT nextval('public.hmis_staff_assignment_types_id_seq'::regclass);
-
-
---
--- Name: hmis_staff_assignments id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_staff_assignments ALTER COLUMN id SET DEFAULT nextval('public.hmis_staff_assignments_id_seq'::regclass);
-
-
---
 -- Name: hmis_staff_x_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -29951,6 +30099,41 @@ ALTER TABLE ONLY public.hud_report_spm_returns ALTER COLUMN id SET DEFAULT nextv
 --
 
 ALTER TABLE ONLY public.hud_report_universe_members ALTER COLUMN id SET DEFAULT nextval('public.hud_report_universe_members_id_seq'::regclass);
+
+
+--
+-- Name: hud_spm_bed_nights id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_spm_bed_nights ALTER COLUMN id SET DEFAULT nextval('public.hud_spm_bed_nights_id_seq'::regclass);
+
+
+--
+-- Name: hud_spm_enrollment_links id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_spm_enrollment_links ALTER COLUMN id SET DEFAULT nextval('public.hud_spm_enrollment_links_id_seq'::regclass);
+
+
+--
+-- Name: hud_spm_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_spm_enrollments ALTER COLUMN id SET DEFAULT nextval('public.hud_spm_enrollments_id_seq'::regclass);
+
+
+--
+-- Name: hud_spm_episodes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_spm_episodes ALTER COLUMN id SET DEFAULT nextval('public.hud_spm_episodes_id_seq'::regclass);
+
+
+--
+-- Name: hud_spm_returns id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_spm_returns ALTER COLUMN id SET DEFAULT nextval('public.hud_spm_returns_id_seq'::regclass);
 
 
 --
@@ -33299,22 +33482,6 @@ ALTER TABLE ONLY public.hmis_scan_card_codes
 
 
 --
--- Name: hmis_staff_assignment_types hmis_staff_assignment_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_staff_assignment_types
-    ADD CONSTRAINT hmis_staff_assignment_types_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_staff_assignments hmis_staff_assignments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_staff_assignments
-    ADD CONSTRAINT hmis_staff_assignments_pkey PRIMARY KEY (id);
-
-
---
 -- Name: hmis_staff hmis_staff_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -33584,6 +33751,46 @@ ALTER TABLE ONLY public.hud_report_spm_returns
 
 ALTER TABLE ONLY public.hud_report_universe_members
     ADD CONSTRAINT hud_report_universe_members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_spm_bed_nights hud_spm_bed_nights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_spm_bed_nights
+    ADD CONSTRAINT hud_spm_bed_nights_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_spm_enrollment_links hud_spm_enrollment_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_spm_enrollment_links
+    ADD CONSTRAINT hud_spm_enrollment_links_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_spm_enrollments hud_spm_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_spm_enrollments
+    ADD CONSTRAINT hud_spm_enrollments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_spm_episodes hud_spm_episodes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_spm_episodes
+    ADD CONSTRAINT hud_spm_episodes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_spm_returns hud_spm_returns_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_spm_returns
+    ADD CONSTRAINT hud_spm_returns_pkey PRIMARY KEY (id);
 
 
 --
@@ -34008,14 +34215,6 @@ ALTER TABLE ONLY public.report_definitions
 
 ALTER TABLE ONLY public.report_tokens
     ADD CONSTRAINT report_tokens_pkey PRIMARY KEY (id);
-
-
---
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -34934,90 +35133,6 @@ CREATE INDEX "Disabilities_DateDeleted_idx" ON public."Disabilities" USING btree
 
 
 --
--- Name: Enrollment_2735; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_2735" ON public."Enrollment" USING btree ("ProjectID", "HouseholdID");
-
-
---
--- Name: Enrollment_3085; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_3085" ON public."Enrollment" USING btree ("PreviousStreetESSH", "LengthOfStay");
-
-
---
--- Name: Enrollment_34e3; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_34e3" ON public."Enrollment" USING btree ("EnrollmentID", "ProjectID", "EntryDate");
-
-
---
--- Name: Enrollment_42af; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_42af" ON public."Enrollment" USING btree ("ProjectID");
-
-
---
--- Name: Enrollment_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_42d5" ON public."Enrollment" USING btree ("DateUpdated");
-
-
---
--- Name: Enrollment_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_4337" ON public."Enrollment" USING btree ("EnrollmentID");
-
-
---
--- Name: Enrollment_5328; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_5328" ON public."Enrollment" USING btree ("HouseholdID");
-
-
---
--- Name: Enrollment_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_603f" ON public."Enrollment" USING btree ("PersonalID");
-
-
---
--- Name: Enrollment_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_634d" ON public."Enrollment" USING btree ("ExportID");
-
-
---
--- Name: Enrollment_c548; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_c548" ON public."Enrollment" USING btree ("EnrollmentID", "PersonalID");
-
-
---
--- Name: Enrollment_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_d381" ON public."Enrollment" USING btree ("DateCreated");
-
-
---
--- Name: Enrollment_f3a2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_f3a2" ON public."Enrollment" USING btree ("DateDeleted");
-
-
---
 -- Name: IncomeBenefits_DateDeleted_data_source_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -35186,20 +35301,6 @@ CREATE INDEX client_personal_id ON public."Client" USING btree ("PersonalID");
 
 
 --
--- Name: coc_code_test; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX coc_code_test ON public."EnrollmentCoC" USING btree ("CoCCode");
-
-
---
--- Name: computed_project_type_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX computed_project_type_rsh_index ON public.recent_service_history USING btree (computed_project_type);
-
-
---
 -- Name: cur_liv_sit_cur_id_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -35330,13 +35431,6 @@ CREATE INDEX employment_education_export_id ON public."EmploymentEducation" USIN
 --
 
 CREATE UNIQUE INDEX en_en_id_p_id_ds_id ON public."Enrollment" USING btree ("EnrollmentID", "PersonalID", data_source_id);
-
-
---
--- Name: en_tt; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX en_tt ON public.hmis_2022_enrollments USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
 
 
 --
@@ -44783,6 +44877,13 @@ CREATE INDEX "hmisaggregatedexits_tmOV" ON public.hmis_aggregated_exits USING bt
 
 
 --
+-- Name: hmiscsv2022affiliations_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022affiliations_634d ON public.hmis_csv_2022_affiliations USING btree ("ExportID");
+
+
+--
 -- Name: hmiscsv2022affiliations_6QZN; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -44822,6 +44923,13 @@ CREATE INDEX hmiscsv2022affiliations_ayf6 ON public.hmis_csv_2022_affiliations U
 --
 
 CREATE INDEX "hmiscsv2022assessmentquestions_0Hnw" ON public.hmis_csv_2022_assessment_questions USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022assessmentquestions_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022assessmentquestions_634d ON public.hmis_csv_2022_assessment_questions USING btree ("ExportID");
 
 
 --
@@ -44867,6 +44975,13 @@ CREATE INDEX hmiscsv2022assessmentquestions_b7du ON public.hmis_csv_2022_assessm
 
 
 --
+-- Name: hmiscsv2022assessmentquestions_da04; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022assessmentquestions_da04 ON public.hmis_csv_2022_assessment_questions USING btree ("AssessmentID");
+
+
+--
 -- Name: hmiscsv2022assessmentquestions_f92d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -44885,6 +45000,13 @@ CREATE INDEX "hmiscsv2022assessmentquestions_tkC5" ON public.hmis_csv_2022_asses
 --
 
 CREATE INDEX "hmiscsv2022assessmentquestions_zaOr" ON public.hmis_csv_2022_assessment_questions USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022assessmentresults_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022assessmentresults_634d ON public.hmis_csv_2022_assessment_results USING btree ("ExportID");
 
 
 --
@@ -44920,6 +45042,13 @@ CREATE INDEX "hmiscsv2022assessmentresults_Kx2Z" ON public.hmis_csv_2022_assessm
 --
 
 CREATE INDEX "hmiscsv2022assessmentresults_WyDM" ON public.hmis_csv_2022_assessment_results USING btree ("AssessmentID");
+
+
+--
+-- Name: hmiscsv2022assessmentresults_da04; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022assessmentresults_da04 ON public.hmis_csv_2022_assessment_results USING btree ("AssessmentID");
 
 
 --
@@ -44965,10 +45094,38 @@ CREATE INDEX "hmiscsv2022assessments_2PIZ" ON public.hmis_csv_2022_assessments U
 
 
 --
+-- Name: hmiscsv2022assessments_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022assessments_4337 ON public.hmis_csv_2022_assessments USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022assessments_4fa0; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022assessments_4fa0 ON public.hmis_csv_2022_assessments USING btree ("AssessmentDate");
+
+
+--
 -- Name: hmiscsv2022assessments_53fu; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2022assessments_53fu ON public.hmis_csv_2022_assessments USING btree ("AssessmentDate");
+
+
+--
+-- Name: hmiscsv2022assessments_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022assessments_603f ON public.hmis_csv_2022_assessments USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022assessments_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022assessments_634d ON public.hmis_csv_2022_assessments USING btree ("ExportID");
 
 
 --
@@ -45084,6 +45241,13 @@ CREATE INDEX "hmiscsv2022assessments_bNif" ON public.hmis_csv_2022_assessments U
 
 
 --
+-- Name: hmiscsv2022assessments_da04; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022assessments_da04 ON public.hmis_csv_2022_assessments USING btree ("AssessmentID");
+
+
+--
 -- Name: hmiscsv2022assessments_iP36; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -45140,6 +45304,20 @@ CREATE INDEX "hmiscsv2022clients_1B2M" ON public.hmis_csv_2022_clients USING btr
 
 
 --
+-- Name: hmiscsv2022clients_202d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022clients_202d ON public.hmis_csv_2022_clients USING btree ("DOB");
+
+
+--
+-- Name: hmiscsv2022clients_20a8; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022clients_20a8 ON public.hmis_csv_2022_clients USING btree ("VeteranStatus");
+
+
+--
 -- Name: hmiscsv2022clients_2g9p; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -45147,10 +45325,45 @@ CREATE INDEX hmiscsv2022clients_2g9p ON public.hmis_csv_2022_clients USING btree
 
 
 --
+-- Name: hmiscsv2022clients_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022clients_42d5 ON public.hmis_csv_2022_clients USING btree ("DateUpdated");
+
+
+--
 -- Name: hmiscsv2022clients_4Erz; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022clients_4Erz" ON public.hmis_csv_2022_clients USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmiscsv2022clients_5289; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022clients_5289 ON public.hmis_csv_2022_clients USING btree ("FirstName");
+
+
+--
+-- Name: hmiscsv2022clients_539c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022clients_539c ON public.hmis_csv_2022_clients USING btree ("LastName");
+
+
+--
+-- Name: hmiscsv2022clients_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022clients_603f ON public.hmis_csv_2022_clients USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022clients_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022clients_634d ON public.hmis_csv_2022_clients USING btree ("ExportID");
 
 
 --
@@ -45284,6 +45497,13 @@ CREATE INDEX "hmiscsv2022clients_ZbiK" ON public.hmis_csv_2022_clients USING btr
 --
 
 CREATE INDEX "hmiscsv2022clients_bTWy" ON public.hmis_csv_2022_clients USING btree ("DOB");
+
+
+--
+-- Name: hmiscsv2022clients_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022clients_d381 ON public.hmis_csv_2022_clients USING btree ("DateCreated");
 
 
 --
@@ -45434,6 +45654,27 @@ CREATE INDEX hmiscsv2022currentlivingsituations_2ix3 ON public.hmis_csv_2022_cur
 
 
 --
+-- Name: hmiscsv2022currentlivingsituations_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022currentlivingsituations_4337 ON public.hmis_csv_2022_current_living_situations USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022currentlivingsituations_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022currentlivingsituations_603f ON public.hmis_csv_2022_current_living_situations USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022currentlivingsituations_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022currentlivingsituations_634d ON public.hmis_csv_2022_current_living_situations USING btree ("ExportID");
+
+
+--
 -- Name: hmiscsv2022currentlivingsituations_79om; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -45525,6 +45766,13 @@ CREATE INDEX "hmiscsv2022currentlivingsituations_beIg" ON public.hmis_csv_2022_c
 
 
 --
+-- Name: hmiscsv2022currentlivingsituations_c1ef; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022currentlivingsituations_c1ef ON public.hmis_csv_2022_current_living_situations USING btree ("CurrentLivingSitID");
+
+
+--
 -- Name: hmiscsv2022currentlivingsituations_c7Fg; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -45532,10 +45780,24 @@ CREATE INDEX "hmiscsv2022currentlivingsituations_c7Fg" ON public.hmis_csv_2022_c
 
 
 --
+-- Name: hmiscsv2022currentlivingsituations_d718; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022currentlivingsituations_d718 ON public.hmis_csv_2022_current_living_situations USING btree ("CurrentLivingSituation");
+
+
+--
 -- Name: hmiscsv2022currentlivingsituations_dUT6; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022currentlivingsituations_dUT6" ON public.hmis_csv_2022_current_living_situations USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022currentlivingsituations_fabe; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022currentlivingsituations_fabe ON public.hmis_csv_2022_current_living_situations USING btree ("InformationDate");
 
 
 --
@@ -45637,10 +45899,45 @@ CREATE INDEX "hmiscsv2022disabilities_14pD" ON public.hmis_csv_2022_disabilities
 
 
 --
+-- Name: hmiscsv2022disabilities_1873; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022disabilities_1873 ON public.hmis_csv_2022_disabilities USING btree ("DisabilitiesID");
+
+
+--
 -- Name: hmiscsv2022disabilities_3jSy; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022disabilities_3jSy" ON public.hmis_csv_2022_disabilities USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022disabilities_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022disabilities_42d5 ON public.hmis_csv_2022_disabilities USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022disabilities_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022disabilities_4337 ON public.hmis_csv_2022_disabilities USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022disabilities_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022disabilities_603f ON public.hmis_csv_2022_disabilities USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022disabilities_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022disabilities_634d ON public.hmis_csv_2022_disabilities USING btree ("ExportID");
 
 
 --
@@ -45777,6 +46074,13 @@ CREATE INDEX "hmiscsv2022disabilities_bckS" ON public.hmis_csv_2022_disabilities
 
 
 --
+-- Name: hmiscsv2022disabilities_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022disabilities_d381 ON public.hmis_csv_2022_disabilities USING btree ("DateCreated");
+
+
+--
 -- Name: hmiscsv2022disabilities_dHHy; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -45830,6 +46134,41 @@ CREATE INDEX "hmiscsv2022disabilities_xTGY" ON public.hmis_csv_2022_disabilities
 --
 
 CREATE INDEX hmiscsv2022disabilities_y3fv ON public.hmis_csv_2022_disabilities USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022employmenteducations_350e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022employmenteducations_350e ON public.hmis_csv_2022_employment_educations USING btree ("EmploymentEducationID");
+
+
+--
+-- Name: hmiscsv2022employmenteducations_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022employmenteducations_42d5 ON public.hmis_csv_2022_employment_educations USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022employmenteducations_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022employmenteducations_4337 ON public.hmis_csv_2022_employment_educations USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022employmenteducations_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022employmenteducations_603f ON public.hmis_csv_2022_employment_educations USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022employmenteducations_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022employmenteducations_634d ON public.hmis_csv_2022_employment_educations USING btree ("ExportID");
 
 
 --
@@ -45959,6 +46298,13 @@ CREATE INDEX "hmiscsv2022employmenteducations_cugU" ON public.hmis_csv_2022_empl
 
 
 --
+-- Name: hmiscsv2022employmenteducations_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022employmenteducations_d381 ON public.hmis_csv_2022_employment_educations USING btree ("DateCreated");
+
+
+--
 -- Name: hmiscsv2022employmenteducations_dRqv; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46050,6 +46396,13 @@ CREATE INDEX "hmiscsv2022enrollmentcocs_0IAL" ON public.hmis_csv_2022_enrollment
 
 
 --
+-- Name: hmiscsv2022enrollmentcocs_13b0; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollmentcocs_13b0 ON public.hmis_csv_2022_enrollment_cocs USING btree ("DateDeleted", "InformationDate") INCLUDE ("HouseholdID", "CoCCode");
+
+
+--
 -- Name: hmiscsv2022enrollmentcocs_1Xm2; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46061,6 +46414,34 @@ CREATE INDEX "hmiscsv2022enrollmentcocs_1Xm2" ON public.hmis_csv_2022_enrollment
 --
 
 CREATE INDEX "hmiscsv2022enrollmentcocs_1dHp" ON public.hmis_csv_2022_enrollment_cocs USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022enrollmentcocs_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollmentcocs_42d5 ON public.hmis_csv_2022_enrollment_cocs USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022enrollmentcocs_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollmentcocs_4337 ON public.hmis_csv_2022_enrollment_cocs USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022enrollmentcocs_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollmentcocs_603f ON public.hmis_csv_2022_enrollment_cocs USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022enrollmentcocs_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollmentcocs_634d ON public.hmis_csv_2022_enrollment_cocs USING btree ("ExportID");
 
 
 --
@@ -46211,10 +46592,38 @@ CREATE INDEX "hmiscsv2022enrollmentcocs_caGj" ON public.hmis_csv_2022_enrollment
 
 
 --
+-- Name: hmiscsv2022enrollmentcocs_cea3; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollmentcocs_cea3 ON public.hmis_csv_2022_enrollment_cocs USING btree ("EnrollmentID", "InformationDate", "DateDeleted") INCLUDE ("CoCCode");
+
+
+--
 -- Name: hmiscsv2022enrollmentcocs_cezi; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2022enrollmentcocs_cezi ON public.hmis_csv_2022_enrollment_cocs USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022enrollmentcocs_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollmentcocs_d381 ON public.hmis_csv_2022_enrollment_cocs USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022enrollmentcocs_e294; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollmentcocs_e294 ON public.hmis_csv_2022_enrollment_cocs USING btree ("CoCCode");
+
+
+--
+-- Name: hmiscsv2022enrollmentcocs_ec78; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollmentcocs_ec78 ON public.hmis_csv_2022_enrollment_cocs USING btree ("EnrollmentCoCID");
 
 
 --
@@ -46379,6 +46788,13 @@ CREATE INDEX "hmiscsv2022enrollments_1jXQ" ON public.hmis_csv_2022_enrollments U
 
 
 --
+-- Name: hmiscsv2022enrollments_2735; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_2735 ON public.hmis_csv_2022_enrollments USING btree ("ProjectID", "HouseholdID");
+
+
+--
 -- Name: hmiscsv2022enrollments_2KUN; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46400,10 +46816,94 @@ CREATE INDEX "hmiscsv2022enrollments_2W2h" ON public.hmis_csv_2022_enrollments U
 
 
 --
+-- Name: hmiscsv2022enrollments_3085; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_3085 ON public.hmis_csv_2022_enrollments USING btree ("PreviousStreetESSH", "LengthOfStay");
+
+
+--
+-- Name: hmiscsv2022enrollments_34e3; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_34e3 ON public.hmis_csv_2022_enrollments USING btree ("EnrollmentID", "ProjectID", "EntryDate");
+
+
+--
+-- Name: hmiscsv2022enrollments_42af; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_42af ON public.hmis_csv_2022_enrollments USING btree ("ProjectID");
+
+
+--
+-- Name: hmiscsv2022enrollments_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_42d5 ON public.hmis_csv_2022_enrollments USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022enrollments_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_4337 ON public.hmis_csv_2022_enrollments USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022enrollments_44c4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_44c4 ON public.hmis_csv_2022_enrollments USING btree ("MonthsHomelessPastThreeYears") INCLUDE ("EnrollmentID", "LivingSituation", "PreviousStreetESSH");
+
+
+--
+-- Name: hmiscsv2022enrollments_4685; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_4685 ON public.hmis_csv_2022_enrollments USING btree ("LengthOfStay") INCLUDE ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022enrollments_5328; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_5328 ON public.hmis_csv_2022_enrollments USING btree ("HouseholdID");
+
+
+--
 -- Name: hmiscsv2022enrollments_5Od1; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022enrollments_5Od1" ON public.hmis_csv_2022_enrollments USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022enrollments_5d40; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_5d40 ON public.hmis_csv_2022_enrollments USING btree ("HouseholdID", "DateDeleted", "EntryDate", "RelationshipToHoH") INCLUDE ("EnrollmentID", "PersonalID", "DisablingCondition");
+
+
+--
+-- Name: hmiscsv2022enrollments_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_603f ON public.hmis_csv_2022_enrollments USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022enrollments_6191; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_6191 ON public.hmis_csv_2022_enrollments USING btree ("EntryDate") INCLUDE ("EnrollmentID", "ProjectID", "HouseholdID", "RelationshipToHoH", "DateDeleted");
+
+
+--
+-- Name: hmiscsv2022enrollments_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_634d ON public.hmis_csv_2022_enrollments USING btree ("ExportID");
 
 
 --
@@ -46418,6 +46918,34 @@ CREATE INDEX "hmiscsv2022enrollments_6RGw" ON public.hmis_csv_2022_enrollments U
 --
 
 CREATE INDEX "hmiscsv2022enrollments_6xDx" ON public.hmis_csv_2022_enrollments USING btree ("ProjectID", "RelationshipToHoH");
+
+
+--
+-- Name: hmiscsv2022enrollments_821a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_821a ON public.hmis_csv_2022_enrollments USING btree ("LivingSituation") INCLUDE ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022enrollments_89e7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_89e7 ON public.hmis_csv_2022_enrollments USING btree ("HouseholdID", "DateDeleted", "RelationshipToHoH") INCLUDE ("EnrollmentID", "PersonalID", "EntryDate", "DisablingCondition");
+
+
+--
+-- Name: hmiscsv2022enrollments_8d5c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_8d5c ON public.hmis_csv_2022_enrollments USING btree ("DateDeleted", "RelationshipToHoH") INCLUDE ("EnrollmentID", "PersonalID", "EntryDate", "HouseholdID", "DisablingCondition");
+
+
+--
+-- Name: hmiscsv2022enrollments_9005; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_9005 ON public.hmis_csv_2022_enrollments USING btree ("ProjectID", "RelationshipToHoH", "DateDeleted") INCLUDE ("EnrollmentID", "PersonalID", "EntryDate", "HouseholdID", "MoveInDate");
 
 
 --
@@ -46659,10 +47187,45 @@ CREATE INDEX "hmiscsv2022enrollments_bItG" ON public.hmis_csv_2022_enrollments U
 
 
 --
+-- Name: hmiscsv2022enrollments_c321; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_c321 ON public.hmis_csv_2022_enrollments USING btree ("TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears") INCLUDE ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022enrollments_c3b4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_c3b4 ON public.hmis_csv_2022_enrollments USING btree ("RelationshipToHoH", "DateDeleted") INCLUDE ("EnrollmentID", "PersonalID", "ProjectID", "EntryDate", "HouseholdID", "MoveInDate", "DisablingCondition");
+
+
+--
+-- Name: hmiscsv2022enrollments_c548; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_c548 ON public.hmis_csv_2022_enrollments USING btree ("EnrollmentID", "PersonalID");
+
+
+--
+-- Name: hmiscsv2022enrollments_c830; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_c830 ON public.hmis_csv_2022_enrollments USING btree ("DateDeleted", "EntryDate") INCLUDE ("EnrollmentID", "HouseholdID", "ProjectID", "RelationshipToHoH");
+
+
+--
 -- Name: hmiscsv2022enrollments_cCys; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022enrollments_cCys" ON public.hmis_csv_2022_enrollments USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022enrollments_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_d381 ON public.hmis_csv_2022_enrollments USING btree ("DateCreated");
 
 
 --
@@ -46687,10 +47250,31 @@ CREATE INDEX "hmiscsv2022enrollments_eMPH" ON public.hmis_csv_2022_enrollments U
 
 
 --
+-- Name: hmiscsv2022enrollments_ea7f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_ea7f ON public.hmis_csv_2022_enrollments USING btree ("HouseholdID", "RelationshipToHoH", "DateDeleted") INCLUDE ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022enrollments_f3a2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_f3a2 ON public.hmis_csv_2022_enrollments USING btree ("DateDeleted");
+
+
+--
 -- Name: hmiscsv2022enrollments_fYTX; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022enrollments_fYTX" ON public.hmis_csv_2022_enrollments USING btree ("PreviousStreetESSH", "LengthOfStay");
+
+
+--
+-- Name: hmiscsv2022enrollments_fbbd; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022enrollments_fbbd ON public.hmis_csv_2022_enrollments USING btree ("MoveInDate") INCLUDE ("EnrollmentID");
 
 
 --
@@ -46918,6 +47502,34 @@ CREATE INDEX hmiscsv2022enrollments_zumz ON public.hmis_csv_2022_enrollments USI
 
 
 --
+-- Name: hmiscsv2022events_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022events_4337 ON public.hmis_csv_2022_events USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022events_5251; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022events_5251 ON public.hmis_csv_2022_events USING btree ("EventID");
+
+
+--
+-- Name: hmiscsv2022events_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022events_603f ON public.hmis_csv_2022_events USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022events_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022events_634d ON public.hmis_csv_2022_events USING btree ("ExportID");
+
+
+--
 -- Name: hmiscsv2022events_6eMI; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47030,6 +47642,13 @@ CREATE INDEX "hmiscsv2022events_UMEc" ON public.hmis_csv_2022_events USING btree
 
 
 --
+-- Name: hmiscsv2022events_ab19; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022events_ab19 ON public.hmis_csv_2022_events USING btree ("EventDate");
+
+
+--
 -- Name: hmiscsv2022events_b0HY; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47100,6 +47719,13 @@ CREATE INDEX "hmiscsv2022exits_0oqJ" ON public.hmis_csv_2022_exits USING btree (
 
 
 --
+-- Name: hmiscsv2022exits_13dc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022exits_13dc ON public.hmis_csv_2022_exits USING btree ("ExitDate", "Destination") INCLUDE ("EnrollmentID");
+
+
+--
 -- Name: hmiscsv2022exits_2IJt; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47111,6 +47737,41 @@ CREATE INDEX "hmiscsv2022exits_2IJt" ON public.hmis_csv_2022_exits USING btree (
 --
 
 CREATE INDEX "hmiscsv2022exits_3hM6" ON public.hmis_csv_2022_exits USING btree ("ExitDate");
+
+
+--
+-- Name: hmiscsv2022exits_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022exits_42d5 ON public.hmis_csv_2022_exits USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022exits_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022exits_4337 ON public.hmis_csv_2022_exits USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022exits_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022exits_603f ON public.hmis_csv_2022_exits USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022exits_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022exits_634d ON public.hmis_csv_2022_exits USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022exits_6f2b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022exits_6f2b ON public.hmis_csv_2022_exits USING btree ("ExitID");
 
 
 --
@@ -47261,6 +47922,27 @@ CREATE INDEX "hmiscsv2022exits_b9Iz" ON public.hmis_csv_2022_exits USING btree (
 
 
 --
+-- Name: hmiscsv2022exits_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022exits_d381 ON public.hmis_csv_2022_exits USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022exits_f3a2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022exits_f3a2 ON public.hmis_csv_2022_exits USING btree ("DateDeleted") INCLUDE ("EnrollmentID", "ExitDate");
+
+
+--
+-- Name: hmiscsv2022exits_fa9a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022exits_fa9a ON public.hmis_csv_2022_exits USING btree ("ExitDate");
+
+
+--
 -- Name: hmiscsv2022exits_jid6; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47380,6 +48062,13 @@ CREATE INDEX "hmiscsv2022exports_4A4m" ON public.hmis_csv_2022_exports USING btr
 
 
 --
+-- Name: hmiscsv2022exports_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022exports_634d ON public.hmis_csv_2022_exports USING btree ("ExportID");
+
+
+--
 -- Name: hmiscsv2022exports_786V; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47405,6 +48094,27 @@ CREATE INDEX "hmiscsv2022exports_Gf6i" ON public.hmis_csv_2022_exports USING btr
 --
 
 CREATE INDEX "hmiscsv2022exports_qkPK" ON public.hmis_csv_2022_exports USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022funders_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022funders_42d5 ON public.hmis_csv_2022_funders USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022funders_4657; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022funders_4657 ON public.hmis_csv_2022_funders USING btree ("FunderID");
+
+
+--
+-- Name: hmiscsv2022funders_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022funders_634d ON public.hmis_csv_2022_funders USING btree ("ExportID");
 
 
 --
@@ -47485,6 +48195,13 @@ CREATE INDEX "hmiscsv2022funders_acMZ" ON public.hmis_csv_2022_funders USING btr
 
 
 --
+-- Name: hmiscsv2022funders_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022funders_d381 ON public.hmis_csv_2022_funders USING btree ("DateCreated");
+
+
+--
 -- Name: hmiscsv2022funders_gFjD; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47548,10 +48265,45 @@ CREATE INDEX "hmiscsv2022funders_zZPu" ON public.hmis_csv_2022_funders USING btr
 
 
 --
+-- Name: hmiscsv2022healthanddvs_1329; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022healthanddvs_1329 ON public.hmis_csv_2022_health_and_dvs USING btree ("HealthAndDVID");
+
+
+--
 -- Name: hmiscsv2022healthanddvs_3s5V; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022healthanddvs_3s5V" ON public.hmis_csv_2022_health_and_dvs USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022healthanddvs_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022healthanddvs_42d5 ON public.hmis_csv_2022_health_and_dvs USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022healthanddvs_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022healthanddvs_4337 ON public.hmis_csv_2022_health_and_dvs USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022healthanddvs_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022healthanddvs_603f ON public.hmis_csv_2022_health_and_dvs USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022healthanddvs_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022healthanddvs_634d ON public.hmis_csv_2022_health_and_dvs USING btree ("ExportID");
 
 
 --
@@ -47643,6 +48395,13 @@ CREATE INDEX "hmiscsv2022healthanddvs_Xory" ON public.hmis_csv_2022_health_and_d
 --
 
 CREATE INDEX "hmiscsv2022healthanddvs_Y01x" ON public.hmis_csv_2022_health_and_dvs USING btree ("HealthAndDVID");
+
+
+--
+-- Name: hmiscsv2022healthanddvs_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022healthanddvs_d381 ON public.hmis_csv_2022_health_and_dvs USING btree ("DateCreated");
 
 
 --
@@ -47758,6 +48517,13 @@ CREATE INDEX hmiscsv2022healthanddvs_zf1v ON public.hmis_csv_2022_health_and_dvs
 
 
 --
+-- Name: hmiscsv2022incomebenefits_16c2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022incomebenefits_16c2 ON public.hmis_csv_2022_income_benefits USING btree ("Earned", "DataCollectionStage");
+
+
+--
 -- Name: hmiscsv2022incomebenefits_1RQb; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47783,6 +48549,34 @@ CREATE INDEX hmiscsv2022incomebenefits_1tdi ON public.hmis_csv_2022_income_benef
 --
 
 CREATE INDEX "hmiscsv2022incomebenefits_2tUP" ON public.hmis_csv_2022_income_benefits USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022incomebenefits_42d5 ON public.hmis_csv_2022_income_benefits USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022incomebenefits_4337 ON public.hmis_csv_2022_income_benefits USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022incomebenefits_603f ON public.hmis_csv_2022_income_benefits USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022incomebenefits_634d ON public.hmis_csv_2022_income_benefits USING btree ("ExportID");
 
 
 --
@@ -47996,10 +48790,38 @@ CREATE INDEX "hmiscsv2022incomebenefits_ZW68" ON public.hmis_csv_2022_income_ben
 
 
 --
+-- Name: hmiscsv2022incomebenefits_ae8d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022incomebenefits_ae8d ON public.hmis_csv_2022_income_benefits USING btree ("IncomeFromAnySource", "DataCollectionStage");
+
+
+--
 -- Name: hmiscsv2022incomebenefits_cE9a; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022incomebenefits_cE9a" ON public.hmis_csv_2022_income_benefits USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022incomebenefits_d381 ON public.hmis_csv_2022_income_benefits USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_f5f5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022incomebenefits_f5f5 ON public.hmis_csv_2022_income_benefits USING btree ("IncomeBenefitsID");
+
+
+--
+-- Name: hmiscsv2022incomebenefits_fabe; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022incomebenefits_fabe ON public.hmis_csv_2022_income_benefits USING btree ("InformationDate");
 
 
 --
@@ -48087,6 +48909,13 @@ CREATE INDEX "hmiscsv2022inventories_2JYH" ON public.hmis_csv_2022_inventories U
 
 
 --
+-- Name: hmiscsv2022inventories_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022inventories_42d5 ON public.hmis_csv_2022_inventories USING btree ("DateUpdated");
+
+
+--
 -- Name: hmiscsv2022inventories_5blG; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48094,10 +48923,24 @@ CREATE INDEX "hmiscsv2022inventories_5blG" ON public.hmis_csv_2022_inventories U
 
 
 --
+-- Name: hmiscsv2022inventories_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022inventories_634d ON public.hmis_csv_2022_inventories USING btree ("ExportID");
+
+
+--
 -- Name: hmiscsv2022inventories_7XPQ; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022inventories_7XPQ" ON public.hmis_csv_2022_inventories USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022inventories_9529; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022inventories_9529 ON public.hmis_csv_2022_inventories USING btree ("InventoryID");
 
 
 --
@@ -48157,6 +49000,13 @@ CREATE INDEX "hmiscsv2022inventories_Xkhg" ON public.hmis_csv_2022_inventories U
 
 
 --
+-- Name: hmiscsv2022inventories_b15e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022inventories_b15e ON public.hmis_csv_2022_inventories USING btree ("ProjectID", "CoCCode");
+
+
+--
 -- Name: hmiscsv2022inventories_bqiF; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48168,6 +49018,13 @@ CREATE INDEX "hmiscsv2022inventories_bqiF" ON public.hmis_csv_2022_inventories U
 --
 
 CREATE INDEX hmiscsv2022inventories_ctyg ON public.hmis_csv_2022_inventories USING btree ("ProjectID", "CoCCode");
+
+
+--
+-- Name: hmiscsv2022inventories_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022inventories_d381 ON public.hmis_csv_2022_inventories USING btree ("DateCreated");
 
 
 --
@@ -48248,6 +49105,13 @@ CREATE INDEX "hmiscsv2022inventories_yqNs" ON public.hmis_csv_2022_inventories U
 
 
 --
+-- Name: hmiscsv2022organizations_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022organizations_634d ON public.hmis_csv_2022_organizations USING btree ("ExportID");
+
+
+--
 -- Name: hmiscsv2022organizations_FjV6; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48290,6 +49154,13 @@ CREATE INDEX "hmiscsv2022organizations_SBB6" ON public.hmis_csv_2022_organizatio
 
 
 --
+-- Name: hmiscsv2022organizations_b19d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022organizations_b19d ON public.hmis_csv_2022_organizations USING btree ("OrganizationID");
+
+
+--
 -- Name: hmiscsv2022organizations_eKN2; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48322,6 +49193,27 @@ CREATE INDEX "hmiscsv2022organizations_uD5T" ON public.hmis_csv_2022_organizatio
 --
 
 CREATE INDEX "hmiscsv2022projectcocs_0mWW" ON public.hmis_csv_2022_project_cocs USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022projectcocs_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022projectcocs_42d5 ON public.hmis_csv_2022_project_cocs USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022projectcocs_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022projectcocs_634d ON public.hmis_csv_2022_project_cocs USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022projectcocs_787b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022projectcocs_787b ON public.hmis_csv_2022_project_cocs USING btree ("ProjectCoCID");
 
 
 --
@@ -48409,6 +49301,20 @@ CREATE INDEX "hmiscsv2022projectcocs_ZwP7" ON public.hmis_csv_2022_project_cocs 
 
 
 --
+-- Name: hmiscsv2022projectcocs_b15e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022projectcocs_b15e ON public.hmis_csv_2022_project_cocs USING btree ("ProjectID", "CoCCode");
+
+
+--
+-- Name: hmiscsv2022projectcocs_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022projectcocs_d381 ON public.hmis_csv_2022_project_cocs USING btree ("DateCreated");
+
+
+--
 -- Name: hmiscsv2022projectcocs_fHPb; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48490,6 +49396,27 @@ CREATE INDEX "hmiscsv2022projectcocs_uGEA" ON public.hmis_csv_2022_project_cocs 
 --
 
 CREATE INDEX "hmiscsv2022projectcocs_xNgm" ON public.hmis_csv_2022_project_cocs USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022projects_42af; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022projects_42af ON public.hmis_csv_2022_projects USING btree ("ProjectID");
+
+
+--
+-- Name: hmiscsv2022projects_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022projects_42d5 ON public.hmis_csv_2022_projects USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022projects_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022projects_634d ON public.hmis_csv_2022_projects USING btree ("ExportID");
 
 
 --
@@ -48612,6 +49539,20 @@ CREATE INDEX "hmiscsv2022projects_VzMf" ON public.hmis_csv_2022_projects USING b
 
 
 --
+-- Name: hmiscsv2022projects_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022projects_d381 ON public.hmis_csv_2022_projects USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022projects_e4bb; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022projects_e4bb ON public.hmis_csv_2022_projects USING btree ("ProjectType");
+
+
+--
 -- Name: hmiscsv2022projects_fGby; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48675,6 +49616,20 @@ CREATE INDEX "hmiscsv2022services_1kzC" ON public.hmis_csv_2022_services USING b
 
 
 --
+-- Name: hmiscsv2022services_237b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_237b ON public.hmis_csv_2022_services USING btree ("RecordType");
+
+
+--
+-- Name: hmiscsv2022services_3444; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_3444 ON public.hmis_csv_2022_services USING btree ("DateProvided");
+
+
+--
 -- Name: hmiscsv2022services_3gBa; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48686,6 +49641,20 @@ CREATE INDEX "hmiscsv2022services_3gBa" ON public.hmis_csv_2022_services USING b
 --
 
 CREATE INDEX "hmiscsv2022services_3wwH" ON public.hmis_csv_2022_services USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022services_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_42d5 ON public.hmis_csv_2022_services USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022services_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_4337 ON public.hmis_csv_2022_services USING btree ("EnrollmentID");
 
 
 --
@@ -48703,10 +49672,38 @@ CREATE INDEX "hmiscsv2022services_53sL" ON public.hmis_csv_2022_services USING b
 
 
 --
+-- Name: hmiscsv2022services_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_603f ON public.hmis_csv_2022_services USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022services_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_634d ON public.hmis_csv_2022_services USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2022services_6415; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_6415 ON public.hmis_csv_2022_services USING btree ("ServicesID");
+
+
+--
 -- Name: hmiscsv2022services_68n9; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2022services_68n9 ON public.hmis_csv_2022_services USING btree ("EnrollmentID", "RecordType", "DateDeleted", "DateProvided");
+
+
+--
+-- Name: hmiscsv2022services_6c1d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_6c1d ON public.hmis_csv_2022_services USING btree ("RecordType", "DateProvided");
 
 
 --
@@ -48717,6 +49714,13 @@ CREATE INDEX "hmiscsv2022services_732S" ON public.hmis_csv_2022_services USING b
 
 
 --
+-- Name: hmiscsv2022services_75f1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_75f1 ON public.hmis_csv_2022_services USING btree ("PersonalID", "RecordType", "EnrollmentID", "DateProvided");
+
+
+--
 -- Name: hmiscsv2022services_78KE; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48724,10 +49728,31 @@ CREATE INDEX "hmiscsv2022services_78KE" ON public.hmis_csv_2022_services USING b
 
 
 --
+-- Name: hmiscsv2022services_8586; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_8586 ON public.hmis_csv_2022_services USING btree ("EnrollmentID", "RecordType", "DateDeleted", "DateProvided");
+
+
+--
+-- Name: hmiscsv2022services_8dbb; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_8dbb ON public.hmis_csv_2022_services USING btree ("RecordType", "DateDeleted", "DateProvided") INCLUDE ("EnrollmentID");
+
+
+--
 -- Name: hmiscsv2022services_9Ain; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022services_9Ain" ON public.hmis_csv_2022_services USING btree ("PersonalID", "RecordType", "EnrollmentID", "DateProvided");
+
+
+--
+-- Name: hmiscsv2022services_9c1a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_9c1a ON public.hmis_csv_2022_services USING btree ("EnrollmentID", "RecordType", "DateDeleted") INCLUDE ("DateProvided");
 
 
 --
@@ -48969,6 +49994,13 @@ CREATE INDEX "hmiscsv2022services_aK50" ON public.hmis_csv_2022_services USING b
 
 
 --
+-- Name: hmiscsv2022services_c548; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_c548 ON public.hmis_csv_2022_services USING btree ("EnrollmentID", "PersonalID");
+
+
+--
 -- Name: hmiscsv2022services_cK9O; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48980,6 +50012,13 @@ CREATE INDEX "hmiscsv2022services_cK9O" ON public.hmis_csv_2022_services USING b
 --
 
 CREATE INDEX "hmiscsv2022services_cOsh" ON public.hmis_csv_2022_services USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2022services_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_d381 ON public.hmis_csv_2022_services USING btree ("DateCreated");
 
 
 --
@@ -49001,6 +50040,20 @@ CREATE INDEX "hmiscsv2022services_enQH" ON public.hmis_csv_2022_services USING b
 --
 
 CREATE INDEX hmiscsv2022services_f0qq ON public.hmis_csv_2022_services USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2022services_f3a2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_f3a2 ON public.hmis_csv_2022_services USING btree ("DateDeleted");
+
+
+--
+-- Name: hmiscsv2022services_f749; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022services_f749 ON public.hmis_csv_2022_services USING btree ("RecordType", "DateDeleted");
 
 
 --
@@ -49158,6 +50211,20 @@ CREATE INDEX "hmiscsv2022services_zkJ3" ON public.hmis_csv_2022_services USING b
 
 
 --
+-- Name: hmiscsv2022users_57c7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022users_57c7 ON public.hmis_csv_2022_users USING btree ("UserID");
+
+
+--
+-- Name: hmiscsv2022users_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022users_634d ON public.hmis_csv_2022_users USING btree ("ExportID");
+
+
+--
 -- Name: hmiscsv2022users_7hAX; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -49246,6 +50313,34 @@ CREATE INDEX "hmiscsv2022youtheducationstatuses_27QU" ON public.hmis_csv_2022_yo
 --
 
 CREATE INDEX "hmiscsv2022youtheducationstatuses_3wUp" ON public.hmis_csv_2022_youth_education_statuses USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022youtheducationstatuses_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022youtheducationstatuses_4337 ON public.hmis_csv_2022_youth_education_statuses USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2022youtheducationstatuses_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022youtheducationstatuses_603f ON public.hmis_csv_2022_youth_education_statuses USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022youtheducationstatuses_6049; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022youtheducationstatuses_6049 ON public.hmis_csv_2022_youth_education_statuses USING btree ("YouthEducationStatusID");
+
+
+--
+-- Name: hmiscsv2022youtheducationstatuses_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022youtheducationstatuses_634d ON public.hmis_csv_2022_youth_education_statuses USING btree ("ExportID");
 
 
 --
@@ -49344,6 +50439,13 @@ CREATE INDEX "hmiscsv2022youtheducationstatuses_WARO" ON public.hmis_csv_2022_yo
 --
 
 CREATE INDEX "hmiscsv2022youtheducationstatuses_eWaV" ON public.hmis_csv_2022_youth_education_statuses USING btree ("PersonalID");
+
+
+--
+-- Name: hmiscsv2022youtheducationstatuses_fabe; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2022youtheducationstatuses_fabe ON public.hmis_csv_2022_youth_education_statuses USING btree ("InformationDate");
 
 
 --
@@ -52875,6 +53977,13 @@ CREATE INDEX index_external_ids_on_remote_credential_id ON public.external_ids U
 
 
 --
+-- Name: index_external_ids_on_source_id_and_source_type_and_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_external_ids_on_source_id_and_source_type_and_value ON public.external_ids USING btree (source_id, source_type, value);
+
+
+--
 -- Name: index_external_ids_on_value; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54478,20 +55587,6 @@ CREATE UNIQUE INDEX index_hmis_scan_card_codes_on_value ON public.hmis_scan_card
 
 
 --
--- Name: index_hmis_staff_assignment_types_on_name; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_hmis_staff_assignment_types_on_name ON public.hmis_staff_assignment_types USING btree (name);
-
-
---
--- Name: index_hmis_staff_assignments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_staff_assignments_on_data_source_id ON public.hmis_staff_assignments USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_unit_occupancy_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54944,6 +56039,97 @@ CREATE INDEX index_hud_report_universe_members_on_client_id ON public.hud_report
 --
 
 CREATE INDEX index_hud_report_universe_members_on_report_cell_id ON public.hud_report_universe_members USING btree (report_cell_id) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: index_hud_spm_bed_nights_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_spm_bed_nights_on_client_id ON public.hud_spm_bed_nights USING btree (client_id);
+
+
+--
+-- Name: index_hud_spm_bed_nights_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_spm_bed_nights_on_enrollment_id ON public.hud_spm_bed_nights USING btree (enrollment_id);
+
+
+--
+-- Name: index_hud_spm_bed_nights_on_service_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_spm_bed_nights_on_service_id ON public.hud_spm_bed_nights USING btree (service_id);
+
+
+--
+-- Name: index_hud_spm_enrollment_links_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_spm_enrollment_links_on_enrollment_id ON public.hud_spm_enrollment_links USING btree (enrollment_id);
+
+
+--
+-- Name: index_hud_spm_enrollment_links_on_episode; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_spm_enrollment_links_on_episode ON public.hud_spm_enrollment_links USING btree (episode_type, episode_id);
+
+
+--
+-- Name: index_hud_spm_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_spm_enrollments_on_client_id ON public.hud_spm_enrollments USING btree (client_id);
+
+
+--
+-- Name: index_hud_spm_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_spm_enrollments_on_enrollment_id ON public.hud_spm_enrollments USING btree (enrollment_id);
+
+
+--
+-- Name: index_hud_spm_enrollments_on_personal_id_and_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_spm_enrollments_on_personal_id_and_data_source_id ON public.hud_spm_enrollments USING btree (personal_id, data_source_id);
+
+
+--
+-- Name: index_hud_spm_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_spm_enrollments_on_report_id ON public.hud_spm_enrollments USING btree (report_id);
+
+
+--
+-- Name: index_hud_spm_episodes_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_spm_episodes_on_client_id ON public.hud_spm_episodes USING btree (client_id);
+
+
+--
+-- Name: index_hud_spm_returns_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_spm_returns_on_client_id ON public.hud_spm_returns USING btree (client_id);
+
+
+--
+-- Name: index_hud_spm_returns_on_exit_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_spm_returns_on_exit_enrollment_id ON public.hud_spm_returns USING btree (exit_enrollment_id);
+
+
+--
+-- Name: index_hud_spm_returns_on_return_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_spm_returns_on_return_enrollment_id ON public.hud_spm_returns USING btree (return_enrollment_id);
 
 
 --
@@ -60057,13 +61243,6 @@ CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree
 
 
 --
--- Name: tt; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
-
-
---
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60155,13 +61334,6 @@ CREATE UNIQUE INDEX uidx_hmis_project_unit_type_mappings ON public.hmis_project_
 
 
 --
--- Name: uidx_hmis_staff_assignments; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uidx_hmis_staff_assignments ON public.hmis_staff_assignments USING btree (user_id, hmis_staff_assignment_type_id, household_id, data_source_id) WHERE (deleted_at IS NULL);
-
-
---
 -- Name: uidx_import_overrides_rules; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60187,6 +61359,13 @@ CREATE UNIQUE INDEX uniq_simple_report_universe_members ON public.simple_report_
 --
 
 CREATE UNIQUE INDEX unique_index_ensuring_one_key_per_record_type ON public."CustomDataElementDefinitions" USING btree (owner_type, key);
+
+
+--
+-- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
 
 
 --
@@ -61471,27 +62650,6 @@ CREATE STATISTICS public.stats_shs_2023_homeless ON homeless, literally_homeless
 
 
 --
--- Name: stats_shs_2024_age_homeless; Type: STATISTICS; Schema: public; Owner: -
---
-
-CREATE STATISTICS public.stats_shs_2024_age_homeless ON age, homeless FROM public.service_history_services_2024;
-
-
---
--- Name: stats_shs_2024_age_literally_homeless; Type: STATISTICS; Schema: public; Owner: -
---
-
-CREATE STATISTICS public.stats_shs_2024_age_literally_homeless ON age, literally_homeless FROM public.service_history_services_2024;
-
-
---
--- Name: stats_shs_2024_homeless; Type: STATISTICS; Schema: public; Owner: -
---
-
-CREATE STATISTICS public.stats_shs_2024_homeless ON homeless, literally_homeless FROM public.service_history_services_2024;
-
-
---
 -- Name: stats_shs_2025_age_homeless; Type: STATISTICS; Schema: public; Owner: -
 --
 
@@ -62421,14 +63579,6 @@ ALTER TABLE ONLY public.service_history_services_2047
 
 
 --
--- Name: service_history_services_2024 fk_rails_7119cac661; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2024
-    ADD CONSTRAINT fk_rails_7119cac661 FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
-
-
---
 -- Name: hmis_external_referral_postings fk_rails_71a339e69d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -62570,14 +63720,6 @@ ALTER TABLE ONLY public."ProjectCoC"
 
 ALTER TABLE ONLY public."Disabilities"
     ADD CONSTRAINT fk_rails_866e73470f FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
-
-
---
--- Name: hmis_staff_assignments fk_rails_87ab7bfcdb; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_staff_assignments
-    ADD CONSTRAINT fk_rails_87ab7bfcdb FOREIGN KEY (hmis_staff_assignment_type_id) REFERENCES public.hmis_staff_assignment_types(id);
 
 
 --
@@ -62853,19 +63995,1020 @@ ALTER TABLE ONLY public.import_logs
 
 
 --
+-- Name: service_history_services_2024 service_history_services_2024_service_history_enrollment_i_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2024
+    ADD CONSTRAINT service_history_services_2024_service_history_enrollment_i_fkey FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20160727190957'),
+('20160729135359'),
+('20160729183141'),
+('20160816131814'),
+('20160816173101'),
+('20160818180405'),
+('20160823130251'),
+('20160823144637'),
+('20160824150416'),
+('20160826140306'),
+('20160902162623'),
+('20160902185045'),
+('20160910000538'),
+('20160913132444'),
+('20160913152926'),
+('20160913155401'),
+('20160913160306'),
+('20160913161311'),
+('20160914185810'),
+('20160919210259'),
+('20160919212545'),
+('20160922142402'),
+('20160922162359'),
+('20160922185930'),
+('20160923113802'),
+('20160926002900'),
+('20160926145351'),
+('20160926170204'),
+('20160927134516'),
+('20160927183151'),
+('20160927184003'),
+('20160927202506'),
+('20160927202843'),
+('20160927203650'),
+('20160927205852'),
+('20160928125517'),
+('20160928140906'),
+('20160928202720'),
+('20160929010237'),
+('20160929153319'),
+('20160930142027'),
+('20161004181613'),
+('20161006180229'),
+('20161007160124'),
+('20161007182409'),
+('20161011135522'),
+('20161017193504'),
+('20161019122336'),
+('20161019181914'),
+('20161020175933'),
+('20161021142349'),
+('20161021185201'),
+('20161024205300'),
+('20161025142716'),
+('20161027160241'),
+('20161027173838'),
+('20161029184725'),
+('20161030141156'),
+('20161102131838'),
+('20161102194513'),
+('20161103173010'),
+('20161104131304'),
+('20161108150033'),
+('20161109173403'),
+('20161111194734'),
+('20161111200331'),
+('20161111205557'),
+('20161111210852'),
+('20161111214343'),
+('20161115160857'),
+('20161115163024'),
+('20161115173437'),
+('20161115181519'),
+('20161115194005'),
+('20161117042632'),
+('20161117211439'),
+('20161121134639'),
+('20161122193356'),
+('20161122205922'),
+('20161122212446'),
+('20161123145006'),
+('20161128164214'),
+('20161212154456'),
+('20161213184140'),
+('20161222172617'),
+('20161223181314'),
+('20161228184803'),
+('20161229150159'),
+('20170110183158'),
+('20170210211420'),
+('20170314123357'),
+('20170420193254'),
+('20170505131647'),
+('20170505135248'),
+('20170508001011'),
+('20170508003906'),
+('20170509183056'),
+('20170510131916'),
+('20170518194049'),
+('20170526142051'),
+('20170526162435'),
+('20170530203255'),
+('20170531152936'),
+('20170602183611'),
+('20170602235909'),
+('20170604225122'),
+('20170605004541'),
+('20170605011844'),
+('20170607195038'),
+('20170609162811'),
+('20170619211924'),
+('20170620000812'),
+('20170620013208'),
+('20170622125121'),
+('20170626133126'),
+('20170705125336'),
+('20170706145106'),
+('20170712174621'),
+('20170712182033'),
+('20170714172533'),
+('20170714195436'),
+('20170716180758'),
+('20170716202346'),
+('20170718132138'),
+('20170719172444'),
+('20170726140915'),
+('20170727231741'),
+('20170728151813'),
+('20170728201723'),
+('20170801120635'),
+('20170809173044'),
+('20170815174824'),
+('20170816175326'),
+('20170816205625'),
+('20170817150519'),
+('20170818140329'),
+('20170829131400'),
+('20170830171507'),
+('20170904132001'),
+('20170904140427'),
+('20170904202838'),
+('20170905122913'),
+('20170905122914'),
+('20170905122915'),
+('20170905122916'),
+('20170905122917'),
+('20170905122918'),
+('20170905183117'),
+('20170905202251'),
+('20170905202611'),
+('20170906161906'),
+('20170911124040'),
+('20170911194951'),
+('20170912134710'),
+('20170913192945'),
+('20170918135821'),
+('20170921201252'),
+('20170922193229'),
+('20170922200507'),
+('20170924001510'),
+('20170924005724'),
+('20170924193906'),
+('20170925000145'),
+('20170926124009'),
+('20170926200356'),
+('20170927194653'),
+('20170928185422'),
+('20170928191904'),
+('20170929193327'),
+('20170930184143'),
+('20171003122627'),
+('20171005191828'),
+('20171016191359'),
+('20171019085351'),
+('20171019143151'),
+('20171020131243'),
+('20171021194831'),
+('20171023175038'),
+('20171023194703'),
+('20171024123740'),
+('20171024180819'),
+('20171025165617'),
+('20171026122017'),
+('20171026152842'),
+('20171027031033'),
+('20171102134710'),
+('20171103003947'),
+('20171103134010'),
+('20171103154925'),
+('20171106005358'),
+('20171106211934'),
+('20171108195513'),
+('20171110180121'),
+('20171111032952'),
+('20171111190457'),
+('20171113134728'),
+('20171113142927'),
+('20171113182656'),
+('20171114132110'),
+('20171115182249'),
+('20171115193025'),
+('20171116155352'),
+('20171116184557'),
+('20171127191122'),
+('20171127203632'),
+('20171127234210'),
+('20171128161058'),
+('20171129131811'),
+('20171129172903'),
+('20171201180334'),
+('20171201180412'),
+('20171204161239'),
+('20171204180630'),
+('20171205135225'),
+('20171206131931'),
+('20171208151137'),
+('20171211131328'),
+('20171211142747'),
+('20171211194546'),
+('20171212182935'),
+('20171213002710'),
+('20171213002924'),
+('20171215203448'),
+('20171218211735'),
+('20171219160943'),
+('20171222140958'),
+('20171222142957'),
+('20171222143540'),
+('20171222151018'),
+('20180114165737'),
+('20180114181159'),
+('20180115165003'),
+('20180115195008'),
+('20180117210259'),
+('20180120142315'),
+('20180120145651'),
+('20180120184755'),
+('20180122135635'),
+('20180122190528'),
+('20180123145547'),
+('20180123151137'),
+('20180125214133'),
+('20180126184544'),
+('20180126212658'),
+('20180126230757'),
+('20180127151221'),
+('20180129211310'),
+('20180129222234'),
+('20180130173319'),
+('20180203202523'),
+('20180205134947'),
+('20180205160021'),
+('20180206132151'),
+('20180206132418'),
+('20180206132549'),
+('20180206211300'),
+('20180209140514'),
+('20180209145558'),
+('20180211182226'),
+('20180211191923'),
+('20180212154518'),
+('20180213132145'),
+('20180213133619'),
+('20180215212401'),
+('20180216221704'),
+('20180218004200'),
+('20180218194158'),
+('20180218195838'),
+('20180219003427'),
+('20180219011911'),
+('20180219213751'),
+('20180221172154'),
+('20180221200920'),
+('20180222132714'),
+('20180223131630'),
+('20180226181023'),
+('20180227184226'),
+('20180228134319'),
+('20180228202408'),
+('20180302005549'),
+('20180303012057'),
+('20180304020707'),
+('20180307184913'),
+('20180309152824'),
+('20180309161833'),
+('20180309194413'),
+('20180309200416'),
+('20180313170616'),
+('20180314121340'),
+('20180319204410'),
+('20180326140546'),
+('20180330145925'),
+('20180408102020'),
+('20180410081403'),
+('20180424182721'),
+('20180424185646'),
+('20180424190544'),
+('20180425140146'),
+('20180510001923'),
+('20180510002556'),
+('20180510130324'),
+('20180516130234'),
+('20180516133454'),
+('20180521173754'),
+('20180528152133'),
+('20180528155555'),
+('20180528174021'),
+('20180529122603'),
+('20180605164543'),
+('20180613193551'),
+('20180614004301'),
+('20180615232905'),
+('20180616123004'),
+('20180617111542'),
+('20180617130414'),
+('20180626134714'),
+('20180626140358'),
+('20180628035131'),
+('20180707180119'),
+('20180707183425'),
+('20180709173131'),
+('20180710174412'),
+('20180710195222'),
+('20180713143703'),
+('20180716142944'),
+('20180716175514'),
+('20180716181552'),
+('20180718152629'),
+('20180723180257'),
+('20180731125029'),
+('20180801185645'),
+('20180810142730'),
+('20180810175903'),
+('20180813144056'),
+('20180814144715'),
+('20180815162429'),
+('20180831171525'),
+('20180909174113'),
+('20180910121905'),
+('20180910130909'),
+('20180912121943'),
+('20180912154937'),
+('20180914235727'),
+('20180917204430'),
+('20180919135034'),
+('20181001174159'),
+('20181001180812'),
+('20181001193048'),
+('20181005171232'),
+('20181005172849'),
+('20181010193431'),
+('20181012130754'),
+('20181015132913'),
+('20181015132958'),
+('20181019160628'),
+('20181019182438'),
+('20181019185052'),
+('20181022144551'),
+('20181026125946'),
+('20181030142001'),
+('20181031151924'),
+('20181107183718'),
+('20181107184057'),
+('20181107184157'),
+('20181107184258'),
+('20181119165528'),
+('20181206135841'),
+('20181206195139'),
+('20181207011350'),
+('20181210141734'),
+('20181218184800'),
+('20181219184841'),
+('20181227145018'),
+('20190107135250'),
+('20190108133610'),
+('20190110145430'),
+('20190110205705'),
+('20190111154442'),
+('20190111162407'),
+('20190114175107'),
+('20190129175440'),
+('20190129193710'),
+('20190129193718'),
+('20190129193734'),
+('20190130141818'),
+('20190201172226'),
+('20190204194825'),
+('20190208173854'),
+('20190209204636'),
+('20190211182446'),
+('20190211212757'),
+('20190215151428'),
+('20190215174811'),
+('20190216193115'),
+('20190221211525'),
+('20190225173734'),
+('20190228151509'),
+('20190306011413'),
+('20190307205203'),
+('20190313191758'),
+('20190314233300'),
+('20190315202420'),
+('20190319174002'),
+('20190320132816'),
+('20190320135300'),
+('20190321154235'),
+('20190322182648'),
+('20190324204257'),
+('20190325205709'),
+('20190327174322'),
+('20190328135601'),
+('20190328183719'),
+('20190328201651'),
+('20190329122650'),
+('20190408180044'),
+('20190423144729'),
+('20190424185158'),
+('20190424194714'),
+('20190501154934'),
+('20190502150143'),
+('20190507184540'),
+('20190508181020'),
+('20190509161703'),
+('20190510123307'),
+('20190512175652'),
+('20190531005415'),
+('20190603155216'),
+('20190603192544'),
+('20190603204753'),
+('20190604164934'),
+('20190605121550'),
+('20190605153143'),
+('20190605155107'),
+('20190606000839'),
+('20190606111838'),
+('20190611020510'),
+('20190612194424'),
+('20190614132143'),
+('20190617141627'),
+('20190617154412'),
+('20190701175345'),
+('20190701203722'),
+('20190701203738'),
+('20190705192539'),
+('20190709170452'),
+('20190710202403'),
+('20190712190215'),
+('20190715191354'),
+('20190715195832'),
+('20190715203906'),
+('20190715371835'),
+('20190717171417'),
+('20190719141740'),
+('20190725172606'),
+('20190725183917'),
+('20190725205710'),
+('20190726191455'),
+('20190726201314'),
+('20190730141425'),
+('20190801130133'),
+('20190801131014'),
+('20190802121551'),
+('20190805172310'),
+('20190808155531'),
+('20190814011156'),
+('20190814174740'),
+('20190814194736'),
+('20190814195700'),
+('20190814202518'),
+('20190816160117'),
+('20190819235806'),
+('20190820145158'),
+('20190821163752'),
+('20190821200216'),
+('20190823150100'),
+('20190823175037'),
+('20190902140838'),
+('20190909171338'),
+('20190913131118'),
+('20190916192050'),
+('20190917000129'),
+('20190917001135'),
+('20190917172920'),
+('20190918132924'),
+('20190918191348'),
+('20190918204616'),
+('20190919153540'),
+('20190919164531'),
+('20190919211227'),
+('20190923153128'),
+('20190924134442'),
+('20190927193254'),
+('20191007155052'),
+('20191011124048'),
+('20191014144407'),
+('20191017122329'),
+('20191017141927'),
+('20191021192058'),
+('20191025130319'),
+('20191029172244'),
+('20191101143044'),
+('20191101171753'),
+('20191102185935'),
+('20191104145557'),
+('20191106135508'),
+('20191107212914'),
+('20191111144437'),
+('20191112142922'),
+('20191114212804'),
+('20191115192256'),
+('20191120171159'),
+('20191205155752'),
+('20191216210204'),
+('20191219154817'),
+('20191223133641'),
+('20191223141858'),
+('20191223161021'),
+('20191223203007'),
+('20191227161033'),
+('20200106005041'),
+('20200106010648'),
+('20200106161751'),
+('20200106175129'),
+('20200108174617'),
+('20200108184052'),
+('20200110150204'),
+('20200114154449'),
+('20200120191326'),
+('20200205010344'),
+('20200207165957'),
+('20200211150300'),
+('20200211154527'),
+('20200212140919'),
+('20200214200455'),
+('20200217152806'),
+('20200217194551'),
+('20200219175547'),
+('20200221194355'),
+('20200225181344'),
+('20200225181450'),
+('20200225190151'),
+('20200302164716'),
+('20200303174258'),
+('20200303183252'),
+('20200304153159'),
+('20200306172853'),
+('20200307210926'),
+('20200310141315'),
+('20200312175312'),
+('20200319123357'),
+('20200324151503'),
+('20200325181533'),
+('20200325200620'),
+('20200326183628'),
+('20200326203618'),
+('20200327143205'),
+('20200327203519'),
+('20200328122019'),
+('20200328124124'),
+('20200402121258'),
+('20200408133149'),
+('20200414121843'),
+('20200415124657'),
+('20200417164547'),
+('20200420123748'),
+('20200420144827'),
+('20200421121604'),
+('20200424152842'),
+('20200424202136'),
+('20200429142723'),
+('20200430124823'),
+('20200430173113'),
+('20200504140400'),
+('20200506181929'),
+('20200506195939'),
+('20200514185800'),
+('20200518125929'),
+('20200519175104'),
+('20200530134853'),
+('20200608183800'),
+('20200617123752'),
+('20200625130802'),
+('20200627165150'),
+('20200628001355'),
+('20200628002641'),
+('20200628153252'),
+('20200629153416'),
+('20200629180206'),
+('20200630152328'),
+('20200701150708'),
+('20200701171520'),
+('20200701192839'),
+('20200702125231'),
+('20200703025438'),
+('20200703154239'),
+('20200703154409'),
+('20200703223937'),
+('20200703234840'),
+('20200706171817'),
+('20200706180800'),
+('20200706193249'),
+('20200713203505'),
+('20200716132417'),
+('20200718194102'),
+('20200719235413'),
+('20200721190101'),
+('20200722194242'),
+('20200722200713'),
+('20200723143000'),
+('20200723144121'),
+('20200723172609'),
+('20200723204046'),
+('20200724153536'),
+('20200724173742'),
+('20200724180227'),
+('20200729203440'),
+('20200731143840'),
+('20200731181511'),
+('20200806183758'),
+('20200812144640'),
+('20200812153339'),
+('20200814173200'),
+('20200821185026'),
+('20200824174347'),
+('20200826165713'),
+('20200827130841'),
+('20200827224602'),
+('20200831151807'),
+('20200831193024'),
+('20200901201024'),
+('20200903133437'),
+('20200904191736'),
+('20200910142617'),
+('20200914190210'),
+('20200915230624'),
+('20200916144557'),
+('20200916195351'),
+('20200917185233'),
+('20200917193037'),
+('20200921194630'),
+('20200922192121'),
+('20200923184619'),
+('20200925172414'),
+('20200925201420'),
+('20200927201419'),
+('20200928194005'),
+('20200929203230'),
+('20201001171704'),
+('20201006134420'),
+('20201006194015'),
+('20201008204557'),
+('20201009165424'),
+('20201019193328'),
+('20201020181913'),
+('20201023130124'),
+('20201027200503'),
+('20201030145808'),
+('20201104133922'),
+('20201104182139'),
+('20201104183517'),
+('20201109142122'),
+('20201110201513'),
+('20201111165550'),
+('20201116211113'),
+('20201125130708'),
+('20201201162902'),
+('20201202135347'),
+('20201203140706'),
+('20201208140125'),
+('20201208210326'),
+('20201209163906'),
+('20201211142334'),
+('20201211213255'),
+('20201216164355'),
+('20201218132535'),
+('20201218134107'),
+('20201218180004'),
+('20201223180342'),
+('20210106173839'),
+('20210106195019'),
+('20210111123325'),
+('20210113151049'),
+('20210116192833'),
+('20210118133014'),
+('20210118160904'),
+('20210125151501'),
+('20210201195631'),
+('20210204141807'),
+('20210209182423'),
+('20210216125622'),
+('20210217173551'),
+('20210217202610'),
+('20210223011452'),
+('20210225144651'),
+('20210303180023'),
+('20210303181117'),
+('20210303200052'),
+('20210305204708'),
+('20210312200044'),
+('20210325202706'),
+('20210330124825'),
+('20210413143040'),
+('20210422191627'),
+('20210426165914'),
+('20210427184522'),
+('20210428193540'),
+('20210503165055'),
+('20210505010944'),
+('20210507180711'),
+('20210507180738'),
+('20210507180809'),
+('20210510182341'),
+('20210513185514'),
+('20210514154843'),
+('20210515142741'),
+('20210517144348'),
+('20210520184416'),
+('20210526182148'),
+('20210527140359'),
+('20210601135719'),
+('20210601173704'),
+('20210603121547'),
+('20210603143037'),
+('20210604155334'),
+('20210615131534'),
+('20210616181054'),
+('20210616193735'),
+('20210622171720'),
+('20210623184626'),
+('20210623184729'),
+('20210623195645'),
+('20210625231326'),
+('20210630201802'),
+('20210702143811'),
+('20210702144442'),
+('20210707122337'),
+('20210707172124'),
+('20210707190613'),
+('20210707193633'),
+('20210708183958'),
+('20210708192452'),
+('20210714131449'),
+('20210716144139'),
+('20210717154701'),
+('20210722155210'),
+('20210723161722'),
+('20210726155740'),
+('20210727134415'),
+('20210729175328'),
+('20210729201521'),
+('20210806202832'),
+('20210809124146'),
+('20210809130851'),
+('20210809154208'),
+('20210809184745'),
+('20210810182752'),
+('20210813121134'),
+('20210819132406'),
+('20210819133035'),
+('20210823203031'),
+('20210825182548'),
+('20210830150500'),
+('20210901200255'),
+('20210902113909'),
+('20210902134959'),
+('20210903113401'),
+('20210904021301'),
+('20210906163956'),
+('20210909160929'),
+('20210910113307'),
+('20210910133606'),
+('20210916194101'),
+('20210917140612'),
+('20210920132236'),
+('20210920200621'),
+('20210923202947'),
+('20210926190212'),
+('20210927130613'),
+('20210927133554'),
+('20210929182410'),
+('20210930135501'),
+('20211001135131'),
+('20211001160706'),
+('20211004174014'),
+('20211009183833'),
+('20211011191547'),
+('20211013135958'),
+('20211015172536'),
+('20211018183403'),
+('20211019154744'),
+('20211019164536'),
+('20211020130447'),
+('20211023193009'),
+('20211027185505'),
+('20211101203339'),
+('20211102203208'),
+('20211103235413'),
+('20211108203857'),
+('20211109161950'),
+('20211110005810'),
+('20211115191349'),
+('20211117145404'),
+('20211117181217'),
+('20211118175318'),
+('20211119184203'),
+('20211129122357'),
+('20211202160059'),
+('20211208153720'),
+('20211208155347'),
+('20211218202811'),
+('20211220163817'),
+('20211220204231'),
+('20211221151552'),
+('20211223134654'),
+('20211229164804'),
+('20211230201245'),
+('20220101180956'),
+('20220102193048'),
+('20220114140723'),
+('20220126164546'),
+('20220126182806'),
+('20220127153246'),
+('20220127200317'),
+('20220128203412'),
+('20220201213104'),
+('20220204163115'),
+('20220208180300'),
+('20220210132610'),
+('20220211001613'),
+('20220214202202'),
+('20220216204506'),
+('20220302145218'),
+('20220302154833'),
+('20220308185943'),
+('20220308193503'),
+('20220311161639'),
+('20220312204503'),
+('20220316160839'),
+('20220317185834'),
+('20220322185532'),
+('20220328122746'),
+('20220331180748'),
+('20220411150736'),
+('20220413144557'),
+('20220415192223'),
+('20220427144200'),
+('20220511171233'),
+('20220512174700'),
+('20220516171135'),
+('20220523123830'),
+('20220525125953'),
+('20220526203313'),
+('20220527144703'),
+('20220527144717'),
+('20220527191834'),
+('20220601122623'),
+('20220604181405'),
+('20220607155407'),
+('20220610173543'),
+('20220612161111'),
+('20220617180748'),
+('20220621180929'),
+('20220628162723'),
+('20220630151129'),
+('20220712164926'),
+('20220713150217'),
+('20220714190911'),
+('20220715194241'),
+('20220718185442'),
+('20220801135734'),
+('20220804160252'),
+('20220811205630'),
+('20220812193159'),
+('20220815134022'),
+('20220815140216'),
+('20220816194756'),
+('20220816204223'),
+('20220816205217'),
+('20220817193604'),
+('20220818155829'),
+('20220818173333'),
+('20220819184832'),
+('20220822182146'),
+('20220824150945'),
+('20220824155726'),
+('20220824194239'),
+('20220824202625'),
+('20220825131554'),
+('20220826123607'),
+('20220830131900'),
+('20220830142632'),
+('20220831183303'),
+('20220901142553'),
+('20220901202643'),
+('20220906182407'),
+('20220915132815'),
+('20220915133927'),
+('20220915141020'),
+('20220916152205'),
+('20220916182057'),
+('20220916234039'),
+('20220919161059'),
+('20220919185042'),
+('20220920192149'),
+('20220921141010'),
+('20220921182035'),
+('20220925175719'),
+('20220928132603'),
+('20220928150112'),
+('20220928164029'),
+('20220930194814'),
+('20221006193112'),
+('20221007152924'),
+('20221013195245'),
+('20221014144316'),
+('20221017180229'),
+('20221018164204'),
+('20221019122456'),
+('20221019182810'),
+('20221020113634'),
+('20221021205724'),
+('20221028172017'),
+('20221102194234'),
+('20221103144659'),
+('20221103201310'),
+('20221104134752'),
+('20221107144111'),
+('20221108134143'),
+('20221109155552'),
+('20221110133236'),
+('20221115123832'),
+('20221115211004'),
+('20221116185411'),
+('20221124002729'),
+('20221126145518'),
+('20221207171030'),
+('20221209131957'),
+('20221220180133'),
+('20221220184746'),
+('20221223202329'),
+('20230105155630'),
+('20230105155655'),
+('20230107220752'),
+('20230108133748'),
+('20230109173226'),
+('20230110174657'),
+('20230112142317'),
+('20230119123843'),
+('20230123010327'),
+('20230124195245'),
 ('20230127151606'),
+('20230127200801'),
+('20230206142754'),
+('20230207151644'),
+('20230214194841'),
+('20230227195221'),
+('20230301172341'),
+('20230303154815'),
+('20230303181248'),
+('20230307143837'),
+('20230309205059'),
+('20230313122300'),
+('20230313152950'),
+('20230319133739'),
+('20230320131930'),
+('20230322183901'),
+('20230322220754'),
+('20230327202808'),
+('20230328171436'),
+('20230403144801'),
+('20230406154235'),
+('20230406183420'),
+('20230407164611'),
 ('20230410202101'),
+('20230411193836'),
+('20230412163545'),
+('20230412191455'),
+('20230414130229'),
+('20230414152958'),
+('20230417122614'),
+('20230418163934'),
+('20230419162140'),
+('20230419165219'),
+('20230419190654'),
+('20230420164514'),
+('20230424194313'),
+('20230426175101'),
+('20230428141601'),
+('20230428145659'),
+('20230428155418'),
 ('20230428203604'),
 ('20230428203806'),
 ('20230428210859'),
+('20230429185311'),
 ('20230429212740'),
+('20230429224702'),
 ('20230501183045'),
+('20230502175218'),
+('20230503155642'),
+('20230503161258'),
 ('20230504131726'),
 ('20230504152750'),
 ('20230505150822'),
@@ -63077,6 +65220,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240605155445'),
 ('20240628145249'),
 ('20240710012703'),
-('20240717205642');
+('20240711183824');
 
 

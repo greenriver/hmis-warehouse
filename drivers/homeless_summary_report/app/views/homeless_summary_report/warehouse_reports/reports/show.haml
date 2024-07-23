@@ -1,6 +1,13 @@
 = render 'breadcrumbs'
 
 - content_for :title, @report.title
+- if @report.completed_at.to_date < HomelessSummaryReport::REVISION_DATE
+  .alert.alert-info
+    %i.alert__icon.icon-warning
+    %span.align-middle
+      The race reporting logic for #{@report.title.pluralize} was changed on #{HomelessSummaryReport::REVISION_DATE}.
+      Details and demographic information in this report will likely contain errors.
+
 %h1= content_for :title
 %p.mb-2= @report.description
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
