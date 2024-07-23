@@ -4,7 +4,7 @@ namespace :ci do
   desc 'Analyze rspec profiles, write bucket assignments to file'
   task :build_bucket_assignments, [:profile_dir, :buckets_file, :max_minutes] => :environment do |_t, args|
     profile_dir = args[:profile_dir] || 'rspec_profiles'
-    buckets_file = args.buckets_file || Rails.root.joins('.github/rspec_buckets.json')
+    buckets_file = args.buckets_file || Rails.root.join('.github/rspec_buckets.json')
     max_minutes = (args[:max_minutes] || 20).to_i
 
     unless Dir.exist?(profile_dir)
