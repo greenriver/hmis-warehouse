@@ -25,7 +25,6 @@ module Mutations
       existing = Hmis::StaffAssignment.where(
         staff_assignment_type: assignment_type,
         user: user,
-        # todo @martha - ideally can just pass where(household: hh) but it's not working
         household_id: household.household_id,
         data_source_id: household.data_source_id,
       )
