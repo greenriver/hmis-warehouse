@@ -148,11 +148,11 @@ class AwsS3
 
   def store(content:, name:, content_type: nil)
     obj = @bucket.object(name)
-    if Rails.env.development? || Rails.env.test?
-      obj.put(body: content, content_type: content_type)
-    else
-      obj.put(body: content, server_side_encryption: 'AES256', content_type: content_type)
-    end
+    args = { body: content }
+    args.merge!(content_type: content_type) if content_type
+    # TODO: document why we skip encryption here
+    args.merge!(server_side_encryption: 'AES256') unless Rails.env.development? || Rails.env.test?
+    obj.put(**args)
   end
 
   # Uploads all files from a local directory
