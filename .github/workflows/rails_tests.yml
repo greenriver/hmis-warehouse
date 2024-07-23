@@ -25,6 +25,7 @@ jobs:
           - drivers/{h,i}*
           - drivers/{j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
           - spec
+          - system_tests
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
 
@@ -73,6 +74,13 @@ jobs:
           MINIO_SECRET_KEY: local_secret_key
         ports:
           - '9000:9000'
+      chrome:
+        image: browserless/chrome:1-chrome-stable
+        ports:
+          - 3333:3333
+        env:
+          PORT: 3333
+          CONNECTION_TIMEOUT: 600000
 
     env:
       CLIENT: test
@@ -117,35 +125,39 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
       - name: Set up dependencies
         run: |
-          apk add --no-cache \
-            nodejs yarn npm \
-            tzdata \
-            git \
-            bash \
-            freetds-dev \
-            icu icu-dev \
-            curl libcurl curl-dev \
-            imagemagick \
-            libmagic file-dev file \
-            build-base libxml2-dev libxslt-dev postgresql-dev \
-            libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
-            chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
-            lftp postgresql tmux postgis geos geos-dev \
-            shared-mime-info gpg gpg-agent
-
+          apk add --no-cache $(cat .github/dependencies.txt)
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
-          yarn install --frozen-lockfile
-          gem install bundler --version=2.5.7
+      - name: cache gems
+        uses: actions/cache@v4
+        id: gemcache
+        with:
+          path: |
+            vendor/bundle
+            /usr/local/bundle/
+          key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
 
       - name: Install gems
         run: |
+          gem install bundler --version=2.5.7
           bundle config set --local without 'production staging development'
           bundle install --jobs 4 --retry 3
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node_modules-
+
+      - name: Install Node.js modules
+        run: yarn install --frozen-lockfile
 
       - name: 'App setup'
         run: |
@@ -164,10 +176,12 @@ jobs:
           echo "postgres:*:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
-          bundle exec rake assets:precompile
+      - name: Precompile assets
+        run: bundle exec rails assets:precompile
 
       # Regenerate the graphql schema and fail if it has changed
       - name: 'Check HMIS GraphQL schema'
+        if: matrix.test_group == 'system_tests'
         run: |
           bundle exec rake driver:hmis:dump_graphql_schema
 
@@ -222,6 +236,7 @@ jobs:
           flags: --recursive
 
       - name: Run tests
+        if: matrix.test_group != 'system_tests'
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -234,6 +249,7 @@ jobs:
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
 
       - name: Run logging tests
+        if: matrix.test_group != 'system_tests'
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -244,3 +260,26 @@ jobs:
           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
           TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color --format p spec/models/logging_spec.rb
+
+      - name: Build front end and run tests
+        if: matrix.test_group == 'system_tests'
+        env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          MAX_FAILURES: 60
+          LOG_LEVEL: INFO
+          RUN_SYSTEM_TESTS: true
+          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
+          CHROME_URL: http://chrome:3333
+        run:
+          bash ./bin/run_hmis_system_tests.sh
+
+      - name: Archive artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: ignore
+          name: artifacts-${{ matrix.test_group }}
+          path: |
+            tmp/capybara/screenshots/
+            var/deprecations/*.yml
