@@ -1,14 +1,10 @@
 require 'json'
 
 namespace :ci do
-  # WARNING: this modifies ruby source code to assign tags to specs.
-  # After running this, you may need to update the matrix in rails_tests.yaml for new buckets
-  # rails ci:update_spec_tags[/tmp/rspec_profiles]
-  # profile information is generated from: rspec --format json --out rspec_results.json
-  # or profile information cab be downloaded from gh actions archives
-  desc 'Update RSpec test tags based on profiling data'
-  task :update_spec_tags, [:profile_dir, :max_minutes] => :environment do |_t, args|
+  desc 'Analyze rspec profiles, write bucket assignments to file'
+  task :build_bucket_assignments, [:profile_dir, :buckets_file, :max_minutes] => :environment do |_t, args|
     profile_dir = args[:profile_dir] || 'rspec_profiles'
+    buckets_file = args.buckets_file || Rails.root.joins('.github/rspec_buckets.json')
     max_minutes = (args[:max_minutes] || 20).to_i
 
     unless Dir.exist?(profile_dir)
@@ -29,11 +25,28 @@ namespace :ci do
     # Use bin packing algorithm to distribute specs
     buckets = bin_packing(filtered_specs, estimated_buckets)
 
-    # Update source files
-    update_source_files(buckets)
+    write_json_to_file(buckets, buckets_file)
 
-    # Print summary
     print_summary(buckets)
+  end
+
+  # WARNING: this modifies ruby source code to assign tags to specs.
+  # After running this, you may need to update the matrix in rails_tests.yaml for new buckets
+  # rails ci:update_spec_tags[/tmp/rspec_profiles/buckets.json]
+  # profile information is generated from: rspec --format json --out rspec_results.json
+  # or profile information cab be downloaded from gh actions archives
+  desc 'Update RSpec test tags to match buckets file'
+  task :update_spec_tags, [:buckets_file] => :environment do |_t, args|
+    buckets_file = args.buckets_file || Rails.root.joins('.github/rspec_buckets.json')
+
+    unless File.exist?(buckets_file)
+      puts "Buckets file '#{buckets_file}' not found."
+      exit 1
+    end
+
+    buckets = read_json_from_file(buckets_file)
+    buckets.map!(&:deep_symbolize_keys)
+    update_source_files(buckets)
   end
 
   def load_profile_data(profile_dir)
@@ -43,6 +56,17 @@ namespace :ci do
       profile_groups += profile_data[:profile][:groups]
     end
     profile_groups
+  end
+
+  def read_json_from_file(file_path)
+    json_data = File.read(file_path)
+    JSON.parse(json_data)
+  end
+
+  def write_json_to_file(json, file_path)
+    File.open(file_path, 'w') do |file|
+      file.write(JSON.pretty_generate(json))
+    end
   end
 
   def bin_packing(specs, num_buckets)

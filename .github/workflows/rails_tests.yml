@@ -24,6 +24,9 @@ jobs:
           - {id: 'ci_bucket_1', tag: 'ci_bucket:bucket-1'}
           - {id: 'ci_bucket_2', tag: 'ci_bucket:bucket-2'}
           - {id: 'ci_bucket_3', tag: 'ci_bucket:bucket-3'}
+          - {id: 'ci_bucket_4', tag: 'ci_bucket:bucket-4'}
+          - {id: 'ci_bucket_5', tag: 'ci_bucket:bucket-5'}
+          - {id: 'ci_bucket_6', tag: 'ci_bucket:bucket-6'}
           - {id: 'ci_bucket_default', tag: '~ci_bucket', system_tests: true, logging_tests: true, okta_tests: true}
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
@@ -245,6 +248,8 @@ jobs:
           # capture rspec profiling information
           # mkdir -p tmp/rspec_profiles
           # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }}
+
+          bundle exec rails ci:update_spec_tags[.github/rspec_buckets.json]
           bundle exec rspec --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }}
 
       - name: Run okta tests
