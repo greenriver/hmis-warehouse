@@ -114,10 +114,7 @@ class IdentifyExternalClientsJob < BaseJob
 
   # matching id is found in at least two match sets
   def get_best_match(match_sets, min_rank: 2)
-    ranks = Hash.new(0)
-    match_sets.each do |matches|
-      matches.each { |match| ranks[match] += 1 }
-    end
+    ranks =  match_sets.flatten.tally
 
     best_match = nil
     max_rank = match_sets.size
