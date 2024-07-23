@@ -11,6 +11,7 @@ require_relative '../../support/hmis_base_setup'
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
     cleanup_test_environment
+    ::HmisUtil::JsonForms.seed_all
   end
   after(:all) do
     cleanup_test_environment
