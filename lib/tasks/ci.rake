@@ -1,5 +1,11 @@
 require 'json'
 
+#
+# Rebalancing procedure:
+# 1) run rspec with profiling enabled, output results to json (maybe this should happen on every run?)
+# 2) download profiles from GH artifacts into rspec_profiles directory
+# 3) run `rails ci:build_bucket_assignments[rspec_profiles]` which updates `.github/rspec_buckets.json`
+# 4) if the rake task added new buckets, add them to the github text matrix
 namespace :ci do
   desc 'Analyze rspec profiles, write bucket assignments to file'
   task :build_bucket_assignments, [:profile_dir, :buckets_file, :max_minutes] => :environment do |_t, args|
