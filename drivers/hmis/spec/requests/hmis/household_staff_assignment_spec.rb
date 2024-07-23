@@ -37,13 +37,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         query GetHousehold($id: ID!, $isCurrentlyAssigned: Boolean) {
           household(id: $id) {
             staffAssignments(isCurrentlyAssigned: $isCurrentlyAssigned) {
-              id
-              user {
+              nodes {
                 id
+                user {
+                  id
+                }
+                staffAssignmentType
+                assignedAt
+                unassignedAt
               }
-              staffAssignmentType
-              assignedAt
-              unassignedAt
             }
           }
         }
@@ -53,7 +55,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'resolves currently assigned staff by default' do
       response, result = post_graphql(id: e1.household.household_id) { query }
       expect(response.status).to eq(200)
-      assignment = result.dig('data', 'household', 'staffAssignments', 0)
+      assignment = result.dig('data', 'household', 'staffAssignments', 'nodes', 0)
       expect(assignment.dig('id')).to eq(curr_assignment.id.to_s)
       expect(assignment.dig('unassignedAt')).to be_nil
     end
@@ -61,7 +63,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'resolves past assigned staff when isCurrentlyAssigned arg is set to false' do
       response, result = post_graphql(id: e1.household.household_id, is_currently_assigned: false) { query }
       expect(response.status).to eq(200)
-      assignment = result.dig('data', 'household', 'staffAssignments', 0)
+      assignment = result.dig('data', 'household', 'staffAssignments', 'nodes', 0)
       expect(assignment.dig('id')).to eq(prev_assignment.id.to_s)
       expect(assignment.dig('unassignedAt')).not_to be_nil
     end

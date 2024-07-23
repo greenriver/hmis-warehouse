@@ -18,7 +18,7 @@ module Mutations
       record.destroy!
 
       {
-        staff_assignment => record,
+        staff_assignment: record,
         errors: [],
       }
     end
