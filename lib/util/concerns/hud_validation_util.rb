@@ -85,6 +85,19 @@ module Concerns::HudValidationUtil
       true
     end
 
+    def valid_last_four_social?(last_four)
+      # Ensure the input is exactly 4 digits long
+      return false if last_four.length != 4
+
+      # Ensure the last four digits are numbers
+      return false unless digits?(last_four)
+
+      # Ensure the last four digits are not all zeros
+      return false if last_four.to_i.zero?
+
+      true
+    end
+
     private def known_invalid_ssns
       @known_invalid_ssns ||= [].tap do |seq|
         10.times do |i|
