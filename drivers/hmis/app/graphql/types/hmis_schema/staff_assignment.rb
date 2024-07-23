@@ -13,8 +13,8 @@ module Types
     field :user, Application::User, null: false
     field :household, HmisSchema::Household, null: false
     field :staff_assignment_type, String, null: false
-    field :assigned_at, GraphQL::Types::ISO8601Date, null: false
-    field :unassigned_at, GraphQL::Types::ISO8601Date, null: true
+    field :assigned_at, GraphQL::Types::ISO8601DateTime, null: false
+    field :unassigned_at, GraphQL::Types::ISO8601DateTime, null: true
 
     def user
       load_ar_association(object, :user)

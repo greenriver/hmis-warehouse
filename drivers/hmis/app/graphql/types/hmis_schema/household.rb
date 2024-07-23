@@ -53,11 +53,11 @@ module Types
     def staff_assignments(is_currently_assigned: true)
       # There's no current use case for returning all (both currently assigned and formerly assigned)
       # in the same query, but we could update this to support that use case if it arises.
-      scope = load_ar_association(object, :staff_assignments)
+      scope = load_ar_association(object, :staff_assignments).order(created_at: :desc)
       if is_currently_assigned
         scope
       else
-        scope.with_deleted.where.not(deleted_at: nil)
+        scope.with_deleted.where.not(deleted_at: nil).order(created_at: :desc, deleted_at: :desc)
       end
     end
   end

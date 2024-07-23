@@ -10979,11 +10979,11 @@ enum SexualOrientation {
 Staff Assignment
 """
 type StaffAssignment {
-  assignedAt: ISO8601Date!
+  assignedAt: ISO8601DateTime!
   household: Household!
   id: ID!
   staffAssignmentType: String!
-  unassignedAt: ISO8601Date
+  unassignedAt: ISO8601DateTime
   user: ApplicationUser!
 }
 
