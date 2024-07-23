@@ -11,7 +11,7 @@ x-app: &app
       BUNDLER_VERSION: '2.4.13'
       USER_ID: ${USER_ID:-1001}
       GROUP_ID: ${GROUP_ID:-1001}
-      BUILD_TAG: 3.1.6-alpine3.20
+      BUILD_TAG: 3.1.6-alpine3.18
   environment: &env
     AWS_REGION: ${AWS_REGION:-us-east-1}
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
