@@ -42,7 +42,7 @@ FactoryBot.define do
                 'required': false,
                 'warn_if_empty': true,
                 'text': 'Choice field',
-                "pick_list_reference": 'NoYesMissing',
+                'pick_list_reference': 'NoYesMissing',
                 'mapping': { 'field_name': 'fieldTwo' },
               },
             ],
@@ -86,5 +86,86 @@ FactoryBot.define do
         ],
       }
     end
+  end
+
+  factory :housing_needs_assessment, parent: :hmis_form_definition do
+    role { :CUSTOM_ASSESSMENT }
+    definition do
+      {
+        'item': [
+          {
+            'type': 'GROUP',
+            'text': 'TEST Housing Needs Assessment',
+            'link_id': 'housing_needs_assessment_example_group',
+            'item': [
+              {
+                'type': 'DATE',
+                'required': true,
+                'link_id': 'q_4_19_1',
+                'text': 'Assessment Date',
+                'assessment_date': true,
+                'mapping': {
+                  'record_type': 'ASSESSMENT',
+                  'field_name': 'assessmentDate',
+                },
+              },
+              {
+                'type': 'TEXT',
+                'required': true,
+                'link_id': 'q_4_19_2',
+                'text': 'Assessment Location',
+                'mapping': {
+                  'record_type': 'ASSESSMENT',
+                  'field_name': 'assessmentLocation',
+                },
+              },
+              {
+                'type': 'CHOICE',
+                'required': true,
+                'text': 'Assessment Type',
+                'pick_list_reference': 'AssessmentType',
+                'link_id': 'q_4_19_3',
+                'mapping': {
+                  'record_type': 'ASSESSMENT',
+                  'field_name': 'assessmentType',
+                },
+              },
+              {
+                'type': 'CHOICE',
+                'required': true,
+                'text': 'Assessment Level',
+                'pick_list_reference': 'AssessmentLevel',
+                'link_id': 'q_4_19_4',
+                'mapping': {
+                  'record_type': 'ASSESSMENT',
+                  'field_name': 'assessmentLevel',
+                },
+              },
+              {
+                'type': 'CHOICE',
+                'required': true,
+                'text': 'Prioritization Status',
+                'pick_list_reference': 'PrioritizationStatus',
+                'link_id': 'q_4_19_7',
+                'mapping': {
+                  'record_type': 'ASSESSMENT',
+                  'field_name': 'prioritizationStatus',
+                },
+              },
+              {
+                'text': 'TEST assessment question',
+                'type': 'TEXT',
+                'link_id': 'A1',
+                'mapping': {
+                  'custom_field_key': 'assessment_question',
+                },
+              },
+            ],
+          },
+        ],
+      }
+    end
+
+    # This factory could create the `assessment_question` CDED using after_create, but for now it's not needed
   end
 end

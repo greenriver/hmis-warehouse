@@ -129,6 +129,18 @@ module Types
         client_audit_event_record_type_picklist
       when 'PROJECTS_RECEIVING_REFERRALS'
         projects_receiving_referrals
+      when 'FORM_TYPES'
+        # Used in the dropdown of form roles when creating/editing a form. We need a permission check here because
+        # not all users can access all form types:
+        form_types = if user.can_administrate_config?
+          # Super-admins should be able to select any form type when creating a form
+          Hmis::Form::Definition.form_role_enum_map.members
+        else
+          # Other users should only see the limited list roles that we have designated for general editing, like service and custom assessment
+          Hmis::Form::Definition.non_admin_form_role_enum_map.members
+        end
+
+        form_types.map { |ft| { code: ft[:value], label: ft[:desc] } }
       end
     end
 
@@ -479,19 +491,7 @@ module Types
     end
 
     def self.projects_receiving_referrals
-      # Find all active instances that enable the Referral functionality
-      instance_scope = Hmis::Form::Instance.active.with_role(:REFERRAL)
-      # Find open projects that have an instance that match the criteria, which indicates that the
-      # project accepts referrals.
-      #
-      # We do not check `viewable_by` because providers can refer to projects they can't otherwise view.
-      # NOTE: is not optimized, could be refactored if performance is an issue. Used this approach to minimize
-      # duplication of project_match logic.
-      project_ids = Hmis::Hud::Project.open_on_date(Date.current).select do |project|
-        instance_scope.any? { |instance| instance.project_match(project) }
-      end.map(&:id)
-
-      Hmis::Hud::Project.where(id: project_ids).
+      Hmis::Hud::Project.receiving_referrals.
         joins(:organization).preload(:organization).
         sort_by_option(:organization_and_name).
         map(&:to_pick_list_option)

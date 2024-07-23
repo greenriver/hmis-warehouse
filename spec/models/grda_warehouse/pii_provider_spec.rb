@@ -15,6 +15,7 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
     }
   end
   let(:masked_ssn) { 'XXX-XX-6789' }
+  let(:age_with_year_only) { "#{pii_attributes[:dob].year} (#{pii_age})" }
 
   def new_policy(**perms)
     # roles and policy have the same shape
@@ -53,6 +54,11 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
       actual = GrdaWarehouse::PiiProvider.viewable_dob(pii_attributes[:dob], policy: policy)
       expect(actual).to eq(pii_attributes[:dob])
     end
+    it('displays dob year and age') do
+      expected = "#{pii_attributes[:dob]} (#{pii_age})"
+      expect(pii.dob_and_age).to eq(expected)
+    end
+    it('displays force-masked dob') { expect(pii.dob_and_age(force_year_only: true)).to eq(age_with_year_only) }
   end
 
   context('pii with view photo permission') do
@@ -86,8 +92,7 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
     # age is always shown
     it('displays age') { expect(pii.age).to eq(pii_age) }
     it('displays dob year and age') do
-      expected = "#{pii_attributes[:dob].year} (#{pii_age})"
-      expect(pii.dob_and_age).to eq(expected)
+      expect(pii.dob_and_age).to eq(age_with_year_only)
     end
     it('redacts viewable dob') do
       actual = GrdaWarehouse::PiiProvider.viewable_dob(pii_attributes[:dob], policy: policy)

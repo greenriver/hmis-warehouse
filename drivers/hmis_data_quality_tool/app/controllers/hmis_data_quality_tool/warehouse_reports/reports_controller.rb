@@ -85,6 +85,7 @@ module HmisDataQualityTool::WarehouseReports
         respond_with(@report, location: @report.index_path)
       else
         @pagy, @reports = pagy(report_scope.ordered)
+        set_view_filter
         filters
         render :index
       end

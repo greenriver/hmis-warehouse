@@ -11,10 +11,11 @@ module Mutations
     field :form_definition, Types::Forms::FormDefinition, null: true
 
     def resolve(id:)
-      access_denied! unless current_user.can_manage_forms?
-
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
+
+      access_denied! unless current_user.can_manage_forms_for_role?(definition.role)
+
       raise 'can only delete draft forms' unless definition.draft?
 
       has_other_versions = definition.all_versions.count > 1
