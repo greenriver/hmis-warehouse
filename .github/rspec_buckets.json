@@ -1,0 +1,466 @@
+[
+  {
+    "id": "bucket-1",
+    "total_time": 1630.0791308949997,
+    "specs": [
+      {
+        "count": 384,
+        "start": "2024-07-20T16:35:14.911+00:00",
+        "description": "ClientAccessControl::ClientsController",
+        "total_time": 1253.561397589,
+        "average": 3.2644828062213542,
+        "location": "./drivers/client_access_control/spec/requests/client_visibility_config_variations_spec.rb:18"
+      },
+      {
+        "count": 90,
+        "start": "2024-07-20T16:56:59.517+00:00",
+        "description": "ClientAccessControl::ClientsController",
+        "total_time": 117.48765105,
+        "average": 1.3054183449999999,
+        "location": "./drivers/client_access_control/spec/requests/client_visibility_spec.rb:11"
+      },
+      {
+        "count": 7,
+        "start": "2024-07-20T16:29:20.928+00:00",
+        "description": "Hmis::GraphqlController",
+        "total_time": 64.915218769,
+        "average": 9.273602681285714,
+        "location": "./drivers/hmis/spec/requests/hmis/project_spec.rb:11"
+      },
+      {
+        "count": 121,
+        "start": "2024-07-20T16:19:55.208+00:00",
+        "description": "Hmis::Form::FormProcessor",
+        "total_time": 40.853211362,
+        "average": 0.3376298459669422,
+        "location": "./drivers/hmis/spec/models/hmis/form/form_processor_spec.rb:11"
+      },
+      {
+        "count": 67,
+        "start": "2024-07-20T16:18:41.616+00:00",
+        "description": "GrdaWarehouse::Hud::Client",
+        "total_time": 25.774484185,
+        "average": 0.38469379380597013,
+        "location": "./drivers/client_access_control/spec/models/grda_warehouse/hud/client_visibility_legacy_spec.rb:10"
+      },
+      {
+        "count": 72,
+        "start": "2024-07-20T16:59:00.628+00:00",
+        "description": "ClientAccessControl::ClientsController",
+        "total_time": 21.789897839,
+        "average": 0.30263746998611113,
+        "location": "./drivers/client_access_control/spec/requests/clients_legacy_spec.rb:9"
+      },
+      {
+        "count": 9,
+        "start": "2024-07-20T16:20:25.662+00:00",
+        "description": "GrdaWarehouse::ServiceHistoryService",
+        "total_time": 17.42947611,
+        "average": 1.9366084566666666,
+        "location": "./spec/models/grda_warehouse/cas_active_spec.rb:3"
+      },
+      {
+        "count": 21,
+        "start": "2024-07-20T16:28:10.460+00:00",
+        "description": "Hmis::GraphqlController",
+        "total_time": 16.213917373,
+        "average": 0.7720913034761905,
+        "location": "./drivers/hmis/spec/requests/hmis/pick_list_spec.rb:11"
+      },
+      {
+        "count": 87,
+        "start": "2024-07-20T17:00:04.426+00:00",
+        "description": "HudPathReport::Generators::Fy2021::Generator",
+        "total_time": 14.344604467,
+        "average": 0.16488051111494254,
+        "location": "./drivers/hud_path_report/spec/models/fy2021/validations_spec.rb:16"
+      },
+      {
+        "count": 12,
+        "start": "2024-07-20T16:25:14.406+00:00",
+        "description": "Hmis::GraphqlController",
+        "total_time": 12.778806013,
+        "average": 1.0649005010833335,
+        "location": "./drivers/hmis/spec/requests/hmis/client_search_spec.rb:11"
+      },
+      {
+        "count": 9,
+        "start": "2024-07-20T16:25:38.362+00:00",
+        "description": "Hmis::GraphqlController",
+        "total_time": 12.207097373,
+        "average": 1.3563441525555555,
+        "location": "./drivers/hmis/spec/requests/hmis/custom_data_elements_spec.rb:11"
+      },
+      {
+        "count": 3,
+        "start": "2024-07-20T16:59:40.123+00:00",
+        "description": "HudPathReport::Generators::Fy2021::QuestionTwentyFive",
+        "total_time": 11.474819585,
+        "average": 3.824939861666667,
+        "location": "./drivers/hud_path_report/spec/models/fy2021/question_twenty_five_spec.rb:16"
+      },
+      {
+        "count": 7,
+        "start": "2024-07-20T16:22:09.950+00:00",
+        "description": "Hmis::Unit",
+        "total_time": 11.139155156,
+        "average": 1.5913078794285713,
+        "location": "./drivers/hmis/spec/models/hmis/hud/unit_spec.rb:10"
+      },
+      {
+        "count": 14,
+        "start": "2024-07-20T16:23:23.172+00:00",
+        "description": "Hmis::GraphqlController",
+        "total_time": 10.109394024,
+        "average": 0.7220995731428571,
+        "location": "./drivers/hmis/spec/requests/hmis/assessments/submit_assessment_spec.rb:11"
+      }
+    ]
+  },
+  {
+    "id": "bucket-2",
+    "total_time": 1620.0371633889997,
+    "specs": [
+      {
+        "count": 352,
+        "start": "2024-07-20T16:39:41.683+00:00",
+        "description": "Datalab 2024",
+        "total_time": 1165.889521944,
+        "average": 3.312186141886364,
+        "location": "./drivers/hud_apr/spec/models/fy2024/datalab_2_0_spec.rb:24"
+      },
+      {
+        "count": 8,
+        "start": "2024-07-20T16:26:05.913+00:00",
+        "description": "Rack::Attack",
+        "total_time": 156.691104778,
+        "average": 19.58638809725,
+        "location": "./spec/requests/rack_attack_spec.rb:5"
+      },
+      {
+        "count": 72,
+        "start": "2024-07-20T16:59:22.418+00:00",
+        "description": "ClientAccessControl::ClientsController",
+        "total_time": 85.856701388,
+        "average": 1.1924541859444444,
+        "location": "./drivers/client_access_control/spec/requests/clients_spec.rb:10"
+      },
+      {
+        "count": 90,
+        "start": "2024-07-20T16:56:08.473+00:00",
+        "description": "ClientAccessControl::ClientsController",
+        "total_time": 51.043495085,
+        "average": 0.567149945388889,
+        "location": "./drivers/client_access_control/spec/requests/client_visibility_legacy_spec.rb:11"
+      },
+      {
+        "count": 6,
+        "start": "2024-07-20T16:24:35.235+00:00",
+        "description": "Health::ComprehensiveHealthAssessment",
+        "total_time": 39.988608621,
+        "average": 6.664768103499999,
+        "location": "./spec/models/health/comprehensive_health_assessment_spec.rb:3"
+      },
+      {
+        "count": 72,
+        "start": "2024-07-20T16:34:31.675+00:00",
+        "description": "HmisCsvImporter",
+        "total_time": 22.630255743,
+        "average": 0.31430910754166663,
+        "location": "./drivers/hmis_csv_importer/spec/models/importer/twenty_twenty_four/base_spec.rb:9"
+      },
+      {
+        "count": 27,
+        "start": "2024-07-20T16:22:34.951+00:00",
+        "description": "Hmis::Reminders::ReminderGenerator",
+        "total_time": 19.262376498,
+        "average": 0.7134213517777778,
+        "location": "./drivers/hmis/spec/models/hmis/reminder_spec.rb:10"
+      },
+      {
+        "count": 11,
+        "start": "2024-07-20T16:22:24.116+00:00",
+        "description": "GrdaWarehouse::SystemCohorts::CurrentlyHomeless",
+        "total_time": 16.946177459,
+        "average": 1.5405615871818183,
+        "location": "./spec/models/grda_warehouse/system_cohorts/system_cohort_spec.rb:3"
+      },
+      {
+        "count": 25,
+        "start": "2024-07-20T16:19:21.840+00:00",
+        "description": "Hmis::MergeClientsJob",
+        "total_time": 13.826012388,
+        "average": 0.55304049552,
+        "location": "./drivers/hmis/spec/jobs/merge_clients_job_spec.rb:9"
+      },
+      {
+        "count": 19,
+        "start": "2024-07-20T16:59:51.598+00:00",
+        "description": "HudPathReport::Generators::Fy2021::QuestionTwentySix",
+        "total_time": 12.827350475,
+        "average": 0.6751237092105263,
+        "location": "./drivers/hud_path_report/spec/models/fy2021/question_twenty_six_spec.rb:16"
+      },
+      {
+        "count": 4,
+        "start": "2024-07-20T16:36:53.099+00:00",
+        "description": "Prepend Organization IDs",
+        "total_time": 12.343842105,
+        "average": 3.08596052625,
+        "location": "./drivers/hmis_csv_twenty_twenty/spec/models/prepend_organization_ids_spec.rb:9"
+      },
+      {
+        "count": 12,
+        "start": "2024-07-20T16:59:17.391+00:00",
+        "description": "HudPathReport::Generators::Fy2021::QuestionNineteenToTwentyFour",
+        "total_time": 11.677478584,
+        "average": 0.9731232153333332,
+        "location": "./drivers/hud_path_report/spec/models/fy2021/question_nineteen_to_twenty_four_spec.rb:16"
+      },
+      {
+        "count": 1,
+        "start": "2024-07-20T16:59:29.069+00:00",
+        "description": "HudPathReport::Generators::Fy2021::QuestionSeventeen",
+        "total_time": 11.054238321,
+        "average": 11.054238321,
+        "location": "./drivers/hud_path_report/spec/models/fy2021/question_seventeen_spec.rb:16"
+      }
+    ]
+  },
+  {
+    "id": "bucket-3",
+    "total_time": 1620.0020882969998,
+    "specs": [
+      {
+        "count": 15,
+        "start": "2024-07-20T17:05:46.108+00:00",
+        "description": "Datalab Testkit SPM All-Projects",
+        "total_time": 1050.600924152,
+        "average": 70.04006161013334,
+        "location": "./drivers/hud_spm_report/spec/models/datalab_testkit/all_projects_spec.rb:11"
+      },
+      {
+        "count": 1,
+        "start": "2024-07-20T17:00:57.093+00:00",
+        "description": "Empty test to load fixpoints",
+        "total_time": 291.224056803,
+        "average": 291.224056803,
+        "location": "./drivers/datalab_testkit/spec/empty_spec.rb:4"
+      },
+      {
+        "count": 5,
+        "start": "2024-07-20T16:18:45.547+00:00",
+        "description": "Accounts",
+        "total_time": 79.762145969,
+        "average": 15.9524291938,
+        "location": "./spec/features/accounts_spec.rb:3"
+      },
+      {
+        "count": 9,
+        "start": "2024-07-20T16:23:33.312+00:00",
+        "description": "GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFour",
+        "total_time": 46.916354317,
+        "average": 5.212928257444444,
+        "location": "./spec/models/grda_warehouse/warehouse_reports/project/data_quality/version_four_spec.rb:4"
+      },
+      {
+        "count": 2,
+        "start": "2024-07-20T17:23:16.709+00:00",
+        "description": "HudSpmReport::Generators::Fy2020::Generator",
+        "total_time": 32.223019001,
+        "average": 16.1115095005,
+        "location": "./drivers/hud_spm_report/spec/models/fy2020/all_measures_spec.rb:10"
+      },
+      {
+        "count": 9,
+        "start": "2024-07-20T16:34:09.297+00:00",
+        "description": "HmisCsvImporter",
+        "total_time": 22.378447912,
+        "average": 2.4864942124444442,
+        "location": "./drivers/hmis_csv_importer/spec/models/importer/twenty_twenty_four/bad_data_spec.rb:9"
+      },
+      {
+        "count": 6,
+        "start": "2024-07-20T16:33:45.813+00:00",
+        "description": "HmisCsvImporter::Cleanup::ExpireLoadersJob",
+        "total_time": 18.115893714,
+        "average": 3.019315619,
+        "location": "./drivers/hmis_csv_importer/spec/jobs/hmis_csv_importer/cleanup/expire_loaders_job_spec.rb:10"
+      },
+      {
+        "count": 16,
+        "start": "2024-07-20T16:24:11.302+00:00",
+        "description": "BulkAssignService",
+        "total_time": 17.33728578,
+        "average": 1.08358036125,
+        "location": "./drivers/hmis/spec/requests/hmis/bulk_assign_service_spec.rb:11"
+      },
+      {
+        "count": 33,
+        "start": "2024-07-20T16:21:05.469+00:00",
+        "description": "Hmis::Hud::CustomAssessment",
+        "total_time": 13.386668997,
+        "average": 0.40565663627272724,
+        "location": "./drivers/hmis/spec/models/hmis/hud/custom_assessment_spec.rb:10"
+      },
+      {
+        "count": 4,
+        "start": "2024-07-20T16:36:27.023+00:00",
+        "description": "Prepend Organization IDs",
+        "total_time": 13.022497129,
+        "average": 3.25562428225,
+        "location": "./drivers/hmis_csv_importer/spec/models/importer/twenty_twenty_four/prepend_organization_ids_spec.rb:9"
+      },
+      {
+        "count": 23,
+        "start": "2024-07-20T17:24:05.900+00:00",
+        "description": "HudSpmReport::Generators::Fy2020::MeasureOne",
+        "total_time": 12.29773001,
+        "average": 0.5346839134782609,
+        "location": "./drivers/hud_spm_report/spec/models/fy2020/measure_one_spec.rb:10"
+      },
+      {
+        "count": 5,
+        "start": "2024-07-20T16:35:56.476+00:00",
+        "description": "Force Assessment Prioritization Status",
+        "total_time": 11.896239916,
+        "average": 2.3792479832,
+        "location": "./drivers/hmis_csv_importer/spec/models/importer/twenty_twenty_four/force_prioritization_status_spec.rb:9"
+      },
+      {
+        "count": 8,
+        "start": "2024-07-20T16:23:33.282+00:00",
+        "description": "Hmis::GraphqlController",
+        "total_time": 10.840824597,
+        "average": 1.355103074625,
+        "location": "./drivers/hmis/spec/requests/hmis/assessments/submit_household_assessments_spec.rb:11"
+      }
+    ]
+  },
+  {
+    "id": "bucket-4",
+    "total_time": 1630.0277117899998,
+    "specs": [
+      {
+        "count": 384,
+        "start": "2024-07-20T16:20:24.012+00:00",
+        "description": "ClientAccessControl::ClientsController",
+        "total_time": 890.893373358,
+        "average": 2.3200348264531248,
+        "location": "./drivers/client_access_control/spec/requests/client_visibility_config_variations_legacy_spec.rb:18"
+      },
+      {
+        "count": 18,
+        "start": "2024-07-20T17:00:18.771+00:00",
+        "description": "PATH Datalab 2024",
+        "total_time": 327.337286091,
+        "average": 18.185404782833334,
+        "location": "./drivers/hud_path_report/spec/models/fy2024/datalab_2024_spec.rb:13"
+      },
+      {
+        "count": 111,
+        "start": "2024-07-20T16:30:54.822+00:00",
+        "description": "Hmis::GraphqlController",
+        "total_time": 133.536928828,
+        "average": 1.2030353948468466,
+        "location": "./drivers/hmis/spec/requests/hmis/submit_form_spec.rb:11"
+      },
+      {
+        "count": 67,
+        "start": "2024-07-20T16:19:07.390+00:00",
+        "description": "GrdaWarehouse::Hud::Client",
+        "total_time": 73.42864285,
+        "average": 1.095949893283582,
+        "location": "./drivers/client_access_control/spec/models/grda_warehouse/hud/client_visibility_spec.rb:10"
+      },
+      {
+        "count": 28,
+        "start": "2024-07-20T16:38:54.801+00:00",
+        "description": "HomelessSummaryReport::Report",
+        "total_time": 46.882440556,
+        "average": 1.674372877,
+        "location": "./drivers/homeless_summary_report/spec/models/smoketest_spec.rb:10"
+      },
+      {
+        "count": 172,
+        "start": "2024-07-20T16:22:41.063+00:00",
+        "description": "GrdaWarehouse::Tasks::ClientCleanup",
+        "total_time": 32.198565808,
+        "average": 0.187200964,
+        "location": "./spec/models/grda_warehouse/tasks/client_cleanup_spec.rb:18"
+      },
+      {
+        "count": 6,
+        "start": "2024-07-20T16:33:26.238+00:00",
+        "description": "HmisCsvImporter::Cleanup::ExpireImportersJob",
+        "total_time": 19.575254753,
+        "average": 3.2625424588333334,
+        "location": "./drivers/hmis_csv_importer/spec/jobs/hmis_csv_importer/cleanup/expire_importers_job_spec.rb:10"
+      },
+      {
+        "count": 18,
+        "start": "2024-07-20T16:23:44.123+00:00",
+        "description": "Hmis::GraphqlController",
+        "total_time": 17.671182081,
+        "average": 0.9817323378333334,
+        "location": "./drivers/hmis/spec/requests/hmis/assessments/submit_hud_assessments_spec.rb:11"
+      },
+      {
+        "count": 2,
+        "start": "2024-07-20T16:29:04.435+00:00",
+        "description": "Hmis::GraphqlController",
+        "total_time": 16.493522889,
+        "average": 8.2467614445,
+        "location": "./drivers/hmis/spec/requests/hmis/project_services_spec.rb:11"
+      },
+      {
+        "count": 19,
+        "start": "2024-07-20T16:27:36.454+00:00",
+        "description": "Hmis::GraphqlController",
+        "total_time": 15.499579127,
+        "average": 0.8157673224736842,
+        "location": "./drivers/hmis/spec/requests/hmis/lookup_client_spec.rb:11"
+      },
+      {
+        "count": 7,
+        "start": "2024-07-20T16:27:23.835+00:00",
+        "description": "Hmis::GraphqlController",
+        "total_time": 12.618759617,
+        "average": 1.8026799452857143,
+        "location": "./drivers/hmis/spec/requests/hmis/lookup_client_enrollment_spec.rb:11"
+      },
+      {
+        "count": 24,
+        "start": "2024-07-20T16:20:36.179+00:00",
+        "description": "HmisDataCleanup::Util",
+        "total_time": 12.070494459,
+        "average": 0.502937269125,
+        "location": "./drivers/hmis/spec/models/hmis/hmis_data_cleanup_util_spec.rb:10"
+      },
+      {
+        "count": 13,
+        "start": "2024-07-20T16:28:38.244+00:00",
+        "description": "Hmis::GraphqlController",
+        "total_time": 11.384674945,
+        "average": 0.8757442265384616,
+        "location": "./drivers/hmis/spec/requests/hmis/project_enrollment_search_spec.rb:11"
+      },
+      {
+        "count": 26,
+        "start": "2024-07-20T16:30:44.539+00:00",
+        "description": "Hmis::SessionsController",
+        "total_time": 10.283324865,
+        "average": 0.39551249480769235,
+        "location": "./drivers/hmis/spec/requests/hmis/sessions_controller_spec.rb:11"
+      },
+      {
+        "count": 15,
+        "start": "2024-07-20T16:24:20.640+00:00",
+        "description": "GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport",
+        "total_time": 10.153681563,
+        "average": 0.6769121041999999,
+        "location": "./spec/models/grda_warehouse/warehouse_reports/youth/homeless_youth_report_spec.rb:3"
+      }
+    ]
+  }
+]
