@@ -27,22 +27,25 @@ module GrdaWarehouse
       end
 
       def _variables!
-        return if CensusVariable.where(year: self.year, dataset: self.dataset).any?
+        return if CensusVariable.where(year: year, dataset: dataset).any?
 
-        Rails.logger.info "Getting census variables for #{self.dataset} for #{self.year}"
+        Rails.logger.info "Getting census variables for #{dataset} for #{year}"
 
         lookup_url =
-          if self.dataset.match?(/acs/)
-            "https://api.census.gov/data/#{self.year}/acs/#{self.dataset}/variables.json"
-          elsif self.dataset.match?(/sf\d/)
-            "https://api.census.gov/data/#{self.year}/dec/#{self.dataset}/variables.json"
-            else
-              raise "dataset we didn't account for found"
-            end
+          if dataset.match?(/acs/)
+            "https://api.census.gov/data/#{year}/acs/#{dataset}/variables.json"
+          elsif dataset.match?(/sf\d/)
+            "https://api.census.gov/data/#{year}/dec/#{dataset}/variables.json"
+          else
+            raise "dataset we didn't account for found"
+          end
 
         vars = []
         begin
-          vars = JSON.parse(Curl.get(lookup_url).body)['variables']
+          body = Curl.get(lookup_url) do |curl|
+            curl.cacert = '/etc/ssl/certs/ca-certificates.crt' # Fix for https://github.com/taf2/curb/issues/452
+          end.body
+          vars = JSON.parse(body)['variables']
         rescue JSON::ParserError => e
           Rails.logger.error e.message
         end
@@ -50,13 +53,13 @@ module GrdaWarehouse
         records = []
         vars.each do |name, values|
           records << {
-            year: self.year,
-            dataset: self.dataset,
+            year: year,
+            dataset: dataset,
             name: name,
             label: values['label'],
-            concept: values['concept']||'none',
+            concept: values['concept'] || 'none',
             census_group: values['group'],
-            census_attributes: values['attributes']||'none'
+            census_attributes: values['attributes'] || 'none',
           }
         end
 
@@ -64,18 +67,18 @@ module GrdaWarehouse
       end
 
       def _groups!
-        return if CensusGroup.where(year: self.year, dataset: self.dataset).any?
+        return if CensusGroup.where(year: year, dataset: dataset).any?
 
-        Rails.logger.info "Getting census groups for #{self.dataset} for #{self.year}"
+        Rails.logger.info "Getting census groups for #{dataset} for #{year}"
 
         lookup_url =
-          if self.dataset.match?(/acs/)
-            "https://api.census.gov/data/#{self.year}/acs/#{self.dataset}/groups.json"
-          elsif self.dataset.match?(/sf\d/)
-            "https://api.census.gov/data/#{self.year}/dec/#{self.dataset}/groups.json"
-            else
-              raise "dataset we didn't account for found"
-            end
+          if dataset.match?(/acs/)
+            "https://api.census.gov/data/#{year}/acs/#{dataset}/groups.json"
+          elsif dataset.match?(/sf\d/)
+            "https://api.census.gov/data/#{year}/dec/#{dataset}/groups.json"
+          else
+            raise "dataset we didn't account for found"
+          end
 
         groups = []
         begin
@@ -87,10 +90,10 @@ module GrdaWarehouse
         records = []
         groups.each do |values|
           records << {
-            year: self.year,
-            dataset: self.dataset,
+            year: year,
+            dataset: dataset,
             name: values['name'],
-            description: values['description']
+            description: values['description'],
           }
         end
 
