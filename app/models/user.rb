@@ -83,15 +83,6 @@ class User < ApplicationRecord
   end
 
   def collections_for_permission(permission)
-    # FIXME: old code so we can test the tests
-    # scope = collections.joins(access_controls: :role).merge(Role.where(permission => true))
-
-    # return scope.pluck(:id) if Rails.env.test?
-
-    # Rails.cache.fetch("#{user_permission_prefix}_entity_groups_#{permission}", expires_in: EXPIRY_MINUTES.minutes) do
-    #   scope.pluck(:id)
-    # end
-
     scope = access_controls.joins(:collection, :role).merge(Role.where(permission => true))
     column = Collection.arel_table[:id]
     return scope.pluck(column) if Rails.env.test?
