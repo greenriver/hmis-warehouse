@@ -487,19 +487,20 @@ module GrdaWarehouse::Hud
     end
 
     scope :consent_form_valid, -> do
+      release_string_query = GrdaWarehouse::Config.active_consent_class.release_string_query
       case release_duration
       when 'One Year', 'Two Years'
         where(
-          arel_table[:housing_release_status].matches("%#{full_release_string}").
+          release_string_query.
             and(arel_table[:consent_form_signed_on].gteq(consent_validity_period.ago)),
         )
       when 'Use Expiration Date'
         where(
-          arel_table[:housing_release_status].matches("%#{full_release_string}").
+          release_string_query.
             and(arel_table[:consent_expires_on].gteq(Date.current)),
         )
       else
-        where(arel_table[:housing_release_status].matches("%#{full_release_string}"))
+        where(release_string_query)
       end
     end
 
