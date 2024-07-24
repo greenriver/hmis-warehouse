@@ -25,8 +25,6 @@ jobs:
           - {id: 'ci_bucket_2', tag: 'ci_bucket:bucket-2'}
           - {id: 'ci_bucket_3', tag: 'ci_bucket:bucket-3'}
           - {id: 'ci_bucket_4', tag: 'ci_bucket:bucket-4'}
-          - {id: 'ci_bucket_5', tag: 'ci_bucket:bucket-5'}
-          - {id: 'ci_bucket_6', tag: 'ci_bucket:bucket-6'}
           - {id: 'ci_bucket_default', tag: '~ci_bucket', system_tests: true, logging_tests: true, okta_tests: true}
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
