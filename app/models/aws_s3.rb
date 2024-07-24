@@ -150,7 +150,7 @@ class AwsS3
     obj = @bucket.object(name)
     args = { body: content }
     args.merge!(content_type: content_type) if content_type
-    # TODO: document why we skip encryption here
+    # we're skipping server side encryption for test and development because it hard to support in minio
     args.merge!(server_side_encryption: 'AES256') unless Rails.env.development? || Rails.env.test?
     obj.put(**args)
   end
