@@ -243,12 +243,13 @@ jobs:
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
         run: |
-          # capture rspec profiling information
-          # mkdir -p tmp/rspec_profiles
-          # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }}
-
           bundle exec rails ci:update_spec_tags[.github/rspec_buckets.json]
-          bundle exec rspec --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
+
+          # capture rspec profiling information
+          mkdir -p tmp/rspec_profiles
+          bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
+
+          # bundle exec rspec --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
 
       - name: Run okta tests
         if: matrix.test_group.okta_tests
