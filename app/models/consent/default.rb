@@ -41,6 +41,10 @@ class Consent::Default
     self.class.full_release_string
   end
 
+  def self.release_string_query
+    GrdaWarehouse::Hud::Client.arel_table[:housing_release_status].matches("%#{full_release_string}")
+  end
+
   def release_current_status
     consent_text = if @client.housing_release_status.blank?
       no_release_string
