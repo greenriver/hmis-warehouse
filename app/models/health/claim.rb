@@ -72,6 +72,19 @@ module Health
       update(precalculated_at: Time.now)
     end
 
+    def attach_associated_factories!
+      # Cache the qa -> factory map so we don't have to do individual finds
+      factories = HealthQaFactory::Factory.
+        where(careplan_completed_qa_id: qualifying_activities.select(:id)).
+        pluck(:careplan_completed_qa_id, :id).
+        to_h
+      qualifying_activities.each do |qa|
+        next unless qa.activity.to_sym == :pctp_signed # Only associate careplan completed QAs
+
+        qa.update(claim_metadata_type: HealthQaFactory::Factory.name, claim_metadata_id: factories[qa.id])
+      end
+    end
+
     def run!
       start_report
       build_claims_file

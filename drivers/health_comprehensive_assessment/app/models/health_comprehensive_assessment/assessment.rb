@@ -24,6 +24,9 @@ module HealthComprehensiveAssessment
     has_many :medications, dependent: :destroy
     has_many :sud_treatments, dependent: :destroy
 
+    scope :newest_first, -> do
+      order(arel_table[:completed_on].desc.nulls_first)
+    end
     scope :in_progress, -> { where(completed_on: nil) }
     scope :completed_within, ->(range) { where(completed_at: range) }
     scope :allowed_for_engagement, -> do

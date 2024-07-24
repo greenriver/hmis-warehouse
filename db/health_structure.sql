@@ -4709,7 +4709,9 @@ CREATE TABLE public.qualifying_activities (
     procedure_valid boolean DEFAULT false NOT NULL,
     ignored boolean DEFAULT false,
     valid_unpayable_reasons character varying[],
-    deleted_at date
+    deleted_at date,
+    claim_metadata_type character varying,
+    claim_metadata_id bigint
 );
 
 
@@ -8567,6 +8569,13 @@ CREATE INDEX index_qualifying_activities_on_claim_id ON public.qualifying_activi
 
 
 --
+-- Name: index_qualifying_activities_on_claim_metadata; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_qualifying_activities_on_claim_metadata ON public.qualifying_activities USING btree (claim_metadata_type, claim_metadata_id);
+
+
+--
 -- Name: index_qualifying_activities_on_date_of_activity; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -9300,6 +9309,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240318191704'),
 ('20240327144840'),
 ('20240402142808'),
-('20240515205603');
+('20240515205603'),
+('20240710141900');
 
 
