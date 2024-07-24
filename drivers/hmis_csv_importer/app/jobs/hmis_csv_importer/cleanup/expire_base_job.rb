@@ -107,7 +107,6 @@ module HmisCsvImporter::Cleanup
         model.connection.execute(sweep_query(model, tmp_table_name, min, min + @batch_size))
         deleted_this_time = [max, @batch_size].min
         @rows_deleted += deleted_this_time
-        log("Deleted #{deleted_this_time} rows from #{model.table_name}")
         min += @batch_size
       end
     end

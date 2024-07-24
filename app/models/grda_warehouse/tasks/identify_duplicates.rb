@@ -13,6 +13,8 @@ module GrdaWarehouse::Tasks
       setup_notifier('IdentifyDuplicates')
       @run_post_processing = run_post_processing
       super()
+      build_source_lookups
+      build_destination_lookups
     end
 
     def run!
@@ -53,7 +55,7 @@ module GrdaWarehouse::Tasks
           if match_id.present?
             matched += 1
             matched_ids << match_id
-            destination_client = destination_clients_by_id[match_id]
+            destination_client = get_destination_client_by_id(match_id)
 
             # Set SSN & DOB if we have it in the incoming client, but not in the destination
             should_save = false
@@ -178,14 +180,15 @@ module GrdaWarehouse::Tasks
       splits_by_from = all_splits.group_by(&:first)
       splits_by_into = all_splits.group_by(&:last)
 
-      all_source_clients.each do |first_name, last_name, ssn, dob, dest_id|
-        splits = splits_by_from[dest_id]&.flatten || [] # Don't re-merge anybody that was split off from this candidate
-        splits += splits_by_into[dest_id]&.flatten || [] # Don't merge with anybody that this candidate was split off from
+      @source_clients.each do |target|
+        splits = splits_by_from[target.id]&.flatten || [] # Don't re-merge anybody that was split off from this candidate
+        splits += splits_by_into[target.id]&.flatten || [] # Don't merge with anybody that this candidate was split off from
 
-        matches_name = (check_name(first_name, last_name, source_clients_grouped_by_name) - [dest_id])
-        matches_ssn = (check_social(ssn, source_clients_grouped_by_ssn) - [dest_id])
-        matches_dob = (check_birthday(dob, source_clients_grouped_by_dob) - [dest_id])
+        matches_name = @source_name_lookup.get_ids(first_name: target.first_name, last_name: target.last_name)
+        matches_ssn = @source_ssn_lookup.get_ids(ssn: target.ssn)
+        matches_dob = @source_dob_lookup.get_ids(dob: target.dob)
         all_matching_dest_ids = (matches_name + matches_ssn + matches_dob) - splits
+        all_matching_dest_ids.filter! { |id| id != target.id }
         # to_merge_by_dest_id = Set.new
         # seen = Set.new
         # all_matching_dest_ids.each do |num|
@@ -199,34 +202,9 @@ module GrdaWarehouse::Tasks
           map { |num| [num, all_matching_dest_ids.count(num)] }.to_h.
           select { |_, v| v > 1 }
 
-        to_merge += to_merge_by_dest_id.keys.map { |source_id| [dest_id, source_id].sort } if to_merge_by_dest_id.any?
+        to_merge += to_merge_by_dest_id.keys.map { |source_id| [target.id, source_id].sort } if to_merge_by_dest_id.any?
       end
       return to_merge
-    end
-
-    def source_clients_grouped_by_name
-      @source_clients_grouped_by_name ||= all_source_clients.group_by { |first_name, last_name, _, _, _| [first_name.downcase, last_name.downcase] }.
-        transform_values { |values| values.map(&:last) }
-    end
-
-    def source_clients_grouped_by_ssn
-      @source_clients_grouped_by_ssn ||= all_source_clients.group_by { |_, _, ssn, _, _| ssn }.
-        transform_values { |values| values.map(&:last) }
-    end
-
-    def source_clients_grouped_by_dob
-      @source_clients_grouped_by_dob ||= all_source_clients.group_by { |_, _, _, dob, _| dob }.
-        transform_values { |values| values.map(&:last) }
-    end
-
-    def all_source_clients
-      @all_source_clients ||= GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).source.
-        pluck(:FirstName, :LastName, :SSN, :DOB, Arel.sql(wc_t[:destination_id].to_sql)).
-        map do |first_name, last_name, ssn, dob, id|
-          clean_first_name = first_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
-          clean_last_name = last_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
-          [clean_first_name, clean_last_name, ssn, dob, id]
-        end
     end
 
     # Find any destination clients that have been marked deleted where the source client is not deleted
@@ -264,9 +242,9 @@ module GrdaWarehouse::Tasks
     #   2. birthdate matches
     #   3. perfect name matches
     private def check_for_obvious_match(client)
-      ssn_matches = check_social(client.SSN, destination_clients_grouped_by_ssn)
-      birthdate_matches = check_birthday(client.DOB, destination_clients_grouped_by_dob)
-      name_matches = check_name(client.first_name, client.last_name, destination_clients_grouped_by_name)
+      ssn_matches = @dest_ssn_lookup.get_ids(ssn: client.SSN)
+      birthdate_matches = @dest_dob_lookup.get_ids(dob: client.DOB)
+      name_matches = @dest_name_lookup.get_ids(first_name: client.first_name, last_name: client.last_name)
 
       all_matches = ssn_matches + birthdate_matches + name_matches
       if Rails.env.development?
@@ -290,58 +268,41 @@ module GrdaWarehouse::Tasks
       client_destinations.where(PersonalID: personal_id).pluck(:id)
     end
 
-    private def valid_social? ssn
-      ::HudUtility2024.valid_social? ssn
-    end
+    private def build_destination_lookups
+      @dest_name_lookup = GrdaWarehouse::ClientMatcherLookups::ProperNameLookup.new
+      @dest_ssn_lookup = GrdaWarehouse::ClientMatcherLookups::SSNLookup.new
+      @dest_dob_lookup = GrdaWarehouse::ClientMatcherLookups::DOBLookup.new
+      @dest_clients_by_id = {}
 
-    private def check_social(ssn, ssn_group)
-      return [] unless valid_social?(ssn)
-
-      ssn_group[ssn]&.uniq || []
-    end
-
-    private def check_birthday(dob, dob_group)
-      return [] unless dob.present?
-
-      dob_group[dob]&.uniq || []
-    end
-
-    private def check_name(first_name, last_name, name_group)
-      clean_first_name = first_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
-      clean_last_name = last_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
-      return [] unless clean_first_name.present? && clean_last_name.present?
-
-      name_group[[clean_first_name, clean_last_name]]&.uniq || []
-    end
-
-    private def all_destination_clients
-      @all_destination_clients ||= GrdaWarehouse::Hud::Client.destination.
-        pluck(:FirstName, :LastName, :SSN, :DOB, :id).
-        map do |first_name, last_name, ssn, dob, id|
-        clean_first_name = first_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
-        clean_last_name = last_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
-        [clean_first_name, clean_last_name, ssn, dob, id]
+      GrdaWarehouse::ClientMatcherLookups::ClientStub.from_scope(client_destinations) do |client|
+        @dest_name_lookup.add(client)
+        @dest_ssn_lookup.add(client)
+        @dest_dob_lookup.add(client)
+        @dest_clients_by_id[client.id] = client
       end
     end
 
-    private def destination_clients_grouped_by_name
-      @destination_clients_grouped_by_name ||= all_destination_clients.group_by { |first_name, last_name, _, _, _| [first_name, last_name] }.
-        transform_values { |values| values.map(&:last) }
+    private def build_source_lookups
+      @source_name_lookup = GrdaWarehouse::ClientMatcherLookups::ProperNameLookup.new
+      @source_ssn_lookup = GrdaWarehouse::ClientMatcherLookups::SSNLookup.new
+      @source_dob_lookup = GrdaWarehouse::ClientMatcherLookups::DOBLookup.new
+      @source_clients = []
+
+      clients = GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).source
+      # Use the Destination Client's ID, but the source client's PII
+      id_field = Arel.sql(wc_t[:destination_id].to_sql)
+      GrdaWarehouse::ClientMatcherLookups::ClientStub.from_scope(clients, id_field: id_field) do |client|
+        @source_name_lookup.add(client)
+        @source_ssn_lookup.add(client)
+        @source_dob_lookup.add(client)
+        @source_clients.push(client)
+      end
     end
 
-    private def destination_clients_grouped_by_ssn
-      @destination_clients_grouped_by_ssn ||= all_destination_clients.group_by { |_, _, ssn, _, _| ssn }.
-        transform_values { |values| values.map(&:last) }
-    end
-
-    private def destination_clients_grouped_by_dob
-      @destination_clients_grouped_by_dob ||= all_destination_clients.group_by { |_, _, _, dob, _| dob }.
-        transform_values { |values| values.map(&:last) }
-    end
-
-    private def destination_clients_by_id
-      @destination_clients_by_id ||= all_destination_clients.group_by { |_, _, _, _, dest_id| dest_id }.
-        transform_values { |values| values.map { |client| { SSN: client[2], DOB: client[3], id: client[4] } }.first }
+    # reshape for upsert, exclude names
+    private def get_destination_client_by_id(id)
+      found = @dest_clients_by_id[id]
+      { SSN: found.ssn, DOB: found.dob, id: found.id }
     end
   end
 end

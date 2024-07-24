@@ -21,6 +21,15 @@ module HudUtility2024
     _translate map, field, reverse
   end
 
+  # HUD race columns have state-codes in all uppercase, and do not 'camelize' correctly
+  def race_column_name(snakecase)
+    snakecase.
+      camelize.
+      gsub('Ak', 'AK').
+      gsub('HiPac', 'HIPac'). # Don't substitute 'Hi' in 'Hispanic'
+      to_sym
+  end
+
   def ethnicities
     {
       hispanic_latinaeo: 'Hispanic/Latina/e/o',

@@ -177,7 +177,6 @@ tasks = [
     frequency: 1.day,
     at: import_cleanup_time,
     interruptable: false,
-    trigger: ENV['RAILS_ENV'] != 'production', # Don't run in production for now; TODO: remove this once we're happy with it
   },
 ]
 

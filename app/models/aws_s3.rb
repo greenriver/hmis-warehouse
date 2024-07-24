@@ -146,13 +146,13 @@ class AwsS3
     end
   end
 
-  def store(content:, name:)
+  def store(content:, name:, content_type: nil)
     obj = @bucket.object(name)
-    if Rails.env.development? || Rails.env.test?
-      obj.put(body: content)
-    else
-      obj.put(body: content, server_side_encryption: 'AES256')
-    end
+    args = { body: content }
+    args.merge!(content_type: content_type) if content_type
+    # we're skipping server side encryption for test and development because it hard to support in minio
+    args.merge!(server_side_encryption: 'AES256') unless Rails.env.development? || Rails.env.test?
+    obj.put(**args)
   end
 
   # Uploads all files from a local directory
