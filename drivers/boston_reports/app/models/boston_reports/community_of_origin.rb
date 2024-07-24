@@ -208,7 +208,10 @@ module BostonReports
     end
 
     def entering_with_community_of_origin
-      entering_clients.joins(**location_joins)
+      entering_clients.
+        joins(**location_joins).
+        joins(places_distinct_join(places_t).join_sources).
+        correlated_exists(GrdaWarehouse::Place.joins(:shape_state), quoted_table_name: ClientLocationHistory::Location.quoted_table_name, column_name: [:lat, :lon], alias_name: :places)
     end
 
     private def location_joins
@@ -280,7 +283,7 @@ module BostonReports
     end
 
     def my_state_data
-      across_the_country_data.detect { |d| d[:name] == GrdaWarehouse::Shape::State.my_state.first.name }
+      across_the_country_data.detect { |d| d[:name] == GrdaWarehouse::Shape::State.my_states.first.name }
     end
 
     private def zip_code_scope
