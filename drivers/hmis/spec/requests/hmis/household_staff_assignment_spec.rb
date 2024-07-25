@@ -54,7 +54,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'resolves currently assigned staff by default' do
       response, result = post_graphql(id: e1.household.household_id) { query }
-      expect(response.status).to eq(200)
+      expect(response.status).to eq(200), result.inspect
       assignment = result.dig('data', 'household', 'staffAssignments', 'nodes', 0)
       expect(assignment.dig('id')).to eq(curr_assignment.id.to_s)
       expect(assignment.dig('unassignedAt')).to be_nil
@@ -62,7 +62,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'resolves past assigned staff when isCurrentlyAssigned arg is set to false' do
       response, result = post_graphql(id: e1.household.household_id, is_currently_assigned: false) { query }
-      expect(response.status).to eq(200)
+      expect(response.status).to eq(200), result.inspect
       assignment = result.dig('data', 'household', 'staffAssignments', 'nodes', 0)
       expect(assignment.dig('id')).to eq(prev_assignment.id.to_s)
       expect(assignment.dig('unassignedAt')).not_to be_nil
