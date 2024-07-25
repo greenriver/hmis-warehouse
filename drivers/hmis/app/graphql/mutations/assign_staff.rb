@@ -12,7 +12,7 @@ module Mutations
     field :staff_assignment, Types::HmisSchema::StaffAssignment, null: true
 
     def resolve(household_id:, assignment_type_id:, user_id:)
-      household = Hmis::Hud::Household.preload(:project).find_by(household_id: household_id, data_source_id: current_user.hmis_data_source_id)
+      household = Hmis::Hud::Household.viewable_by(current_user).find_by(household_id: household_id, data_source_id: current_user.hmis_data_source_id)
       raise 'Not found' unless household
 
       access_denied! unless current_user.permissions_for?(household.project, :can_edit_enrollments)
