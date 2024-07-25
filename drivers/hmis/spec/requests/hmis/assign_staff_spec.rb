@@ -54,6 +54,7 @@ RSpec.describe 'Assign Staff Mutation', type: :request do
     end
 
     it 'does not make duplicate assignment' do
+      create_access_control(assignment.user, assignment.household.project)
       input = {
         household_id: assignment.household.household_id,
         assignment_type_id: assignment.staff_assignment_type.id,
