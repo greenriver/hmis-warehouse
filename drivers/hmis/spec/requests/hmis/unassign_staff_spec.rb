@@ -47,7 +47,7 @@ RSpec.describe 'Unassign Staff Mutation', type: :request do
     it 'returns an error when the ID is not found' do
       response, result = post_graphql({ id: 555 }) { mutation }
       expect(response.status).to eq(500)
-      expect(result.dig('errors', 0, 'message')).to eq('Not found')
+      expect(result.dig('errors', 0, 'message')).to match("Couldn't find Hmis::StaffAssignment")
     end
   end
 

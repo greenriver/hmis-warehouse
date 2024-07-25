@@ -10,8 +10,7 @@ module Mutations
     field :staff_assignment, Types::HmisSchema::StaffAssignment, null: true
 
     def resolve(id:)
-      record = Hmis::StaffAssignment.preload(household: :project).find_by(id: id)
-      raise 'Not found' unless record
+      record = Hmis::StaffAssignment.find(id)
 
       access_denied! unless current_user.permissions_for?(record.household.project, :can_edit_enrollments)
 
