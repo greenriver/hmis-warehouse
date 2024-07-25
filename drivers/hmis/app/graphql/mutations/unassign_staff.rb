@@ -12,7 +12,7 @@ module Mutations
     def resolve(id:)
       record = Hmis::StaffAssignment.find(id)
 
-      access_denied! unless current_user.permissions_for?(record.household.project, :can_edit_enrollments)
+      access_denied! unless current_permission?(permission: :can_edit_enrollments, entity: record.household.project)
 
       record.destroy!
 
