@@ -29,16 +29,17 @@ module Mutations
         data_source_id: household.data_source_id,
       )
       errors = HmisErrors::Errors.new
-      errors.add(:user_id, :invalid, message: "#{user.name} is already assigned as #{assignment_type.name} for this household") if existing.exists?
-      return { errors: errors } if errors.any?
+      # Locking on assignment_type looks odd but we can't use user (different db) and household is a view
+      assignment_type.with_lock do
+        errors.add(:user_id, :invalid, message: "#{user.name} is already assigned as #{assignment_type.name} for this household") if existing.exists?
+        return { errors: errors } if errors.any?
 
-      assignment = Hmis::StaffAssignment.new(
-        household: household,
-        user: user,
-        staff_assignment_type: assignment_type,
-      )
-
-      assignment.save!
+        assignment = Hmis::StaffAssignment.create!(
+          household: household,
+          user: user,
+          staff_assignment_type: assignment_type,
+        )
+      end
       { staff_assignment: assignment }
     end
   end
