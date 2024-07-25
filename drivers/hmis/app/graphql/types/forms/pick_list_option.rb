@@ -151,12 +151,12 @@ module Types
     def self.eligible_staff_assignment_user_picklist(project)
       return [] unless project&.staff_assignments_enabled?
 
-      Hmis::User.can_edit_enrollments_for(project).map do |user|
+      Hmis::User.can_edit_enrollments_for(project).order(:last_name, :first_name, :id).map do |user|
         {
           code: user.id.to_s,
           label: user.full_name,
         }
-      end.sort_by { |obj| obj[:code] }
+      end
     end
 
     def self.user_picklist(current_user)
