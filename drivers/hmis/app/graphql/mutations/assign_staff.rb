@@ -20,7 +20,7 @@ module Mutations
       raise 'Staff Assignment not enabled' unless household.project.staff_assignments_enabled?
 
       assignment_type = Hmis::StaffAssignmentType.find(assignment_type_id)
-      user = Hmis::User.find(user_id)
+      user = Hmis::User.can_edit_enrollments_for(household.project).find(user_id)
 
       existing = Hmis::StaffAssignment.where(
         staff_assignment_type: assignment_type,
