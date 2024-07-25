@@ -18,6 +18,6 @@ FactoryBot.define do
   end
 
   factory :hmis_staff_assignment_type, class: 'Hmis::StaffAssignmentType' do
-    name { 'Case Manager' }
+    sequence(:name) { |n| "staff role #{n}" }
   end
 end
