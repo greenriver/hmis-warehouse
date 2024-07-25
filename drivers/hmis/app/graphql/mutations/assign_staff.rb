@@ -39,8 +39,9 @@ module Mutations
           user: user,
           staff_assignment_type: assignment_type,
         )
+
+        { staff_assignment: assignment }
       end
-      { staff_assignment: assignment }
     end
   end
 end
