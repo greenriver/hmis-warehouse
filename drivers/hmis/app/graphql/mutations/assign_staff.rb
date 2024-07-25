@@ -5,22 +5,20 @@
 
 module Mutations
   class AssignStaff < CleanBaseMutation
-    argument :household_id, ID, required: true
-    argument :assignment_type_id, ID, required: true
-    argument :user_id, ID, required: true
+    argument :input, Types::HmisSchema::AssignStaffInput, required: true
 
     field :staff_assignment, Types::HmisSchema::StaffAssignment, null: true
 
-    def resolve(household_id:, assignment_type_id:, user_id:)
-      household = Hmis::Hud::Household.viewable_by(current_user).find_by(household_id: household_id, data_source_id: current_user.hmis_data_source_id)
+    def resolve(input:)
+      household = Hmis::Hud::Household.viewable_by(current_user).find_by(household_id: input.household_id, data_source_id: current_user.hmis_data_source_id)
       raise 'Not found' unless household
 
       access_denied! unless current_user.permissions_for?(household.project, :can_edit_enrollments)
 
       raise 'Staff Assignment not enabled' unless household.project.staff_assignments_enabled?
 
-      assignment_type = Hmis::StaffAssignmentType.find(assignment_type_id)
-      user = Hmis::User.can_edit_enrollments_for(household.project).find(user_id)
+      assignment_type = Hmis::StaffAssignmentType.find(input.assignment_type_id)
+      user = Hmis::User.can_edit_enrollments_for(household.project).find(input.user_id)
 
       existing = Hmis::StaffAssignment.where(
         staff_assignment_type: assignment_type,

@@ -18,8 +18,8 @@ RSpec.describe 'Assign Staff Mutation', type: :request do
 
   subject(:mutation) do
     <<~GRAPHQL
-      mutation AssignStaff($householdId: ID!, $assignmentTypeId: ID!, $userId: ID!) {
-        assignStaff(householdId: $householdId, assignmentTypeId: $assignmentTypeId, userId: $userId) {
+      mutation AssignStaff($input: AssignStaffInput!) {
+        assignStaff(input: $input) {
           staffAssignment {
             id
           }
@@ -47,7 +47,7 @@ RSpec.describe 'Assign Staff Mutation', type: :request do
         assignment_type_id: at.id,
         user_id: hmis_user.id,
       }
-      response, result = post_graphql(input) { mutation }
+      response, result = post_graphql({ input: input }) { mutation }
       expect(response.status).to eq(200)
       expect(result.dig('data', 'assignStaff', 'staffAssignment', 'id')).not_to be_nil
       expect(result.dig('data', 'assignStaff', 'errors')).to be_empty
@@ -60,7 +60,7 @@ RSpec.describe 'Assign Staff Mutation', type: :request do
         assignment_type_id: assignment.staff_assignment_type.id,
         user_id: assignment.user.id,
       }
-      response, result = post_graphql(input) { mutation }
+      response, result = post_graphql({ input: input }) { mutation }
       expect(response.status).to eq(200)
       expect(result.dig('data', 'assignStaff', 'errors', 0, 'message')).to match(/is already assigned/)
     end
@@ -71,7 +71,7 @@ RSpec.describe 'Assign Staff Mutation', type: :request do
         assignment_type_id: at.id,
         user_id: hmis_user.id,
       }
-      response, result = post_graphql(input) { mutation }
+      response, result = post_graphql({ input: input }) { mutation }
       expect(response.status).to eq(500)
       expect(result.dig('errors', 0, 'message')).to eq('Staff Assignment not enabled')
     end
@@ -86,7 +86,7 @@ RSpec.describe 'Assign Staff Mutation', type: :request do
         assignment_type_id: at.id,
         user_id: hmis_user.id,
       }
-      expect_access_denied post_graphql(input) { mutation }
+      expect_access_denied post_graphql({ input: input }) { mutation }
     end
   end
 end
