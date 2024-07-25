@@ -23,6 +23,7 @@ class AddStaffAssignmentTables < ActiveRecord::Migration[7.0]
       t.timestamps
       t.timestamp :deleted_at
     end
-    add_index :hmis_staff_assignments, [:user_id, :hmis_staff_assignment_type_id, :household_id, :data_source_id], unique: true, where: 'deleted_at IS NULL', name: :uidx_hmis_staff_assignments
+    add_index :hmis_staff_assignments, [:data_source_id, :household_id, :user_id, :hmis_staff_assignment_type_id], unique: true, where: 'deleted_at IS NULL', name: :uidx_hmis_staff_assignments
+    add_index :hmis_staff_assignments, :user_id
   end
 end
