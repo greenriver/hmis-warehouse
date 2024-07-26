@@ -34,70 +34,24 @@ module Health
       GPGME::Key.import(secret_key) unless GPGME::Key.find(encryption_key_name).present?
     end
 
-    # TODO: This class should be STI instead
-    def get(remote, local)
-      raise 'Not implemented' unless kind.to_s == 'medicaid_hmis_exchange'
-
+    def get(remote, local, recursive: false)
       connect do |connection|
-        connection.download!(remote, local)
+        connection.download!(remote, local, recursive: recursive)
       end
     end
 
     def put(local, remote)
-      raise 'Not implemented' unless kind.to_s == 'medicaid_hmis_exchange'
-
       connect do |connection|
         connection.upload!(local, remote)
       end
     end
 
     def ls(remote)
-      raise 'Not implemented' unless kind.to_s == 'medicaid_hmis_exchange'
-
       connect do |connection|
         connection.dir.foreach(remote) do |entry|
           puts entry.longname
         end
       end
-    end
-
-    def connect
-      raise 'Not implemented' unless kind.to_s == 'medicaid_hmis_exchange'
-
-      file = Tempfile.new('mhx_private_key')
-      opts = {
-        keepalive: true,
-        keepalive_interval: 60,
-      }
-      if Rails.env.production? || Rails.env.staging?
-        key = password
-        file.write(key)
-        file.rewind
-        file.close
-        opts.merge!(
-          {
-            keys: [file.path],
-            keys_only: true,
-          },
-        )
-
-      else
-        opts.merge!(
-          {
-            password: password,
-            auth_methods: ['publickey', 'password'],
-          },
-        )
-      end
-
-      Net::SFTP.start(
-        host,
-        username,
-        **opts,
-      ) do |connection|
-        yield connection
-      end
-      file.unlink
     end
   end
 end
