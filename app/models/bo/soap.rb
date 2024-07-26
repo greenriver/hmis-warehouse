@@ -5,6 +5,7 @@
 ###
 
 require 'curb'
+require 'rexml'
 
 module Bo
   class Soap
