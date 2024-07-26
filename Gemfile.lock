@@ -1186,6 +1186,7 @@ DEPENDENCIES
   reline
   responders
   rest-client (~> 2.0)
+  rexml
   rgeo (~> 2.4.0)
   rgeo-geojson
   rgeo-proj4
