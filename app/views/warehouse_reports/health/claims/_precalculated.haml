@@ -11,6 +11,9 @@
   %li.nav-item.payable
     %a.nav-link{href: '#payable', role: "presentation", data: {toggle: :tab}}
       Valid QA, Payable
+  %li.nav-item.payable
+    %a.nav-link{href: '#missing-components', role: "presentation", data: {toggle: :tab}}
+      Missing Components
 
 .tab-content
   .tab-pane.active#unpayable
@@ -53,3 +56,12 @@
     .payable-wrapper
       %p Found #{pluralize(@payable.count, 'client')} with #{pluralize(@payable.values.flatten.count, 'payable qualifying activity')}.
       = render 'payable', qa_group: @payable
+  .tab-pane#missing-components
+    %p
+      Missing components do not affect the validity of the careplan completed qualifying activity.
+    .missing-components-wrapper
+      %p
+        Found #{pluralize(@missing_components.count, 'client')}
+        with #{pluralize(@missing_components.values.flatten.count, 'careplan completed qualifying activity')}
+        missing one or more careplan components.
+      = render 'missing_components', qa_group: @missing_components

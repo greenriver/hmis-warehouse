@@ -29,6 +29,7 @@ module Talentlms
       url = generate_url(action, args)
 
       result = Curl.get(url) do |curl|
+        curl.cacert = '/etc/ssl/certs/ca-certificates.crt' # Fix for https://github.com/taf2/curb/issues/452
         curl.headers['Authorization'] = "Basic #{key}"
       end
 
@@ -49,6 +50,7 @@ module Talentlms
       key = Base64.strict_encode64("#{api_key}:")
       url = generate_url(action, args)
       result = Curl.post(url, data) do |curl|
+        curl.cacert = '/etc/ssl/certs/ca-certificates.crt' # Fix for https://github.com/taf2/curb/issues/452
         curl.headers['Authorization'] = "Basic #{key}"
       end
 

@@ -11,6 +11,7 @@ RSpec.describe Hmis::Hud::Project, type: :model do
   before(:all) do
     Hmis::Form::Instance.not_system.destroy_all
     cleanup_test_environment
+    ::HmisUtil::JsonForms.seed_all
   end
   after(:all) do
     cleanup_test_environment

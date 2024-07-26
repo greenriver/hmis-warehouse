@@ -48,6 +48,10 @@ class Consent::Implied
     self.class.full_release_string
   end
 
+  def self.release_string_query
+    GrdaWarehouse::Hud::Client.arel_table[:housing_release_status].in([full_release_string, partial_release_string])
+  end
+
   def release_current_status
     consent_text = no_release_string
     consent_text = full_release_string if current_consent_type == full_release_string

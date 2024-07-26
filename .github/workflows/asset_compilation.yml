@@ -100,12 +100,6 @@ jobs:
           vendor/bundle
           /usr/local/bundle/
         key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
-        # restore-keys: |
-        #   ${{ runner.os }}-gem-bundler-
-    # - name: Ruby
-    #   uses: ruby/setup-ruby@v1
-    #   with:
-    #     bundler-cache: true
 
     - name: Install gems
       if: always()
@@ -119,8 +113,6 @@ jobs:
       with:
         path: node_modules
         key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-node_modules-
 
     - name: Install Node.js modules
       run: yarn install --frozen-lockfile
