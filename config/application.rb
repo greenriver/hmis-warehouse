@@ -12,6 +12,7 @@ ENV['RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION'] = 'true'
 Bundler.require(*Rails.groups)
 
 require_relative '../lib/util/id_protector'
+require_relative '../lib/util/request_logger_middleware'
 
 module BostonHmis
   class Application < Rails::Application
@@ -83,6 +84,10 @@ module BostonHmis
 
     # FIXME: required to make forms in pjax modals work
     config.action_controller.per_form_csrf_tokens = false
+
+    # Temporary: all of amazon
+    TodoOrDie('trused proxy, only for testing', by: '2024-8-15')
+    config.trusted_proxies = [IPAddr.new("44.192.0.0/11")]
 
     # Extension points
     config.sub_populations = {}
