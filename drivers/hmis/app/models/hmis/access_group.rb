@@ -47,17 +47,10 @@ class Hmis::AccessGroup < ApplicationRecord
   end
 
   scope :contains_with_inherited, ->(entity) do
-    case entity
-    when Hmis::Hud::Project
-      collection_ids = Hmis::Hud::Project.
-        joins(:group_viewable_entities).
-        where(id: entity.id).
-        pluck('hmis_group_viewable_entities.collection_id')
-      where(id: collection_ids)
-    else
-      # todo @martha
-      raise 'not implemented'
-    end
+    collection_ids = Hmis::GroupViewableEntity.
+      includes_entity(entity).
+      pluck(:collection_id)
+    where(id: collection_ids)
   end
 
   def self.text_search(text)
