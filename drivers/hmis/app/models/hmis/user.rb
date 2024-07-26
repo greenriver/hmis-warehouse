@@ -89,9 +89,13 @@ class Hmis::User < ApplicationRecord
         where(roles: { permission => true })
     end
 
-    scope "#{permission}_for", ->(_entity) do
-      # todo @martha - we want to query for only users that have permission for this entity, but it's complicated
-      joins(:roles).where(roles: { permission => true }).group(:id)
+    scope "#{permission}_for", ->(entity) do
+      user_ids = Hmis::AccessControl.joins(:role, :access_group, user_group: :users).
+        preload(user_group: :user_group_members).
+        merge(Hmis::Role.where(permission => true)).
+        merge(Hmis::AccessGroup.contains_with_inherited(entity)). # Check for access groups that grant permission to the entity or its parent, e.g. data source/organization
+        select(Hmis::User.arel_table[:id]) # select ids to ensure the returned scope doesn't include complexity from the join
+      where(id: user_ids)
     end
   end
 
