@@ -1,96 +1,94 @@
-- check_wrapper_class = {class: 'form-group--tight'}
-= simple_form_for @client, as: :readiness, url: polymorphic_path(cas_readiness_path_generator, client_id: @client.id)  do |f|
-  .row
-    %section.o-section-card.col-lg-8.col-xl-6
-      %h3 Characteristics
-      .c-card.c-card--flush.c-card--padded.flex-wrap
-        .row
-          .form-group.mb-6.col-md-4
-            - GrdaWarehouse::Hud::Client.manual_cas_columns.sort.each do |column|
-              = f.input column, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[column], wrapper_html: check_wrapper_class
+.row
+  %section.o-section-card.col-lg-8.col-xl-6
+    %h3 Characteristics
+    .c-card.c-card--flush.c-card--padded.flex-wrap
+      .row
+        .form-group.mb-6.col-md-4
+          - GrdaWarehouse::Hud::Client.manual_cas_columns.sort.each do |column|
+            = f.input column, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[column], wrapper_html: check_wrapper_class
 
-          .form-group.mb-6.col-md-4
-            - if can_view_hiv_status?
-              - if GrdaWarehouse::Config.get(:client_details).include?('hiv_positive')
-                = f.input :hiv_positive, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hiv_positive], wrapper_html: check_wrapper_class
-              - if GrdaWarehouse::Config.get(:client_details).include?('hues_eligible')
-                = f.input :hues_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hues_eligible], wrapper_html: check_wrapper_class
+        .form-group.mb-6.col-md-4
+          - if can_view_hiv_status?
+            - if GrdaWarehouse::Config.get(:client_details).include?('hiv_positive')
+              = f.input :hiv_positive, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hiv_positive], wrapper_html: check_wrapper_class
+            - if GrdaWarehouse::Config.get(:client_details).include?('hues_eligible')
+              = f.input :hues_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hues_eligible], wrapper_html: check_wrapper_class
 
-            - if can_view_dmh_status?
-              - if GrdaWarehouse::Config.get(:client_details).include?('dmh_eligible')
-                = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible], wrapper_html: check_wrapper_class
-            - if GrdaWarehouse::Config.get(:client_details).include?('required_number_of_bedrooms')
-              = f.input :required_number_of_bedrooms, collection: (1..5), include_blank: false, as: :select_two
-            - if GrdaWarehouse::Config.get(:client_details).include?('required_minimum_occupancy')
-              = f.input :required_minimum_occupancy, collection: (1..10), include_blank: false, as: :select_two
-            - if GrdaWarehouse::Config.get(:client_details).include?('cas_match_override')
-              = f.input :cas_match_override, as: :date_picker, label: "Override Date Matched In CAS"
-            - if GrdaWarehouse::Config.get(:client_details).include?('health_prioritized')
-              - if @client.auto_health_prioritized_for_cas?
-                .client__health-prioritized
-                  %dl
-                    %dt Prioritized because of health
-                    %dd
-                      .d-flex
-                        .mr-2= checkmark(true)
-                        Auto Prioritized
-              - else
-                = f.input :health_prioritized, label: 'Prioritized because of health', collection: @client.health_prioritization_options, include_blank: true, as: :boolean_button_group
-          .form-group.col-md-4
-            = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
-  .row
-    .col-lg-8.col-xl-6
-      %section.o-section-card
-        %h3 Disability Verification
-        .c-card.c-card--block.c-card--padded.c-card--flush
-          .d-flex.flex-wrap
-            .mr-10
-              = f.input :disability_verified_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on], input_html: {checked: @client.disability_verified_on.present?}
-            .mr-10.pt-2
-              - tags = @client.cas_attributes_file_tag_map[:disability_verified_on]
-              - file = @client.client_files.tagged_with(tags, any: true).order(updated_at: :desc).first
-              - if file.present?
-                File:
-                - if file.tag_list.present?
-                  = file.tag_list.join(', ')
-                  %br
-                = link_to preview_client_file_path(@client, file), target: '_blank' do
-                  = file.effective_date&.to_date || file.updated_at&.to_date
-              - elsif @client.disability_verification_sources.exists?
-                - @client.disability_verification_sources.each do |v|
-                  .disability_verification Disability Verified at #{v.location} on #{v.verified_at&.to_date}
-              - else
-                No file present
-  .row
-    .col-lg-8.col-xl-6
-      = render 'consent_form', f: f, show_file_existence: false
+          - if can_view_dmh_status?
+            - if GrdaWarehouse::Config.get(:client_details).include?('dmh_eligible')
+              = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible], wrapper_html: check_wrapper_class
+          - if GrdaWarehouse::Config.get(:client_details).include?('required_number_of_bedrooms')
+            = f.input :required_number_of_bedrooms, collection: (1..5), include_blank: false, as: :select_two
+          - if GrdaWarehouse::Config.get(:client_details).include?('required_minimum_occupancy')
+            = f.input :required_minimum_occupancy, collection: (1..10), include_blank: false, as: :select_two
+          - if GrdaWarehouse::Config.get(:client_details).include?('cas_match_override')
+            = f.input :cas_match_override, as: :date_picker, label: "Override Date Matched In CAS"
+          - if GrdaWarehouse::Config.get(:client_details).include?('health_prioritized')
+            - if @client.auto_health_prioritized_for_cas?
+              .client__health-prioritized
+                %dl
+                  %dt Prioritized because of health
+                  %dd
+                    .d-flex
+                      .mr-2= checkmark(true)
+                      Auto Prioritized
+            - else
+              = f.input :health_prioritized, label: 'Prioritized because of health', collection: @client.health_prioritization_options, include_blank: true, as: :boolean_button_group
+        .form-group.col-md-4
+          = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
+.row
+  .col-lg-8.col-xl-6
+    %section.o-section-card
+      %h3 Disability Verification
+      .c-card.c-card--block.c-card--padded.c-card--flush
+        .d-flex.flex-wrap
+          .mr-10
+            = f.input :disability_verified_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on], input_html: {checked: @client.disability_verified_on.present?}
+          .mr-10.pt-2
+            - tags = @client.cas_attributes_file_tag_map[:disability_verified_on]
+            - file = @client.client_files.tagged_with(tags, any: true).order(updated_at: :desc).first
+            - if file.present?
+              File:
+              - if file.tag_list.present?
+                = file.tag_list.join(', ')
+                %br
+              = link_to preview_client_file_path(@client, file), target: '_blank' do
+                = file.effective_date&.to_date || file.updated_at&.to_date
+            - elsif @client.disability_verification_sources.exists?
+              - @client.disability_verification_sources.each do |v|
+                .disability_verification Disability Verified at #{v.location} on #{v.verified_at&.to_date}
+            - else
+              No file present
+.row
+  .col-lg-8.col-xl-6
+    = render 'consent_form', f: f, show_file_existence: false
 
-  .row.mb-4
-    .col-lg-8.col-xl-6
-      = render 'vispdat', f: f
+.row.mb-4
+  .col-lg-8.col-xl-6
+    = render 'vispdat', f: f
 
-  .row
-    .col-lg-8.col-xl-6
-      = render 'assessment', f: f
+.row
+  .col-lg-8.col-xl-6
+    = render 'assessment', f: f
 
-  .row
-    .col-lg-8.col-xl-6
-      = render 'cas_tags', f: f
+.row
+  .col-lg-8.col-xl-6
+    = render 'cas_tags', f: f
 
-  .row
-    .col-lg-8.col-xl-6
-      = render 'veteran', f: f
+.row
+  .col-lg-8.col-xl-6
+    = render 'veteran', f: f
 
-  .row.mb-4
-    .col-lg-8.col-xl-6
-      = render 'set_asides', f: f
+.row.mb-4
+  .col-lg-8.col-xl-6
+    = render 'set_asides', f: f
 
-  .row.mb-4
-    .col-lg-8.col-xl-6
-      = render 'rrh', f: f
+.row.mb-4
+  .col-lg-8.col-xl-6
+    = render 'rrh', f: f
 
-  .row.mb-4
-    .col-lg-8.col-xl-6
-      = render 'clients/required_documents'
+.row.mb-4
+  .col-lg-8.col-xl-6
+    = render 'clients/required_documents'
 
-  = render 'sync_with_cas', f: f
+= render 'sync_with_cas', f: f
