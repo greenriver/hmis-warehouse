@@ -3,7 +3,7 @@
     = "« " + @project.name
 - content_for :title, 'Manage Synthetic CE Assessment Creation'
 %h1= content_for :title
-%p This form allows you to specify that a Coordinated Entry Assessment be created for every enrollment at the project #{@project.name}.  If the configuration is active, a synthetic assessment will be created for every enrollment in the project with the selected values.  These assessments will be created once daily, and there will be a delay between data arriving in the warehouse and the assessments being created.  In addition, if you change the values in the configuration, the changes will only affect new enrollments.
+%p This form allows you to specify that a Coordinated Entry Assessment be created for every enrollment at the project #{@project.name}.  If the configuration is active, a synthetic assessment will be created for every enrollment in the project with the selected values.  These assessments will be created once daily, and there will be a delay between data arriving in the warehouse and the assessments being created.  Ff you change the values in the configuration, the changes will be applied to any existing synthetic assessments as well as future assessments.
 
 = simple_form_for @project_config, url: synthetic_ce_assessments_project_config_path(project_id: @project.id) do |f|
   = f.input :active, as: :pretty_boolean, label: 'Configuration Active?'
