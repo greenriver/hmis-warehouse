@@ -20,6 +20,8 @@ module GrdaWarehouse::Hud
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     alias_attribute :date, :EntryDate
+    alias_attribute :created_at, :DateCreated
+    alias_attribute :updated_at, :DateUpdated
 
     belongs_to :data_source, inverse_of: :enrollments, autosave: false
     belongs_to :client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :enrollments, optional: true
