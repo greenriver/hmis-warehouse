@@ -23,6 +23,7 @@ class Hmis::User < ApplicationRecord
   has_many :access_groups, through: :access_controls
   has_many :roles, through: :access_controls
   has_many :activity_logs, class_name: 'Hmis::ActivityLog'
+  has_many :staff_assignments, class_name: 'Hmis::StaffAssignment'
 
   has_recent :clients, 'Hmis::Hud::Client'
   has_recent :projects, 'Hmis::Hud::Project'

@@ -9,6 +9,7 @@
 module Types
   class Application::User < Types::BaseObject
     include Types::HmisSchema::HasAuditHistory
+    include Hmis::Concerns::HmisArelHelper
 
     # maps to Hmis::User
     description 'User account for a user of the system'
@@ -36,6 +37,8 @@ module Types
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
+
+    field :staff_assignments, HmisSchema::StaffAssignment.page_type, null: true
 
     # audit_history returns the changes this user has made (as opposed to activity_logs which is just views, not edits).
     # We use the generic term 'audit' to encompass both types of history (view and edit), but many places in the code,
@@ -97,6 +100,17 @@ module Types
           starts_on: filters&.on_or_after,
           search_term: filters&.search_term,
           project_ids: filters&.project,
+        )
+    end
+
+    def staff_assignments
+      load_ar_association(object, :staff_assignments).
+        joins(:household).
+        order(
+          hh_t[:any_wip].eq(true).desc,
+          hh_t[:latest_exit].eq(nil).desc,
+          earliest_entry: :desc,
+          id: :desc,
         )
     end
   end
