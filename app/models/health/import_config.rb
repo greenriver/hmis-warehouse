@@ -34,6 +34,20 @@ module Health
       GPGME::Key.import(secret_key) unless GPGME::Key.find(encryption_key_name).present?
     end
 
+    private def host_name
+      host.split(':').first
+    end
+
+    private def port_number
+      _, port = host.split(':')
+
+      if port.present?
+        port.to_i
+      else
+        22
+      end
+    end
+
     def get(remote, local, recursive: false)
       connect do |connection|
         connection.download!(remote, local, recursive: recursive)
