@@ -32,7 +32,7 @@ module SystemPathways::Equity::Veteran
       veteran_statuses.each_key do |k|
         data[k] ||= 0
       end
-      # NOTE: you can't just use clients as it will join enrollents and each client may have more than one
+      # NOTE: you can't just use clients as it will join enrollments and each client may have more than one
       # but you can't use node_clients because the distinct will count the distinct number of veteran statuses
       single_client_scope = clients.joins(:enrollments).merge(SystemPathways::Enrollment.where(final_enrollment: true))
       data.merge!(single_client_scope.where(client_id: node_clients(label).select(:client_id)).group(:veteran_status).count)
