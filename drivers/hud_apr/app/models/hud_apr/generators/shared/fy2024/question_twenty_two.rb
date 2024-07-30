@@ -188,7 +188,7 @@ module HudApr::Generators::Shared::Fy2024
     def time_prior_to_housing_universe
       # 0 (ES-EE); 1 (EE-NbN); 2 (TH); 3 (PSH); 7 (Other) with 2.06 Funding
       # Source of HUD: Pay for Success (35); 8 (SH); 9 (PH); 13 (RRH)
-      universe.members.where(a_t[:project_type].in([0, 1, 2, 3, 8, 9, 13]))
+      universe.members.where(a_t[:project_type].in([0, 1, 2, 3, 8, 9, 13]).or(a_t[:pay_for_success].eq(true)))
     end
 
     def q22f_start_to_move_in_by_race_and_ethnicity
@@ -211,7 +211,7 @@ module HudApr::Generators::Shared::Fy2024
     def start_to_move_in_universe
       # PSH/RRH w/ move in date
       # OR project type 7 (other) with Funder 35 (Pay for Success)
-      relevant_members = universe.members.where(a_t[:project_type].in([3, 13]))
+      relevant_members = universe.members.where(a_t[:project_type].in([3, 13]).or(a_t[:pay_for_success].eq(true)))
       relevant_members.where(
         [
           a_t[:move_in_date].between(@report.start_date..@report.end_date),
@@ -310,8 +310,8 @@ module HudApr::Generators::Shared::Fy2024
       # PSH/RRH w/ move in date
       # OR project type 7 (other) with Funder 35 (Pay for Success)
       move_in_projects = HudUtility2024.residential_project_type_numbers_by_code[:ph]
-      move_in_for_psh = a_t[:project_type].not_in(move_in_projects).
-        or(a_t[:project_type].in(move_in_projects).and(a_t[:move_in_date].lteq(@report.end_date)))
+      move_in_for_psh = a_t[:project_type].not_in(move_in_projects).and(a_t[:pay_for_success].eq(false)).
+        or(a_t[:project_type].in(move_in_projects).or(a_t[:pay_for_success].eq(true)).and(a_t[:move_in_date].lteq(@report.end_date)))
       lengths = lengths(field: move_in_field)
       ret = [
         '7 days or less',

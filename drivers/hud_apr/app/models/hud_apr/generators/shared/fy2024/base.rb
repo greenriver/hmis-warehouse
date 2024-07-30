@@ -350,6 +350,7 @@ module HudApr::Generators::Shared::Fy2024
             preferred_language: enrollment.PreferredLanguage,
             preferred_language_different: enrollment.PreferredLanguageDifferent,
             veteran_status: source_client.VeteranStatus,
+            pay_for_success: last_service_history_enrollment.project_type == 7 && enrollment.project.funders.map(&:Funder).include?(35),
           }
           if needs_ce_assessments?
             ce_hash = {
@@ -522,7 +523,6 @@ module HudApr::Generators::Shared::Fy2024
         enrollment: [
           :disabilities,
           :current_living_situations,
-          :project,
           :services,
           :income_benefits,
           :income_benefits_at_exit,
@@ -532,6 +532,9 @@ module HudApr::Generators::Shared::Fy2024
           :exit,
           :assessments,
           :youth_education_statuses,
+          project: [
+            :funders,
+          ],
           client: [
             assessments: [
               enrollment: :project,
@@ -569,14 +572,14 @@ module HudApr::Generators::Shared::Fy2024
           # hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
           # If the HoH exited and no one else was designated as the HoH, and the client doesn't have an exit date, use the HoH exit date
           # enrollment.last_date_in_program ||= hoh_enrollment&.last_date_in_program
-          enrolled = case enrollment.project_type
-          when 3, 13 # PSH/RRH OR project type 7 (other) with Funder 35 (Pay for Success)
+          enrolled = if enrollment.project_type.in?([3, 13]) || enrollment.project_type == 7 && enrollment.enrollent.project.funders&.map(&:Funder)&.include?(35)
+            # PSH/RRH OR project type 7 (other) with Funder 35 (Pay for Success)
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
               enrollment.move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
               enrollment.move_in_date <= pit_date &&
               enrollment.move_in_date >= enrollment.first_date_in_program
-          when 0, 1, 2, 8, 9, 10 # Other residential
+          elsif enrollment.project_type.in?([0, 1, 2, 8, 9, 10]) # Other residential
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) # Exclude exit date
           else # Other project types (4, 6, 7, 11, 12, 14)

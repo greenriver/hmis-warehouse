@@ -15,7 +15,10 @@ module HudReports::StartToMoveInQuestion
     # PSH/RRH w/ move in date
     # OR project type 7 (other) with Funder 35 (Pay for Success)
     relevant_members = members.
-      where(a_t[:project_type].in([3, 13])).
+      where(
+        a_t[:project_type].in([3, 13]).
+        or(a_t[:pay_for_success].eq(true)),
+      ).
       where(
         [
           a_t[:move_in_date].between(@report.start_date..@report.end_date),
