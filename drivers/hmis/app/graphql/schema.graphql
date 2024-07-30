@@ -3555,6 +3555,7 @@ input EnrollmentsForClientFilterOptions {
 }
 
 input EnrollmentsForProjectFilterOptions {
+  assignedStaff: ID
   bedNightOnDate: ISO8601Date
   householdTasks: [EnrollmentFilterOptionHouseholdTask!]
   openOnDate: ISO8601Date
@@ -5046,6 +5047,7 @@ type HouseholdClient {
 }
 
 input HouseholdFilterOptions {
+  assignedStaff: ID
   hohAgeRange: AgeRange
   openOnDate: ISO8601Date
   searchTerm: String
