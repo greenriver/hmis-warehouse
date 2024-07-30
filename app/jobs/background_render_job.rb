@@ -12,7 +12,18 @@ class BackgroundRenderJob < BaseJob
     # Before we run this, let's make sure someone still wants it.
     pubsub = ActionCable.server.pubsub
     channels = pubsub.send(:redis_connection).pubsub('channels', '*')
-    found_stream = channels.detect { |stream| stream.include?(render_id) }
+    # Give this some time to find the stream
+    found_stream = nil
+    timeout = 15
+    while found_stream.blank?
+      found_stream = channels.detect { |stream| stream.include?(render_id) }
+      break if found_stream.present?
+
+      sleep 1 if found_stream.blank?
+      timeout -= 1
+      break if timeout <= 0
+    end
+
     return unless found_stream
 
     html = render_html(**options)
