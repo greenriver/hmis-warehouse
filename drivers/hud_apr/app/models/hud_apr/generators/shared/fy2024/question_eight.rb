@@ -108,6 +108,7 @@ module HudApr::Generators::Shared::Fy2024
       end
 
       # PSH/RRH w/ move in date
+      # OR project type 7 (other) with Funder 35 (Pay for Success)
       ps_rrh_w_move_in = universe.members.where(
         a_t[:project_type].in([3, 13]).
           and(a_t[:head_of_household].eq(true)).

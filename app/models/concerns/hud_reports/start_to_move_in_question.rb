@@ -12,6 +12,8 @@ module HudReports::StartToMoveInQuestion
   extend ActiveSupport::Concern
 
   def start_to_move_in_question(question:, members:, populations: sub_populations)
+    # PSH/RRH w/ move in date
+    # OR project type 7 (other) with Funder 35 (Pay for Success)
     relevant_members = members.
       where(a_t[:project_type].in([3, 13])).
       where(

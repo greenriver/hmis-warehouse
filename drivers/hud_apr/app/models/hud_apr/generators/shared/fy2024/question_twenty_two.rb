@@ -186,6 +186,8 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     def time_prior_to_housing_universe
+      # 0 (ES-EE); 1 (EE-NbN); 2 (TH); 3 (PSH); 7 (Other) with 2.06 Funding
+      # Source of HUD: Pay for Success (35); 8 (SH); 9 (PH); 13 (RRH)
       universe.members.where(a_t[:project_type].in([0, 1, 2, 3, 8, 9, 13]))
     end
 
@@ -207,6 +209,8 @@ module HudApr::Generators::Shared::Fy2024
 
     # Universe: All active clients where the head of household had a move-in date in the report date range plus leavers who exited in the date range and never had a move-in date.
     def start_to_move_in_universe
+      # PSH/RRH w/ move in date
+      # OR project type 7 (other) with Funder 35 (Pay for Success)
       relevant_members = universe.members.where(a_t[:project_type].in([3, 13]))
       relevant_members.where(
         [
@@ -303,6 +307,8 @@ module HudApr::Generators::Shared::Fy2024
 
     private def q22e_lengths
       move_in_field = a_t[:approximate_time_to_move_in]
+      # PSH/RRH w/ move in date
+      # OR project type 7 (other) with Funder 35 (Pay for Success)
       move_in_projects = HudUtility2024.residential_project_type_numbers_by_code[:ph]
       move_in_for_psh = a_t[:project_type].not_in(move_in_projects).
         or(a_t[:project_type].in(move_in_projects).and(a_t[:move_in_date].lteq(@report.end_date)))

@@ -570,7 +570,7 @@ module HudApr::Generators::Shared::Fy2024
           # If the HoH exited and no one else was designated as the HoH, and the client doesn't have an exit date, use the HoH exit date
           # enrollment.last_date_in_program ||= hoh_enrollment&.last_date_in_program
           enrolled = case enrollment.project_type
-          when 3, 13 # PSH/RRH
+          when 3, 13 # PSH/RRH OR project type 7 (other) with Funder 35 (Pay for Success)
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
               enrollment.move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
