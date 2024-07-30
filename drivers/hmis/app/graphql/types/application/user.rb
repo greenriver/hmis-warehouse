@@ -104,7 +104,8 @@ module Types
     end
 
     def staff_assignments
-      load_ar_association(object, :staff_assignments).
+      # n+1 queries, needs optimization to be performant on collections
+      object.staff_assignments.
         joins(:household).
         order(
           hh_t[:any_wip].eq(true).desc,
