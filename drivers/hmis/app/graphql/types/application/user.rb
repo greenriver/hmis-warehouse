@@ -9,7 +9,6 @@
 module Types
   class Application::User < Types::BaseObject
     include Types::HmisSchema::HasAuditHistory
-    include Hmis::Concerns::HmisArelHelper
 
     # maps to Hmis::User
     description 'User account for a user of the system'
@@ -108,8 +107,8 @@ module Types
       object.staff_assignments.
         joins(:household).
         order(
-          hh_t[:any_wip].eq(true).desc,
-          hh_t[:latest_exit].eq(nil).desc,
+          arel.hh_t[:any_wip].eq(true).desc,
+          arel.hh_t[:latest_exit].eq(nil).desc,
           earliest_entry: :desc,
           id: :desc,
         )
