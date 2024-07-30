@@ -59,5 +59,13 @@ module SyntheticCeAssessment
         joins(project: :synthetic_ce_project_config).
         merge(SyntheticCeAssessment::ProjectConfig.active)
     end
+
+    private def created_at_from(source)
+      source.DateCreated
+    end
+
+    private def updated_at_from(source)
+      source.DateUpdated
+    end
   end
 end

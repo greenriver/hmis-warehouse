@@ -19886,7 +19886,8 @@ CREATE TABLE public.hud_report_apr_clients (
     current_ed_status_at_entry integer,
     current_school_attend_at_exit integer,
     most_recent_ed_status_at_exit integer,
-    current_ed_status_at_exit integer
+    current_ed_status_at_exit integer,
+    pay_for_success boolean DEFAULT false
 );
 
 
@@ -64060,6 +64061,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240628180603'),
 ('20240710012703'),
 ('20240711183824'),
-('20240729171457');
+('20240729171457'),
+('20240730140758');
 
 
