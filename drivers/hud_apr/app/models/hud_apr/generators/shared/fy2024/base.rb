@@ -350,7 +350,7 @@ module HudApr::Generators::Shared::Fy2024
             preferred_language: enrollment.PreferredLanguage,
             preferred_language_different: enrollment.PreferredLanguageDifferent,
             veteran_status: source_client.VeteranStatus,
-            pay_for_success: last_service_history_enrollment.project_type == 7 && enrollment.project.funders.map(&:Funder).include?(35),
+            pay_for_success: enrollment.project.pay_for_success?,
           }
           if needs_ce_assessments?
             ce_hash = {
@@ -572,7 +572,7 @@ module HudApr::Generators::Shared::Fy2024
           # hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
           # If the HoH exited and no one else was designated as the HoH, and the client doesn't have an exit date, use the HoH exit date
           # enrollment.last_date_in_program ||= hoh_enrollment&.last_date_in_program
-          enrolled = if enrollment.project_type.in?([3, 13]) || enrollment.project_type == 7 && enrollment.enrollent.project.funders&.map(&:Funder)&.include?(35)
+          enrolled = if enrollment.project_type.in?([3, 13]) || enrollment.enrollent.project.pay_for_success?
             # PSH/RRH OR project type 7 (other) with Funder 35 (Pay for Success)
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date

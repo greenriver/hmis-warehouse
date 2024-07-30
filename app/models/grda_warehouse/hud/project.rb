@@ -858,6 +858,13 @@ module GrdaWarehouse::Hud
       end.present?
     end
 
+    # NOTE: preload funders before calling this
+    def pay_for_success?
+      return false unless project_type == 7
+
+      funders.map(&:pay_for_success?).any?
+    end
+
     # DEPRECATED_FY2024 no longer used in FY2024
     def tracking_method_to_use
       tracking_method_override.presence || self.TrackingMethod

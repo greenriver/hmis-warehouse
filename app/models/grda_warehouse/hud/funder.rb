@@ -69,6 +69,10 @@ module GrdaWarehouse::Hud
       HudUtility2024.funding_sources.keys.include?(funder)
     end
 
+    def pay_for_success?
+      HudUtility2024.funding_source('HUD: Pay for Success', true).to_s == self.Funder.to_s
+    end
+
     def operating_year
       "#{self.StartDate} - #{self.EndDate}"
     end
