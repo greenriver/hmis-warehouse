@@ -20,8 +20,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def export_period_type(id, reverse = false)
-      _translate period_types, id, reverse
+    def export_period_type(id, reverse = false, raise_on_missing: false)
+      _translate(period_types, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 1.2
@@ -33,8 +33,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def export_directive(id, reverse = false)
-      _translate export_directives, id, reverse
+    def export_directive(id, reverse = false, raise_on_missing: false)
+      _translate(export_directives, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 1.3
@@ -49,8 +49,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def disability_type(id, reverse = false)
-      _translate disability_types, id, reverse
+    def disability_type(id, reverse = false, raise_on_missing: false)
+      _translate(disability_types, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 1.4
@@ -72,8 +72,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def record_type(id, reverse = false)
-      _translate record_types, id, reverse
+    def record_type(id, reverse = false, raise_on_missing: false)
+      _translate(record_types, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 1.5
@@ -86,8 +86,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def hash_status(id, reverse = false)
-      _translate hash_statuses, id, reverse
+    def hash_status(id, reverse = false, raise_on_missing: false)
+      _translate(hash_statuses, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 1.6
@@ -99,8 +99,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def race_none(id, reverse = false)
-      _translate race_nones, id, reverse
+    def race_none(id, reverse = false, raise_on_missing: false)
+      _translate(race_nones, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 1.7
@@ -112,8 +112,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def no_yes_missing(id, reverse = false)
-      _translate yes_no_missing_options, id, reverse
+    def no_yes_missing(id, reverse = false, raise_on_missing: false)
+      _translate(yes_no_missing_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 1.8
@@ -127,8 +127,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def no_yes_reasons_for_missing_data(id, reverse = false)
-      _translate no_yes_reasons_for_missing_data_options, id, reverse
+    def no_yes_reasons_for_missing_data(id, reverse = false, raise_on_missing: false)
+      _translate(no_yes_reasons_for_missing_data_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 1.9
@@ -141,8 +141,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def source_type(id, reverse = false)
-      _translate source_types, id, reverse
+    def source_type(id, reverse = false, raise_on_missing: false)
+      _translate(source_types, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 2.02.6
@@ -164,8 +164,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def project_type(id, reverse = false)
-      _translate project_types, id, reverse
+    def project_type(id, reverse = false, raise_on_missing: false)
+      _translate(project_types, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 2.02.6.brief
@@ -187,8 +187,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def project_type_brief(id, reverse = false)
-      _translate project_type_briefs, id, reverse
+    def project_type_brief(id, reverse = false, raise_on_missing: false)
+      _translate(project_type_briefs, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 2.02.8
@@ -200,8 +200,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def target_population(id, reverse = false)
-      _translate target_populations, id, reverse
+    def target_population(id, reverse = false, raise_on_missing: false)
+      _translate(target_populations, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 2.02.9
@@ -213,8 +213,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def hopwa_med_assisted_living_fac(id, reverse = false)
-      _translate hopwa_med_assisted_living_facs, id, reverse
+    def hopwa_med_assisted_living_fac(id, reverse = false, raise_on_missing: false)
+      _translate(hopwa_med_assisted_living_facs, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 2.02.C
@@ -225,8 +225,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def tracking_method(id, reverse = false)
-      _translate tracking_methods, id, reverse
+    def tracking_method(id, reverse = false, raise_on_missing: false)
+      _translate(tracking_methods, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 2.02.D
@@ -238,8 +238,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def housing_type(id, reverse = false)
-      _translate housing_types, id, reverse
+    def housing_type(id, reverse = false, raise_on_missing: false)
+      _translate(housing_types, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 2.03.4
@@ -252,8 +252,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def geography_type(id, reverse = false)
-      _translate geography_types, id, reverse
+    def geography_type(id, reverse = false, raise_on_missing: false)
+      _translate(geography_types, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 2.06.1
@@ -312,8 +312,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def funding_source(id, reverse = false)
-      _translate funding_sources, id, reverse
+    def funding_source(id, reverse = false, raise_on_missing: false)
+      _translate(funding_sources, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 2.07.4
@@ -325,8 +325,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def household_type(id, reverse = false)
-      _translate household_types, id, reverse
+    def household_type(id, reverse = false, raise_on_missing: false)
+      _translate(household_types, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 2.07.5
@@ -338,8 +338,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def bed_type(id, reverse = false)
-      _translate bed_types, id, reverse
+    def bed_type(id, reverse = false, raise_on_missing: false)
+      _translate(bed_types, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 2.07.6
@@ -351,8 +351,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def availability(id, reverse = false)
-      _translate availabilities, id, reverse
+    def availability(id, reverse = false, raise_on_missing: false)
+      _translate(availabilities, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 2.7.B
@@ -364,8 +364,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def youth_age_group(id, reverse = false)
-      _translate youth_age_groups, id, reverse
+    def youth_age_group(id, reverse = false, raise_on_missing: false)
+      _translate(youth_age_groups, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 3.01.5
@@ -379,8 +379,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def name_data_quality(id, reverse = false)
-      _translate name_data_quality_options, id, reverse
+    def name_data_quality(id, reverse = false, raise_on_missing: false)
+      _translate(name_data_quality_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 3.02.2
@@ -394,8 +394,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def ssn_data_quality(id, reverse = false)
-      _translate ssn_data_quality_options, id, reverse
+    def ssn_data_quality(id, reverse = false, raise_on_missing: false)
+      _translate(ssn_data_quality_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 3.03.2
@@ -409,8 +409,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def dob_data_quality(id, reverse = false)
-      _translate dob_data_quality_options, id, reverse
+    def dob_data_quality(id, reverse = false, raise_on_missing: false)
+      _translate(dob_data_quality_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 3.05.1
@@ -424,8 +424,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def ethnicity(id, reverse = false)
-      _translate ethnicities, id, reverse
+    def ethnicity(id, reverse = false, raise_on_missing: false)
+      _translate(ethnicities, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 3.12.1
@@ -469,8 +469,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def destination(id, reverse = false)
-      _translate destinations, id, reverse
+    def destination(id, reverse = false, raise_on_missing: false)
+      _translate(destinations, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 3.12.1
@@ -517,8 +517,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def living_situation(id, reverse = false)
-      _translate living_situations, id, reverse
+    def living_situation(id, reverse = false, raise_on_missing: false)
+      _translate(living_situations, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 3.15.1
@@ -533,8 +533,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def relationship_to_hoh(id, reverse = false)
-      _translate relationships_to_hoh, id, reverse
+    def relationship_to_hoh(id, reverse = false, raise_on_missing: false)
+      _translate(relationships_to_hoh, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 3.6.1
@@ -551,8 +551,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def gender(id, reverse = false)
-      _translate genders, id, reverse
+    def gender(id, reverse = false, raise_on_missing: false)
+      _translate(genders, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 3.917.2
@@ -570,8 +570,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def residence_prior_length_of_stay(id, reverse = false)
-      _translate length_of_stays, id, reverse
+    def residence_prior_length_of_stay(id, reverse = false, raise_on_missing: false)
+      _translate(length_of_stays, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 3.917.4
@@ -587,8 +587,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def times_homeless_past_three_years(id, reverse = false)
-      _translate times_homeless_options, id, reverse
+    def times_homeless_past_three_years(id, reverse = false, raise_on_missing: false)
+      _translate(times_homeless_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 3.917.5
@@ -613,8 +613,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def months_homeless_past_three_years(id, reverse = false)
-      _translate month_categories, id, reverse
+    def months_homeless_past_three_years(id, reverse = false, raise_on_missing: false)
+      _translate(month_categories, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.04.A
@@ -630,8 +630,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def reason_not_insured(id, reverse = false)
-      _translate reason_not_insureds, id, reverse
+    def reason_not_insured(id, reverse = false, raise_on_missing: false)
+      _translate(reason_not_insureds, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.1.1
@@ -649,8 +649,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def housing_status(id, reverse = false)
-      _translate housing_statuses, id, reverse
+    def housing_status(id, reverse = false, raise_on_missing: false)
+      _translate(housing_statuses, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.10.2
@@ -666,8 +666,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def disability_response(id, reverse = false)
-      _translate disability_responses, id, reverse
+    def disability_response(id, reverse = false, raise_on_missing: false)
+      _translate(disability_responses, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.11.A
@@ -683,8 +683,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def when_d_v_occurred(id, reverse = false)
-      _translate when_occurreds, id, reverse
+    def when_d_v_occurred(id, reverse = false, raise_on_missing: false)
+      _translate(when_occurreds, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.12.2
@@ -696,8 +696,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def contact_location(id, reverse = false)
-      _translate contact_locations, id, reverse
+    def contact_location(id, reverse = false, raise_on_missing: false)
+      _translate(contact_locations, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.14
@@ -707,8 +707,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def bed_night(id, reverse = false)
-      _translate bed_night_options, id, reverse
+    def bed_night(id, reverse = false, raise_on_missing: false)
+      _translate(bed_night_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.14.B
@@ -732,8 +732,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def rhy_services(id, reverse = false)
-      _translate rhy_services_options, id, reverse
+    def rhy_services(id, reverse = false, raise_on_missing: false)
+      _translate(rhy_services_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.15.B
@@ -755,8 +755,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def ssvf_financial_assistance(id, reverse = false)
-      _translate ssvf_financial_assistance_options, id, reverse
+    def ssvf_financial_assistance(id, reverse = false, raise_on_missing: false)
+      _translate(ssvf_financial_assistance_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.18.1
@@ -779,8 +779,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def housing_assessment_disposition(id, reverse = false)
-      _translate housing_assessment_dispositions, id, reverse
+    def housing_assessment_disposition(id, reverse = false, raise_on_missing: false)
+      _translate(housing_assessment_dispositions, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.19.3
@@ -792,8 +792,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def assessment_type(id, reverse = false)
-      _translate assessment_types, id, reverse
+    def assessment_type(id, reverse = false, raise_on_missing: false)
+      _translate(assessment_types, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.19.4
@@ -804,8 +804,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def assessment_level(id, reverse = false)
-      _translate assessment_levels, id, reverse
+    def assessment_level(id, reverse = false, raise_on_missing: false)
+      _translate(assessment_levels, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.19.7
@@ -816,8 +816,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def prioritization_status(id, reverse = false)
-      _translate prioritization_statuses, id, reverse
+    def prioritization_status(id, reverse = false, raise_on_missing: false)
+      _translate(prioritization_statuses, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.20.2
@@ -844,8 +844,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def event(id, reverse = false)
-      _translate events, id, reverse
+    def event(id, reverse = false, raise_on_missing: false)
+      _translate(events, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.20.D
@@ -857,8 +857,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def referral_result(id, reverse = false)
-      _translate referral_results, id, reverse
+    def referral_result(id, reverse = false, raise_on_missing: false)
+      _translate(referral_results, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.33.A
@@ -871,8 +871,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def incarcerated_parent_status(id, reverse = false)
-      _translate incarcerated_parent_statuses, id, reverse
+    def incarcerated_parent_status(id, reverse = false, raise_on_missing: false)
+      _translate(incarcerated_parent_statuses, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.36.1
@@ -884,8 +884,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def exit_action(id, reverse = false)
-      _translate exit_actions, id, reverse
+    def exit_action(id, reverse = false, raise_on_missing: false)
+      _translate(exit_actions, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.37.A
@@ -899,8 +899,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def early_exit_reason(id, reverse = false)
-      _translate early_exit_reasons, id, reverse
+    def early_exit_reason(id, reverse = false, raise_on_missing: false)
+      _translate(early_exit_reasons, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.49.1
@@ -918,8 +918,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def crisis_services_use(id, reverse = false)
-      _translate crisis_services_uses, id, reverse
+    def crisis_services_use(id, reverse = false, raise_on_missing: false)
+      _translate(crisis_services_uses, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.9.D
@@ -932,8 +932,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def path_how_confirmed(id, reverse = false)
-      _translate path_how_confirmeds, id, reverse
+    def path_how_confirmed(id, reverse = false, raise_on_missing: false)
+      _translate(path_how_confirmeds, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 4.9.E
@@ -949,8 +949,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def pathsmi_information(id, reverse = false)
-      _translate pathsmi_informations, id, reverse
+    def pathsmi_information(id, reverse = false, raise_on_missing: false)
+      _translate(pathsmi_informations, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 5.03.1
@@ -964,8 +964,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def data_collection_stage(id, reverse = false)
-      _translate data_collection_stages, id, reverse
+    def data_collection_stage(id, reverse = false, raise_on_missing: false)
+      _translate(data_collection_stages, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # C1.1
@@ -982,8 +982,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def wellbeing_agreement(id, reverse = false)
-      _translate wellbeing_agreements, id, reverse
+    def wellbeing_agreement(id, reverse = false, raise_on_missing: false)
+      _translate(wellbeing_agreements, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # C1.2
@@ -1000,8 +1000,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def feeling_frequency(id, reverse = false)
-      _translate feeling_frequencies, id, reverse
+    def feeling_frequency(id, reverse = false, raise_on_missing: false)
+      _translate(feeling_frequencies, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # C2.2
@@ -1015,8 +1015,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def moving_on_assistance(id, reverse = false)
-      _translate moving_on_assistance_options, id, reverse
+    def moving_on_assistance(id, reverse = false, raise_on_missing: false)
+      _translate(moving_on_assistance_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # C3.2
@@ -1031,8 +1031,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def current_school_attended(id, reverse = false)
-      _translate current_school_attendeds, id, reverse
+    def current_school_attended(id, reverse = false, raise_on_missing: false)
+      _translate(current_school_attendeds, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # C3.A
@@ -1052,8 +1052,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def most_recent_ed_status(id, reverse = false)
-      _translate most_recent_ed_statuses, id, reverse
+    def most_recent_ed_status(id, reverse = false, raise_on_missing: false)
+      _translate(most_recent_ed_statuses, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # C3.B
@@ -1070,8 +1070,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def current_ed_status(id, reverse = false)
-      _translate current_ed_statuses, id, reverse
+    def current_ed_status(id, reverse = false, raise_on_missing: false)
+      _translate(current_ed_statuses, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # P1.2
@@ -1093,8 +1093,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def path_services(id, reverse = false)
-      _translate path_services_options, id, reverse
+    def path_services(id, reverse = false, raise_on_missing: false)
+      _translate(path_services_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # P2.2
@@ -1114,8 +1114,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def path_referral(id, reverse = false)
-      _translate path_referral_options, id, reverse
+    def path_referral(id, reverse = false, raise_on_missing: false)
+      _translate(path_referral_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # P2.A
@@ -1127,8 +1127,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def path_referral_outcome(id, reverse = false)
-      _translate path_referral_outcomes, id, reverse
+    def path_referral_outcome(id, reverse = false, raise_on_missing: false)
+      _translate(path_referral_outcomes, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # P3.A
@@ -1139,8 +1139,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def reason_not_enrolled(id, reverse = false)
-      _translate reason_not_enrolleds, id, reverse
+    def reason_not_enrolled(id, reverse = false, raise_on_missing: false)
+      _translate(reason_not_enrolleds, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R1.1
@@ -1165,8 +1165,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def referral_source(id, reverse = false)
-      _translate referral_sources, id, reverse
+    def referral_source(id, reverse = false, raise_on_missing: false)
+      _translate(referral_sources, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R11.A
@@ -1179,8 +1179,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def rhy_numberof_years(id, reverse = false)
-      _translate rhy_numberof_years_options, id, reverse
+    def rhy_numberof_years(id, reverse = false, raise_on_missing: false)
+      _translate(rhy_numberof_years_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R14.2
@@ -1206,8 +1206,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def rhy_referral(id, reverse = false)
-      _translate rhy_referral_options, id, reverse
+    def rhy_referral(id, reverse = false, raise_on_missing: false)
+      _translate(rhy_referral_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R15.B
@@ -1223,8 +1223,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def count_exchange_for_sex(id, reverse = false)
-      _translate count_exchange_for_sexes, id, reverse
+    def count_exchange_for_sex(id, reverse = false, raise_on_missing: false)
+      _translate(count_exchange_for_sexes, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R17.1
@@ -1236,8 +1236,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def project_completion_status(id, reverse = false)
-      _translate project_completion_statuses, id, reverse
+    def project_completion_status(id, reverse = false, raise_on_missing: false)
+      _translate(project_completion_statuses, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R17.A
@@ -1252,8 +1252,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def expelled_reason(id, reverse = false)
-      _translate expelled_reasons, id, reverse
+    def expelled_reason(id, reverse = false, raise_on_missing: false)
+      _translate(expelled_reasons, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R19.A
@@ -1265,8 +1265,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def worker_response(id, reverse = false)
-      _translate worker_responses, id, reverse
+    def worker_response(id, reverse = false, raise_on_missing: false)
+      _translate(worker_responses, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R2.A
@@ -1280,8 +1280,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def reason_no_services(id, reverse = false)
-      _translate reason_no_services_options, id, reverse
+    def reason_no_services(id, reverse = false, raise_on_missing: false)
+      _translate(reason_no_services_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R20.2
@@ -1293,8 +1293,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def aftercare_provided(id, reverse = false)
-      _translate aftercare_provideds, id, reverse
+    def aftercare_provided(id, reverse = false, raise_on_missing: false)
+      _translate(aftercare_provideds, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R3.1
@@ -1312,8 +1312,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def sexual_orientation(id, reverse = false)
-      _translate sexual_orientations, id, reverse
+    def sexual_orientation(id, reverse = false, raise_on_missing: false)
+      _translate(sexual_orientations, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R4.1
@@ -1337,8 +1337,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def last_grade_completed(id, reverse = false)
-      _translate last_grade_completeds, id, reverse
+    def last_grade_completed(id, reverse = false, raise_on_missing: false)
+      _translate(last_grade_completeds, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R5.1
@@ -1357,8 +1357,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def school_status(id, reverse = false)
-      _translate school_statuses, id, reverse
+    def school_status(id, reverse = false, raise_on_missing: false)
+      _translate(school_statuses, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R6.A
@@ -1371,8 +1371,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def employment_type(id, reverse = false)
-      _translate employment_types, id, reverse
+    def employment_type(id, reverse = false, raise_on_missing: false)
+      _translate(employment_types, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R6.B
@@ -1385,8 +1385,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def not_employed_reason(id, reverse = false)
-      _translate not_employed_reasons, id, reverse
+    def not_employed_reason(id, reverse = false, raise_on_missing: false)
+      _translate(not_employed_reasons, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R7.1
@@ -1403,8 +1403,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def health_status(id, reverse = false)
-      _translate health_statuses, id, reverse
+    def health_status(id, reverse = false, raise_on_missing: false)
+      _translate(health_statuses, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V1.11
@@ -1421,8 +1421,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def military_branch(id, reverse = false)
-      _translate military_branches, id, reverse
+    def military_branch(id, reverse = false, raise_on_missing: false)
+      _translate(military_branches, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V1.12
@@ -1440,8 +1440,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def discharge_status(id, reverse = false)
-      _translate discharge_statuses, id, reverse
+    def discharge_status(id, reverse = false, raise_on_missing: false)
+      _translate(discharge_statuses, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V2.2
@@ -1456,8 +1456,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def ssvf_services(id, reverse = false)
-      _translate ssvf_services_options, id, reverse
+    def ssvf_services(id, reverse = false, raise_on_missing: false)
+      _translate(ssvf_services_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V2.3
@@ -1471,8 +1471,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def hopwa_financial_assistance(id, reverse = false)
-      _translate hopwa_financial_assistance_options, id, reverse
+    def hopwa_financial_assistance(id, reverse = false, raise_on_missing: false)
+      _translate(hopwa_financial_assistance_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V2.A
@@ -1485,8 +1485,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def ssvf_sub_type3(id, reverse = false)
-      _translate ssvf_sub_type3s, id, reverse
+    def ssvf_sub_type3(id, reverse = false, raise_on_missing: false)
+      _translate(ssvf_sub_type3s, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V2.B
@@ -1508,8 +1508,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def ssvf_sub_type4(id, reverse = false)
-      _translate ssvf_sub_type4s, id, reverse
+    def ssvf_sub_type4(id, reverse = false, raise_on_missing: false)
+      _translate(ssvf_sub_type4s, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V2.C
@@ -1529,8 +1529,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def ssvf_sub_type5(id, reverse = false)
-      _translate ssvf_sub_type5s, id, reverse
+    def ssvf_sub_type5(id, reverse = false, raise_on_missing: false)
+      _translate(ssvf_sub_type5s, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V4.1
@@ -1543,8 +1543,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def percent_ami(id, reverse = false)
-      _translate percent_amis, id, reverse
+    def percent_ami(id, reverse = false, raise_on_missing: false)
+      _translate(percent_amis, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V5.5
@@ -1558,8 +1558,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def address_data_quality(id, reverse = false)
-      _translate address_data_qualities, id, reverse
+    def address_data_quality(id, reverse = false, raise_on_missing: false)
+      _translate(address_data_qualities, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V6.1
@@ -1711,8 +1711,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def vamc_station_number(id, reverse = false)
-      _translate vamc_station_numbers, id, reverse
+    def vamc_station_number(id, reverse = false, raise_on_missing: false)
+      _translate(vamc_station_numbers, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V7.1
@@ -1724,8 +1724,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def no_points_yes(id, reverse = false)
-      _translate no_points_yes_options, id, reverse
+    def no_points_yes(id, reverse = false, raise_on_missing: false)
+      _translate(no_points_yes_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V7.A
@@ -1739,8 +1739,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def time_to_housing_loss(id, reverse = false)
-      _translate time_to_housing_losses, id, reverse
+    def time_to_housing_loss(id, reverse = false, raise_on_missing: false)
+      _translate(time_to_housing_losses, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V7.B
@@ -1754,8 +1754,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def annual_percent_ami(id, reverse = false)
-      _translate annual_percent_amis, id, reverse
+    def annual_percent_ami(id, reverse = false, raise_on_missing: false)
+      _translate(annual_percent_amis, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V7.C
@@ -1768,8 +1768,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def literal_homeless_history(id, reverse = false)
-      _translate literal_homeless_histories, id, reverse
+    def literal_homeless_history(id, reverse = false, raise_on_missing: false)
+      _translate(literal_homeless_histories, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V7.G
@@ -1782,8 +1782,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def eviction_history(id, reverse = false)
-      _translate eviction_histories, id, reverse
+    def eviction_history(id, reverse = false, raise_on_missing: false)
+      _translate(eviction_histories, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V7.I
@@ -1796,8 +1796,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def incarcerated_adult(id, reverse = false)
-      _translate incarcerated_adults, id, reverse
+    def incarcerated_adult(id, reverse = false, raise_on_missing: false)
+      _translate(incarcerated_adults, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V7.O
@@ -1810,8 +1810,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def dependent_under_6(id, reverse = false)
-      _translate dependent_under_6_options, id, reverse
+    def dependent_under_6(id, reverse = false, raise_on_missing: false)
+      _translate(dependent_under_6_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V8.1
@@ -1832,8 +1832,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def voucher_tracking(id, reverse = false)
-      _translate voucher_tracking_options, id, reverse
+    def voucher_tracking(id, reverse = false, raise_on_missing: false)
+      _translate(voucher_tracking_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V9.1
@@ -1855,8 +1855,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def cm_exit_reason(id, reverse = false)
-      _translate cm_exit_reasons, id, reverse
+    def cm_exit_reason(id, reverse = false, raise_on_missing: false)
+      _translate(cm_exit_reasons, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # W1.2
@@ -1879,8 +1879,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def hopwa_services(id, reverse = false)
-      _translate hopwa_services_options, id, reverse
+    def hopwa_services(id, reverse = false, raise_on_missing: false)
+      _translate(hopwa_services_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # W3
@@ -1896,8 +1896,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def no_assistance_reason(id, reverse = false)
-      _translate no_assistance_reasons, id, reverse
+    def no_assistance_reason(id, reverse = false, raise_on_missing: false)
+      _translate(no_assistance_reasons, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # W4.3
@@ -1912,8 +1912,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def viral_load_available(id, reverse = false)
-      _translate viral_load_availables, id, reverse
+    def viral_load_available(id, reverse = false, raise_on_missing: false)
+      _translate(viral_load_availables, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # W4.B
@@ -1925,8 +1925,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def t_cell_source_viral_load_source(id, reverse = false)
-      _translate t_cell_source_viral_load_sources, id, reverse
+    def t_cell_source_viral_load_source(id, reverse = false, raise_on_missing: false)
+      _translate(t_cell_source_viral_load_sources, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # W5.1
@@ -1946,8 +1946,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def housing_assessment_at_exit(id, reverse = false)
-      _translate housing_assessment_at_exits, id, reverse
+    def housing_assessment_at_exit(id, reverse = false, raise_on_missing: false)
+      _translate(housing_assessment_at_exits, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # W5.A
@@ -1960,8 +1960,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def subsidy_information_a(id, reverse = false)
-      _translate subsidy_information_as, id, reverse
+    def subsidy_information_a(id, reverse = false, raise_on_missing: false)
+      _translate(subsidy_information_as, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # W5.AB
@@ -1976,8 +1976,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def subsidy_information(id, reverse = false)
-      _translate subsidy_informations, id, reverse
+    def subsidy_information(id, reverse = false, raise_on_missing: false)
+      _translate(subsidy_informations, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # W5.B
@@ -1988,8 +1988,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def subsidy_information_b(id, reverse = false)
-      _translate subsidy_information_bs, id, reverse
+    def subsidy_information_b(id, reverse = false, raise_on_missing: false)
+      _translate(subsidy_information_bs, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # ad_hoc_yes_no
@@ -2003,8 +2003,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def ad_hoc_yes_no(id, reverse = false)
-      _translate ad_hoc_yes_nos, id, reverse
+    def ad_hoc_yes_no(id, reverse = false, raise_on_missing: false)
+      _translate(ad_hoc_yes_nos, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # race
@@ -2019,8 +2019,8 @@ module Concerns::HudLists2022
       }.freeze
     end
 
-    def race(id, reverse = false)
-      _translate race_field_name_to_description, id, reverse
+    def race(id, reverse = false, raise_on_missing: false)
+      _translate(race_field_name_to_description, id, reverse, raise_on_missing: raise_on_missing)
     end
   end
 end
