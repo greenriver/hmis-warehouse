@@ -1,2 +1,4 @@
 = f.input :report_start, as: :date_picker, label: 'SPM Start Date'
 = f.input :report_end, as: :date_picker, label: 'SPM End Date'
+- @spm.class::KNOWN_SPM_METHODS.each do |table, cell, method|
+  = f.input "#{method}", label: "Value from #{table} #{cell}"

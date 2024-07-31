@@ -24,6 +24,12 @@ module PerformanceMeasurement::WarehouseReports
       respond_with(@spm, location: edit_performance_measurement_warehouse_reports_goal_config_path(@goal))
     end
 
+    def update
+      @spm = spm_source.find(params[:id].to_i)
+      @spm.update!(spm_params)
+      respond_with(@goal, location: edit_performance_measurement_warehouse_reports_goal_config_path(@goal))
+    end
+
     def destroy
       @spm = spm_source.find(params[:id].to_i)
       @spm.destroy
@@ -43,10 +49,14 @@ module PerformanceMeasurement::WarehouseReports
     end
 
     def spm_params
-      params.require(:spm).permit(
+      fields = [
         :report_start,
         :report_end,
-      )
+      ]
+      spm_source::KNOWN_SPM_METHODS.each do |_, _, method|
+        fields << method
+      end
+      params.require(:spm).permit(*fields)
     end
 
     private def flash_interpolation_options
