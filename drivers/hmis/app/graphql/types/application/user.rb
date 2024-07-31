@@ -103,15 +103,7 @@ module Types
     end
 
     def staff_assignments
-      # n+1 queries, needs optimization to be performant on collections
-      object.staff_assignments.
-        joins(:household).
-        order(
-          arel.hh_t[:any_wip].eq(true).desc,
-          arel.hh_t[:latest_exit].eq(nil).desc,
-          earliest_entry: :desc,
-          id: :desc,
-        )
+      object.staff_assignments.order(created_at: :desc, id: :desc)
     end
   end
 end
