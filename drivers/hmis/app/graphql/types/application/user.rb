@@ -103,6 +103,7 @@ module Types
     end
 
     def staff_assignments
+      # n+1, not performant for queries on colletions
       object.staff_assignments.order(created_at: :desc, id: :desc)
     end
   end
