@@ -168,7 +168,7 @@ module Health
       return if housing_status.collected_on < Health::QualifyingActivityV2::EFFECTIVE_DATE_RANGE.first # SDoH QAs added in CP 2.0
 
       user = User.system_user # Mark created QAs as from the system
-      ::Health::QualifyingActivity.create(
+      ::Health::QualifyingActivity.create!(
         source_type: housing_status.class.name,
         source_id: housing_status.id,
         user_id: user.id,
@@ -179,7 +179,7 @@ module Health
         patient_id: id,
         activity: :sdoh_positive,
         follow_up: 'Patient SDoH Screening Positive',
-      )
+      ).maintain_cached_values
     end
 
     scope :pilot, -> { where pilot: true }

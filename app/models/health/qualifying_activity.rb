@@ -482,6 +482,8 @@ module Health
       calculate_payability!
       maintain_procedure_valid
       maintain_valid_unpayable
+
+      self
     end
 
     def maintain_valid_unpayable
