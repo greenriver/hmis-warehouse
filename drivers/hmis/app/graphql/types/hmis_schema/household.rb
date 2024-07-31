@@ -14,6 +14,9 @@ module Types
     field :short_id, ID, null: false
     field :household_clients, [HmisSchema::HouseholdClient], null: false
     field :household_size, Int, null: false
+    field :staff_assignments, HmisSchema::StaffAssignment.page_type, null: true do
+      argument :is_currently_assigned, Boolean, required: false
+    end
 
     assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForHousehold' }
 
@@ -45,6 +48,17 @@ module Types
 
     def assessments(**args)
       resolve_assessments(**args)
+    end
+
+    def staff_assignments(is_currently_assigned: true)
+      # There's no current use case for returning all (both currently assigned and formerly assigned)
+      # in the same query, but we could update this to support that use case if it arises.
+      scope = load_ar_association(object, :staff_assignments).order(created_at: :desc, id: :desc)
+      if is_currently_assigned
+        scope
+      else
+        scope.with_deleted.where.not(deleted_at: nil).order(created_at: :desc, deleted_at: :desc, id: :desc)
+      end
     end
   end
 end

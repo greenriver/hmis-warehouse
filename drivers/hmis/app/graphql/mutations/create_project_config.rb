@@ -23,6 +23,8 @@ module Mutations
         Hmis::ProjectAutoEnterConfig
       when 'AUTO_EXIT'
         Hmis::ProjectAutoExitConfig
+      when 'STAFF_ASSIGNMENT'
+        Hmis::ProjectStaffAssignmentConfig
       else raise "Unsupported type: #{input.config_type}"
       end
 
