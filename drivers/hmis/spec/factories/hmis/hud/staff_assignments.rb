@@ -6,7 +6,7 @@
 
 FactoryBot.define do
   factory :hmis_staff_assignment, class: 'Hmis::StaffAssignment' do
-    staff_assignment_type { association :hmis_staff_assignment_type }
+    staff_assignment_relationship { association :hmis_staff_assignment_relationship }
     data_source { association :hmis_data_source }
     user { association :hmis_user, data_source: data_source }
     transient do
@@ -17,7 +17,7 @@ FactoryBot.define do
     end
   end
 
-  factory :hmis_staff_assignment_type, class: 'Hmis::StaffAssignmentType' do
+  factory :hmis_staff_assignment_relationship, class: 'Hmis::StaffAssignmentRelationship' do
     sequence(:name) { |n| "staff role #{n}" }
   end
 end

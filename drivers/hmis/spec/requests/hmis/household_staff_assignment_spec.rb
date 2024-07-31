@@ -13,12 +13,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1 }
-  let!(:at) { create :hmis_staff_assignment_type }
-  let!(:curr_assignment) { create :hmis_staff_assignment, staff_assignment_type: at, data_source: ds1, enrollment: e1 }
+  let!(:ar) { create :hmis_staff_assignment_relationship }
+  let!(:curr_assignment) { create :hmis_staff_assignment, staff_assignment_relationship: ar, data_source: ds1, enrollment: e1 }
   let!(:prev_assignment) do
     create(
       :hmis_staff_assignment,
-      staff_assignment_type: at,
+      staff_assignment_relationship: ar,
       data_source: ds1,
       enrollment: e1,
       created_at: 2.weeks.ago,
@@ -42,7 +42,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 user {
                   id
                 }
-                staffAssignmentType
+                staffAssignmentRelationship
                 assignedAt
                 unassignedAt
               }

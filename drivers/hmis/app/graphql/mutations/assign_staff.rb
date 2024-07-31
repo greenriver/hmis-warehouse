@@ -17,25 +17,25 @@ module Mutations
 
       raise 'Staff Assignment not enabled' unless household.project.staff_assignments_enabled?
 
-      assignment_type = Hmis::StaffAssignmentType.find(input.assignment_type_id)
+      assignment_relationship = Hmis::StaffAssignmentRelationship.find(input.assignment_relationship_id)
       user = Hmis::User.can_edit_enrollments_for(household.project).find(input.user_id)
 
       existing = Hmis::StaffAssignment.where(
-        staff_assignment_type: assignment_type,
+        staff_assignment_relationship: assignment_relationship,
         user: user,
         household_id: household.household_id,
         data_source_id: household.data_source_id,
       )
       errors = HmisErrors::Errors.new
-      # Locking on assignment_type looks odd but we can't use user (different db) and household is a view
-      assignment_type.with_lock do
-        errors.add(:user_id, :invalid, message: "#{user.name} is already assigned as #{assignment_type.name} for this household") if existing.exists?
+      # Locking on assignment_relationship looks odd but we can't use user (different db) and household is a view
+      assignment_relationship.with_lock do
+        errors.add(:user_id, :invalid, message: "#{user.name} is already assigned as #{assignment_relationship.name} for this household") if existing.exists?
         return { errors: errors } if errors.any?
 
         assignment = Hmis::StaffAssignment.create!(
           household: household,
           user: user,
-          staff_assignment_type: assignment_type,
+          staff_assignment_relationship: assignment_relationship,
         )
 
         { staff_assignment: assignment }

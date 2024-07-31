@@ -461,9 +461,9 @@ Input for AssignStaff mutation
 """
 input AssignStaffInput {
   """
-  Assignment type ID
+  Assignment relationship ID
   """
-  assignmentTypeId: ID!
+  assignmentRelationshipId: ID!
 
   """
   Household ID
@@ -6624,9 +6624,9 @@ enum PickListType {
   RESIDENTIAL_PROJECTS
 
   """
-  Staff Assignment Types
+  Staff Assignment Relationships
   """
-  STAFF_ASSIGNMENT_TYPES
+  STAFF_ASSIGNMENT_RELATIONSHIPS
   STATE
   SUB_TYPE_PROVIDED_3
   SUB_TYPE_PROVIDED_4
@@ -11002,7 +11002,7 @@ type StaffAssignment {
   assignedAt: ISO8601DateTime!
   household: Household!
   id: ID!
-  staffAssignmentType: String!
+  staffAssignmentRelationship: String!
   unassignedAt: ISO8601DateTime
   user: ApplicationUser!
 }

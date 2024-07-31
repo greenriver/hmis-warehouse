@@ -29,8 +29,8 @@ RSpec.describe 'Unassign Staff Mutation', type: :request do
   end
 
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1 }
-  let!(:at) { create :hmis_staff_assignment_type }
-  let!(:assignment) { create :hmis_staff_assignment, staff_assignment_type: at, data_source: ds1, enrollment: e1 }
+  let!(:ar) { create :hmis_staff_assignment_relationship }
+  let!(:assignment) { create :hmis_staff_assignment, staff_assignment_relationship: ar, data_source: ds1, enrollment: e1 }
 
   context 'when the user has permission' do
     let!(:access_control) { create_access_control(hmis_user, p1) }
