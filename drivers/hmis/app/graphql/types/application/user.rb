@@ -37,6 +37,8 @@ module Types
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
+    field :staff_assignments, HmisSchema::StaffAssignment.page_type, null: true
+
     # audit_history returns the changes this user has made (as opposed to activity_logs which is just views, not edits).
     # We use the generic term 'audit' to encompass both types of history (view and edit), but many places in the code,
     # 'audit' just refers to edit history.
@@ -98,6 +100,11 @@ module Types
           search_term: filters&.search_term,
           project_ids: filters&.project,
         )
+    end
+
+    def staff_assignments
+      # n+1, not performant for queries on colletions
+      object.staff_assignments.order(created_at: :desc, id: :desc)
     end
   end
 end

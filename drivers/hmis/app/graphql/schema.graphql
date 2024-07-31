@@ -204,6 +204,7 @@ type ApplicationUser {
   lastName: String
   name: String!
   recentItems: [OmnisearchResult!]!
+  staffAssignments(limit: Int, offset: Int): StaffAssignmentsPaginated
 }
 
 type ApplicationUserAuditEvent {
