@@ -860,7 +860,7 @@ module GrdaWarehouse::Hud
 
     # NOTE: preload funders before calling this
     def pay_for_success?
-      return false unless project_type == 7
+      return false unless HudUtility2024.performance_reporting[:other].include?(project_type)
 
       funders.map(&:pay_for_success?).any?
     end
