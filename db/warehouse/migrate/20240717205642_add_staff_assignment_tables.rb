@@ -5,7 +5,7 @@
 
 class AddStaffAssignmentTables < ActiveRecord::Migration[7.0]
   def change
-    create_table(:hmis_staff_assignment_types) do |t|
+    create_table(:hmis_staff_assignment_relationships) do |t|
       t.string :name, null: false, comment: 'name of role, such as "Case Manager" or "Housing Navigator"', index: { unique: true }
       t.timestamps
       t.timestamp :deleted_at
@@ -18,12 +18,12 @@ class AddStaffAssignmentTables < ActiveRecord::Migration[7.0]
       # which is the reason to not use t.references here.
       t.string :household_id
 
-      t.references :hmis_staff_assignment_type, null: false, foreign_key: { to_table: :hmis_staff_assignment_types }, index: false
+      t.references :hmis_staff_assignment_relationship, null: false, foreign_key: { to_table: :hmis_staff_assignment_relationships }, index: false
       t.references :data_source, null: false
       t.timestamps
       t.timestamp :deleted_at
     end
-    add_index :hmis_staff_assignments, [:data_source_id, :household_id, :user_id, :hmis_staff_assignment_type_id], unique: true, where: 'deleted_at IS NULL', name: :uidx_hmis_staff_assignments
+    add_index :hmis_staff_assignments, [:data_source_id, :household_id, :user_id, :hmis_staff_assignment_relationship_id], unique: true, where: 'deleted_at IS NULL', name: :uidx_hmis_staff_assignments
     add_index :hmis_staff_assignments, :user_id
   end
 end

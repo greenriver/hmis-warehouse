@@ -43,7 +43,7 @@ module Types
     value 'ENROLLMENT_AUDIT_EVENT_RECORD_TYPES'
     value 'CLIENT_AUDIT_EVENT_RECORD_TYPES'
     value 'FORM_TYPES', 'Form Types'
-    value 'STAFF_ASSIGNMENT_TYPES', 'Staff Assignment Types'
+    value 'STAFF_ASSIGNMENT_RELATIONSHIPS', 'Staff Assignment Relationships'
     value 'USERS', 'User accounts. Deprecated in favor of AUDITABLE_USERS'
     value 'ELIGIBLE_STAFF_ASSIGNMENT_USERS', 'Current users who are eligible for staff assignment'
     value 'AUDITABLE_USERS', 'Current and historical user accounts'

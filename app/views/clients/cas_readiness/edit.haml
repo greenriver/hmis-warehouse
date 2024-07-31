@@ -10,15 +10,7 @@
 
     %p
       The following information is used exclusively for matching clients to vacancies in CAS.  It is not used for federal reporting.
-  - if GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::Boston'
-    = render 'boston'
-  - elsif GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::TcHat'
-    = render 'tc_hat'
-  - elsif GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::TcHmisHat'
-    = render 'tc_hat'
-  - elsif GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::Mdha'
-    = render 'mdha'
-  - elsif GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::Springfield'
-    = render 'springfield'
-  - else
-    = render GrdaWarehouse::Config.get(:cas_flag_method).to_s
+
+  = render 'background_render', url: render_content_client_cas_readiness_path, fetch_params: { client_id: @client.id } do
+    .rollup
+      .rollup-container.well

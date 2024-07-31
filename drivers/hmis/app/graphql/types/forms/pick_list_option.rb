@@ -78,8 +78,8 @@ module Types
         external_form_types_for_project(project)
       when 'ASSESSMENT_NAMES'
         assessment_names_for_project(project)
-      when 'STAFF_ASSIGNMENT_TYPES'
-        staff_assignment_types(project)
+      when 'STAFF_ASSIGNMENT_RELATIONSHIPS'
+        staff_assignment_relationships(project)
       when 'ELIGIBLE_STAFF_ASSIGNMENT_USERS'
         eligible_staff_assignment_user_picklist(project)
       else
@@ -505,12 +505,12 @@ module Types
       hud_options + custom_options
     end
 
-    def self.staff_assignment_types(project)
+    def self.staff_assignment_relationships(project)
       raise 'Project required' unless project
 
       return [] unless project.staff_assignments_enabled?
 
-      Hmis::StaffAssignmentType.all.map(&:to_pick_list_option)
+      Hmis::StaffAssignmentRelationship.all.map(&:to_pick_list_option)
     end
 
     def self.projects_receiving_referrals

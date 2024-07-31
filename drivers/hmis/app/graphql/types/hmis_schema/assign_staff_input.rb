@@ -10,7 +10,7 @@ module Types
   class HmisSchema::AssignStaffInput < Types::BaseInputObject
     description 'Input for AssignStaff mutation'
     argument :household_id, ID, required: true, description: 'Household ID'
-    argument :assignment_type_id, ID, required: true, description: 'Assignment type ID'
+    argument :assignment_relationship_id, ID, required: true, description: 'Assignment relationship ID'
     argument :user_id, ID, required: true, description: 'User ID'
   end
 end

@@ -12,7 +12,7 @@ module Types
     field :id, ID, null: false
     field :user, Application::User, null: false
     field :household, HmisSchema::Household, null: false
-    field :staff_assignment_type, String, null: false
+    field :staff_assignment_relationship, String, null: false
     field :assigned_at, GraphQL::Types::ISO8601DateTime, null: false
     field :unassigned_at, GraphQL::Types::ISO8601DateTime, null: true
 
@@ -24,8 +24,8 @@ module Types
       load_ar_association(object, :household)
     end
 
-    def staff_assignment_type
-      load_ar_association(object, :staff_assignment_type)&.name
+    def staff_assignment_relationship
+      load_ar_association(object, :staff_assignment_relationship)&.name
     end
 
     def assigned_at
