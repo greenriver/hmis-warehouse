@@ -70,7 +70,7 @@ module GrdaWarehouse::Hud
     end
 
     def pay_for_success?
-      HudUtility2024.funding_source('HUD: Pay for Success', true).to_s == self.Funder.to_s
+      HudUtility2024.funding_source('HUD: Pay for Success', true, raise_on_missing: true).to_s == self.Funder.to_s
     end
 
     def operating_year

@@ -630,7 +630,7 @@ module HudUtility2024
       'HUD: Unsheltered Special NOFO' => [54],
       'HUD: Rural Special NOFO' => [55],
       'HUD: HUD-VASH' => [20],
-      'HUD: PFS' => [35], # Pay for Success
+      'HUD: PFS' => [HudUtility2024.funding_source('HUD: Pay for Success', true, raise_on_missing: true)], # Pay for Success
     }
   end
 
