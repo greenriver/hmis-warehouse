@@ -18,6 +18,7 @@ module PerformanceMeasurement::WarehouseReports
 
     def edit
       @pit_counts = @goal.pit_counts.order(pit_date: :desc)
+      @spms = @goal.static_spms.order(report_start: :desc, report_end: :desc)
     end
 
     def create
