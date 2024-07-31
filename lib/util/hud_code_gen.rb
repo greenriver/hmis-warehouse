@@ -77,8 +77,8 @@ module HudCodeGen
         {\n#{map_values}\n}.freeze
       end
 
-      def #{lookup_fn_name}(id, reverse = false)
-        _translate #{map_name}, id, reverse
+      def #{lookup_fn_name}(id, reverse = false, raise_on_missing: false)
+        _translate(#{map_name}, id, reverse, raise_on_missing: raise_on_missing)
       end
       "
     end

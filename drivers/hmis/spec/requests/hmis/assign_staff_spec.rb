@@ -30,8 +30,8 @@ RSpec.describe 'Assign Staff Mutation', type: :request do
   end
 
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1 }
-  let!(:at) { create :hmis_staff_assignment_type }
-  let!(:assignment) { create :hmis_staff_assignment, staff_assignment_type: at, data_source: ds1, enrollment: e1 }
+  let!(:ar) { create :hmis_staff_assignment_relationship }
+  let!(:assignment) { create :hmis_staff_assignment, staff_assignment_relationship: ar, data_source: ds1, enrollment: e1 }
   let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1 }
 
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
@@ -44,7 +44,7 @@ RSpec.describe 'Assign Staff Mutation', type: :request do
     it 'assigns staff' do
       input = {
         household_id: e2.household.household_id,
-        assignment_type_id: at.id,
+        assignment_relationship_id: ar.id,
         user_id: hmis_user.id,
       }
       response, result = post_graphql({ input: input }) { mutation }
@@ -57,7 +57,7 @@ RSpec.describe 'Assign Staff Mutation', type: :request do
       create_access_control(assignment.user, assignment.household.project)
       input = {
         household_id: assignment.household.household_id,
-        assignment_type_id: assignment.staff_assignment_type.id,
+        assignment_relationship_id: assignment.staff_assignment_relationship.id,
         user_id: assignment.user.id,
       }
       response, result = post_graphql({ input: input }) { mutation }
@@ -68,7 +68,7 @@ RSpec.describe 'Assign Staff Mutation', type: :request do
     it 'does not assign to project without staff assignment config' do
       input = {
         household_id: e3.household.household_id,
-        assignment_type_id: at.id,
+        assignment_relationship_id: ar.id,
         user_id: hmis_user.id,
       }
       response, result = post_graphql({ input: input }) { mutation }
@@ -83,7 +83,7 @@ RSpec.describe 'Assign Staff Mutation', type: :request do
     it 'does not permit assignment' do
       input = {
         household_id: e2.household.household_id,
-        assignment_type_id: at.id,
+        assignment_relationship_id: ar.id,
         user_id: hmis_user.id,
       }
       expect_access_denied post_graphql({ input: input }) { mutation }

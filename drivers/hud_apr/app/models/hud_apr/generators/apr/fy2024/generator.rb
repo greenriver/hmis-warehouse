@@ -24,7 +24,7 @@ module HudApr::Generators::Apr::Fy2024
     end
 
     def self.default_project_type_codes
-      HudUtility2024.residential_project_type_numbers_by_code.keys
+      HudUtility2024.performance_reporting.keys
     end
 
     def url

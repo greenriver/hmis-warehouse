@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::StaffAssignmentType < Hmis::HmisBase
+class Hmis::StaffAssignmentRelationship < Hmis::HmisBase
   acts_as_paranoid
   validates :name, presence: true, uniqueness: true
 
