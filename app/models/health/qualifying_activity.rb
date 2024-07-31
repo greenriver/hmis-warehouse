@@ -33,6 +33,8 @@ module Health
     phi_attr :duplicate_id, Phi::OtherIdentifier
     phi_attr :epic_source_id, Phi::OtherIdentifier
 
+    validate :patient_eligible_for_qa_on_date
+
     MODE_OF_CONTACT_OTHER = 'other'.freeze
     REACHED_CLIENT_OTHER = 'collateral'.freeze
     VERSIONS = [
@@ -685,6 +687,15 @@ module Health
 
     def place_of_service
       qa_version.place_of_service.to_s
+    end
+
+    private def patient_eligible_for_qa_on_date
+      # Don't check QAs without a date
+      return unless date_of_activity.present?
+      # Patient has an active referral on or within 90 days of the the QA date
+      return if Health::Patient.active_between(date_of_activity - 90.days, date_of_activity).where(id: patient_id).exists?
+
+      errors.add(:date_of_activity, :invalid, message: 'Patient was not enrolled on or within 90 days prior to the QA')
     end
   end
 end
