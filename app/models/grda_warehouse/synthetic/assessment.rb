@@ -88,6 +88,7 @@ module GrdaWarehouse::Synthetic
       }
     end
 
+    # overridden in subclass, SyntheticCeAssessment::EnrollmentCeAssessment
     private def created_at_from(source)
       source.created_at
     end
