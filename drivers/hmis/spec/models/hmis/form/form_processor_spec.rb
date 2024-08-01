@@ -2004,6 +2004,19 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(cls.information_date).to eq(information_date)
     end
 
+    it 'should work when verified by project ID is provided' do
+      hud_values = {
+        'CurrentLivingSituation.informationDate' => information_date.strftime('%Y-%m-%d'),
+        'CurrentLivingSituation.currentLivingSituation' => 'SAFE_HAVEN', # 118
+        'CurrentLivingSituation.verifiedByProjectId' => p1.id,
+      }
+      cls = Hmis::Hud::CurrentLivingSituation.new(client: c1, enrollment: e1, data_source: ds1)
+      process_record(record: cls, hud_values: hud_values, user: hmis_user, definition: definition)
+
+      expect(cls.verified_by_project_id).to eq(p1.id)
+      expect(cls.verified_by).to eq(p1.name)
+    end
+
     describe 'when CurrentLivingSituation is being collected on an Assessment,' do
       let(:definition) { Hmis::Form::Definition.find_by(identifier: 'cls_assessment') }
       let(:assessment) { build(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1, definition: definition, hud_values: hud_values) }

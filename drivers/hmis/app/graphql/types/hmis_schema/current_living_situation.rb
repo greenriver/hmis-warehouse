@@ -21,6 +21,7 @@ module Types
     field :enrollment, HmisSchema::Enrollment, null: false
     field :client, HmisSchema::Client, null: false
     field :information_date, GraphQL::Types::ISO8601Date, null: true
+    field :verified_by_project_id, ID, null: true
     hud_field :current_living_situation, HmisSchema::Enums::Hud::CurrentLivingSituation, default_value: 99
     hud_field :verified_by
     hud_field :cls_subsidy_type, HmisSchema::Enums::Hud::RentalSubsidyType

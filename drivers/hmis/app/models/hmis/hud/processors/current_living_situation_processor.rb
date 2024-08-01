@@ -22,5 +22,15 @@ module Hmis::Hud::Processors
     def dependent_destroyable?
       true
     end
+
+    def assign_metadata
+      super
+
+      current_living_situation = @processor.send(factory_name, create: false)
+      return unless current_living_situation.verified_by_project_id
+
+      project_name = Hmis::Hud::Project.find(current_living_situation.verified_by_project_id)&.name
+      current_living_situation.verified_by = project_name
+    end
   end
 end

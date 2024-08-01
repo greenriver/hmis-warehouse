@@ -145,6 +145,11 @@ module Types
         end
 
         form_types.map { |ft| { code: ft[:value], label: ft[:desc] } }
+      when 'CONTINUUM_PROJECTS'
+        Hmis::Hud::Project.where(continuum_project: true).
+          preload(:organization).
+          sort_by_option(:organization_and_name).
+          map(&:to_pick_list_option)
       end
     end
 

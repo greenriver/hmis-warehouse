@@ -64,15 +64,15 @@
       ]
     },
     {
-      "type": "STRING",
-      "required": false,
-      "hidden": true,
+      "type": "CHOICE",
+      "required": true,
       "repeats": false,
+      "pick_list_reference": "CONTINUUM_PROJECTS",
       "link_id": "q_4_12_3",
       "text": "Living situation verified by",
-      "_comment": "FIXME: this needs to be implemented. It should be a list of Continuum projects.",
+      "_comment": "This collects project ID onto the non-HUD field `verified_by_project_id`. The form processor then copies the project name onto the HUD field `VerifiedBy`.",
       "mapping": {
-        "field_name": "verifiedBy"
+        "field_name": "verifiedByProjectId"
       },
       "rule": {
         "variable": "projectType",

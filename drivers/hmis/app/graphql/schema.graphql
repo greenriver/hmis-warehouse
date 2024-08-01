@@ -1747,6 +1747,7 @@ type CurrentLivingSituation {
   subsequentResidence: NoYesReasonsForMissingData
   user: ApplicationUser
   verifiedBy: String
+  verifiedByProjectId: ID
 }
 
 """
@@ -6557,6 +6558,11 @@ enum PickListType {
   CE_EVENTS
   CLIENT_AUDIT_EVENT_RECORD_TYPES
   COC
+
+  """
+  Continuum Projects
+  """
+  CONTINUUM_PROJECTS
   CURRENT_LIVING_SITUATION
   DESTINATION
 
