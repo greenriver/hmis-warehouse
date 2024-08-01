@@ -5,6 +5,11 @@
       Add Static SPM for Comparison
 %p
   You can optionally provide information from historic SPMs.  If available These will be shown as the comparison values for values calculated by the SPM for the #{Translation.translate('CoC Performance Measurement Dashboard')} report where the comparison date range matches the entered data.
+%ul
+  %li Static SPM start and end dates must match the expected comparison dates to be included
+  %li If two static SPMs have the same start and end dates, the newest version will be used
+  %li When the static comparison is used, any project-level details will not include comparison data
+
 - if @spms.present?
   .card.mb-4
     %table.table.table-striped

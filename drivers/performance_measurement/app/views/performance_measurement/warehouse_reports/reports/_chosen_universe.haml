@@ -20,6 +20,7 @@
         .mb-2
           = link_to hud_reports_spm_path(@report.reporting_spm_id), class: 'btn btn-sm btn-secondary' do
             Report Year
-        .mb-2
-          = link_to hud_reports_spm_path(@report.comparison_spm_id), class: 'btn btn-sm btn-secondary' do
-            Comparison Year
+        - if @report.comparison_spm_id
+          .mb-2
+            = link_to hud_reports_spm_path(@report.comparison_spm_id), class: 'btn btn-sm btn-secondary' do
+              Comparison Year

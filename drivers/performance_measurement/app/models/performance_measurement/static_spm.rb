@@ -11,26 +11,29 @@ module PerformanceMeasurement
 
     belongs_to :goal
     KNOWN_SPM_CELLS = {
-      '1a' => ['B2'],
-      '1b' => ['B2'],
+      '1a' => ['B2', 'D2', 'G2'],
+      '1b' => ['B2', 'D2', 'G2'],
       '2a and 2b' => ['B7'],
       '3.2' => ['C2'],
-      '4.1' => ['C2'],
-      '4.2' => ['C2'],
-      '4.3' => ['C2'],
-      '4.4' => ['C2'],
-      '4.5' => ['C2'],
-      '4.6' => ['C2'],
+      '4.1' => ['C2', 'C3'],
+      '4.2' => ['C2', 'C3'],
+      '4.3' => ['C2', 'C3'],
+      '4.4' => ['C2', 'C3'],
+      '4.5' => ['C2', 'C3'],
+      '4.6' => ['C2', 'C3'],
       '5.1' => ['C4'],
-      '7a.1' => ['C2'],
-      '7b.1' => ['C2'],
-      '7b.2' => ['C2'],
+      '7a.1' => ['C2', 'C3', 'C4'],
+      '7b.1' => ['C2', 'C3', 'C4'],
+      '7b.2' => ['C2', 'C3', 'C4'],
     }.freeze
     KNOWN_SPM_METHODS = KNOWN_SPM_CELLS.map do |table, cells|
       cells.map do |cell|
         [table, cell, "table_#{table.parameterize(separator: '_')}_cell_#{cell.parameterize}"]
       end
     end.flatten(1)
+    SPM_METHODS_BY_TABLE_CELL = KNOWN_SPM_METHODS.map do |table, cell, method|
+      [[table, cell], method]
+    end.to_h.freeze
     KNOWN_SPM_METHODS.each do |table, cell, method_name|
       define_method method_name do
         data.dig(table, cell)
@@ -39,6 +42,13 @@ module PerformanceMeasurement
         data[table] ||= {}
         data[table][cell] = value
       end
+    end
+
+    def data_for(table, cell)
+      method = SPM_METHODS_BY_TABLE_CELL[[table, cell]]
+      return nil unless method
+
+      public_send(method)
     end
   end
 end

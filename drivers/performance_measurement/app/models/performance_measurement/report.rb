@@ -160,6 +160,15 @@ module PerformanceMeasurement
       update(goal_configuration_id: PerformanceMeasurement::Goal.for_coc(filter.coc_code)&.id)
     end
 
+    private def existing_static_comparison_spm
+      @existing_static_comparison_spm ||= goal_config.static_spms.
+        order(id: :desc).
+        find_by(
+          report_start: filter.comparison_range.first,
+          report_end: filter.comparison_range.end,
+        )
+    end
+
     private def reset_filter
       @filter = nil
       filter
@@ -282,6 +291,8 @@ module PerformanceMeasurement
         spm_fields.each do |parts|
           cells = parts[:cells]
           cells.each do |cell|
+            next if spec[:static_spm_available]
+
             members = cell_members(spec[:report], *cell)
             # Force household calculation for cell members
             calculate_households_for_spm(members)
@@ -978,6 +989,8 @@ module PerformanceMeasurement
       # else
       generator = HudSpmReport.current_generator
       variants.each do |_, spec|
+        next if spec[:static_spm_available]
+
         processed_filter = ::Filters::HudFilterBase.new(user_id: options[:user_id])
         processed_filter.update(options.deep_merge(spec[:options]))
         processed_filter.comparison_pattern = :no_comparison_period
@@ -1006,6 +1019,7 @@ module PerformanceMeasurement
             start: filter.comparison_range.first,
             end: filter.comparison_range.end,
           },
+          static_spm_available: existing_static_comparison_spm.present?,
         },
       }
     end
