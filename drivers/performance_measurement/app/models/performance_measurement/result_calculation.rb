@@ -388,14 +388,14 @@ module PerformanceMeasurement::ResultCalculation
       field = detail[:calculation_column]
 
       reporting_days = client_data(field, :reporting, project_id: project&.project_id)
-      comparison_days = if existing_static_comparison_spm.present?
+      reporting_median = median(reporting_days)
+
+      comparison_median = if existing_static_comparison_spm.present?
         existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
       else
-        client_data(field, :comparison, project_id: project&.project_id)
+        comparison_days = client_data(field, :comparison, project_id: project&.project_id)
+        median(comparison_days)
       end
-
-      reporting_median = median(reporting_days)
-      comparison_median = median(comparison_days)
 
       progress = calculate_processed(detail[:goal_calculation], reporting_median)
       PerformanceMeasurement::Result.new(
@@ -527,14 +527,14 @@ module PerformanceMeasurement::ResultCalculation
       field = detail[:calculation_column]
 
       reporting_days = client_data(field, :reporting, project_id: project&.project_id)
-      comparison_days = if existing_static_comparison_spm.present?
+      reporting_median = median(reporting_days)
+
+      comparison_median = if existing_static_comparison_spm.present?
         existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
       else
-        client_data(field, :comparison, project_id: project&.project_id)
+        comparison_days = client_data(field, :comparison, project_id: project&.project_id)
+        median(comparison_days)
       end
-
-      reporting_median = median(reporting_days)
-      comparison_median = median(comparison_days)
 
       progress = calculate_processed(detail[:goal_calculation], reporting_median)
       PerformanceMeasurement::Result.new(

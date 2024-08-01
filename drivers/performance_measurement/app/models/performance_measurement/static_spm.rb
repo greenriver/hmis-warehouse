@@ -36,7 +36,7 @@ module PerformanceMeasurement
     end.to_h.freeze
     KNOWN_SPM_METHODS.each do |table, cell, method_name|
       define_method method_name do
-        data.dig(table, cell)
+        data.dig(table, cell)&.to_f
       end
       define_method "#{method_name}=" do |value|
         data[table] ||= {}
