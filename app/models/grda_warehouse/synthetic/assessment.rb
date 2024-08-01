@@ -80,12 +80,21 @@ module GrdaWarehouse::Synthetic
         AssessmentType: assessment_type,
         AssessmentLevel: assessment_level,
         PrioritizationStatus: prioritization_status,
-        DateCreated: source.created_at,
-        DateUpdated: source.updated_at,
+        DateCreated: created_at_from(source),
+        DateUpdated: updated_at_from(source),
         UserID: user_id,
         data_source_id: enrollment.data_source_id,
         synthetic: true,
       }
+    end
+
+    # overridden in subclass, SyntheticCeAssessment::EnrollmentCeAssessment
+    private def created_at_from(source)
+      source.created_at
+    end
+
+    private def updated_at_from(source)
+      source.updated_at
     end
 
     private def user_id
