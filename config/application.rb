@@ -87,7 +87,7 @@ module BostonHmis
 
     # Temporary: all of amazon
     TodoOrDie('trused proxy, only for testing', by: '2024-8-15')
-    config.trusted_proxies = [IPAddr.new('44.192.0.0/11')] if Rails.env.staging?
+    config.action_dispatch.trusted_proxies = [IPAddr.new('44.192.0.0/11')] if Rails.env.staging?
 
     # Extension points
     config.sub_populations = {}
