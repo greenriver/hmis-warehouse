@@ -99,6 +99,7 @@ class SetupLogging
         host: event.payload[:host],
         remote_ip: event.payload[:remote_ip],
         ip: event.payload[:ip],
+        remote_addr: event.payload[:remote_addr],
         session_id: event.payload[:session_id],
         user_id: event.payload[:user_id],
         process_id: Process.pid,
