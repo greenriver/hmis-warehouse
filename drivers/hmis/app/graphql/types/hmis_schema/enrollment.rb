@@ -75,6 +75,7 @@ module Types
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :household_tasks, [HmisSchema::Enums::EnrollmentFilterOptionHouseholdTask]
       arg :search_term, String
+      arg :assigned_staff, ID
     end
 
     description 'HUD Enrollment'

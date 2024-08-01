@@ -27,6 +27,7 @@ module Types
       arg :open_on_date, GraphQL::Types::ISO8601Date
       arg :hoh_age_range, HmisSchema::Enums::AgeRange
       arg :search_term, String
+      arg :assigned_staff, ID
     end
 
     def household_clients

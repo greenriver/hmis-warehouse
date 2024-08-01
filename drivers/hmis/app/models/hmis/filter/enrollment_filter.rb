@@ -14,6 +14,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
       yield_self(&method(:with_project_types)).
       yield_self(&method(:with_search_term)).
       yield_self(&method(:with_household_tasks)).
+      yield_self(&method(:with_assigned_staff)).
       yield_self(&method(:clean_scope))
   end
 
@@ -131,6 +132,13 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
         where(cas_t[:assessment_date].eq(nil))
 
       scope.where(id: enrollments_with_annual_due.pluck(:id))
+    end
+  end
+
+  def with_assigned_staff(scope)
+    with_filter(scope, :assigned_staff) do
+      sa_t = Hmis::StaffAssignment.arel_table
+      scope.joins(household: :staff_assignments).where(sa_t[:user_id].eq(input.assigned_staff))
     end
   end
 end
