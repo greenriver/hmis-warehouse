@@ -85,9 +85,10 @@ module BostonHmis
     # FIXME: required to make forms in pjax modals work
     config.action_controller.per_form_csrf_tokens = false
 
+    config.action_dispatch.trusted_proxies = ActionDispatch::RemoteIp::TRUSTED_PROXIES
     # Temporary: all of amazon
     TodoOrDie('trused proxy, only for testing', by: '2024-8-15')
-    config.action_dispatch.trusted_proxies = [IPAddr.new('44.192.0.0/11')] if Rails.env.staging?
+    config.action_dispatch.trusted_proxies += [IPAddr.new('44.192.0.0/11')] if Rails.env.staging?
 
     # Extension points
     config.sub_populations = {}
