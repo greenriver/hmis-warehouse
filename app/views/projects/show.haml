@@ -8,21 +8,9 @@
 = render 'breadcrumbs'
 -# confidentiality status ignored because page is not visible to users who can't see confidential project names
 - content_for :title, "#{@project.name(ignore_confidential_status: true)} at #{@project.organization.name(ignore_confidential_status: true)}"
-.row
-  .col-sm-8
-    %h1= content_for :title
-  .col-sm-4.text-right
-    - if can_edit_projects?
-      = link_to edit_project_path(@project), class: ['btn', 'btn-sm', 'btn-secondary'] do
-        %i.icon-pencil
-        Edit Project
-    - if can_delete_projects?
-      .mt-4
-        = link_to project_path(@project), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: "Deleting #{@project.ProjectName} will delete ALL associated data.  Do you want to proceed?"} do
-          %i.icon-cross
-          Delete Project
-.row.mb-4
-  .col-sm-8
+%h1= content_for :title
+.row.mb-6
+  .col-sm-4
     .card
       %table.table.table-striped.table-hover.mb-0
         %tr
@@ -31,12 +19,10 @@
             = HudUtility2024.project_type(@project.ProjectType)
             - if @project.active_homeless_status_override.present?
               %br
-              %em
-                Enrolled clients are actively homeless for CAS and Cohorts
+              %em Enrolled clients are actively homeless for CAS and Cohorts
             - if @project.include_in_days_homeless_override.present?
               %br
-              %em
-                Days served are included in verified additional days
+              %em Days served are included in verified additional days
         %tr
           %th Operating Start Date
           %td.d-flex
@@ -92,11 +78,6 @@
                   = project.name(current_user, ignore_confidential_status: can_edit_projects?)
 
   .col-sm-4
-    .d-flex.mt-4
-      %h4 HMIS Info
-      .ml-auto
-        - if can_see_raw_hmis_data?
-          = link_to 'HMIS', source_datum_path(@project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
     .card
       %table.table.table-striped.table-hover.mb-0
         %tr
@@ -110,8 +91,7 @@
           %td= @project.data_source.short_name
         %tr
           %th Target Population
-          %td
-            = HudUtility2024.target_population(@project.TargetPopulation)
+          %td= HudUtility2024.target_population(@project.TargetPopulation)
         %tr
           %th Household Type
           %td
@@ -120,6 +100,22 @@
         %tr
           %th PIT Count
           %td= @project.PITCount
+  .col-sm-4.text-right
+    - if can_edit_projects?
+      .mb-4
+        = link_to edit_project_path(@project), class: ['btn', 'btn-sm', 'btn-secondary'] do
+          %i.icon-pencil
+          Edit Project
+    - if can_delete_projects?
+      .mb-4
+        = link_to project_path(@project), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: "Deleting #{@project.ProjectName} will delete ALL associated data.  Do you want to proceed?"} do
+          %i.icon-cross
+          Delete Project
+    - if RailsDrivers.loaded.include?(:synthetic_ce_assessment) && can_edit_projects?
+      = render 'synthetic_ce_assessments/project_config'
+    - if can_see_raw_hmis_data?
+      .mb-4
+        = link_to 'HMIS', source_datum_path(@project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
 - overrides = HmisCsvImporter::ImportOverride.where(data_source: @project.data_source).sorted.select { |override| override.applies?(@project) }
 - if overrides.any?
   %p The following import overrides are in effect for this project.
