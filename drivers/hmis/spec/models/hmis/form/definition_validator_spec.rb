@@ -232,4 +232,90 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
       expect(errors.first.full_message).not_to match(/c3_youth_education_status/) # should not include this one, since it was present
     end
   end
+
+  describe 'Validating custom data element definitions on publish' do
+    let!(:definition) { create :hmis_form_definition, role: 'CUSTOM_ASSESSMENT' }
+    let!(:cded) { create :hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment' }
+
+    context 'with a valid mapping' do
+      before(:each) do
+        definition.definition = {
+          'item': [
+            {
+              'type': 'STRING',
+              'link_id': 'a_string',
+              'text': 'A string',
+              'mapping': { 'custom_field_key': cded.key },
+            },
+          ],
+        }
+        definition.save!
+      end
+
+      it 'should pass' do
+        expect(definition.validate_json_form).to be_empty
+      end
+      it 'should pass with CDED tied to HUD Service' do
+        definition.role = 'SERVICE'
+        create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Service', key: cded.key)
+        expect(definition.validate_json_form).to be_empty
+      end
+      it 'should pass with CDED tied to Custom Service' do
+        definition.role = 'SERVICE'
+        create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomService', key: cded.key)
+        expect(definition.validate_json_form).to be_empty
+      end
+    end
+    it 'should fail when the CDED key does not exist' do
+      definition.definition = {
+        'item': [
+          {
+            'type': 'STRING',
+            'link_id': 'a_string',
+            'text': 'A string',
+            'mapping': { 'custom_field_key': 'invalid_key' },
+          },
+        ],
+      }
+
+      expect do
+        definition.validate_json_form
+      end.to raise_error(/CDED does not exist/)
+    end
+
+    it 'should fail when the CDED key exists but is associated with the wrong owner type for this form role' do
+      definition.role = 'SERVICE'
+      definition.definition = {
+        'item': [
+          {
+            'type': 'STRING',
+            'link_id': 'a_string',
+            'text': 'A string',
+            'mapping': { 'custom_field_key': cded.key },
+          },
+        ],
+      }
+
+      expect do
+        definition.validate_json_form
+      end.to raise_error(/CDED does not exist/)
+    end
+
+    it 'should fail if the CDED field type is incompatible with the item type' do
+      definition.definition = {
+        'item': [
+          {
+            'type': 'BOOLEAN',
+            'link_id': 'a_bool',
+            'text': 'A boolean',
+            'mapping': { 'custom_field_key': cded.key },
+          },
+        ],
+      }
+
+      expect do
+        definition.validate_json_form
+      end.to raise_error("Item a_bool has type BOOLEAN, but its custom field key #{cded.key} has an incompatible type string")
+    end
+  end
 end

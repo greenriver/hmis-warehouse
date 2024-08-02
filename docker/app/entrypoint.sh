@@ -6,26 +6,32 @@
 # auto-export variables
 set -a
 
-echo Getting Role Info
-curl --silent 169.254.170.2$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI > role.info.log
-
 cd /app
 
 echo 'Commenting out pg_fixtures which bundler tries to load in production and staging for some reason'
 sed -i.bak '/pg_fixtures/d' Gemfile
 
-echo 'Getting secrets for the environment...'
-T1=`date +%s`
+if [[ "${EKS}" != "true" ]]
+then
+  echo Getting Role Info
+  curl --connect-timeout 2 --silent 169.254.170.2$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI > role.info.log
 
-# TODO: this should be handled by the caching GitHub Action, but that seems to miss
-# a gem occassionally.  Running bundle install will catch any gems not previously cached
-bundle install
-bundle exec ./bin/download_secrets.rb > .env
-T2=`date +%s`
-echo "...secrets took $(expr $T2 - $T1) seconds"
+  echo 'Getting secrets for the environment...'
+  T1=`date +%s`
 
-echo Sourcing environment
-. .env
+  # TODO: this should be handled by the caching GitHub Action, but that seems to miss
+  # a gem occassionally.  Running bundle install will catch any gems not previously cached
+  bundle install
+  bundle exec ./bin/download_secrets.rb > .env
+  T2=`date +%s`
+  echo "...secrets took $(expr $T2 - $T1) seconds"
+
+  echo Sourcing environment
+  . .env
+else
+  echo Not sourcing environment variables from secretsmanager
+  # TODO: does everything behave or do we need to "env > .env"
+fi
 
 echo 'Constructing an ERB-free database.yml file...'
 T1=`date +%s`

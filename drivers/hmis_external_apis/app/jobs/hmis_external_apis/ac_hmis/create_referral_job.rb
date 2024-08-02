@@ -5,7 +5,8 @@
 ###
 
 module HmisExternalApis::AcHmis
-  class CreateReferralJob < ApplicationJob
+  class CreateReferralJob < BaseJob
+    queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
     include HmisExternalApis::AcHmis::ReferralJobMixin
     attr_accessor :params, :errors
 

@@ -218,6 +218,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   }.freeze
   NON_QUESTION_ITEM_TYPES = ['DISPLAY', 'GROUP'].freeze
 
+  # Forms that are editable by users with can_manage_forms permission, and viewable/configurable (e.g. form rules)
+  # by users with can_configure_data_collection (without needing the 'super-admin' permission can_administrate_config)
+  NON_ADMIN_FORM_ROLES = [
+    'SERVICE',
+    'CUSTOM_ASSESSMENT',
+  ].freeze
+
   # All form roles
   use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CE)
   # Form roles that can be used with SubmitForm for editing records
@@ -228,6 +235,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   use_enum_with_same_key :data_collection_feature_role_enum_map, DATA_COLLECTION_FEATURE_ROLES
   # Form roles that are static
   use_enum_with_same_key :static_form_role_enum_map, STATIC_FORM_ROLES
+  # Form roles that are non-admin; see comment above on NON_ADMIN_FORM_ROLES
+  use_enum_with_same_key :non_admin_form_role_enum_map, NON_ADMIN_FORM_ROLES
 
   scope :exclude_definition_from_select, -> {
     # Get all column names except 'definition'
@@ -350,7 +359,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # Validate the JSON form content
   # Returns an array of HmisErrors::Error objects
   def validate_json_form
-    Hmis::Form::DefinitionValidator.perform(definition, role)
+    # Skip validation of CustomDataElementDefinitions on draft form, because new CDEDs won't be created yet
+    Hmis::Form::DefinitionValidator.perform(definition, role, skip_cded_validation: draft?)
   end
 
   def self.validate_schema(json)
@@ -375,12 +385,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     status == DRAFT
   end
 
-  def owner_class
+  def self.owner_class_for_role(role)
     return Hmis::Hud::CustomAssessment if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 
     return unless FORM_ROLE_CONFIG[role.to_sym].present?
 
     FORM_ROLE_CONFIG[role.to_sym][:owner_class].constantize
+  end
+
+  def owner_class
+    self.class.owner_class_for_role(role)
   end
 
   def record_editing_permissions
