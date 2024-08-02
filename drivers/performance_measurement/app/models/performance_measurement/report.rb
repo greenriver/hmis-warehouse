@@ -53,6 +53,10 @@ module PerformanceMeasurement
       @comparison_spm_id ||= clients.detect { |c| c.comparison_spm_id.present? }&.comparison_spm_id
     end
 
+    def using_static_spm_for_comparison?
+      existing_static_comparison_spm.present?
+    end
+
     def self.default_project_type_codes
       HudUtility2024.spm_project_type_codes
     end
