@@ -5,6 +5,8 @@
 ###
 
 class SystemStatusController < ActionController::Base
+  include LogRagePayloadBehavior
+
   def exception
     raise 'A forced exception for testing purposes.'
   end
