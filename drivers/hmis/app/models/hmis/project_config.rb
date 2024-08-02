@@ -19,7 +19,8 @@ class Hmis::ProjectConfig < Hmis::HmisBase
 
   AUTO_EXIT_CONFIG = 'Hmis::ProjectAutoExitConfig'.freeze
   AUTO_ENTER_CONFIG = 'Hmis::ProjectAutoEnterConfig'.freeze
-  TYPE_OPTIONS = [AUTO_EXIT_CONFIG, AUTO_ENTER_CONFIG].freeze
+  STAFF_ASSIGNMENT_CONFIG = 'Hmis::ProjectStaffAssignmentConfig'.freeze
+  TYPE_OPTIONS = [AUTO_EXIT_CONFIG, AUTO_ENTER_CONFIG, STAFF_ASSIGNMENT_CONFIG].freeze
   validates :type, inclusion: { in: TYPE_OPTIONS }
 
   validate :validate_config_options_json
