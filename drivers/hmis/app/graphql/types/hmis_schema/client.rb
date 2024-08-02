@@ -87,7 +87,7 @@ module Types
       argument :open_on_date, GraphQL::Types::ISO8601Date, required: true
     end
 
-    enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' } do
+    enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date, :assigned_staff], type_name: 'EnrollmentsForClient' } do
       # Option to include enrollments that the user has "limited" access to
       argument :include_enrollments_with_limited_access, Boolean, required: false
     end

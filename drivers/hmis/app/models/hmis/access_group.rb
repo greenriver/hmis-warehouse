@@ -46,6 +46,13 @@ class Hmis::AccessGroup < ApplicationRecord
     )
   end
 
+  scope :contains_with_inherited, ->(entity) do
+    collection_ids = Hmis::GroupViewableEntity.
+      includes_entity(entity).
+      pluck(:collection_id)
+    where(id: collection_ids)
+  end
+
   def self.text_search(text)
     return none unless text.present?
 

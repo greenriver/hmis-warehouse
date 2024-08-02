@@ -60,4 +60,8 @@ module GraphqlApplicationHelper
       en.open_on_date?(open_on_date) && en.project_pk.to_s == project_id.to_s
     end.min_by { |e| [e.entry_date, e.id] }
   end
+
+  def arel
+    Hmis::ArelHelper.instance
+  end
 end
