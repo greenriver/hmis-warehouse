@@ -86,8 +86,8 @@ module BostonHmis
 
     if Rails.env.production? || Rails.env.staging?
       # FIXME this IP should be in environment specific configuration
-      trusted_proxy = IPAddr.new('44.206.34.193/255.255.255.255') # needs mask to avoid AddressFamilyError
-      config.action_dispatch.trusted_proxies = ActionDispatch::RemoteIp::TRUSTED_PROXIES + [IPAddr.new(trusted_proxy)]
+      trusted_proxy = '44.206.34.193' # can't use IPAddr since this is a single IP
+      config.action_dispatch.trusted_proxies = ActionDispatch::RemoteIp::TRUSTED_PROXIES + [trusted_proxy]
     end
 
     # Extension points
