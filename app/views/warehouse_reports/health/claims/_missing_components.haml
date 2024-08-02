@@ -1,0 +1,26 @@
+.o-card-grid
+  - qa_group.each do |_, qas|
+    - sample_qa = qas.first
+    .c-card.c-card--padded.c-card--flex.w-100
+      .c-card__content
+        .c-card__title= link_to sample_qa.patient.name, polymorphic_path(careplans_path_generator, client_id: sample_qa.patient.client_id)
+        .c-card__description.overflow-scroll
+          %table.table.table-striped.table-hover
+            %thead
+              %tr
+                %th Medicaid ID
+                %th Client ID
+                %th HRSN Screening
+                %th CA Development
+                %th CA Completed
+                %th Careplan Development
+            %tbody
+              - qas.each do |qa|
+                - factory = qa.claim_metadata
+                %tr{class: qa.validity_class, data: {id: qa.id}}
+                  %td= qa.patient.medicaid_id
+                  %td= qa.patient.client.id
+                  %td= checkmark_or_x(factory.hrsn_screening_qa.present?)
+                  %td= checkmark_or_x(factory.ca_development_qa.present?)
+                  %td= checkmark_or_x(factory.ca_completed_qa.present?)
+                  %td= checkmark_or_x(factory.careplan_development_qa.present?)

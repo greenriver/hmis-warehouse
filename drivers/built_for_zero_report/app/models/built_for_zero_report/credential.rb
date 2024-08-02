@@ -78,6 +78,7 @@ module BuiltForZeroReport
       # puts body.inspect
 
       result = Curl.post(url.to_s, body) do |h|
+        h.cacert = '/etc/ssl/certs/ca-certificates.crt' # Fix for https://github.com/taf2/curb/issues/452
         h.headers = headers
       end
       raise 'Failed to post' unless result.status.starts_with?('2')

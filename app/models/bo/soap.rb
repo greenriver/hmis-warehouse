@@ -5,6 +5,7 @@
 ###
 
 require 'curb'
+require 'rexml'
 
 module Bo
   class Soap
@@ -67,6 +68,7 @@ module Bo
     def request(url, xml)
       url += '&authType=secEnterprise&locale=en_US&timeout=60&ConvertAnyType=false'
       Curl.post(url, xml) do |curl|
+        curl.cacert = '/etc/ssl/certs/ca-certificates.crt' # Fix for https://github.com/taf2/curb/issues/452
         curl.headers['User-Agent'] = 'OpenPath API Consumer'
         curl.headers['Content-type'] = 'text/xml'
         curl.headers['charset'] = 'UTF-8'
