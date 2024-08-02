@@ -12,6 +12,7 @@ ENV['RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION'] = 'true'
 Bundler.require(*Rails.groups)
 
 require_relative '../lib/util/id_protector'
+require_relative '../lib/util/rails_trusted_proxies_config'
 
 module BostonHmis
   class Application < Rails::Application
@@ -22,6 +23,12 @@ module BostonHmis
     # ActionCable
     config.action_cable.mount_path = '/cable'
     config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "wss://#{ENV['FQDN']}/cable" }
+
+    ENV['TRUSTED_PROXIES'].presence&.then do |trusted_proxies|
+      parsed = RailsTrustedProxiesConfig.parse_csv(trusted_proxies)
+      # if we are adding custom trusted proxies, we need to include the default addrs
+      config.action_dispatch.trusted_proxies = (ActionDispatch::RemoteIp::TRUSTED_PROXIES + parsed) if parsed
+    end
 
     Rails.application.config.active_record.belongs_to_required_by_default = true
     # https://discuss.rubyonrails.org/t/cve-2022-32224-possible-rce-escalation-bug-with-serialized-columns-in-active-record/81017
@@ -83,12 +90,6 @@ module BostonHmis
 
     # FIXME: required to make forms in pjax modals work
     config.action_controller.per_form_csrf_tokens = false
-
-    if Rails.env.production? || Rails.env.staging?
-      # FIXME this IP should be in environment specific configuration
-      trusted_proxy = '44.206.34.193' # can't use IPAddr since this is a single IP
-      config.action_dispatch.trusted_proxies = ActionDispatch::RemoteIp::TRUSTED_PROXIES + [trusted_proxy]
-    end
 
     # Extension points
     config.sub_populations = {}
