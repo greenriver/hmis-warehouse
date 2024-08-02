@@ -16,6 +16,8 @@ module HmisExternalApis
     belongs_to :client, -> { where(ExternalId.arel_table[:source_type].eq('Hmis::Hud::Client')) }, foreign_key: 'source_id', class_name: 'Hmis::Hud::Client', optional: true
 
     scope :for_clients, -> { where(ExternalId.arel_table[:source_type].eq('Hmis::Hud::Client')) }
+    scope :mci_ids, -> { where(namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID) }
+    scope :mci_unique_ids, -> { where(namespace: HmisExternalApis::AcHmis::WarehouseChangesJob::NAMESPACE) }
 
     validates :value, presence: true
   end

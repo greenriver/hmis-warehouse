@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory :external_id, class: 'HmisExternalApis::ExternalId' do
     sequence(:value) do |n|
-      n + 123_450
+      (n + 123_450).to_s
     end
 
     trait :mci do
