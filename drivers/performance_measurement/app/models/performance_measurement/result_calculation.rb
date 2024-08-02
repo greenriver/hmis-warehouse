@@ -347,7 +347,6 @@ module PerformanceMeasurement::ResultCalculation
       field = detail[:calculation_column]
 
       reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
-      # FIXME: these need different cells
       comparison_count = if existing_static_comparison_spm.present?
         existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
       else
@@ -486,7 +485,6 @@ module PerformanceMeasurement::ResultCalculation
       field = detail[:calculation_column]
 
       reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
-      # FIXME: these need different cells
       comparison_count = if existing_static_comparison_spm.present?
         existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
       else
