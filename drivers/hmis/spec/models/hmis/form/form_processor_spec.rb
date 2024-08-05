@@ -2006,14 +2006,25 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       end
 
       context 'when saving verified_by_project_id on a new CLS' do
-        it 'should save VerifiedBy' do
+        let(:cls) { Hmis::Hud::CurrentLivingSituation.new(client: c1, enrollment: e1, data_source: ds1) }
+
+        it 'should save verified_by' do
           values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => p1.id })
-          cls = Hmis::Hud::CurrentLivingSituation.new(client: c1, enrollment: e1, data_source: ds1)
 
           expect do
             process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)
           end.to change(cls, :verified_by_project_id).to(p1.id).
             and change(cls, :verified_by).to(p1.name)
+        end
+
+        it 'should truncate long project name' do
+          long_name_project = create(:hmis_hud_project, data_source: ds1, organization: o1, project_name: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque consequat, nisi eu varius lobortis, massa ligula congue nibh, ut condimentum tortor ex vitae ipsum.')
+          values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => long_name_project.id })
+
+          expect do
+            process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)
+          end.to change(cls, :verified_by_project_id).to(long_name_project.id).
+            and change(cls, :verified_by).to(long_name_project.name.truncate(100))
         end
       end
 
@@ -2021,7 +2032,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         let!(:p2) { create(:hmis_hud_project, data_source: ds1, organization: o1) }
         let!(:cls) { create(:hmis_current_living_situation, client: c1, enrollment: e1, data_source: ds1, user: u1, verified_by_project_id: p2.id) }
 
-        context 'when both verified_by_project_id and VerifiedBy already exist' do
+        context 'when both verified_by_project_id and verified_by already exist' do
           it 'should replace both fields when the input provides a new project' do
             values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => p1.id })
 
@@ -2041,7 +2052,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           end
         end
 
-        context 'when VerifiedBy already exists, but verified_by_project_id is null' do
+        context 'when verified_by already exists, but verified_by_project_id is null' do
           let!(:cls) do
             create(
               :hmis_current_living_situation,
@@ -2050,7 +2061,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
             )
           end
 
-          it 'should overwrite VerifiedBy when input provides verified_by_project_id' do
+          it 'should overwrite verified_by when input provides verified_by_project_id' do
             values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => p1.id })
 
             expect do
@@ -2059,7 +2070,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
               and change(cls, :verified_by).to(p1.name)
           end
 
-          it 'should NOT nullify VerifiedBy when verified_by_project_id is not provided' do
+          it 'should NOT nullify verified_by when verified_by_project_id is not provided' do
             expect do
               process_record(record: cls, hud_values: hud_values, user: hmis_user, definition: definition)
             end.not_to change(cls, :verified_by)
