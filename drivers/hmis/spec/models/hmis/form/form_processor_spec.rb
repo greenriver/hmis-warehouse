@@ -2075,6 +2075,15 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
               process_record(record: cls, hud_values: hud_values, user: hmis_user, definition: definition)
             end.not_to change(cls, :verified_by)
           end
+
+          it 'should not raise when verified_by_project_id is unrecognized' do
+            values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => 'a random string that isnt an id' })
+
+            expect do
+              process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)
+            end.not_to change(cls, :verified_by)
+            expect(cls.verified_by_project_id).to be_nil
+          end
         end
       end
     end
