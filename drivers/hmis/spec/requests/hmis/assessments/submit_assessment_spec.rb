@@ -172,9 +172,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'For exit assessment' do
-    before(:each) do
-      fd1.update!(role: 'EXIT')
+    let(:today) { Date.current }
+    let(:fd1) { create(:hmis_exit_assessment_definition) }
+    let(:test_input) do
+      {
+        enrollment_id: e1.id.to_s,
+        form_definition_id: fd1.id.to_s,
+        values: {
+          'exit_date' => today.to_fs(:db),
+        },
+        hud_values: {
+          'Exit.exitDate' => today.to_fs(:db),
+        },
+      }
     end
+
     describe 'for enrollment with an invalid entry/exit date' do
       let!(:e1_exit) { create :hmis_hud_exit, data_source: ds1, enrollment: e1, client: e1.client }
       before(:each) do
@@ -189,6 +201,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(response.status).to eq 200
           expect(errors).to be_empty
         end
+      end
+    end
+
+    describe 'on project that has ended' do
+      before(:each) { p1.update!(operating_end_date: today - 1.day) }
+      it 'should be invalid' do
+        response, result = post_graphql(input: { input: test_input }) { mutation }
+        expect(response.status).to eq(200), result.inspect
+        errors = result.dig('data', 'submitAssessment', 'errors')
+        expected = Hmis::Hud::Validators::BaseValidator.after_project_end_message(p1.operating_end_date)
+        expect(errors).to include(a_hash_including('message' => expected))
+      end
+    end
+
+    describe 'on project that has not started' do
+      before(:each) { p1.update!(operating_start_date: today + 1.day) }
+      it 'should be invalid' do
+        response, result = post_graphql(input: { input: test_input }) { mutation }
+        expect(response.status).to eq(200), result.inspect
+        errors = result.dig('data', 'submitAssessment', 'errors')
+        expected = Hmis::Hud::Validators::BaseValidator.before_project_start_message(p1.operating_start_date)
+        expect(errors).to include(a_hash_including('message' => expected))
       end
     end
   end

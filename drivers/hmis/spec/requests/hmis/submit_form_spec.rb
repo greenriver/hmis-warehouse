@@ -22,6 +22,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   TIME_FMT = '%Y-%m-%d %T.%3N'.freeze
 
+  let(:today) { Date.current }
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:c2) { create :hmis_hud_client_complete, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: '2000-01-01' }
@@ -546,6 +547,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'entryDate' => Date.tomorrow.strftime('%Y-%m-%d'),
       )
       expect_error_message(input, message: Hmis::Hud::Validators::EnrollmentValidator.future_message)
+    end
+
+    describe 'on project that has closed' do
+      before(:each) { p2.update!(operating_start_date: today + 1.day) }
+      it 'should be invalid' do
+        input = merge_hud_values(test_input, 'entryDate' => today.to_fs(:db))
+        expect_error_message(input, message: Hmis::Hud::Validators::BaseValidator.before_project_start_message(p2.operating_start_date))
+      end
+    end
+
+    describe 'on project that has not started' do
+      before(:each) { p2.update!(operating_end_date: today - 1.day) }
+      it 'should be invalid' do
+        input = merge_hud_values(test_input, 'entryDate' => today.to_fs(:db))
+        expect_error_message(input, message: Hmis::Hud::Validators::BaseValidator.after_project_end_message(p2.operating_end_date))
+      end
     end
   end
 
