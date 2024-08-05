@@ -61,14 +61,15 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     hud_values_by_container.each do |container, field_name_to_value_h|
       # Iterate through each submitted value for this container
       field_name_to_value_h.each do |field, value|
-        # Validate that the field is mapped by the FormDefinition (includes checking custom)
-        ensure_submittable_field!(container, field)
-
-        # If this key can be identified as a CustomDataElement, set it and continue
-        next if container_processor(container)&.process_custom_field(field, value)
-
-        # Process the field value, which will assign the value to the record
-        container_processor(container)&.process(field, value)
+        if mapped_custom_form_fields[container].include?(field)
+          # If this key can be identified as a CustomDataElement, set it and continue
+          container_processor(container)&.process_custom_field(field, value)
+        elsif mapped_record_form_fields[container].include?(field)
+          # Process the field value, which will assign the value to the record
+          container_processor(container)&.process(field, value)
+        else
+          raise "Not a submittable field for Form Definition '#{definition.title}' (ID: #{definition.id})"
+        end
       rescue StandardError => e
         err_with_context = "Error processing field '#{container}.#{field}': #{e.message}"
         Sentry.capture_exception(StandardError.new(err_with_context))
@@ -538,35 +539,44 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   # @return <Hash{container_name=> Set<fields> }>
-  private def mapped_form_fields
-    @mapped_form_fields ||= {}.tap do |result|
+  private def mapped_record_form_fields
+    @mapped_record_form_fields ||= begin
+      result = Hash.new { |hash, key| hash[key] = Set.new }
       definition.link_id_item_hash.each_value do |item|
         mapping = item.mapping
-        next unless mapping
-        next unless mapping.field_name || mapping.custom_field_key
+        next unless mapping&.field_name
 
-        # convert the record_type to a "container name" that matches the form processor names
-        container_name = if mapping.record_type
-          enum = Types::Forms::Enums::RelatedRecordType.values[mapping.record_type]
-          raise "Invalid record type '#{mapping.record_type}'" unless enum
-
-          enum.description
-        else
-          owner_container_name
-        end
-
-        result[container_name] ||= Set.new
-        result[container_name].add(mapping.field_name || mapping.custom_field_key)
+        container_name = mapping_container_name(mapping)
+        result[container_name].add(mapping.field_name)
       end
+      result
     end
   end
 
-  # Ensure that a given field is valid for this FormDefinition
-  private def ensure_submittable_field!(container, field)
-    # Find the FormItem Mapping that matches this field.
-    # If it's not found, then this is not a valid submission.
-    found_mapping = mapped_form_fields[container]&.include?(field)
+  # @return <Hash{container_name=> Set<fields> }>
+  private def mapped_custom_form_fields
+    @mapped_custom_form_fields ||= begin
+      result = Hash.new { |hash, key| hash[key] = Set.new }
+      definition.link_id_item_hash.each_value do |item|
+        mapping = item.mapping
+        next unless mapping&.custom_field_key
 
-    raise "Not a submittable field for Form Definition '#{definition.title}' (ID: #{definition.id})" unless found_mapping
+        container_name = mapping_container_name(mapping)
+        result[container_name].add(mapping.custom_field_key)
+      end
+      result
+    end
+  end
+
+  # convert the record_type to a "container name" that matches the form processor names
+  private def mapping_container_name(mapping)
+    if mapping.record_type
+      enum = Types::Forms::Enums::RelatedRecordType.values[mapping.record_type]
+      raise "Invalid record type '#{mapping.record_type}'" unless enum
+
+      enum.description
+    else
+      owner_container_name
+    end
   end
 end

@@ -3,6 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+# frozen_string_literal: true
 
 class Hmis::Form::DefinitionValidator
   def self.perform(...)
@@ -211,27 +212,48 @@ class Hmis::Form::DefinitionValidator
     end
   end
 
+  def missing_cded_error(item, owner_type, cded_key)
+    RuntimeError.new("Item #{item['link_id']} has a custom_field_key mapping, but the CDED does not exist in the database. key = #{cded_key.inspect}, owner_type = #{owner_type.inspect}")
+  end
+
+  def get_cded(item, default_owner_type)
+    service_owner_types = ['Hmis::Hud::Service', 'Hmis::Hud::CustomService']
+
+    cded_key, record_type = item['mapping'].values_at('custom_field_key', 'record_type')
+    # if a record type is provided, find the CDED by that owner type
+    owner_type = record_type ? Hmis::Form::Definition.owner_class_for_role(record_type)&.sti_name : default_owner_type
+
+    @cdeds_by_owner_key ||= Hmis::Hud::CustomDataElementDefinition.order(:id).
+      index_by { |cded| [cded.owner_type, cded.key] }
+
+    cded = nil
+    if owner_type.in?(service_owner_types) || owner_type == 'Hmis::Hud::HmisService'
+      possible_cdeds = service_owner_types.map do |owner_type|
+        @cdeds_by_owner_key[[owner_type, cded_key]]
+      end
+      cded = possible_cdeds.compact.first
+      raise missing_cded_error(item, service_owner_types, cded_key) unless cded
+    else
+      cded = @cdeds_by_owner_key[[owner_type, cded_key]]
+      raise missing_cded_error(item, owner_type, cded_key) unless cded
+    end
+    cded
+  end
+
   def check_cdeds(document, role)
     owner_type = Hmis::Form::Definition.owner_class_for_role(role)&.sti_name
-    # For Service forms, the CDED owner is allowed to be Service OR CustomService
-    owner_type = ['Hmis::Hud::Service', 'Hmis::Hud::CustomService'] if role.to_s == 'SERVICE'
-    # For New Client Enrollment forms, the CDED owner is allowed to be Client OR Enrollment
-    owner_type = ['Hmis::Hud::Client', 'Hmis::Hud::Enrollment'] if role.to_s == 'NEW_CLIENT_ENROLLMENT'
-    return unless owner_type
-
-    cdeds_by_owner_key = Hmis::Hud::CustomDataElementDefinition.where(owner_type: owner_type).index_by { |cded| [cded.owner_type, cded.key] }
 
     cded_check = lambda do |item|
       (item['item'] || []).each do |child_item|
         cded_check.call(child_item)
-
         link_id = child_item['link_id']
         mapping = child_item['mapping']
         next unless mapping&.key?('custom_field_key')
 
         cded_key = mapping['custom_field_key']
-        cded = Array.wrap(owner_type).map { |ot| cdeds_by_owner_key[[ot, cded_key]] }.compact.first
-        raise("Item #{link_id} has a custom_field_key mapping, but the CDED does not exist in the database. key = #{cded_key}, owner_type = #{owner_type}") unless cded
+        next unless cded_key
+
+        cded = get_cded(child_item, owner_type)
 
         item_type = child_item['type']
         cded_type = cded.field_type

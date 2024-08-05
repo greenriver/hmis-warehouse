@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# these map to "FormProcessors"
 module Types
   class Forms::Enums::RelatedRecordType < Types::BaseEnum
     description 'Related record type for a group of questions in an assessment'

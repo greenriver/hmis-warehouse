@@ -205,6 +205,19 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       owner_class: 'HmisExternalApis::ExternalForms::FormSubmission',
       permission: :can_manage_external_form_submissions,
     },
+    # record_types, maybe okay to have here?
+    EXIT: {
+      owner_class: 'Hmis::Hud::Exit',
+      permission: [:can_edit_enrollments],
+    },
+    INCOME_BENEFIT: {
+      owner_class: 'Hmis::Hud::IncomeBenefit',
+      permission: [:can_edit_enrollments],
+    },
+    # ASSESSMENT: {
+    #   owner_class: 'Hmis::Hud::CustomAssessment',
+    #   permission: [:can_edit_enrollments],
+    # },
   }.freeze
 
   # HUD-defined numeric representation of Data Collection Stage for each HUD Assessment

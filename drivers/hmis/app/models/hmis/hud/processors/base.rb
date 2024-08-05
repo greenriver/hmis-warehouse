@@ -142,7 +142,7 @@ class Hmis::Hud::Processors::Base
     return false unless record.respond_to?(:custom_data_elements)
 
     cded = Hmis::Hud::CustomDataElementDefinition.for_type(record.class.sti_name).find_by(key: field)
-    return false unless cded.present?
+    raise "Unknown Custom Data Element \"#{field}\" for record #{record.class.sti_name}" unless cded
 
     attrs = {
       user: @processor.hud_user,
