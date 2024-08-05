@@ -41,5 +41,17 @@ module Types
     def client
       load_ar_association(object, :client)
     end
+
+    def verified_by_project_id
+      # This is a bit of a hack, but it enables the desired behavior on the frontend dropdown of projects, which is:
+      # 1. If the CLS has verified_by_project_id, the dropdown shows that project as the selected option.
+      # 2. If verified_by exists but NOT verified_by_project_id, it's probably a migrated-in string value that may or
+      #    may not correspond to a project ID in our DB. We want to display the value, since it's the currently saved data,
+      #    but it isn't a selectable option from the dropdown.
+      # 3. If neither verified_by_project_id nor verified_by exists on the CLS, then the dropdown is unselected.
+      #    The user can only select from allowable project options; they can't input random text.
+      # See the CurrentLivingSituationProcessor for more detailed comments about the reason to collect both fields.
+      object.verified_by_project_id || object.verified_by
+    end
   end
 end
