@@ -41,7 +41,7 @@ jobs:
             trivy_skip_files: /app/config/key.pem,/app/docker/sftp/ssh_host_ed25519_key,/app/docker/sftp/ssh_host_rsa_key,/app/spec/fixtures/files/health/secret.key
             build-args: |
               BUILD_TAG=3.1.6-alpine3.20
-              BUNDLER_VERSION=2.4.13
+              BUNDLER_VERSION=2.5.17
             tags: |
               type=sha,prefix=githash-
               # type=ref,event=branch,prefix=branch-
