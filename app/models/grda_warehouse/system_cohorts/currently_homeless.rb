@@ -29,7 +29,7 @@ module GrdaWarehouse::SystemCohorts
       @candidate_enrollments ||= begin
         homeless_clients = enrollment_source.
           homeless. # homeless clients
-          ongoing(on_date: @processing_date). # who's enrollment is open today
+          ongoing(on_date: @processing_date). # who has an open enrollment on the date in question
           with_service_between(start_date: inactive_date, end_date: @processing_date). # who received service in the past 90 days
           where.not( # who didn't receive a non-homeless (housed) service on the processing date
             client_id: service_history_source.
