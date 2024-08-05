@@ -1,8 +1,9 @@
 class AddVerifiedByProjectIdToCurrentLivingSituation < ActiveRecord::Migration[7.0]
-  disable_ddl_transaction!
-
   def change
-    add_reference :CurrentLivingSituation, :verified_by_project, index: { algorithm: :concurrently }, null: true
-    add_foreign_key :CurrentLivingSituation, :Project, column: :verified_by_project_id, validate: false
+    safety_assured do
+      # Ignore StrongMigrations for this one. It complains that validating foreign key locks up both tables, but
+      # in this case it's validating a column that'll be all nulls, so it should still be fast enough.
+      add_reference :CurrentLivingSituation, :verified_by_project, foreign_key: { to_table: :Project }, index: true, null: true
+    end
   end
 end
