@@ -5,6 +5,7 @@
 
 class ValidateCurrentLivingSituationVerifiedByProjectId < ActiveRecord::Migration[7.0]
   def change
+    # Validate foreign key in a separate migration to avoid blocking writes on both tables
     validate_foreign_key :CurrentLivingSituation, :Project
   end
 end
