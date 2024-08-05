@@ -21,7 +21,7 @@ module Hmis::Hud::Processors
 
         current_living_situation.assign_attributes(
           verified_by_project_id: verified_by_project_id,
-          verified_by: project_name.truncate(100),
+          verified_by: project_name.truncate(100), # HUD spec has 100 char limit, and so does the database
         )
       elsif current_living_situation.verified_by_project_id
         # If verified_by_project_id is null, but the CLS already has a verified_by_project_id saved in the DB,
