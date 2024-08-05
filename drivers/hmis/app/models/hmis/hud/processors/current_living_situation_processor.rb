@@ -32,6 +32,8 @@ module Hmis::Hud::Processors
         # We collect project ID onto the non-HUD field `verified_by_project_id`, then copy the project name onto the HUD field `VerifiedBy`.
         project_name = Hmis::Hud::Project.find(current_living_situation.verified_by_project_id)&.name
         current_living_situation.verified_by = project_name&.truncate(100)
+
+        # todo @martha - fixme, how to get access to the input values?
       elsif current_living_situation.verified_by
         # If verified_by_project_id is nil but verified_by is populated, null it out to match
         current_living_situation.verified_by = nil
