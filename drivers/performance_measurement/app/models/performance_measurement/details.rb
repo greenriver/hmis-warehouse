@@ -375,6 +375,8 @@ module PerformanceMeasurement::Details
           calculation_description: 'The difference (as a percentage) between the number of persons who entered a homeless project with no prior enrollments in HMIS (via the CoC\'s ES, SH, TH, and PH projects) during the reporting range and comparison range.',
           calculation_column: :first_time,
           measure: 'Measure 5',
+          table: '5.1',
+          cell: 'C4',
           detail_columns: [
             'first_time',
           ],
@@ -527,6 +529,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_homeless_es_sh_th,
           measure: 'Measure 1',
           table: '1a',
+          cell: 'D2',
           detail_columns: [
             'days_homeless_es_sh_th',
           ],
@@ -547,6 +550,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_homeless_es_sh_th,
           measure: 'Measure 1',
           table: '1a',
+          cell: 'G2',
           detail_columns: [
             'days_homeless_es_sh_th',
           ],
@@ -567,6 +571,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_homeless_es_sh_th_ph,
           measure: 'Measure 1',
           table: '1b',
+          cell: 'D2',
           detail_columns: [
             'days_homeless_es_sh_th_ph',
           ],
@@ -586,6 +591,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_homeless_es_sh_th_ph,
           measure: 'Measure 1',
           table: '1b',
+          cell: 'G2',
           detail_columns: [
             'days_homeless_es_sh_th_ph',
           ],
@@ -792,6 +798,9 @@ module PerformanceMeasurement::Details
           calculation_description: 'The number of persons who returned to homelessness within 6 months of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to permanent destinations within two years prior to the report end date.',
           calculation_column: :returned_in_six_months,
           measure: 'Measure 2',
+          table: '2a and 2b',
+          cell_denominator: 'B7',
+          cell_numerator: 'C7',
           detail_columns: [
             'days_to_return',
             'prior_destination',
@@ -813,6 +822,9 @@ module PerformanceMeasurement::Details
           calculation_description: 'The number of persons who returned to homelessness within 12 months of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to permanent destinations within two years prior to the report end date.',
           calculation_column: :returned_in_one_year,
           measure: 'Measure 2',
+          table: '2a and 2b',
+          cell_denominator: 'B7',
+          cell_numerator: 'E7',
           detail_columns: [
             'days_to_return',
             'prior_destination',
@@ -834,6 +846,9 @@ module PerformanceMeasurement::Details
           calculation_description: 'The number of persons who returned to homelessness within 2 years of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to permanent destinations within two years prior to the report end date.',
           calculation_column: :returned_in_two_years,
           measure: 'Measure 2',
+          table: '2a and 2b',
+          cell_denominator: 'B7',
+          cell_numerator: 'G7',
           detail_columns: [
             'days_to_return',
             'prior_destination',
@@ -853,6 +868,9 @@ module PerformanceMeasurement::Details
           denominator_label: 'Total Stayers',
           calculation_description: 'The number of adults in CoC-funded projects with an increased total income divided by the number of adults in CoC-funded projects.',
           measure: 'Measure 4',
+          tables: ['4.3', '4.6'],
+          cell_denominator: 'C2',
+          cell_numerator: 'C3',
           calculation_column: [
             :increased_income__income_stayer,
             :increased_income__income_leaver,
@@ -876,6 +894,9 @@ module PerformanceMeasurement::Details
           calculation_description: 'The number of adult stayers in CoC-funded projects with an increased total income divided by the number of adult stayers in CoC-funded projects.',
           calculation_column: :increased_income__income_stayer,
           measure: 'Measure 4',
+          tables: ['4.3'],
+          cell_denominator: 'C2',
+          cell_numerator: 'C3',
           detail_columns: [
             'income_stayer',
             'increased_income',
@@ -896,6 +917,9 @@ module PerformanceMeasurement::Details
           calculation_description: 'The number of adult stayers in CoC-funded projects with an increased earned income divided by the number of adult stayers in CoC-funded projects.',
           calculation_column: :increased_income__earned_income_stayer,
           measure: 'Measure 4',
+          tables: ['4.1'],
+          cell_denominator: 'C2',
+          cell_numerator: 'C3',
           detail_columns: [
             'income_stayer',
             'earned_income_stayer',
@@ -916,6 +940,9 @@ module PerformanceMeasurement::Details
           calculation_description: 'The number of adult stayers in CoC-funded projects with an increased non-cash income divided by the number of adult stayers in CoC-funded projects.',
           calculation_column: :increased_income__non_earned_income_stayer,
           measure: 'Measure 4',
+          tables: ['4.2'],
+          cell_denominator: 'C2',
+          cell_numerator: 'C3',
           detail_columns: [
             'income_stayer',
             'non_employment_income_stayer',
@@ -936,6 +963,9 @@ module PerformanceMeasurement::Details
           calculation_description: 'The number of adult leavers in CoC-funded projects with an increased total income divided by the number of adult leavers in CoC-funded projects.',
           calculation_column: :increased_income__income_leaver,
           measure: 'Measure 4',
+          tables: ['4.6'],
+          cell_denominator: 'C2',
+          cell_numerator: 'C3',
           detail_columns: [
             'income_leaver',
             'increased_income',
@@ -956,6 +986,9 @@ module PerformanceMeasurement::Details
           calculation_description: 'The number of adult leavers in CoC-funded projects with an increased earned income divided by the number of adult leavers in CoC-funded projects.',
           calculation_column: :increased_income__earned_income_leaver,
           measure: 'Measure 4',
+          tables: ['4.4'],
+          cell_denominator: 'C2',
+          cell_numerator: 'C3',
           detail_columns: [
             'income_leaver',
             'earned_income_leaver',
@@ -976,6 +1009,9 @@ module PerformanceMeasurement::Details
           calculation_description: 'The number of adult leavers in CoC-funded projects with an increased non-cash income divided by the number of adult leavers in CoC-funded projects.',
           calculation_column: :increased_income__non_earned_income_leaver,
           measure: 'Measure 4',
+          tables: ['4.5'],
+          cell_denominator: 'C2',
+          cell_numerator: 'C3',
           detail_columns: [
             'income_leaver',
             'non_employment_income_leaver',
