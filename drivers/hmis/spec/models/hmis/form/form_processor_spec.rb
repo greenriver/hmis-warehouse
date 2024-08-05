@@ -2005,16 +2005,36 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
 
     it 'should work when verified by project ID is provided' do
-      hud_values = {
-        'CurrentLivingSituation.informationDate' => information_date.strftime('%Y-%m-%d'),
-        'CurrentLivingSituation.currentLivingSituation' => 'SAFE_HAVEN', # 118
-        'CurrentLivingSituation.verifiedByProjectId' => p1.id,
-      }
+      values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => p1.id })
       cls = Hmis::Hud::CurrentLivingSituation.new(client: c1, enrollment: e1, data_source: ds1)
-      process_record(record: cls, hud_values: hud_values, user: hmis_user, definition: definition)
 
-      expect(cls.verified_by_project_id).to eq(p1.id)
-      expect(cls.verified_by).to eq(p1.name)
+      expect do
+        process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)
+      end.to change(cls, :verified_by_project_id).to(p1.id).
+        and change(cls, :verified_by).to(p1.name)
+    end
+
+    context 'when VerifiedBy has already been provided' do
+      let!(:p2) { create(:hmis_hud_project, data_source: ds1, organization: o1) }
+      let!(:cls) { create(:hmis_current_living_situation, client: c1, enrollment: e1, data_source: ds1, user: u1, verified_by_project_id: p2.id) }
+
+      it 'should work when verifiedByProjectId is changed to a different project' do
+        values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => p1.id })
+
+        expect do
+          process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)
+        end.to change(cls, :verified_by_project_id).from(p2.id).to(p1.id).
+          and change(cls, :verified_by).from(p2.name).to(p1.name)
+      end
+
+      it 'should work when verifiedByProjectId is nullified' do
+        values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => nil })
+
+        expect do
+          process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)
+        end.to change(cls, :verified_by_project_id).to(nil).
+          and change(cls, :verified_by).to(nil)
+      end
     end
 
     describe 'when CurrentLivingSituation is being collected on an Assessment,' do
