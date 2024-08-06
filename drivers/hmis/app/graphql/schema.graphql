@@ -8986,6 +8986,7 @@ type QueryAccess {
   canViewFullSsn: Boolean!
   canViewHudChronicStatus: Boolean!
   canViewLimitedEnrollmentDetails: Boolean!
+  canViewMyDashboard: Boolean!
   canViewOpenEnrollmentSummary: Boolean!
   canViewPartialSsn: Boolean!
   canViewProject: Boolean!

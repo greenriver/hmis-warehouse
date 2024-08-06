@@ -263,10 +263,15 @@ module Types
       Hmis::Role.permissions_with_descriptions.keys.each do |perm|
         root_can perm
       end
+      field :can_view_my_dashboard, Boolean, null: false
     end
 
     def access
-      {}
+      {
+        # TODO: for now, implement as something like user.has_assigned_households? or user.can_access_projects_That_support_staff_assignment
+        # this would be expanded later based on desired visibility
+        can_view_my_dashboard: true,
+      }
     end
 
     field :referral_posting, Types::HmisSchema::ReferralPosting, null: true do
