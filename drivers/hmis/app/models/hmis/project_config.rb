@@ -5,6 +5,7 @@
 
 class Hmis::ProjectConfig < Hmis::HmisBase
   self.table_name = 'hmis_project_configs'
+  pc_t = Hmis::ProjectConfig.arel_table # todo @martha - is this ok?
 
   belongs_to :project, optional: true, class_name: 'Hmis::Hud::Project'
   belongs_to :organization, optional: true, class_name: 'Hmis::Hud::Organization'
@@ -46,12 +47,18 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   end
 
   scope :for_project, ->(project) do
-    pc_t = Hmis::ProjectConfig.arel_table
-
     where(
       pc_t[:project_id].eq(project.id).
         or(pc_t[:organization_id].eq(project.organization.id)).
         or(pc_t[:project_type].eq(project.project_type)),
+    )
+  end
+
+  scope :for_projects, ->(projects) do
+    Hmis::ProjectStaffAssignmentConfig.where(
+      pc_t[:project_id].in(projects.map(&:id)).
+        or(pc_t[:organization_id].in(projects.map { |p| p.organization.id })).
+        or(pc_t[:project_type].in(projects.map(&:project_type).uniq)),
     )
   end
 

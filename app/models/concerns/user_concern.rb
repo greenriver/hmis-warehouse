@@ -172,6 +172,13 @@ module UserConcern
       cached_viewable_project_ids(permission: permission).include?(project.id)
     end
 
+    def can_view_my_dashboard?
+      Rails.cache.fetch('user/can_view_my_dashboard', expires_in: 1.minutes) do
+        # todo @martha - possible to manually expire cache when user impersonation changes?
+        can_access_staff_assignment_projects?
+      end
+    end
+
     def can_view_censuses?
       GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(self).where(url: 'censuses').exists?
     end
