@@ -15,7 +15,7 @@ module HmisExternalApis::AcHmis::Exporters
 
     delegate :content, to: :export
 
-    def run!
+    def run!(lookback_years: 3)
       data_source = HmisExternalApis::AcHmis.data_source
       user = User.system_user
       version = '2024'
@@ -24,7 +24,7 @@ module HmisExternalApis::AcHmis::Exporters
         data_source_ids: [data_source.id],
         version: version,
         user_id: user.id,
-        start_date: 3.years.ago.to_date,
+        start_date: lookback_years.years.ago.to_date,
       )
 
       Rails.logger.info 'Generating HMIS CSV Export'

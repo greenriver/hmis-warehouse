@@ -20,7 +20,12 @@ RSpec.describe HmisExternalApis::AcHmis::DataWarehouseUploadJob, type: :job do
     )
   end
 
-  before { create(:hmis_data_source) }
+  let(:hmis_csv_exporter) { double('HmisExportGenerator', run!: nil, content: 'abcd') }
+
+  before do
+    create(:hmis_data_source)
+    allow(HmisExternalApis::AcHmis::Exporters::HmisExportFetcher).to receive(:new).and_return(hmis_csv_exporter)
+  end
 
   it 'uploads clients' do
     subject.perform('clients_with_mci_ids_and_address')
@@ -28,8 +33,13 @@ RSpec.describe HmisExternalApis::AcHmis::DataWarehouseUploadJob, type: :job do
   end
 
   it 'uploads hmis csv' do
-    allow(HmisExternalApis::AcHmis::Exporters::HmisExportFetcher).to receive(:new).and_return(double('HmisExportGenerator', run!: nil, content: 'abcd'))
+    expect(hmis_csv_exporter).to receive(:run!).with no_args
     subject.perform('hmis_csv_export')
+  end
+
+  it 'uploads 10-year full refresh hmis csv' do
+    expect(hmis_csv_exporter).to receive(:run!).with(lookback_years: 10)
+    subject.perform('hmis_csv_export_full_refresh')
   end
 
   it 'uploads project crosswalk' do
