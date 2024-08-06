@@ -48,6 +48,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     owner_type == Hmis::Hud::CustomAssessment.sti_name
   end
 
+  def unknown_field_error(definition)
+    StandardError.new("Not a submittable field for Form Definition '#{definition.title}' (ID: #{definition.id})")
+  end
+
   def run!(user:)
     # Set the HUD User and current user, so processors can store them on related records
     self.current_user = user
@@ -61,14 +65,17 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     hud_values_by_container.each do |container, field_name_to_value_h|
       # Iterate through each submitted value for this container
       field_name_to_value_h.each do |field, value|
+        processor = container_processor(container)
+        raise unknown_field_error(definition) unless processor
+
         if mapped_custom_form_fields[container].include?(field)
           # If this key can be identified as a CustomDataElement, set it and continue
-          container_processor(container)&.process_custom_field(field, value)
+          processor.process_custom_field(field, value)
         elsif mapped_record_form_fields[container].include?(field)
           # Process the field value, which will assign the value to the record
-          container_processor(container)&.process(field, value)
+          processor.process(field, value)
         else
-          raise "Not a submittable field for Form Definition '#{definition.title}' (ID: #{definition.id})"
+          raise unknown_field_error(definition)
         end
       rescue StandardError => e
         err_with_context = "Error processing field '#{container}.#{field}': #{e.message}"
