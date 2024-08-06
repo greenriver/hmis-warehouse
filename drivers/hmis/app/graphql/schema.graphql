@@ -5034,7 +5034,7 @@ type Household {
   householdClients: [HouseholdClient!]!
   householdSize: Int!
   id: ID!
-  latestExitDate: ISO8601Date!
+  latestExitDate: ISO8601Date
   shortId: ID!
   staffAssignments(isCurrentlyAssigned: Boolean, limit: Int, offset: Int): StaffAssignmentsPaginated
 }

@@ -19,7 +19,7 @@ module Types
     end
     field :any_in_progress, Boolean, null: false
     field :earliest_entry_date, GraphQL::Types::ISO8601Date, null: false
-    field :latest_exit_date, GraphQL::Types::ISO8601Date, null: false
+    field :latest_exit_date, GraphQL::Types::ISO8601Date, null: true
 
     assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForHousehold' }
 
