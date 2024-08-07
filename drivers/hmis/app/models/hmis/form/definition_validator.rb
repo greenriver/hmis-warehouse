@@ -216,27 +216,38 @@ class Hmis::Form::DefinitionValidator
     RuntimeError.new("Item #{item['link_id']} has a custom_field_key mapping, but the CDED does not exist in the database. key = #{cded_key.inspect}, owner_type = #{owner_type.inspect}")
   end
 
-  def get_cded(item, default_owner_type)
-    service_owner_types = ['Hmis::Hud::Service', 'Hmis::Hud::CustomService']
-
-    cded_key, record_type = item['mapping'].values_at('custom_field_key', 'record_type')
-    # if a record type is provided, find the CDED by that owner type
-    owner_type = record_type ? Hmis::Form::Definition.owner_class_for_role(record_type)&.sti_name : default_owner_type
-
+  def get_cded(item, role)
+    default_owner_type = Hmis::Form::Definition.owner_class_for_role(role)&.sti_name
     @cdeds_by_owner_key ||= Hmis::Hud::CustomDataElementDefinition.order(:id).
       index_by { |cded| [cded.owner_type, cded.key] }
 
-    cded = nil
-    if owner_type.in?(service_owner_types) || owner_type == 'Hmis::Hud::HmisService'
-      possible_cdeds = service_owner_types.map do |owner_type|
-        @cdeds_by_owner_key[[owner_type, cded_key]]
+    cded_key, record_type = item['mapping'].values_at('custom_field_key', 'record_type')
+    possible_owner_types = []
+    if record_type
+      case record_type
+      when 'SERVICE'
+        possible_owner_types = ['Hmis::Hud::Service', 'Hmis::Hud::CustomService']
+      else
+        possible_owner_types = [Hmis::Form::Definition.owner_class_for_role(record_type)&.sti_name]
       end
-      cded = possible_cdeds.compact.first
-      raise missing_cded_error(item, service_owner_types, cded_key) unless cded
     else
-      cded = @cdeds_by_owner_key[[owner_type, cded_key]]
-      raise missing_cded_error(item, owner_type, cded_key) unless cded
+      case default_owner_type
+      when 'SERVICE'
+        # For Service forms, the CDED owner is allowed to be Service OR CustomService
+        possible_owner_types = ['Hmis::Hud::Service', 'Hmis::Hud::CustomService']
+      when 'NEW_CLIENT_ENROLLMENT'
+        # For New Client Enrollment forms, the CDED owner is allowed to be Client OR Enrollment
+        possible_owner_types = ['Hmis::Hud::Client', 'Hmis::Hud::Enrollment']
+      end
     end
+
+    possible_cdeds = possible_owner_types.map do |owner_type|
+      @cdeds_by_owner_key[[owner_type, cded_key]]
+    end
+    possible_cdeds.compact!
+    cded = possible_cdeds.first
+    raise missing_cded_error(item, possible_owner_types, cded_key) unless cded
+
     cded
   end
 
@@ -253,7 +264,7 @@ class Hmis::Form::DefinitionValidator
         cded_key = mapping['custom_field_key']
         next unless cded_key
 
-        cded = get_cded(child_item, owner_type)
+        cded = get_cded(child_item, role)
 
         item_type = child_item['type']
         cded_type = cded.field_type
