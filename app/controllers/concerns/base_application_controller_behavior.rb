@@ -44,18 +44,6 @@ module BaseApplicationControllerBehavior
       request.env['devise.skip_trackable'] = true if request.xhr?
     end
 
-    def append_info_to_payload(payload)
-      super
-      payload[:server_protocol] = request.env['SERVER_PROTOCOL']
-      payload[:remote_ip] = request.remote_ip
-      payload[:ip] = request.ip
-      payload[:session_id] = request.env['rack.session.record'].try(:session_id)
-      payload[:user_id] = current_app_user&.id
-      payload[:pid] = Process.pid
-      payload[:request_id] = request.uuid
-      payload[:request_start] = request.headers['HTTP_X_REQUEST_START'].try(:gsub, /\At=/, '')
-    end
-
     def configure_permitted_parameters
       devise_parameter_sanitizer.permit(:sign_in, keys: [:otp_attempt, :remember_device, :device_name])
     end

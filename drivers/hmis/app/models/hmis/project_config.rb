@@ -19,7 +19,8 @@ class Hmis::ProjectConfig < Hmis::HmisBase
 
   AUTO_EXIT_CONFIG = 'Hmis::ProjectAutoExitConfig'.freeze
   AUTO_ENTER_CONFIG = 'Hmis::ProjectAutoEnterConfig'.freeze
-  TYPE_OPTIONS = [AUTO_EXIT_CONFIG, AUTO_ENTER_CONFIG].freeze
+  STAFF_ASSIGNMENT_CONFIG = 'Hmis::ProjectStaffAssignmentConfig'.freeze
+  TYPE_OPTIONS = [AUTO_EXIT_CONFIG, AUTO_ENTER_CONFIG, STAFF_ASSIGNMENT_CONFIG].freeze
   validates :type, inclusion: { in: TYPE_OPTIONS }
 
   validate :validate_config_options_json
@@ -45,12 +46,18 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   end
 
   scope :for_project, ->(project) do
-    pc_t = Hmis::ProjectConfig.arel_table
-
     where(
-      pc_t[:project_id].eq(project.id).
-        or(pc_t[:organization_id].eq(project.organization.id)).
-        or(pc_t[:project_type].eq(project.project_type)),
+      arel_table[:project_id].eq(project.id).
+        or(arel_table[:organization_id].eq(project.organization.id)).
+        or(arel_table[:project_type].eq(project.project_type)),
+    )
+  end
+
+  scope :for_projects, ->(projects) do
+    Hmis::ProjectStaffAssignmentConfig.where(
+      arel_table[:project_id].in(projects.map(&:id)).
+        or(arel_table[:organization_id].in(projects.map { |p| p.organization.id })).
+        or(arel_table[:project_type].in(projects.map(&:project_type).uniq)),
     )
   end
 

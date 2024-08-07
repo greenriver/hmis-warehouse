@@ -9,13 +9,11 @@ module HmisUtil
     # Keys match Link IDs in our default HUD Assessments.
     #
     # KNOWN HUD COMPLIANCE ISSUES:
-    # - q_4_11 (DV) should enforce collection for `HOH_AND_ADULTS`
-    # - P4.1 should enforce collection for `HOH_AND_ADULTS`
-    # - W4 (part of hopwa_disability) should enforce compliance at Annual data collection stage
+    # - W4 (part of hopwa_disability) should enforce compliance at Annual data collection stage (GH#6463)
 
     HUD_LINK_ID_RULES = {
       q_4_11: { stages: ['INTAKE', 'UPDATE'],
-                data_collected_about: nil, # should be 'HOH_AND_ADULTS',
+                data_collected_about: 'HOH_AND_ADULTS',
                 rule: { 'operator' => 'ANY',
                         'parts' =>
         [
@@ -600,7 +598,7 @@ module HmisUtil
           { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
         ] } },
       P4_1: { stages: ['INTAKE', 'UPDATE', 'ANNUAL', 'EXIT'],
-              data_collected_about: nil, # should be 'HOH_AND_ADULTS',
+              data_collected_about: 'HOH_AND_ADULTS',
               rule: { 'operator' => 'ANY',
                       'parts' =>
         [
@@ -700,13 +698,10 @@ module HmisUtil
         ] } },
       R15: { stages: ['EXIT'],
              data_collected_about: 'HOH_AND_ADULTS',
-             rule: { 'operator' => 'ALL',
-                     '_comment' => 'HHS: RHY – Collection required for all components except for Street Outreach',
-                     'parts' =>
-        [
-          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
-          { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
-        ] } },
+             rule: { '_comment' => 'HHS: RHY – Collection required for all components',
+                     'variable' => 'projectFunderComponents',
+                     'operator' => 'INCLUDE',
+                     'value' => 'HHS: RHY' } },
       R16: { stages: ['EXIT'],
              data_collected_about: 'HOH_AND_ADULTS',
              rule: { '_comment' => 'HHS: RHY – Collection required for all components',

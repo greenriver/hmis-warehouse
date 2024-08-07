@@ -6,6 +6,7 @@
 
 class HmisExternalApis::ExternalFormsController < ActionController::Base
   include ::HmisExternalApis::ExternalFormsHelper
+  include LogRagePayloadBehavior
 
   before_action do
     # Only allow calling the controller directly in development. See PublishExternalFormsJob for production usage

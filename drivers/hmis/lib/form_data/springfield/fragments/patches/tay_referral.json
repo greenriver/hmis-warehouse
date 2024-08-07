@@ -1,0 +1,25 @@
+[
+  {
+    "link_id": "entry_date_group",
+    "append_items": [
+      {
+        "link_id": "tay_referral",
+        "type": "BOOLEAN",
+        "text": "TAY Referral?",
+        "mapping": {
+          "custom_field_key": "tay_referral"
+        },
+        "custom_rule": {
+          "operator": "ANY",
+          "parts": [
+            {
+              "variable": "projectId",
+              "operator": "EQUAL",
+              "value": "45f2a9667a9449738caa12385056bc52"
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

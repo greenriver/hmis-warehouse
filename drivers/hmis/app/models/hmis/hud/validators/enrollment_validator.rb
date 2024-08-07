@@ -62,6 +62,11 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     errors = HmisErrors::Errors.new
     dob = enrollment.client&.dob
     exit_date = enrollment.exit_date
+    project_start_date = enrollment.project.operating_start_date
+    project_end_date = enrollment.project.operating_end_date
+
+    errors.add(:entry_date, :out_of_range, message: before_project_start_message(project_start_date), **options) if project_start_date&.> entry_date
+    errors.add(:entry_date, :out_of_range, message: after_project_end_message(project_end_date), **options) if project_end_date&.< entry_date
 
     errors.add :entry_date, :out_of_range, message: future_message, **options if entry_date.future?
     errors.add :entry_date, :out_of_range, message: over_twenty_years_ago_message, **options if entry_date < (Date.current - 20.years)
