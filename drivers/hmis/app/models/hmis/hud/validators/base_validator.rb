@@ -48,6 +48,14 @@ class Hmis::Hud::Validators::BaseValidator < ActiveModel::Validator
     "cannot be after exit date (#{exit_date.strftime('%m/%d/%Y')})"
   end
 
+  def self.before_project_start_message(start_date)
+    "cannot be before project operation start date (#{start_date.strftime('%m/%d/%Y')})"
+  end
+
+  def self.after_project_end_message(end_date)
+    "cannot be after project operation end date (#{end_date.strftime('%m/%d/%Y')})"
+  end
+
   def self.future_message
     'cannot be in the future'
   end

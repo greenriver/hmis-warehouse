@@ -83,5 +83,8 @@ module Types
 
     field :update_external_form_submission, mutation: Mutations::UpdateExternalFormSubmission
     field :delete_external_form_submission, mutation: Mutations::DeleteExternalFormSubmission
+
+    field :assign_staff, mutation: Mutations::AssignStaff
+    field :unassign_staff, mutation: Mutations::UnassignStaff
   end
 end
