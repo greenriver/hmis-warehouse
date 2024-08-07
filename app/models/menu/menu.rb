@@ -73,13 +73,44 @@ class Menu::Menu
   end
 
   def warehouse_reports_menu
-    Menu::Item.new(
+    menu = Menu::Item.new(
       user: user,
       visible: ->(user) { user.can_view_any_reports? },
       path: warehouse_reports_path,
       title: Translation.translate('Warehouse Reports'),
       id: 'warehouse-reports',
     )
+    item = Menu::Item.new(
+      user: user,
+      visible: ->(user) { user.can_view_any_reports? },
+      path: warehouse_reports_path,
+      title: Translation.translate('All Reports'),
+      id: 'all-warehouse-reports',
+    )
+    menu.add_child(item)
+    if RailsDrivers.loaded.include?(:superset) && Superset.available?
+      item = Menu::Item.new(
+        user: user,
+        visible: ->(user) { GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(user).where(url: 'superset/warehouse_reports/reports').exists? },
+        path: Superset.superset_base_url,
+        title: Translation.translate('Superset Reporting'),
+        id: 'superset',
+        target: :_blank,
+        # icon: 'icon-link-ext',
+      )
+      menu.add_child(item)
+    end
+    user.favorite_reports.each do |report|
+      item = Menu::Item.new(
+        user: user,
+        visible: ->(user) { GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(user).where(url: report.url).exists? },
+        path: report.url,
+        title: report.name,
+      )
+      menu.add_child(item)
+    end
+
+    menu
   end
 
   def clients_menu
