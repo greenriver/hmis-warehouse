@@ -15,8 +15,10 @@ module Health
     attr_encrypted :passphrase, key: ENV['ENCRYPTION_KEY'][0..31]
     attr_encrypted :secret_key, key: ENV['ENCRYPTION_KEY'][0..31]
 
+    scope :active, -> { where(active: true) }
+
     scope :epic_data, -> do
-      where(kind: :epic_data)
+      active.where(kind: :epic_data)
     end
 
     def decrypt_data(data)
