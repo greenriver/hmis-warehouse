@@ -16,6 +16,8 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
     errors
   end
 
+  let(:data_source) { create(:hmis_data_source) }
+
   let(:valid_display_item) do
     {
       "link_id": 'display_item',
@@ -235,7 +237,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
 
   describe 'Validating custom data element definitions on publish' do
     let!(:definition) { create :hmis_form_definition, role: 'CUSTOM_ASSESSMENT' }
-    let!(:cded) { create :hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment' }
+    let!(:cded) { create :hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', data_source: data_source }
 
     context 'with a valid mapping' do
       before(:each) do
@@ -257,12 +259,12 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
       end
       it 'should pass with CDED tied to HUD Service' do
         definition.role = 'SERVICE'
-        create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Service', key: cded.key)
+        create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Service', key: cded.key, data_source: data_source)
         expect(definition.validate_json_form).to be_empty
       end
       it 'should pass with CDED tied to Custom Service' do
         definition.role = 'SERVICE'
-        create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomService', key: cded.key)
+        create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomService', key: cded.key, data_source: data_source)
         expect(definition.validate_json_form).to be_empty
       end
     end

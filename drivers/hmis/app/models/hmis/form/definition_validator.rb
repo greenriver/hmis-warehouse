@@ -216,9 +216,13 @@ class Hmis::Form::DefinitionValidator
     RuntimeError.new("Item #{item['link_id']} has a custom_field_key mapping, but the CDED does not exist in the database. key = #{cded_key.inspect}, owner_type = #{owner_type.inspect}")
   end
 
+  def data_source
+    GrdaWarehouse::DataSource.hmis.first
+  end
+
   def get_cded(item, role)
-    # FIXME: this should probably restrict by data source but it breaks tests
     @cdeds_by_owner_key ||= Hmis::Hud::CustomDataElementDefinition.order(:id).
+      where(data_source: data_source).
       index_by { |cded| [cded.owner_type, cded.key] }
 
     cded_key, record_type = item['mapping'].values_at('custom_field_key', 'record_type')
