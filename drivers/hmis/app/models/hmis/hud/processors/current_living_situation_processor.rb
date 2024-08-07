@@ -16,8 +16,11 @@ module Hmis::Hud::Processors
       verified_by_project_id = value == Base::HIDDEN_FIELD_VALUE ? nil : value
 
       verified_by_project = Hmis::Hud::Project.find_by(id: verified_by_project_id) if verified_by_project_id
-      # Don't raise if we can't find the project, this can happen with migrated-in values, related to the hack
-      # in HmisSchema::CurrentLivingSituation; see comments there for more detail
+      # Don't raise if we can't find the project. Migrated-in CLS in the DB would have `verified_by` set to a string and
+      # null `verified_by_project_id`. HOWEVER, if then a migrated-in CLS form is ever re-submitted without changes to
+      # the "Verified By" dropdown, the `verified_by_project_id` field will be set to the `verified_by` string
+      # (not a project ID). In that case, we leave everything as-is without any db changes to either verified-by field.
+      # See the hack described in HmisSchema::CurrentLivingSituation for more detail on why this works this way.
 
       if verified_by_project
         # We collect project ID onto the non-HUD field `verified_by_project_id`,
