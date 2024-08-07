@@ -224,12 +224,7 @@ class Hmis::Form::DefinitionValidator
     cded_key, record_type = item['mapping'].values_at('custom_field_key', 'record_type')
     possible_owner_types = []
     if record_type
-      case record_type
-      when 'SERVICE'
-        possible_owner_types = ['Hmis::Hud::Service', 'Hmis::Hud::CustomService']
-      else
-        possible_owner_types = [Hmis::Form::Definition.owner_class_for_role(record_type)&.sti_name]
-      end
+      possible_owner_types = [Hmis::Form::RecordType.find(record_type).owner_type]
     else
       case default_owner_type
       when 'SERVICE'
@@ -252,8 +247,6 @@ class Hmis::Form::DefinitionValidator
   end
 
   def check_cdeds(document, role)
-    owner_type = Hmis::Form::Definition.owner_class_for_role(role)&.sti_name
-
     cded_check = lambda do |item|
       (item['item'] || []).each do |child_item|
         cded_check.call(child_item)

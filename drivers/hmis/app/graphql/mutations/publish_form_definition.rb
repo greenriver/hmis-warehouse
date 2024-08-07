@@ -86,9 +86,8 @@ module Mutations
         next if item.mapping&.custom_field_key
 
         record_type = item.mapping&.record_type
-        owner_class = record_type ? Hmis::Form::Definition.owner_class_for_role(record_type) : default_owner_class
-        owner_class = Hmis::Hud::CustomService if owner_class == Hmis::Hud::HmisService
-        owner_type = owner_class.sti_name
+        owner_type = record_type ? Hmis::Form::RecordType.find(record_type).owner_type : default_owner_class.sti_name
+        owner_type = 'Hmis::Hud::CustomService' if owner_type == 'Hmis::Hud::HmisService'
 
         cded_key = "#{cded_key_prefix}_#{item.link_id}"
         cded_key = ensure_unique_key(owner_type, cded_key)

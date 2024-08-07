@@ -578,10 +578,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   # convert the record_type to a "container name" that matches the form processor names
   private def mapping_container_name(mapping)
     if mapping.record_type
-      enum = Types::Forms::Enums::RelatedRecordType.values[mapping.record_type]
-      raise "Invalid record type '#{mapping.record_type}'" unless enum
+      record_type = Hmis::Form::RecordType.find(mapping.record_type)
+      raise "Invalid record type '#{mapping.record_type}'" unless record_type
 
-      enum.description
+      record_type.processor_name
     else
       owner_container_name
     end
