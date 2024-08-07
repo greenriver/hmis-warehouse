@@ -12,39 +12,27 @@ module HmisExternalApis::AcHmis
 
     attr_accessor :state
 
-    def perform(mode)
-      setup_notifier("AC Data Warehouse upload (mode: #{mode})")
+    def perform(methods)
+      setup_notifier("AC Data Warehouse upload (methods: #{methods})")
       if Exporters::DataWarehouseUploader.can_run?
-        Rails.logger.info "Running #{mode} upload clients job"
+        Rails.logger.info "Running #{methods} DW upload job"
 
-        # The 'mode' indicates which upload(s) to run. Daily and quarterly uploads are run on a schedule.
-        # It's possible to run individual jobs for testing purposes or if we ever need to run manually.
-        case mode
-        when 'clients_with_mci_ids_and_address' then clients_with_mci_ids_and_address
-        when 'hmis_csv_export' then hmis_csv_export
-        when 'hmis_csv_export_full_refresh' then hmis_csv_export_full_refresh
-        when 'project_crosswalk' then project_crosswalk
-        when 'move_in_addresses' then move_in_address_export
-        when 'postings' then posting_export
-        when 'custom_fields' then custom_fields_export
-        when 'pathways' then pathways_export
-        when 'daily_uploads'
-          clients_with_mci_ids_and_address
-          hmis_csv_export
-          project_crosswalk
-          move_in_address_export
-          posting_export
-          custom_fields_export
-          pathways_export # we should remove this eventually, same data is included in custom_fields_export
-        when 'quarterly_uploads'
-          hmis_csv_export_full_refresh
-        else
-          raise "invalid item to upload: #{mode}"
+        Array.wrap(methods).each do |method|
+          if method == 'daily_uploads'
+            daily_uploads.each { |m| send(m) } # run all exports in the daily_uploads group
+          elsif method == 'quarterly_uploads'
+            hmis_csv_export_full_refresh
+          elsif known?(method)
+            # run one export individually. only used for testing purposes or manual runs.
+            send(method)
+          else
+            raise "unknown method: #{method}" unless known?(method)
+          end
         end
         self.state = :success
       else
         self.state = :not_run
-        Rails.logger.info "Not running #{mode} due to lack of credentials"
+        Rails.logger.info "Not running #{methods} due to lack of credentials"
       end
     rescue StandardError => e
       puts e.message
@@ -54,6 +42,27 @@ module HmisExternalApis::AcHmis
     end
 
     private
+
+    def known?(method)
+      known_methods.include?(method)
+    end
+
+    def known_methods
+      [
+        'clients_with_mci_ids_and_address',
+        'hmis_csv_export',
+        'hmis_csv_export_full_refresh', # runs quarterly
+        'project_crosswalk',
+        'move_in_address_export',
+        'posting_export',
+        'custom_fields_export',
+        'pathways_export',
+      ].freeze
+    end
+
+    def daily_uploads
+      known_methods - ['hmis_csv_export_full_refresh']
+    end
 
     def clients_with_mci_ids_and_address
       export = Exporters::ClientExport.new
@@ -88,7 +97,7 @@ module HmisExternalApis::AcHmis
 
     def hmis_csv_export_full_refresh
       export = HmisExternalApis::AcHmis::Exporters::HmisExportFetcher.new
-      export.run!(lookback_years: 10)
+      export.run!(start_date: 10.years.ago.to_date)
 
       hash = Digest::MD5.hexdigest(export.content)
 

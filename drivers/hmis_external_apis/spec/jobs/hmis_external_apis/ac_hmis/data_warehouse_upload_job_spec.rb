@@ -38,8 +38,11 @@ RSpec.describe HmisExternalApis::AcHmis::DataWarehouseUploadJob, type: :job do
   end
 
   it 'uploads 10-year full refresh hmis csv' do
-    expect(hmis_csv_exporter).to receive(:run!).with(lookback_years: 10)
-    subject.perform('hmis_csv_export_full_refresh')
+    travel_to Time.local(2024, 1, 1) do
+      today = Date.current
+      expect(hmis_csv_exporter).to receive(:run!).with(start_date: today - 10.years)
+      subject.perform('hmis_csv_export_full_refresh')
+    end
   end
 
   it 'uploads project crosswalk' do
@@ -57,7 +60,7 @@ RSpec.describe HmisExternalApis::AcHmis::DataWarehouseUploadJob, type: :job do
   end
 
   it 'uploads move in addresses' do
-    subject.perform('move_in_addresses')
+    subject.perform('move_in_address_export')
     expect(subject.state).to eq(:success)
   end
 end
