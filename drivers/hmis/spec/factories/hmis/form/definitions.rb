@@ -23,9 +23,9 @@ FactoryBot.define do
                 'link_id': 'linkid_date',
                 'required': true,
                 'warn_if_empty': false,
-                'text': 'Information Date',
+                'text': 'Assessment Date',
                 'assessment_date': true,
-                'mapping': { 'custom_field_key': 'informationDate' },
+                'mapping': { 'field_name': 'assessmentDate' },
               },
               {
                 'type': 'INTEGER',

@@ -21,7 +21,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
   let!(:fd1) do
-    ['informationDate', 'fieldOne', 'fieldTwo'].each do |key|
+    ['fieldOne', 'fieldTwo'].each do |key|
       create(:hmis_custom_data_element_definition, key: key, owner_type: Hmis::Hud::CustomAssessment.sti_name, data_source: ds1)
     end
     create :hmis_form_definition
@@ -38,7 +38,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       enrollment_id: e1.id.to_s,
       form_definition_id: fd1.id,
       values: { 'linkid_date' => test_assessment_date },
-      hud_values: { 'informationDate' => test_assessment_date },
+      hud_values: { 'assessmentDate' => test_assessment_date },
     }
   end
 
@@ -88,13 +88,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should update assessment successfully' do
       expect(e1.custom_assessments.count).to eq(1)
 
-      new_information_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
+      new_assessment_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
       input = {
         assessment_id: a1.id,
         enrollment_id: a1.enrollment.id,
         form_definition_id: fd1.id,
-        values: { 'linkid_date' => new_information_date },
-        hud_values: { 'informationDate' => new_information_date },
+        values: { 'linkid_date' => new_assessment_date },
+        hud_values: { 'assessmentDate' => new_assessment_date },
       }
       response, result = post_graphql(input: { input: input }) { mutation }
       assessment = result.dig('data', 'submitAssessment', 'assessment')
@@ -104,7 +104,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq(200), result&.inspect
         expect(errors).to be_empty
         expect(assessment['id']).to be_present
-        expect(assessment['assessmentDate']).to eq(new_information_date)
+        expect(assessment['assessmentDate']).to eq(new_assessment_date)
         expect(e1.custom_assessments.count).to eq(1)
         expect(e1.custom_assessments.in_progress.count).to eq(0)
       end
@@ -116,13 +116,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       a1_wip = create(:hmis_wip_custom_assessment, data_source: ds1, enrollment: e1, assessment_date: e1.entry_date)
       expect(e1.custom_assessments.in_progress.count).to eq(1)
 
-      new_information_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
+      new_assessment_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
       input = {
         assessment_id: a1_wip.id,
         enrollment_id: a1_wip.enrollment.id,
         form_definition_id: fd1.id,
-        values: { 'linkid_date' => new_information_date },
-        hud_values: { 'informationDate' => new_information_date },
+        values: { 'linkid_date' => new_assessment_date },
+        hud_values: { 'assessmentDate' => new_assessment_date },
       }
       response, result = post_graphql(input: { input: input }) { mutation }
       assessment = result.dig('data', 'submitAssessment', 'assessment')
@@ -133,7 +133,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(errors).to be_empty
         expect(assessment).to be_present
         expect(assessment['enrollment']).to be_present
-        expect(assessment['assessmentDate']).to eq(new_information_date)
+        expect(assessment['assessmentDate']).to eq(new_assessment_date)
         expect(assessment['inProgress']).to eq(false)
         expect(e1.custom_assessments.count).to eq(1)
         expect(e1.custom_assessments.in_progress.count).to eq(0)
@@ -144,13 +144,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       a1_wip = create(:hmis_wip_custom_assessment, data_source: ds1, enrollment: e1, assessment_date: e1.entry_date)
       expect(e1.custom_assessments.in_progress.count).to eq(1)
 
-      new_information_date = (e1.entry_date + 5.days).strftime('%Y-%m-%d')
+      new_assessment_date = (e1.entry_date + 5.days).strftime('%Y-%m-%d')
       input = {
         assessment_id: a1_wip.id,
         enrollment_id: a1_wip.enrollment.id,
         form_definition_id: fd1.id,
-        values: { 'linkid_date' => new_information_date, 'linkid_choice' => nil },
-        hud_values: { 'informationDate' => new_information_date, 'fieldTwo' => nil },
+        values: { 'linkid_date' => new_assessment_date, 'linkid_choice' => nil },
+        hud_values: { 'assessmentDate' => new_assessment_date, 'fieldTwo' => nil },
       }
       response, result = post_graphql(input: { input: input }) { mutation }
       assessment = result.dig('data', 'submitAssessment', 'assessment')
@@ -164,7 +164,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         # It is still WIP, and fields should NOT have been updated
         a1_wip.reload
         expect(a1_wip.in_progress?).to eq(true)
-        expect(a1_wip.assessment_date).not_to eq(Date.parse(new_information_date))
+        expect(a1_wip.assessment_date).not_to eq(Date.parse(new_assessment_date))
         expect(a1_wip.form_processor.values).not_to include(**input[:values])
         expect(a1_wip.form_processor.hud_values).not_to include(**input[:hud_values])
       end
@@ -246,7 +246,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         },
         {
           'fullMessage' => 'The Required Field must exist',
-          'attribute' => 'fieldOne',
+          'attribute' => 'base',
           'readableAttribute' => 'The Required Field',
           'type' => 'required',
           'severity' => 'error',
@@ -262,7 +262,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         },
         {
           'fullMessage' => 'Choice field is empty',
-          'attribute' => 'fieldTwo',
+          'attribute' => 'base',
           'readableAttribute' => 'Choice field',
           'type' => 'data_not_collected',
           'severity' => 'warning',
@@ -285,7 +285,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'should error if assessment date is missing',
         nil,
         {
-          'fullMessage' => 'Information Date must exist',
+          'fullMessage' => 'Assessment Date must exist',
           'type' => 'required',
           'severity' => 'error',
         },
@@ -339,16 +339,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     ].each do |test_name, date, *expected_errors|
       it test_name do
         input = test_input.merge(
-          hud_values: { 'informationDate' => date&.strftime('%Y-%m-%d') },
+          hud_values: { 'assessmentDate' => date&.strftime('%Y-%m-%d') },
           values: { 'linkid_date' => date&.strftime('%Y-%m-%d') },
         )
         response, result = post_graphql(input: { input: input }) { mutation }
         errors = result.dig('data', 'submitAssessment', 'errors')
         expect(response.status).to eq(200), result&.inspect
-        expected_match = expected_errors.map do |h|
-          a_hash_including(**h, 'readableAttribute' => 'Information Date',
-                                'attribute' => 'informationDate',
-                                'linkId' => 'linkid_date')
+
+        expected_match = expected_errors.map do |attrs|
+          attrs = attrs.merge(
+            'readableAttribute' => 'Assessment Date',
+            'attribute' => 'assessmentDate',
+            'linkId' => 'linkid_date',
+          )
+          a_hash_including(attrs)
         end
         expect(errors).to match(expected_match)
       end
