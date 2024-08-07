@@ -140,7 +140,7 @@ class GrdaWarehouse::PiiProvider
     value.rjust(9, '0')
   end
 
-  SSN_RGX = /(\d{3})[^\d]?(\d{2})[^\d]?(\d{4})/
+  SSN_RGX = HudUtility2024::SSN_RGX
   private_constant :SSN_RGX
 
   def format_masked_ssn(value)

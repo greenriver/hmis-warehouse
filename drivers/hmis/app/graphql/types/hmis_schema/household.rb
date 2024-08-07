@@ -17,6 +17,9 @@ module Types
     field :staff_assignments, HmisSchema::StaffAssignment.page_type, null: true do
       argument :is_currently_assigned, Boolean, required: false
     end
+    field :any_in_progress, Boolean, null: false
+    field :earliest_entry_date, GraphQL::Types::ISO8601Date, null: false
+    field :latest_exit_date, GraphQL::Types::ISO8601Date, null: true
 
     assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForHousehold' }
 
@@ -60,6 +63,18 @@ module Types
       else
         scope.with_deleted.where.not(deleted_at: nil).order(created_at: :desc, deleted_at: :desc, id: :desc)
       end
+    end
+
+    def any_in_progress
+      object.any_wip?
+    end
+
+    def earliest_entry_date
+      object.earliest_entry
+    end
+
+    def latest_exit_date
+      object.latest_exit
     end
   end
 end

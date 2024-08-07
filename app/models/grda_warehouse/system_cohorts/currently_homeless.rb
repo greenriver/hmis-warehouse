@@ -26,18 +26,23 @@ module GrdaWarehouse::SystemCohorts
     end
 
     private def candidate_enrollments
-      @candidate_enrollments ||= enrollment_source.
-        homeless. # homeless clients
-        ongoing(on_date: @processing_date). # who's enrollment is open today
-        with_service_between(start_date: inactive_date, end_date: @processing_date). # who received service in the past 90 days
-        where.not( # who didn't receive a non-homeless (housed) service on the processing date
-          client_id: service_history_source.
-            where(date: @processing_date, homeless: false).
-            select(:client_id),
-        ).
-        where.not(client_id: moved_in_ph). # who aren't currently enrolled and moved-in to PH
-        where.not(client_id: cohort_clients.select(:client_id)). # who aren't on the cohort currently
-        group(:client_id).minimum(:first_date_in_program)
+      @candidate_enrollments ||= begin
+        homeless_clients = enrollment_source.
+          homeless. # homeless clients
+          ongoing(on_date: @processing_date). # who has an open enrollment on the date in question
+          with_service_between(start_date: inactive_date, end_date: @processing_date). # who received service in the past 90 days
+          where.not( # who didn't receive a non-homeless (housed) service on the processing date
+            client_id: service_history_source.
+              where(date: @processing_date, homeless: false).
+              select(:client_id),
+          ).
+          where.not(client_id: moved_in_ph). # who aren't currently enrolled and moved-in to PH
+          where.not(client_id: cohort_clients.select(:client_id)). # who aren't on the cohort currently
+          group(:client_id).minimum(:first_date_in_program)
+
+        # Client are actively homeless, or only enrolled in CE with their most-recent CLS indicating they are homeless
+        homeless_clients.merge(active_enrollments_from_ce.pluck(:client_id, :first_date_in_program).to_h)
+      end
     end
 
     private def moved_in_ph
@@ -156,14 +161,43 @@ module GrdaWarehouse::SystemCohorts
     end
 
     private def active_client_ids
-      enrollment_source.
-        homeless.
-        ongoing(on_date: @processing_date).
+      active_client_ids_from_homeless_enrollments + active_client_ids_from_ce
+    end
+
+    private def active_client_ids_from_homeless_enrollments
+      with_homeless_enrollment.
         where(client_id: cohort_clients.select(:client_id)).
         joins(:service_history_services).
         where(shs_t[:date].between(inactive_date..@processing_date)).
         distinct.
         pluck(:client_id)
+    end
+
+    # Clients who only have one ongoing enrollment, that enrollment is in CE, and their most-recent CLS indicates they were homeless
+    private def active_client_ids_from_ce
+      @active_client_ids_from_ce ||= active_enrollments_from_ce.pluck(:client_id)
+    end
+
+    private def active_enrollments_from_ce
+      @active_enrollments_from_ce ||= begin
+        homeless_situations = HudUtility2024.homeless_situations(as: :current)
+        only_one_ce_enrollment = enrollment_source.where(client_id: only_one_enrollment_client_ids).ce
+        # Find the most-recent CLS, and limit the enrollments to where the most-recent CLS was homeless
+        only_one_ce_enrollment.joins(enrollment: :current_living_situations).
+          one_for_column(
+            :InformationDate,
+            direction: :desc,
+            source_arel_table: cls_t,
+            group_on: [:PersonalID, :data_source_id],
+          ).where(cls_t[:CurrentLivingSituation].in(homeless_situations))
+      end
+    end
+
+    private def only_one_enrollment_client_ids
+      enrollment_source.ongoing(on_date: @processing_date).
+        group(:client_id).
+        having('count(client_id) = 1').
+        select(:client_id)
     end
 
     private def with_homeless_enrollment
@@ -173,15 +207,20 @@ module GrdaWarehouse::SystemCohorts
     end
 
     private def remove_no_longer_meets_criteria
-      # No longer meets criteria (exited without a permanent destination and no ongoing homeless enrollments.)
-      # or ongoing homeless with overlapping PH move in.
-      # clients who have a homeless enrollment with an exit that wasn't to a permanent destination
-      # and who don't have an ongoing homeless enrollment
-      no_ongoing = cohort_clients.joins(client: :service_history_enrollments).
+      # No longer meets criteria, any of the following
+      # 1. exited without a permanent destination and
+      #  a. no ongoing homeless enrollments
+      #  b. no ongoing CE where the most-recent CLS was homeless
+      # 2. ongoing homeless with overlapping PH move in
+
+      no_ongoing_homeless_enrollment = cohort_clients.joins(client: :service_history_enrollments).
         where(she_t[:last_date_in_program].lt(@processing_date)).
         where.not(client_id: with_homeless_enrollment.select(:client_id)).
         merge(enrollment_source.where.not(destination: HudUtility2024.permanent_destinations)).
         pluck(:client_id)
+
+      # preserve anyone who still has (and only has) a CE enrollment indicating they are still homeless
+      no_ongoing = no_ongoing_homeless_enrollment - active_client_ids_from_ce
 
       currently_moved_in_ph = enrollment_source.ongoing(on_date: @processing_date).ph.
         where(client_id: cohort_clients.select(:client_id)).
