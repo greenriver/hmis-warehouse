@@ -100,12 +100,14 @@ class Hmis::User < ApplicationRecord
     end
   end
 
-  # This is a one-off custom logic permission. If we have more of these,
-  # we could make a helper in BaseAccess that accepts custom evaluation logic
-  # todo @martha - does it make sense for this to live here or does it live on schema object or?
-  def can_access_staff_assignment_projects?
-    project_scope = Hmis::Hud::Project.with_access(self, :can_edit_enrollments).preload(:organization)
-    Hmis::ProjectStaffAssignmentConfig.for_projects(project_scope).exists?
+  def can_view_my_dashboard?
+    key = [self.class.name, __method__, id]
+    Rails.cache.fetch(key, expires_in: 1.minutes) do
+      # This is a one-off custom logic permission. If we have more of these,
+      # we could make a helper in BaseAccess that accepts custom evaluation logic
+      project_scope = Hmis::Hud::Project.with_access(self, :can_edit_enrollments).preload(:organization)
+      Hmis::ProjectStaffAssignmentConfig.for_projects(project_scope).exists?
+    end
   end
 
   def lock_access!(opts = {})
