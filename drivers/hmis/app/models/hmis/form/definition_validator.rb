@@ -216,9 +216,13 @@ class Hmis::Form::DefinitionValidator
     RuntimeError.new("Item #{item['link_id']} has a custom_field_key mapping, but the CDED does not exist in the database. key = #{cded_key.inspect}, owner_type = #{owner_type.inspect}")
   end
 
+  def data_source
+    GrdaWarehouse::DataSource.hmis.first
+  end
+
   def get_cded(item, role)
-    default_owner_type = Hmis::Form::Definition.owner_class_for_role(role)&.sti_name
     @cdeds_by_owner_key ||= Hmis::Hud::CustomDataElementDefinition.order(:id).
+      where(data_source: data_source).
       index_by { |cded| [cded.owner_type, cded.key] }
 
     cded_key, record_type = item['mapping'].values_at('custom_field_key', 'record_type')
@@ -226,13 +230,17 @@ class Hmis::Form::DefinitionValidator
     if record_type
       possible_owner_types = [Hmis::Form::RecordType.find(record_type).owner_type]
     else
-      case default_owner_type
+      case role
       when 'SERVICE'
         # For Service forms, the CDED owner is allowed to be Service OR CustomService
         possible_owner_types = ['Hmis::Hud::Service', 'Hmis::Hud::CustomService']
       when 'NEW_CLIENT_ENROLLMENT'
         # For New Client Enrollment forms, the CDED owner is allowed to be Client OR Enrollment
         possible_owner_types = ['Hmis::Hud::Client', 'Hmis::Hud::Enrollment']
+      else
+        possible_owner_types = [
+          Hmis::Form::Definition.owner_class_for_role(role)&.sti_name,
+        ]
       end
     end
 

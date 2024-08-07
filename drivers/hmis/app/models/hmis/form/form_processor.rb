@@ -49,7 +49,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   def unknown_field_error(definition)
-    StandardError.new("Not a submittable field for Form Definition '#{definition.title}' (ID: #{definition.id})")
+    RuntimeError.new("Not a submittable field for Form Definition '#{definition.title}' (ID: #{definition.id})")
   end
 
   def run!(user:)
