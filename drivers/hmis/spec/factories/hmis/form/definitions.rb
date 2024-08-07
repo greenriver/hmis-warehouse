@@ -74,14 +74,17 @@ FactoryBot.define do
     role { :EXIT }
     definition do
       {
-        'item': [
+        item: [
           {
-            'type': 'DATE',
-            'link_id': 'date',
-            'required': true,
-            'warn_if_empty': false,
-            'assessment_date': true,
-            'mapping': { 'field_name': 'exitDate' },
+            type: 'DATE',
+            link_id: 'exit_date',
+            required: true,
+            warn_if_empty: false,
+            assessment_date: true,
+            mapping: {
+              record_type: 'EXIT',
+              field_name: 'exitDate',
+            },
           },
         ],
       }

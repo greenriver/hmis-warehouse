@@ -8,7 +8,7 @@ x-app: &app
     target: dev-build
     args:
       RUBY_VERSION: 3.1.6
-      BUNDLER_VERSION: '2.4.13'
+      BUNDLER_VERSION: '2.5.17'
       USER_ID: ${USER_ID:-1001}
       GROUP_ID: ${GROUP_ID:-1001}
       BUILD_TAG: 3.1.6-alpine3.20
