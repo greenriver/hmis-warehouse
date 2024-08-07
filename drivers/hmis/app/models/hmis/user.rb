@@ -23,6 +23,7 @@ class Hmis::User < ApplicationRecord
   has_many :access_groups, through: :access_controls
   has_many :roles, through: :access_controls
   has_many :activity_logs, class_name: 'Hmis::ActivityLog'
+  has_many :staff_assignments, class_name: 'Hmis::StaffAssignment'
 
   has_recent :clients, 'Hmis::Hud::Client'
   has_recent :projects, 'Hmis::Hud::Project'
@@ -96,6 +97,16 @@ class Hmis::User < ApplicationRecord
         merge(Hmis::AccessGroup.contains_with_inherited(entity)). # Check for access groups that grant permission to the entity or its parent, e.g. data source/organization
         select(Hmis::User.arel_table[:id]) # select ids to ensure the returned scope doesn't include complexity from the join
       where(id: user_ids)
+    end
+  end
+
+  def can_view_my_dashboard?
+    key = [self.class.name, __method__, id]
+    Rails.cache.fetch(key, expires_in: 1.minutes) do
+      # This is a one-off custom logic permission. If we have more of these,
+      # we could make a helper in BaseAccess that accepts custom evaluation logic
+      project_scope = Hmis::Hud::Project.with_access(self, :can_edit_enrollments).preload(:organization)
+      Hmis::ProjectStaffAssignmentConfig.for_projects(project_scope).exists?
     end
   end
 

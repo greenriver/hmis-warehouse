@@ -263,10 +263,13 @@ module Types
       Hmis::Role.permissions_with_descriptions.keys.each do |perm|
         root_can perm
       end
+      field :can_view_my_dashboard, Boolean, null: false
     end
 
     def access
-      {}
+      {
+        can_view_my_dashboard: current_user.can_view_my_dashboard?,
+      }
     end
 
     field :referral_posting, Types::HmisSchema::ReferralPosting, null: true do

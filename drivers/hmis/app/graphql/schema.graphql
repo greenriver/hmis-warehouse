@@ -204,6 +204,7 @@ type ApplicationUser {
   lastName: String
   name: String!
   recentItems: [OmnisearchResult!]!
+  staffAssignments(limit: Int, offset: Int): StaffAssignmentsPaginated
 }
 
 type ApplicationUserAuditEvent {
@@ -3554,6 +3555,7 @@ input EnrollmentsForClientFilterOptions {
 }
 
 input EnrollmentsForProjectFilterOptions {
+  assignedStaff: ID
   bedNightOnDate: ISO8601Date
   householdTasks: [EnrollmentFilterOptionHouseholdTask!]
   openOnDate: ISO8601Date
@@ -5026,10 +5028,13 @@ type HmisParticipationsPaginated {
 }
 
 type Household {
+  anyInProgress: Boolean!
   assessments(filters: AssessmentsForHouseholdFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  earliestEntryDate: ISO8601Date!
   householdClients: [HouseholdClient!]!
   householdSize: Int!
   id: ID!
+  latestExitDate: ISO8601Date
   shortId: ID!
   staffAssignments(isCurrentlyAssigned: Boolean, limit: Int, offset: Int): StaffAssignmentsPaginated
 }
@@ -5045,6 +5050,7 @@ type HouseholdClient {
 }
 
 input HouseholdFilterOptions {
+  assignedStaff: ID
   hohAgeRange: AgeRange
   openOnDate: ISO8601Date
   searchTerm: String
@@ -8980,6 +8986,7 @@ type QueryAccess {
   canViewFullSsn: Boolean!
   canViewHudChronicStatus: Boolean!
   canViewLimitedEnrollmentDetails: Boolean!
+  canViewMyDashboard: Boolean!
   canViewOpenEnrollmentSummary: Boolean!
   canViewPartialSsn: Boolean!
   canViewProject: Boolean!

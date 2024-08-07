@@ -8,6 +8,7 @@ module PerformanceMeasurement
   class Goal < GrdaWarehouseBase
     acts_as_paranoid
     has_many :pit_counts
+    has_many :static_spms
 
     scope :default, -> do
       where(coc_code: :default)
