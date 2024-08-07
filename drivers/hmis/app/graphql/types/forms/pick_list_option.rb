@@ -78,6 +78,10 @@ module Types
         external_form_types_for_project(project)
       when 'ASSESSMENT_NAMES'
         assessment_names_for_project(project)
+      when 'STAFF_ASSIGNMENT_RELATIONSHIPS'
+        staff_assignment_relationships(project)
+      when 'ELIGIBLE_STAFF_ASSIGNMENT_USERS'
+        eligible_staff_assignment_user_picklist(project)
       else
         raise "Unknown pick list type: #{pick_list_type}"
       end
@@ -121,7 +125,7 @@ module Types
               { code: k, label: v.description.gsub(CODE_PATTERN, ''), group_label: group }
             end
           end.flatten
-      when 'USERS'
+      when 'USERS', 'AUDITABLE_USERS'
         user_picklist(user)
       when 'ENROLLMENT_AUDIT_EVENT_RECORD_TYPES'
         enrollment_audit_event_record_type_picklist
@@ -141,6 +145,23 @@ module Types
         end
 
         form_types.map { |ft| { code: ft[:value], label: ft[:desc] } }
+      when 'CONTINUUM_PROJECTS'
+        Hmis::Hud::Project.
+          where(data_source_id: user.hmis_data_source_id, continuum_project: true).
+          preload(:organization).
+          sort_by_option(:organization_and_name).
+          map(&:to_pick_list_option)
+      end
+    end
+
+    def self.eligible_staff_assignment_user_picklist(project)
+      return [] unless project&.staff_assignments_enabled?
+
+      Hmis::User.can_edit_enrollments_for(project).order(:last_name, :first_name, :id).map do |user|
+        {
+          code: user.id.to_s,
+          label: user.full_name,
+        }
       end
     end
 
@@ -488,6 +509,14 @@ module Types
         map { |k| { code: k.to_s, label: k.to_s.humanize } }
 
       hud_options + custom_options
+    end
+
+    def self.staff_assignment_relationships(project)
+      raise 'Project required' unless project
+
+      return [] unless project.staff_assignments_enabled?
+
+      Hmis::StaffAssignmentRelationship.all.map(&:to_pick_list_option)
     end
 
     def self.projects_receiving_referrals

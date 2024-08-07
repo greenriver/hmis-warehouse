@@ -5,6 +5,7 @@
 ###
 
 require 'curb'
+require 'rexml'
 
 module Health::Soap
   class MassHealth
@@ -91,6 +92,7 @@ module Health::Soap
     # Submit a simple request
     private def request(action:, xml:)
       response = Curl.post(@url, request_xml(xml)) do |curl|
+        curl.cacert = '/etc/ssl/certs/ca-certificates.crt' # Fix for https://github.com/taf2/curb/issues/452
         curl.headers['User-Agent'] = 'OpenPath MassHealth Interface'
         curl.headers['Content-type'] = 'text/xml'
         curl.headers['charset'] = 'UTF-8'
@@ -105,6 +107,7 @@ module Health::Soap
     private def request_with_attachment(action:, xml:, attachment:)
       boundary = "Part-#{SecureRandom.uuid}"
       response = Curl.post(@url, request_with_attachment_xml(xml, attachment, boundary)) do |curl|
+        curl.cacert = '/etc/ssl/certs/ca-certificates.crt' # Fix for https://github.com/taf2/curb/issues/452
         curl.headers['User-Agent'] = 'OpenPath MassHealth Interface'
         curl.headers['Content-type'] = " multipart/related; type=\"application/xop+xml\"; start=\"rootpart\"; start-info=\"application/soap+xml\"; action=\"#{action}\"; boundary=\"#{boundary}\""
         curl.headers['charset'] = 'UTF-8'

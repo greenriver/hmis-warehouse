@@ -8,8 +8,8 @@ module Concerns::HudValidationUtil
   extend ActiveSupport::Concern
   class_methods do
     # Translate function used by HudLists2022/4 concerns
-    def _translate(map, id, reverse)
-      if reverse
+    def _translate(map, id, reverse, raise_on_missing: false)
+      value = if reverse
         rx = forgiving_regex id
         if rx.is_a?(Regexp)
           map.detect { |_, v| v.match?(rx) }.try(&:first)
@@ -17,8 +17,11 @@ module Concerns::HudValidationUtil
           map.detect { |_, v| v == rx }.try(&:first)
         end
       else
-        map[id] || id
+        map[id]
       end
+      raise "Value not found for: #{id}" if value.blank? && raise_on_missing
+
+      value || id
     end
 
     def fiscal_year_start
@@ -81,6 +84,19 @@ module Concerns::HudValidationUtil
       # Published IDs are not valid
       return false if known_invalid_ssns.include?(ssn)
       return false if ssn.split('').uniq.count == 1 # all the same number
+
+      true
+    end
+
+    def valid_last_four_social?(last_four)
+      # Ensure the input is exactly 4 digits long
+      return false if last_four.length != 4
+
+      # Ensure the last four digits are numbers
+      return false unless digits?(last_four)
+
+      # Ensure the last four digits are not all zeros
+      return false if last_four.to_i.zero?
 
       true
     end

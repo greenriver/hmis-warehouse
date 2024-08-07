@@ -6,6 +6,7 @@
 
 class Hmis::BaseController < ActionController::Base
   include BaseApplicationControllerBehavior
+  include LogRagePayloadBehavior
 
   before_action :authenticate_hmis_user!
   impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
@@ -83,6 +84,11 @@ class Hmis::BaseController < ActionController::Base
 
   def current_user
     raise 'current_user called in HMIS controller. Did you mean current_hmis_user?'
+  end
+
+  def append_info_to_payload(payload)
+    super
+    payload[:user_id] = current_app_user&.id
   end
 
   def not_authorized!

@@ -782,7 +782,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
-    rexml (3.3.2)
+    rexml (3.3.4)
       strscan
     rgeo (2.4.0)
     rgeo-activerecord (7.0.1)
@@ -1186,6 +1186,7 @@ DEPENDENCIES
   reline
   responders
   rest-client (~> 2.0)
+  rexml
   rgeo (~> 2.4.0)
   rgeo-geojson
   rgeo-proj4

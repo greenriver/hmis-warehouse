@@ -1,0 +1,5 @@
+- measure = @report.detail_measure_for(@key)
+- if @report.using_static_spm_for_comparison? && @report.show_spm_link? && measure.present?
+  .alert.alert-info.d-block
+    %h2 This report uses Static SPM data for comparison calculations
+    %p Static SPMs do not include any project-level detail data and can only be used to compare system-level details; all of the data for the comparision year on the charts below may be empty as a result.

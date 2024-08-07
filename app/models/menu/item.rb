@@ -11,6 +11,7 @@ class Menu::Item < OpenStruct
     return unless item.show?
 
     children << item
+    self
   end
 
   def options

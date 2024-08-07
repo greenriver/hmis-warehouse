@@ -83,7 +83,12 @@ RSpec.shared_context 'SystemSpecHelper' do
 end
 
 RSpec.configure do |config|
-  next unless ENV['RUN_SYSTEM_TESTS']
+  if !ENV['RUN_SYSTEM_TESTS']
+    config.before(:each, type: :system) do
+      skip 'Skipping system tests because RUN_SYSTEM_TESTS is not set'
+    end
+    next
+  end
 
   config.include E2eTests::Helpers, type: :system
   config.include_context 'SystemSpecHelper', type: :system

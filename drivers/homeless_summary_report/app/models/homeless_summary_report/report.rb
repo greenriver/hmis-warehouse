@@ -823,91 +823,9 @@ module HomelessSummaryReport
     end
 
     def self.demographic_variants
-      {
-        hispanic_latinaeo: {
-          name: HudUtility2024.race('HispanicLatinaeo'), # non-hispanic latino
-          extra_filters: {
-            races: ['HispanicLatinaeo'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        black_african_american: {
-          name: HudUtility2024.race('BlackAfAmerican'),
-          extra_filters: {
-            races: ['BlackAfAmerican'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        asian: {
-          name: HudUtility2024.race('Asian'),
-          extra_filters: {
-            races: ['Asian'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        american_indian_alaskan_native: {
-          name: HudUtility2024.race('AmIndAKNative'),
-          extra_filters: {
-            races: ['AmIndAKNative'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        native_hawaiian_other_pacific_islander: {
-          name: HudUtility2024.race('NativeHIPacific'),
-          extra_filters: {
-            races: ['NativeHIPacific'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        white: {
-          name: HudUtility2024.race('White'),
-          extra_filters: {
-            races: ['White'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        mid_east_n_african: {
-          name: HudUtility2024.race('MidEastNAfrican'),
-          extra_filters: {
-            races: ['MidEastNAfrican'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        multi_racial: {
-          name: HudUtility2024.race('MultiRacial'),
-          extra_filters: {
-            races: ['MultiRacial'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        race_none: {
-          name: 'Unknown Race',
-          extra_filters: {
-            races: ['RaceNone'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        fleeing_dv: {
-          name: 'Currently Fleeing DV',
-          extra_filters: {
-            currently_fleeing: [1],
-          },
-          demographic_filters: [:filter_for_dv_currently_fleeing],
-        },
-        veteran: {
-          name: 'Veterans',
-          extra_filters: {
-            veteran_statuses: [1],
-          },
-          demographic_filters: [:filter_for_veteran_status],
-        },
-        has_disability: {
-          name: 'With Indefinite and Impairing Disability',
-          extra_filters: {
-            indefinite_disabilities: [1],
-          },
-          demographic_filters: [:filter_for_indefinite_disabilities],
-        },
+      variants = ::Filters::DemographicFilters.race_ethnicity_combination_filters
+      variants.merge!(::Filters::DemographicFilters.subpopulation_filters)
+      variants.merge!(
         has_rrh_move_in_date: {
           name: 'Moved in to RRH',
           extra_filters: {
@@ -937,8 +855,9 @@ module HomelessSummaryReport
           },
           demographic_filters: [:filter_for_returned_to_homelessness_from_permanent_destination],
         },
-      }.
-        freeze
+      ).freeze
+
+      variants
     end
 
     def exclude_variants(measure_name, variant)

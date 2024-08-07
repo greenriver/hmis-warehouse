@@ -5,6 +5,8 @@
 ###
 
 class HelloSignController < ActionController::Base
+  include LogRagePayloadBehavior
+
   skip_before_action :verify_authenticity_token
   def callback
     Rails.logger.info "HelloSign Callback data: params: #{params.inspect}"

@@ -9,5 +9,6 @@ module Types
 
     value 'AUTO_EXIT', description: 'Auto Exit'
     value 'AUTO_ENTER', description: 'Auto Enter'
+    value 'STAFF_ASSIGNMENT', description: 'Staff Assignment'
   end
 end

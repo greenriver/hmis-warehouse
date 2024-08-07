@@ -80,6 +80,7 @@ module Types
     field :residential_affiliation_projects, [HmisSchema::Project], null: false
     field :affiliated_projects, [HmisSchema::Project], null: false
     field :active, Boolean, null: false
+    field :staff_assignments_enabled, Boolean, null: false
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
     referral_requests_field :referral_requests
@@ -205,6 +206,11 @@ module Types
         dangerous_skip_permission_check: true, # safe because its checked above
         **args,
       )
+    end
+
+    def staff_assignments_enabled
+      # Should not be used in batch since it doesn't use the data loader
+      object.staff_assignments_enabled?
     end
 
     def arel

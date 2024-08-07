@@ -39,6 +39,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
   let(:actor) { create(:user) }
 
   let(:mci_cred) { create(:ac_hmis_mci_credential) }
+  let(:mci_unique_id_cred) { create(:ac_hmis_warehouse_credential) }
 
   context 'main behaviors' do
     before(:each) { Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id) }
@@ -176,6 +177,45 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     it 'merges external ids' do
       Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
       expect(client1.ac_hmis_mci_ids.pluck(:value)).to contain_exactly(external_id_client_1.value, external_id_client_2.value)
+    end
+  end
+
+  context 'where merged client has mci_unique_id' do
+    let!(:external_id_client_2) { create :mci_unique_id_external_id, source: client2, remote_credential: mci_unique_id_cred }
+    it 'retains mci_unique_id' do
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+      expect(client1.ac_hmis_mci_unique_id&.value).to eq(external_id_client_2.value)
+    end
+  end
+
+  context 'where retained client has mci_unique_id' do
+    let!(:external_id_client_1) { create :mci_unique_id_external_id, source: client1, remote_credential: mci_unique_id_cred }
+    it 'retains mci_unique_id' do
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+      expect(client1.ac_hmis_mci_unique_id&.value).to eq(external_id_client_1.value)
+    end
+  end
+
+  context 'where clients have different mci_unique_ids' do
+    let!(:external_id_client_1) { create :mci_unique_id_external_id, source: client1, remote_credential: mci_unique_id_cred }
+    let!(:external_id_client_2) { create :mci_unique_id_external_id, source: client2, remote_credential: mci_unique_id_cred }
+    it 'retains one mci_unique_id' do
+      expect do
+        Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+      end.to change(HmisExternalApis::ExternalId.mci_unique_ids, :count).by(-1)
+      expect(client1.ac_hmis_mci_unique_id&.value).to eq(external_id_client_1.value)
+    end
+  end
+
+  context 'where clients have the same mci_unique_id' do
+    let!(:external_id_client_1) { create :mci_unique_id_external_id, source: client1, remote_credential: mci_unique_id_cred }
+    let!(:external_id_client_2) { create :mci_unique_id_external_id, source: client2, value: external_id_client_1.value, remote_credential: mci_unique_id_cred }
+
+    it 'retains one mci_unique_id' do
+      expect do
+        Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+      end.to change(HmisExternalApis::ExternalId.mci_unique_ids, :count).by(-1)
+      expect(client1.ac_hmis_mci_unique_id&.value).to eq(external_id_client_1.value)
     end
   end
 

@@ -21,10 +21,11 @@ jobs:
       fail-fast: false
       matrix:
         test_group:
-          - drivers/{a,b,c,d,e,f,g}*
-          - drivers/{h,i}*
-          - drivers/{j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
-          - spec
+          - {id: 'ci_bucket_1', tag: 'ci_bucket:bucket-1'}
+          - {id: 'ci_bucket_2', tag: 'ci_bucket:bucket-2'}
+          - {id: 'ci_bucket_3', tag: 'ci_bucket:bucket-3'}
+          - {id: 'ci_bucket_4', tag: 'ci_bucket:bucket-4'}
+          - {id: 'ci_bucket_default', tag: '~ci_bucket', system_tests: true, logging_tests: true, okta_tests: true}
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
 
@@ -73,6 +74,13 @@ jobs:
           MINIO_SECRET_KEY: local_secret_key
         ports:
           - '9000:9000'
+      chrome:
+        image: browserless/chrome:1-chrome-stable
+        ports:
+          - 3333:3333
+        env:
+          PORT: 3333
+          CONNECTION_TIMEOUT: 600000
 
     env:
       CLIENT: test
@@ -117,35 +125,37 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
       - name: Set up dependencies
         run: |
-          apk add --no-cache \
-            nodejs yarn npm \
-            tzdata \
-            git \
-            bash \
-            freetds-dev \
-            icu icu-dev \
-            curl libcurl curl-dev \
-            imagemagick \
-            libmagic file-dev file \
-            build-base libxml2-dev libxslt-dev postgresql-dev \
-            libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
-            chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
-            lftp postgresql tmux postgis geos geos-dev \
-            shared-mime-info gpg gpg-agent
-
+          apk add --no-cache $(cat .github/dependencies.txt)
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
-          yarn install --frozen-lockfile
-          gem install bundler --version=2.5.7
+      - name: cache gems
+        uses: actions/cache@v4
+        id: gemcache
+        with:
+          path: |
+            vendor/bundle
+            /usr/local/bundle/
+          key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
 
       - name: Install gems
         run: |
+          gem install bundler --version=2.5.7
           bundle config set --local without 'production staging development'
           bundle install --jobs 4 --retry 3
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install Node.js modules
+        run: yarn install --frozen-lockfile
 
       - name: 'App setup'
         run: |
@@ -164,12 +174,8 @@ jobs:
           echo "postgres:*:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
-          bundle exec rake assets:precompile
-
-      # Regenerate the graphql schema and fail if it has changed
-      - name: 'Check HMIS GraphQL schema'
-        run: |
-          bundle exec rake driver:hmis:dump_graphql_schema
+      - name: Precompile assets
+        run: bundle exec rails assets:precompile
 
       # fetch some closed source files
       - name: 'Fetch testkit source files'
@@ -221,7 +227,14 @@ jobs:
           aws_region: us-east-1
           flags: --recursive
 
+      # Regenerate the graphql schema and fail if it has changed
+      - name: 'Check HMIS GraphQL schema'
+        if: matrix.test_group.system_tests
+        run: |
+          bundle exec rake driver:hmis:dump_graphql_schema
+
       - name: Run tests
+        if: matrix.test_group.tag
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -230,10 +243,28 @@ jobs:
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
         run: |
-          bundle exec rspec --fail-fast=$MAX_FAILURES --color -P "${{ matrix.test_group }}/**/*_spec.rb"
+          bundle exec rails ci:update_spec_tags[.github/rspec_buckets.json]
+
+          # capture rspec profiling information
+          # mkdir -p tmp/rspec_profiles
+          # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
+
+          bundle exec rspec --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
+
+      - name: Run okta tests
+        if: matrix.test_group.okta_tests
+        env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          GROVER_NO_SANDBOX: true
+          CHROMIUM_PATH: /usr/bin/chromium-browser
+          MAX_FAILURES: 60
+          LOG_LEVEL: INFO
+        run: |
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
 
       - name: Run logging tests
+        if: matrix.test_group.logging_tests
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -244,3 +275,27 @@ jobs:
           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
           TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color --format p spec/models/logging_spec.rb
+
+      - name: Build front end and run tests
+        if: matrix.test_group.system_tests
+        env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          MAX_FAILURES: 60
+          LOG_LEVEL: INFO
+          RUN_SYSTEM_TESTS: true
+          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
+          CHROME_URL: http://chrome:3333
+        run:
+          bash ./bin/run_hmis_system_tests.sh
+
+      - name: Archive artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: ignore
+          name: artifacts-${{ matrix.test_group.id}}
+          path: |
+            tmp/rspec_profiles/
+            tmp/capybara/screenshots/
+            var/deprecations/*.yml

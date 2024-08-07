@@ -102,35 +102,37 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up dependencies
         run: |
-          apk add --no-cache \
-            nodejs yarn npm \
-            tzdata \
-            git \
-            bash \
-            freetds-dev \
-            icu icu-dev \
-            curl libcurl curl-dev \
-            imagemagick \
-            libmagic file-dev file \
-            build-base libxml2-dev libxslt-dev postgresql-dev \
-            libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
-            chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
-            lftp postgresql tmux postgis geos geos-dev \
-            shared-mime-info gpg gpg-agent
+          apk add --no-cache $(cat .github/dependencies.txt)
 
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
-          yarn install --frozen-lockfile
-          gem install bundler --version=2.5.7
+      - name: cache gems
+        uses: actions/cache@v4
+        id: gemcache
+        with:
+          path: |
+            vendor/bundle
+            /usr/local/bundle/
+          key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
 
       - name: Install gems
         run: |
+          gem install bundler --version=2.5.7
           bundle config set --local without 'production staging development'
           bundle install --jobs 4 --retry 3
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install Node.js modules
+        run: yarn install --frozen-lockfile
 
       - name: 'App setup'
         run: |

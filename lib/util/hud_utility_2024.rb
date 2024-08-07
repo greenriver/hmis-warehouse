@@ -10,6 +10,8 @@ module HudUtility2024
 
   module_function
 
+  SSN_RGX = /(\w{3})[^\w]?(\w{2})[^\w]?(\w{4})/
+
   def races(multi_racial: false)
     return race_field_name_to_description unless multi_racial
 
@@ -19,6 +21,15 @@ module HudUtility2024
   def race(field, reverse = false, multi_racial: false)
     map = races(multi_racial: multi_racial)
     _translate map, field, reverse
+  end
+
+  # HUD race columns have state-codes in all uppercase, and do not 'camelize' correctly
+  def race_column_name(snakecase)
+    snakecase.
+      camelize.
+      gsub('Ak', 'AK').
+      gsub('HiPac', 'HIPac'). # Don't substitute 'Hi' in 'Hispanic'
+      to_sym
   end
 
   def ethnicities
@@ -621,7 +632,7 @@ module HudUtility2024
       'HUD: Unsheltered Special NOFO' => [54],
       'HUD: Rural Special NOFO' => [55],
       'HUD: HUD-VASH' => [20],
-      'HUD: PFS' => [35], # Pay for Success
+      'HUD: PFS' => [HudUtility2024.funding_source('HUD: Pay for Success', true, raise_on_missing: true)], # Pay for Success
     }
   end
 

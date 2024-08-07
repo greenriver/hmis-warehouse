@@ -11,7 +11,8 @@ class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
       yield_self(&method(:with_statuses)).
       yield_self(&method(:with_open_on_date)).
       yield_self(&method(:with_hoh_age_range)).
-      yield_self(&method(:with_search_term))
+      yield_self(&method(:with_search_term)).
+      yield_self(&method(:with_assigned_staff))
   end
 
   protected
@@ -72,6 +73,13 @@ class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
             e_t[:data_source_id].eq(hh_t[:data_source_id]).and(e_t[:HouseholdID].eq(hh_t[:HouseholdID])),
           ).arel.exists,
       )
+    end
+  end
+
+  def with_assigned_staff(scope)
+    with_filter(scope, :assigned_staff) do
+      sa_t = Hmis::StaffAssignment.arel_table
+      scope.joins(:staff_assignments).where(sa_t[:user_id].eq(input.assigned_staff))
     end
   end
 end

@@ -21,6 +21,7 @@ module Health
       @report = report_source.find(report_id)
       ::Health::Tasks::CalculateValidUnpayableQas.new.run!
       @report.pre_calculate_qualifying_activity_payability!
+      @report.attach_associated_factories!
       NotifyUser.health_qa_pre_calculation_finished(@current_user_id).deliver_later
     end
 
@@ -31,10 +32,9 @@ module Health
       1
     end
 
-    def error(job, exception)
+    def error(_job, exception)
       @report = report_source.find(report_id)
       @report.update(error: "Failed: #{exception.message}")
-      super(job, exception)
     end
 
     def report_source
