@@ -10,8 +10,6 @@ module HudUtility2024
 
   module_function
 
-  SSN_RGX = /(\w{3})[^\w]?(\w{2})[^\w]?(\w{4})/
-
   def races(multi_racial: false)
     return race_field_name_to_description unless multi_racial
 
