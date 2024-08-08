@@ -43,8 +43,8 @@ module Types
     custom_data_elements_field
 
     field :role, Types::Forms::Enums::AssessmentRole, null: false
-    field :definition, Types::Forms::FormDefinition, null: false, description: 'Definition to use for viewing the FormDefinition. If upgraded_definition_for_editing is nil, then it can also be used for editing.'
-    field :upgraded_definition_for_editing, Types::Forms::FormDefinition, null: true, description: 'Most recent published Definition to use for Editing the FormDefinition. Only present if the original form definition was retired.'
+    field :definition, Types::Forms::FormDefinition, null: false, description: 'Definition to use for viewing the assessment. If upgradedDefinitionForEditing is nil, then it should also be used for editing.'
+    field :upgraded_definition_for_editing, Types::Forms::FormDefinition, null: true, description: 'Most recent published Definition to use for editing the assessment. Only present if the original form definition was retired.'
     field :wip_values, JsonObject, null: true
 
     def wip_values
@@ -58,12 +58,7 @@ module Types
     end
 
     # EXPENSIVE! Do not use in batch
-    # Definition to use for viewing the FormDefinition. If upgraded_definition_for_editing is nil, then it can also be used for editing.
     def definition
-      # Each assessment should have a form processor. If one does it, it may point to an issue with
-      # MigrateAssessmentsJob, SaveAssessment, SubmitAssessment, or a custom data migrations.
-      raise "Assessment without form processor: #{object.id}" unless form_processor.present?
-
       # If definition is stored on Form Processor, return that. This is the Definition that was most recently used to submit the Assessment.
       definition = load_ar_association(form_processor, :definition)
       # If there was no definition on the Form Processor, which would occur if this is a migrated HUD Assessment, then choose an appropriate one:
@@ -75,12 +70,16 @@ module Types
 
     # EXPENSIVE! Do not use in batch
     def upgraded_definition_for_editing
+      return unless form_processor.definition_id # tiny optimization: avoid calling 'definition' if it will invoke find_definition_for_role twice
+
       previous_definition = definition
       # If original form is not retired, then we should stil use it for editing.
       return unless previous_definition.retired?
 
       # Find the published version of the previous definition. If this resolves nil, then the original form will be used.
-      previous_definition.published_version
+      published_definition = previous_definition.published_version
+      published_definition.filter_context = { project: project, active_date: object.assessment_date }
+      published_definition
     end
 
     def in_progress
@@ -88,23 +87,23 @@ module Types
     end
 
     def ce_assessment
-      form_processor ? load_ar_association(form_processor, :ce_assessment) : nil
+      load_ar_association(form_processor, :ce_assessment)
     end
 
     def event
-      form_processor ? load_ar_association(form_processor, :ce_event) : nil
+      load_ar_association(form_processor, :ce_event)
     end
 
     def income_benefit
-      form_processor ? load_ar_association(form_processor, :income_benefit) : nil
+      load_ar_association(form_processor, :income_benefit)
     end
 
     def health_and_dv
-      form_processor ? load_ar_association(form_processor, :health_and_dv) : nil
+      load_ar_association(form_processor, :health_and_dv)
     end
 
     def exit
-      form_processor ? load_ar_association(form_processor, :exit) : nil
+      load_ar_association(form_processor, :exit)
     end
 
     def disability_group
@@ -139,7 +138,12 @@ module Types
     protected
 
     def form_processor
-      load_ar_association(object, :form_processor)
+      fp = load_ar_association(object, :form_processor)
+      # Each assessment should have a form processor. If it doesn't, it may point to an issue with
+      # MigrateAssessmentsJob, SaveAssessment, SubmitAssessment, or a custom data migrations.
+      raise "Assessment without form processor: #{object.id}" unless form_processor.present?
+
+      fp
     end
 
     def project

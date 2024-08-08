@@ -268,8 +268,8 @@ type Assessment {
   dateUpdated: ISO8601DateTime
 
   """
-  Definition to use for viewing the FormDefinition. If
-  upgraded_definition_for_editing is nil, then it can also be used for editing.
+  Definition to use for viewing the assessment. If upgradedDefinitionForEditing
+  is nil, then it should also be used for editing.
   """
   definition: FormDefinition!
   disabilityGroup: DisabilityGroup
@@ -285,7 +285,7 @@ type Assessment {
   role: AssessmentRole!
 
   """
-  Most recent published Definition to use for Editing the FormDefinition. Only
+  Most recent published Definition to use for editing the assessment. Only
   present if the original form definition was retired.
   """
   upgradedDefinitionForEditing: FormDefinition
