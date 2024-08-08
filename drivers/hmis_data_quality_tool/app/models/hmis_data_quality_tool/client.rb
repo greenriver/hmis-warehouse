@@ -55,7 +55,7 @@ module HmisDataQualityTool
     def self.masked_ssn(number)
       # pad with leading 0s if we don't have enough characters
       number = number.to_s.rjust(9, '0') if number.present?
-      number.to_s.gsub(/(\d{3})[^\d]?(\d{2})[^\d]?(\d{4})/, 'XXX-XX-\3')
+      number.to_s.gsub(HudUtility2024::SSN_RGX, 'XXX-XX-\3')
     end
 
     def self.detail_headers_for_export

@@ -6,6 +6,7 @@
 
 module GrdaWarehouse::SystemCohorts
   class Base < GrdaWarehouse::Cohort
+    include ArelHelper
     # Because it can take time for HMIS data to arrive in the warehouse,
     # Each day we'll re-run calculations for the prior week to smooth out back-dated data entry
     def self.update_all_system_cohorts(range: 1.weeks.ago.to_date .. Date.yesterday, date_window: nil)

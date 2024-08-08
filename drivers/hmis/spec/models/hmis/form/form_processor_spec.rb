@@ -2034,12 +2034,96 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       }
     end
 
-    it 'should work when CurrentLivingSituation is the form owner' do
-      cls = Hmis::Hud::CurrentLivingSituation.new(client: c1, enrollment: e1, data_source: ds1)
-      process_record(record: cls, hud_values: hud_values, user: hmis_user, definition: definition)
+    describe 'when CurrentLivingSituation is the form owner' do
+      it 'should save CLS values' do
+        cls = Hmis::Hud::CurrentLivingSituation.new(client: c1, enrollment: e1, data_source: ds1)
+        process_record(record: cls, hud_values: hud_values, user: hmis_user, definition: definition)
 
-      expect(cls.current_living_situation).to eq(118) # safe haven
-      expect(cls.information_date).to eq(information_date)
+        expect(cls.current_living_situation).to eq(118) # safe haven
+        expect(cls.information_date).to eq(information_date)
+      end
+
+      context 'when saving verified_by_project_id on a new CLS' do
+        let(:cls) { Hmis::Hud::CurrentLivingSituation.new(client: c1, enrollment: e1, data_source: ds1) }
+
+        it 'should save verified_by' do
+          values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => p1.id })
+
+          expect do
+            process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)
+          end.to change(cls, :verified_by_project_id).to(p1.id).
+            and change(cls, :verified_by).to(p1.name)
+        end
+
+        it 'should truncate long project name' do
+          long_name_project = create(:hmis_hud_project, data_source: ds1, organization: o1, project_name: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque consequat, nisi eu varius lobortis, massa ligula congue nibh, ut condimentum tortor ex vitae ipsum.')
+          values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => long_name_project.id })
+
+          expect do
+            process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)
+          end.to change(cls, :verified_by_project_id).to(long_name_project.id).
+            and change(cls, :verified_by).to(long_name_project.name.truncate(100))
+        end
+      end
+
+      context 'when saving verified_by_project_id on an existing CLS' do
+        let!(:p2) { create(:hmis_hud_project, data_source: ds1, organization: o1) }
+        let!(:cls) { create(:hmis_current_living_situation, client: c1, enrollment: e1, data_source: ds1, user: u1, verified_by_project_id: p2.id) }
+
+        context 'when both verified_by_project_id and verified_by already exist' do
+          it 'should replace both fields when the input provides a new project' do
+            values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => p1.id })
+
+            expect do
+              process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)
+            end.to change(cls, :verified_by_project_id).from(p2.id).to(p1.id).
+              and change(cls, :verified_by).from(p2.name).to(p1.name)
+          end
+
+          it 'should nullify both fields when the input nullifies verified_by_project_id' do
+            values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => nil })
+
+            expect do
+              process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)
+            end.to change(cls, :verified_by_project_id).to(nil).
+              and change(cls, :verified_by).to(nil)
+          end
+        end
+
+        context 'when verified_by already exists, but verified_by_project_id is null' do
+          let!(:cls) do
+            create(
+              :hmis_current_living_situation,
+              client: c1, enrollment: e1, data_source: ds1, user: u1,
+              VerifiedBy: 'Some random value with no relation to a project that probably came from a migration'
+            )
+          end
+
+          it 'should overwrite verified_by when input provides verified_by_project_id' do
+            values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => p1.id })
+
+            expect do
+              process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)
+            end.to change(cls, :verified_by_project_id).to(p1.id).
+              and change(cls, :verified_by).to(p1.name)
+          end
+
+          it 'should NOT nullify verified_by when verified_by_project_id is not provided' do
+            expect do
+              process_record(record: cls, hud_values: hud_values, user: hmis_user, definition: definition)
+            end.not_to change(cls, :verified_by)
+          end
+
+          it 'should not raise when verified_by_project_id is unrecognized' do
+            values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => 'a random string that isnt an id' })
+
+            expect do
+              process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)
+            end.not_to change(cls, :verified_by)
+            expect(cls.verified_by_project_id).to be_nil
+          end
+        end
+      end
     end
 
     describe 'when CurrentLivingSituation is being collected on an Assessment,' do
