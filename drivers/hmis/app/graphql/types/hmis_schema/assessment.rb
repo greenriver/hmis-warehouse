@@ -78,7 +78,7 @@ module Types
 
       # Find the published version of the previous definition. If this resolves nil, then the original form will be used.
       published_definition = previous_definition.published_version
-      published_definition.filter_context = { project: project, active_date: object.assessment_date }
+      published_definition&.filter_context = { project: project, active_date: object.assessment_date }
       published_definition
     end
 

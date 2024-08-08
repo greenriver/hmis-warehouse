@@ -31,7 +31,12 @@ RSpec.feature 'Assessment definition selection', type: :system do
   #
   # Household: Intake
   # Household: Exit
-  context 'For Custom Assessment with custom fields for project (es) and data_collected_about (veteran_hoh)' do
+  # Locations to test assessment forms:
+  # - Individual (existing)
+  # - Individual (new)
+  # - Household (new)
+  # - Household (some existing of previous versions)
+  context 'For Custom Assessment with rules for project type and data_collected_about' do
     let!(:definition) { create :custom_assessment_with_custom_fields_and_rules, title: 'Very Custom Assessment', data_source: ds1 }
 
     before(:each) do
@@ -47,44 +52,129 @@ RSpec.feature 'Assessment definition selection', type: :system do
       assert_text "#{c1.brief_name} Assessments" # wait until we're back on the assessment table
     end
 
-    context 'non-Veteran non-ES Enrollment' do
-      it 'hides both conditional items' do
-        click_button 'New Assessment'
-        click_link definition.title
+    context 'creating a new assessment' do
+      context 'non-Veteran non-ES Enrollment' do
+        it 'hides both conditional items' do
+          click_button 'New Assessment'
+          click_link definition.title
 
-        mui_date_select 'Assessment Date', date: today
-        assert_no_text 'Custom field for ES projects only'
-        assert_no_text 'Custom field for Veteran HoH only'
+          mui_date_select 'Assessment Date', date: today
+          assert_no_text 'Custom field for ES projects only'
+          assert_no_text 'Custom field for Veteran HoH only'
 
-        expect do
-          submit_assessment
-        end.to change(e1.custom_assessments, :count).by(1).
-          and change(e1.custom_assessments.not_in_progress.
-            with_form_definition_identifier(definition.identifier).
-            where(assessment_date: today), :count).by(1).
-          and change(Hmis::Hud::CustomDataElement, :count).by(0)
+          expect do
+            submit_assessment
+          end.to change(e1.custom_assessments, :count).by(1).
+            and change(e1.custom_assessments.not_in_progress.
+              with_form_definition_identifier(definition.identifier).
+              where(assessment_date: today), :count).by(1).
+            and change(Hmis::Hud::CustomDataElement, :count).by(0)
+        end
+      end
+      context 'Veteran ES Enrollment' do
+        before(:each) do
+          p1.update!(ProjectType: 1)
+          c1.update!(VeteranStatus: 1)
+        end
+        it 'shows both conditional items' do
+          click_button 'New Assessment'
+          click_link definition.title
+
+          mui_date_select 'Assessment Date', date: today
+          fill_in 'Custom field for ES projects only', with: 'value 1'
+          fill_in 'Custom field for Veteran HoH only', with: 'value 2'
+
+          expect do
+            submit_assessment
+          end.to change(e1.custom_assessments, :count).by(1).
+            and change(e1.custom_assessments.not_in_progress.
+              with_form_definition_identifier(definition.identifier).
+              where(assessment_date: today), :count).by(1).
+            and change(Hmis::Hud::CustomDataElement, :count).by(2)
+        end
       end
     end
-    context 'Veteran ES Enrollment' do
-      before(:each) do
-        p1.update!(ProjectType: 1)
-        c1.update!(VeteranStatus: 1)
+    context 'opening an existing assessment' do
+      let!(:assessment) { create(:hmis_custom_assessment, definition: definition, enrollment: e1, client: c1, assessment_date: today) }
+
+      context 'non-Veteran non-ES Enrollment' do
+        it 'hides both conditional items' do
+          click_link definition.title
+          assert_text 'Assessment Date'
+          assert_no_text 'Custom field for ES projects only'
+          assert_no_text 'Custom field for Veteran HoH only'
+          assert_text 'Unlock Assessment'
+        end
       end
-      it 'shows both conditional items' do
-        click_button 'New Assessment'
-        click_link definition.title
+      context 'Veteran ES Enrollment' do
+        before(:each) do
+          p1.update!(ProjectType: 1)
+          c1.update!(VeteranStatus: 1)
+        end
 
-        mui_date_select 'Assessment Date', date: today
-        fill_in 'Custom field for ES projects only', with: 'value 1'
-        fill_in 'Custom field for Veteran HoH only', with: 'value 2'
+        it 'shows both conditional items' do
+          click_link definition.title
+          assert_text 'Assessment Date'
+          assert_text 'Custom field for ES projects only'
+          assert_text 'Custom field for Veteran HoH only'
+          assert_text 'Unlock Assessment'
+        end
+      end
+    end
 
-        expect do
-          submit_assessment
-        end.to change(e1.custom_assessments, :count).by(1).
-          and change(e1.custom_assessments.not_in_progress.
-            with_form_definition_identifier(definition.identifier).
-            where(assessment_date: today), :count).by(1).
-          and change(Hmis::Hud::CustomDataElement, :count).by(2)
+    context 'opening an existing assessment that was submitted using an old version of the form' do
+      let!(:old_definition) do
+        fd = create(:custom_assessment_with_custom_fields_and_rules, identifier: definition.identifier, title: 'Previous Very Custom Assessment', data_source: ds1, version: 0, status: :retired)
+        fd.definition['item'][0]['item'] << { 'type': 'DISPLAY', 'link_id': 'old_message', 'text': 'Text on old form' }
+        fd.save!
+        fd
+      end
+      let!(:assessment) { create(:hmis_custom_assessment, definition: old_definition, enrollment: e1, client: c1, assessment_date: today) }
+
+      # TODO gig split this into two files
+      # 1) testing rules and data_collected_about application, both in individual and household
+      # 2) testing opening legacy forms, both in individual and household
+      context 'non-Veteran non-ES Enrollment' do
+        it 'hides both conditional items' do
+          click_link old_definition.title
+
+          assert_text old_definition.title
+          assert_text 'Assessment Date'
+          assert_no_text 'Custom field for ES projects only'
+          assert_no_text 'Custom field for Veteran HoH only'
+          assert_text 'Text on old form'
+
+          click_button('Unlock Assessment', match: :first) # unlocking the assessment should upgrade to the newer form
+          assert_no_text old_definition.title
+          assert_text definition.title
+          assert_text 'Assessment Date'
+          assert_no_text 'Custom field for ES projects only'
+          assert_no_text 'Custom field for Veteran HoH only'
+          assert_no_text 'Text on old form'
+        end
+      end
+      context 'Veteran ES Enrollment' do
+        before(:each) do
+          p1.update!(ProjectType: 1)
+          c1.update!(VeteranStatus: 1)
+        end
+
+        it 'shows both conditional items' do
+          click_link definition.title
+          assert_text 'Unlock Assessment'
+          assert_text 'Assessment Date'
+          assert_text 'Custom field for ES projects only'
+          assert_text 'Custom field for Veteran HoH only'
+          assert_text 'Text on old form'
+
+          click_button('Unlock Assessment', match: :first) # unlocking the assessment should upgrade to the newer form
+          assert_no_text old_definition.title
+          assert_text definition.title
+          assert_text 'Assessment Date'
+          assert_no_text 'Custom field for ES projects only'
+          assert_no_text 'Custom field for Veteran HoH only'
+          assert_no_text 'Text on old form'
+        end
       end
     end
   end
