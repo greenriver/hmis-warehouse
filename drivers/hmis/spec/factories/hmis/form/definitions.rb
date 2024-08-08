@@ -171,4 +171,84 @@ FactoryBot.define do
 
     # This factory could create the `assessment_question` CDED using after_create, but for now it's not needed
   end
+
+  factory :custom_assessment_with_custom_fields_and_rules, parent: :hmis_form_definition do
+    role { :CUSTOM_ASSESSMENT }
+    definition do
+      {
+        'item': [
+          {
+            'type': 'GROUP',
+            'text': 'Test Custom Assessment',
+            'link_id': 'section_1',
+            'item': [
+              {
+                'type': 'DATE',
+                'required': true,
+                'link_id': 'assessment_date',
+                'text': 'Assessment Date',
+                'assessment_date': true,
+                'mapping': {
+                  'field_name': 'assessmentDate',
+                },
+              },
+              {
+                'type': 'STRING',
+                'required': true,
+                'link_id': 'es_projects_custom_question',
+                'text': 'Custom field for ES projects only',
+                'mapping': {
+                  'custom_field_key': 'es_projects_custom_question',
+                },
+                'rule': {
+                  operator: 'ANY',
+                  parts: [
+                    {
+                      variable: 'projectType',
+                      operator: 'EQUAL',
+                      value: 1, # ES NBN
+                    },
+                  ],
+                },
+              },
+              {
+                'type': 'STRING',
+                'required': true,
+                'link_id': 'veteran_hoh_custom_question',
+                'text': 'Custom field for Veteran HoH only',
+                'mapping': {
+                  'custom_field_key': 'veteran_hoh_custom_question',
+                },
+                data_collected_about: 'VETERAN_HOH',
+              },
+            ],
+          },
+        ],
+      }.deep_stringify_keys
+    end
+    transient do
+      data_source { nil }
+    end
+    after(:create) do |_instance, evaluator|
+      next unless evaluator.data_source # must pass data source to create CDEDs
+
+      Hmis::Hud::CustomDataElementDefinition.where(
+        owner_type: 'Hmis::Hud::CustomAssessment',
+        key: :es_projects_custom_question,
+        label: 'Custom field for ES projects only',
+        field_type: :string,
+        data_source: evaluator.data_source,
+        UserID: '1',
+      ).first_or_create!
+
+      Hmis::Hud::CustomDataElementDefinition.where(
+        owner_type: 'Hmis::Hud::CustomAssessment',
+        key: :veteran_hoh_custom_question,
+        label: 'Custom field for Veteran HoH only',
+        field_type: :string,
+        data_source: evaluator.data_source,
+        UserID: '1',
+      ).first_or_create!
+    end
+  end
 end
