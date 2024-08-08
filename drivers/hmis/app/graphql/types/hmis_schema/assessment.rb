@@ -141,7 +141,7 @@ module Types
       fp = load_ar_association(object, :form_processor)
       # Each assessment should have a form processor. If it doesn't, it may point to an issue with
       # MigrateAssessmentsJob, SaveAssessment, SubmitAssessment, or a custom data migrations.
-      raise "Assessment without form processor: #{object.id}" unless form_processor.present?
+      raise "Assessment without form processor: #{object.id}" unless fp.present?
 
       fp
     end
