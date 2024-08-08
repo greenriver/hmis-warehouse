@@ -4,7 +4,6 @@ gem 'rails', '~> 7.0.8.1'
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
 # gem 'rails_drivers', path: '/usr/local/bundle/tmp/rails_drivers'
 gem 'rack', '>= 2.2.8.1'
-gem 'rexml', '>= 3.2.7'
 
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
@@ -157,6 +156,7 @@ gem 'gmail', require: false
 # gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
 gem 'stupidedi', git: 'https://github.com/greenriver/stupidedi.git', branch: 'master'
+gem 'rexml', require: false # For ETO API and MassHealth SOAP processing
 
 gem 'redcarpet'
 
