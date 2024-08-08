@@ -43,13 +43,14 @@ module Types
     custom_data_elements_field
 
     field :role, Types::Forms::Enums::AssessmentRole, null: false
-    field :definition, Types::Forms::FormDefinition, null: false
+    field :definition, Types::Forms::FormDefinition, null: false, description: 'Definition to use for viewing the FormDefinition. If upgraded_definition_for_editing is nil, then it can also be used for editing.'
+    field :upgraded_definition_for_editing, Types::Forms::FormDefinition, null: true, description: 'Most recent published Definition to use for Editing the FormDefinition. Only present if the original form definition was retired.'
     field :wip_values, JsonObject, null: true
 
     def wip_values
       return unless object.in_progress?
 
-      load_ar_association(object, :form_processor)&.values
+      form_processor&.values
     end
 
     def role
@@ -57,21 +58,29 @@ module Types
     end
 
     # EXPENSIVE! Do not use in batch
+    # Definition to use for viewing the FormDefinition. If upgraded_definition_for_editing is nil, then it can also be used for editing.
     def definition
-      project = load_ar_association(object, :project)
-
-      form_processor = load_ar_association(object, :form_processor)
-      # If this occurs, it may be an issue with MigrateAssessmentsJob, SaveAssessment, or SubmitAssessment
+      # Each assessment should have a form processor. If one does it, it may point to an issue with
+      # MigrateAssessmentsJob, SaveAssessment, SubmitAssessment, or a custom data migrations.
       raise "Assessment without form processor: #{object.id}" unless form_processor.present?
 
-      # If definition is stored on form processor, return that.
-      # TODO: check if form is retired? For non-WIP non-custom assessments, we should
-      # really be choosing the "latest" form, which may not be the one on the FormProcessor.
+      # If definition is stored on Form Processor, return that. This is the Definition that was most recently used to submit the Assessment.
       definition = load_ar_association(form_processor, :definition)
-      # If there was no definition specified, which would occur if this is a migrated assessment, choose an appropriate one.
+      # If there was no definition on the Form Processor, which would occur if this is a migrated HUD Assessment, then choose an appropriate one:
       definition ||= Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      # Apply filter context to filter out items that are not relevant for this project (HUD and Custom Rules)
       definition.filter_context = { project: project, active_date: object.assessment_date }
       definition
+    end
+
+    # EXPENSIVE! Do not use in batch
+    def upgraded_definition_for_editing
+      previous_definition = definition
+      # If original form is not retired, then we should stil use it for editing.
+      return unless previous_definition.retired?
+
+      # Find the published version of the previous definition. If this resolves nil, then the original form will be used.
+      previous_definition.published_version
     end
 
     def in_progress
@@ -131,6 +140,10 @@ module Types
 
     def form_processor
       load_ar_association(object, :form_processor)
+    end
+
+    def project
+      load_ar_association(object, :project)
     end
   end
 end
