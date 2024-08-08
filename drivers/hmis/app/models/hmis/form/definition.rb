@@ -385,6 +385,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     status == DRAFT
   end
 
+  def retired?
+    status == RETIRED
+  end
+
   def self.owner_class_for_role(role)
     return Hmis::Hud::CustomAssessment if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 
