@@ -25,6 +25,8 @@ module
         merge(gender_detail_hash).
         merge(disability_detail_hash).
         merge(race_detail_hash).
+        merge(ethnicity_detail_hash).
+        merge(race_ethnicity_detail_hash).
         merge(household_detail_hash).
         merge(dv_detail_hash).
         merge(relationship_detail_hash).
