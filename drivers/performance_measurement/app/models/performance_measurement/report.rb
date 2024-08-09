@@ -106,7 +106,7 @@ module PerformanceMeasurement
     end
 
     def comparison_patterns
-      filter.comparison_patterns.except('None', 'Same period, prior year')
+      filter.comparison_patterns.except('None', 'Prior Period').transform_keys { |k| if k == 'Same period, prior year' then 'Prior year' else k end }
     end
 
     def filter=(filter_object)
