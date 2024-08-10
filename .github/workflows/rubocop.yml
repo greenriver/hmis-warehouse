@@ -46,7 +46,7 @@ jobs:
       - id: gems
         name: Install gems
         run: |
-          gem install bundler --version=2.5.7
+          gem install bundler --version=2.5.17
           bundle config set --local without 'production staging'
           bundle install --jobs 4 --retry 3
 
@@ -59,7 +59,8 @@ jobs:
         env:
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          files=`echo "${ALL_CHANGED_FILES}" | tr " " "\n" | grep "**/*.rb" | tr "\n" " ./"`
+          ignore_patterns="db/*\|config/*\|config/environments/*\|config/initializers/*\|config/locales/*\|scripts/*\|bin/rails\|bin/rake\|bin/bundle\|bin/db_prep\|app/assets/*"
+          files=`echo "${ALL_CHANGED_FILES}" | tr " " "\n" | grep -v $ignore_patterns | grep "**/*.rb" | tr "\n" " ./"`
           num=`echo $files | wc -w`
           echo $files
           if [ $num -gt 0 ]; then bundle exec rubocop --config ./.rubocop.yml $files; else echo "No changed ruby files"; fi
