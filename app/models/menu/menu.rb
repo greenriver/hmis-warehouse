@@ -80,6 +80,9 @@ class Menu::Menu
       title: Translation.translate('Warehouse Reports'),
       id: 'warehouse-reports',
     )
+    # Disabling new menu changes temporarily in production until we have more design feedback
+    return menu if Rails.env.production?
+
     item = Menu::Item.new(
       user: user,
       visible: ->(user) { user.can_view_any_reports? },
