@@ -69,13 +69,13 @@ class ClientHistory
     end
 
     client_file = ::GrdaWarehouse::ClientFile.new(
-    client_id: client.id,
-    user_id: (requesting_user&.id || user.id),
-    note: "Auto Generated for prior #{years} years",
-    name: file_name,
-    visible_in_window: true,
-    effective_date: Date.current,
-)
+      client_id: client.id,
+      user_id: requesting_user&.id || user.id,
+      note: "Auto Generated for prior #{years} years",
+      name: file_name,
+      visible_in_window: true,
+      effective_date: Date.current,
+    )
     client_file.tag_list.add(['Homeless Verification'])
     begin
       tmp_path = Rails.root.join('tmp', "service_history_pdf_#{client.id}.pdf")
