@@ -11,19 +11,8 @@ module ServiceHistory
     queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
 
     def perform(client_id:, years:, user_id: nil)
-      @client_id = client_id
-      @years = years
-      @user_id = user_id
-      app = ActionDispatch::Integration::Session.new(Rails.application)
-
-      options = {
-        client_id: @client_id,
-        years: @years,
-        user_id: @user_id,
-        host: ENV['FQDN'],
-        protocol: 'https',
-      }
-      app.get(pdf_client_history_url(options))
+      client_history = ClientHistory.new(client_id: client_id, years: years, user_id: user_id)
+      client_history.generate_service_history_pdf
     end
 
     def max_attempts
