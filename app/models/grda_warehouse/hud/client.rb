@@ -1114,6 +1114,10 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def revoked_consent?
+      release_current_status == self.class.revoked_consent_string
+    end
+
     def release_current_status
       active_consent_model.release_current_status
     end
