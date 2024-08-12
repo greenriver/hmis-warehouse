@@ -436,7 +436,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
       is_missing = value.nil? || (value.respond_to?(:empty?) && value.empty?)
       is_data_not_collected = value == 'DATA_NOT_COLLECTED'
-      field_name = item.mapping&.field_name
+      field_name = item.mapping&.field_name || item.mapping&.custom_field_key
       # Validate required status
       if item.required && is_missing
         errors.add field_name || :base, :required, **error_context

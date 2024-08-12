@@ -44,13 +44,6 @@ module Hmis::Form
           processor_name: 'Enrollment',
         ),
         new(
-          id: 'ENROLLMENT_COC',
-          # we don't have this HUD model in the hmis
-          # owner_type: 'Hmis::Hud::EnrollmentCoc',
-          owner_type: nil,
-          processor_name: 'EnrollmentCoc',
-        ),
-        new(
           id: 'EVENT',
           owner_type: 'Hmis::Hud::Event',
           processor_name: 'Event',

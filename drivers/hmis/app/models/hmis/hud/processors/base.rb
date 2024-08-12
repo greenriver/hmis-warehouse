@@ -139,10 +139,10 @@ class Hmis::Hud::Processors::Base
   # Assign custom data element values to record, if this is a custom data element field
   def process_custom_field(field, value)
     record = @processor.send(factory_name)
-    return false unless record.respond_to?(:custom_data_elements)
+    raise "Record #{record.class.name} does not support custom data elements" unless record.respond_to?(:custom_data_elements)
 
     cded = Hmis::Hud::CustomDataElementDefinition.for_type(record.class.sti_name).find_by(key: field)
-    raise "Unknown Custom Data Element \"#{field}\" for record #{record.class.sti_name}" unless cded
+    raise "Unknown custom data element" unless cded
 
     attrs = {
       user: @processor.hud_user,

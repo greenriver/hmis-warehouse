@@ -21,6 +21,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
   let!(:fd1) do
+    # maybe can be replaced by:
+    # https://github.com/greenriver/hmis-warehouse/pull/4607/files#r1713723064
     ['fieldOne', 'fieldTwo'].each do |key|
       create(:hmis_custom_data_element_definition, key: key, owner_type: Hmis::Hud::CustomAssessment.sti_name, data_source: ds1)
     end
