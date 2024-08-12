@@ -50,9 +50,12 @@ FactoryBot.define do
     transient do
       values { {} }
       hud_values { {} }
+      definition { nil }
     end
     after(:create) do |assessment, evaluator|
       assessment.form_processor = create(:hmis_form_processor, owner: assessment, values: evaluator.values, hud_values: evaluator.hud_values)
+      assessment.form_processor.definition = evaluator.definition if evaluator.definition
+      assessment.data_collection_stage = Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[evaluator.definition.role.to_sym] if evaluator.definition
       assessment.save_in_progress
     end
   end
