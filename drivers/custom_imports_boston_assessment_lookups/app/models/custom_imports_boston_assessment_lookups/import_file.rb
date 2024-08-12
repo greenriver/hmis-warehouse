@@ -41,8 +41,9 @@ module CustomImportsBostonAssessmentLookups
     private def header_lookup
       {
         'Field Name' => 'assessment_question',
-        'Numeric Response' => 'response_code',
-        'Text Response' => 'response_text',
+        'Code' => 'response_code',
+        'Value Name' => 'response_text',
+        nil => 'do_not_import',
       }
     end
 
