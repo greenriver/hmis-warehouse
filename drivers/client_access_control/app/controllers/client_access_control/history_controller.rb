@@ -55,6 +55,7 @@ module ClientAccessControl
 
     def pdf
       @client_history = ClientHistory.new(client_id: params[:client_id].to_i, user_id: params[:user_id].to_i, years: params[:years]&.to_i)
+      # set @client for when this method is called outside of the controller context.
       @client ||= @client_history.client
 
       return not_authorized! unless client_needing_processing?(client: @client_history.client)
