@@ -8,6 +8,7 @@ module Clients
   class CasReadinessController < ApplicationController
     include ClientPathGenerator
     include ClientDependentControllers
+    extend BackgroundRenderAction
 
     before_action :require_can_edit_clients!
     before_action :set_client
@@ -16,6 +17,20 @@ module Clients
     def edit
       @neighborhoods = CasAccess::Neighborhood.order(:name).pluck(:id, :name) if CasBase.db_exists? && RailsDrivers.loaded.include?(:cas_access)
     end
+
+    background_render_action(:render_content, ::BackgroundRender::CasReadinessJob) do
+      {
+        client_id: @client.id,
+        user_id: current_user.id,
+        token: form_authenticity_token,
+      }
+    end
+
+    # used to background load the content for edit so we don't get 504s
+    # def render_content
+    #   @neighborhoods = CasAccess::Neighborhood.order(:name).pluck(:id, :name) if CasBase.db_exists? && RailsDrivers.loaded.include?(:cas_access)
+    #   render(layout: false) if request.post?
+    # end
 
     def update
       update_params = cas_readiness_params

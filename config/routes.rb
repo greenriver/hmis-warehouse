@@ -466,7 +466,10 @@ Rails.application.routes.draw do
     #   get :pdf, on: :collection
     #   post :queue, on: :collection
     # end
-    resource :cas_readiness, only: [:edit, :update], controller: 'clients/cas_readiness'
+    resource :cas_readiness, only: [:edit, :update], controller: 'clients/cas_readiness' do
+      post :render_content, on: :member
+      get :render_content, on: :member if Rails.env.development?
+    end
     resource :chronic, only: [:edit, :update], controller: 'clients/chronic'
     resources :vispdats, controller: 'clients/vispdats' do
       member do
