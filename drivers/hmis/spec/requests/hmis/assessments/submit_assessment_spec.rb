@@ -248,7 +248,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         },
         {
           'fullMessage' => 'The Required Field must exist',
-          'attribute' => 'base',
+          'attribute' => 'fieldOne',
           'readableAttribute' => 'The Required Field',
           'type' => 'required',
           'severity' => 'error',
@@ -264,7 +264,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         },
         {
           'fullMessage' => 'Choice field is empty',
-          'attribute' => 'base',
+          'attribute' => 'fieldTwo',
           'readableAttribute' => 'Choice field',
           'type' => 'data_not_collected',
           'severity' => 'warning',

@@ -142,7 +142,7 @@ class Hmis::Hud::Processors::Base
     raise "Record #{record.class.name} does not support custom data elements" unless record.respond_to?(:custom_data_elements)
 
     cded = Hmis::Hud::CustomDataElementDefinition.for_type(record.class.sti_name).find_by(key: field)
-    raise "Unknown custom data element" unless cded
+    raise 'Unknown custom data element' unless cded
 
     attrs = {
       user: @processor.hud_user,

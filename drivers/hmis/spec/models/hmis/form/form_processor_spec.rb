@@ -1217,7 +1217,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         it 'throws on unknown custom data elements' do
           expect do
             process_record(record: c1, hud_values: hud_values, user: hmis_user, definition: definition)
-          end.to raise_error(StandardError, /Unknown Custom Data Element/)
+          end.to raise_error(StandardError, /Unknown custom data element/)
         end
       end
 
