@@ -59,7 +59,7 @@ jobs:
         env:
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          ignore_patterns="db/*\|config/*\|config/environments/*\|config/initializers/*\|config/locales/*\|scripts/*\|bin/rails\|bin/rake\|bin/bundle\|bin/db_prep\|app/assets/*"
+          ignore_patterns="db/schema.rb\|bin/rails\|bin/rake\|bin/bundle"
           files=`echo "${ALL_CHANGED_FILES}" | tr " " "\n" | grep -v $ignore_patterns | grep "**/*.rb" | tr "\n" " ./"`
           num=`echo $files | wc -w`
           echo $files
