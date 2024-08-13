@@ -697,7 +697,9 @@ module Health
       # Patient has an active referral on or within 90 days of the the QA date
       return if Health::Patient.active_between(date_of_activity - 90.days, date_of_activity).where(id: patient_id).exists?
 
-      errors.add(:date_of_activity, :invalid, message: 'Patient was not enrolled on or within 90 days prior to the QA')
+      message = 'Patient was not enrolled on or within 90 days prior to the QA'
+      errors.add(:date_of_activity, :invalid, message: message)
+      Rails.logger.error("Health::QualifyingActivity for #{patient_id}: " + message)
     end
   end
 end
