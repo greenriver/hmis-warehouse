@@ -14,6 +14,9 @@ module CoreDemographicsReport::DemographicSummary
     include CoreDemographicsReport::AgeCalculations
     include CoreDemographicsReport::GenderCalculations
     include CoreDemographicsReport::RaceCalculations
+    include CoreDemographicsReport::EthnicityCalculations
+    # RaceEthnicityCalculations relies on Race and Ethnicity Calculations, and must come  after thme
+    include CoreDemographicsReport::RaceEthnicityCalculations
     include CoreDemographicsReport::HouseholdTypeCalculations
     include CoreDemographicsReport::ChronicCalculations
     include CoreDemographicsReport::UnshelteredCalculations
@@ -49,7 +52,9 @@ module CoreDemographicsReport::DemographicSummary
         'ages',
         'genders',
         'gender_ages',
+        'races_ethnicities',
         'races',
+        'ethnicities',
         'household_types',
         'chronic',
         'high_acuity',
@@ -79,6 +84,8 @@ module CoreDemographicsReport::DemographicSummary
       {}.merge(age_detail_hash).
         merge(gender_detail_hash).
         merge(race_detail_hash).
+        merge(ethnicity_detail_hash).
+        merge(race_ethnicity_detail_hash).
         merge(household_detail_hash).
         merge(chronic_detail_hash).
         merge(high_acuity_detail_hash).
@@ -134,7 +141,9 @@ module CoreDemographicsReport::DemographicSummary
 
           rows = report.age_data_for_export(rows)
           rows = report.gender_data_for_export(rows)
+          rows = report.race_combination_data_for_export(rows)
           rows = report.race_data_for_export(rows)
+          rows = report.ethnicity_data_for_export(rows)
           rows = report.household_type_data_for_export(rows)
           rows = report.chronic_data_for_export(rows)
           rows = report.high_acuity_data_for_export(rows)
