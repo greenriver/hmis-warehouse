@@ -18,6 +18,12 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
   include PerformanceDashboard::Overview::Coc
   include PerformanceDashboard::Overview::LotHomeless
 
+  EXPIRATION_LENGTH = if Rails.env.development?
+    10.seconds
+  else
+    5.minutes
+  end
+
   def self.url
     'performance_dashboards/overview'
   end

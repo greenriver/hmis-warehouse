@@ -20,7 +20,7 @@ module PerformanceDashboard::Overview::Enrolled
   end
 
   def enrolled_total_count
-    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: PerformanceDashboards::Overview::EXPIRATION_LENGTH) do
       enrolled.select(:client_id).count
     end
   end

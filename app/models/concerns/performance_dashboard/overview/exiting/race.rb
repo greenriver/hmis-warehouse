@@ -9,16 +9,18 @@ module PerformanceDashboard::Overview::Exiting::Race
 
   # NOTE: always count the most-recently started enrollment within the range
   def exiting_by_race
-    @exiting_by_race ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @exiting_by_race ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: PerformanceDashboards::Overview::EXPIRATION_LENGTH) do
       buckets = race_buckets.map { |b| [b, []] }.to_h
       counted = {}
       exiting.
         joins(:client).
         order(first_date_in_program: :desc).
-        pluck(:client_id, :AmIndAKNative, :Asian, :BlackAfAmerican, :NativeHIPacific, :White, :HispanicLatinaeo, :MidEastNAfrican, :RaceNone, :first_date_in_program).each do |id, am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, hispanic_latinaeo, mid_east_n_african, race_none, _|
-          counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, hispanic_latinaeo, mid_east_n_african, race_none)] ||= Set.new
-          buckets[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, hispanic_latinaeo, mid_east_n_african, race_none)] << id unless counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, hispanic_latinaeo, mid_east_n_african, race_none)].include?(id)
-          counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_pacific, white, hispanic_latinaeo, mid_east_n_african, race_none)] << id
+        pluck(:client_id, :first_date_in_program, *race_columns).
+        each do |id, _, *cols|
+          races = race_columns.zip(cols).to_h
+          counted[race_bucket(races)] ||= Set.new
+          buckets[race_bucket(races)] << id unless counted[race_bucket(races)].include?(id)
+          counted[race_bucket(races)] << id
         end
       buckets
     end

@@ -9,7 +9,7 @@ module PerformanceDashboard::Overview::Entering::ProjectType
 
   # NOTE: always count the most-recently started enrollment within the range
   def entering_by_project_type
-    @entering_by_project_type ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @entering_by_project_type ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: PerformanceDashboards::Overview::EXPIRATION_LENGTH) do
       buckets = project_type_buckets.map { |b| [b, []] }.to_h
       counted = {}
       entering.
