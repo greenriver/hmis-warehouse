@@ -58,12 +58,23 @@ FactoryBot.define do
       {
         'item': [
           {
-            'type': 'DATE',
-            'link_id': 'date',
-            'required': true,
-            'warn_if_empty': false,
-            'assessment_date': true,
-            'mapping': { 'field_name': 'entryDate' },
+            'type': 'GROUP',
+            'text': 'Test Intake Assessment',
+            'link_id': 'section_1',
+            'item': [
+              {
+                'type': 'DATE',
+                'link_id': 'entryDate',
+                'required': true,
+                'warn_if_empty': false,
+                'assessment_date': true,
+                'text': 'Entry Date',
+                'mapping': {
+                  'record_type': 'ENROLLMENT',
+                  'field_name': 'entryDate',
+                },
+              },
+            ],
           },
         ],
       }
@@ -174,6 +185,8 @@ FactoryBot.define do
 
   factory :custom_assessment_with_custom_fields_and_rules, parent: :hmis_form_definition do
     role { :CUSTOM_ASSESSMENT }
+    title { 'Test Custom Assessment' }
+    sequence(:identifier) { |n| "custom_assessment_#{n}" }
     definition do
       {
         'item': [
