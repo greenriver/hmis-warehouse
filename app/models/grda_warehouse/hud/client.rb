@@ -61,7 +61,7 @@ module GrdaWarehouse::Hud
         :AssessmentDate,
         source_arel_table: as_t,
         group_on: [:PersonalID, :data_source_id],
-        scope: pathways_or_rrh,
+        scope: pathways_or_rrh.where(DateDeleted: nil),
       )
     end, **hud_assoc(:PersonalID, 'Assessment')
 

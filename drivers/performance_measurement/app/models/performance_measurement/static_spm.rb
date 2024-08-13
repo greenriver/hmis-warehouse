@@ -11,10 +11,10 @@ module PerformanceMeasurement
 
     belongs_to :goal
     KNOWN_SPM_CELLS = {
-      '1a' => ['B2', 'D2', 'G2'],
-      '1b' => ['B2', 'D2', 'G2'],
-      '2a and 2b' => ['B7'],
-      '3.2' => ['C2'],
+      '1a' => ['D2', 'G2'],
+      '1b' => ['D2', 'G2'],
+      '2a and 2b' => ['B7', 'C7', 'E7'],
+      # '3.2' => ['C2'], # actually using the PIT counts
       '4.1' => ['C2', 'C3'],
       '4.2' => ['C2', 'C3'],
       '4.3' => ['C2', 'C3'],
@@ -23,8 +23,8 @@ module PerformanceMeasurement
       '4.6' => ['C2', 'C3'],
       '5.1' => ['C4'],
       '7a.1' => ['C2', 'C3', 'C4'],
-      '7b.1' => ['C2', 'C3', 'C4'],
-      '7b.2' => ['C2', 'C3', 'C4'],
+      '7b.1' => ['C2', 'C3'],
+      '7b.2' => ['C2', 'C3'],
     }.freeze
     KNOWN_SPM_METHODS = KNOWN_SPM_CELLS.map do |table, cells|
       cells.map do |cell|

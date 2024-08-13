@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :mhx_sftp_credentials, class: 'Health::ImportConfig' do
+  factory :mhx_sftp_credentials, class: 'Health::ImportConfigPassword' do
     host { 'sftp' }
     path { '/sftp' }
     username { 'user' }
