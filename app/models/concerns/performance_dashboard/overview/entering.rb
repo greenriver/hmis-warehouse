@@ -11,6 +11,7 @@ module PerformanceDashboard::Overview::Entering
   include PerformanceDashboard::Overview::Entering::Household
   include PerformanceDashboard::Overview::Entering::Veteran
   include PerformanceDashboard::Overview::Entering::Race
+  include PerformanceDashboard::Overview::Entering::Ethnicity
   include PerformanceDashboard::Overview::Entering::ProjectType
   include PerformanceDashboard::Overview::Entering::Coc
   include PerformanceDashboard::Overview::Entering::LotHomeless
@@ -37,6 +38,8 @@ module PerformanceDashboard::Overview::Entering
       entering_by_veteran_details(options)
     elsif options[:race]
       entering_by_race_details(options)
+    elsif options[:ethnicity]
+      entering_by_ethnicity_details(options)
     elsif options[:project_type]
       entering_by_project_type_details(options)
     elsif options[:coc]

@@ -10,6 +10,7 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
   include PerformanceDashboard::Overview::Household
   include PerformanceDashboard::Overview::Veteran
   include PerformanceDashboard::Overview::Race
+  include PerformanceDashboard::Overview::Ethnicity
   include PerformanceDashboard::Overview::Detail
   include PerformanceDashboard::Overview::Entering
   include PerformanceDashboard::Overview::Exiting
@@ -17,12 +18,6 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
   include PerformanceDashboard::Overview::ProjectType
   include PerformanceDashboard::Overview::Coc
   include PerformanceDashboard::Overview::LotHomeless
-
-  EXPIRATION_LENGTH = if Rails.env.development?
-    10.seconds
-  else
-    5.minutes
-  end
 
   def self.url
     'performance_dashboards/overview'
@@ -50,6 +45,7 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
       'by_gender',
       'by_household',
       'by_race',
+      'by_ethnicity',
       'by_veteran',
       'by_project_type',
       'by_lot_homeless',
@@ -73,7 +69,8 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
       gender: 'By Gender',
       household: 'By Household Type',
       veteran: 'By Veteran Status',
-      race: 'By Race',
+      race: 'By Race Overall',
+      ethnicity: 'By Ethnicity Overall',
       project_type: 'By Project Type',
       lot_homeless: 'By LOT Homeless',
     }

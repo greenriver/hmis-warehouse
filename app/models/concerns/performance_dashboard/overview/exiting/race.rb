@@ -18,9 +18,10 @@ module PerformanceDashboard::Overview::Exiting::Race
         pluck(:client_id, :first_date_in_program, *race_columns).
         each do |id, _, *cols|
           races = race_columns.zip(cols).to_h
-          counted[race_bucket(races)] ||= Set.new
-          buckets[race_bucket(races)] << id unless counted[race_bucket(races)].include?(id)
-          counted[race_bucket(races)] << id
+          bucket = race_bucket(races)
+          counted[bucket] ||= Set.new
+          buckets[bucket] << id unless counted[bucket].include?(id)
+          counted[bucket] << id
         end
       buckets
     end

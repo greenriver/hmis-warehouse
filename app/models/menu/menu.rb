@@ -107,7 +107,7 @@ class Menu::Menu
       item = Menu::Item.new(
         user: user,
         visible: ->(user) { GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(user).where(url: report.url).exists? },
-        path: report.url,
+        path: "/#{report.url}",
         title: report.name,
       )
       menu.add_child(item)
