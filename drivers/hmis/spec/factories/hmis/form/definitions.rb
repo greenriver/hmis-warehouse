@@ -102,6 +102,7 @@ FactoryBot.define do
     end
   end
 
+  # Custom Assessment that create/updates a CE Assessment record
   factory :housing_needs_assessment, parent: :hmis_form_definition do
     role { :CUSTOM_ASSESSMENT }
     definition do
@@ -179,10 +180,12 @@ FactoryBot.define do
         ],
       }
     end
-
-    # This factory could create the `assessment_question` CDED using after_create, but for now it's not needed
+    after(:create) do |instance, evaluator|
+      instance.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: evaluator.data_source).reject(&:persisted?).each(&:save!)
+    end
   end
 
+  # Custom Assessment that creates/updates a Custom Data Element
   factory :custom_assessment_with_custom_fields_and_rules, parent: :hmis_form_definition do
     role { :CUSTOM_ASSESSMENT }
     title { 'Test Custom Assessment' }
@@ -207,32 +210,12 @@ FactoryBot.define do
               },
               {
                 'type': 'STRING',
-                'required': true,
-                'link_id': 'es_projects_custom_question',
-                'text': 'Custom field for ES projects only',
+                'required': false,
+                'link_id': 'custom_question_1',
+                'text': 'Custom question 1',
                 'mapping': {
-                  'custom_field_key': 'es_projects_custom_question',
+                  'custom_field_key': 'custom_question_1',
                 },
-                'rule': {
-                  operator: 'ANY',
-                  parts: [
-                    {
-                      variable: 'projectType',
-                      operator: 'EQUAL',
-                      value: 1, # ES NBN
-                    },
-                  ],
-                },
-              },
-              {
-                'type': 'STRING',
-                'required': true,
-                'link_id': 'veteran_hoh_custom_question',
-                'text': 'Custom field for Veteran HoH only',
-                'mapping': {
-                  'custom_field_key': 'veteran_hoh_custom_question',
-                },
-                data_collected_about: 'VETERAN_HOH',
               },
             ],
           },
@@ -242,26 +225,8 @@ FactoryBot.define do
     transient do
       data_source { nil }
     end
-    after(:create) do |_instance, evaluator|
-      next unless evaluator.data_source # must pass data source to create CDEDs
-
-      Hmis::Hud::CustomDataElementDefinition.where(
-        owner_type: 'Hmis::Hud::CustomAssessment',
-        key: :es_projects_custom_question,
-        label: 'Custom field for ES projects only',
-        field_type: :string,
-        data_source: evaluator.data_source,
-        UserID: '1',
-      ).first_or_create!
-
-      Hmis::Hud::CustomDataElementDefinition.where(
-        owner_type: 'Hmis::Hud::CustomAssessment',
-        key: :veteran_hoh_custom_question,
-        label: 'Custom field for Veteran HoH only',
-        field_type: :string,
-        data_source: evaluator.data_source,
-        UserID: '1',
-      ).first_or_create!
+    after(:create) do |instance, evaluator|
+      instance.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: evaluator.data_source).reject(&:persisted?).each(&:save!)
     end
   end
 end

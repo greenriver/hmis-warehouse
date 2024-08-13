@@ -568,11 +568,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # Find and/or initialize CustomDataElementDefinitions that are collected by this form.
   # This is used by PublishExternalFormsJob.
   # This should eventually be removed as we're now moving towards relying on Publish Form to generate CDEDs.
-  def introspect_custom_data_element_definitions(set_definition_identifier: false)
+  def introspect_custom_data_element_definitions(set_definition_identifier: false, data_source: GrdaWarehouse::DataSource.hmis.first)
     owner_type = owner_class.sti_name
     raise "unable to determine owner class for form role: #{role}" unless owner_type
 
-    data_source = GrdaWarehouse::DataSource.hmis.first # TODO: needs adjustment to support multiple data sources
     hud_user_id = Hmis::Hud::User.system_user(data_source_id: data_source.id).UserID
     cded_scope = Hmis::Hud::CustomDataElementDefinition.where(owner_type: owner_type, data_source: data_source)
     cdeds_by_key = cded_scope.index_by(&:key)
