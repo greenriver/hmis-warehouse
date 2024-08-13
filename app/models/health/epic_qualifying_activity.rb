@@ -19,11 +19,17 @@ module Health
     # phi_attr :activity
     # phi_attr :mode
     # phi_attr :reached
+    phi_attr :data_source_id, Phi::SmallPopulation, "Source of data (may identify provider)"
 
     include NotifierConfig
-    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_qualifying_activities, optional: true
+    belongs_to :epic_patient, **epic_assoc(
+      model: :epic_patient,
+      primary_key: :id_in_source,
+      foreign_key: :patient_id,
+    ), inverse_of: :epic_qualifying_activities, optional: true
     has_one :patient, through: :epic_patient
-    has_one :qualifying_activity, -> { where source_type: Health::EpicQualifyingActivity.name }, primary_key: :id_in_source, foreign_key: :epic_source_id
+    has_one :qualifying_activity, -> { where source_type: Health::EpicQualifyingActivity.name },
+      **epic_assoc(model: :qualifying_activity, primary_key: :id_in_source, foreign_key: :epic_source_id)
 
     scope :unprocessed, -> do
       where.not(id_in_source: Health::QualifyingActivity.where(source_type: name).select(:epic_source_id))

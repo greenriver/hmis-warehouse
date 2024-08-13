@@ -26,10 +26,19 @@ module Health
     phi_attr :dx_2_icd10, Phi::SmallPopulation
     phi_attr :dx_2_name, Phi::FreeText
     # phi_attr :homeless_status
+    phi_attr :data_source_id, Phi::SmallPopulation, "Source of data (may identify provider)"
 
-    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_case_notes, optional: true
+    belongs_to :epic_patient, **epic_assoc(
+      model: :epic_patient,
+      primary_key: :id_in_source,
+      foreign_key: :patient_id,
+    ), inverse_of: :epic_case_notes, optional: true
     has_many :patient, through: :epic_patient
-    has_many :epic_case_note_qualifying_activities, primary_key: :id_in_source, foreign_key: :epic_case_note_source_id, inverse_of: :epic_case_note
+    has_many :epic_case_note_qualifying_activities, **epic_assoc(
+      model: :epic_case_note_qualifying_activity,
+      primary_key: :id_in_source,
+      foreign_key: :epic_case_note_source_id
+    ), inverse_of: :epic_case_note
 
     scope :with_housing_status, -> do
       where.not(homeless_status: [nil, '']).where.not(contact_date: nil)

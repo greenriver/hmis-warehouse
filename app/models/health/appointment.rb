@@ -17,8 +17,14 @@ module Health
     phi_attr :sa, Phi::NeedsReview
     phi_attr :appointment_time, Phi::Date, "Date of appointment"
     phi_attr :id_in_source, Phi::OtherIdentifier
+    phi_attr :data_source_id, Phi::SmallPopulation, "Source of data (may identify provider)"
 
-    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :appointments
+    belongs_to :patient, **epic_assoc(
+      model: :patient,
+      primary_key: :id_in_source,
+      foreign_key: :patient_id,
+    ), inverse_of: :appointments
+
     scope :limited, -> do
       where.not(department: ignore_departments)
     end

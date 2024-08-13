@@ -18,8 +18,13 @@ module Health
     phi_attr :email, Phi::SmallPopulation, 'Email of team member'
     phi_attr :phone, Phi::SmallPopulation, 'Phone number of team member'
     # phi_attr :processed
+    phi_attr :data_source_id, Phi::SmallPopulation, "Source of data (may identify provider)"
 
-    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_team_members, optional: true
+    belongs_to :patient, **epic_assoc(
+      model: :patient,
+      primary_key: :id_in_source,
+      foreign_key: :patient_id,
+    ), inverse_of: :epic_team_members, optional: true
 
     scope :unprocessed, -> do
       where(processed: nil)

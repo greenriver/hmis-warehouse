@@ -18,8 +18,13 @@ module Health
     phi_attr :title, Phi::FreeText, 'Title of goal'
     phi_attr :contents, Phi::FreeText, 'Content of goal'
     phi_attr :received_valid_complaint, Phi::NeedsReview
+    phi_attr :data_source_id, Phi::SmallPopulation, "Source of data (may identify provider)"
 
-    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_goals, optional: true
+    belongs_to :epic_patient, **epic_assoc(
+      model: :epic_patient,
+      primary_key: :id_in_source,
+      foreign_key: :patient_id,
+    ), inverse_of: :epic_goals, optional: true
     has_many :patient, through: :epic_patient
 
     scope :visible, -> do

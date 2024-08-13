@@ -2592,7 +2592,8 @@ CREATE TABLE public.epic_housing_statuses (
     collected_on date NOT NULL,
     status character varying NOT NULL,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    data_source_id bigint
 );
 
 
@@ -3724,7 +3725,9 @@ CREATE TABLE public.import_configs (
     encrypted_passphrase character varying,
     encrypted_passphrase_iv character varying,
     encrypted_secret_key character varying,
-    encrypted_secret_key_iv character varying
+    encrypted_secret_key_iv character varying,
+    type character varying,
+    active boolean DEFAULT false
 );
 
 
@@ -5377,7 +5380,8 @@ CREATE TABLE public.thrive_assessments (
     reporter integer,
     trouble_with_adl boolean,
     help_with_adl boolean,
-    external_name character varying
+    external_name character varying,
+    data_source_id bigint
 );
 
 
@@ -8107,6 +8111,13 @@ CREATE INDEX index_epic_housing_statuses_on_collected_on ON public.epic_housing_
 
 
 --
+-- Name: index_epic_housing_statuses_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_epic_housing_statuses_on_data_source_id ON public.epic_housing_statuses USING btree (data_source_id);
+
+
+--
 -- Name: index_epic_housing_statuses_on_patient_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8730,6 +8741,13 @@ CREATE INDEX index_teams_on_careplan_id ON public.teams USING btree (careplan_id
 
 
 --
+-- Name: index_thrive_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_thrive_assessments_on_data_source_id ON public.thrive_assessments USING btree (data_source_id);
+
+
+--
 -- Name: index_thrive_assessments_on_patient_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -9310,6 +9328,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240327144840'),
 ('20240402142808'),
 ('20240515205603'),
-('20240710141900');
+('20240710141900'),
+('20240726191502'),
+('20240726193601'),
+('20240807182354'),
+('20240807183449'),
+('20240807185011'),
+('20240813173532'),
+('20240813174220');
 
 

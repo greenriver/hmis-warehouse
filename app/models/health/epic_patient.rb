@@ -30,21 +30,22 @@ module Health
     phi_attr :medicaid_id, Phi::HealthPlan, "Medicaid plan ID"
     phi_attr :housing_status_timestamp, Phi::Date, "Timestamp of current housing status update"
     phi_attr :death_date, Phi::Date, "Date of death"
+    phi_attr :data_source_id, Phi::SmallPopulation, "Source of data (may identify provider)"
 
-    has_one :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id
-    has_many :appointments, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :medications, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :problems, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :visits, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :epic_goals, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :epic_case_notes, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :epic_case_note_qualifying_activities, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :epic_team_members, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
-    has_many :epic_qualifying_activities, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_patient
-    has_many :epic_careplans, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_patient
-    has_many :epic_chas, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_patient
-    has_many :epic_ssms, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_patient
-    has_many :epic_housing_statuses, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_patient
+    has_one :patient, **epic_assoc(model: :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id)
+    has_many :appointments, **epic_assoc(model: :appointment, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :patient
+    has_many :medications, **epic_assoc(model: :medication, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :patient
+    has_many :problems, **epic_assoc(model: :problem, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :patient
+    has_many :visits, **epic_assoc(model: :visit, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :patient
+    has_many :epic_goals, **epic_assoc(model: :epic_goal, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :patient
+    has_many :epic_case_notes, **epic_assoc(model: :epic_case_note, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :patient
+    has_many :epic_case_note_qualifying_activities, **epic_assoc(model: :epic_case_note_qualifying_activity, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :patient
+    has_many :epic_team_members, **epic_assoc(model: :epic_team_member, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :patient
+    has_many :epic_qualifying_activities, **epic_assoc(model: :epic_qualifying_activity, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :epic_patient
+    has_many :epic_careplans, **epic_assoc(model: :epic_careplan, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :epic_patient
+    has_many :epic_chas, **epic_assoc(model: :epic_cha, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :epic_patient
+    has_many :epic_ssms, **epic_assoc(model: :epic_ssm, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :epic_patient
+    has_many :epic_housing_statuses, **epic_assoc(model: :epic_housing_status, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :epic_patient
 
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }
