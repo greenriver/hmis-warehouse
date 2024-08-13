@@ -102,7 +102,6 @@ module Hmis
 
       dev_or_test = Rails.env.test? || Rails.env.development?
 
-      puts ">>>#{err.message}"
       display_message = if dev_or_test
         err.message
       elsif err.is_a?(HmisErrors::ApiError)
