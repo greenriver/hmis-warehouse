@@ -180,8 +180,11 @@ FactoryBot.define do
         ],
       }
     end
+    transient do
+      data_source { nil }
+    end
     after(:create) do |instance, evaluator|
-      instance.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: evaluator.data_source).reject(&:persisted?).each(&:save!)
+      instance.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: evaluator.data_source).reject(&:persisted?).each(&:save!) if evaluator.data_source
     end
   end
 
@@ -226,7 +229,7 @@ FactoryBot.define do
       data_source { nil }
     end
     after(:create) do |instance, evaluator|
-      instance.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: evaluator.data_source).reject(&:persisted?).each(&:save!)
+      instance.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: evaluator.data_source).reject(&:persisted?).each(&:save!) if evaluator.data_source
     end
   end
 end
