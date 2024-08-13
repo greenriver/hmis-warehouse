@@ -66,6 +66,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
+  before(:each) do
+    ['fieldOne', 'fieldTwo'].each do |key|
+      create(:hmis_custom_data_element_definition, key: key, owner_type: 'Hmis::Hud::CustomAssessment', data_source: ds1)
+    end
+  end
+
   let(:mutation) do
     <<~GRAPHQL
       mutation PublishFormDefinition($id: ID!) {
