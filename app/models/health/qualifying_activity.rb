@@ -699,7 +699,7 @@ module Health
 
       message = 'Patient was not enrolled on or within 90 days prior to the QA'
       errors.add(:date_of_activity, :invalid, message: message)
-      Rails.logger.error("Health::QualifyingActivity for #{patient_id}: " + message)
+      Rails.logger.error("Health::QualifyingActivity for #{patient_id}: " + message + " #{activity} on #{date_of_activity}")
     end
   end
 end
