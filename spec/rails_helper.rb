@@ -90,6 +90,8 @@ RSpec.configure do |config|
     PaperTrail.enabled = false
 
     ::HmisUtil::JsonForms.seed_all if ENV['ENABLE_HMIS_API'] == 'true'
+
+    Rack::Attack.enabled = false
   end
 end
 
