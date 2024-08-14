@@ -50,6 +50,17 @@ FactoryBot.define do
         ],
       }
     end
+    transient do
+      data_source { nil } # Data source needed to create CDEDs
+    end
+    after(:create) do |instance, evaluator|
+      next unless instance.published? && evaluator.data_source
+
+      # Create CDEDs for items that have { mapping: { custom_field_key: '...' } }
+      # Note: this is slightly different from the CDED generation process that happens on publish,
+      # which does not expect any `mapping` to be present on new items.
+      instance.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: evaluator.data_source).reject(&:persisted?).each(&:save!)
+    end
   end
 
   factory :hmis_intake_assessment_definition, parent: :hmis_form_definition do
@@ -120,7 +131,7 @@ FactoryBot.define do
                 'text': 'Assessment Date',
                 'assessment_date': true,
                 'mapping': {
-                  'record_type': 'ASSESSMENT',
+                  'record_type': 'ASSESSMENT', # CeAssessment
                   'field_name': 'assessmentDate',
                 },
               },
@@ -180,12 +191,6 @@ FactoryBot.define do
         ],
       }
     end
-    transient do
-      data_source { nil }
-    end
-    after(:create) do |instance, evaluator|
-      instance.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: evaluator.data_source).reject(&:persisted?).each(&:save!) if evaluator.data_source
-    end
   end
 
   # Custom Assessment that creates/updates a Custom Data Element
@@ -224,12 +229,6 @@ FactoryBot.define do
           },
         ],
       }.deep_stringify_keys
-    end
-    transient do
-      data_source { nil }
-    end
-    after(:create) do |instance, evaluator|
-      instance.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: evaluator.data_source).reject(&:persisted?).each(&:save!) if evaluator.data_source
     end
   end
 end
