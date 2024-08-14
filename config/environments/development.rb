@@ -134,4 +134,17 @@ Rails.application.configure do
   routes.default_url_options ||= {}
   routes.default_url_options[:script_name] = ''
   routes.default_url_options[:host] = ENV['FQDN']
+
+  if ENV['DISABLE_AR_QUERY_TRACE'] != 'true'
+    # this used to be the Marginalia gem, now built-in to rails
+    config.active_record.query_log_tags_enabled = true
+    config.active_record.query_log_tags = [
+      :application,
+      :controller,
+      :action,
+      :job,
+      :source_location,
+    ]
+    ActiveRecord::QueryLogs.prepend_comment = false
+  end
 end
