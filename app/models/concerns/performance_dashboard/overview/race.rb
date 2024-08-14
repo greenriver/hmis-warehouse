@@ -12,7 +12,7 @@ module PerformanceDashboard::Overview::Race
   end
 
   def race_title(key)
-    return 'Multiple' if key == 'Multiple'
+    return 'Multi-Racial' if key == 'Multiple'
 
     HudUtility2024.race(key)
   end
@@ -33,7 +33,7 @@ module PerformanceDashboard::Overview::Race
     races << 'BlackAfAmerican' if client_races[:BlackAfAmerican] == 1
     races << 'NativeHIPacific' if client_races[:NativeHIPacific] == 1
     races << 'White' if client_races[:White] == 1
-    races << 'HispanicLatinaeo' if client_races[:HispanicLatinaeo] == 1
+    races << 'HispanicLatinaeo' if client_races[:HispanicLatinaeo] == 1 # Confirm these are "only buckets"
     races << 'MidEastNAfrican' if client_races[:MidEastNAfrican] == 1
     return 'RaceNone' if client_races[:RaceNone].in?([8, 9, 99]) || races.empty?
 

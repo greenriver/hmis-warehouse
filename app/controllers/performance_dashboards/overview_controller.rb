@@ -46,6 +46,7 @@ module PerformanceDashboards
           :sub_population,
           :race,
           :ethnicity,
+          :race_and_ethnicity,
           :project_type,
           :coc,
           :lot_homeless,

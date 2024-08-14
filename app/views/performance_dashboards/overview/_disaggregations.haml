@@ -9,6 +9,6 @@
     'use strict';
     var section_path = #{(url_for(action: 'index') + '/section/').to_json.html_safe};
     var sections = new App.Sections.Loader($('.rollup'), section_path, #{params.to_json.html_safe});
-    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.enrolled-by-#{breakdown}-chart', {remote: true});
-    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.entering-by-#{breakdown}-chart', {remote: true});
-    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.exiting-by-#{breakdown}-chart', {remote: true});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.enrolled-by-#{breakdown.to_s.gsub('_', '-')}-chart', {remote: true});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.entering-by-#{breakdown.to_s.gsub('_', '-')}-chart', {remote: true});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.exiting-by-#{breakdown.to_s.gsub('_', '-')}-chart', {remote: true});

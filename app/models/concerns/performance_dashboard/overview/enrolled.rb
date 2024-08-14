@@ -10,6 +10,7 @@ module PerformanceDashboard::Overview::Enrolled
   include PerformanceDashboard::Overview::Enrolled::Gender
   include PerformanceDashboard::Overview::Enrolled::Household
   include PerformanceDashboard::Overview::Enrolled::Veteran
+  include PerformanceDashboard::Overview::Enrolled::RaceAndEthnicity
   include PerformanceDashboard::Overview::Enrolled::Race
   include PerformanceDashboard::Overview::Enrolled::Ethnicity
   include PerformanceDashboard::Overview::Enrolled::ProjectType
@@ -40,6 +41,8 @@ module PerformanceDashboard::Overview::Enrolled
       enrolled_by_race_details(options)
     elsif options[:ethnicity]
       enrolled_by_ethnicity_details(options)
+    elsif options[:race_and_ethnicity]
+      enrolled_by_race_and_ethnicity_details(options)
     elsif options[:project_type]
       enrolled_by_project_type_details(options)
     elsif options[:coc]

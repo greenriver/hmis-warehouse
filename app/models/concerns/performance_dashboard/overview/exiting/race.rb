@@ -37,7 +37,7 @@ module PerformanceDashboard::Overview::Exiting::Race
           labels: categories.map { |s| [s, HudUtility2024.race(s)] }.to_h,
           chosen: @races,
           columns: columns,
-          categories: categories,
+          categories: categories.map { |s| race_title(s) },
         },
       )
     end
