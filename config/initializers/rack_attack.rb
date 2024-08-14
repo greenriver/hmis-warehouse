@@ -127,9 +127,9 @@ Rack::Attack.tap do |config|
     end
   end
 
-  # Goal: TBD
+  # Goal: Prevent excessive requests to generate PDFs since that endpoint does not require authentication.
   config.throttle(
-    ' per-ip limit on unauthenticated requests for history pdf',
+    'per-ip limit on unauthenticated requests for history pdf',
     limit: 25,
     period: 10.seconds,
   ) do |request|
@@ -149,7 +149,7 @@ Rack::Attack.tap do |config|
     end
   end
 
-  # Goal: the idea seems to be to prevent scripts run through authenticated user accounts with an allowance for known poor behavior for cohort management interface
+  # Goal: prevent scripts run through authenticated user accounts from harvesting data or excessive use of the site, with an allowance for known poor behavior for cohorts, roll-ups, and other pages that load more than one request per page.
   config.throttle(
     'General per-ip limit on authenticated requests',
     limit: ->(request) { request.rapid_paths? ? 250 : 150 },
