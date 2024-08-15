@@ -37,7 +37,7 @@ module PerformanceDashboard::Overview::Detail
     case header
     when 'Woman', 'Man', 'NonBinary', 'CulturallySpecific', 'DifferentIdentity', 'Transgender', 'Questioning', 'Unknown Gender'
       HudUtility2024.no_yes_reasons_for_missing_data(column)
-    when HudUtility2024.race('AmIndAKNative'), HudUtility2024.race('Asian'), HudUtility2024.race('BlackAfAmerican'), HudUtility2024.race('NativeHIPacific'), HudUtility2024.race('White'), HudUtility2024.race('RaceNone'), HudUtility2024.race('HispanicLatinaeo'), HudUtility2024.race('MidEastNAfrican')
+    when HudUtility2024.race('AmIndAKNative'), HudUtility2024.race('Asian'), HudUtility2024.race('BlackAfAmerican'), HudUtility2024.race('NativeHIPacific'), HudUtility2024.race('White'), HudUtility2024.race('RaceNone'), HudUtility2024.race('HispanicLatinaeo'), HudUtility2024.race('MidEastNAfrican'), HudUtility2024.ethnicity(:unknown), HudUtility2024.ethnicity(:hispanic_latinaeo), HudUtility2024.ethnicity(:non_hispanic_latinaeo)
       HudUtility2024.no_yes_reasons_for_missing_data(column)
     when 'Veteran Status'
       HudUtility2024.veteran_status(column)
@@ -68,6 +68,11 @@ module PerformanceDashboard::Overview::Detail
         title += " #{veteran_bucket_titles[sub_key.to_i]}"
       elsif options[:race].present?
         title += " #{race_bucket_titles[sub_key.to_s]}"
+      elsif options[:ethnicity].present?
+        title += " #{ethnicity_bucket_titles[sub_key.to_sym]}"
+      elsif options[:race_and_ethnicity].present?
+        race, ethnicity = sub_key.to_s.split('-')
+        title += " #{race_and_ethnicity_bucket_titles[{ race: race, ethnicity: ethnicity.to_sym }]}"
       elsif options[:project_type].present?
         title += " #{project_type_bucket_titles[sub_key.to_i]}"
       elsif options[:coc].present?
@@ -114,7 +119,7 @@ module PerformanceDashboard::Overview::Detail
       columns['Other Clients over 25'] = she_t[:other_clients_over_25]
     end
     columns['Veteran Status'] = c_t[:VeteranStatus] if options[:veteran]
-    if options[:race]
+    if options[:race] || options[:ethnicity] || options[:race_and_ethnicity]
       HudUtility2024.races.each do |k, title|
         columns[title] = c_t[k.to_sym]
       end

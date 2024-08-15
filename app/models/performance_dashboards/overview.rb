@@ -9,7 +9,9 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
   include PerformanceDashboard::Overview::Gender
   include PerformanceDashboard::Overview::Household
   include PerformanceDashboard::Overview::Veteran
+  include PerformanceDashboard::Overview::RaceAndEthnicity
   include PerformanceDashboard::Overview::Race
+  include PerformanceDashboard::Overview::Ethnicity
   include PerformanceDashboard::Overview::Detail
   include PerformanceDashboard::Overview::Entering
   include PerformanceDashboard::Overview::Exiting
@@ -43,7 +45,9 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
       'by_age',
       'by_gender',
       'by_household',
+      'by_race_and_ethnicity',
       'by_race',
+      'by_ethnicity',
       'by_veteran',
       'by_project_type',
       'by_lot_homeless',
@@ -67,7 +71,9 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
       gender: 'By Gender',
       household: 'By Household Type',
       veteran: 'By Veteran Status',
-      race: 'By Race',
+      race_and_ethnicity: 'By Race and Ethnicity',
+      race: 'By Race Overall',
+      ethnicity: 'By Ethnicity Overall',
       project_type: 'By Project Type',
       lot_homeless: 'By LOT Homeless',
     }

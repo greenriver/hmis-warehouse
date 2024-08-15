@@ -71,7 +71,7 @@
 .well.mb-6.pt-2
   .chart-legend-prs1{id: legend_id}
   - if @pdf
-    .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: chart_options.to_json.html_safe } }
+    .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class.gsub('_', '-'), data: { chart: chart_options.to_json.html_safe } }
   - else
     .prs-chart-width-container
-      .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: chart_options.to_json.html_safe } }
+      .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class.gsub('_', '-'), data: { chart: chart_options.to_json.html_safe } }
