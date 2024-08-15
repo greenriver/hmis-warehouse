@@ -9,7 +9,7 @@ module PerformanceDashboard::Overview::Exiting::Coc
 
   # NOTE: always count the most-recently started enrollment within the range
   def exiting_by_coc
-    @exiting_by_coc ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @exiting_by_coc ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: PerformanceDashboards::Overview::EXPIRATION_LENGTH) do
       buckets = coc_buckets.map { |b| [b, []] }.to_h
       counted = {}
       exiting.joins(:enrollment_coc_at_entry).

@@ -9,7 +9,7 @@ module PerformanceDashboard::Overview::Entering::Veteran
 
   # NOTE: always count the most-recently started enrollment within the range
   def entering_by_veteran
-    @entering_by_veteran ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @entering_by_veteran ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: PerformanceDashboards::Overview::EXPIRATION_LENGTH) do
       buckets = veteran_buckets.map { |b| [b, []] }.to_h
       counted = {}
       entering.
