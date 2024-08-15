@@ -32,24 +32,24 @@ module HudReports::Clients
       }
     end
 
-    # Assessments are expected if:
-    # You are the head of household.
-    # If the enrollment lasted 365 days or more
-    # and the reporting period end is 365 days or more since the beginning of the enrollment
-    # and the enrollment started 365 days ago
-    private def annual_assessment_expected?(enrollment)
+    # Calculate the head of household’s number of years in the project. This can be done using the same
+    # algorithm as for calculating a client’s age as of a certain date. Use the client’s [project start date] and the
+    # [report end date] as the two dates of comparison. This calculation is time-based, not service-based, so a
+    # client with a [project start date] that is active for a year or longer in a night-by-night emergency shelter
+    # would require an Annual Assessment, regardless of how many bed night dates were recorded. It is
+    # important to use the “age” method of determining client anniversaries due to leap years; using “one year =
+    # 365 days” will eventually incorrectly offset the calculated anniversaries of long-term stayers.
+    private def annual_assessment_expected?(enrollment:, report_end_date: Date.current)
       return false unless enrollment.present? && enrollment.head_of_household?
 
-      end_date = [enrollment.last_date_in_program, report_end_date, Date.current].compact.min
-      enough_days = if enrollment.project.bed_night_tracking?
-        enrollment.enrollment.services.
-          bed_night.between(start_date: enrollment.first_date_in_program, end_date: end_date).
-          count >= 365
-      else
-        true
-      end
+      start_for_annual = enrollment.entry_date
+      end_date = [enrollment.last_date_in_program, report_end_date].compact.min
+      # Get difference in years, ignoring month/date
+      years_in_project = end_date.year - start_for_annual.year
+      # Remove 1 year if month/date of start is after the month/date of the end date. This will account for leap years.
+      years_in_project -= 1 if start_for_annual + years_in_project.years > end_date
 
-      enrollment.first_date_in_program + 365.days <= end_date && enough_days
+      years_in_project > 0
     end
 
     private def annual_assessment_in_window?(enrollment, assessment_date)
