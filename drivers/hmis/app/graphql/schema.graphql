@@ -266,6 +266,11 @@ type Assessment {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
+
+  """
+  Definition to use for viewing the assessment. If upgradedDefinitionForEditing
+  is nil, then it should also be used for editing.
+  """
   definition: FormDefinition!
   disabilityGroup: DisabilityGroup
   employmentEducation: EmploymentEducation
@@ -278,6 +283,12 @@ type Assessment {
   incomeBenefit: IncomeBenefit
   lockVersion: Int!
   role: AssessmentRole!
+
+  """
+  Most recent published Definition to use for editing the assessment. Only
+  present if the original form definition was retired.
+  """
+  upgradedDefinitionForEditing: FormDefinition
   user: ApplicationUser
   wipValues: JsonObject
   youthEducationStatus: YouthEducationStatus
@@ -4008,6 +4019,7 @@ type FormDefinition {
   system: Boolean!
   title: String!
   updatedBy: ApplicationUser
+  version: ID!
 }
 
 type FormDefinitionForJsonResult {
