@@ -189,6 +189,10 @@ module HudApr::Generators::Shared::Fy2024
           #   household_types[hh_id]
           # end
           hoh_anniversary_date = anniversary_date(entry_date: hoh_enrollment.first_date_in_program, report_end_date: @report.end_date)
+          # Households with required assessments are calculated earlier for performance reasons.
+          # An APR is being submitted to verify assessment requirements for non-HoH adults entering the HH at a different date than the HoH.
+          # e.g. If an adult enters 1 day prior HoH assessment date, is their assessment required on the HoH date (1 day later) or on the following year (1 year + 1 day later)
+          #      If an adult enters 1 day after the HoH assessment date is their assessment due on the HoH date (1 year - 1 day later) or on the following year (2 years - 1 day)
           annual_assessment_expected = if age.present? && age >= 18
             household_assessment_required[hh_id] && last_service_history_enrollment.first_date_in_program < hoh_anniversary_date
           else
