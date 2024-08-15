@@ -17,9 +17,13 @@ FactoryBot.define do
 
   factory :csg_engage_program_mapping, class: 'MaReports::CsgEngage::ProgramMapping' do
     sequence(:clarity_name) { |n| "Clarity Project #{n}" }
+    program { association :csg_engage_program }
+    project { association :hud_project }
+  end
+
+  factory :csg_engage_program, class: 'MaReports::CsgEngage::Program' do
     sequence(:csg_engage_name) { |n| "CSG Engage Project #{n}" }
     sequence(:csg_engage_import_keyword) { |n| "CSG Engage Keyword #{n}" }
     agency { association :csg_engage_agency }
-    project { association :hud_project }
   end
 end
