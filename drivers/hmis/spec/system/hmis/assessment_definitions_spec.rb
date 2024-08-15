@@ -64,6 +64,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
 
         # unlock the assessment should upgrade to the newer form
         click_button('Unlock Assessment', match: :first)
+        assert_text 'Submit' # Unlock succeeded
         assert_no_text old_definition.title
         assert_text definition.title
         expect(page).to have_field('Assessment Date', with: assessment.assessment_date.strftime('%m/%d/%Y'))
@@ -131,11 +132,14 @@ RSpec.feature 'Assessment definition selection', type: :system do
         assert_text 'Entry Date'
         assert_text e1.entry_date.strftime('%m/%d/%Y')
 
+        assert_text 'Last submitted'
         click_button('Unlock Assessment', match: :first)
+        assert_text 'Save & Submit' # Unlock succeeded
+
         # expect new form
+        assert_text definition.title
         assert_no_text old_definition.title
         assert_no_text 'Text on old form'
-        assert_text definition.title
         expect(page).to have_field('Entry Date', with: e1.entry_date.strftime('%m/%d/%Y'))
       end
     end
