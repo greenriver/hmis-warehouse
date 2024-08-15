@@ -127,6 +127,9 @@
         "value_number": {
           "type": "integer"
         },
+        "value_date": {
+          "type": "string"
+        },
         "offset": {
           "type": "integer"
         },
