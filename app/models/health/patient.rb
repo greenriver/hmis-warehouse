@@ -179,7 +179,7 @@ module Health
         patient_id: id,
         activity: :sdoh_positive,
         follow_up: 'Patient SDoH Screening Positive',
-      )
+      ).maintain_cached_values
     end
 
     scope :pilot, -> { where pilot: true }
