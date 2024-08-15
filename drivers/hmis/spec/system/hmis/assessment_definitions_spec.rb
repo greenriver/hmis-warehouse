@@ -13,6 +13,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, entry_date: 1.month.ago }
   let(:today) { Date.current }
 
+  # Test context for viewing/editing an "individual assessment" (non-household) using a Custom Assessment form
   context 'Performing individual Custom Assessment' do
     let!(:definition) { create :custom_assessment_with_custom_fields_and_rules, title: 'Very Custom Assessment', data_source: ds1 }
     let!(:old_definition) do
@@ -82,6 +83,9 @@ RSpec.feature 'Assessment definition selection', type: :system do
     end
   end
 
+  # Test context for viewing/editing a "household assessment" using an Intake form
+  # Household contains 4 members each with differently configured assessments, to ensure
+  # that the correct form version is used for each member, even in the Household Assessments view.
   context 'Performing Household Intake assessments with various definition versions' do
     let!(:definition) { create :hmis_intake_assessment_definition, title: 'New Special Intake' }
     let!(:old_definition) do
@@ -93,12 +97,12 @@ RSpec.feature 'Assessment definition selection', type: :system do
 
     # e1 (HoH): Intake was Submitted with old form
     let!(:c1) { create :hmis_hud_client, data_source: ds1, first_name: 'Parent', last_name: 'Jones' }
-    let!(:e1) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: c1, entry_date: 2.months.ago, relationship_to_hoh: 1 }
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, entry_date: 2.months.ago, relationship_to_hoh: 1 }
     let!(:e1_assessment) { create(:hmis_intake_assessment, definition: old_definition, enrollment: e1) }
 
     # e2 (spouse): Intake was Submitted with published form
     let!(:c2) { create :hmis_hud_client, data_source: ds1, first_name: 'Spouse', last_name: 'Jones' }
-    let!(:e2) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: c2, entry_date: 1.month.ago, relationship_to_hoh: 3, household_id: e1.household_id }
+    let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, entry_date: 1.month.ago, relationship_to_hoh: 3, household_id: e1.household_id }
     let!(:e2_assessment) { create(:hmis_intake_assessment, definition: definition, enrollment: e2) }
 
     # e3 (child): Intake was started with old form, not yet submitted
