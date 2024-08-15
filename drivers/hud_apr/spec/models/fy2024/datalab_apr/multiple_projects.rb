@@ -240,9 +240,6 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19a2',
-        skip: [
-          'J2', # expected '0.1200' (0.1154), got '0.1100' (0.1149)
-        ],
       )
     end
 

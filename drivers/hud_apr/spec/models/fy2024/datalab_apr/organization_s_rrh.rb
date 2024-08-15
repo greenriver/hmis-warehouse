@@ -234,9 +234,6 @@ RSpec.shared_context 'datalab organization s rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19a2',
-        skip: [
-          'I7', # expected '802.6200' (802.62), got '802.6300' (802.63)
-        ],
       )
     end
 

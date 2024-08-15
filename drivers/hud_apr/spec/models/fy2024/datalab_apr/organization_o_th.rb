@@ -228,10 +228,7 @@ RSpec.shared_context 'datalab organization o th apr', shared_context: :metadata 
         file_path: result_file_prefix + results_dir,
         question: 'Q19a2',
         skip: [
-          'J2', # expected '0.2200' (0.2222), got '0.1800' (0.1818)
-          'J4', # expected '0.0700' (0.0741), got '0.0600' (0.0606)
           'B5', # expected '-2427.0000' (-2427.00), got '-4854.0000' (-4854.00)
-          'J6', # expected '0.2600' (0.2593), got '0.2100' (0.2121)
         ],
       )
     end
