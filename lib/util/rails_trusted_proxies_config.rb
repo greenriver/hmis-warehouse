@@ -22,6 +22,8 @@ module RailsTrustedProxiesConfig
 
     trusted_proxies = trusted_proxies_str.split(',').map do |str|
       str.strip!
+      next unless str.present?
+
       single_ip_patterns.any? { |regex| str =~ regex } ? str : IPAddr.new(str)
     end
     trusted_proxies.compact.presence
