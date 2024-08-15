@@ -509,10 +509,6 @@ RSpec.shared_context 'datalab organization t psh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27j',
-        skip: [
-          'C2', # expected '533.5000' (533.5), got '534.0000' (534)
-          'C3', # expected '533.5000' (533.5), got '534.0000' (534)
-        ],
       )
     end
 
