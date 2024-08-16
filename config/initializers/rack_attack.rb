@@ -43,15 +43,11 @@ module RackAttackRequestHelpers
   end
 
   # returns the x-forward-for ip if we think the sending ip is trusted. Depends the RemoteIp rails middleware installed higher in the stack
-  def request_ip
-    if env['HTTP_X_PROXY_SECRET_KEY'] == ENV['PROXY_SECRET_KEY'] || trusted_proxy?
-      result = env['action_dispatch.remote_ip']
-      raise 'could not find remote_ip, check middleware for ActionDispatch::RemoteIp' unless result
+  memoize def request_ip
+    result = env['action_dispatch.remote_ip']&.to_s
+    raise 'could not find remote_ip, check middleware for ActionDispatch::RemoteIp' unless result.present?
 
-      result
-    else
-      ip
-    end
+    result
   end
 
   def anonymous?
@@ -86,7 +82,7 @@ module RackAttackRequestHelpers
   # is the source ip on a local or private network?
   def trusted_proxy?
     ActionDispatch::RemoteIp::TRUSTED_PROXIES.any? do |range|
-      range.include?(request.ip)
+      range.include?(request_ip)
     end
   end
 end
@@ -197,7 +193,7 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
     path: request.fullpath,
     amzn_trace_id: request.env['HTTP_X_AMZN_TRACE_ID'],
     request_start: request.env['HTTP_X_REQUEST_START'].try(:gsub, /\At=/, '').presence || start,
-    remote_ip: request.env['action_dispatch.remote_ip'],
+    remote_ip: request.env['action_dispatch.remote_ip']&.to_s,
     user_id: request.env['warden'].user&.id,
     session_id: request.env['rack.session'].id,
     user_agent: request.env['HTTP_USER_AGENT'],
