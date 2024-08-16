@@ -23,9 +23,9 @@ FactoryBot.define do
                 'link_id': 'linkid_date',
                 'required': true,
                 'warn_if_empty': false,
-                'text': 'Information Date',
+                'text': 'Assessment Date',
                 'assessment_date': true,
-                'mapping': { 'field_name': 'informationDate' },
+                'mapping': { 'field_name': 'assessmentDate' },
               },
               {
                 'type': 'INTEGER',
@@ -34,7 +34,7 @@ FactoryBot.define do
                 'warn_if_empty': false,
                 'brief_text': 'The Required Field',
                 'text': 'A required field',
-                'mapping': { 'field_name': 'fieldOne' },
+                'mapping': { 'custom_field_key': 'fieldOne' },
               },
               {
                 'type': 'CHOICE',
@@ -43,12 +43,23 @@ FactoryBot.define do
                 'warn_if_empty': true,
                 'text': 'Choice field',
                 'pick_list_reference': 'NoYesMissing',
-                'mapping': { 'field_name': 'fieldTwo' },
+                'mapping': { 'custom_field_key': 'fieldTwo' },
               },
             ],
           },
         ],
       }
+    end
+    transient do
+      data_source { nil } # Data source needed to create CDEDs
+    end
+    after(:create) do |instance, evaluator|
+      next unless instance.published? && evaluator.data_source
+
+      # Create CDEDs for items that have { mapping: { custom_field_key: '...' } }
+      # Note: this is slightly different from the CDED generation process that happens on publish,
+      # which does not expect any `mapping` to be present on new items.
+      instance.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: evaluator.data_source).reject(&:persisted?).each(&:save!)
     end
   end
 
@@ -58,12 +69,23 @@ FactoryBot.define do
       {
         'item': [
           {
-            'type': 'DATE',
-            'link_id': 'date',
-            'required': true,
-            'warn_if_empty': false,
-            'assessment_date': true,
-            'mapping': { 'field_name': 'entryDate' },
+            'type': 'GROUP',
+            'text': 'Test Intake Assessment',
+            'link_id': 'section_1',
+            'item': [
+              {
+                'type': 'DATE',
+                'link_id': 'entryDate',
+                'required': true,
+                'warn_if_empty': false,
+                'assessment_date': true,
+                'text': 'Entry Date',
+                'mapping': {
+                  'record_type': 'ENROLLMENT',
+                  'field_name': 'entryDate',
+                },
+              },
+            ],
           },
         ],
       }
@@ -91,6 +113,7 @@ FactoryBot.define do
     end
   end
 
+  # Custom Assessment that create/updates a CE Assessment record
   factory :housing_needs_assessment, parent: :hmis_form_definition do
     role { :CUSTOM_ASSESSMENT }
     definition do
@@ -108,7 +131,7 @@ FactoryBot.define do
                 'text': 'Assessment Date',
                 'assessment_date': true,
                 'mapping': {
-                  'record_type': 'ASSESSMENT',
+                  'record_type': 'ASSESSMENT', # CeAssessment
                   'field_name': 'assessmentDate',
                 },
               },
@@ -168,7 +191,44 @@ FactoryBot.define do
         ],
       }
     end
+  end
 
-    # This factory could create the `assessment_question` CDED using after_create, but for now it's not needed
+  # Custom Assessment that creates/updates a Custom Data Element
+  factory :custom_assessment_with_custom_fields_and_rules, parent: :hmis_form_definition do
+    role { :CUSTOM_ASSESSMENT }
+    title { 'Test Custom Assessment' }
+    sequence(:identifier) { |n| "custom_assessment_#{n}" }
+    definition do
+      {
+        'item': [
+          {
+            'type': 'GROUP',
+            'text': 'Test Custom Assessment',
+            'link_id': 'section_1',
+            'item': [
+              {
+                'type': 'DATE',
+                'required': true,
+                'link_id': 'assessment_date',
+                'text': 'Assessment Date',
+                'assessment_date': true,
+                'mapping': {
+                  'field_name': 'assessmentDate',
+                },
+              },
+              {
+                'type': 'STRING',
+                'required': false,
+                'link_id': 'custom_question_1',
+                'text': 'Custom question 1',
+                'mapping': {
+                  'custom_field_key': 'custom_question_1',
+                },
+              },
+            ],
+          },
+        ],
+      }.deep_stringify_keys
+    end
   end
 end

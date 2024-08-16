@@ -62,15 +62,13 @@ module Mutations
       # Common attributes for any CDEDs we will initialize
       data_source = GrdaWarehouse::DataSource.hmis.first
 
-      # FIXME(#6362): For some Definition types (SERVICE, NEW_CLIENT_ENROLLMENT), the desired owner_type may be ambiguous.
-      # This code does not handle that ambiguity.
-      # Instead, it assumes that the CDED "owner_type" should be the same as the definition's "owner_class".
-      # For SERVICE forms, it assumes that the CDED owner should be `CustomService` (as opposed to HUD `Service`).
-      owner_type = definition.owner_class.sti_name
-      owner_type = 'Hmis::Hud::CustomService' if owner_type == 'Hmis::Hud::HmisService'
+      # For some Definition types (SERVICE, NEW_CLIENT_ENROLLMENT), the owner_type may be ambiguous.
+      #  * For SERVICE forms, it assumes that the CDED owner should be `CustomService` (as opposed to HUD `Service`).
+      #  * For NEW_CLIENT_ENROLLMENT forms, it assumes that the CDED owner should be `Enrollment` (as opposed to `Client`).
+      #  * If these assumptions are not correct, the CDED will need to be generated manually
+      default_owner_class = definition.owner_class # this is inferred from form role
 
       cded_attributes = {
-        owner_type: owner_type,
         form_definition_identifier: definition.identifier,
         data_source: data_source,
         user_id: Hmis::Hud::User.from_user(current_user).user_id,
@@ -87,6 +85,10 @@ module Mutations
         # Skip items that already map to a custom data element
         next if item.mapping&.custom_field_key
 
+        record_type = item.mapping&.record_type
+        owner_type = record_type ? Hmis::Form::RecordType.find(record_type).owner_type : default_owner_class.sti_name
+        owner_type = 'Hmis::Hud::CustomService' if owner_type == 'Hmis::Hud::HmisService'
+
         cded_key = "#{cded_key_prefix}_#{item.link_id}"
         cded_key = ensure_unique_key(owner_type, cded_key)
 
@@ -95,6 +97,7 @@ module Mutations
           label: Hmis::Form::Definition.generate_cded_field_label(item),
           repeats: item.repeats || false,
           field_type: Hmis::Form::Definition.infer_cded_field_type(item.type),
+          owner_type: owner_type,
           **cded_attributes,
         )
 

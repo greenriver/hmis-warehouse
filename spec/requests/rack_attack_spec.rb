@@ -5,78 +5,108 @@ require 'rails_helper'
 describe Rack::Attack, type: :request do
   let(:user) { create :user }
 
-  # request a path repeatedly and return
-  # the request number when it returns `throttled_status`
-  def till_throttled(method, path, options = {})
-    requests_to_send = options.delete(:requests_to_send)
-    throttled_status = options.delete(:throttled_status) || 429
-    options[:params] ||= {}
-    # inject randomness to make sure we arent matching on params
-    requests_sent = 0
-    requests_to_send.times do |_|
-      options[:params][:randomness] = SecureRandom.hex
-      send(method, path, params: options[:params])
-      requests_sent += 1
-      # puts "#{path} #{options} #{requests_sent}/#{requests_to_send} #{response.status}"
-      break if response.status == throttled_status
-    end
-    requests_sent
+  before(:all) do
+    Rack::Attack.enabled = true
   end
 
-  before do
+  after(:all) do
+    Rack::Attack.enabled = false
+  end
+
+  # request a path repeatedly and return
+  # the request number when it returns `throttled_status`
+  # @param requests_to_send [Integer] how many requests to send before giving up
+  # @param throttled_status [Integer] stop when we encounter this status
+  # @param mode [Symbol] default
+  def till_throttled(requests_to_send:, throttled_status: 429, mode: :default, &block)
+    requests_sent = 0
+    status_encountered = false
+
+    case mode
+    when :slow
+      sleep_time = 0.2
+      time_scale = 1.0
+    when :default
+      sleep_time = 0
+      time_scale = 0.0001
+    else
+      raise 'unknown mode'
+    end
+
+    # travel to hour boundary so we always start at 00:00
+    Timecop.travel((Time.current + 1.hour).beginning_of_hour)
+    # adjust speed of time to reliably trigger burst throttling (10req/1sec)
+    Timecop.scale(time_scale)
+    begin
+      (requests_to_send + 1).times do |cnt|
+        block.arity == 1 ? yield(cnt) : yield
+        sleep sleep_time
+        requests_sent += 1
+        status_encountered = response.status == throttled_status
+        break if status_encountered
+      end
+    ensure
+      Timecop.return
+    end
+    status_encountered ? requests_sent - 1 : nil
+  end
+
+  before(:each) do
     Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
-    Timecop.scale(1 / 50.to_f)
   end
 
   describe 'when not-logged in' do
     describe 'when hitting the homepage' do
-      let(:throttled_at) { 11 }
-      let(:request_limit) { (throttled_at * 4).to_i }
-      let(:path) { '/' }
-      it 'does not throttle excessive test requests' do
-        requests_sent = till_throttled(:get, path, requests_to_send: request_limit)
-        expect(requests_sent).to be(request_limit)
-      end
+      let(:path) { root_path }
 
-      it 'throttle excessive requests by IP address - enabled' do
-        requests_sent = till_throttled(
-          :get,
-          path,
-          requests_to_send: request_limit,
-          params: { rack_attack_enabled: true },
-        )
-        expect(requests_sent).to be_between(throttled_at, throttled_at * 2)
+      it 'throttle burst requests' do
+        throttled_at = 10
+        requests_sent = till_throttled(requests_to_send: throttled_at) { get(path) }
+        expect(requests_sent).to eq(throttled_at)
+      end
+    end
+
+    describe 'when hitting the history pdf' do
+      let(:client) { create(:grda_warehouse_hud_client) }
+      let(:path) { pdf_client_history_path(client) }
+
+      it 'throttle burst requests' do
+        throttled_at = 25
+        requests_sent = till_throttled(requests_to_send: throttled_at, mode: :slow) { get(path) }
+        expect(requests_sent).to eq(throttled_at)
       end
     end
 
     describe 'and posting to the sign-in page' do
-      let(:throttled_at) { 11 }
-      let(:request_limit) { (throttled_at * 4).to_i }
-      let(:path) { '/users/sign_in' }
-
-      it 'does not throttle excessive test requests' do
-        requests_sent = till_throttled(
-          :post,
-          path,
-          requests_to_send: request_limit,
-          params: {
-            user: { email: 'test@example.com', password: 'password' },
-          },
-        )
-        expect(requests_sent).to be(request_limit)
+      let(:path) { user_session_path }
+      it 'throttles brute-force requests' do
+        throttled_at = 20
+        requests_sent = till_throttled(requests_to_send: throttled_at, mode: :slow) do |i|
+          post(path, params: { user: { email: "test-#{i}@example.com", password: 'incorrect' } })
+        end
+        expect(requests_sent).to eq(throttled_at)
       end
+    end
 
-      it 'throttle excessive requests by user - enabled' do
-        requests_sent = till_throttled(
-          :post,
-          path,
-          requests_to_send: request_limit,
-          params: {
-            rack_attack_enabled: true,
-            user: { email: 'test@example.com', password: 'password' },
-          },
-        )
-        expect(requests_sent).to be_between(throttled_at, throttled_at * 2)
+    describe 'HMIS sign-in end point' do
+      let(:path) { hmis_user_session_path }
+      it 'throttles brute-force requests' do
+        throttled_at = 20
+        requests_sent = till_throttled(requests_to_send: throttled_at, mode: :slow) do |i|
+          post(path, params: { hmis_user: { email: "test-#{i}@example.com", password: 'password' } }, as: :json)
+        end
+        expect(requests_sent).to eq(throttled_at)
+      end
+    end
+
+    describe 'Password Reset Throttling' do
+      let(:path) { edit_user_password_path }
+      it 'throttles brute-force password reset requests' do
+        throttled_at = 20
+        requests_sent = till_throttled(requests_to_send: throttled_at, mode: :slow) do |i|
+          get(path, params: { reset_password_token: "FFFFFFFFFFFFFFFFFFF#{i}" })
+        end
+        expect(requests_sent).to eq(throttled_at)
       end
     end
   end
@@ -85,35 +115,40 @@ describe Rack::Attack, type: :request do
     before do
       sign_in user
     end
-    describe 'and hitting the homepage' do
-      let(:throttled_at) { 151 }
-      let(:request_limit) { (throttled_at * 4).to_i }
-      let(:path) { '/' }
 
-      it 'does not throttle excessive test requests' do
-        requests_sent = till_throttled(:get, path, requests_to_send: request_limit)
-        expect(requests_sent).to be(request_limit)
-      end
+    describe 'and hitting the homepage' do
+      let(:path) { root_path }
 
       it 'throttle excessive requests by IP address - enabled' do
-        requests_sent = till_throttled(:get, path, params: { rack_attack_enabled: true }, requests_to_send: request_limit)
-        expect(requests_sent).to be_between(throttled_at, throttled_at * 2) # There appears to be some play in Rack when testing
+        throttled_at = 150
+        requests_sent = till_throttled(requests_to_send: throttled_at) { get(path) }
+        expect(requests_sent).to eq(throttled_at)
       end
     end
-    describe 'and hitting client rollups' do
-      let(:throttled_at) { 251 }
-      let(:request_limit) { (throttled_at * 4).to_i }
-      let(:path) { '/clients/1/rollup/residential_enrollments' }
 
-      it 'does not throttle excessive test requests' do
-        requests_sent = till_throttled(:get, path, requests_to_send: request_limit)
-        expect(requests_sent).to be(request_limit)
-      end
+    describe 'and hitting client rollups' do
+      let(:throttled_at) { 250 }
 
       it 'throttle excessive requests by IP address - enabled' do
-        requests_sent = till_throttled(:get, path, params: { rack_attack_enabled: true }, requests_to_send: request_limit)
-        expect(requests_sent).to be_between(throttled_at, throttled_at * 2)
+        throttled_at = 250
+        # /clients/1/rollup/residential_enrollments
+        path = rollup_client_path(id: 1, partial: 'residential_enrollments')
+        requests_sent = till_throttled(requests_to_send: throttled_at) { get(path) }
+        expect(requests_sent).to eq(throttled_at)
       end
+    end
+  end
+
+  context 'system_status_requests' do
+    let(:path) { '/system_status/operational' }
+    let(:headers) do
+      { 'HTTP_USER_AGENT' => 'ELB-HealthChecker/2.0' }
+    end
+
+    it 'does not throttle requests' do
+      throttled_at = 20
+      requests_sent = till_throttled(requests_to_send: throttled_at) { get(path, headers: headers) }
+      expect(requests_sent).to be_nil
     end
   end
 end

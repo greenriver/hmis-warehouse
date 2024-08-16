@@ -3724,7 +3724,9 @@ CREATE TABLE public.import_configs (
     encrypted_passphrase character varying,
     encrypted_passphrase_iv character varying,
     encrypted_secret_key character varying,
-    encrypted_secret_key_iv character varying
+    encrypted_secret_key_iv character varying,
+    type character varying,
+    active boolean DEFAULT false
 );
 
 
@@ -9310,6 +9312,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240327144840'),
 ('20240402142808'),
 ('20240515205603'),
-('20240710141900');
+('20240710141900'),
+('20240726191502'),
+('20240726193601'),
+('20240807182354'),
+('20240807183449'),
+('20240807185011');
 
 

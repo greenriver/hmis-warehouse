@@ -18,17 +18,18 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
     engagement_days = ::Health::PatientReferral::ENGAGEMENT_IN_DAYS
     # | QA occurs...
     # 0. before enrollment
-    create(:patient).tap do |patient|
-      referral = create(:prior_referral,
-                        patient: patient,
-                        enrollment_start_date: month.beginning_of_month + 15.days,
-                        disenrollment_date: month.beginning_of_month + 15.days)
-      create(:qualifying_activity,
-             patient: patient,
-             date_of_activity: referral.enrollment_start_date - 1.day,
-             claim_submitted_on: claim_submitted_on)
-      active_patients << [patient, 1, 0, []]
-    end
+    # 8/4/24 -- QAs not permitted before first enrollment
+    # create(:patient).tap do |patient|
+    #   referral = create(:prior_referral,
+    #                     patient: patient,
+    #                     enrollment_start_date: month.beginning_of_month + 15.days,
+    #                     disenrollment_date: month.beginning_of_month + 15.days)
+    #   create(:qualifying_activity,
+    #          patient: patient,
+    #          date_of_activity: referral.enrollment_start_date - 1.day,
+    #          claim_submitted_on: claim_submitted_on)
+    #   active_patients << [patient, 1, 0, []]
+    # end
     # 1. during grace period
     create(:patient).tap do |patient|
       create(:prior_referral,

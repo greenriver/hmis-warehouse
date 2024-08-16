@@ -721,6 +721,9 @@ module PerformanceMeasurement::Details
           calculation_description: 'Data is from all successful exits in SPM Measure 7.',
           calculation_column: [:retention_or_positive_destination],
           measure: 'Measure 7',
+          # NOTE: these are hard-coded in ResultCalculation.rb since it's somewhat complex
+          # tables: ['7a1', '7b.1', '7b.2'],
+          # cells: ['C2', 'C3', 'C4'],
           detail_columns: [
             'retention_or_positive_destination',
           ],
@@ -740,6 +743,9 @@ module PerformanceMeasurement::Details
           calculation_description: 'The number of persons who exited SO to a positive destination divided by the total number of persons who exited SO.',
           calculation_column: :so_destination_positive,
           measure: 'Measure 7',
+          # NOTE: these are hard-coded in ResultCalculation.rb since it's somewhat complex
+          # tables: ['7a1'],
+          # cells: ['C2', 'C3', 'C4'],
           detail_columns: [
             'so_destination',
           ],
@@ -759,6 +765,9 @@ module PerformanceMeasurement::Details
           calculation_description: 'The number of persons who exited to permanent housing destination divided by the number of persons who exited ES, SH, TH, RRH, plus persons in other PH projects who exited without moving into housing.',
           calculation_column: :es_sh_th_rrh_destination_positive,
           measure: 'Measure 7',
+          # NOTE: these are hard-coded in ResultCalculation.rb since it's somewhat complex
+          # tables: ['7b.1'],
+          # cells: ['C2', 'C3'],
           detail_columns: [
             'es_sh_th_rrh_destination',
           ],
@@ -778,6 +787,9 @@ module PerformanceMeasurement::Details
           calculation_description: 'The number of persons with a Housing Move-In Date that either exited to a permanent destination after moving into housing or remained in the PH project divided by the number of persons housed by PH projects.',
           calculation_column: :moved_in_destination_positive,
           measure: 'Measure 7',
+          # NOTE: these are hard-coded in ResultCalculation.rb since it's somewhat complex
+          # tables: [ '7b.2'],
+          # cells: ['C2', 'C3'],
           detail_columns: [
             'moved_in_destination',
           ],

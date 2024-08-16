@@ -103,8 +103,11 @@ class Hmis::User < ApplicationRecord
   def can_view_my_dashboard?
     key = [self.class.name, __method__, id]
     Rails.cache.fetch(key, expires_in: 1.minutes) do
-      # This is a one-off custom logic permission. If we have more of these,
-      # we could make a helper in BaseAccess that accepts custom evaluation logic
+      # This is a one-off custom logic permission for determining when to show "My Dashbord" in HMIS. It is resolved on the root access object.
+      # This logic may evolve as we add more capabilities to the dashboard.
+      # If we have more use-cases for this, we could make a helper in BaseAccess that accepts custom evaluation logic.
+      return false unless Hmis::ProjectStaffAssignmentConfig.exists? # micro optimization for installations without staff assignment
+
       project_scope = Hmis::Hud::Project.with_access(self, :can_edit_enrollments).preload(:organization)
       Hmis::ProjectStaffAssignmentConfig.for_projects(project_scope).exists?
     end

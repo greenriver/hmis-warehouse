@@ -61,7 +61,7 @@ module GrdaWarehouse::Hud
         :AssessmentDate,
         source_arel_table: as_t,
         group_on: [:PersonalID, :data_source_id],
-        scope: pathways_or_rrh,
+        scope: pathways_or_rrh.where(DateDeleted: nil),
       )
     end, **hud_assoc(:PersonalID, 'Assessment')
 
@@ -558,6 +558,14 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :race_not_hispanic_latinaeo, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:HispanicLatinaeo].eq(0).and(c_t[:RaceNone].eq(nil))).
+          select(:destination_id),
+      )
+    end
+
     scope :race_mid_east_n_african, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
@@ -583,6 +591,10 @@ module GrdaWarehouse::Hud
     end
 
     scope :race_refused, -> do
+      prefers_not_to_answer
+    end
+
+    scope :prefers_not_to_answer, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
           where(c_t[:RaceNone].eq(9)).
@@ -1100,6 +1112,10 @@ module GrdaWarehouse::Hud
           consented_coc_codes: [],
         )
       end
+    end
+
+    def revoked_consent?
+      release_current_status == self.class.revoked_consent_string
     end
 
     def release_current_status
@@ -2061,7 +2077,7 @@ module GrdaWarehouse::Hud
         @race_black_af_american.to_a +
         @race_native_hi_other_pacific.to_a +
         @race_white.to_a +
-        @race_hispanic_latinaeo.to_a +
+        # @race_hispanic_latinaeo.to_a + # Don't include Hispanic/Latin@ in the multi-racial calculation
         @race_mid_east_n_african.to_a
 
         multi.duplicates.to_set
@@ -2082,11 +2098,34 @@ module GrdaWarehouse::Hud
         @refused ||= @limited_scope.where(id: self.class.race_refused.select(:id)).distinct.pluck(:id).to_set
 
         return 'Does Not Know' if @doesnt_know.include?(destination_id)
-        return 'Refused' if @refused.include?(destination_id)
+        return 'Prefers not to answer' if @refused.include?(destination_id)
 
         return 'Not Collected'
       end
       'RaceNone'
+    end
+
+    # This mirrors `race_string`, but specifically for Hispanic/Latin@.
+    # Since we're starting fresh, using symbol returns to match HudUtility2024.ethnicities instead of strings
+    def ethnicity_slug(destination_id:, include_none_reason: false, scope_limit: self.class.destination)
+      @limited_scope ||= self.class.destination.merge(scope_limit)
+
+      @race_hispanic_latinaeo ||= @limited_scope.where(id: self.class.race_hispanic_latinaeo.select(:id)).distinct.pluck(:id).to_set
+      @race_not_hispanic_latinaeo ||= @limited_scope.where(id: self.class.race_not_hispanic_latinaeo.select(:id)).distinct.pluck(:id).to_set
+
+      return :hispanic_latinaeo if @race_hispanic_latinaeo.include?(destination_id)
+      return :non_hispanic_latinaeo if @race_not_hispanic_latinaeo.include?(destination_id)
+
+      if include_none_reason
+        @doesnt_know ||= @limited_scope.where(id: self.class.race_doesnt_know.select(:id)).distinct.pluck(:id).to_set
+        @prefers_not_to_answer ||= @limited_scope.where(id: self.class.prefers_not_to_answer.select(:id)).distinct.pluck(:id).to_set
+
+        return :dont_know if @doesnt_know.include?(destination_id)
+        return :prefers_not_to_answer if @prefers_not_to_answer.include?(destination_id)
+
+        return :not_collected
+      end
+      :unknown
     end
 
     def cas_race_am_ind_ak_native
