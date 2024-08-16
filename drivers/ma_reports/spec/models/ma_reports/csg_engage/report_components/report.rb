@@ -22,7 +22,7 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
   let!(:coc1) { create :hud_project_coc, data_source: ds, project_id: p1.project_id, state: 'MA' }
   let(:a) { create :csg_engage_agency }
   let(:p) { create :csg_engage_program, agency: a }
-  let(:pm) { create :csg_engage_program_mapping, project: p1, program: p }
+  let!(:pm) { create :csg_engage_program_mapping, project: p1, program: p }
 
   describe 'structure tests' do
     it 'should have the right structure' do
