@@ -12,7 +12,9 @@ module MaReports::CsgEngage::ReportComponents
       @hoh_enrollment = hoh_enrollment
     end
 
-    field('Household Identifier') { [hoh_enrollment.id, hoh_enrollment.project.id, hoh_enrollment.data_source.id].join('') }
+    field('Household Identifier') do
+      [hoh_enrollment.id, hoh_enrollment.project.id, hoh_enrollment.data_source.id].map { |id| id.to_s(16) }.join('::')
+    end
 
     subfield('Address') do
       field('Apartment')
