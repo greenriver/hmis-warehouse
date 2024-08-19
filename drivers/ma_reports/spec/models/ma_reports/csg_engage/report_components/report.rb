@@ -40,7 +40,7 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
             'Import Keyword' => p.csg_engage_import_keyword,
             'Households' => contain_exactly(
               include(
-                'Household Identifier' => e1.id.to_s,
+                'Household Identifier' => [e1.id, e1.project.id, e1.data_source.id].join(''),
                 'Household Members' => contain_exactly(
                   include(
                     'Household Member' => include(
