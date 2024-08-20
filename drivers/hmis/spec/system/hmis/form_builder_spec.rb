@@ -54,7 +54,7 @@ RSpec.feature 'HMIS Form Builder', type: :system do
 
       it 'edits a form item' do
         find("button[aria-label='section_1 item actions']").click
-        find("li[aria-label='edit section_1']").click
+        find('li', text: 'Edit', class: 'MuiMenuItem-root').trigger('click')
         assert_text 'EDIT FORM ITEM Test Custom Assessment'
 
         fill_in 'Group Label', with: 'A New Section Title'
@@ -200,7 +200,7 @@ RSpec.feature 'HMIS Form Builder', type: :system do
         assert_text 'Date: Assessment Date'
 
         find("button[aria-label='custom_question_1 item actions']").trigger('click')
-        find("li[aria-label='delete custom_question_1']").trigger('click')
+        find('li', text: 'Delete', class: 'MuiMenuItem-root').trigger('click')
         assert_no_text 'Custom question 1'
 
         find("button[type='submit']").trigger('click')
@@ -233,7 +233,7 @@ RSpec.feature 'HMIS Form Builder', type: :system do
         find("div[aria-label='item section_1']").click
         assert_text 'Conditionally autofilled'
         find("button[aria-label='conditionally_autofilled item actions']").trigger('click')
-        find("li[aria-label='edit conditionally_autofilled']").trigger('click')
+        find('li', text: 'Edit', class: 'MuiMenuItem-root').trigger('click')
         assert_text 'EDIT FORM ITEM Conditionally autofilled'
         assert_no_text 'Autofill Value 1' # Autofill condition exists, but this user can't see it
         assert_no_text 'some-particular-project-id' # Custom rule involving this project ID exists, but this user can't see it
