@@ -89,7 +89,6 @@ RSpec.feature 'HMIS Form Builder', type: :system do
         assert_text 'Paragraph: What about this long paragraph?'
 
         draft.reload
-        # todo @martha - replace with `dig` for code consistency
         expect(draft.definition.dig('item', 1, 'text')).to eq('Brand New Group')
         expect(draft.definition.dig('item', 2, 'text')).to eq('This is a <b>displayable item</b>.')
         expect(draft.definition.dig('item', 3, 'text')).to eq('What is the answer to this question?')
