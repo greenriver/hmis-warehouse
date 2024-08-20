@@ -138,4 +138,17 @@ describe Rack::Attack, type: :request do
       end
     end
   end
+
+  context 'system_status_requests' do
+    let(:path) { '/system_status/operational' }
+    let(:headers) do
+      { 'HTTP_USER_AGENT' => 'ELB-HealthChecker/2.0' }
+    end
+
+    it 'does not throttle requests' do
+      throttled_at = 20
+      requests_sent = till_throttled(requests_to_send: throttled_at) { get(path, headers: headers) }
+      expect(requests_sent).to be_nil
+    end
+  end
 end
