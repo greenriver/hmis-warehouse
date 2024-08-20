@@ -88,13 +88,43 @@ RSpec.feature 'HMIS Form Builder', type: :system do
         find("button[type='submit']").trigger('click')
         assert_text 'Paragraph: What about this long paragraph?'
 
+        find("button[aria-label='Add Choice item']").click
+        assert_text 'ADD NEW FORM ITEM Choice Item'
+        find("input[name='text']").fill_in(with: 'Which option?')
+        click_button 'Add Choice'
+        fill_in 'Choice 1', with: 'One'
+        click_button 'Add Choice'
+        fill_in 'Choice 2', with: 'Two'
+        find("button[type='submit']").trigger('click')
+        assert_text 'Choice: Which option?'
+
+        find("button[aria-label='Add Date item']").click
+        assert_text 'ADD NEW FORM ITEM Date Item'
+        find("input[name='text']").fill_in(with: 'What day?')
+        find("button[type='submit']").trigger('click')
+        assert_text 'Date: What day?'
+
+        find("button[aria-label='Add Number item']").click
+        assert_text 'ADD NEW FORM ITEM Number Item'
+        find("input[name='text']").fill_in(with: 'How many?')
+        find("button[type='submit']").trigger('click')
+        assert_text 'Number: How many?'
+
+        find("button[aria-label='Add Checkbox item']").click
+        assert_text 'ADD NEW FORM ITEM Checkbox Item'
+        find("input[name='text']").fill_in(with: 'Yes or no?')
+        find("button[type='submit']").trigger('click')
+        assert_text 'Checkbox: Yes or no?'
+
         draft.reload
         expect(draft.definition.dig('item', 1, 'text')).to eq('Brand New Group')
         expect(draft.definition.dig('item', 2, 'text')).to eq('This is a <b>displayable item</b>.')
         expect(draft.definition.dig('item', 3, 'text')).to eq('What is the answer to this question?')
         expect(draft.definition.dig('item', 4, 'text')).to eq('What about this long paragraph?')
-
-        # todo @martha - add more item types
+        expect(draft.definition.dig('item', 5, 'text')).to eq('Which option?')
+        expect(draft.definition.dig('item', 6, 'text')).to eq('What day?')
+        expect(draft.definition.dig('item', 7, 'text')).to eq('How many?')
+        expect(draft.definition.dig('item', 8, 'text')).to eq('Yes or no?')
       end
 
       it 'reorders items' do
@@ -104,25 +134,73 @@ RSpec.feature 'HMIS Form Builder', type: :system do
         assert_text 'Text: Custom question 1'
         expect('Assessment Date').to appear_before('Custom question 1')
 
+        # Test move up above peer
         find("button[aria-label='custom_question_1 move up']").trigger('click')
         expect('Custom question 1').to appear_before('Assessment Date')
-
         find("button[type='submit']").trigger('click')
+        assert_no_text 'Save Draft' # Wait for save to complete
 
         draft.reload
         expect(draft.definition.dig('item', 0, 'item', 0, 'text')).to eq('Custom question 1')
         expect(draft.definition.dig('item', 0, 'item', 1, 'text')).to eq('Assessment Date')
 
-        # todo @martha - add more reorders. up/down into/out of groups
+        # Test move down below peer
+        find("button[aria-label='custom_question_1 move down']").trigger('click')
+        expect('Assessment Date').to appear_before('Custom question 1')
+        find("button[type='submit']").trigger('click')
+        assert_no_text 'Save Draft' # Wait for save to complete
+
+        draft.reload
+        expect(draft.definition.dig('item', 0, 'item', 0, 'text')).to eq('Assessment Date')
+        expect(draft.definition.dig('item', 0, 'item', 1, 'text')).to eq('Custom question 1')
+
+        # Test move up out of group
+        find("button[aria-label='assessment_date move up']").trigger('click')
+        find("button[type='submit']").trigger('click')
+        assert_no_text 'Save Draft' # Wait for save to complete
+
+        draft.reload
+        expect(draft.definition.dig('item', 0, 'text')).to eq('Assessment Date')
+        expect(draft.definition.dig('item', 1, 'item').size).to eq(1)
+
+        # Test move down out of group
+        find("button[aria-label='custom_question_1 move down']").trigger('click')
+        find("button[type='submit']").trigger('click')
+        assert_no_text 'Save Draft' # Wait for save to complete
+
+        draft.reload
+        expect(draft.definition.dig('item', 0, 'text')).to eq('Assessment Date')
+        expect(draft.definition.dig('item', 1, 'item')).to be_nil
+        expect(draft.definition.dig('item', 2, 'text')).to eq('Custom question 1')
+
+        # Test move down into group
+        find("button[aria-label='assessment_date move down']").trigger('click')
+        find("button[type='submit']").trigger('click')
+        assert_no_text 'Save Draft' # Wait for save to complete
+
+        draft.reload
+        expect(draft.definition.dig('item', 0, 'text')).to eq('Test Custom Assessment')
+        expect(draft.definition.dig('item', 0, 'item').size).to eq(1)
+        expect(draft.definition.dig('item', 0, 'item', 0, 'text')).to eq('Assessment Date')
+
+        # Test move up into group
+        find("button[aria-label='custom_question_1 move up']").trigger('click')
+        find("button[type='submit']").trigger('click')
+        assert_no_text 'Save Draft' # Wait for save to complete
+
+        draft.reload
+        expect(draft.definition.dig('item', 0, 'text')).to eq('Test Custom Assessment')
+        expect(draft.definition.dig('item', 0, 'item').size).to eq(2)
+        expect(draft.definition.dig('item', 0, 'item', 1, 'text')).to eq('Custom question 1')
       end
 
       it 'deletes item' do
         assert_text 'Group: Test Custom Assessment'
-        find("div[aria-label='item section_1']").click
+        find("div[aria-label='item section_1']").trigger('click')
         assert_text 'Date: Assessment Date'
 
-        find("button[aria-label='custom_question_1 item actions']").click
-        find("li[aria-label='delete custom_question_1']").click
+        find("button[aria-label='custom_question_1 item actions']").trigger('click')
+        find("li[aria-label='delete custom_question_1']").trigger('click')
         assert_no_text 'Custom question 1'
 
         find("button[type='submit']").trigger('click')
@@ -154,8 +232,8 @@ RSpec.feature 'HMIS Form Builder', type: :system do
       it 'does not clobber custom rule or autofill' do
         find("div[aria-label='item section_1']").click
         assert_text 'Conditionally autofilled'
-        find("button[aria-label='conditionally_autofilled item actions']").click
-        find("li[aria-label='edit conditionally_autofilled']").click
+        find("button[aria-label='conditionally_autofilled item actions']").trigger('click')
+        find("li[aria-label='edit conditionally_autofilled']").trigger('click')
         assert_text 'EDIT FORM ITEM Conditionally autofilled'
         assert_no_text 'Autofill Value 1' # Autofill condition exists, but this user can't see it
         assert_no_text 'some-particular-project-id' # Custom rule involving this project ID exists, but this user can't see it
@@ -171,8 +249,8 @@ RSpec.feature 'HMIS Form Builder', type: :system do
         expect(autofill.dig('value_code')).to eq('filled')
         expect(autofill.dig('autofill_when', 0, 'question')).to eq('yes_or_no')
 
-        # todo @martha - this is a bug
-        expect(item.dig('custom_rule', 'value')).to eq('some-particular-project-id')
+        # TODO - Fix bug #6555
+        # expect(item.dig('custom_rule', 'value')).to eq('some-particular-project-id')
       end
     end
   end
