@@ -33,6 +33,12 @@ module HmisExternalApis::AcHmis
       # transact assumes we are only mutating records in the warehouse db
       record = nil
       HmisExternalApis::AcHmis::Referral.transaction do
+        # Idempotent - Check for existing posting and return early if it exists
+        posting = existing_posting
+        return [posting.referral, errors] if posting
+        # Return early in case of errors too, so we don't proceed with trying to create the referral
+        return [nil, errors] unless errors.empty?
+
         referral = find_or_create_referral
         raise ActiveRecord::Rollback unless referral
 
@@ -45,6 +51,18 @@ module HmisExternalApis::AcHmis
         record = referral
       end
       [record, errors]
+    end
+
+    def existing_posting
+      existing = HmisExternalApis::AcHmis::ReferralPosting.find_by(identifier: params.fetch(:posting_id))
+
+      if existing.present?
+        project = mper.find_project_by_mper(params.fetch(:program_id))
+        return error_out('Project not found') unless project
+        return error_out('Posting already exists with a different project') unless existing.project == project
+      end
+
+      existing
     end
 
     def find_or_create_referral
@@ -68,8 +86,6 @@ module HmisExternalApis::AcHmis
     def create_referral_posting(referral)
       (posting_id, program_id, unit_type_id, referral_request_id) = params.values_at(:posting_id, :program_id, :unit_type_id, :referral_request_id)
       raise unless posting_id && program_id && unit_type_id # required fields, should be caught in validation
-
-      return error_out('Posting ID already exists') if HmisExternalApis::AcHmis::ReferralPosting.where(identifier: posting_id).exists?
 
       posting = referral.postings.new(identifier: posting_id)
       posting.attributes = params.slice(:resource_coordinator_notes)
