@@ -15,41 +15,80 @@ RSpec.feature 'HMIS Form Builder', type: :system do
 
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
   let!(:access_control) { create_access_control(hmis_user, p1) }
-  let!(:published) { create :custom_assessment_with_custom_fields_and_rules, title: 'System Test 1', identifier: 'system_test_1', data_source: ds1 }
-  let!(:draft) { create :custom_assessment_with_custom_fields_and_rules, title: 'System Test 2', identifier: 'system_test_2', status: 'draft', data_source: ds1 }
-  let!(:advanced_draft) { create :custom_assessment_with_field_rules_and_autofill, identifier: 'advanced_form', status: 'draft', data_source: ds1 }
 
-  context 'Form builder happy path' do
+  before(:each) do
+    sign_in(hmis_user)
+    disable_transitions
+  end
+
+  context 'with no existing form' do
     before(:each) do
-      sign_in(hmis_user)
-      disable_transitions
       visit '/admin/forms'
     end
 
-    it 'creates a new form with a draft' do
-      visit '/admin/forms'
+    it 'creates a new draft' do
       click_button 'New Form'
 
       assert_text 'Form Type'
       mui_select 'Custom assessment', from: 'Form Type'
-      fill_in 'Form Title', with: 'System Test 3'
-      fill_in 'Form Identifier', with: 'system_test_3'
-      click_button 'Save'
+      fill_in 'Form Title', with: 'System Test'
+      fill_in 'Form Identifier', with: 'system_test'
 
-      assert_text 'SELECTED FORM System Test 3'
-      assert_text 'Edit Draft'
+      expect do
+        click_button 'Save'
+        assert_text 'SELECTED FORM System Test'
+        assert_text 'Edit Draft'
+      end.to change(Hmis::Form::Definition, :count).by(1)
+    end
+  end
+
+  context 'with an existing published form' do
+    let!(:published) { create :custom_assessment_with_custom_fields_and_rules, data_source: ds1 }
+
+    before(:each) do
+      visit "/admin/forms/#{published.identifier}"
     end
 
     it 'creates a new draft' do
-      visit '/admin/forms/system_test_1'
-      click_button 'New Draft'
+      expect do
+        click_button 'New Draft'
+        assert_text "EDITING DRAFT #{published.title}"
+      end.to change(Hmis::Form::Definition.draft, :count).by(1).
+        and not_change(published, :status)
+    end
+  end
 
-      assert_text 'EDITING DRAFT System Test 1'
+  context 'with an existing draft form' do
+    let!(:published) { create :custom_assessment_with_custom_fields_and_rules, identifier: 'system_test', version: 0, data_source: ds1 }
+    let!(:draft) { create :custom_assessment_with_custom_fields_and_rules, status: 'draft', identifier: 'system_test', version: 1, data_source: ds1 }
+
+    before(:each) do
+      visit "/admin/forms/#{draft.identifier}"
     end
 
-    context 'with an existing form draft' do
+    it 'does not create a new draft' do
+      expect do
+        find('a', exact_text: 'Edit Draft').trigger('click')
+      end.to not_change(draft.all_versions, :count).
+        and not_change(published.all_versions, :count)
+    end
+
+    context 'with the edit screen open' do
       before(:each) do
-        visit "/admin/forms/system_test_2/#{draft.id}/edit"
+        visit "/admin/forms/#{draft.identifier}/#{draft.id}/edit"
+        assert_text "EDITING DRAFT #{draft.title}"
+      end
+
+      it 'publishes the draft and retires the old form' do
+        expect do
+          click_button 'Preview / Publish'
+          assert_text "PREVIEWING DRAFT #{draft.title}"
+          click_button 'Publish'
+          click_button 'Confirm'
+          assert_text "SELECTED FORM #{draft.title}"
+          assert_text 'Status Published'
+        end.to change { draft.reload.status }.from('draft').to('published').
+          and change { published.reload.status }.from('published').to('retired')
       end
 
       it 'edits a form item' do
@@ -208,25 +247,14 @@ RSpec.feature 'HMIS Form Builder', type: :system do
         draft.reload
         expect(draft.definition.dig('item', 0, 'item').size).to eq(1)
       end
-
-      it 'publishes form' do
-        assert_text 'Group: Test Custom Assessment'
-        click_button 'Preview / Publish'
-        assert_text 'PREVIEWING DRAFT System Test 2'
-        click_button 'Publish'
-        assert_text 'Are you sure you want to publish this form?'
-        click_button 'Confirm'
-        assert_text 'SELECTED FORM System Test 2'
-        assert_text 'Status Published'
-        draft.reload
-        expect(draft.status).to eq('published')
-      end
     end
 
     context 'with a draft that has advanced features and non-admin user' do
+      let!(:advanced_draft) { create :custom_assessment_with_field_rules_and_autofill, identifier: 'advanced_form', status: 'draft', data_source: ds1 }
+
       before(:each) do
         remove_permissions(access_control, :can_administrate_config)
-        visit "/admin/forms/advanced_form/#{advanced_draft.id}/edit"
+        visit "/admin/forms/#{advanced_draft.identifier}/#{advanced_draft.id}/edit"
       end
 
       it 'does not clobber custom rule or autofill' do
