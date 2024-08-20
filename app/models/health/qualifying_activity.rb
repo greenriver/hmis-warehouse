@@ -191,6 +191,7 @@ module Health
 
     def contact_required?
       return false unless activity
+      return false if from_epic?
 
       !activity.to_sym.in?(qa_version.class::CONTACTLESS_ACTIVITIES)
     end
@@ -220,9 +221,9 @@ module Health
     end
 
     # These validations must come after the above methods
-    validates :mode_of_contact, inclusion: { in: ->(qa) { qa.modes_of_contact.keys.map(&:to_s) } }, allow_blank: true
-    validates :reached_client, inclusion: { in: ->(qa) { qa.client_reached.keys.map(&:to_s) } }, allow_blank: true
-    validates :activity, inclusion: { in: ->(qa) { qa.activities.keys.map(&:to_s) } }, allow_blank: true
+    validates :mode_of_contact, inclusion: { in: ->(qa) { qa.modes_of_contact.keys.map(&:to_s) } }, allow_blank: true, unless: :from_epic?
+    validates :reached_client, inclusion: { in: ->(qa) { qa.client_reached.keys.map(&:to_s) } }, allow_blank: true, unless: :from_epic?
+    validates :activity, inclusion: { in: ->(qa) { qa.activities.keys.map(&:to_s) } }, allow_blank: true, unless: :from_epic?
     validates_presence_of(
       :user,
       :user_full_name,
@@ -231,6 +232,7 @@ module Health
       :patient_id,
       :activity,
       :follow_up,
+      unless: :from_epic?,
     )
     validates_presence_of :mode_of_contact, if: :contact_required?
     validates_presence_of :reached_client, if: :contact_required?
@@ -275,7 +277,13 @@ module Health
       client_reached[key&.to_sym].try(:[], :title) || key
     end
 
+    def from_epic?
+      source_type == 'Health::EpicQualifyingActivity'
+    end
+
     def mode_of_contact_is_other?
+      return false if from_epic?
+
       mode_of_contact == MODE_OF_CONTACT_OTHER
     end
 
@@ -284,6 +292,8 @@ module Health
     end
 
     def reached_client_is_collateral_contact?
+      return false if from_epic?
+
       reached_client == REACHED_CLIENT_OTHER
     end
 
