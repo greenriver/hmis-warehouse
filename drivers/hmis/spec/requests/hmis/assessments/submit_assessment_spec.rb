@@ -237,6 +237,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect_gql_error post_graphql(input: { input: test_input.merge(assessment_id: '999') }) { mutation }
     end
 
+    it 'should error if form definition is draft' do
+      draft = create(:hmis_form_definition, version: 2, status: Hmis::Form::Definition::DRAFT, identifier: fd1.identifier)
+      expect_gql_error post_graphql(input: { input: test_input.merge(form_definition_id: draft.id) }) { mutation }
+    end
+
     [
       [
         'should return an error if a required field is missing',
