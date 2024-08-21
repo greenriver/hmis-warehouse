@@ -175,6 +175,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end.to raise_error(RuntimeError)
     end
 
+    it 'should error if form definition is draft' do
+      draft = create(:hmis_form_definition, version: 2, status: Hmis::Form::Definition::DRAFT, identifier: fd1.identifier)
+      expect_gql_error post_graphql(input: { input: test_input.merge(form_definition_id: draft.id) }) { mutation }
+    end
+
     [
       [
         'should error if assessment date is missing',
