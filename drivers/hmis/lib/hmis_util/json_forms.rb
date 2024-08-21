@@ -11,6 +11,10 @@ module HmisUtil
 
     DATA_DIR = 'drivers/hmis/lib/form_data'.freeze
 
+    def initialize(env_key: nil)
+      @env_key = env_key if env_key.present? # allow override for testing
+    end
+
     def self.seed_all
       new.seed_all
     end
@@ -268,8 +272,8 @@ module HmisUtil
       errors = Hmis::Form::DefinitionValidator.perform(
         form_definition,
         role,
-        # Don't validate CDEDs in dev env, to make it easier to test seeding installation-specific forms
-        skip_cded_validation: (ENV.fetch('SKIP_CDED_VALIDATION') { Rails.env.development?.to_s } == 'true'),
+        # Don't validate CDEDs in test/dev env, to make it easier to test seeding installation-specific forms
+        skip_cded_validation: ENV.fetch('SKIP_CDED_VALIDATION', 'false') == 'true' || Rails.env.test? || Rails.env.development?,
       )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 
