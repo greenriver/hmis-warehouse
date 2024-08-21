@@ -7,9 +7,6 @@
 module HmisUtil
   class HudAssessmentFormRules2024
     # Keys match Link IDs in our default HUD Assessments.
-    #
-    # KNOWN HUD COMPLIANCE ISSUES:
-    # - W4 (part of hopwa_disability) should enforce compliance at Annual data collection stage (GH#6463)
 
     HUD_LINK_ID_RULES = {
       q_4_11: { stages: ['INTAKE', 'UPDATE'],
