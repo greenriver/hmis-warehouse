@@ -27,7 +27,6 @@ module HmisExternalApis::AcHmis
       (referral, errors, message) = HmisExternalApis::AcHmis::CreateReferralJob.perform_now(params: unsafe_params)
       return respond_with_errors(errors) if errors.any?
 
-      # todo @martha
       json = { message: message, id: referral.identifier }
       request_log.update!(response: json, http_status: 200)
       render json: json
