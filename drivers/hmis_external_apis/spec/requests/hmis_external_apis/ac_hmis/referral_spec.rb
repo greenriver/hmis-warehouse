@@ -95,9 +95,10 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       }
     end
 
-    def check_response_okay
+    def check_response_okay(message = 'Referral Created')
       parsed_body = JSON.parse(response.body)
       expect(parsed_body['errors']).to be_nil
+      expect(parsed_body['message']).to eq(message)
       expect(response.status).to eq 200
     end
 
@@ -187,11 +188,13 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
             {
               "posting_id": existing_posting.identifier,
               "program_id": existing_posting.project.ProjectID,
-              "email_address": ['123@xyz.abc'], # Even when other extraneous params besides program_id have been changed
+              "referral_id": existing_posting.referral.identifier,
+              "email_address": ['123@xyz.abc'], # Even when other extraneous params have been changed
             },
           )
           post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
-          check_response_okay
+
+          check_response_okay('Referral Found')
         end
 
         it 'fails if referral posting exists with a different project' do
@@ -201,11 +204,24 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
             {
               "posting_id": existing_posting.identifier,
               "program_id": other_project.ProjectID,
+              "referral_id": existing_posting.referral.identifier,
             },
           )
           post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
           parsed_body = JSON.parse(response.body)
           expect(parsed_body['errors']).to eq(['Posting already exists with a different project'])
+        end
+
+        it 'fails if referral posting exists with a different referral' do
+          params = referral_params(household).merge(
+            {
+              "posting_id": existing_posting.identifier,
+              "program_id": existing_posting.project.ProjectID,
+            },
+          )
+          post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
+          parsed_body = JSON.parse(response.body)
+          expect(parsed_body['errors']).to eq(['Posting already exists with a different Referral ID'])
         end
       end
 

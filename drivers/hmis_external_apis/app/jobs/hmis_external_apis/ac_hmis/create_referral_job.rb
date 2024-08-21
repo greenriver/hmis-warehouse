@@ -30,15 +30,15 @@ module HmisExternalApis::AcHmis
       self.params = params.deep_symbolize_keys
       self.errors = []
 
+      # Idempotent - Check for existing posting and return early if it exists
+      posting = existing_posting
+      return [posting.referral, errors, 'Referral Found'] if posting
+      # Return early in case of errors too, so we don't proceed with trying to create the referral
+      return [nil, errors] unless errors.empty?
+
       # transact assumes we are only mutating records in the warehouse db
       record = nil
       HmisExternalApis::AcHmis::Referral.transaction do
-        # Idempotent - Check for existing posting and return early if it exists
-        posting = existing_posting
-        return [posting.referral, errors] if posting
-        # Return early in case of errors too, so we don't proceed with trying to create the referral
-        return [nil, errors] unless errors.empty?
-
         referral = find_or_create_referral
         raise ActiveRecord::Rollback unless referral
 
@@ -50,13 +50,15 @@ module HmisExternalApis::AcHmis
 
         record = referral
       end
-      [record, errors]
+      [record, errors, 'Referral Created']
     end
 
     def existing_posting
       existing = HmisExternalApis::AcHmis::ReferralPosting.find_by(identifier: params.fetch(:posting_id))
 
       if existing.present?
+        return error_out('Posting already exists with a different Referral ID') unless existing.referral.identifier == params.fetch(:referral_id).to_s
+
         project = mper.find_project_by_mper(params.fetch(:program_id))
         return error_out('Project not found') unless project
         return error_out('Posting already exists with a different project') unless existing.project == project
