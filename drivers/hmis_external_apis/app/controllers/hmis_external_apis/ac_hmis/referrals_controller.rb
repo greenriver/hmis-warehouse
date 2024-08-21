@@ -24,11 +24,10 @@ module HmisExternalApis::AcHmis
       errors = validate_request(unsafe_params)
       return respond_with_errors(errors) if errors.any?
 
-      (referral, errors, message) = HmisExternalApis::AcHmis::CreateReferralJob.perform_now(params: unsafe_params)
+      (referral, errors) = HmisExternalApis::AcHmis::CreateReferralJob.perform_now(params: unsafe_params)
       return respond_with_errors(errors) if errors.any?
 
-      # todo @martha
-      json = { message: message, id: referral.identifier }
+      json = { message: referral.identifier_previously_changed? ? 'Referral Created' : 'Referral Found', id: referral.identifier }
       request_log.update!(response: json, http_status: 200)
       render json: json
     rescue JSON::ParserError => e

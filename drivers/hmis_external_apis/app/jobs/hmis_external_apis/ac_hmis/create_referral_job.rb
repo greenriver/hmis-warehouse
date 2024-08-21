@@ -32,7 +32,7 @@ module HmisExternalApis::AcHmis
 
       # Idempotent - Check for existing posting and return early if it exists
       posting = existing_posting
-      return [posting.referral, errors, 'Referral Found'] if posting
+      return [posting.referral, errors] if posting
       # Return early in case of errors too, so we don't proceed with trying to create the referral
       return [nil, errors] unless errors.empty?
 
@@ -50,7 +50,7 @@ module HmisExternalApis::AcHmis
 
         record = referral
       end
-      [record, errors, 'Referral Created']
+      [record, errors]
     end
 
     def existing_posting
