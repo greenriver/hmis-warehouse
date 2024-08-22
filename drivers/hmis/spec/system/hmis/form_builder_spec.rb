@@ -277,8 +277,7 @@ RSpec.feature 'HMIS Form Builder', type: :system do
         expect(autofill.dig('value_code')).to eq('filled')
         expect(autofill.dig('autofill_when', 0, 'question')).to eq('yes_or_no')
 
-        # TODO - Fix bug #6555
-        # expect(item.dig('custom_rule', 'value')).to eq('some-particular-project-id')
+        expect(item.dig('custom_rule', 'value')).to eq('some-particular-project-id')
       end
     end
   end
