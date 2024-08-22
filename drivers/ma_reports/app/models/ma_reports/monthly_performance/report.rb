@@ -14,12 +14,13 @@ module MaReports::MonthlyPerformance
     include HudReports::Ages
     include HudReports::Households
     include HudReports::LengthOfStays
+    include RaceAndEthnicityCalculations
 
     has_many :enrollments
     has_many :projects
 
     private def expires_in
-      return 30.seconds if Rails.env.development?
+      return 5.days if Rails.env.development?
 
       5.months
     end
@@ -56,7 +57,7 @@ module MaReports::MonthlyPerformance
         :project_type_codes,
         :age_ranges,
         :genders,
-        :race_ethnicity_combinations,
+        :races,
         :household_type,
         :hoh_only,
         :sub_population,
@@ -284,7 +285,7 @@ module MaReports::MonthlyPerformance
             count: enrollments_for(*key).select(:client_id).distinct.count,
           },
         }
-        HudUtility2024.race_ethnicity_combinations.each do |k, label|
+        race_ethnicity_combinations.each do |k, label|
           key = ['Race', k]
           breakdowns["Race: #{label}"] = {
             key: key,
@@ -338,118 +339,14 @@ module MaReports::MonthlyPerformance
       end
     end
 
-    def race_thnicity_client_breakdowns
-      @race_thnicity_client_breakdowns ||= calculate_race_ethnicities
-    end
-
-    def calculate_race_ethnicities
-      race_ethnicities_breakdown = race_ethnicity_combinations.values.map { |m| [m, Set[]] }.to_h
-      scope = enrollments
-      race_data = pluck_to_hash((['id'] + race_columns.excluding('race_none')).map { |k, v| [k, v] }.to_h, scope)
-      race_ethnicity_combinations.each do |key, value|
-        lookups[key]&.call(race_data, race_ethnicities_breakdown[value])
-      end
-      race_ethnicities_breakdown
-    end
-
-    def race_col_lookup
-      {
-        'am_ind_ak_native' => 'AmIndAKNative',
-        'asian' => 'Asian',
-        'black_af_american' => 'BlackAfAmerican',
-        'native_hi_pacific' => 'NativeHIPacific',
-        'white' => 'White',
-        'hispanic_latinaeo' => 'HispanicLatinaeo',
-        'mid_east_n_african' => 'MidEastNAfrican',
-        'race_none' => 'RaceNone',
-      }
-    end
-
-    def race_columns
-      race_col_lookup.keys
-    end
-
-    private def pluck_to_hash(columns, scope)
-      scope.pluck(*columns.keys).map do |row|
-        Hash[columns.keys.zip(row)]
-      end
-    end
-
-    private def single_race(race_data, race, bucket_array)
-      bucket_array ||= []
-      race_data.select { |enrollment| enrollment[race] && !enrollment['hispanic_latinaeo'] }.
-        each do |e|
-          bucket_array << e['id'] if e.excluding('id', 'hispanic_latineao').count { |m| m.count(true) == 1 } == 1
-        end
-    end
-
-    private def single_race_latinaeo(race_data, race, bucket_array)
-      bucket_array ||= []
-      race_data.select { |enrollment| enrollment[race] && enrollment['hispanic_latinaeo'] }.
-        each do |e|
-          bucket_array << e['id'] if e.excluding('id', 'hispanic_latineao').count { |m| m.count(true) == 1 } == 1
-        end
-    end
-
-    private def lookups
-      {
-        am_ind_ak_native: ->(race_data, bucket) { single_race(race_data, 'am_ind_ak_native', bucket) },
-        am_ind_ak_native_hispanic_latinaeo: ->(race_data, bucket) { single_race_latinaeo(race_data, 'am_ind_ak_native', bucket) },
-        asian: ->(race_data, bucket) { single_race(race_data, 'asian', bucket) },
-        asian_hispanic_latinaeo: ->(race_data, bucket) { single_race_latinaeo(race_data, 'asian', bucket) },
-        black_af_american: ->(race_data, bucket) { single_race(race_data, 'black_af_american', bucket) },
-        black_af_american_hispanic_latinaeo: ->(race_data, bucket) { single_race_latinaeo(race_data, 'black_af_american', bucket) },
-        mid_east_n_african: ->(race_data, bucket) { single_race(race_data, 'mid_east_n_african', bucket) },
-        mid_east_n_african_hispanic_latinaeo: ->(race_data, bucket) { single_race_latinaeo(race_data, 'mid_east_n_african', bucket) },
-        native_hi_pacific: ->(race_data, bucket) { single_race(race_data, 'native_hi_pacific', bucket) },
-        native_hi_pacific_hispanic_latinaeo: ->(race_data, bucket) { single_race_latinaeo(race_data, 'native_hi_pacific', bucket) },
-        white: ->(race_data, bucket) { single_race(race_data, 'white', bucket) },
-        white_hispanic_latinaeo: ->(race_data, bucket) { single_race_latinaeo(race_data, 'white', bucket) },
-
-        hispanic_latinaeo: ->(race_data, bucket) do
-          bucket ||= []
-          race_data.select { |enrollment| enrollment['hispanic_latinaeo'] }.
-            each do |e|
-              bucket << e['id'] if e.excluding('id').count { |m| m.count(true) == 1 } == 1
-            end
-        end,
-
-        multi_racial: ->(race_data, bucket) do
-          bucket ||= []
-          race_data.reject { |enrollment| enrollment['hispanic_latinaeo'] }.
-            each do |e|
-              bucket << e['id'] if e.excluding('id', 'hispanic_latinaeo').count { |m| m.count(true) == 1 } > 1
-            end
-        end,
-
-        multi_racial_hispanic_latinaeo: ->(race_data, bucket) do
-          bucket ||= []
-          race_data.select { |enrollment| enrollment['hispanic_latinaeo'] }.
-            each do |e|
-              bucket << e['id'] if e.excluding('id', 'hispanic_latinaeo').count { |m| m.count(true) == 1 } > 1
-            end
-        end,
-
-        race_none: ->(race_data, bucket) do
-          race_data.each do |e|
-            bucket << e['id'] if e.except('id').values.all?(false)
-          end
-        end,
-      }.freeze
-    end
-
-    private def race_ethnicity_combinations
-      @race_ethnicity_combinations ||= HudUtility2024.race_ethnicity_combinations
-    end
-
     def enrollments_for(key, sub_key)
       case key
       when 'All'
         enrollments
       when 'Race'
-        return enrollments.none unless HudUtility2024.race_ethnicity_combinations.key?(sub_key.to_sym)
+        return enrollments.none unless race_ethnicity_combinations.key?(sub_key.to_sym)
 
-        enrollments.where(id: race_thnicity_client_breakdowns[HudUtility2024.race_ethnicity_combinations[sub_key.to_sym]].to_a)
+        enrollments.where(id: race_ethnicities_breakdowns(enrollments)[race_ethnicity_combinations[sub_key.to_sym]].to_a)
       when 'Gender'
         return enrollments.none unless HudUtility2024.gender_id_to_field_name.value?(sub_key)
 
@@ -482,7 +379,7 @@ module MaReports::MonthlyPerformance
       when 'All'
         'Unique Enrolled Clients'
       when 'Race'
-        label = HudUtility2024.race_ethnicity_combinations[sub_key.to_sym]
+        label = race_ethnicity_combinations[sub_key.to_sym]
         "#{key}: #{label}"
       when 'Gender'
         label = HudUtility2024.gender(sub_key.to_i)

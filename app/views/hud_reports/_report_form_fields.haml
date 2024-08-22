@@ -1,4 +1,3 @@
-- use_race_and_ethnicity ||= false
 - coc_cols = if defined?(:report_versions) && report_versions.count > 1 then 'col-sm-3' else 'col-sm-6' end
 .hud-report-options
   %h2 Required Options
@@ -28,9 +27,5 @@
   .row
     .col-sm-4
       = f.input :genders, collection: HudUtility2024.genders.invert, as: :select_two, required: false, placeholder: 'Any Gender', input_html: { multiple: true, placeholder: 'Any Gender' }
-    - unless use_race_and_ethnicity
-      .col-sm-4
-        = f.input :races, collection: HudUtility2024.races.invert, as: :select_two, required: false, placeholder: 'Any Race', input_html: { multiple: true, placeholder: 'Any Race' }
-    - else
-      .col-sm-4
-        = f.input :race_ethnicity_combinations, collection: HudUtility2024.race_ethnicity_combinations.invert, as: :select_two, required: false, placeholder: 'Any Race', input_html: { multiple: true, placeholder: 'Any Race' }
+    .col-sm-4
+      = f.input :races, collection: HudUtility2024.races.invert, as: :select_two, required: false, placeholder: 'Any Race', input_html: { multiple: true, placeholder: 'Any Race' }

@@ -565,7 +565,6 @@ module Filters
       scope = filter_for_age(scope)
       scope = filter_for_gender(scope)
       scope = filter_for_race(scope)
-      scope = filter_for_race_ethnicity_combinations(scope)
       scope = filter_for_veteran_status(scope)
       scope = filter_for_sub_population(scope)
       scope = filter_for_prior_living_situation(scope)
