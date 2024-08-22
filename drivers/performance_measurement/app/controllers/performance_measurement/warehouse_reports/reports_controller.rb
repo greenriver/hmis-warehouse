@@ -15,7 +15,7 @@ module PerformanceMeasurement::WarehouseReports
     before_action :require_can_access_some_version_of_clients!, only: [:clients]
     before_action :require_my_project!, only: [:clients]
     before_action :require_can_publish_reports!, only: [:raw, :update]
-    before_action :set_report, except: [:index, :create, :details]
+    before_action :set_report, except: [:index, :create, :details, :clients]
     before_action :set_pdf_export, only: [:show]
 
     @include_in_published_version = false
