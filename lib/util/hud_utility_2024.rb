@@ -89,7 +89,7 @@ module HudUtility2024
   def project_type_number(type)
     # attempt to lookup full name
     number = project_type(type, true) # reversed
-    return number if number.present?
+    return number if number.present? && number.is_a?(Integer)
 
     # perform an acronym lookup
     project_type_brief(type, true) # reversed
