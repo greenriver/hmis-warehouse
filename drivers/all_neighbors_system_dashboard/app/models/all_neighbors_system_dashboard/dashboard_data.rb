@@ -141,7 +141,7 @@ module AllNeighborsSystemDashboard
         '25 to 39',
         '40 to 49',
         '50 to 62',
-        'Over 63',
+        'Over 62',
         'Unknown Age',
       ]
     end
@@ -290,7 +290,7 @@ module AllNeighborsSystemDashboard
         scope.where(age: 40..49)
       when '50 to 62'
         scope.where(age: 50..62)
-      when 'Over 63'
+      when 'Over 62'
         scope.where(age: 63..)
       when 'Unknown Age'
         scope.where(age: nil).or(scope.where(age: ...0))
