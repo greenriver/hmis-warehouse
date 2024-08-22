@@ -4123,6 +4123,7 @@ type FormItem {
   Component to use for display/input of this item
   """
   component: Component
+  customRule: FormItemRule
 
   """
   Include this item only if the Client meets this HUD DataCollectedAbout condition
@@ -4201,6 +4202,7 @@ type FormItem {
   Whether the item must be included in data results
   """
   required: Boolean
+  rule: FormItemRule
 
   """
   Whether to apply this field to all clients or a single client when bulk creating
@@ -4222,6 +4224,18 @@ type FormItem {
   Whether to show a warning if this question is unanswered
   """
   warnIfEmpty: Boolean
+}
+
+type FormItemRule {
+  _comment: String
+  operator: String
+
+  """
+  Parts that make up this rule
+  """
+  parts: [FormItemRule!]
+  value: String
+  variable: String
 }
 
 """
