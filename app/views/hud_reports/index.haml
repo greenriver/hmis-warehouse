@@ -1,0 +1,6 @@
+%h1 HUD Reports
+
+- reports = Rails.application.config.hud_reports.values.uniq
+- reports.each do |r|
+  .well
+    %h3= link_to r[:title], send(r[:helper])

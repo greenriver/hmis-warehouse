@@ -18,7 +18,10 @@
           .icon-wrapper
             - if item.icon?
               %i.menu-icon{ class: item.icon }
-          .link-text.pb-2= item.title
+          .link-text.pb-2
+            = item.title
+            - if item.trailing_icon
+              %i.icon{ class: item.trailing_icon }
           - if item.children?
             .ml-auto.toggle-icon-up
               .i.icon-angle-up
@@ -42,7 +45,13 @@
                                 %i.menu-icon{ class: grand_child.icon }
                             %div
                               %a.nav-link{ **grand_child.options }
-                                .link-text= grand_child.title
+                                .link-text
+                                  = grand_child.title
+                                  - if grand_child.trailing_icon
+                                    %i.icon{ class: grand_child.trailing_icon }
                   - else
                     %a.nav-link{ **child.options }
-                      .link-text= child.title
+                      .link-text
+                        = child.title
+                        - if child.trailing_icon
+                          %i.icon.ml-2{ class: child.trailing_icon }

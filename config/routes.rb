@@ -164,6 +164,7 @@ Rails.application.routes.draw do
       resource :project_coc, only: [:show]
     end
   end
+  resources :hud_reports, only: [:index]
   namespace :hud_reports do
     resources :historic_pits, only: [:index]
     resources :historic_lsas, only: [:index], controller: 'lsas'
