@@ -14,9 +14,16 @@ module MaReports::MonthlyPerformance
     include HudReports::Ages
     include HudReports::Households
     include HudReports::LengthOfStays
+    include RaceAndEthnicityCalculations
 
     has_many :enrollments
     has_many :projects
+
+    private def expires_in
+      return 5.days if Rails.env.development?
+
+      5.months
+    end
 
     def run_and_save!
       start
@@ -270,7 +277,7 @@ module MaReports::MonthlyPerformance
     end
 
     def demographic_breakdowns
-      Rails.cache.fetch([self.class.name, __method__, id], expires_in: 5.months) do
+      Rails.cache.fetch([self.class.name, __method__, id], expires_in: expires_in) do
         key = ['All', nil]
         breakdowns = {
           'Unique Enrolled Clients' => {
@@ -278,9 +285,7 @@ module MaReports::MonthlyPerformance
             count: enrollments_for(*key).select(:client_id).distinct.count,
           },
         }
-        HudUtility2024.races.each do |k, label|
-          next if k == 'RaceNone'
-
+        race_ethnicity_combinations.each do |k, label|
           key = ['Race', k]
           breakdowns["Race: #{label}"] = {
             key: key,
@@ -339,9 +344,9 @@ module MaReports::MonthlyPerformance
       when 'All'
         enrollments
       when 'Race'
-        return enrollments.none unless HudUtility2024.races.key?(sub_key)
+        return enrollments.none unless race_ethnicity_combinations.key?(sub_key.to_sym)
 
-        enrollments.where(sub_key.underscore => true)
+        enrollments.where(id: race_ethnicities_breakdowns(enrollments)[race_ethnicity_combinations[sub_key.to_sym]].to_a)
       when 'Gender'
         return enrollments.none unless HudUtility2024.gender_id_to_field_name.value?(sub_key)
 
@@ -374,7 +379,7 @@ module MaReports::MonthlyPerformance
       when 'All'
         'Unique Enrolled Clients'
       when 'Race'
-        label = HudUtility2024.race(sub_key)
+        label = race_ethnicity_combinations[sub_key.to_sym]
         "#{key}: #{label}"
       when 'Gender'
         label = HudUtility2024.gender(sub_key.to_i)
@@ -397,7 +402,7 @@ module MaReports::MonthlyPerformance
     end
 
     def project_utilization_by_month
-      Rails.cache.fetch([self.class.name, __method__, id], expires_in: 5.months) do
+      Rails.cache.fetch([self.class.name, __method__, id], expires_in: expires_in) do
         rows = [['Month Start', 'CoC', 'City', 'Organization', 'Project', 'Active Enrollments', 'Average Daily Available Beds', 'Average Length of Stay (months)', 'Number of Chronically Homeless Individuals Served (at entry)']]
         projects.each do |project|
           rows << [
