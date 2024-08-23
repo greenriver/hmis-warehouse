@@ -115,7 +115,7 @@ class Hmis::Form::DefinitionValidator
   # Keys that are mutually exclusive. Exactly 1 of these keys must be present on their parent object.
   ONE_OF_BOUND_VALUES = ['value_number', 'value_date', 'value_local_constant', 'question'].freeze
   ONE_OF_ENABLE_WHEN_SOURCES = ['question', 'local_constant'].freeze
-  ONE_OF_ENABLE_WHEN_ANSWERS = ['answer_code', 'answer_codes', 'answer_group_code', 'answer_number', 'answer_boolean', 'compare_question'].freeze
+  ONE_OF_ENABLE_WHEN_ANSWERS = ['answer_code', 'answer_codes', 'answer_group_code', 'answer_number', 'answer_boolean', 'answer_date', 'compare_question'].freeze
   ONE_OF_AUTOFILL_VALUES = ['value_code', 'value_number', 'value_boolean', 'value_question', 'sum_questions', 'formula'].freeze
 
   # Ensure that mutually exclusive attributes are set correctly. These are objects where there must be exactly 1 key present, out of a set of keys.

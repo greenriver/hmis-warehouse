@@ -3223,6 +3223,11 @@ type EnableWhen {
   answerCodes: [String!]
 
   """
+  If question is date type, value for comparison
+  """
+  answerDate: ISO8601Date
+
+  """
   If question is choice type and has grouped options, value for comparison
   """
   answerGroupCode: String
