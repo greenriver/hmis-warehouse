@@ -46,7 +46,7 @@ class Menu::Menu
     )
     menu.add_child(hud_reports_menu)
     menu.add_child(warehouse_reports_menu)
-    menu.add_child(op_bi_menu)
+    menu.add_child(op_analytics_menu)
     menu.add_child(favorites_menu)
     menu
   end
@@ -71,7 +71,7 @@ class Menu::Menu
     )
   end
 
-  def op_bi_menu
+  def op_analytics_menu
     Menu::Item.new(
       user: user,
       visible: ->(user) { RailsDrivers.loaded.include?(:superset) && Superset.available? && GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(user).where(url: 'superset/warehouse_reports/reports').exists? },
