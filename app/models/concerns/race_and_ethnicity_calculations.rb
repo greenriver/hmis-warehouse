@@ -12,7 +12,7 @@ module RaceAndEthnicityCalculations
 
     race_data = pluck_to_hash((['id'] + race_col_lookup.keys.excluding('race_none')).map { |k, v| [k, v] }.to_h, scope)
     race_ethnicity_combinations.each do |key, value|
-      race_ethnicities_breakdown[value] = lookups[key]&.call(race_data)
+      race_ethnicities_breakdown[value] = race_and_ethnicity_lookups[key]&.call(race_data)
     end
     race_ethnicities_breakdown
   end
@@ -68,7 +68,7 @@ module RaceAndEthnicityCalculations
     end
   end
 
-  private def lookups
+  private def race_and_ethnicity_lookups
     {
       am_ind_ak_native: ->(race_data) { single_race(race_data, 'am_ind_ak_native') },
       am_ind_ak_native_hispanic_latinaeo: ->(race_data) { single_race_latinaeo(race_data, 'am_ind_ak_native') },
