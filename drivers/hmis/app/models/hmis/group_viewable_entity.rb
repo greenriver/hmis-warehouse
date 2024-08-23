@@ -26,7 +26,7 @@ module Hmis
     scope :data_sources, -> { where(entity_type: GrdaWarehouse::DataSource.sti_name) }
 
     scope :includes_project, ->(project) do
-      joins(:projects).where(project: project)
+      joins(:projects).where(p_t[:id].eq(project.id))
     end
 
     scope :includes_organization, ->(organization) do
@@ -43,7 +43,7 @@ module Hmis
         includes_project(entity)
       when Hmis::Hud::Organization.name
         includes_organization(entity)
-      when GrdaWarehouse::DataSource.name
+      when ::GrdaWarehouse::DataSource.name
         includes_data_source(entity)
       else
         none

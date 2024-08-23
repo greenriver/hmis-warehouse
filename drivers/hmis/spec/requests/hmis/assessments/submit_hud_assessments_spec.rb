@@ -20,6 +20,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   TIME_FMT = '%Y-%m-%d %T.%3N'.freeze
 
+  let(:today) { Date.current }
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
@@ -319,9 +320,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'Submitting an Intake assessment in a WIP household' do
-    let!(:hoh_enrollment) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01' }
+    let!(:hoh_enrollment) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, user: u1, entry_date: today - 1.day }
     let!(:other_enrollment) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
-    let(:assessment_date) { '2005-03-02' }
+    let(:assessment_date) { today.to_fs(:db) }
     let(:definition) { Hmis::Form::Definition.find_by(role: :INTAKE) }
 
     it 'fails if entering non-HoH member' do

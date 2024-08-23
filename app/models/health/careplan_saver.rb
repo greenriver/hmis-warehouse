@@ -65,8 +65,7 @@ module Health
     end
 
     private def save_qa(qualifying_activity)
-      qualifying_activity.save!
-      qualifying_activity.maintain_cached_values
+      qualifying_activity.maintain_cached_values if qualifying_activity.save
     end
 
     private def setup_care_planning_qualifying_activity(mode_of_contact: :in_person, qa_date_attribute: :patient_signed_on)
