@@ -20,10 +20,12 @@ module CohortColumns
       'html'
     end
 
-    def value(cohort_client) # OK
+    def value(cohort_client)
       checkmark_or_x text_value(cohort_client)
     end
 
+    # NOTE: depending on how availability is calculated, calling
+    # active_in_cas? may cause N+1 queries
     def text_value(cohort_client)
       cohort_client.client.active_in_cas?
     end

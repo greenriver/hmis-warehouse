@@ -514,7 +514,7 @@ module PublicReports
         25 => '25 to 39',
         40 => '40 to 49',
         50 => '50 to 62',
-        63 => 'Over 63',
+        63 => 'Over 62',
         unknown: 'Unknown',
       }.freeze
     end

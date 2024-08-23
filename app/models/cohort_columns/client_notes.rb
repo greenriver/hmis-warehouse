@@ -37,13 +37,13 @@ module CohortColumns
     end
 
     def comments
-      cohort_client.client.cohort_notes.order(updated_at: :desc).map do |note|
+      cohort_client.client.cohort_notes.sort_by(&:updated_at).reverse.map do |note|
         "#{note.note} -- #{note.user.name} on #{note.updated_at.to_date}"
       end.join("\r\n\r\n").html_safe
     end
 
     def display_read_only(_user)
-      note_count = cohort_client.client.cohort_notes.length || 0
+      note_count = cohort_client.client.cohort_notes.size || 0
       unknown_date = DateTime.current - 10.years
       updated_at = cohort_client.client.cohort_notes.map(&:updated_at)&.max
       max_updated_at = (updated_at || unknown_date).to_fs(:db)
