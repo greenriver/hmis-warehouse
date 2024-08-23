@@ -179,9 +179,11 @@ module GrdaWarehouse
         {
           cohort_client_notes: :user,
           client: [
-            :source_clients,
             :cohort_notes,
             :processed_service_history,
+            :client_file_consent_forms_signed,
+            :client_file_consent_forms_signed_confirmed,
+            :source_exits,
             {
               cohort_clients: [
                 :cohort,
