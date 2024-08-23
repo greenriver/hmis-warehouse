@@ -114,7 +114,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   ].freeze
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
-  validates :identifier, uniqueness: { scope: :version }
 
   ENROLLMENT_CONFIG = {
     owner_class: 'Hmis::Hud::Enrollment',
