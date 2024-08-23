@@ -24,7 +24,7 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             echo 'matrix={"test_group": [
-              {"id": "system_tests", system_tests: "true"}
+              {"id": "system_tests", "system_tests": "true"}
             ]}' >> $GITHUB_OUTPUT
           else
             echo 'matrix={"test_group": [
