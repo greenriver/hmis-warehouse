@@ -23,17 +23,9 @@ jobs:
       - id: set-matrix
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo 'matrix={"test_group": [
-              {"id": "system_tests", "system_tests": "true"}
-            ]}' | jq -c . >> $GITHUB_OUTPUT
+            echo 'matrix={"test_group":[{"id":"system_tests","system_tests":"true"}]}' >> $GITHUB_OUTPUT
           else
-            echo 'matrix={"test_group": [
-              {"id": "ci_bucket_1", "tag": "ci_bucket:bucket-1"},
-              {"id": "ci_bucket_2", "tag": "ci_bucket:bucket-2"},
-              {"id": "ci_bucket_3", "tag": "ci_bucket:bucket-3"},
-              {"id": "ci_bucket_4", "tag": "ci_bucket:bucket-4"},
-              {"id": "ci_bucket_default", "tag": "~ci_bucket", "logging_tests": true, "okta_tests": true}
-            ]}' | jq -c . >> $GITHUB_OUTPUT
+            echo 'matrix={"test_group":[{"id":"ci_bucket_1","tag":"ci_bucket:bucket-1"},{"id":"ci_bucket_2","tag":"ci_bucket:bucket-2"},{"id":"ci_bucket_3","tag":"ci_bucket:bucket-3"},{"id":"ci_bucket_4","tag":"ci_bucket:bucket-4"},{"id":"ci_bucket_default","tag":"~ci_bucket","logging_tests":true,"okta_tests":true}]}' >> $GITHUB_OUTPUT
           fi
 
   # Label of the container job
