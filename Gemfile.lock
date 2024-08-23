@@ -1108,7 +1108,6 @@ DEPENDENCIES
   factory_bot_rails
   faker (>= 1.7.2)
   faraday (~> 2.2)
-  ferrum (~> 0.14.0)
   ffi
   ffi-geos
   flamegraph

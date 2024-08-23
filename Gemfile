@@ -291,7 +291,6 @@ end
 group :test do
   gem 'capybara'
   gem 'cuprite'
-  gem 'ferrum', '~> 0.14.0'
   gem 'pg_fixtures', github: 'greenriver/pg_fixtures'
   gem 'minitest-reporters'
   gem 'rspec-mocks'
