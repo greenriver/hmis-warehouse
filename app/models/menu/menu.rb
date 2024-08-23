@@ -76,7 +76,7 @@ class Menu::Menu
       user: user,
       visible: ->(user) { RailsDrivers.loaded.include?(:superset) && Superset.available? && GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(user).where(url: 'superset/warehouse_reports/reports').exists? },
       path: Superset.superset_base_url,
-      title: Translation.translate('Open Path BI'),
+      title: Translation.translate('Open Path Analytics'),
       id: 'superset',
       target: :_blank,
       trailing_icon: 'icon-link-ext',
