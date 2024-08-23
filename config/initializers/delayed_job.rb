@@ -11,30 +11,16 @@ Delayed::Worker.queue_attributes = {
   long_running: { priority: 5 },
 }
 
-# Monkey patch so Delayed::Worker knows where it started
-# Delayed::Worker::Deployment.deployed_to
+# if ENV['EKS'] == 'true'
+#   Rails.application.config.to_prepare do
+#     unless DjMetrics.instance.initialized
+#       Rails.logger.info 'Bootstrapping prometheus metrics'
+#       DjMetrics.instance.clear!
+#     end
+#   end
+# end
+
 module Delayed
-  class Worker
-    class Deployment
-      def self.deployed_to
-        if Rails.env.development? || Rails.env.test?
-          File.realpath(FileUtils.pwd)
-        else
-          Dir.glob(File.join(File.dirname(File.realpath(FileUtils.pwd)), '*')).max_by{|f| File.mtime(f)}
-        end
-      end
-    end
-  end
-  # class Job
-  #   def self.jobs_for_class(handlers)
-  #     handlers = Array.wrap(handlers)
-  #     sql = arel_table[:id].eq(0) # This will never happen
-  #     handlers.each do |handler|
-  #       sql = sql.or(arel_table[:handler].matches("%#{handler}%"))
-  #     end
-  #     where(sql)
-  #   end
-  # end
   module Backend
     module ActiveRecord
       class Job < ::ActiveRecord::Base
@@ -74,12 +60,4 @@ module Delayed
       end
     end
   end
-end
-
-root_folder = File.basename(Rails.root)
-# If the root folder is all digits, we're probably on a deployed server
-ENV['CURRENT_PATH'] = if /^\d+$/.match?(root_folder)
-  Rails.root.to_s.gsub(File.join('releases', root_folder), 'current')
-else
-  Rails.root.to_s
 end

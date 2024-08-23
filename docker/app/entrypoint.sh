@@ -43,6 +43,11 @@ echo 'Setting Timezone'
 cp /usr/share/zoneinfo/$TIMEZONE /app/etc-localtime
 echo $TIMEZONE > /etc/timezone
 
+if [ "$CONTAINER_VARIANT" == "dj" ]; then
+  echo "Calling: $@"
+  exec bundle exec "$@"
+fi
+
 # echo 'Syncing the client assets from s3...'
 # T1=`date +%s`
 # ./bin/sync_app_assets.rb

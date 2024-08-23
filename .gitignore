@@ -177,3 +177,4 @@ lib/data/*.xlsx
 /drivers/hud_spm_report/spec/fixpoints/return_universe/warehouse_test.sql
 
 assets.tar
+prometheus-metrics/**
