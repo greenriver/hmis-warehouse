@@ -57,7 +57,7 @@ module E2eTests
           app,
           **{
             window_size: [1200, 1600],
-            flatten: false, # https://github.com/rubycdp/ferrum/issues/470
+            # flatten: false, # https://github.com/rubycdp/ferrum/issues/470
             browser_options: RemoteChrome.connected? ? { 'no-sandbox' => nil } : {},
             headless: ENV.fetch('CI', 'true') == 'true',
             process_timeout: process_timeout,
