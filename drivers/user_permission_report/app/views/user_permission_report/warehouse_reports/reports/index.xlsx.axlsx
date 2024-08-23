@@ -7,6 +7,7 @@ wb.add_worksheet(name: 'User Permissions') do |sheet|
   sheet.add_row([
     'Name',
     'Email',
+    'ID',
     'Status',
     'Agency',
     'Last Login',
@@ -19,6 +20,7 @@ wb.add_worksheet(name: 'User Permissions') do |sheet|
     row = [
       user.name,
       user.email,
+      user.id,
       user.overall_status(current_user).join('; '),
       user.agency_name,
       user.last_sign_in_at&.to_time&.to_fs(:db),
