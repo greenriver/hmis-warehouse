@@ -176,7 +176,7 @@ module GrdaWarehouse
     scope :recent_ce_self_report_certification, -> do
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
-      ce_self_report_certification_tag_ids_tagging_ids = Rails.cache.fetch('verified_homeless_history_tagging_ids/tag_ids', expires_in: 2.minutes) do
+      ce_self_report_certification_tag_ids_tagging_ids = Rails.cache.fetch('ce_self_report_certification_tag_ids_tagging_ids/tag_ids', expires_in: 2.minutes) do
         ce_self_report_certification_tag_ids = ActsAsTaggableOn::Tag.where(
           name: GrdaWarehouse::AvailableFileTag.ce_self_report_certification.pluck(:name),
         ).pluck(:id)
