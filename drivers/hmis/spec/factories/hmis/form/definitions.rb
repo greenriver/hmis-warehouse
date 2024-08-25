@@ -231,4 +231,69 @@ FactoryBot.define do
       }.deep_stringify_keys
     end
   end
+
+  # Custom Assessment that has advanced features that aren't available to all users
+  factory :custom_assessment_with_field_rules_and_autofill, parent: :hmis_form_definition do
+    role { :CUSTOM_ASSESSMENT }
+    title { 'Advanced Assessment' }
+    sequence(:identifier) { |n| "custom_assessment_#{n}" }
+    definition do
+      {
+        'item': [
+          {
+            'type': 'GROUP',
+            'text': 'Test Custom Assessment',
+            'link_id': 'section_1',
+            'item': [
+              {
+                'type': 'DATE',
+                'required': true,
+                'link_id': 'assessment_date',
+                'text': 'Assessment Date',
+                'assessment_date': true,
+                'mapping': {
+                  'field_name': 'assessmentDate',
+                },
+              },
+              {
+                'text': 'Yes or no?',
+                'type': 'BOOLEAN',
+                'link_id': 'yes_or_no',
+                'mapping': {
+                  'custom_field_key': 'yes_or_no',
+                },
+              },
+              {
+                'text': 'Conditionally autofilled',
+                'type': 'STRING',
+                'link_id': 'conditionally_autofilled',
+                'mapping': {
+                  'custom_field_key': 'conditionally_autofilled',
+                },
+                'autofill_values': [
+                  {
+                    'value_code': 'filled',
+                    'autofill_when': [
+                      {
+                        'operator': 'EQUAL',
+                        'question': 'yes_or_no',
+                        'answer_boolean': true,
+                      },
+                    ],
+                    'autofill_behavior': 'ALL',
+                    'autofill_readonly': false,
+                  },
+                ],
+                'custom_rule': {
+                  'variable': 'projectId',
+                  'operator': 'NOT_EQUAL',
+                  'value': 'some-particular-project-id',
+                },
+              },
+            ],
+          },
+        ],
+      }.deep_stringify_keys
+    end
+  end
 end

@@ -29,6 +29,7 @@ module Types
     def _find_or_create_assessment
       form_definition = Hmis::Form::Definition.find_by(id: form_definition_id)
       raise HmisErrors::ApiError, 'FormDefinition not found' unless form_definition.present?
+      raise HmisErrors::ApiError, 'FormDefinition status is invalid' unless form_definition.valid_status_for_submit?
 
       # If updating existing assessment, find it
       if assessment_id.present?

@@ -21,7 +21,7 @@ module MaReports::CsgEngage
     end
 
     private def set_report
-      @report = report_scope.preload(:agency).preload(program_reports: [:program_mapping]).find(params[:id].to_i)
+      @report = report_scope.preload(:agency).preload(program_reports: [:program]).find(params[:id].to_i)
     end
   end
 end

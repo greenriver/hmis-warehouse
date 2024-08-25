@@ -14,8 +14,8 @@ module MaReports::CsgEngage
 
     def self.build(agency)
       report = create(agency: agency, project_ids: agency.program_mappings.pluck(:project_id))
-      agency.program_mappings.each do |program_mapping|
-        MaReports::CsgEngage::ProgramReport.create(report: report, program_mapping: program_mapping)
+      agency.programs.each do |program|
+        MaReports::CsgEngage::ProgramReport.create(report: report, program: program)
       end
       report
     end

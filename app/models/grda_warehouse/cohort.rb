@@ -179,8 +179,11 @@ module GrdaWarehouse
         {
           cohort_client_notes: :user,
           client: [
-            :source_clients,
+            :cohort_notes,
             :processed_service_history,
+            :client_file_consent_forms_signed,
+            :client_file_consent_forms_signed_confirmed,
+            :source_exits,
             {
               cohort_clients: [
                 :cohort,
@@ -235,6 +238,13 @@ module GrdaWarehouse
       user.can_edit_some_cohorts && user.cohorts.where(id: id).exists?
     end
     memoize :user_can_edit_cohort_clients
+
+    # Used in cohort columns, cached here so we don't have to re-fetch
+    def window_project_ids
+      @window_project_ids ||= GrdaWarehouse::Hud::Project.joins(:data_source).
+        merge(GrdaWarehouse::DataSource.visible_in_window).
+        pluck(:id)
+    end
 
     def inactive?
       !active?

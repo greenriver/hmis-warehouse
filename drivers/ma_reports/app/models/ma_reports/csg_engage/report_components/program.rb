@@ -6,15 +6,15 @@
 
 module MaReports::CsgEngage::ReportComponents
   class Program < Base
-    attr_accessor :program_mapping
+    attr_accessor :program
 
-    def initialize(program_mapping)
-      @program_mapping = program_mapping
+    def initialize(program)
+      @program = program
       @now = DateTime.current
     end
 
-    field('Program Name') { program_mapping.csg_engage_name }
-    field('Import Keyword') { program_mapping.csg_engage_import_keyword }
+    field('Program Name') { program.csg_engage_name }
+    field('Import Keyword') { program.csg_engage_import_keyword }
 
     field('Households') do
       result = []
@@ -26,12 +26,12 @@ module MaReports::CsgEngage::ReportComponents
 
     private
 
-    def project
-      @project ||= program_mapping.project
+    def project_ids
+      @project_ids ||= program.program_mappings.pluck(:project_id)
     end
 
     def households_scope
-      project.enrollments.heads_of_households.preload(project: [:project_cocs])
+      GrdaWarehouse::Hud::Enrollment.joins(:project).where(project: { id: project_ids }).heads_of_households.preload(project: [:project_cocs])
     end
   end
 end
