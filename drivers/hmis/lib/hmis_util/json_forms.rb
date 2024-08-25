@@ -12,7 +12,7 @@ module HmisUtil
     DATA_DIR = 'drivers/hmis/lib/form_data'.freeze
 
     def initialize(env_key: nil)
-      @env_key = env_key if env_key.present? # allow override for testing
+      @env_key = env_key if env_key.presence # allow override for testing
     end
 
     def self.seed_all

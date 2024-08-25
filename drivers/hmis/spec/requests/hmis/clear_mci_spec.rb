@@ -26,24 +26,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:stub_clearance_results) do
     [
-      HmisExternalApis::AcHmis::MciClearanceResult.new(
-        mci_id: 10,
-        score: 80,
-        client: create(:hmis_hud_client, first_name: 'rita', woman: 1),
-        existing_client_id: 100,
-      ),
-      HmisExternalApis::AcHmis::MciClearanceResult.new(
-        mci_id: 50,
-        score: 90,
-        client: create(:hmis_hud_client, first_name: 'reet', woman: 1, man: 1),
-        existing_client_id: nil,
-      ),
-      HmisExternalApis::AcHmis::MciClearanceResult.new(
-        mci_id: 80,
-        score: 50, # below threshold
-        client: create(:hmis_hud_client),
-        existing_client_id: nil,
-      ),
+      build(:mci_clearance_result, mci_id: '10', score: 80, client: build(:hmis_hud_client, first_name: 'rita', woman: 1), existing_client_id: 100),
+      build(:mci_clearance_result, mci_id: '50', score: 90, client: build(:hmis_hud_client, first_name: 'reet', woman: 1, man: 1)),
+      build(:mci_clearance_result, mci_id: '80', score: 50),
     ]
   end
 

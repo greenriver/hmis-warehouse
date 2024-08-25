@@ -5,10 +5,6 @@ require_relative '../../support/hmis_base_setup'
 RSpec.feature 'Assessment definition selection', type: :system do
   include_context 'hmis base setup'
 
-  before(:all) do
-    ::HmisUtil::JsonForms.new(env_key: 'allegheny').seed_record_form_definitions
-  end
-
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:mci_cred) { create(:ac_hmis_mci_credential) }
@@ -25,10 +21,12 @@ RSpec.feature 'Assessment definition selection', type: :system do
 
   before(:each) do
     sign_in(hmis_user)
-    disable_transitions
+
     allow(HmisExternalApis::AcHmis::Mci).to receive(:new).and_return(stub_mci)
     allow(stub_mci).to receive(:create_mci_id).and_return(nil)
     allow(stub_mci).to receive(:creds).and_return(mci_cred)
+
+    ::HmisUtil::JsonForms.new(env_key: 'allegheny').seed_record_form_definitions
   end
 
   def enter_client_details
@@ -97,12 +95,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
     context 'with auto-clearance result for client that already exists in HMIS' do
       before(:each) do
         result = [
-          HmisExternalApis::AcHmis::MciClearanceResult.new(
-            mci_id: c1_mci_id.value,
-            score: 99, # above auto-clearance threshold (97)
-            client: build(:hmis_hud_client, first_name: 'quentin', man: 1),
-            existing_client_id: c1.id,
-          ),
+          build(:mci_clearance_result, mci_id: c1_mci_id.value, score: 99, existing_client_id: c1.id),
         ]
         allow(stub_mci).to receive(:clearance).and_return(result)
       end
@@ -117,6 +110,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
         find_by_id("select_mci_#{c1_mci_id.value}", visible: :all).set(true)
         expect do
           click_button 'Save Changes'
+          assert_no_text 'Save Changes'
         end.to change(HmisExternalApis::ExternalId.mci_ids, :count).by(1)
         expect(c2.reload.ac_hmis_mci_ids.count).to eq(1)
         expect(c2.reload.ac_hmis_mci_ids.first.value).to eq(c1_mci_id.value)
@@ -149,6 +143,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
 
         expect do
           click_button 'Create & Enroll Client'
+          assert_no_text 'Enroll a New Client'
         end.to change(Hmis::Hud::Client, :count).by(1)
 
         # Not mocking the actual ExternalId creation here, just ensuring that it was invoked
@@ -159,12 +154,8 @@ RSpec.feature 'Assessment definition selection', type: :system do
     context 'with auto-clearance result for client that already exists in HMIS' do
       before(:each) do
         result = [
-          HmisExternalApis::AcHmis::MciClearanceResult.new(
-            mci_id: c1_mci_id.value,
-            score: 99, # above auto-clearance threshold (97)
-            client: build(:hmis_hud_client, first_name: 'quentin', man: 1),
-            existing_client_id: c1.id,
-          ),
+          # above auto-clearance threshold (97)
+          build(:mci_clearance_result, mci_id: c1_mci_id.value, score: 99, existing_client_id: c1.id),
         ]
         allow(stub_mci).to receive(:clearance).and_return(result)
       end
@@ -186,12 +177,8 @@ RSpec.feature 'Assessment definition selection', type: :system do
     context 'with single result for client that already exists in HMIS' do
       before(:each) do
         result = [
-          HmisExternalApis::AcHmis::MciClearanceResult.new(
-            mci_id: c1_mci_id.value,
-            score: 90, # below auto-clearance threshold (97)
-            client: build(:hmis_hud_client, first_name: 'quentin', man: 1),
-            existing_client_id: c1.id,
-          ),
+          # below auto-clearance threshold (97)
+          build(:mci_clearance_result, mci_id: c1_mci_id.value, score: 90, existing_client_id: c1.id),
         ]
         allow(stub_mci).to receive(:clearance).and_return(result)
       end
@@ -220,18 +207,8 @@ RSpec.feature 'Assessment definition selection', type: :system do
     context 'with multiple results including client that already exists in HMIS' do
       before(:each) do
         result = [
-          HmisExternalApis::AcHmis::MciClearanceResult.new(
-            mci_id: '9999',
-            score: 91,
-            client: build(:hmis_hud_client, first_name: 'q', man: 1),
-            existing_client_id: nil,
-          ),
-          HmisExternalApis::AcHmis::MciClearanceResult.new(
-            mci_id: c1_mci_id.value,
-            score: 90,
-            client: build(:hmis_hud_client, first_name: 'quentin', man: 1),
-            existing_client_id: c1.id,
-          ),
+          build(:mci_clearance_result, mci_id: '9999', score: 91),
+          build(:mci_clearance_result, mci_id: c1_mci_id.value, score: 90, existing_client_id: c1.id),
         ]
         allow(stub_mci).to receive(:clearance).and_return(result)
       end
@@ -252,6 +229,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
         find_by_id('select_mci_9999', visible: :all).set(true)
         expect do
           click_button 'Create & Enroll Client'
+          assert_no_text 'Enroll a New Client'
         end.to change(Hmis::Hud::Client, :count).by(1).
           and change(HmisExternalApis::ExternalId.mci_ids.where(value: '9999'), :count).by(1)
 
