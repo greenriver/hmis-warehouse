@@ -19,6 +19,13 @@ module MaReports::MonthlyPerformance
       where(exit_date.gteq(range.first).or(exit_date.eq(nil)).and(entry_date.lteq(range.last)))
     end
 
+    def self.detail_headers
+      # On the details page, only show the race columns stored in the database record
+      headers.
+        reject { |k| HudUtility2024.race_ethnicity_combinations.include?(k) }.
+        merge(HudUtility2024.races.except('RaceNone').map { |k, v| [k.underscore.to_sym, v] }.to_h)
+    end
+
     def self.headers
       {
         client_id: 'Warehouse Client ID',
@@ -32,13 +39,22 @@ module MaReports::MonthlyPerformance
         latest_for_client: 'Most-Recent Enrollment for Client',
         chronically_homeless_at_entry: 'Chronically Homeless at Entry',
         stay_length_in_days: 'Stay Length in Days',
-        am_ind_ak_native: HudUtility2024.race('AmIndAKNative'),
-        asian: HudUtility2024.race('Asian'),
-        black_af_american: HudUtility2024.race('BlackAfAmerican'),
-        native_hi_pacific: HudUtility2024.race('NativeHIPacific'),
-        white: HudUtility2024.race('White'),
-        hispanic_latinaeo: HudUtility2024.race('HispanicLatinaeo'),
-        mid_east_n_african: HudUtility2024.race('MidEastNAfrican'),
+        am_ind_ak_native: HudUtility2024.race_ethnicity_combinations[:am_ind_ak_native],
+        am_ind_ak_native_hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:am_ind_ak_native_hispanic_latinaeo],
+        asian: HudUtility2024.race_ethnicity_combinations[:asian],
+        asian_hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:asian_hispanic_latinae],
+        black_af_american: HudUtility2024.race_ethnicity_combinations[:black_af_american],
+        black_af_american_hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:black_af_american_hispanic_latinaeo],
+        hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:hispanic_latinaeo],
+        mid_east_n_african: HudUtility2024.race_ethnicity_combinations[:mid_east_n_african],
+        mid_east_n_african_hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:mid_east_n_african_hispanic_latinaeo],
+        native_hi_pacific: HudUtility2024.race_ethnicity_combinations[:native_hi_pacific],
+        native_hi_pacific_hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:native_hi_pacific_hispanic_latinaeo],
+        white: HudUtility2024.race_ethnicity_combinations[:white],
+        white_hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:white_hispanic_latinaeo],
+        multi_racial: HudUtility2024.race_ethnicity_combinations[:multi_racial],
+        multi_racial_hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:multi_racial_hispanic_latinaeo],
+        race_none: HudUtility2024.race_ethnicity_combinations[:race_none],
         man: 'Man',
         woman: 'Woman',
         culturally_specific: 'Culturally Specific Identity (e.g., Two-Spirit)',

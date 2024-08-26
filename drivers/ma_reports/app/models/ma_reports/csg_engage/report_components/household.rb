@@ -12,7 +12,9 @@ module MaReports::CsgEngage::ReportComponents
       @hoh_enrollment = hoh_enrollment
     end
 
-    field('Household Identifier') { hoh_enrollment.id.to_s }
+    field('Household Identifier') do
+      Digest::MD5.hexdigest([hoh_enrollment.HouseholdID, hoh_enrollment.project.id].join('|'))[0..19]
+    end
 
     subfield('Address') do
       field('Apartment')

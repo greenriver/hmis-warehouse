@@ -115,7 +115,7 @@ module AllNeighborsSystemDashboard
         '25 to 39',
         '40 to 49',
         '50 to 62',
-        'Over 63',
+        'Over 62',
         'Unknown',
       ]
     end

@@ -26,7 +26,7 @@ class HmisExternalApis::ExternalFormsController < ActionController::Base
   def show
     # to refresh form content
     object_key = params[:object_key]
-    definition = Hmis::Form::Definition.where(external_form_object_key: object_key).first!
+    definition = Hmis::Form::Definition.published.where(external_form_object_key: object_key).first!
 
     HmisExternalApis::PublishExternalFormsJob.new.perform(definition.id)
     definition.reload

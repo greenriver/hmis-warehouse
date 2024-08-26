@@ -8,8 +8,9 @@ class Translation < ApplicationRecord
   include NotifierConfig
 
   def self.translate(text)
-    # don't set expiry, the cache is updated via BuildTranslationCacheJob
-    translated = Rails.cache.fetch(cache_key(text)) do
+    # The cache is updated via BuildTranslationCacheJob, but without an expiration is uses the default
+    # expiration of 5 minutes in development, 8 hours in production
+    translated = Rails.cache.fetch(cache_key(text), expires_in: 8.hours) do
       translation = where(key: text).order(:id).first_or_create do |record|
         record.key = text
         Rails.logger.info("Unknown Translation key \"#{text}\", added to DB")
