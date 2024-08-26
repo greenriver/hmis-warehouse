@@ -18,7 +18,7 @@
           %tr
             %td=mapping.project.project_name
             %td=mapping.clarity_name
-            %td=mapping.csg_engage_name
-            %td=mapping.csg_engage_import_keyword
+            %td=mapping.program.csg_engage_name
+            %td=mapping.program.csg_engage_import_keyword
             %td=mapping.include_in_export ? 'Yes' : 'No'
             %td=mapping.program_reports.pluck(:completed_at).compact.max
