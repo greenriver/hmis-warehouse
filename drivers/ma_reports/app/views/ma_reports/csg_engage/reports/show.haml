@@ -14,7 +14,7 @@
     %tbody
       - @report.program_reports.each do |program_report|
         %tr
-          %td=program_report.program_mapping.clarity_name
+          %td=program_report.program.csg_engage_name
           %td=program_report.created_at
           %td=program_report.started_at
           %td=program_report.completed_at
