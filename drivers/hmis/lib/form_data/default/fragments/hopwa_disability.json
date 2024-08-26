@@ -12,15 +12,7 @@
       "mapping": {
         "record_type": "DISABILITY_GROUP",
         "field_name": "tCellCountAvailable"
-      },
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "q_4_08_2",
-          "operator": "EQUAL",
-          "answer_code": "YES"
-        }
-      ]
+      }
     },
     {
       "type": "INTEGER",
@@ -30,15 +22,7 @@
       "mapping": {
         "record_type": "DISABILITY_GROUP",
         "field_name": "tCellCount"
-      },
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "W4_2",
-          "operator": "EQUAL",
-          "answer_code": "YES"
-        }
-      ]
+      }
     },
     {
       "type": "CHOICE",
@@ -49,15 +33,7 @@
       "mapping": {
         "record_type": "DISABILITY_GROUP",
         "field_name": "tCellSource"
-      },
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "W4_2",
-          "operator": "EQUAL",
-          "answer_code": "YES"
-        }
-      ]
+      }
     },
     {
       "type": "CHOICE",
@@ -68,15 +44,7 @@
       "mapping": {
         "record_type": "DISABILITY_GROUP",
         "field_name": "viralLoadAvailable"
-      },
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "q_4_08_2",
-          "operator": "EQUAL",
-          "answer_code": "YES"
-        }
-      ]
+      }
     },
     {
       "type": "INTEGER",
@@ -86,15 +54,7 @@
       "mapping": {
         "record_type": "DISABILITY_GROUP",
         "field_name": "viralLoad"
-      },
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "W4_3",
-          "operator": "EQUAL",
-          "answer_code": "AVAILABLE"
-        }
-      ]
+      }
     },
     {
       "type": "CHOICE",
@@ -105,15 +65,7 @@
       "mapping": {
         "record_type": "DISABILITY_GROUP",
         "field_name": "viralLoadSource"
-      },
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "W4_3",
-          "operator": "EQUAL",
-          "answer_code": "AVAILABLE"
-        }
-      ]
+      }
     },
     {
       "type": "CHOICE",
@@ -124,15 +76,7 @@
       "mapping": {
         "record_type": "DISABILITY_GROUP",
         "field_name": "antiRetroviral"
-      },
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "q_4_08_2",
-          "operator": "EQUAL",
-          "answer_code": "YES"
-        }
-      ]
+      }
     }
   ]
 }
