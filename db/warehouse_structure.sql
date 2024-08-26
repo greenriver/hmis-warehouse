@@ -161,116 +161,116 @@ $_$;
 
 CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
     LANGUAGE plpgsql
-    AS $$
-      BEGIN
-      IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
-            INSERT INTO service_history_services_2050 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
-            INSERT INTO service_history_services_2049 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
-            INSERT INTO service_history_services_2048 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
-            INSERT INTO service_history_services_2047 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
-            INSERT INTO service_history_services_2046 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
-            INSERT INTO service_history_services_2045 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
-            INSERT INTO service_history_services_2044 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
-            INSERT INTO service_history_services_2043 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
-            INSERT INTO service_history_services_2042 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
-            INSERT INTO service_history_services_2041 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
-            INSERT INTO service_history_services_2040 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
-            INSERT INTO service_history_services_2039 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
-            INSERT INTO service_history_services_2038 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
-            INSERT INTO service_history_services_2037 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
-            INSERT INTO service_history_services_2036 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
-            INSERT INTO service_history_services_2035 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
-            INSERT INTO service_history_services_2034 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
-            INSERT INTO service_history_services_2033 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
-            INSERT INTO service_history_services_2032 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
-            INSERT INTO service_history_services_2031 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
-            INSERT INTO service_history_services_2030 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
-            INSERT INTO service_history_services_2029 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
-            INSERT INTO service_history_services_2028 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
-            INSERT INTO service_history_services_2027 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
-            INSERT INTO service_history_services_2026 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
-            INSERT INTO service_history_services_2025 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
-            INSERT INTO service_history_services_2024 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
-            INSERT INTO service_history_services_2023 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
-            INSERT INTO service_history_services_2022 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
-            INSERT INTO service_history_services_2021 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
-            INSERT INTO service_history_services_2020 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
-            INSERT INTO service_history_services_2019 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
-            INSERT INTO service_history_services_2018 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
-            INSERT INTO service_history_services_2017 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
-            INSERT INTO service_history_services_2016 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
-            INSERT INTO service_history_services_2015 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
-            INSERT INTO service_history_services_2014 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
-            INSERT INTO service_history_services_2013 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
-            INSERT INTO service_history_services_2012 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
-            INSERT INTO service_history_services_2011 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
-            INSERT INTO service_history_services_2010 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
-            INSERT INTO service_history_services_2009 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
-            INSERT INTO service_history_services_2008 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
-            INSERT INTO service_history_services_2007 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
-            INSERT INTO service_history_services_2006 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
-            INSERT INTO service_history_services_2005 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
-            INSERT INTO service_history_services_2004 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
-            INSERT INTO service_history_services_2003 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
-            INSERT INTO service_history_services_2002 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
-            INSERT INTO service_history_services_2001 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
-            INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
-      ELSE
-        INSERT INTO service_history_services_remainder VALUES (NEW.*);
-        END IF;
-        RETURN NULL;
-    END;
+    AS $$
+      BEGIN
+      IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
+            INSERT INTO service_history_services_2050 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
+            INSERT INTO service_history_services_2049 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
+            INSERT INTO service_history_services_2048 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
+            INSERT INTO service_history_services_2047 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
+            INSERT INTO service_history_services_2046 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
+            INSERT INTO service_history_services_2045 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
+            INSERT INTO service_history_services_2044 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
+            INSERT INTO service_history_services_2043 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
+            INSERT INTO service_history_services_2042 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
+            INSERT INTO service_history_services_2041 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
+            INSERT INTO service_history_services_2040 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
+            INSERT INTO service_history_services_2039 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
+            INSERT INTO service_history_services_2038 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
+            INSERT INTO service_history_services_2037 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
+            INSERT INTO service_history_services_2036 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
+            INSERT INTO service_history_services_2035 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
+            INSERT INTO service_history_services_2034 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
+            INSERT INTO service_history_services_2033 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
+            INSERT INTO service_history_services_2032 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
+            INSERT INTO service_history_services_2031 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
+            INSERT INTO service_history_services_2030 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
+            INSERT INTO service_history_services_2029 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
+            INSERT INTO service_history_services_2028 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
+            INSERT INTO service_history_services_2027 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
+            INSERT INTO service_history_services_2026 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
+            INSERT INTO service_history_services_2025 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
+            INSERT INTO service_history_services_2024 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
+            INSERT INTO service_history_services_2023 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
+            INSERT INTO service_history_services_2022 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
+            INSERT INTO service_history_services_2021 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
+            INSERT INTO service_history_services_2020 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
+            INSERT INTO service_history_services_2019 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
+            INSERT INTO service_history_services_2018 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
+            INSERT INTO service_history_services_2017 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
+            INSERT INTO service_history_services_2016 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
+            INSERT INTO service_history_services_2015 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
+            INSERT INTO service_history_services_2014 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
+            INSERT INTO service_history_services_2013 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
+            INSERT INTO service_history_services_2012 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
+            INSERT INTO service_history_services_2011 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
+            INSERT INTO service_history_services_2010 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
+            INSERT INTO service_history_services_2009 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
+            INSERT INTO service_history_services_2008 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
+            INSERT INTO service_history_services_2007 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
+            INSERT INTO service_history_services_2006 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
+            INSERT INTO service_history_services_2005 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
+            INSERT INTO service_history_services_2004 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
+            INSERT INTO service_history_services_2003 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
+            INSERT INTO service_history_services_2002 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
+            INSERT INTO service_history_services_2001 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
+            INSERT INTO service_history_services_2000 VALUES (NEW.*);
+        
+      ELSE
+        INSERT INTO service_history_services_remainder VALUES (NEW.*);
+        END IF;
+        RETURN NULL;
+    END;
     $$;
 
 
@@ -3100,744 +3100,6 @@ ALTER SEQUENCE public.available_file_tags_id_seq OWNED BY public.available_file_
 
 
 --
--- Name: bi_Affiliation; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Affiliation" AS
- SELECT "Affiliation".id AS "AffiliationID",
-    "Project".id AS "ProjectID",
-    "Affiliation"."ResProjectID",
-    "Affiliation"."DateCreated",
-    "Affiliation"."DateUpdated",
-    "Affiliation"."UserID",
-    "Affiliation"."DateDeleted",
-    "Affiliation"."ExportID",
-    "Affiliation".data_source_id
-   FROM (public."Affiliation"
-     JOIN public."Project" ON ((("Affiliation".data_source_id = "Project".data_source_id) AND (("Affiliation"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-  WHERE ("Affiliation"."DateDeleted" IS NULL);
-
-
---
--- Name: warehouse_clients; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.warehouse_clients (
-    id integer NOT NULL,
-    id_in_source character varying NOT NULL,
-    data_source_id integer,
-    proposed_at timestamp without time zone,
-    reviewed_at timestamp without time zone,
-    reviewd_by character varying,
-    approved_at timestamp without time zone,
-    rejected_at timestamp without time zone,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    source_id integer,
-    destination_id integer,
-    client_match_id integer,
-    source_hash character varying
-);
-
-
---
--- Name: bi_Assessment; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Assessment" AS
- SELECT "Assessment".id AS "AssessmentID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "Assessment"."AssessmentDate",
-    "Assessment"."AssessmentLocation",
-    "Assessment"."AssessmentType",
-    "Assessment"."AssessmentLevel",
-    "Assessment"."PrioritizationStatus",
-    "Assessment"."DateCreated",
-    "Assessment"."DateUpdated",
-    "Assessment"."UserID",
-    "Assessment"."DateDeleted",
-    "Assessment"."ExportID",
-    "Assessment".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."Assessment"
-     JOIN public."Enrollment" ON ((("Assessment".data_source_id = "Enrollment".data_source_id) AND (("Assessment"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("Assessment".data_source_id = source_clients.data_source_id) AND (("Assessment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Assessment"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_AssessmentQuestions; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_AssessmentQuestions" AS
- SELECT "AssessmentQuestions".id AS "AssessmentQuestionID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Assessment".id AS "AssessmentID",
-    "Enrollment".id AS "EnrollmentID",
-    "AssessmentQuestions"."AssessmentQuestionGroup",
-    "AssessmentQuestions"."AssessmentQuestionOrder",
-    "AssessmentQuestions"."AssessmentQuestion",
-    "AssessmentQuestions"."AssessmentAnswer",
-    "AssessmentQuestions"."DateCreated",
-    "AssessmentQuestions"."DateUpdated",
-    "AssessmentQuestions"."UserID",
-    "AssessmentQuestions"."DateDeleted",
-    "AssessmentQuestions"."ExportID",
-    "AssessmentQuestions".data_source_id,
-    source_clients.id AS demographic_id
-   FROM ((((((public."AssessmentQuestions"
-     JOIN public."Enrollment" ON ((("AssessmentQuestions".data_source_id = "Enrollment".data_source_id) AND (("AssessmentQuestions"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("AssessmentQuestions".data_source_id = source_clients.data_source_id) AND (("AssessmentQuestions"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-     JOIN public."Assessment" ON ((("AssessmentQuestions".data_source_id = "Assessment".data_source_id) AND (("AssessmentQuestions"."AssessmentID")::text = ("Assessment"."AssessmentID")::text) AND ("Assessment"."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("AssessmentQuestions"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_AssessmentResults; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_AssessmentResults" AS
- SELECT "AssessmentResults".id AS "AssessmentResultID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Assessment".id AS "AssessmentID",
-    "Enrollment".id AS "EnrollmentID",
-    "AssessmentResults"."AssessmentResultType",
-    "AssessmentResults"."AssessmentResult",
-    "AssessmentResults"."DateCreated",
-    "AssessmentResults"."DateUpdated",
-    "AssessmentResults"."UserID",
-    "AssessmentResults"."DateDeleted",
-    "AssessmentResults"."ExportID",
-    "AssessmentResults".data_source_id,
-    source_clients.id AS demographic_id
-   FROM ((((((public."AssessmentResults"
-     JOIN public."Enrollment" ON ((("AssessmentResults".data_source_id = "Enrollment".data_source_id) AND (("AssessmentResults"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("AssessmentResults".data_source_id = source_clients.data_source_id) AND (("AssessmentResults"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-     JOIN public."Assessment" ON ((("AssessmentResults".data_source_id = "Assessment".data_source_id) AND (("AssessmentResults"."AssessmentID")::text = ("Assessment"."AssessmentID")::text) AND ("Assessment"."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("AssessmentResults"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_Client; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Client" AS
- SELECT "Client".id AS personalid,
-    4 AS "HashStatus",
-    encode(sha256((public.soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."LastName")::text))))::bytea), 'hex'::text) AS "LastName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."NameSuffix")::text))))::bytea), 'hex'::text) AS "NameSuffix",
-    "Client"."NameDataQuality",
-    concat("right"(("Client"."SSN")::text, 4), encode(sha256((lpad(("Client"."SSN")::text, 9, 'x'::text))::bytea), 'hex'::text)) AS "SSN",
-    "Client"."SSNDataQuality",
-    "Client"."DOB",
-    "Client"."DOBDataQuality",
-    "Client"."AmIndAKNative",
-    "Client"."Asian",
-    "Client"."BlackAfAmerican",
-    "Client"."NativeHIOtherPacific",
-    "Client"."White",
-    "Client"."RaceNone",
-    "Client"."Ethnicity",
-    "Client"."Gender",
-    "Client"."VeteranStatus",
-    "Client"."YearEnteredService",
-    "Client"."YearSeparated",
-    "Client"."WorldWarII",
-    "Client"."KoreanWar",
-    "Client"."VietnamWar",
-    "Client"."DesertStorm",
-    "Client"."AfghanistanOEF",
-    "Client"."IraqOIF",
-    "Client"."IraqOND",
-    "Client"."OtherTheater",
-    "Client"."MilitaryBranch",
-    "Client"."DischargeStatus",
-    "Client"."DateCreated",
-    "Client"."DateUpdated",
-    "Client"."UserID",
-    "Client"."DateDeleted",
-    "Client"."ExportID"
-   FROM public."Client"
-  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id = 85));
-
-
---
--- Name: bi_CurrentLivingSituation; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_CurrentLivingSituation" AS
- SELECT "CurrentLivingSituation".id AS "CurrentLivingSitID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "CurrentLivingSituation"."InformationDate",
-    "CurrentLivingSituation"."CurrentLivingSituation",
-    "CurrentLivingSituation"."VerifiedBy",
-    "CurrentLivingSituation"."LeaveSituation14Days",
-    "CurrentLivingSituation"."SubsequentResidence",
-    "CurrentLivingSituation"."ResourcesToObtain",
-    "CurrentLivingSituation"."LeaseOwn60Day",
-    "CurrentLivingSituation"."MovedTwoOrMore",
-    "CurrentLivingSituation"."LocationDetails",
-    "CurrentLivingSituation"."DateCreated",
-    "CurrentLivingSituation"."DateUpdated",
-    "CurrentLivingSituation"."UserID",
-    "CurrentLivingSituation"."DateDeleted",
-    "CurrentLivingSituation"."ExportID",
-    "CurrentLivingSituation".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."CurrentLivingSituation"
-     JOIN public."Enrollment" ON ((("CurrentLivingSituation".data_source_id = "Enrollment".data_source_id) AND (("CurrentLivingSituation"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("CurrentLivingSituation".data_source_id = source_clients.data_source_id) AND (("CurrentLivingSituation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("CurrentLivingSituation"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_Demographics; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Demographics" AS
- SELECT "Client".id AS personalid,
-    4 AS "HashStatus",
-    encode(sha256((public.soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."LastName")::text))))::bytea), 'hex'::text) AS "LastName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."NameSuffix")::text))))::bytea), 'hex'::text) AS "NameSuffix",
-    "Client"."NameDataQuality",
-    concat("right"(("Client"."SSN")::text, 4), encode(sha256((lpad(("Client"."SSN")::text, 9, 'x'::text))::bytea), 'hex'::text)) AS "SSN",
-    "Client"."SSNDataQuality",
-    "Client"."DOB",
-    "Client"."DOBDataQuality",
-    "Client"."AmIndAKNative",
-    "Client"."Asian",
-    "Client"."BlackAfAmerican",
-    "Client"."NativeHIOtherPacific",
-    "Client"."White",
-    "Client"."RaceNone",
-    "Client"."Ethnicity",
-    "Client"."Gender",
-    "Client"."VeteranStatus",
-    "Client"."YearEnteredService",
-    "Client"."YearSeparated",
-    "Client"."WorldWarII",
-    "Client"."KoreanWar",
-    "Client"."VietnamWar",
-    "Client"."DesertStorm",
-    "Client"."AfghanistanOEF",
-    "Client"."IraqOIF",
-    "Client"."IraqOND",
-    "Client"."OtherTheater",
-    "Client"."MilitaryBranch",
-    "Client"."DischargeStatus",
-    "Client"."DateCreated",
-    "Client"."DateUpdated",
-    "Client"."UserID",
-    "Client"."DateDeleted",
-    "Client"."ExportID",
-    warehouse_clients.destination_id AS client_id,
-    "Client".data_source_id
-   FROM (public."Client"
-     JOIN public.warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
-  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id = ANY (ARRAY[87, 88, 98, 91, 107, 80, 106, 105, 99, 108, 102, 110, 103, 82, 109, 112, 111, 81, 86, 113])));
-
-
---
--- Name: bi_Disabilities; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Disabilities" AS
- SELECT "Disabilities".id AS "DisabilitiesID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "Disabilities"."InformationDate",
-    "Disabilities"."DisabilityType",
-    "Disabilities"."DisabilityResponse",
-    "Disabilities"."IndefiniteAndImpairs",
-    "Disabilities"."TCellCountAvailable",
-    "Disabilities"."TCellCount",
-    "Disabilities"."TCellSource",
-    "Disabilities"."ViralLoadAvailable",
-    "Disabilities"."ViralLoad",
-    "Disabilities"."ViralLoadSource",
-    "Disabilities"."DataCollectionStage",
-    "Disabilities"."DateCreated",
-    "Disabilities"."DateUpdated",
-    "Disabilities"."UserID",
-    "Disabilities"."DateDeleted",
-    "Disabilities"."ExportID",
-    "Disabilities".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."Disabilities"
-     JOIN public."Enrollment" ON ((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Disabilities"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_EmploymentEducation; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_EmploymentEducation" AS
- SELECT "EmploymentEducation".id AS "EmploymentEducationID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "EmploymentEducation"."InformationDate",
-    "EmploymentEducation"."LastGradeCompleted",
-    "EmploymentEducation"."SchoolStatus",
-    "EmploymentEducation"."Employed",
-    "EmploymentEducation"."EmploymentType",
-    "EmploymentEducation"."NotEmployedReason",
-    "EmploymentEducation"."DataCollectionStage",
-    "EmploymentEducation"."DateCreated",
-    "EmploymentEducation"."DateUpdated",
-    "EmploymentEducation"."UserID",
-    "EmploymentEducation"."DateDeleted",
-    "EmploymentEducation"."ExportID",
-    "EmploymentEducation".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."EmploymentEducation"
-     JOIN public."Enrollment" ON ((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("EmploymentEducation"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_Enrollment; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Enrollment" AS
- SELECT "Enrollment".id AS "EnrollmentID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Project".id AS "ProjectID",
-    "Enrollment"."EntryDate",
-    "Enrollment"."HouseholdID",
-    "Enrollment"."RelationshipToHoH",
-    "Enrollment"."LivingSituation",
-    "Enrollment"."LengthOfStay",
-    "Enrollment"."LOSUnderThreshold",
-    "Enrollment"."PreviousStreetESSH",
-    "Enrollment"."DateToStreetESSH",
-    "Enrollment"."TimesHomelessPastThreeYears",
-    "Enrollment"."MonthsHomelessPastThreeYears",
-    "Enrollment"."DisablingCondition",
-    "Enrollment"."DateOfEngagement",
-    "Enrollment"."MoveInDate",
-    "Enrollment"."DateOfPATHStatus",
-    "Enrollment"."ClientEnrolledInPATH",
-    "Enrollment"."ReasonNotEnrolled",
-    "Enrollment"."WorstHousingSituation",
-    "Enrollment"."PercentAMI",
-    "Enrollment"."LastPermanentStreet",
-    "Enrollment"."LastPermanentCity",
-    "Enrollment"."LastPermanentState",
-    "Enrollment"."LastPermanentZIP",
-    "Enrollment"."AddressDataQuality",
-    "Enrollment"."DateOfBCPStatus",
-    "Enrollment"."EligibleForRHY",
-    "Enrollment"."ReasonNoServices",
-    "Enrollment"."RunawayYouth",
-    "Enrollment"."SexualOrientation",
-    "Enrollment"."SexualOrientationOther",
-    "Enrollment"."FormerWardChildWelfare",
-    "Enrollment"."ChildWelfareYears",
-    "Enrollment"."ChildWelfareMonths",
-    "Enrollment"."FormerWardJuvenileJustice",
-    "Enrollment"."JuvenileJusticeYears",
-    "Enrollment"."JuvenileJusticeMonths",
-    "Enrollment"."UnemploymentFam",
-    "Enrollment"."MentalHealthIssuesFam",
-    "Enrollment"."PhysicalDisabilityFam",
-    "Enrollment"."AlcoholDrugAbuseFam",
-    "Enrollment"."InsufficientIncome",
-    "Enrollment"."IncarceratedParent",
-    "Enrollment"."ReferralSource",
-    "Enrollment"."CountOutreachReferralApproaches",
-    "Enrollment"."UrgentReferral",
-    "Enrollment"."TimeToHousingLoss",
-    "Enrollment"."ZeroIncome",
-    "Enrollment"."AnnualPercentAMI",
-    "Enrollment"."FinancialChange",
-    "Enrollment"."HouseholdChange",
-    "Enrollment"."EvictionHistory",
-    "Enrollment"."SubsidyAtRisk",
-    "Enrollment"."LiteralHomelessHistory",
-    "Enrollment"."DisabledHoH",
-    "Enrollment"."CriminalRecord",
-    "Enrollment"."SexOffender",
-    "Enrollment"."DependentUnder6",
-    "Enrollment"."SingleParent",
-    "Enrollment"."HH5Plus",
-    "Enrollment"."IraqAfghanistan",
-    "Enrollment"."FemVet",
-    "Enrollment"."HPScreeningScore",
-    "Enrollment"."ThresholdScore",
-    "Enrollment"."VAMCStation_deleted" AS "VAMCStation",
-    "Enrollment"."DateCreated",
-    "Enrollment"."DateUpdated",
-    "Enrollment"."UserID",
-    "Enrollment"."DateDeleted",
-    "Enrollment"."ExportID",
-    "Enrollment".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."Enrollment"
-     JOIN public."Project" ON ((("Enrollment".data_source_id = "Project".data_source_id) AND (("Enrollment"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-     JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("Enrollment".data_source_id = source_clients.data_source_id) AND (("Enrollment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Enrollment"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_EnrollmentCoC; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_EnrollmentCoC" AS
- SELECT "EnrollmentCoC".id AS "EnrollmentCoCID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Project".id AS "ProjectID",
-    "Enrollment".id AS "EnrollmentID",
-    "EnrollmentCoC"."HouseholdID",
-    "EnrollmentCoC"."InformationDate",
-    "EnrollmentCoC"."CoCCode",
-    "EnrollmentCoC"."DataCollectionStage",
-    "EnrollmentCoC"."DateCreated",
-    "EnrollmentCoC"."DateUpdated",
-    "EnrollmentCoC"."UserID",
-    "EnrollmentCoC"."DateDeleted",
-    "EnrollmentCoC"."ExportID",
-    "EnrollmentCoC".data_source_id,
-    source_clients.id AS demographic_id
-   FROM ((((((public."EnrollmentCoC"
-     JOIN public."Project" ON ((("EnrollmentCoC".data_source_id = "Project".data_source_id) AND (("EnrollmentCoC"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-     JOIN public."Enrollment" ON ((("EnrollmentCoC".data_source_id = "Enrollment".data_source_id) AND (("EnrollmentCoC"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("EnrollmentCoC".data_source_id = source_clients.data_source_id) AND (("EnrollmentCoC"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("EnrollmentCoC"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_Event; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Event" AS
- SELECT "Event".id AS "EventID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "Event"."EventDate",
-    "Event"."Event",
-    "Event"."ProbSolDivRRResult",
-    "Event"."ReferralCaseManageAfter",
-    "Event"."LocationCrisisOrPHHousing",
-    "Event"."ReferralResult",
-    "Event"."ResultDate",
-    "Event"."DateCreated",
-    "Event"."DateUpdated",
-    "Event"."UserID",
-    "Event"."DateDeleted",
-    "Event"."ExportID",
-    "Event".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."Event"
-     JOIN public."Enrollment" ON ((("Event".data_source_id = "Enrollment".data_source_id) AND (("Event"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("Event".data_source_id = source_clients.data_source_id) AND (("Event"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Event"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_Exit; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Exit" AS
- SELECT "Exit".id AS "ExitID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "Exit"."ExitDate",
-    "Exit"."Destination",
-    "Exit"."OtherDestination",
-    "Exit"."HousingAssessment",
-    "Exit"."SubsidyInformation",
-    "Exit"."ProjectCompletionStatus",
-    "Exit"."EarlyExitReason",
-    "Exit"."ExchangeForSex",
-    "Exit"."ExchangeForSexPastThreeMonths",
-    "Exit"."CountOfExchangeForSex",
-    "Exit"."AskedOrForcedToExchangeForSex",
-    "Exit"."AskedOrForcedToExchangeForSexPastThreeMonths",
-    "Exit"."WorkPlaceViolenceThreats",
-    "Exit"."WorkplacePromiseDifference",
-    "Exit"."CoercedToContinueWork",
-    "Exit"."LaborExploitPastThreeMonths",
-    "Exit"."CounselingReceived",
-    "Exit"."IndividualCounseling",
-    "Exit"."FamilyCounseling",
-    "Exit"."GroupCounseling",
-    "Exit"."SessionCountAtExit",
-    "Exit"."PostExitCounselingPlan",
-    "Exit"."SessionsInPlan",
-    "Exit"."DestinationSafeClient",
-    "Exit"."DestinationSafeWorker",
-    "Exit"."PosAdultConnections",
-    "Exit"."PosPeerConnections",
-    "Exit"."PosCommunityConnections",
-    "Exit"."AftercareDate",
-    "Exit"."AftercareProvided",
-    "Exit"."EmailSocialMedia",
-    "Exit"."Telephone",
-    "Exit"."InPersonIndividual",
-    "Exit"."InPersonGroup",
-    "Exit"."CMExitReason",
-    "Exit"."DateCreated",
-    "Exit"."DateUpdated",
-    "Exit"."UserID",
-    "Exit"."DateDeleted",
-    "Exit"."ExportID",
-    "Exit".data_source_id,
-    source_clients.id AS demographic_id
-   FROM ((((public."Exit"
-     JOIN public."Enrollment" ON ((("Exit".data_source_id = "Enrollment".data_source_id) AND (("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("Exit".data_source_id = source_clients.data_source_id) AND (("Exit"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Exit"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_Export; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Export" AS
- SELECT "Export".id AS "ExportID",
-    "Export"."SourceType",
-    "Export"."SourceID",
-    "Export"."SourceName",
-    "Export"."SourceContactFirst",
-    "Export"."SourceContactLast",
-    "Export"."SourceContactPhone",
-    "Export"."SourceContactExtension",
-    "Export"."SourceContactEmail",
-    "Export"."ExportDate",
-    "Export"."ExportStartDate",
-    "Export"."ExportEndDate",
-    "Export"."SoftwareName",
-    "Export"."SoftwareVersion",
-    "Export"."ExportPeriodType",
-    "Export"."ExportDirective",
-    "Export"."HashStatus",
-    "Export".data_source_id
-   FROM public."Export";
-
-
---
--- Name: bi_Funder; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Funder" AS
- SELECT "Funder".id AS "FunderID",
-    "Project".id AS "ProjectID",
-    "Funder"."Funder",
-    "Funder"."OtherFunder",
-    "Funder"."GrantID",
-    "Funder"."StartDate",
-    "Funder"."EndDate",
-    "Funder"."DateCreated",
-    "Funder"."DateUpdated",
-    "Funder"."UserID",
-    "Funder"."DateDeleted",
-    "Funder"."ExportID",
-    "Funder".data_source_id
-   FROM (public."Funder"
-     JOIN public."Project" ON ((("Funder".data_source_id = "Project".data_source_id) AND (("Funder"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-  WHERE ("Funder"."DateDeleted" IS NULL);
-
-
---
--- Name: bi_HealthAndDV; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_HealthAndDV" AS
- SELECT "HealthAndDV".id AS "HealthAndDVID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "HealthAndDV"."InformationDate",
-    "HealthAndDV"."DomesticViolenceVictim",
-    "HealthAndDV"."WhenOccurred",
-    "HealthAndDV"."CurrentlyFleeing",
-    "HealthAndDV"."GeneralHealthStatus",
-    "HealthAndDV"."DentalHealthStatus",
-    "HealthAndDV"."MentalHealthStatus",
-    "HealthAndDV"."PregnancyStatus",
-    "HealthAndDV"."DueDate",
-    "HealthAndDV"."DataCollectionStage",
-    "HealthAndDV"."DateCreated",
-    "HealthAndDV"."DateUpdated",
-    "HealthAndDV"."UserID",
-    "HealthAndDV"."DateDeleted",
-    "HealthAndDV"."ExportID",
-    "HealthAndDV".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."HealthAndDV"
-     JOIN public."Enrollment" ON ((("HealthAndDV".data_source_id = "Enrollment".data_source_id) AND (("HealthAndDV"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("HealthAndDV".data_source_id = source_clients.data_source_id) AND (("HealthAndDV"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("HealthAndDV"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_IncomeBenefits; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_IncomeBenefits" AS
- SELECT "IncomeBenefits".id AS "IncomeBenefitsID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "IncomeBenefits"."InformationDate",
-    "IncomeBenefits"."IncomeFromAnySource",
-    "IncomeBenefits"."TotalMonthlyIncome",
-    "IncomeBenefits"."Earned",
-    "IncomeBenefits"."EarnedAmount",
-    "IncomeBenefits"."Unemployment",
-    "IncomeBenefits"."UnemploymentAmount",
-    "IncomeBenefits"."SSI",
-    "IncomeBenefits"."SSIAmount",
-    "IncomeBenefits"."SSDI",
-    "IncomeBenefits"."SSDIAmount",
-    "IncomeBenefits"."VADisabilityService",
-    "IncomeBenefits"."VADisabilityServiceAmount",
-    "IncomeBenefits"."VADisabilityNonService",
-    "IncomeBenefits"."VADisabilityNonServiceAmount",
-    "IncomeBenefits"."PrivateDisability",
-    "IncomeBenefits"."PrivateDisabilityAmount",
-    "IncomeBenefits"."WorkersComp",
-    "IncomeBenefits"."WorkersCompAmount",
-    "IncomeBenefits"."TANF",
-    "IncomeBenefits"."TANFAmount",
-    "IncomeBenefits"."GA",
-    "IncomeBenefits"."GAAmount",
-    "IncomeBenefits"."SocSecRetirement",
-    "IncomeBenefits"."SocSecRetirementAmount",
-    "IncomeBenefits"."Pension",
-    "IncomeBenefits"."PensionAmount",
-    "IncomeBenefits"."ChildSupport",
-    "IncomeBenefits"."ChildSupportAmount",
-    "IncomeBenefits"."Alimony",
-    "IncomeBenefits"."AlimonyAmount",
-    "IncomeBenefits"."OtherIncomeSource",
-    "IncomeBenefits"."OtherIncomeAmount",
-    "IncomeBenefits"."OtherIncomeSourceIdentify",
-    "IncomeBenefits"."BenefitsFromAnySource",
-    "IncomeBenefits"."SNAP",
-    "IncomeBenefits"."WIC",
-    "IncomeBenefits"."TANFChildCare",
-    "IncomeBenefits"."TANFTransportation",
-    "IncomeBenefits"."OtherTANF",
-    "IncomeBenefits"."OtherBenefitsSource",
-    "IncomeBenefits"."OtherBenefitsSourceIdentify",
-    "IncomeBenefits"."InsuranceFromAnySource",
-    "IncomeBenefits"."Medicaid",
-    "IncomeBenefits"."NoMedicaidReason",
-    "IncomeBenefits"."Medicare",
-    "IncomeBenefits"."NoMedicareReason",
-    "IncomeBenefits"."SCHIP",
-    "IncomeBenefits"."NoSCHIPReason",
-    "IncomeBenefits"."VAMedicalServices",
-    "IncomeBenefits"."NoVAMedReason",
-    "IncomeBenefits"."EmployerProvided",
-    "IncomeBenefits"."NoEmployerProvidedReason",
-    "IncomeBenefits"."COBRA",
-    "IncomeBenefits"."NoCOBRAReason",
-    "IncomeBenefits"."PrivatePay",
-    "IncomeBenefits"."NoPrivatePayReason",
-    "IncomeBenefits"."StateHealthIns",
-    "IncomeBenefits"."NoStateHealthInsReason",
-    "IncomeBenefits"."IndianHealthServices",
-    "IncomeBenefits"."NoIndianHealthServicesReason",
-    "IncomeBenefits"."OtherInsurance",
-    "IncomeBenefits"."OtherInsuranceIdentify",
-    "IncomeBenefits"."HIVAIDSAssistance",
-    "IncomeBenefits"."NoHIVAIDSAssistanceReason",
-    "IncomeBenefits"."ADAP",
-    "IncomeBenefits"."NoADAPReason",
-    "IncomeBenefits"."ConnectionWithSOAR",
-    "IncomeBenefits"."DataCollectionStage",
-    "IncomeBenefits"."DateCreated",
-    "IncomeBenefits"."DateUpdated",
-    "IncomeBenefits"."UserID",
-    "IncomeBenefits"."DateDeleted",
-    "IncomeBenefits"."ExportID",
-    "IncomeBenefits".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."IncomeBenefits"
-     JOIN public."Enrollment" ON ((("IncomeBenefits".data_source_id = "Enrollment".data_source_id) AND (("IncomeBenefits"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("IncomeBenefits".data_source_id = source_clients.data_source_id) AND (("IncomeBenefits"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("IncomeBenefits"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_Inventory; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Inventory" AS
- SELECT "Inventory".id AS "InventoryID",
-    "Project".id AS "ProjectID",
-    "Inventory"."CoCCode",
-    "Inventory"."HouseholdType",
-    "Inventory"."Availability",
-    "Inventory"."UnitInventory",
-    "Inventory"."BedInventory",
-    "Inventory"."CHVetBedInventory",
-    "Inventory"."YouthVetBedInventory",
-    "Inventory"."VetBedInventory",
-    "Inventory"."CHYouthBedInventory",
-    "Inventory"."YouthBedInventory",
-    "Inventory"."CHBedInventory",
-    "Inventory"."OtherBedInventory",
-    "Inventory"."ESBedType",
-    "Inventory"."InventoryStartDate",
-    "Inventory"."InventoryEndDate",
-    "Inventory"."DateCreated",
-    "Inventory"."DateUpdated",
-    "Inventory"."UserID",
-    "Inventory"."DateDeleted",
-    "Inventory"."ExportID",
-    "Inventory".data_source_id
-   FROM (public."Inventory"
-     JOIN public."Project" ON ((("Inventory".data_source_id = "Project".data_source_id) AND (("Inventory"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-  WHERE ("Inventory"."DateDeleted" IS NULL);
-
-
---
 -- Name: bi_Organization; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -3854,426 +3116,6 @@ CREATE VIEW public."bi_Organization" AS
     "Organization".data_source_id
    FROM public."Organization"
   WHERE ("Organization"."DateDeleted" IS NULL);
-
-
---
--- Name: bi_Project; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Project" AS
- SELECT "Project".id AS "ProjectID",
-    "Organization".id AS "OrganizationID",
-    "Project"."ProjectName",
-    "Project"."ProjectCommonName",
-    "Project"."OperatingStartDate",
-    "Project"."OperatingEndDate",
-    "Project"."ContinuumProject",
-    "Project"."ProjectType",
-    "Project"."HousingType",
-    "Project"."ResidentialAffiliation",
-    "Project"."TrackingMethod",
-    "Project"."HMISParticipatingProject",
-    "Project"."TargetPopulation",
-    "Project"."PITCount",
-    "Project"."DateCreated",
-    "Project"."DateUpdated",
-    "Project"."UserID",
-    "Project"."DateDeleted",
-    "Project"."ExportID",
-    "Project".data_source_id
-   FROM (public."Project"
-     JOIN public."Organization" ON ((("Project".data_source_id = "Organization".data_source_id) AND (("Project"."OrganizationID")::text = ("Organization"."OrganizationID")::text) AND ("Organization"."DateDeleted" IS NULL))))
-  WHERE ("Project"."DateDeleted" IS NULL);
-
-
---
--- Name: bi_ProjectCoC; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_ProjectCoC" AS
- SELECT "ProjectCoC".id AS "ProjectCoCID",
-    "Project".id AS "ProjectID",
-    "ProjectCoC"."CoCCode",
-    "ProjectCoC"."Geocode",
-    "ProjectCoC"."Address1",
-    "ProjectCoC"."Address2",
-    "ProjectCoC"."City",
-    "ProjectCoC"."State",
-    "ProjectCoC"."Zip",
-    "ProjectCoC"."GeographyType",
-    "ProjectCoC"."DateCreated",
-    "ProjectCoC"."DateUpdated",
-    "ProjectCoC"."UserID",
-    "ProjectCoC"."DateDeleted",
-    "ProjectCoC"."ExportID",
-    "ProjectCoC".data_source_id
-   FROM (public."ProjectCoC"
-     JOIN public."Project" ON ((("ProjectCoC".data_source_id = "Project".data_source_id) AND (("ProjectCoC"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-  WHERE ("ProjectCoC"."DateDeleted" IS NULL);
-
-
---
--- Name: bi_Services; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Services" AS
- SELECT "Services".id AS "ServicesID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "Services"."DateProvided",
-    "Services"."RecordType",
-    "Services"."TypeProvided",
-    "Services"."OtherTypeProvided",
-    "Services"."SubTypeProvided",
-    "Services"."FAAmount",
-    "Services"."ReferralOutcome",
-    "Services"."DateCreated",
-    "Services"."DateUpdated",
-    "Services"."UserID",
-    "Services"."DateDeleted",
-    "Services"."ExportID",
-    "Services".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."Services"
-     JOIN public."Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("Services".data_source_id = source_clients.data_source_id) AND (("Services"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Services"."DateProvided" >= (CURRENT_DATE - '5 years'::interval)) AND ("Services"."DateDeleted" IS NULL)));
-
-
---
--- Name: data_sources; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.data_sources (
-    id integer NOT NULL,
-    name character varying,
-    file_path character varying,
-    last_imported_at timestamp without time zone,
-    newest_updated_at date,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    source_type character varying,
-    munged_personal_id boolean DEFAULT false NOT NULL,
-    short_name character varying,
-    visible_in_window boolean DEFAULT false NOT NULL,
-    authoritative boolean DEFAULT false,
-    after_create_path character varying,
-    import_paused boolean DEFAULT false NOT NULL,
-    authoritative_type character varying,
-    source_id character varying,
-    deleted_at timestamp without time zone,
-    service_scannable boolean DEFAULT false NOT NULL,
-    import_aggregators jsonb DEFAULT '{}'::jsonb,
-    import_cleanups jsonb DEFAULT '{}'::jsonb,
-    refuse_imports_with_errors boolean DEFAULT false,
-    hmis character varying,
-    obey_consent boolean DEFAULT true
-);
-
-
---
--- Name: bi_data_sources; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_data_sources AS
- SELECT data_sources.id,
-    data_sources.name,
-    data_sources.short_name
-   FROM public.data_sources
-  WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.deleted_at IS NULL));
-
-
---
--- Name: lookups_ethnicities; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_ethnicities (
-    id bigint NOT NULL,
-    value integer NOT NULL,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_ethnicities; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_ethnicities AS
- SELECT lookups_ethnicities.id,
-    lookups_ethnicities.value,
-    lookups_ethnicities.text
-   FROM public.lookups_ethnicities;
-
-
---
--- Name: lookups_funding_sources; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_funding_sources (
-    id bigint NOT NULL,
-    value integer NOT NULL,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_funding_sources; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_funding_sources AS
- SELECT lookups_funding_sources.id,
-    lookups_funding_sources.value,
-    lookups_funding_sources.text
-   FROM public.lookups_funding_sources;
-
-
---
--- Name: lookups_genders; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_genders (
-    id bigint NOT NULL,
-    value integer NOT NULL,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_genders; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_genders AS
- SELECT lookups_genders.id,
-    lookups_genders.value,
-    lookups_genders.text
-   FROM public.lookups_genders;
-
-
---
--- Name: lookups_living_situations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_living_situations (
-    id bigint NOT NULL,
-    value integer NOT NULL,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_living_situations; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_living_situations AS
- SELECT lookups_living_situations.id,
-    lookups_living_situations.value,
-    lookups_living_situations.text
-   FROM public.lookups_living_situations;
-
-
---
--- Name: lookups_project_types; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_project_types (
-    id bigint NOT NULL,
-    value integer NOT NULL,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_project_types; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_project_types AS
- SELECT lookups_project_types.id,
-    lookups_project_types.value,
-    lookups_project_types.text
-   FROM public.lookups_project_types;
-
-
---
--- Name: lookups_relationships; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_relationships (
-    id bigint NOT NULL,
-    value integer NOT NULL,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_relationships; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_relationships AS
- SELECT lookups_relationships.id,
-    lookups_relationships.value,
-    lookups_relationships.text
-   FROM public.lookups_relationships;
-
-
---
--- Name: lookups_tracking_methods; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_tracking_methods (
-    id bigint NOT NULL,
-    value integer,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_tracking_methods; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_tracking_methods AS
- SELECT lookups_tracking_methods.id,
-    lookups_tracking_methods.value,
-    lookups_tracking_methods.text
-   FROM public.lookups_tracking_methods;
-
-
---
--- Name: lookups_yes_no_etcs; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_yes_no_etcs (
-    id bigint NOT NULL,
-    value integer NOT NULL,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_yes_no_etcs; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_yes_no_etcs AS
- SELECT lookups_yes_no_etcs.id,
-    lookups_yes_no_etcs.value,
-    lookups_yes_no_etcs.text
-   FROM public.lookups_yes_no_etcs;
-
-
---
--- Name: nightly_census_by_projects; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.nightly_census_by_projects (
-    id integer NOT NULL,
-    date date NOT NULL,
-    project_id integer NOT NULL,
-    veterans integer DEFAULT 0,
-    non_veterans integer DEFAULT 0,
-    children integer DEFAULT 0,
-    adults integer DEFAULT 0,
-    youth integer DEFAULT 0,
-    families integer DEFAULT 0,
-    individuals integer DEFAULT 0,
-    parenting_youth integer DEFAULT 0,
-    parenting_juveniles integer DEFAULT 0,
-    all_clients integer DEFAULT 0,
-    beds integer DEFAULT 0,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    juveniles integer DEFAULT 0,
-    unaccompanied_minors integer DEFAULT 0,
-    youth_families integer DEFAULT 0,
-    family_parents integer DEFAULT 0
-);
-
-
---
--- Name: bi_nightly_census_by_projects; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_nightly_census_by_projects AS
- SELECT nightly_census_by_projects.id,
-    nightly_census_by_projects.date,
-    nightly_census_by_projects.project_id,
-    nightly_census_by_projects.veterans,
-    nightly_census_by_projects.non_veterans,
-    nightly_census_by_projects.children,
-    nightly_census_by_projects.adults,
-    nightly_census_by_projects.all_clients,
-    nightly_census_by_projects.beds
-   FROM public.nightly_census_by_projects;
-
-
---
--- Name: service_history_enrollments; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.service_history_enrollments (
-    id bigint NOT NULL,
-    client_id integer NOT NULL,
-    data_source_id integer,
-    date date NOT NULL,
-    first_date_in_program date NOT NULL,
-    last_date_in_program date,
-    enrollment_group_id character varying(50),
-    project_id character varying(50),
-    age smallint,
-    destination integer,
-    head_of_household_id character varying(50),
-    household_id character varying(50),
-    project_name character varying(150),
-    project_type smallint,
-    project_tracking_method integer,
-    organization_id character varying(50),
-    record_type character varying(50) NOT NULL,
-    housing_status_at_entry integer,
-    housing_status_at_exit integer,
-    service_type smallint,
-    computed_project_type smallint,
-    presented_as_individual boolean,
-    other_clients_over_25 smallint DEFAULT 0 NOT NULL,
-    other_clients_under_18 smallint DEFAULT 0 NOT NULL,
-    other_clients_between_18_and_25 smallint DEFAULT 0 NOT NULL,
-    unaccompanied_youth boolean DEFAULT false NOT NULL,
-    parenting_youth boolean DEFAULT false NOT NULL,
-    parenting_juvenile boolean DEFAULT false NOT NULL,
-    children_only boolean DEFAULT false NOT NULL,
-    individual_adult boolean DEFAULT false NOT NULL,
-    individual_elder boolean DEFAULT false NOT NULL,
-    head_of_household boolean DEFAULT false NOT NULL,
-    move_in_date date,
-    unaccompanied_minor boolean DEFAULT false
-);
-
-
---
--- Name: bi_service_history_enrollments; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_service_history_enrollments AS
- SELECT service_history_enrollments.id,
-    service_history_enrollments.client_id,
-    service_history_enrollments.data_source_id,
-    service_history_enrollments.first_date_in_program,
-    service_history_enrollments.last_date_in_program,
-    service_history_enrollments.age,
-    service_history_enrollments.destination,
-    service_history_enrollments.head_of_household_id,
-    service_history_enrollments.household_id,
-    service_history_enrollments.project_name,
-    service_history_enrollments.project_tracking_method,
-    service_history_enrollments.computed_project_type,
-    service_history_enrollments.move_in_date,
-    "Project".id AS project_id,
-    "Enrollment".id AS enrollment_id
-   FROM (((public.service_history_enrollments
-     JOIN public."Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_enrollments.client_id))))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = service_history_enrollments.data_source_id) AND (("Project"."ProjectID")::text = (service_history_enrollments.project_id)::text) AND (("Project"."OrganizationID")::text = (service_history_enrollments.organization_id)::text))))
-     JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = service_history_enrollments.data_source_id) AND (("Enrollment"."EnrollmentID")::text = (service_history_enrollments.enrollment_group_id)::text) AND (("Enrollment"."ProjectID")::text = (service_history_enrollments.project_id)::text))))
-  WHERE (((service_history_enrollments.record_type)::text = 'entry'::text) AND ((service_history_enrollments.last_date_in_program IS NULL) OR (service_history_enrollments.last_date_in_program >= (CURRENT_DATE - '5 years'::interval))));
 
 
 --
@@ -6551,8 +5393,8 @@ CREATE TABLE public.configs (
     roi_model character varying DEFAULT 'explicit'::character varying,
     client_dashboard character varying DEFAULT 'default'::character varying NOT NULL,
     require_service_for_reporting_default boolean DEFAULT true NOT NULL,
-    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
     verified_homeless_history_method character varying DEFAULT 'visible_in_window'::character varying,
+    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
     youth_hoh_cohort boolean DEFAULT false NOT NULL,
     youth_hoh_cohort_project_group_id integer,
     chronic_tab_justifications boolean DEFAULT true,
@@ -6661,8 +5503,10 @@ CREATE TABLE public.csg_engage_program_mappings (
     updated_at timestamp(6) without time zone NOT NULL,
     project_id bigint,
     clarity_name character varying,
+    csg_engage_name character varying,
+    csg_engage_import_keyword character varying,
     include_in_export boolean DEFAULT true NOT NULL,
-    program_id bigint
+    agency_id bigint
 );
 
 
@@ -6693,6 +5537,7 @@ CREATE TABLE public.csg_engage_program_reports (
     id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
+    program_mapping_id bigint,
     report_id bigint,
     raw_result character varying,
     json_result jsonb,
@@ -6703,8 +5548,7 @@ CREATE TABLE public.csg_engage_program_reports (
     failed_at timestamp without time zone,
     imported_program_name character varying,
     imported_import_keyword character varying,
-    cleared_at character varying,
-    program_id bigint
+    cleared_at character varying
 );
 
 
@@ -6725,39 +5569,6 @@ CREATE SEQUENCE public.csg_engage_program_reports_id_seq
 --
 
 ALTER SEQUENCE public.csg_engage_program_reports_id_seq OWNED BY public.csg_engage_program_reports.id;
-
-
---
--- Name: csg_engage_programs; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.csg_engage_programs (
-    id bigint NOT NULL,
-    agency_id bigint,
-    csg_engage_name character varying NOT NULL,
-    csg_engage_import_keyword character varying NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: csg_engage_programs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.csg_engage_programs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: csg_engage_programs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.csg_engage_programs_id_seq OWNED BY public.csg_engage_programs.id;
 
 
 --
@@ -7120,6 +5931,37 @@ CREATE SEQUENCE public.data_monitorings_id_seq
 --
 
 ALTER SEQUENCE public.data_monitorings_id_seq OWNED BY public.data_monitorings.id;
+
+
+--
+-- Name: data_sources; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_sources (
+    id integer NOT NULL,
+    name character varying,
+    file_path character varying,
+    last_imported_at timestamp without time zone,
+    newest_updated_at date,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    source_type character varying,
+    munged_personal_id boolean DEFAULT false NOT NULL,
+    short_name character varying,
+    visible_in_window boolean DEFAULT false NOT NULL,
+    authoritative boolean DEFAULT false,
+    after_create_path character varying,
+    import_paused boolean DEFAULT false NOT NULL,
+    authoritative_type character varying,
+    source_id character varying,
+    deleted_at timestamp without time zone,
+    service_scannable boolean DEFAULT false NOT NULL,
+    import_aggregators jsonb DEFAULT '{}'::jsonb,
+    import_cleanups jsonb DEFAULT '{}'::jsonb,
+    refuse_imports_with_errors boolean DEFAULT false,
+    hmis character varying,
+    obey_consent boolean DEFAULT true
+);
 
 
 --
@@ -7924,10 +6766,10 @@ CREATE TABLE public.external_request_logs (
     request_headers jsonb DEFAULT '{}'::jsonb NOT NULL,
     request text NOT NULL,
     response text NOT NULL,
-    http_status integer,
     requested_at timestamp without time zone NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    http_status integer
 );
 
 
@@ -8995,8 +7837,7 @@ CREATE TABLE public.hmis_2020_affiliations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -9232,8 +8073,7 @@ CREATE TABLE public.hmis_2020_assessment_questions (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -9281,8 +8121,7 @@ CREATE TABLE public.hmis_2020_assessment_results (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -9332,8 +8171,7 @@ CREATE TABLE public.hmis_2020_assessments (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -9406,8 +8244,7 @@ CREATE TABLE public.hmis_2020_clients (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -9461,8 +8298,7 @@ CREATE TABLE public.hmis_2020_current_living_situations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -9518,8 +8354,7 @@ CREATE TABLE public.hmis_2020_disabilities (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -9571,8 +8406,7 @@ CREATE TABLE public.hmis_2020_employment_educations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -9622,8 +8456,7 @@ CREATE TABLE public.hmis_2020_enrollment_cocs (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -9731,8 +8564,7 @@ CREATE TABLE public.hmis_2020_enrollments (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -9784,8 +8616,7 @@ CREATE TABLE public.hmis_2020_events (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -9865,8 +8696,7 @@ CREATE TABLE public.hmis_2020_exits (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -9969,8 +8799,7 @@ CREATE TABLE public.hmis_2020_funders (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10025,8 +8854,7 @@ CREATE TABLE public.hmis_2020_health_and_dvs (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10140,8 +8968,7 @@ CREATE TABLE public.hmis_2020_income_benefits (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10200,8 +9027,7 @@ CREATE TABLE public.hmis_2020_inventories (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10247,8 +9073,7 @@ CREATE TABLE public.hmis_2020_organizations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10300,8 +9125,7 @@ CREATE TABLE public.hmis_2020_project_cocs (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10409,8 +9233,7 @@ CREATE TABLE public.hmis_2020_services (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10457,8 +9280,7 @@ CREATE TABLE public.hmis_2020_users (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10503,8 +9325,7 @@ CREATE TABLE public.hmis_2022_affiliations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10554,8 +9375,7 @@ CREATE TABLE public.hmis_2022_assessment_questions (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10603,8 +9423,7 @@ CREATE TABLE public.hmis_2022_assessment_results (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10654,8 +9473,7 @@ CREATE TABLE public.hmis_2022_assessments (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10733,8 +9551,7 @@ CREATE TABLE public.hmis_2022_clients (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10788,8 +9605,7 @@ CREATE TABLE public.hmis_2022_current_living_situations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10846,8 +9662,7 @@ CREATE TABLE public.hmis_2022_disabilities (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10899,8 +9714,7 @@ CREATE TABLE public.hmis_2022_employment_educations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -10950,8 +9764,7 @@ CREATE TABLE public.hmis_2022_enrollment_cocs (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -11060,8 +9873,7 @@ CREATE TABLE public.hmis_2022_enrollments (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -11113,8 +9925,7 @@ CREATE TABLE public.hmis_2022_events (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -11194,8 +10005,7 @@ CREATE TABLE public.hmis_2022_exits (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -11299,8 +10109,7 @@ CREATE TABLE public.hmis_2022_funders (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -11359,8 +10168,7 @@ CREATE TABLE public.hmis_2022_health_and_dvs (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -11476,8 +10284,7 @@ CREATE TABLE public.hmis_2022_income_benefits (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -11536,8 +10343,7 @@ CREATE TABLE public.hmis_2022_inventories (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -11583,8 +10389,7 @@ CREATE TABLE public.hmis_2022_organizations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -11636,8 +10441,7 @@ CREATE TABLE public.hmis_2022_project_cocs (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -11747,8 +10551,7 @@ CREATE TABLE public.hmis_2022_services (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -11795,8 +10598,7 @@ CREATE TABLE public.hmis_2022_users (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -11846,8 +10648,7 @@ CREATE TABLE public.hmis_2022_youth_education_statuses (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -11892,8 +10693,7 @@ CREATE TABLE public.hmis_2024_affiliations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -11943,8 +10743,7 @@ CREATE TABLE public.hmis_2024_assessment_questions (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -11992,8 +10791,7 @@ CREATE TABLE public.hmis_2024_assessment_results (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -12043,8 +10841,7 @@ CREATE TABLE public.hmis_2024_assessments (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -12096,8 +10893,7 @@ CREATE TABLE public.hmis_2024_ce_participations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -12180,8 +10976,7 @@ CREATE TABLE public.hmis_2024_clients (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -12236,8 +11031,7 @@ CREATE TABLE public.hmis_2024_current_living_situations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -12294,8 +11088,7 @@ CREATE TABLE public.hmis_2024_disabilities (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -12347,8 +11140,7 @@ CREATE TABLE public.hmis_2024_employment_educations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -12456,8 +11248,7 @@ CREATE TABLE public.hmis_2024_enrollments (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -12509,8 +11300,7 @@ CREATE TABLE public.hmis_2024_events (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -12591,8 +11381,7 @@ CREATE TABLE public.hmis_2024_exits (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -12697,8 +11486,7 @@ CREATE TABLE public.hmis_2024_funders (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -12753,8 +11541,7 @@ CREATE TABLE public.hmis_2024_health_and_dvs (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -12801,8 +11588,7 @@ CREATE TABLE public.hmis_2024_hmis_participations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -12916,8 +11702,7 @@ CREATE TABLE public.hmis_2024_income_benefits (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -12976,8 +11761,7 @@ CREATE TABLE public.hmis_2024_inventories (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -13023,8 +11807,7 @@ CREATE TABLE public.hmis_2024_organizations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -13076,8 +11859,7 @@ CREATE TABLE public.hmis_2024_project_cocs (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -13189,8 +11971,7 @@ CREATE TABLE public.hmis_2024_services (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -13237,8 +12018,7 @@ CREATE TABLE public.hmis_2024_users (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -13288,8 +12068,7 @@ CREATE TABLE public.hmis_2024_youth_education_statuses (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -13895,8 +12674,7 @@ CREATE TABLE public.hmis_csv_2020_affiliations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -13940,8 +12718,7 @@ CREATE TABLE public.hmis_csv_2020_assessment_questions (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -13983,8 +12760,7 @@ CREATE TABLE public.hmis_csv_2020_assessment_results (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -14028,8 +12804,7 @@ CREATE TABLE public.hmis_csv_2020_assessments (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -14096,8 +12871,7 @@ CREATE TABLE public.hmis_csv_2020_clients (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -14145,8 +12919,7 @@ CREATE TABLE public.hmis_csv_2020_current_living_situations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -14196,8 +12969,7 @@ CREATE TABLE public.hmis_csv_2020_disabilities (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -14243,8 +13015,7 @@ CREATE TABLE public.hmis_csv_2020_employment_educations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -14288,8 +13059,7 @@ CREATE TABLE public.hmis_csv_2020_enrollment_cocs (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -14391,8 +13161,7 @@ CREATE TABLE public.hmis_csv_2020_enrollments (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -14438,8 +13207,7 @@ CREATE TABLE public.hmis_csv_2020_events (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -14513,8 +13281,7 @@ CREATE TABLE public.hmis_csv_2020_exits (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -14605,8 +13372,7 @@ CREATE TABLE public.hmis_csv_2020_funders (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -14655,8 +13421,7 @@ CREATE TABLE public.hmis_csv_2020_health_and_dvs (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -14764,8 +13529,7 @@ CREATE TABLE public.hmis_csv_2020_income_benefits (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -14818,8 +13582,7 @@ CREATE TABLE public.hmis_csv_2020_inventories (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -14859,8 +13622,7 @@ CREATE TABLE public.hmis_csv_2020_organizations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -14906,8 +13668,7 @@ CREATE TABLE public.hmis_csv_2020_project_cocs (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15003,8 +13764,7 @@ CREATE TABLE public.hmis_csv_2020_services (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15045,8 +13805,7 @@ CREATE TABLE public.hmis_csv_2020_users (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15085,8 +13844,7 @@ CREATE TABLE public.hmis_csv_2022_affiliations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15130,8 +13888,7 @@ CREATE TABLE public.hmis_csv_2022_assessment_questions (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15173,8 +13930,7 @@ CREATE TABLE public.hmis_csv_2022_assessment_results (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15218,8 +13974,7 @@ CREATE TABLE public.hmis_csv_2022_assessments (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15291,8 +14046,7 @@ CREATE TABLE public.hmis_csv_2022_clients (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15340,8 +14094,7 @@ CREATE TABLE public.hmis_csv_2022_current_living_situations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15392,8 +14145,7 @@ CREATE TABLE public.hmis_csv_2022_disabilities (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15439,8 +14191,7 @@ CREATE TABLE public.hmis_csv_2022_employment_educations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15484,8 +14235,7 @@ CREATE TABLE public.hmis_csv_2022_enrollment_cocs (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15588,8 +14338,7 @@ CREATE TABLE public.hmis_csv_2022_enrollments (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15635,8 +14384,7 @@ CREATE TABLE public.hmis_csv_2022_events (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15710,8 +14458,7 @@ CREATE TABLE public.hmis_csv_2022_exits (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15803,8 +14550,7 @@ CREATE TABLE public.hmis_csv_2022_funders (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15857,8 +14603,7 @@ CREATE TABLE public.hmis_csv_2022_health_and_dvs (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -15968,8 +14713,7 @@ CREATE TABLE public.hmis_csv_2022_income_benefits (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16022,8 +14766,7 @@ CREATE TABLE public.hmis_csv_2022_inventories (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16063,8 +14806,7 @@ CREATE TABLE public.hmis_csv_2022_organizations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16110,8 +14852,7 @@ CREATE TABLE public.hmis_csv_2022_project_cocs (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16209,8 +14950,7 @@ CREATE TABLE public.hmis_csv_2022_services (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16251,8 +14991,7 @@ CREATE TABLE public.hmis_csv_2022_users (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16296,8 +15035,7 @@ CREATE TABLE public.hmis_csv_2022_youth_education_statuses (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16336,8 +15074,7 @@ CREATE TABLE public.hmis_csv_2024_affiliations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16381,8 +15118,7 @@ CREATE TABLE public.hmis_csv_2024_assessment_questions (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16424,8 +15160,7 @@ CREATE TABLE public.hmis_csv_2024_assessment_results (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16469,8 +15204,7 @@ CREATE TABLE public.hmis_csv_2024_assessments (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16516,8 +15250,7 @@ CREATE TABLE public.hmis_csv_2024_ce_participations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16594,8 +15327,7 @@ CREATE TABLE public.hmis_csv_2024_clients (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16644,8 +15376,7 @@ CREATE TABLE public.hmis_csv_2024_current_living_situations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16696,8 +15427,7 @@ CREATE TABLE public.hmis_csv_2024_disabilities (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16743,8 +15473,7 @@ CREATE TABLE public.hmis_csv_2024_employment_educations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16846,8 +15575,7 @@ CREATE TABLE public.hmis_csv_2024_enrollments (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16893,8 +15621,7 @@ CREATE TABLE public.hmis_csv_2024_events (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -16969,8 +15696,7 @@ CREATE TABLE public.hmis_csv_2024_exits (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -17063,8 +15789,7 @@ CREATE TABLE public.hmis_csv_2024_funders (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -17113,8 +15838,7 @@ CREATE TABLE public.hmis_csv_2024_health_and_dvs (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -17155,8 +15879,7 @@ CREATE TABLE public.hmis_csv_2024_hmis_participations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -17264,8 +15987,7 @@ CREATE TABLE public.hmis_csv_2024_income_benefits (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -17318,8 +16040,7 @@ CREATE TABLE public.hmis_csv_2024_inventories (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -17359,8 +16080,7 @@ CREATE TABLE public.hmis_csv_2024_organizations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -17406,8 +16126,7 @@ CREATE TABLE public.hmis_csv_2024_project_cocs (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -17507,8 +16226,7 @@ CREATE TABLE public.hmis_csv_2024_services (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -17549,8 +16267,7 @@ CREATE TABLE public.hmis_csv_2024_users (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -17594,8 +16311,7 @@ CREATE TABLE public.hmis_csv_2024_youth_education_statuses (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 
@@ -18556,8 +17272,8 @@ CREATE TABLE public.hmis_form_definitions (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     title character varying NOT NULL,
-    deleted_at timestamp without time zone,
     external_form_object_key character varying,
+    deleted_at timestamp without time zone,
     backup_definition jsonb
 );
 
@@ -20069,8 +18785,8 @@ CREATE TABLE public.hud_report_apr_clients (
     source_enrollment_id integer,
     los_under_threshold integer,
     project_id integer,
-    client_created_at timestamp without time zone,
     personal_id character varying,
+    client_created_at timestamp without time zone,
     race_multi character varying,
     exit_destination_subsidy_type integer,
     domestic_violence_occurred integer,
@@ -21734,6 +20450,17 @@ ALTER SEQUENCE public.longitudinal_spms_id_seq OWNED BY public.longitudinal_spms
 
 
 --
+-- Name: lookups_ethnicities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_ethnicities (
+    id bigint NOT NULL,
+    value integer NOT NULL,
+    text character varying NOT NULL
+);
+
+
+--
 -- Name: lookups_ethnicities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -21750,6 +20477,17 @@ CREATE SEQUENCE public.lookups_ethnicities_id_seq
 --
 
 ALTER SEQUENCE public.lookups_ethnicities_id_seq OWNED BY public.lookups_ethnicities.id;
+
+
+--
+-- Name: lookups_funding_sources; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_funding_sources (
+    id bigint NOT NULL,
+    value integer NOT NULL,
+    text character varying NOT NULL
+);
 
 
 --
@@ -21772,6 +20510,17 @@ ALTER SEQUENCE public.lookups_funding_sources_id_seq OWNED BY public.lookups_fun
 
 
 --
+-- Name: lookups_genders; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_genders (
+    id bigint NOT NULL,
+    value integer NOT NULL,
+    text character varying NOT NULL
+);
+
+
+--
 -- Name: lookups_genders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -21788,6 +20537,17 @@ CREATE SEQUENCE public.lookups_genders_id_seq
 --
 
 ALTER SEQUENCE public.lookups_genders_id_seq OWNED BY public.lookups_genders.id;
+
+
+--
+-- Name: lookups_living_situations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_living_situations (
+    id bigint NOT NULL,
+    value integer NOT NULL,
+    text character varying NOT NULL
+);
 
 
 --
@@ -21810,6 +20570,17 @@ ALTER SEQUENCE public.lookups_living_situations_id_seq OWNED BY public.lookups_l
 
 
 --
+-- Name: lookups_project_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_project_types (
+    id bigint NOT NULL,
+    value integer NOT NULL,
+    text character varying NOT NULL
+);
+
+
+--
 -- Name: lookups_project_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -21826,6 +20597,17 @@ CREATE SEQUENCE public.lookups_project_types_id_seq
 --
 
 ALTER SEQUENCE public.lookups_project_types_id_seq OWNED BY public.lookups_project_types.id;
+
+
+--
+-- Name: lookups_relationships; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_relationships (
+    id bigint NOT NULL,
+    value integer NOT NULL,
+    text character varying NOT NULL
+);
 
 
 --
@@ -21848,6 +20630,17 @@ ALTER SEQUENCE public.lookups_relationships_id_seq OWNED BY public.lookups_relat
 
 
 --
+-- Name: lookups_tracking_methods; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_tracking_methods (
+    id bigint NOT NULL,
+    value integer,
+    text character varying NOT NULL
+);
+
+
+--
 -- Name: lookups_tracking_methods_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -21864,6 +20657,17 @@ CREATE SEQUENCE public.lookups_tracking_methods_id_seq
 --
 
 ALTER SEQUENCE public.lookups_tracking_methods_id_seq OWNED BY public.lookups_tracking_methods.id;
+
+
+--
+-- Name: lookups_yes_no_etcs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_yes_no_etcs (
+    id bigint NOT NULL,
+    value integer NOT NULL,
+    text character varying NOT NULL
+);
 
 
 --
@@ -22154,6 +20958,34 @@ CREATE SEQUENCE public.new_service_history_id_seq
 --
 
 ALTER SEQUENCE public.new_service_history_id_seq OWNED BY public.new_service_history.id;
+
+
+--
+-- Name: nightly_census_by_projects; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.nightly_census_by_projects (
+    id integer NOT NULL,
+    date date NOT NULL,
+    project_id integer NOT NULL,
+    veterans integer DEFAULT 0,
+    non_veterans integer DEFAULT 0,
+    children integer DEFAULT 0,
+    adults integer DEFAULT 0,
+    youth integer DEFAULT 0,
+    families integer DEFAULT 0,
+    individuals integer DEFAULT 0,
+    parenting_youth integer DEFAULT 0,
+    parenting_juveniles integer DEFAULT 0,
+    all_clients integer DEFAULT 0,
+    beds integer DEFAULT 0,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    juveniles integer DEFAULT 0,
+    unaccompanied_minors integer DEFAULT 0,
+    youth_families integer DEFAULT 0,
+    family_parents integer DEFAULT 0
+);
 
 
 --
@@ -23567,34 +22399,6 @@ CREATE TABLE public.recent_report_enrollments (
 
 
 --
--- Name: recent_service_history; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.recent_service_history (
-    id bigint,
-    client_id integer,
-    data_source_id integer,
-    date date,
-    first_date_in_program date,
-    last_date_in_program date,
-    enrollment_group_id character varying(50),
-    age smallint,
-    destination integer,
-    head_of_household_id character varying(50),
-    household_id character varying(50),
-    project_id integer,
-    project_type smallint,
-    project_tracking_method integer,
-    organization_id integer,
-    housing_status_at_entry integer,
-    housing_status_at_exit integer,
-    service_type smallint,
-    computed_project_type smallint,
-    presented_as_individual boolean
-);
-
-
---
 -- Name: recurring_hmis_export_links; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -23799,6 +22603,29 @@ CREATE SEQUENCE public.report_definitions_id_seq
 --
 
 ALTER SEQUENCE public.report_definitions_id_seq OWNED BY public.report_definitions.id;
+
+
+--
+-- Name: warehouse_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_clients (
+    id integer NOT NULL,
+    id_in_source character varying NOT NULL,
+    data_source_id integer,
+    proposed_at timestamp without time zone,
+    reviewed_at timestamp without time zone,
+    reviewd_by character varying,
+    approved_at timestamp without time zone,
+    rejected_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    source_id integer,
+    destination_id integer,
+    client_match_id integer,
+    source_hash character varying
+);
 
 
 --
@@ -24320,6 +23147,48 @@ CREATE SEQUENCE public.secure_files_id_seq
 --
 
 ALTER SEQUENCE public.secure_files_id_seq OWNED BY public.secure_files.id;
+
+
+--
+-- Name: service_history_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.service_history_enrollments (
+    id bigint NOT NULL,
+    client_id integer NOT NULL,
+    data_source_id integer,
+    date date NOT NULL,
+    first_date_in_program date NOT NULL,
+    last_date_in_program date,
+    enrollment_group_id character varying(50),
+    project_id character varying(50),
+    age smallint,
+    destination integer,
+    head_of_household_id character varying(50),
+    household_id character varying(50),
+    project_name character varying(150),
+    project_type smallint,
+    project_tracking_method integer,
+    organization_id character varying(50),
+    record_type character varying(50) NOT NULL,
+    housing_status_at_entry integer,
+    housing_status_at_exit integer,
+    service_type smallint,
+    computed_project_type smallint,
+    presented_as_individual boolean,
+    other_clients_over_25 smallint DEFAULT 0 NOT NULL,
+    other_clients_under_18 smallint DEFAULT 0 NOT NULL,
+    other_clients_between_18_and_25 smallint DEFAULT 0 NOT NULL,
+    unaccompanied_youth boolean DEFAULT false NOT NULL,
+    parenting_youth boolean DEFAULT false NOT NULL,
+    parenting_juvenile boolean DEFAULT false NOT NULL,
+    children_only boolean DEFAULT false NOT NULL,
+    individual_adult boolean DEFAULT false NOT NULL,
+    individual_elder boolean DEFAULT false NOT NULL,
+    head_of_household boolean DEFAULT false NOT NULL,
+    move_in_date date,
+    unaccompanied_minor boolean DEFAULT false
+);
 
 
 --
@@ -28350,13 +27219,6 @@ ALTER TABLE ONLY public.csg_engage_program_reports ALTER COLUMN id SET DEFAULT n
 
 
 --
--- Name: csg_engage_programs id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.csg_engage_programs ALTER COLUMN id SET DEFAULT nextval('public.csg_engage_programs_id_seq'::regclass);
-
-
---
 -- Name: csg_engage_reports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -31732,14 +30594,6 @@ ALTER TABLE ONLY public.csg_engage_program_mappings
 
 ALTER TABLE ONLY public.csg_engage_program_reports
     ADD CONSTRAINT csg_engage_program_reports_pkey PRIMARY KEY (id);
-
-
---
--- Name: csg_engage_programs csg_engage_programs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.csg_engage_programs
-    ADD CONSTRAINT csg_engage_programs_pkey PRIMARY KEY (id);
 
 
 --
@@ -35383,13 +34237,6 @@ CREATE INDEX client_id_ret_index ON public.recent_report_enrollments USING btree
 
 
 --
--- Name: client_id_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX client_id_rsh_index ON public.recent_service_history USING btree (client_id);
-
-
---
 -- Name: client_last_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -35401,13 +34248,6 @@ CREATE INDEX client_last_name ON public."Client" USING btree ("LastName");
 --
 
 CREATE INDEX client_personal_id ON public."Client" USING btree ("PersonalID");
-
-
---
--- Name: computed_project_type_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX computed_project_type_rsh_index ON public.recent_service_history USING btree (computed_project_type);
 
 
 --
@@ -35429,13 +34269,6 @@ CREATE INDEX cur_liv_sit_p_id_en_id_ds_id_cur_id ON public."CurrentLivingSituati
 --
 
 CREATE UNIQUE INDEX cur_liv_sit_sit_id_ds_id ON public."CurrentLivingSituation" USING btree ("CurrentLivingSitID", data_source_id);
-
-
---
--- Name: date_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX date_rsh_index ON public.recent_service_history USING btree (date);
 
 
 --
@@ -50594,13 +49427,6 @@ CREATE INDEX hmiscsv2024youtheducationstatuses_fabe ON public.hmis_csv_2024_yout
 
 
 --
--- Name: household_id_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX household_id_rsh_index ON public.recent_service_history USING btree (household_id);
-
-
---
 -- Name: hud_path_client_conflict_columns; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50654,13 +49480,6 @@ CREATE UNIQUE INDEX hud_report_hic_projects_uniqueness_constraint ON public.hud_
 --
 
 CREATE UNIQUE INDEX id_ret_index ON public.recent_report_enrollments USING btree (id);
-
-
---
--- Name: id_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX id_rsh_index ON public.recent_service_history USING btree (id);
 
 
 --
@@ -52652,10 +51471,10 @@ CREATE INDEX index_contacts_on_type ON public.contacts USING btree (type);
 
 
 --
--- Name: index_csg_engage_program_mappings_on_program_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_csg_engage_program_mappings_on_agency_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_csg_engage_program_mappings_on_program_id ON public.csg_engage_program_mappings USING btree (program_id);
+CREATE INDEX index_csg_engage_program_mappings_on_agency_id ON public.csg_engage_program_mappings USING btree (agency_id);
 
 
 --
@@ -52666,10 +51485,10 @@ CREATE INDEX index_csg_engage_program_mappings_on_project_id ON public.csg_engag
 
 
 --
--- Name: index_csg_engage_program_reports_on_program_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_csg_engage_program_reports_on_program_mapping_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_csg_engage_program_reports_on_program_id ON public.csg_engage_program_reports USING btree (program_id);
+CREATE INDEX index_csg_engage_program_reports_on_program_mapping_id ON public.csg_engage_program_reports USING btree (program_mapping_id);
 
 
 --
@@ -52677,13 +51496,6 @@ CREATE INDEX index_csg_engage_program_reports_on_program_id ON public.csg_engage
 --
 
 CREATE INDEX index_csg_engage_program_reports_on_report_id ON public.csg_engage_program_reports USING btree (report_id);
-
-
---
--- Name: index_csg_engage_programs_on_agency_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_csg_engage_programs_on_agency_id ON public.csg_engage_programs USING btree (agency_id);
 
 
 --
@@ -53090,6 +51902,13 @@ CREATE INDEX index_external_ids_on_external_request_log_id ON public.external_id
 --
 
 CREATE INDEX index_external_ids_on_remote_credential_id ON public.external_ids USING btree (remote_credential_id);
+
+
+--
+-- Name: index_external_ids_on_source_id_and_source_type_and_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_external_ids_on_source_id_and_source_type_and_value ON public.external_ids USING btree (source_id, source_type, value);
 
 
 --
@@ -54490,13 +53309,6 @@ CREATE INDEX index_hmis_external_unit_availability_syncs_on_unit_type_id ON publ
 --
 
 CREATE INDEX index_hmis_external_unit_availability_syncs_on_user_id ON public.hmis_external_unit_availability_syncs USING btree (user_id);
-
-
---
--- Name: index_hmis_form_definitions_on_external_form_object_key; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_hmis_form_definitions_on_external_form_object_key ON public.hmis_form_definitions USING btree (external_form_object_key);
 
 
 --
@@ -60205,20 +59017,6 @@ CREATE INDEX project_project_override_index ON public."Project" USING btree (COA
 
 
 --
--- Name: project_tracking_method_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX project_tracking_method_rsh_index ON public.recent_service_history USING btree (project_tracking_method);
-
-
---
--- Name: project_type_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX project_type_rsh_index ON public.recent_service_history USING btree (project_type);
-
-
---
 -- Name: services_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -64133,6 +62931,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230501183045'),
 ('20230502175218'),
 ('20230503155642'),
+('20230503161258'),
 ('20230504131726'),
 ('20230504152750'),
 ('20230505150822'),
@@ -64172,7 +62971,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230616164602'),
 ('20230616184921'),
 ('20230620154423'),
-('20230620165608'),
 ('20230621190529'),
 ('20230622171721'),
 ('20230622202122'),
@@ -64211,6 +63009,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230829171917'),
 ('20230830121811'),
 ('20230831162622'),
+('20230831190756'),
 ('20230831211739'),
 ('20230901123748'),
 ('20230901124730'),
@@ -64253,6 +63052,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231103151804'),
 ('20231103153556'),
 ('20231103154939'),
+('20231103165752'),
 ('20231107190301'),
 ('20231110134113'),
 ('20231114235529'),
@@ -64269,7 +63069,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231206205805'),
 ('20231207155629'),
 ('20231207161830'),
-('20231211154354'),
 ('20231212212354'),
 ('20231215143621'),
 ('20231220194404'),
@@ -64345,12 +63144,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240603191721'),
 ('20240605155445'),
 ('20240628145249'),
+('20240710012703'),
 ('20240711183824'),
 ('20240717205642'),
 ('20240729171457'),
 ('20240730140758'),
 ('20240731144633'),
 ('20240731155357'),
-('20240815175202');
+('20240821180638');
 
 
