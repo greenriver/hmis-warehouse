@@ -1,0 +1,24 @@
+{
+  "fragment": "#hopwa_disability",
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "q_4_08_2_hiv_aids_hopwa",
+      "text": "HIV/AIDS",
+      "hidden": true,
+      "mapping": {
+        "record_type": "DISABILITY_GROUP",
+        "field_name": "hivAids"
+      },
+      "initial": [
+        {
+          "_comment": "Set to YES so that DisabilityResponse is stored as YES for HIV/AIDS Disability record, even though Annual does not collect the full disability table. This fragment is only included for HOPWA projects.",
+          "value_code": "YES",
+          "initial_behavior": "OVERWRITE"
+        }
+      ],
+      "disabled_display": "HIDDEN",
+      "pick_list_reference": "NoYesReasonsForMissingData"
+    }
+  ]
+}

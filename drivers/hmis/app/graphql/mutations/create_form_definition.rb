@@ -34,7 +34,8 @@ module Mutations
 
       raise "Definition invalid: #{definition.errors.full_messages}" unless definition.valid?
 
-      validation_errors = definition.validate_json_form
+      # validate without `role` to skip HUD requirement validation, since form has no content yet
+      validation_errors = Hmis::Form::DefinitionValidator.perform(definition.definition, skip_cded_validation: true)
       return { errors: validation_errors } if validation_errors.any?
 
       definition.save!
