@@ -298,20 +298,6 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22e',
-        skip: [
-          'B6', # expected '23.0000' (23), got '24.0000' (24)
-          'C6', # expected '16.0000' (16), got '17.0000' (17)
-          'B7', # expected '21.0000' (21), got '22.0000' (22)
-          'C7', # expected '8.0000' (8), got '9.0000' (9)
-          'B10', # expected '9.0000' (9), got '16.0000' (16)
-          'D10', # expected '9.0000' (9), got '16.0000' (16)
-          'B12', # expected '141.0000' (141), got '150.0000' (150)
-          'C12', # expected '69.0000' (69), got '71.0000' (71)
-          'D12', # expected '72.0000' (72), got '79.0000' (79)
-          'B13', # expected '47.0000' (47), got '38.0000' (38)
-          'C13', # expected '27.0000' (27), got '25.0000' (25)
-          'D13', # expected '20.0000' (20), got '13.0000' (13)
-        ],
       )
     end
 
