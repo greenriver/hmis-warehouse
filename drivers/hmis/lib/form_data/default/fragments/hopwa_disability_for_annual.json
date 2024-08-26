@@ -12,7 +12,7 @@
       },
       "initial": [
         {
-          "_comment": "Set to YES so that HOPWA questions' enable_when conditions are fulfilled, even though Annual does not collect the full disability table",
+          "_comment": "Set to YES so that DisabilityResponse is stored as YES for HIV/AIDS Disability record, even though Annual does not collect the full disability table. This fragment is only included for HOPWA projects.",
           "value_code": "YES",
           "initial_behavior": "OVERWRITE"
         }
