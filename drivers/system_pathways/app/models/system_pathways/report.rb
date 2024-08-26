@@ -251,16 +251,7 @@ module SystemPathways
     end
 
     def race_col_lookup
-      {
-        'am_ind_ak_native' => 'AmIndAKNative',
-        'asian' => 'Asian',
-        'black_af_american' => 'BlackAfAmerican',
-        'native_hi_pacific' => 'NativeHIPacific',
-        'white' => 'White',
-        'hispanic_latinaeo' => 'HispanicLatinaeo',
-        'mid_east_n_african' => 'MidEastNAfrican',
-        'race_none' => 'RaceNone',
-      }
+      HudUtility2024.races.map { |k, _| [k.underscore, k] }.to_h
     end
 
     def chart_model(slug = 'pathways')

@@ -35,7 +35,7 @@ class User < ApplicationRecord
   # to a boolean true if the user has the permission through one
   # of their roles
   def load_effective_permissions
-    {}.tap do |h|
+    @load_effective_permissions ||= {}.tap do |h|
       role_source = if using_acls? then roles else legacy_roles end
       role_source.each do |role|
         Role.permissions(exclude_health: true).each do |permission|
@@ -47,7 +47,7 @@ class User < ApplicationRecord
 
   # Health related permissions are tied to roles through user_roles
   def load_health_effective_permissions
-    {}.tap do |h|
+    @load_health_effective_permissions ||= {}.tap do |h|
       health_roles.each do |role|
         Role.health_permissions.each do |permission|
           h[permission] ||= role.send(permission)
@@ -198,7 +198,7 @@ class User < ApplicationRecord
   # memoize some id lookups to prevent N+1s
   private def ids_for_relations(relation)
     @ids_for_relations ||= {}
-    return @ids_for_relations[relation] if @ids_for_relations[relation].present?
+    return @ids_for_relations[relation] if @ids_for_relations.key?(relation)
 
     # START_ACL cleanup after ACL migration is complete
     @ids_for_relations[relation] = if using_acls?

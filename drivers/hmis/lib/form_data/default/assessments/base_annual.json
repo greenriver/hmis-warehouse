@@ -11,6 +11,9 @@
     },
     {
       "fragment": "#health_insurance"
+    },
+    {
+      "fragment": "#hopwa_disability_for_annual"
     }
   ]
 }
