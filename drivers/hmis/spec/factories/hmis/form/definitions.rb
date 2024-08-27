@@ -52,8 +52,14 @@ FactoryBot.define do
     end
     transient do
       data_source { nil } # Data source needed to create CDEDs
+      append_items { nil } # Items to append to FormDefinition content
     end
     after(:create) do |instance, evaluator|
+      if evaluator.append_items
+        instance.definition['item'][0]['item'].push(*Array.wrap(evaluator.append_items))
+        instance.save!
+      end
+
       next unless instance.published? && evaluator.data_source
 
       # Create CDEDs for items that have { mapping: { custom_field_key: '...' } }
