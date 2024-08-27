@@ -41,8 +41,8 @@ module Types
     field :autofill_values, [Forms::AutofillValue], 'Value(s) to autofill based on conditional logic', null: true
     field :service_detail_type, Forms::Enums::ServiceDetailType, 'Whether to apply this field to all clients or a single client when bulk creating', null: true, deprecation_reason: 'from old bulk services implementation, no longer supported'
 
-    field :rule, Forms::FormItemRule, null: true
-    field :custom_rule, Forms::FormItemRule, null: true
+    field :rule, GraphQL::Types::JSON, null: true
+    field :custom_rule, GraphQL::Types::JSON, null: true
 
     # field mapping
     field :mapping, Types::Forms::FieldMapping, null: true

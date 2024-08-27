@@ -68,29 +68,12 @@ module Mutations
         delete_if { |_key, value| (value.is_a?(Array) || value.is_a?(String)) && value.empty? }.
         transform_keys(&:underscore) # transform keys to snake case
 
-      # Special case - rules and custom_rules require extra transformation
-      converted['rule'] = recursively_transform_rule(converted['rule']) if converted['rule']
-      converted['custom_rule'] = recursively_transform_rule(converted['custom_rule']) if converted['custom_rule']
-
       # Then map through all the sub-elements in the hash and return them
       converted.keys.each do |key|
         converted[key] = recursively_transform(converted[key])
       end
 
       converted
-    end
-
-    # For rules, the `value` field can be either a string or an int, but GraphQL doesn't easily support this.
-    # A simple solution for now is to always return a string, and here, transform back to int when needed.
-    # Maybe we can improve this with https://github.com/open-path/Green-River/issues/6104
-    def recursively_transform_rule(rule)
-      rule['value'] = rule['value'].to_i if rule['variable'] == 'projectType' || rule['variable'] == 'projectFunders'
-
-      rule['parts']&.each do |part|
-        recursively_transform_rule(part)
-      end
-
-      rule
     end
   end
 end
