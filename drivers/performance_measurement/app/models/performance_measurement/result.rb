@@ -88,6 +88,64 @@ module PerformanceMeasurement
       [gauge_width, goal, goal_progress].max
     end
 
+    # Duplicate of data_for_system_level_bar, but hide comparison if no project-level details are available
+    def data_for_individual_project_bar
+      average_metric = field.to_s.ends_with?('_average')
+      unit = if average_metric
+        'average days'
+      else
+        primary_unit
+      end
+      columns = if report.using_static_spm_for_comparison?
+        [
+          [
+            'x',
+            comparison_year,
+          ],
+          [
+            unit,
+            comparison_primary_value,
+          ],
+        ]
+      else
+        [
+          [
+            'x',
+            comparison_year,
+            report_year,
+          ],
+          [
+            unit,
+            comparison_primary_value,
+            primary_value,
+          ],
+        ]
+      end
+      if average_metric
+        columns << if report.using_static_spm_for_comparison?
+          [
+            'median days',
+            related_median.primary_value,
+          ]
+        else
+          [
+            'median days',
+            related_median.comparison_primary_value,
+            related_median.primary_value,
+          ]
+        end
+      end
+      {
+        x: 'x',
+        columns: columns,
+        type: 'bar',
+        labels: {
+          colors: 'white',
+          centered: true,
+        },
+      }
+    end
+
     def data_for_system_level_bar
       average_metric = field.to_s.ends_with?('_average')
       unit = if average_metric
