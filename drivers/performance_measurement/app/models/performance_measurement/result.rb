@@ -100,11 +100,11 @@ module PerformanceMeasurement
         [
           [
             'x',
-            comparison_year,
+            report_year,
           ],
           [
             unit,
-            comparison_primary_value,
+            primary_value,
           ],
         ]
       else
