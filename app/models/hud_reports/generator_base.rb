@@ -43,6 +43,7 @@ module HudReports
       @report.state = 'Waiting'
       @report.question_names = self.class.questions.keys
       @report.save!
+      # FIXME: take this out before merge
       if Rails.env.development?
         Reporting::Hud::RunReportJob.new.perform(self.class.name, @report.id)
       else
@@ -54,7 +55,7 @@ module HudReports
       @report.state = 'Waiting'
       @report.question_names = self.class.questions.keys
       @report.manual = manual
-      @report.save
+      @report.save!
       Reporting::Hud::RunReportJob.new.perform(self.class.name, @report.id, email: email)
     end
 
