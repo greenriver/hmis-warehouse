@@ -182,7 +182,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
 
     def unlock_household_assessment
       click_button 'Unlock Assessment'
-      assert_no_text 'This assessment has been submitted.' # Unlock succeeded
+      assert_text 'Save & Submit' # Unlock succeeded
     end
 
     def submit_household_assessment
@@ -240,6 +240,8 @@ RSpec.feature 'Assessment definition selection', type: :system do
       end
 
       it 'submits with published form' do
+        assert_text definition.title
+        assert_text 'New question'
         unlock_household_assessment
         fill_in 'new_question', with: 'e2 answer'
 
