@@ -70,6 +70,7 @@ module Types
 
     # EXPENSIVE! Do not use in batch
     def upgraded_definition_for_editing
+      return if object.in_progress? # WIP assessments should use the original form for editing
       return unless form_processor.definition_id # tiny optimization: avoid calling 'definition' if it will invoke find_definition_for_role twice
 
       previous_definition = definition

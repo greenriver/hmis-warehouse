@@ -21,7 +21,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
         'link_id': 'old_message',
         'text': 'Text on old form',
       }
-      create(:custom_assessment_with_custom_fields_and_rules, title: 'Previous Very Custom Assessment', append_items: old_item, data_source: ds1, version: 0, status: :retired)
+      create(:custom_assessment_with_custom_fields, title: 'Old Custom Assessment', append_items: old_item, data_source: ds1, version: 0, status: :retired)
     end
 
     let!(:definition) do
@@ -31,7 +31,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
         'text': 'New question',
         'mapping': { 'custom_field_key': 'new_question_key' },
       }
-      create(:custom_assessment_with_custom_fields_and_rules, identifier: old_definition.identifier, title: 'Very Custom Assessment', append_items: new_item, data_source: ds1)
+      create(:custom_assessment_with_custom_fields, identifier: old_definition.identifier, title: 'New Custom Assessment', append_items: new_item, data_source: ds1)
     end
 
     before(:each) do
@@ -76,7 +76,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
         assert_text old_definition.title
 
         # unlock the assessment should upgrade to the newer form
-        click_button 'Unlock Assessment'
+        click_button('Unlock Assessment', match: :first)
         assert_text 'Submit' # Unlock succeeded
         assert_no_text old_definition.title
         assert_text definition.title
@@ -114,11 +114,11 @@ RSpec.feature 'Assessment definition selection', type: :system do
         assert_text 'Text on old form'
 
         # Submit should use old form definition
-        expect do
-          click_button 'Submit'
-          assert_text "#{c1.brief_name} Assessments"
-        end.to change(wip_assessment, :wip).from(true).to(false)
-        expect(assessment.reload.form_processor.definition_id).to eq(old_definition.id)
+        click_button 'Submit'
+        assert_text "#{c1.brief_name} Assessments"
+
+        expect(wip_assessment.reload.wip).to eq(false)
+        expect(wip_assessment.reload.form_processor.definition_id).to eq(old_definition.id)
       end
     end
   end
@@ -175,9 +175,14 @@ RSpec.feature 'Assessment definition selection', type: :system do
       click_link 'Intake'
     end
 
+    def select_member(client)
+      find('button[role="tab"]', text: client.brief_name).click
+      expect(find('button[role="tab"][aria-selected="true"]', text: client.brief_name)).to be_present
+    end
+
     def unlock_household_assessment
       click_button 'Unlock Assessment'
-      assert_text 'Save & Submit' # Unlock succeeded
+      assert_no_text 'This assessment has been submitted.' # Unlock succeeded
     end
 
     def submit_household_assessment
@@ -191,7 +196,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
     end
 
     context '[e1] for member with Intake that was submitted using an old form' do
-      before(:each) { find('button[role="tab"]', text: c1.brief_name).click }
+      before(:each) { select_member(c1) }
 
       it 'opens the assessment with the old form version, and upgrades to new version on unlock' do
         # expect old form
@@ -225,7 +230,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
     end
 
     context '[e2] for member with Intake that was submitted using the new form' do
-      before(:each) { find('button[role="tab"]', text: c2.brief_name).click }
+      before(:each) { select_member(c2) }
 
       it 'opens with published form' do
         assert_text definition.title
@@ -249,7 +254,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
     end
 
     context '[e3] for member with WIP Intake that was started using the old form' do
-      before(:each) { find('button[role="tab"]', text: c3.brief_name).click }
+      before(:each) { select_member(c3) }
 
       it 'opens with old form in editing mode' do
         assert_text 'This assessment is in progress'
@@ -268,7 +273,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
     end
 
     context '[e4] for member with no intake' do
-      before(:each) { find('button[role="tab"]', text: c4.brief_name).click }
+      before(:each) { select_member(c4) }
 
       it 'opens with new form in editing mode' do
         assert_text 'This assessment has not been started'

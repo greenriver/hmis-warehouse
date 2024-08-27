@@ -200,7 +200,7 @@ FactoryBot.define do
   end
 
   # Custom Assessment that creates/updates a Custom Data Element
-  factory :custom_assessment_with_custom_fields_and_rules, parent: :hmis_form_definition do
+  factory :custom_assessment_with_custom_fields, parent: :hmis_form_definition do
     role { :CUSTOM_ASSESSMENT }
     title { 'Test Custom Assessment' }
     sequence(:identifier) { |n| "custom_assessment_#{n}" }
