@@ -7,12 +7,13 @@
 module HopwaCaper::Generators::Fy2024::EnrollmentFilters
   IncomeBenefitSourceFilter = Struct.new(:label, :types, keyword_init: true) do
     def apply(scope)
-      if types.present?
-        scope.where('income_benefit_source_types @> ?::varchar[]', SqlHelper.quote_sql_array(types))
+      cond = if types.present?
+        SqlHelper.non_empty_array_subset_condition(field: 'income_benefit_source_types', type: :varchar, set: types)
       else
         # no benefits
-        scope.where('income_benefit_source_types = ?::varchar[]', SqlHelper.quote_sql_array([]))
+        "income_benefit_source_types = '{}'::varchar[]"
       end
+      scope.where(cond)
     end
 
     def self.all

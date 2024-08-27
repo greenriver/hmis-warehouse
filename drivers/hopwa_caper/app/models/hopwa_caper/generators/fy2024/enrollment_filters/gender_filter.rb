@@ -12,7 +12,8 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
 
     def apply(scope)
       codes = code_names.map { |name| id_map(name) }
-      scope.where('genders = ?::integer[]', SqlHelper.quote_sql_array(codes))
+      quoted = SqlHelper.quote_sql_array(codes, type: :integer)
+      scope.where("genders = #{quoted}")
     end
 
     def self.all

@@ -18464,7 +18464,6 @@ CREATE TABLE public.hopwa_caper_enrollments (
     subsidy_information integer,
     ever_perscribed_anti_retroviral_therapy boolean DEFAULT false NOT NULL,
     viral_load_supression boolean DEFAULT false NOT NULL,
-    income_amount numeric,
     percent_ami numeric
 );
 
@@ -63315,6 +63314,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240730140758'),
 ('20240731144633'),
 ('20240731155357'),
+('20240808042801'),
 ('20240821180638');
 
 

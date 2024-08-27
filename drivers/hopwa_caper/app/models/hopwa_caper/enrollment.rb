@@ -33,30 +33,61 @@ module HopwaCaper
         HudUtility2024.funding_sources.invert.fetch('HUD: HOPWA - Permanent Housing (facility based or TBRA)'),
         HudUtility2024.funding_sources.invert.fetch('HUD: HOPWA - Transitional Housing (facility based or TBRA)'),
       ]
-      where('project_funders <@ ?::integer[]', SqlHelper.quote_sql_array(funders))
+      cond = SqlHelper.non_empty_array_subset_condition(field: 'project_funders', type: 'integer', set: funders)
+      where(cond)
     end
 
     def self.strmu_funder
       funders = [
         HudUtility2024.funding_sources.invert.fetch('HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance'),
       ]
-      where('project_funders <@ ?::integer[]', SqlHelper.quote_sql_array(funders))
+      cond = SqlHelper.non_empty_array_subset_condition(field: 'project_funders', type: 'integer', set: funders)
+      where(cond)
     end
 
     def self.php_funder
       funders = [
         HudUtility2024.funding_sources.invert.fetch('HUD: HOPWA - Permanent Housing Placement'),
       ]
-      where('project_funders <@ ?::integer[]', SqlHelper.quote_sql_array(funders))
+      cond = SqlHelper.non_empty_array_subset_condition(field: 'project_funders', type: 'integer', set: funders)
+      where(cond)
     end
 
     def self.head_of_household
       where(relationship_to_hoh: 1)
     end
 
+    INSURANCE_FIELDS = [
+      :Medicaid,
+      :Medicare,
+      :VAMedicalServices,
+      :HIVAIDSAssistance,
+      :SCHIP,
+      :RyanWhiteMedDent,
+    ].freeze
+    INCOME_SOURCE_FIELDS = [
+      :Earned,
+      :SocSecRetirement,
+      :SSI,
+      :SSDI,
+      :SNAP, :WIC, :TANF,
+      :PrivateDisability,
+      :VADisabilityService, :VADisabilityNonService,
+      :ChildSupport, :Alimony,
+      :WorkersComp,
+      :Unemployment,
+      :OtherIncomeSource
+    ].freeze
     def self.from_hud_record(enrollment:, report:)
       project = enrollment.project
       hiv_disabilities = enrollment.disabilities.filter(&:hiv?).sort_by(&:id)
+      income_benefit_source_types = enrollment.income_benefits.flat_map do |record|
+        INCOME_SOURCE_FIELDS.filter { |field| record[field] == 1 }
+      end
+      medical_insurance_types = enrollment.income_benefits.flat_map do |record|
+        INSURANCE_FIELDS.filter { |field| record[field] == 1 }
+      end
+
       exit = enrollment.exit
       client = enrollment.client
       new(
@@ -77,6 +108,7 @@ module HopwaCaper
         genders: client.gender_multi.sort,
         races: client.race_multi.sort,
         veteran: client.veteran_status == 1,
+        percent_ami: enrollment.percent_ami,
 
         relationship_to_hoh: enrollment.relationship_to_hoh,
         hud_project_id: project.project_id,
@@ -86,6 +118,8 @@ module HopwaCaper
         exit_date: exit&.exit_date,
         housing_assessment_at_exit: exit&.housing_assessment,
         subsidy_information: exit&.enrollment,
+        income_benefit_source_types: income_benefit_source_types.sort.uniq,
+        medical_insurance_types: medical_insurance_types.sort.uniq,
 
         duration_days: ([exit&.exit_date, report.end_date].compact.min - enrollment.entry_date).to_i,
 

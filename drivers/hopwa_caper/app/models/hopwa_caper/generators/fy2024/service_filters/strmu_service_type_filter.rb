@@ -11,7 +11,8 @@ module HopwaCaper::Generators::Fy2024::ServiceFilters
     end
 
     def having_exclusive_type(grouped)
-      grouped.having('ARRAY_AGG(DISTINCT type_provided) <@ ?::integer[]', SqlHelper.quote_sql_array(codes))
+      cond = SqlHelper.non_empty_array_subset_condition(field: 'ARRAY_AGG(DISTINCT type_provided)', type: 'integer', set: codes)
+      grouped.having(cond)
     end
 
     def codes

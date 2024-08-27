@@ -42,7 +42,6 @@ class HopwaCaper < ActiveRecord::Migration[7.0]
       t.boolean :ever_perscribed_anti_retroviral_therapy, null: false, default: false
       t.boolean :viral_load_supression, null: false, default: false
 
-      t.numeric :income_amount
       t.numeric :percent_ami
 
       t.index [:report_instance_id, :data_source_id, :hud_enrollment_id], unique: true, name: 'uidx_hopwa_caper_enrollments'

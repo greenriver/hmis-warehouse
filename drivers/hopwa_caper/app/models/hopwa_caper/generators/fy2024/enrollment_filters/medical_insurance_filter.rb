@@ -7,7 +7,9 @@
 module HopwaCaper::Generators::Fy2024::EnrollmentFilters
   MedicalInsuranceFilter = Struct.new(:label, :types, keyword_init: true) do
     def apply(scope)
-      scope.where('medical_insurance_types @> ?::varchar[]', "{#{types.join(',')}}")
+      scope.where(
+        SqlHelper.non_empty_array_subset_condition(field: 'medical_insurance_types', type: 'varchar', set: types),
+      )
     end
 
     def self.all

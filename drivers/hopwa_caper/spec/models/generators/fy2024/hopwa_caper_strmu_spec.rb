@@ -13,8 +13,8 @@ RSpec.describe 'HOPWA CAPER STRMU', type: :model do
   end
 
   context 'With one household served with rental assistance' do
-    before(:each) do
-      household = create_hopwa_eligible_household(project: project)
+    let!(:household) { create_hopwa_eligible_household(project: project) }
+    let!(:service) do
       create_service(
         enrollment: household.hoh,
         record_type: hopwa_financial_assistance,

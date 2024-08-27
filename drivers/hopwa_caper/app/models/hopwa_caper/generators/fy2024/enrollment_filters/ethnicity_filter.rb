@@ -8,7 +8,8 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
   EthnicityFilter = Struct.new(:label, :code_name, keyword_init: true) do
     def apply(scope)
       code = HudUtility2024.race_field_name_to_id.fetch(code_name)
-      scope.where('races @> ?::integer[]', SqlHelper.quote_sql_array([code]))
+      # Hisp and any other race/ethnicity
+      scope.where("races @> #{SqlHelper.quote_sql_array([code], type: :integer)}")
     end
 
     def self.all

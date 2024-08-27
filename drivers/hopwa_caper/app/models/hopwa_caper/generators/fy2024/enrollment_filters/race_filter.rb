@@ -16,9 +16,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
 
       # get the race with or without ethnicity
       scope.where(
-        'races = ?::integer[] OR races = ?::integer[]',
-        SqlHelper.quote_sql_array(race_codes),
-        SqlHelper.quote_sql_array(race_codes + [hispanic_latino_code]),
+        "races = #{SqlHelper.quote_sql_array(race_codes, type: :integer)} OR races = #{SqlHelper.quote_sql_array(race_codes + [hispanic_latino_code], type: :integer)}::integer[]",
       )
     end
 
