@@ -128,12 +128,15 @@ module GrdaWarehouse
     scope :consent_forms, -> do
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
-      consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
-        name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name),
-      ).pluck(:id)
-      consent_form_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: consent_form_tag_ids).
-        where(taggable_type: 'GrdaWarehouse::File').
-        pluck(:taggable_id)
+      consent_form_tagging_ids = Rails.cache.fetch('consent_form_tagging_ids/tag_ids', expires_in: 2.minutes) do
+        consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
+          name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name),
+        ).pluck(:id)
+
+        ActsAsTaggableOn::Tagging.where(tag_id: consent_form_tag_ids).
+          where(taggable_type: 'GrdaWarehouse::File').
+          pluck(:taggable_id)
+      end
 
       where(id: consent_form_tagging_ids)
     end
@@ -141,12 +144,15 @@ module GrdaWarehouse
     scope :non_consent, -> do
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), exclude: true)
-      consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
-        name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name),
-      ).pluck(:id)
-      consent_form_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: consent_form_tag_ids).
-        where(taggable_type: 'GrdaWarehouse::File').
-        pluck(:taggable_id)
+      consent_form_tagging_ids = Rails.cache.fetch('consent_form_tagging_ids/tag_ids', expires_in: 2.minutes) do
+        consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
+          name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name),
+        ).pluck(:id)
+
+        ActsAsTaggableOn::Tagging.where(tag_id: consent_form_tag_ids).
+          where(taggable_type: 'GrdaWarehouse::File').
+          pluck(:taggable_id)
+      end
 
       where.not(id: consent_form_tagging_ids)
     end
@@ -154,12 +160,15 @@ module GrdaWarehouse
     scope :verified_homeless_history, -> do
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
-      verified_homeless_history_tag_ids = ActsAsTaggableOn::Tag.where(
-        name: GrdaWarehouse::AvailableFileTag.verified_homeless_history.pluck(:name),
-      ).pluck(:id)
-      verified_homeless_history_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: verified_homeless_history_tag_ids).
-        where(taggable_type: 'GrdaWarehouse::File').
-        pluck(:taggable_id)
+      verified_homeless_history_tagging_ids = Rails.cache.fetch('verified_homeless_history_tagging_ids/tag_ids', expires_in: 2.minutes) do
+        verified_homeless_history_tag_ids = ActsAsTaggableOn::Tag.where(
+          name: GrdaWarehouse::AvailableFileTag.verified_homeless_history.pluck(:name),
+        ).pluck(:id)
+
+        ActsAsTaggableOn::Tagging.where(tag_id: verified_homeless_history_tag_ids).
+          where(taggable_type: 'GrdaWarehouse::File').
+          pluck(:taggable_id)
+      end
 
       where(id: verified_homeless_history_tagging_ids)
     end
@@ -167,14 +176,15 @@ module GrdaWarehouse
     scope :recent_ce_self_report_certification, -> do
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
-      ce_self_report_certification_tag_ids = ActsAsTaggableOn::Tag.where(
-        name: GrdaWarehouse::AvailableFileTag.ce_self_report_certification.pluck(:name),
-      ).pluck(:id)
+      ce_self_report_certification_tag_ids_tagging_ids = Rails.cache.fetch('ce_self_report_certification_tag_ids_tagging_ids/tag_ids', expires_in: 2.minutes) do
+        ce_self_report_certification_tag_ids = ActsAsTaggableOn::Tag.where(
+          name: GrdaWarehouse::AvailableFileTag.ce_self_report_certification.pluck(:name),
+        ).pluck(:id)
 
-      ce_self_report_certification_tag_ids_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: ce_self_report_certification_tag_ids).
-        where(taggable_type: 'GrdaWarehouse::File').
-        pluck(:taggable_id)
-
+        ActsAsTaggableOn::Tagging.where(tag_id: ce_self_report_certification_tag_ids).
+          where(taggable_type: 'GrdaWarehouse::File').
+          pluck(:taggable_id)
+      end
       where(id: ce_self_report_certification_tag_ids_tagging_ids, effective_date: 1.years.ago.to_date..)
     end
 

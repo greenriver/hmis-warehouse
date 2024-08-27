@@ -7,9 +7,6 @@
 module HmisUtil
   class HudAssessmentFormRules2024
     # Keys match Link IDs in our default HUD Assessments.
-    #
-    # KNOWN HUD COMPLIANCE ISSUES:
-    # - W4 (part of hopwa_disability) should enforce compliance at Annual data collection stage (GH#6463)
 
     HUD_LINK_ID_RULES = {
       q_4_11: { stages: ['INTAKE', 'UPDATE'],
@@ -1015,8 +1012,7 @@ module HmisUtil
                                     'operator' => 'INCLUDE',
                                     'value' => 'HUD: HOPWA' } },
       # w4 and w6
-      # FIXME: w4 is required at annual, but not currently collected there. that should be addressed. it is this was because disability is otherwise not collected at annual
-      hopwa_disability: { stages: ['INTAKE', 'UPDATE', 'EXIT'],
+      hopwa_disability: { stages: ['INTAKE', 'UPDATE', 'EXIT', 'ANNUAL'],
                           data_collected_about: nil,
                           rule: { 'operator' => 'ALL', 'parts' => [{ 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: HOPWA' }] } },
       W5: { stages: ['EXIT'],
