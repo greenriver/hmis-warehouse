@@ -32,6 +32,7 @@ module GrdaWarehouse::Hud
     scope :bed_night, -> { where(RecordType: HudUtility2024.record_type('Bed Night', true)) }
     scope :not_bed_night, -> { where.not(RecordType: HudUtility2024.record_type('Bed Night', true)) }
     scope :path_service, -> { where(RecordType: HudUtility2024.record_type('PATH Service', true)) }
+    scope :hopwa_service, -> { where(RecordType: [HudUtility2024.record_type('HOPWA Service', true), HudUtility2024.record_type('HOPWA Financial Assistance', true)]) }
     scope :path_referral, -> { where(RecordType: HudUtility2024.record_type('PATH Referral', true)) }
     scope :descending, -> { order arel_table[:DateProvided].desc }
     # really, the scope below should just be true, but it isn't; this culls things down to the most recent entry of the given type for the date

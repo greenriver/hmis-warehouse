@@ -145,7 +145,11 @@ module HudReports
         first_or_create
     end
 
-    # The universe of clients for a question
+    # The universe of members (such as clients) for a question
+    #
+    # The per-question universe allows us to explain why a given member was not included in a cell; the inverse of
+    # explaining why member was included in a cell using the cell members. As of this writing this universe is not
+    # exposed in the UI
     #
     # @param question [String] the question name (e.g., 'Q1')
     # @return [ReportCell] the universe cell
