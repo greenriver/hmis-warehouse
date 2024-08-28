@@ -51,7 +51,7 @@ RSpec.feature 'HMIS Form Builder', type: :system do
 
     it 'creates a new draft' do
       expect do
-        click_button 'New Draft'
+        click_button 'Edit Draft'
         assert_text "EDITING DRAFT #{published.title}"
       end.to change(Hmis::Form::Definition.draft, :count).by(1).
         and not_change(published, :status)
