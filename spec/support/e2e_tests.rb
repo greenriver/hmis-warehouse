@@ -42,6 +42,8 @@ module E2eTests
 
       ::Capybara.automatic_label_click = automatic_label_click
 
+      ::Capybara.ignore_hidden_elements = true
+
       # Normalizes whitespaces when using `has_text?` and similar matchers
       ::Capybara.default_normalize_ws = default_normalize_ws
 
