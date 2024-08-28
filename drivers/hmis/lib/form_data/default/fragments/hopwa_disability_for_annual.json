@@ -3,6 +3,7 @@
   "link_id": "hopwa_annual_section",
   "prefill": true,
   "text": "HOPWA Questions",
+  "_comment": "The hopwa_disability fragment already has a rule in HudAssessmentFormRules2024 ensuring that it is only included for HOPWA-funded projects. We need this additional rule here to toggle whether the extra HIV/AIDS Disability question is shown.",
   "rule": {
     "operator": "ALL",
     "parts": [
