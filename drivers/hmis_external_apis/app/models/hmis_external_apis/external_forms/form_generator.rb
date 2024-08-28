@@ -8,10 +8,15 @@
 module HmisExternalApis::ExternalForms
   class FormGenerator
     attr_reader :context
-    def initialize(context)
+    attr_reader :form_definition
+    def initialize(context, form_definition)
       @stack = []
       @context = context
+      @form_definition = form_definition # Hmis::Form::Definition
     end
+    # NEEDS:
+    # - multi-select (race/gender)
+    # - more than one conditional rule
 
     delegate :register_field,
              :render_form_input,
@@ -110,15 +115,32 @@ module HmisExternalApis::ExternalForms
       end
     end
 
-    def render_choice_node(node)
-      raise "missing options in #{node.inspect} " unless node['pick_list_options']
+    def resolve_pick_list(node)
+      pick_list_reference = node['pick_list_reference']
+      pick_list_options = node['pick_list_options']
 
-      options = node['pick_list_options'].map do |option|
-        { label: option['label'], value: option['code'] }
+      if pick_list_reference
+        found_enum = "Types::HmisSchema::Enums::Hud::#{pick_list_reference}".safe_constantize
+        found_enum ||= "Types::HmisSchema::Enums::#{pick_list_reference}".safe_constantize
+        raise "Unable to resolve pick list reference: #{pick_list_reference}" unless found_enum
+
+        found_enum.values.map do |k, v|
+          { value: k.to_s, label: v.description&.gsub(/^\([0-9A-Za-z]+\) /, '') || k.to_s }
+        end
+      elsif pick_list_options
+        pick_list_options.map do |option|
+          { value: option['code'], label: option['label'] || option['code'] }
+        end
       end
+    end
+
+    def render_choice_node(node)
+      options = resolve_pick_list(node)
+      raise "missing options in #{node.inspect} " unless options.present?
+
       render_form_group(node: node) do
         case node['component']
-        when 'DROPDOWN'
+        when 'DROPDOWN', nil
           render_form_select(label: node['text'], name: node_name(node), options: options, required: node['required'])
         when 'RADIO_BUTTONS'
           render_form_radio_group(legend: node['text'], name: node_name(node), options: options, required: node['required'])
@@ -154,9 +176,12 @@ module HmisExternalApis::ExternalForms
 
     def render_dependent_item_wrapper(node, &block)
       if node['enable_behavior']
-        raise 'multiple rules not supported' if node.dig('enable_when')&.many?
+        # raise 'multiple rules not supported' if node.dig('enable_when')&.many?
 
-        input_name = node.dig('enable_when', 0, 'question')
+        input_dependent_link_id = node.dig('enable_when', 0, 'question')
+        input_name = link_id_to_node_name[input_dependent_link_id]
+        raise "missing node name for dependency #{input_dependent_link_id}" unless input_name
+
         input_value = node.dig('enable_when', 0, 'answer_code')
         return context.render_dependent_block(input_name: input_name, input_value: input_value, &block)
       end
@@ -164,11 +189,26 @@ module HmisExternalApis::ExternalForms
       return context.capture(&block)
     end
 
-    def node_name(node)
-      value = node.dig('mapping', 'custom_field_key')
-      raise "node #{node['link_id']} is missing mapping.custom_field_key" unless value
+    def node_name(node, for_input: true)
+      record_type = node.dig('mapping', 'record_type')
+      custom_field_key = node.dig('mapping', 'custom_field_key')
+      field_name = node.dig('mapping', 'field_name')
+      if for_input
+        raise "node #{node['link_id']} is missing mapping" unless custom_field_key || field_name
+      end
 
-      value
+      # Join with period since that's the expected submission shape (Client.firstName)
+      # If problematic we can replace this with a hyphen, and change it back to period on submit?
+      [record_type, custom_field_key || field_name].compact.join('.')
+    end
+
+    # need because previous approach assumed that link_id matched mapping custom_field_key, which isnt true
+    def link_id_to_node_name
+      @link_id_to_node_name ||= form_definition.link_id_item_hash.map do |link_id, node|
+        next unless node['mapping']
+
+        [link_id, node_name(node, for_input: false)]
+      end.compact.to_h
     end
   end
 end

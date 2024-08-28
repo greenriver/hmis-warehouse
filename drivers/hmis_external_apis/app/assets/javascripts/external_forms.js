@@ -111,6 +111,7 @@ $(function () {
   });
 });
 
+// here
 window.addDependentGroup = function (inputName, condValue, targetSelector) {
   var target = $(targetSelector);
   var show = function () {
