@@ -181,7 +181,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
     end
 
     def unlock_household_assessment
-      click_button 'Unlock Assessment'
+      find('button', text: 'Unlock Assessment').trigger('click')
       assert_text 'Save & Submit' # Unlock succeeded
     end
 
