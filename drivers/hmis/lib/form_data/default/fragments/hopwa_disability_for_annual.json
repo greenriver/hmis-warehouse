@@ -1,24 +1,40 @@
 {
-  "fragment": "#hopwa_disability",
+  "type": "GROUP",
+  "link_id": "hopwa_annual_section",
+  "prefill": true,
+  "text": "HOPWA Questions",
+  "rule": {
+    "operator": "ALL",
+    "parts": [
+      {
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HUD: HOPWA"
+      }
+    ]
+  },
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "q_4_08_2_hiv_aids_hopwa",
+      "link_id": "hiv_aids_disability",
       "text": "HIV/AIDS",
-      "hidden": true,
       "mapping": {
         "record_type": "DISABILITY_GROUP",
         "field_name": "hivAids"
       },
-      "initial": [
-        {
-          "_comment": "Set to YES so that DisabilityResponse is stored as YES for HIV/AIDS Disability record, even though Annual does not collect the full disability table. This fragment is only included for HOPWA projects.",
-          "value_code": "YES",
-          "initial_behavior": "OVERWRITE"
-        }
-      ],
-      "disabled_display": "HIDDEN",
       "pick_list_reference": "NoYesReasonsForMissingData"
+    },
+    {
+      "fragment": "#hopwa_disability",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "_comment": "Only ask w4/w6 if disability response is Yes for HIV/AIDS. Even at HOPWA programs, there may be other household members who respond No.",
+          "question": "hiv_aids_disability",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
     }
   ]
 }

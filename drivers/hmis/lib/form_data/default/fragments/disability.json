@@ -297,7 +297,24 @@
       ]
     },
     {
-      "fragment": "#hopwa_disability"
+      "type": "GROUP",
+      "link_id": "hopwa_section",
+      "text": "HOPWA Questions",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "_comment": "q_4_08_2 question may come from disability fragment OR hopwa_disability_for_annual fragment",
+          "question": "q_4_08_2",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ],
+      "item": [
+        {
+          "fragment": "#hopwa_disability",
+          "_comment": "the hopwa_disability fragment also has a rule ensuring that it is only included for HOPWA-funded projects. For non-HOPWA programs, this whole hopwa_section group is excluded (because groups are excluded if all children are excluded)."
+        }
+      ]
     }
   ]
 }
