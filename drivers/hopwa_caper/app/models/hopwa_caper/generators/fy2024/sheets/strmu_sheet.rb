@@ -20,20 +20,12 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     protected
 
-    def relevant_enrollments
-      service_scope = HopwaCaper::Service.where(date_provided: @report.start_date...@report.end_date).hopwa_financial_assistance
-      @report.hopwa_caper_enrollments.
-        strmu_funder.
-        overlapping_range(start_date: @report.start_date, end_date: @report.end_date).
-        joins(:services).
-        merge(service_scope)
+    def relevant_enrollments_filter
+      HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa
     end
 
-    def relevant_services(start_date: @report.start_date)
-      enrolment_scope = HopwaCaper::Enrollment.strmu_funder.overlapping_range(start_date: start_date, end_date: @report.end_date)
-      @report.hopwa_caper_services.hopwa_financial_assistance.
-        where(date_provided: start_date...@report.end_date).
-        joins(:enrollment).merge(enrolment_scope)
+    def relevant_services_filter
+      HopwaCaper::Generators::Fy2024::ServiceFilters::RecordTypeFilter.hopwa_financial_assistance
     end
 
     def service_type_filters

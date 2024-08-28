@@ -48,7 +48,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
         ),
         new(
           label: 'Regular contributions or gifts from organizations or persons not residing in the residence',
-          types: [:ChildSupport, :Alimony],
+          types: [:ChildSupport, :Alimony, :Pension],
         ),
         new(
           label: "Worker's Compensation",

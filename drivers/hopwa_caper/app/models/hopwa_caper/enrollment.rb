@@ -28,31 +28,6 @@ module HopwaCaper
       select('DISTINCT ON (hopwa_caper_enrollments.data_source_id, hopwa_caper_enrollments.hud_personal_id) *').order(data_source_id: :asc, hud_personal_id: :asc, entry_date: :desc, id: :desc)
     }
 
-    def self.tbra_funder
-      funders = [
-        HudUtility2024.funding_sources.invert.fetch('HUD: HOPWA - Permanent Housing (facility based or TBRA)'),
-        HudUtility2024.funding_sources.invert.fetch('HUD: HOPWA - Transitional Housing (facility based or TBRA)'),
-      ]
-      cond = SqlHelper.non_empty_array_subset_condition(field: 'project_funders', type: 'integer', set: funders)
-      where(cond)
-    end
-
-    def self.strmu_funder
-      funders = [
-        HudUtility2024.funding_sources.invert.fetch('HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance'),
-      ]
-      cond = SqlHelper.non_empty_array_subset_condition(field: 'project_funders', type: 'integer', set: funders)
-      where(cond)
-    end
-
-    def self.php_funder
-      funders = [
-        HudUtility2024.funding_sources.invert.fetch('HUD: HOPWA - Permanent Housing Placement'),
-      ]
-      cond = SqlHelper.non_empty_array_subset_condition(field: 'project_funders', type: 'integer', set: funders)
-      where(cond)
-    end
-
     def self.head_of_household
       where(relationship_to_hoh: 1)
     end
@@ -81,14 +56,18 @@ module HopwaCaper
     def self.from_hud_record(enrollment:, report:)
       project = enrollment.project
       hiv_disabilities = enrollment.disabilities.filter(&:hiv?).sort_by(&:id)
+
+      report_date_range = report.start_date..report.end_date
       income_benefit_source_types = enrollment.income_benefits.flat_map do |record|
+        next unless record.InformationDate.in?(report_date_range)
         INCOME_SOURCE_FIELDS.filter { |field| record[field] == 1 }
       end
       medical_insurance_types = enrollment.income_benefits.flat_map do |record|
+        next unless record.InformationDate.in?(report_date_range)
         INSURANCE_FIELDS.filter { |field| record[field] == 1 }
       end
 
-      exit = enrollment.exit
+      exit = enrollment.exit if enrollment.exit&.exit_date&.<= report.end_date
       client = enrollment.client
       new(
         report_instance_id: report.id,
@@ -118,8 +97,8 @@ module HopwaCaper
         exit_date: exit&.exit_date,
         housing_assessment_at_exit: exit&.housing_assessment,
         subsidy_information: exit&.enrollment,
-        income_benefit_source_types: income_benefit_source_types.sort.uniq,
-        medical_insurance_types: medical_insurance_types.sort.uniq,
+        income_benefit_source_types: income_benefit_source_types.compact.sort.uniq,
+        medical_insurance_types: medical_insurance_types.compact.sort.uniq,
 
         duration_days: ([exit&.exit_date, report.end_date].compact.min - enrollment.entry_date).to_i,
 

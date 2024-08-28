@@ -36,5 +36,23 @@ module HopwaCaper::Generators::Fy2024::Sheets
       sheet.add_header(col: 'A', label: label)
       sheet.add_header(col: 'B', label: 'This Report')
     end
+
+    def relevant_enrollments(enrollment_filter: relevant_enrollments_filter, service_filter: relevant_services_filter)
+      service_scope = service_filter.apply(HopwaCaper::Service.where(date_provided: @report.start_date...@report.end_date))
+      enrollments = enrollment_filter.apply(@report.hopwa_caper_enrollments)
+      enrollments.
+        overlapping_range(start_date: @report.start_date, end_date: @report.end_date).
+        joins(:services).
+        merge(service_scope)
+    end
+
+    def relevant_services(enrollment_filter: relevant_enrollments_filter, service_filter: relevant_services_filter, start_date: @report.start_date)
+      enrollment_scope = enrollment_filter.apply(HopwaCaper::Enrollment.overlapping_range(start_date: start_date, end_date: @report.end_date))
+      service_scope = @report.hopwa_caper_services.hopwa_financial_assistance.
+        where(date_provided: start_date...@report.end_date).
+        joins(:enrollment).merge(enrollment_scope)
+      service_filter.apply(service_scope)
+    end
+
   end
 end

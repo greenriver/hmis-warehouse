@@ -38,18 +38,16 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     protected
 
-    # served by all types of hopwa assistance within reporting year
-    def relevant_enrollments(hopwa_eligible:)
-      service_scope = HopwaCaper::Service.all_hopwa_assistance.
-        where(date_provided: @report.start_date..@report.end_date)
-      @report.hopwa_caper_enrollments.
-        overlapping_range(start_date: @report.start_date, end_date: @report.end_date).
-        where(hopwa_eligible: hopwa_eligible).
-        joins(:services).merge(service_scope)
+    def relevant_enrollments_filter
+       HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.all_hopwa
+    end
+
+    def relevant_services_filter
+       HopwaCaper::Generators::Fy2024::ServiceFilters::RecordTypeFilter.any_hopwa_assistance
     end
 
     def demographics_sheet_a(sheet)
-      scope = relevant_enrollments(hopwa_eligible: true)
+      scope = relevant_enrollments.where(hopwa_eligible: true)
       demographics_breakdown_table(sheet, enrollment_scope: scope)
       sheet.append_row(label: 'Total number of HOPWA-eligible individuals served with HOPWA assistance:') do |row|
         row.append_cell_members(members: scope.latest_by_personal_id.as_report_members)
@@ -57,7 +55,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
     end
 
     def demographics_sheet_b(sheet)
-      scope = relevant_enrollments(hopwa_eligible: false)
+      scope = relevant_enrollments.where(hopwa_eligible: false)
       demographics_breakdown_table(sheet, enrollment_scope: scope)
       sheet.append_row(label: 'Total number of other household members (beneficiaries) served with HOPWA assistance:') do |row|
         row.append_cell_members(members: scope.latest_by_personal_id.as_report_members)
@@ -113,9 +111,9 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     def prior_living_situation_sheet(sheet)
       add_two_col_header(sheet)
-      scope = relevant_enrollments(hopwa_eligible: true)
+      scope = relevant_enrollments.where(hopwa_eligible: true)
       # FIXME
-      # limit scope to TBRA, P-FBH, ST-TFBH, or PHP
+      # limit scope for Prior Living Situations to HOPWA-eligible Individuals served by TBRA, P-FBH, ST-TFBH, or PHP
 
       sheet.append_row(label: 'How many HOPWA-eligible individuals continued receiving HOPWA assistance from the previous year?') do |row|
         cell_scope = scope.where(entry_date: ...@report.start_date)

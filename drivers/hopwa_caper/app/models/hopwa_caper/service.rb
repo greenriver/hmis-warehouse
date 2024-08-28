@@ -19,22 +19,6 @@ module HopwaCaper
       end
     end
 
-    scope :all_hopwa_assistance, -> {
-      hopwa_types = [
-        HudUtility2024.record_types.invert.fetch('HOPWA Financial Assistance'),
-        HudUtility2024.record_types.invert.fetch('HOPWA Service'),
-      ]
-      where(record_type: hopwa_types)
-    }
-
-    scope :hopwa_financial_assistance, -> {
-      where(record_type: HudUtility2024.record_types.invert.fetch('HOPWA Financial Assistance'))
-    }
-
-    scope :hopwa_service, -> {
-      where(record_type: HudUtility2024.record_types.invert.fetch('HOPWA Service'))
-    }
-
     def self.from_hud_record(service:, enrollment:, report:)
       new(
         report_household_id: [service.data_source_id, enrollment.household_id, report.id].join(':'),

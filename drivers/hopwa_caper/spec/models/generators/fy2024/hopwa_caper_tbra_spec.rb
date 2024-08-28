@@ -24,7 +24,7 @@ RSpec.describe 'HOPWA CAPER TBRA', type: :model do
     end
 
     it 'reports household count, medical insurance, and income_benefit' do
-      household.hoh.income_benefits.create!(Medicaid: 1, Earned: 1)
+      household.hoh.income_benefits.create!(Medicaid: 1, Earned: 1, information_date: report_start_date)
       report = create_report([project])
       run_report(report)
       expect(report.hopwa_caper_enrollments.size).to eq(1)
