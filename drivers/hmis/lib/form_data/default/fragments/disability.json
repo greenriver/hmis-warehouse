@@ -303,7 +303,6 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "_comment": "q_4_08_2 question may come from disability fragment OR hopwa_disability_for_annual fragment",
           "question": "q_4_08_2",
           "operator": "EQUAL",
           "answer_code": "YES"
