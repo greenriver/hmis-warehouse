@@ -3865,13 +3865,13 @@ enum ExpelledReason {
 }
 
 type ExternalFormSubmission {
-  customDataElements: [CustomDataElement!]!
   definition: FormDefinition!
   id: ID!
   notes: String
   spam: Boolean
   status: ExternalFormSubmissionStatus!
   submittedAt: ISO8601DateTime!
+  values: JSON!
 }
 
 input ExternalFormSubmissionFilterOptions {

@@ -34,9 +34,9 @@ module HmisExternalApis::ExternalForms
         submitted_at: last_modified,
         definition_id: form_definition.id,
         raw_data: raw_data,
+        # todo @martha - discuss whether to clean values here or leave
       }
       submission.save!
-      submission.process_custom_data_elements!(form_definition: form_definition)
       submission
     end
 
@@ -49,38 +49,5 @@ module HmisExternalApis::ExternalForms
       'date',
       'json',
     ].map { |v| [v, "value_#{v}"] }
-
-    # note, we need to set all fields- bulk insert becomes unhappy if the columns are not uniform
-    def self.cde_value_fields(definition, value)
-      result = {}
-      VALUE_FIELDS.map do |field_type, field_name|
-        result[field_name] = field_type == definition.field_type ? value : nil
-      end
-      result
-    end
-
-    def process_custom_data_elements!(form_definition:)
-      custom_data_elements.delete_all
-      cdes = []
-      now = Time.current
-      form_definition.custom_data_element_definitions.each do |cded|
-        value = raw_data[cded.key]
-        next if value.blank?
-
-        cdes << {
-          owner_type: self.class.sti_name,
-          owner_id: id,
-          data_source_id: cded.data_source_id,
-          data_element_definition_id: cded.id,
-          UserID: cded.user_id,
-          DateCreated: now,
-          DateUpdated: now,
-        }.merge(HmisExternalApis::ExternalForms::FormSubmission.cde_value_fields(cded, value))
-      end
-      return if cdes.empty?
-
-      Hmis::Hud::CustomDataElement.import!(cdes, validate: false)
-      true
-    end
   end
 end

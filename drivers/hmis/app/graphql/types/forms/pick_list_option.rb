@@ -445,7 +445,7 @@ module Types
     def self.external_form_types_for_project(project)
       return [] unless project.present?
 
-      Hmis::Form::Instance.for_project(project).
+      Hmis::Form::Instance.for_project_through_entities(project).
         with_role(:EXTERNAL_FORM).
         preload(:definition).
         order(:id).

@@ -19,6 +19,13 @@ module Mutations
       record.assign_attributes(**input.to_params)
 
       errors = []
+
+      if record.status == 'reviewed'
+        # todo @martha - create form processor
+        # create client and enrollment
+        # process CDEDs
+      end
+
       if record.valid?
         record.save!
       else
