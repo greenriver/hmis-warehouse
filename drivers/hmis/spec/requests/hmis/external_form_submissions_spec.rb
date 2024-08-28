@@ -115,7 +115,7 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
       }
       response, result = post_graphql(variables) { query }
       expect(response.status).to eq 200
-      expect(result.dig('data', 'project', 'externalFormSubmissions', 'nodesCount')).to eq(1) # includes spam
+      expect(result.dig('data', 'project', 'externalFormSubmissions', 'nodesCount')).to eq(2) # includes spam
     end
   end
 end
