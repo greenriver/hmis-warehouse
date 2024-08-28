@@ -43,7 +43,7 @@ RSpec.feature 'HMIS Form Builder', type: :system do
   end
 
   context 'with an existing published form' do
-    let!(:published) { create :custom_assessment_with_custom_fields_and_rules, data_source: ds1 }
+    let!(:published) { create :custom_assessment_with_custom_fields, data_source: ds1 }
 
     before(:each) do
       visit "/admin/forms/#{published.identifier}"
@@ -59,8 +59,8 @@ RSpec.feature 'HMIS Form Builder', type: :system do
   end
 
   context 'with an existing draft form' do
-    let!(:published) { create :custom_assessment_with_custom_fields_and_rules, identifier: 'system_test', version: 0, data_source: ds1 }
-    let!(:draft) { create :custom_assessment_with_custom_fields_and_rules, status: 'draft', identifier: 'system_test', version: 1, data_source: ds1 }
+    let!(:published) { create :custom_assessment_with_custom_fields, identifier: 'system_test', version: 0, data_source: ds1 }
+    let!(:draft) { create :custom_assessment_with_custom_fields, status: 'draft', identifier: 'system_test', version: 1, data_source: ds1 }
 
     before(:each) do
       visit "/admin/forms/#{draft.identifier}"
