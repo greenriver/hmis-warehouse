@@ -81,7 +81,8 @@ RSpec.describe 'Update External Form Submission', type: :request do
           response, result = post_graphql({ id: submission.id, project_id: p1.id, input: { status: 'reviewed' } }) { mutation }
           expect(response.status).to eq(200), result
           expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
-        end.to(change(Hmis::Hud::Client, :count).by(1))
+        end.to change(Hmis::Hud::Client, :count).by(1).
+          and change(Hmis::Hud::Enrollment, :count).by(1)
       end
     end
   end

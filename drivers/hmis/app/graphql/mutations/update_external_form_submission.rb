@@ -19,45 +19,45 @@ module Mutations
 
       record.assign_attributes(**input.to_params)
 
+      # todo @Martha - validation
       errors = []
 
-      # todo @martha - household can of worms
-      if record.status == 'reviewed' # and not spam!
+      if record.status == 'reviewed' && !record.spam
+        definition = record.definition
 
-        # right now there is no way to pass enrollment (or project, or data source?) directly to the form processor
-        # see submit_form permission_base_and_record for similar pattern. we create enrollment here in the mutation
-        project = Hmis::Hud::Project.find(project_id)
-        enrollment = Hmis::Hud::Enrollment.new
-        enrollment.project = project
-        enrollment.entry_date = record.created_at
+        # Only if there are Client and/or Enrollment fields in the form definition, initialize an enrollment
+        # (which will in turn initialize a Client, inside the form processor).
+        if definition.link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping.record_type) }
+          project = Hmis::Hud::Project.find(project_id)
+          record.build_enrollment(project: project, data_source: project.data_source, entry_date: record.created_at)
+        end
 
-        form_processor = record.form_processor || record.build_form_processor(definition: record.definition)
+        form_processor = record.form_processor || record.build_form_processor(definition: definition)
+
+        # todo @Martha values vs. hud_values
         form_processor.values = record.raw_data
+        form_processor.hud_values = record.raw_data
 
-        # todo @martha - how to make more generic, this is only for pit
-        form_processor.hud_values = {
-          # "Enrollment.EntryDate": record.created_at,
-          # "Enrollment.ProjectID": project_id,
-          # "Client.firstName": "three",
-          # "Client.lastName": "four",
-        }.merge(record.raw_data) # todo @martha - any other values to include?
-
+        # todo @Martha - validations see submit_form.rb
         # form_validations = form_processor.collect_form_validations
         # errors.push(*form_validations)
 
         form_processor.run!(user: current_user)
 
-        # need validation see submit_form.rb
         # record_validations = form_processor.collect_record_validations(user: current_user)
         # errors.push(*record_validations)
 
-        record.save!
         form_processor.save! # saves related records so maybe the above is not needed?
-        # save in transaction?
+
+        # todo @martha - transaction
+        if record.enrollment
+          record.enrollment.client.save!
+          record.enrollment.save_new_enrollment!
+        end
       end
 
       if record.valid?
-        record.save!
+        record.save! # todo @Martha don't need to save again
       else
         errors = record.errors
         record = nil

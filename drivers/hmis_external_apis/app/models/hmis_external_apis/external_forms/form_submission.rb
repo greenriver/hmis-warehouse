@@ -8,6 +8,7 @@ module HmisExternalApis::ExternalForms
   class FormSubmission < ::HmisExternalApis::HmisExternalApisBase
     self.table_name = 'hmis_external_form_submissions'
     belongs_to :definition, class_name: 'Hmis::Form::Definition'
+    belongs_to :enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
     include ::Hmis::Hud::Concerns::FormSubmittable
 
     # The recaptcha spam score is a float between 0 (likely spam) and 1.0 (likely real)

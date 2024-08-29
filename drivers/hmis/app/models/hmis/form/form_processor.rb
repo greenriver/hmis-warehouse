@@ -200,7 +200,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       # This is importantly mirrored in SubmitForm which saves the `record.enrollment` if it exists
       owner.enrollment if owner.respond_to?(:enrollment)
     end
-    # todo @martha - need to add an enrollment factory maybe?
   end
 
   def client_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
@@ -218,11 +217,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       owner.client
     when HmisExternalApis::ExternalForms::FormSubmission
       # External forms can create new clients, such as PIT
-      # todo @martha - this does not get saved, is that because it isn't a related record?
-      c = Hmis::Hud::Client.new
-      # this fails because we don't know the data source. (FormSubmission doesn't have one, but the project we are in does, how to get that here?..)
-      # c.save!
-      c
+      owner.enrollment.client || owner.enrollment.build_client(personal_id: Hmis::Hud::Base.generate_uuid)
     end
   end
 
