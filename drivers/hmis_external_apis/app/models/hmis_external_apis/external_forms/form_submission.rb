@@ -35,6 +35,8 @@ module HmisExternalApis::ExternalForms
         definition_id: form_definition.id,
         raw_data: raw_data,
         # todo @martha - discuss whether to clean values here or leave
+        # play around with, see if it's possible to inject sql or javascript
+        # what if there's a submission taht doesn't have any keys that we exepct?
       }
       submission.save!
       submission

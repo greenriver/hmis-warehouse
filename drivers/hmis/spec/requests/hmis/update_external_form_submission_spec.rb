@@ -51,11 +51,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
 
     it 'should create CDE' do
       expect do
-        response, result = post_graphql({ id: submission.id, project_id: p1.id, input:
-          {
-            status: 'reviewed',
-          }
-        }) { mutation }
+        response, result = post_graphql({ id: submission.id, project_id: p1.id, input: { status: 'reviewed' } }) { mutation }
         expect(response.status).to eq(200), result
         expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
       end.to(change(Hmis::Hud::CustomDataElement, :count).by(1)).
@@ -71,10 +67,10 @@ RSpec.describe 'Update External Form Submission', type: :request do
             'link_id': 'first_name',
             'mapping': {
               'field_name': 'firstName',
-              'record_type': 'CLIENT'
+              'record_type': 'CLIENT',
             },
             'text': 'First name',
-          }
+          },
         ]
         create(:hmis_external_form_definition, append_items: items)
       end
@@ -82,9 +78,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
 
       it 'should create client' do
         expect do
-          response, result = post_graphql({ id: submission.id, project_id: p1.id, input: {
-            status: 'reviewed'
-          } }) { mutation }
+          response, result = post_graphql({ id: submission.id, project_id: p1.id, input: { status: 'reviewed' } }) { mutation }
           expect(response.status).to eq(200), result
           expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
         end.to(change(Hmis::Hud::Client, :count).by(1))

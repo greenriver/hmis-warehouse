@@ -22,9 +22,10 @@ module Mutations
       errors = []
 
       # todo @martha - household can of worms
-      if record.status == 'reviewed'
+      if record.status == 'reviewed' # and not spam!
 
         # right now there is no way to pass enrollment (or project, or data source?) directly to the form processor
+        # see submit_form permission_base_and_record for similar pattern. we create enrollment here in the mutation
         project = Hmis::Hud::Project.find(project_id)
         enrollment = Hmis::Hud::Enrollment.new
         enrollment.project = project
