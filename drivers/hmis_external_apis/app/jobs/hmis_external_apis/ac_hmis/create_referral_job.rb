@@ -11,10 +11,25 @@ module HmisExternalApis::AcHmis
     attr_accessor :params, :errors
 
     # @param params [Hash] api payload
-    def perform(params:)
-      self.params = params.deep_symbolize_keys
+    def perform(...)
+      with_lock do
+        perform_in_tx(...)
+      end
+    end
 
+    protected
+
+    def with_lock(timeout_seconds: 5)
+      lock_name = self.class.name.demodulize
+      HmisExternalApis::AcHmis::Referral.with_advisory_lock(lock_name, timeout_seconds: timeout_seconds) do
+        yield
+      end
+    end
+
+    def perform_in_tx(params:)
+      self.params = params.deep_symbolize_keys
       self.errors = []
+
       # transact assumes we are only mutating records in the warehouse db
       record = nil
       HmisExternalApis::AcHmis::Referral.transaction do
@@ -31,8 +46,6 @@ module HmisExternalApis::AcHmis
       end
       [record, errors]
     end
-
-    protected
 
     def find_or_create_referral
       referral = HmisExternalApis::AcHmis::Referral.

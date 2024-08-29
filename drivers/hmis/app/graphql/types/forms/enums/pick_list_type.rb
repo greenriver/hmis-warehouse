@@ -47,5 +47,6 @@ module Types
     value 'USERS', 'User accounts. Deprecated in favor of AUDITABLE_USERS'
     value 'ELIGIBLE_STAFF_ASSIGNMENT_USERS', 'Current users who are eligible for staff assignment'
     value 'AUDITABLE_USERS', 'Current and historical user accounts'
+    value 'CONTINUUM_PROJECTS', 'Continuum Projects'
   end
 end

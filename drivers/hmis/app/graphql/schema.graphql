@@ -1475,7 +1475,7 @@ enum Component {
   """
   Render a choice input item as vertical radio buttons
   """
-  RADIO_BUTTONS_VERTICAL
+  RADIO_BUTTONS_VERTICAL @deprecated(reason: "All radio buttons are now vertical")
 
   """
   Signature input component
@@ -1747,6 +1747,7 @@ type CurrentLivingSituation {
   subsequentResidence: NoYesReasonsForMissingData
   user: ApplicationUser
   verifiedBy: String
+  verifiedByProjectId: ID
 }
 
 """
@@ -6562,6 +6563,11 @@ enum PickListType {
   CE_EVENTS
   CLIENT_AUDIT_EVENT_RECORD_TYPES
   COC
+
+  """
+  Continuum Projects
+  """
+  CONTINUUM_PROJECTS
   CURRENT_LIVING_SITUATION
   DESTINATION
 

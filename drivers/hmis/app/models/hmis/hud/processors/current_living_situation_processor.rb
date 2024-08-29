@@ -6,6 +6,43 @@
 
 module Hmis::Hud::Processors
   class CurrentLivingSituationProcessor < Base
+    def process(field, value)
+      attribute_name = ar_attribute_name(field)
+      current_living_situation = @processor.send(factory_name)
+
+      return super(field, value) unless attribute_name == 'verified_by_project_id'
+
+      # convert HIDDEN to nil
+      verified_by_project_id = value == Base::HIDDEN_FIELD_VALUE ? nil : value
+
+      verified_by_project = Hmis::Hud::Project.find_by(id: verified_by_project_id) if verified_by_project_id
+      # Don't raise if we can't find the project. Migrated-in CLS in the DB would have `verified_by` set to a string and
+      # null `verified_by_project_id`. HOWEVER, if then a migrated-in CLS form is ever re-submitted without changes to
+      # the "Verified By" dropdown, the `verified_by_project_id` field will be set to the `verified_by` string
+      # (not a project ID). In that case, we leave everything as-is without any db changes to either verified-by field.
+      # See the hack described in HmisSchema::CurrentLivingSituation for more detail on why this works this way.
+
+      if verified_by_project
+        # We collect project ID onto the non-HUD field `verified_by_project_id`,
+        # then copy the corresponding project name onto the HUD field `VerifiedBy` (aka `verified_by`).
+        current_living_situation.assign_attributes(
+          verified_by_project_id: verified_by_project.id,
+          verified_by: verified_by_project.name.truncate(100), # HUD spec has 100 char limit, and so does the database
+        )
+      elsif current_living_situation.verified_by_project_id
+        # If we didn't find a verified_by_project, but the CLS already has a verified_by_project_id saved in the DB,
+        # this means the value was set previously and it's being explicitly cleared by the user.
+        # We therefore clear both verified_by_project_id and verified_by.
+        current_living_situation.assign_attributes(
+          verified_by_project_id: nil,
+          verified_by: nil,
+        )
+
+        # Note that we DO NOT null out verified_by if verified_by_project_id is null and has not been previously set.
+        # This allows keeping existing verified_by values, for example migrated-in values
+      end
+    end
+
     def factory_name
       :current_living_situation_factory
     end
