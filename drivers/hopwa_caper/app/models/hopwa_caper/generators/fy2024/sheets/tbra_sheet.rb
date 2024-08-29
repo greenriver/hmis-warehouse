@@ -56,16 +56,13 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     def health_outcomes_sheet(sheet)
       sheet.append_row(label: 'How many HOPWA-eligible individuals served with TBRA this year have ever been prescribed Anti-Retroviral Therapy?') do |row|
-        cell_scope = relevant_enrollments.where(ever_perscribed_anti_retroviral_therapy: true)
+        cell_scope = relevant_enrollments.where(hopwa_eligible: true, ever_perscribed_anti_retroviral_therapy: true)
         row.append_cell_members(members: cell_scope.latest_by_personal_id.as_report_members)
       end
 
       sheet.append_row(label: 'How many HOPWA-eligible persons served with TBRA have shown an improved viral load or achieved viral suppression?') do |row|
-        cell_scope = relevant_enrollments.where(viral_load_supression: true)
-        row.append_cell_members(
-          members: cell_scope.as_report_members,
-          value: cell_scope.latest_by_personal_id.count(:hud_personal_id),
-        )
+        cell_scope = relevant_enrollments.where(hopwa_eligible: true, viral_load_supression: true)
+        row.append_cell_members(members: cell_scope.latest_by_personal_id.as_report_members)
       end
     end
 

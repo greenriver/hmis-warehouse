@@ -30,7 +30,6 @@ module HopwaCaper::Generators::Fy2024
       super(report)
       return unless report&.persisted?
 
-      Rails.logger.level = 1 if Rails.env.development?
       reset_report
       build_hopwa_caper_models
     end
@@ -63,7 +62,7 @@ module HopwaCaper::Generators::Fy2024
     end
 
     def self.filter_class
-      ::HopwaCaper::Filters::HopwaCaperFilter
+      ::Filters::HudFilterBase
     end
 
     def self.allowed_options
@@ -91,36 +90,52 @@ module HopwaCaper::Generators::Fy2024
         user_id: @report.user_id,
         enforce_one_year_range: false,
       ).update(@report.options)
+      @filter.funder_ids = HudUtility2024.funder_components.fetch('HUD: HOPWA')
 
       @filter.project_ids = @report.project_ids
       @filter.apply(scope)
     end
 
     def build_hopwa_caper_models
-      scope = service_history_enrollments.preload(enrollment: [:income_benefits, :client, :disabilities, { project: :funders }])
+      # for client attrs, use dest client (which is a Client). For enrollment attrs, we use the enrollment itself that is for the filtered projects (as-is). Use distinct-on by warehouse-client-id. We do want to perserve the PersonalID (skip project and enrollment id). Also persist the datasource_id.
+
+      scope = service_history_enrollments.preload(enrollment: [:income_benefits, { client: :destination_client }, :disabilities, { project: :funders }])
       scope.in_batches(of: 100, order: :desc) do |batch|
         enrollment_rows = []
         service_rows = []
         batch.each do |service_history_enrollment|
           hud_enrollment = service_history_enrollment.enrollment
 
-          enrollment_rows << HopwaCaper::Enrollment.from_hud_record(report: report, enrollment: hud_enrollment)
+          client = hud_enrollment.client.destination_client
+          enrollment_rows << HopwaCaper::Enrollment.from_hud_record(report: report, client: client, enrollment: hud_enrollment)
           service_rows += hud_enrollment.services.map do |hud_service|
-            HopwaCaper::Service.from_hud_record(report: report, enrollment: hud_enrollment, service: hud_service)
+            HopwaCaper::Service.from_hud_record(report: report, client: client, enrollment: hud_enrollment, service: hud_service)
           end
         end
-
-        populate_hopwa_eligible(enrollment_rows)
-        ensure_uniform_client_attrs(enrollment_rows)
 
         import_rows(HopwaCaper::Enrollment, enrollment_rows)
         import_rows(HopwaCaper::Service, service_rows)
       end
+
+      # batch process clients
+      report.hopwa_caper_enrollments.distinct.pluck(:warehouse_client_id).in_groups_of(100, false) do |client_ids|
+        enrollments = report.hopwa_caper_enrollments.where(warehouse_client_id: client_ids).order(:id)
+        ensure_uniform_client_attrs(enrollments)
+      end
+
+      # batch process households
+      report.hopwa_caper_enrollments.distinct.pluck(:report_household_id).in_groups_of(100, false) do |household_ids|
+        enrollments = report.hopwa_caper_enrollments.where(report_household_id: household_ids).order(:id)
+        set_hopwa_eligability(enrollments)
+      end
+
+      true
     end
 
     # ensure consistent values for individuals (can vary based on enrollment entry date)
     def ensure_uniform_client_attrs(enrollment_rows)
-      groups = enrollment_rows.sort_by(&:id).group_by { |e| [e.data_source_id, e.hud_personal_id] }.values
+      groups = enrollment_rows.sort_by(&:id).group_by(&:warehouse_client_id).values
+      changed = []
       groups.each do |group|
         uniform_attrs = {
           age: group.map(&:age).compact.max,
@@ -128,13 +143,17 @@ module HopwaCaper::Generators::Fy2024
           ever_perscribed_anti_retroviral_therapy: groups.any?(:ever_perscribed_anti_retroviral_therapy),
           viral_load_supression: groups.any?(:viral_load_supression),
         }
-        group.each { |e| e.attributes = uniform_attrs }
+        group.each do |enrollment|
+          enrollment.attributes = uniform_attrs
+          changed.push(enrollment) if enrollment.changed?
+        end
       end
+      changed.each(&:save!)
     end
 
     # try and figure out which person in a household is hopwa eligible
-    def populate_hopwa_eligible(enrollment_rows)
-      households = enrollment_rows.sort_by(&:id).group_by { |e| [e.data_source_id, e.hud_household_id] }.values
+    def set_hopwa_eligability(enrollment_rows)
+      households = enrollment_rows.group_by(&:report_household_id).values
       eligible_enrollments = households.map do |enrollments|
         # if the hoh is hiv+
         hohs = enrollments.filter { |e| e.relationship_to_hoh == 1 }
@@ -150,9 +169,10 @@ module HopwaCaper::Generators::Fy2024
         # default to hoh
         hohs.first
       end
-      eligible_enrollments.compact.each do |enrollment|
-        enrollment.hopwa_eligible = true
-      end
+
+      report.hopwa_caper_enrollments.
+        where(id: eligible_enrollments.compact.map(&:id)).
+        update(hopwa_eligible: true)
     end
 
     def import_rows(klass, rows)

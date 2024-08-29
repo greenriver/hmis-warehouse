@@ -18433,12 +18433,9 @@ ALTER SEQUENCE public.homeless_summary_report_results_id_seq OWNED BY public.hom
 CREATE TABLE public.hopwa_caper_enrollments (
     id bigint NOT NULL,
     report_instance_id bigint NOT NULL,
-    data_source_id bigint NOT NULL,
+    warehouse_client_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
     report_household_id character varying NOT NULL,
-    hud_personal_id character varying NOT NULL,
-    hud_enrollment_id character varying NOT NULL,
-    hud_household_id character varying NOT NULL,
-    client_id bigint,
     first_name character varying,
     last_name character varying,
     age integer,
@@ -18451,7 +18448,8 @@ CREATE TABLE public.hopwa_caper_enrollments (
     exit_date date,
     relationship_to_hoh integer NOT NULL,
     project_funders integer[],
-    hud_project_id character varying NOT NULL,
+    project_type character varying,
+    hud_personal_id character varying NOT NULL,
     income_benefit_source_types character varying[],
     medical_insurance_types character varying[],
     hiv_positive boolean DEFAULT false NOT NULL,
@@ -18494,10 +18492,11 @@ ALTER SEQUENCE public.hopwa_caper_enrollments_id_seq OWNED BY public.hopwa_caper
 CREATE TABLE public.hopwa_caper_services (
     id bigint NOT NULL,
     report_instance_id bigint NOT NULL,
+    warehouse_client_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    service_id bigint NOT NULL,
     report_household_id character varying NOT NULL,
-    data_source_id bigint NOT NULL,
-    hud_enrollment_id character varying NOT NULL,
-    hud_services_id character varying NOT NULL,
+    hud_personal_id character varying NOT NULL,
     date_provided date,
     record_type integer,
     type_provided integer,
@@ -18883,8 +18882,8 @@ CREATE TABLE public.hud_report_apr_clients (
     source_enrollment_id integer,
     los_under_threshold integer,
     project_id integer,
-    personal_id character varying,
     client_created_at timestamp without time zone,
+    personal_id character varying,
     race_multi character varying,
     exit_destination_subsidy_type integer,
     domestic_violence_occurred integer,
@@ -53748,10 +53747,10 @@ CREATE INDEX index_homeless_summary_report_results_on_report_id ON public.homele
 
 
 --
--- Name: index_hopwa_caper_enrollments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_hopwa_caper_enrollments_on_report_household_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_hopwa_caper_enrollments_on_data_source_id ON public.hopwa_caper_enrollments USING btree (data_source_id);
+CREATE INDEX index_hopwa_caper_enrollments_on_report_household_id ON public.hopwa_caper_enrollments USING btree (report_household_id);
 
 
 --
@@ -53759,6 +53758,13 @@ CREATE INDEX index_hopwa_caper_enrollments_on_data_source_id ON public.hopwa_cap
 --
 
 CREATE INDEX index_hopwa_caper_enrollments_on_report_instance_id ON public.hopwa_caper_enrollments USING btree (report_instance_id);
+
+
+--
+-- Name: index_hopwa_caper_services_on_report_household_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hopwa_caper_services_on_report_household_id ON public.hopwa_caper_services USING btree (report_household_id);
 
 
 --
@@ -59372,14 +59378,14 @@ CREATE UNIQUE INDEX uidx_hmis_staff_assignments ON public.hmis_staff_assignments
 -- Name: uidx_hopwa_caper_enrollments; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_hopwa_caper_enrollments ON public.hopwa_caper_enrollments USING btree (report_instance_id, data_source_id, hud_enrollment_id);
+CREATE UNIQUE INDEX uidx_hopwa_caper_enrollments ON public.hopwa_caper_enrollments USING btree (report_instance_id, enrollment_id);
 
 
 --
 -- Name: uidx_hopwa_caper_services; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_hopwa_caper_services ON public.hopwa_caper_services USING btree (report_instance_id, data_source_id, hud_services_id);
+CREATE UNIQUE INDEX uidx_hopwa_caper_services ON public.hopwa_caper_services USING btree (report_instance_id, service_id);
 
 
 --

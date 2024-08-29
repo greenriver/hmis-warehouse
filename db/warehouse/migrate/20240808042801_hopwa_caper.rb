@@ -2,14 +2,11 @@ class HopwaCaper < ActiveRecord::Migration[7.0]
   def change
     create_table :hopwa_caper_enrollments do |t|
       t.references :report_instance, null: false
-      t.references :data_source, null: false
-      t.string :report_household_id, null: false
-      t.string :hud_personal_id, null: false
-      t.string :hud_enrollment_id, null: false
-      t.string :hud_household_id, null: false
+      t.references :warehouse_client, index: false, null: false
+      t.references :enrollment, index: false, null: false
+      t.string :report_household_id, null: false, index: true
 
       # required by cell members reporting view
-      t.references :client, index: false
       t.string :first_name
       t.string :last_name
 
@@ -26,7 +23,8 @@ class HopwaCaper < ActiveRecord::Migration[7.0]
       t.integer :relationship_to_hoh, null: false
 
       t.integer :project_funders, array: true
-      t.string :hud_project_id, null: false
+      t.string :project_type
+      t.string :hud_personal_id, null: false
 
       t.string :income_benefit_source_types, array: true
       t.string :medical_insurance_types, array: true
@@ -44,20 +42,21 @@ class HopwaCaper < ActiveRecord::Migration[7.0]
 
       t.numeric :percent_ami
 
-      t.index [:report_instance_id, :data_source_id, :hud_enrollment_id], unique: true, name: 'uidx_hopwa_caper_enrollments'
+      t.index [:report_instance_id, :enrollment_id], unique: true, name: 'uidx_hopwa_caper_enrollments'
     end
 
     create_table :hopwa_caper_services do |t|
       t.references :report_instance, null: false
-      t.string :report_household_id, null: false
-      t.references :data_source, index: false, null: false
-      t.string :hud_enrollment_id, null: false
-      t.string :hud_services_id, null: false
+      t.references :warehouse_client, index: false, null: false
+      t.references :enrollment, index: false, null: false
+      t.references :service, index: false, null: false
+      t.string :report_household_id, null: false, index: true
+      t.string :hud_personal_id, null: false
       t.date :date_provided
       t.integer :record_type
       t.integer :type_provided
       t.numeric :fa_amount
-      t.index [:report_instance_id, :data_source_id, :hud_services_id], unique: true, name: 'uidx_hopwa_caper_services'
+      t.index [:report_instance_id, :service_id], unique: true, name: 'uidx_hopwa_caper_services'
     end
   end
 end

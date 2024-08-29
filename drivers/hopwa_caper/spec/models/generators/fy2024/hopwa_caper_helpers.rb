@@ -1,11 +1,13 @@
 module HopwaCaperHelpers
+  include HmisCsvFixtures
   def create_report(projects)
-    filter = HopwaCaper::Filters::HopwaCaperFilter.new(
+    filter = ::Filters::HudFilterBase.new(
       project_ids: projects.map(&:id),
       start: report_start_date,
       end: report_end_date,
       user_id: user.id,
       coc_codes: [coc_code],
+      funder_ids: HudUtility2024.funder_components.fetch('HUD: HOPWA'),
     )
     ::HudReports::ReportInstance.from_filter(
       filter,
@@ -15,6 +17,9 @@ module HopwaCaperHelpers
   end
 
   def run_report(report)
+    GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+    GrdaWarehouse::ChEnrollment.maintain!
+    process_imported_fixtures(skip_location_cleanup: true)
     generator.new(report).run!(email: false)
     report.reload
   end

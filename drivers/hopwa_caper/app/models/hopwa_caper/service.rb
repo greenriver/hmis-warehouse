@@ -8,7 +8,7 @@ module HopwaCaper
   class Service < GrdaWarehouseBase
     self.table_name = 'hopwa_caper_services'
 
-    belongs_to :enrollment, class_name: 'HopwaCaper::Enrollment', foreign_key: [:hud_enrollment_id, :data_source_id, :report_instance_id], primary_key: [:hud_enrollment_id, :data_source_id, :report_instance_id]
+    belongs_to :enrollment, class_name: 'HopwaCaper::Enrollment', primary_key: :enrollment_id
 
     def self.as_report_members
       all.map do |record|
@@ -19,13 +19,15 @@ module HopwaCaper
       end
     end
 
-    def self.from_hud_record(service:, enrollment:, report:)
+    def self.from_hud_record(service:, enrollment:, report:, client:)
       new(
         report_household_id: [service.data_source_id, enrollment.household_id, report.id].join(':'),
         report_instance_id: report.id,
-        data_source_id: service.data_source_id,
-        hud_enrollment_id: service.enrollment_id,
-        hud_services_id: service.services_id,
+
+        warehouse_client_id: client.id,
+        enrollment_id: enrollment.id,
+        service_id: service.id,
+        hud_personal_id: client.personal_id,
 
         date_provided: service.date_provided,
         record_type: service.record_type,

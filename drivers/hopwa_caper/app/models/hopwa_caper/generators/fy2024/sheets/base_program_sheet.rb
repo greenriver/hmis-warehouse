@@ -72,7 +72,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
     def housing_outcomes_sheet(sheet)
       add_household_enrollments_row(
         sheet,
-        label: "How many households continued receiving this type of HOPWA assistance into the next year?",
+        label: 'How many households continued receiving this type of HOPWA assistance into the next year?',
         enrollments: relevant_enrollments.where(exit_date: nil),
       )
 

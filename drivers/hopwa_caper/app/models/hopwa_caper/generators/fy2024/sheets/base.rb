@@ -9,7 +9,6 @@ module HopwaCaper::Generators::Fy2024::Sheets
     def initialize(generator = nil, report = nil, options: {})
       super
       report.options.with_indifferent_access.merge(user_id: report.user_id) if options.blank?
-      # @filter = HopwaCaper::Filters::HopwaCaperFilter.new(user_id: report.user_id).set_from_params(options)
     end
 
     protected
@@ -48,11 +47,10 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     def relevant_services(enrollment_filter: relevant_enrollments_filter, service_filter: relevant_services_filter, start_date: @report.start_date)
       enrollment_scope = enrollment_filter.apply(HopwaCaper::Enrollment.overlapping_range(start_date: start_date, end_date: @report.end_date))
-      service_scope = @report.hopwa_caper_services.hopwa_financial_assistance.
+      service_scope = @report.hopwa_caper_services.
         where(date_provided: start_date...@report.end_date).
         joins(:enrollment).merge(enrollment_scope)
       service_filter.apply(service_scope)
     end
-
   end
 end

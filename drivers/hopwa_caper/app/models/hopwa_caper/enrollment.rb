@@ -9,7 +9,7 @@ module HopwaCaper
     include SqlHelper
     self.table_name = 'hopwa_caper_enrollments'
 
-    has_many :services, class_name: 'HopwaCaper::Service', foreign_key: [:hud_enrollment_id, :data_source_id, :report_instance_id], primary_key: [:hud_enrollment_id, :data_source_id, :report_instance_id]
+    has_many :services, class_name: 'HopwaCaper::Service', primary_key: :enrollment_id
 
     def self.as_report_members
       all.map do |record|
@@ -25,7 +25,7 @@ module HopwaCaper
     }
 
     scope :latest_by_personal_id, -> {
-      select('DISTINCT ON (hopwa_caper_enrollments.data_source_id, hopwa_caper_enrollments.hud_personal_id) *').order(data_source_id: :asc, hud_personal_id: :asc, entry_date: :desc, id: :desc)
+      distinct_on(:warehouse_client_id).order(warehouse_client_id: :desc, entry_date: :desc, id: :desc)
     }
 
     def self.head_of_household
@@ -53,30 +53,30 @@ module HopwaCaper
       :Unemployment,
       :OtherIncomeSource
     ].freeze
-    def self.from_hud_record(enrollment:, report:)
+    def self.from_hud_record(enrollment:, report:, client:)
       project = enrollment.project
+      # get deterministic order
       hiv_disabilities = enrollment.disabilities.filter(&:hiv?).sort_by(&:id)
 
       report_date_range = report.start_date..report.end_date
       income_benefit_source_types = enrollment.income_benefits.flat_map do |record|
         next unless record.InformationDate.in?(report_date_range)
+
         INCOME_SOURCE_FIELDS.filter { |field| record[field] == 1 }
       end
       medical_insurance_types = enrollment.income_benefits.flat_map do |record|
         next unless record.InformationDate.in?(report_date_range)
+
         INSURANCE_FIELDS.filter { |field| record[field] == 1 }
       end
 
       exit = enrollment.exit if enrollment.exit&.exit_date&.<= report.end_date
-      client = enrollment.client
       new(
         report_instance_id: report.id,
         report_household_id: [enrollment.data_source_id, enrollment.household_id, report.id].join(':'),
-        client_id: client.id,
-        data_source_id: enrollment.data_source_id,
-        hud_personal_id: enrollment.personal_id,
-        hud_enrollment_id: enrollment.enrollment_id,
-        hud_household_id: enrollment.household_id,
+        warehouse_client_id: client.id,
+        enrollment_id: enrollment.id,
+        hud_personal_id: client.personal_id,
 
         first_name: client.first_name,
         last_name: client.last_name,
@@ -86,17 +86,17 @@ module HopwaCaper
         dob_quality: client.DOBDataQuality,
         genders: client.gender_multi.sort,
         races: client.race_multi.sort,
-        veteran: client.veteran_status == 1,
+        veteran: client.veteran?,
         percent_ami: enrollment.percent_ami,
 
         relationship_to_hoh: enrollment.relationship_to_hoh,
-        hud_project_id: project.project_id,
         project_funders: project.funders.map(&:funder).compact.sort,
+        project_type: project.project_type,
         entry_date: enrollment.entry_date,
         exit_destination: exit&.destination,
         exit_date: exit&.exit_date,
         housing_assessment_at_exit: exit&.housing_assessment,
-        subsidy_information: exit&.enrollment,
+        subsidy_information: exit&.subsidy_information,
         income_benefit_source_types: income_benefit_source_types.compact.sort.uniq,
         medical_insurance_types: medical_insurance_types.compact.sort.uniq,
 
@@ -116,7 +116,7 @@ module HopwaCaper
       cols = special + (column_names - special - remove)
       cols.map do |header|
         label = case header
-        when 'client_id'
+        when 'warehouse_client_id'
           'Warehouse Client ID'
         when 'hud_personal_id'
           'HMIS Personal ID'
