@@ -4,8 +4,7 @@
   :javascript
     'use strict';
     $(function() {
-      var inputName= #{input_name.to_json.html_safe};
-      var inputValue = #{input_value.to_json.html_safe};
+      var conditions= #{conditions.to_json.html_safe};
       var target = '#' + #{html_id.to_json.html_safe};
-      window.addDependentGroup(inputName, inputValue, target);
+      window.addMultiDependentGroup(conditions, target);
     });

@@ -115,25 +115,6 @@ module HmisExternalApis::ExternalForms
       end
     end
 
-    def resolve_pick_list(node)
-      pick_list_reference = node['pick_list_reference']
-      pick_list_options = node['pick_list_options']
-
-      if pick_list_reference
-        found_enum = "Types::HmisSchema::Enums::Hud::#{pick_list_reference}".safe_constantize
-        found_enum ||= "Types::HmisSchema::Enums::#{pick_list_reference}".safe_constantize
-        raise "Unable to resolve pick list reference: #{pick_list_reference}" unless found_enum
-
-        found_enum.values.map do |k, v|
-          { value: k.to_s, label: v.description&.gsub(/^\([0-9A-Za-z]+\) /, '') || k.to_s }
-        end
-      elsif pick_list_options
-        pick_list_options.map do |option|
-          { value: option['code'], label: option['label'] || option['code'] }
-        end
-      end
-    end
-
     def render_choice_node(node)
       options = resolve_pick_list(node)
       raise "missing options in #{node.inspect} " unless options.present?
@@ -176,14 +157,19 @@ module HmisExternalApis::ExternalForms
 
     def render_dependent_item_wrapper(node, &block)
       if node['enable_behavior']
-        # raise 'multiple rules not supported' if node.dig('enable_when')&.many?
+        conditions = node['enable_when']&.map do |condition|
+          raise "only supports enable_when with 'question' and 'answer_code' (got: #{condition})" unless condition.key?('question') && condition.key?('answer_code')
 
-        input_dependent_link_id = node.dig('enable_when', 0, 'question')
-        input_name = link_id_to_node_name[input_dependent_link_id]
-        raise "missing node name for dependency #{input_dependent_link_id}" unless input_name
+          input_dependent_link_id = condition['question']
+          input_name = link_id_to_node_name[input_dependent_link_id]
+          raise "missing node name for dependency #{input_dependent_link_id}" unless input_name
 
-        input_value = node.dig('enable_when', 0, 'answer_code')
-        return context.render_dependent_block(input_name: input_name, input_value: input_value, &block)
+          input_value = condition['answer_code']
+
+          { input_name: input_name, input_value: input_value }
+        end
+
+        return context.render_dependent_block(conditions: conditions, &block)
       end
 
       return context.capture(&block)
@@ -209,6 +195,25 @@ module HmisExternalApis::ExternalForms
 
         [link_id, node_name(node, for_input: false)]
       end.compact.to_h
+    end
+
+    def resolve_pick_list(node)
+      pick_list_reference = node['pick_list_reference']
+      pick_list_options = node['pick_list_options']
+
+      if pick_list_reference
+        found_enum = "Types::HmisSchema::Enums::Hud::#{pick_list_reference}".safe_constantize
+        found_enum ||= "Types::HmisSchema::Enums::#{pick_list_reference}".safe_constantize
+        raise "Unable to resolve pick list reference: #{pick_list_reference}" unless found_enum
+
+        found_enum.values.map do |k, v|
+          { value: k.to_s, label: v.description&.gsub(/^\([0-9A-Za-z]+\) /, '') || k.to_s }
+        end
+      elsif pick_list_options
+        pick_list_options.map do |option|
+          { value: option['code'], label: option['label'] || option['code'] }
+        end
+      end
     end
   end
 end

@@ -111,9 +111,10 @@ $(function () {
   });
 });
 
-// here
-window.addDependentGroup = function (inputName, condValue, targetSelector) {
-  var target = $(targetSelector);
+// conditions: [{input_name: 'name', input_value: 'value'}, ...]
+window.addMultiDependentGroup = function (conditions, targetSelector, enableBehavior = 'ANY') {
+  console.log("conditions", conditions)
+  var target = $(targetSelector); // item with enable_when on it. assumes "ANY"
   var show = function () {
     target.addClass('visible');
     target.attr('aria-hidden', "false");
@@ -125,16 +126,69 @@ window.addDependentGroup = function (inputName, condValue, targetSelector) {
     target.find('input, select, textarea').prop('disabled', true);
   }
 
-  $('[name="' + inputName + '"]').on('change', function () {
-    var el = $(this)
-    var value = el.val();
-    if (el.prop('type') === 'checkbox') {
-      if (value === condValue) {
-        el.is(':checked') ? show() : hide();
+  var watcher = function(event) {
+    var evaluations = conditions.map(function ({ input_name, input_value }) {
+      var el = $('[name="' + input_name + '"]')
+      var input_type = el.prop('type');
+
+      // If the dependent item is a radio button item, we need to look at ALL the radio buttons with the same name, and find the one that is checked.
+      if (input_type === 'radio') {
+        var checked_val = $('[name="' + input_name + '"]:checked').val()
+        return checked_val === input_value;
       }
+
+      var value = el.val()
+      if (input_type === 'checkbox') {
+        if (value === input_value) {
+          return el.is(':checked')
+        }
+      } else {
+        return value === input_value
+      }
+      return false
+    });
+
+    var meetsCondition = enableBehavior === 'ALL' ? evaluations.every(Boolean) : evaluations.some(Boolean)
+    if (meetsCondition) {
+      show();
     } else {
-      value === condValue ? show() : hide();
+      hide();
     }
+  }
+
+  var fieldNames = conditions.map(c => `[name="${c.input_name}"]`);
+  fieldNames.forEach(function (name) {
+    $(name).on('change', watcher);
   });
+  // console.log("fieldNames", fieldNames)
+  // $("form").on('change', fieldNames, watcher);
+
   hide();
 }
+
+// window.addDependentGroup = function (inputName, condValue, targetSelector) {
+//   var target = $(targetSelector);
+//   var show = function () {
+//     target.addClass('visible');
+//     target.attr('aria-hidden', "false");
+//     target.find('input, select, textarea').prop('disabled', false);
+//   }
+//   var hide = function () {
+//     target.removeClass('visible');
+//     target.attr('aria-hidden', "true");
+//     target.find('input, select, textarea').prop('disabled', true);
+//   }
+
+//   $('[name="' + inputName + '"]').on('change', function () {
+//     var el = $(this)
+//     var value = el.val();
+//     if (el.prop('type') === 'checkbox') {
+//       if (value === condValue) {
+//         el.is(':checked') ? show() : hide();
+//       }
+//     } else {
+//       value === condValue ? show() : hide();
+//     }
+//   });
+//   hide();
+// }
