@@ -27,5 +27,14 @@ FactoryBot.define do
         }
       JSON
     end
+    transient do
+      append_items { nil } # Items to append to FormDefinition content
+    end
+    after(:create) do |instance, evaluator|
+      if evaluator.append_items
+        instance.definition['item'][0]['item'].push(*Array.wrap(evaluator.append_items))
+        instance.save!
+      end
+    end
   end
 end
