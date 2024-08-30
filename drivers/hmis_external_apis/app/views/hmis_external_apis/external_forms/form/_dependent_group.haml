@@ -6,5 +6,5 @@
     $(function() {
       var conditions= #{conditions.to_json.html_safe};
       var target = '#' + #{html_id.to_json.html_safe};
-      window.addMultiDependentGroup(conditions, target);
+      window.addDependentGroup(conditions, target);
     });

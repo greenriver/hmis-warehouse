@@ -162,7 +162,7 @@ module HmisExternalApis::ExternalForms
 
           input_dependent_link_id = condition['question']
           input_name = link_id_to_node_name[input_dependent_link_id]
-          raise "missing node name for dependency #{input_dependent_link_id}" unless input_name
+          raise "missing node name for dependency with link_id##{input_dependent_link_id}" unless input_name
 
           input_value = condition['answer_code']
 
@@ -175,25 +175,28 @@ module HmisExternalApis::ExternalForms
       return context.capture(&block)
     end
 
-    def node_name(node, for_input: true)
+    def node_name(node)
       record_type = node.dig('mapping', 'record_type')
+      processor_name = Hmis::Form::RecordType.find(record_type).processor_name if record_type
+
       custom_field_key = node.dig('mapping', 'custom_field_key')
       field_name = node.dig('mapping', 'field_name')
-      if for_input
-        raise "node #{node['link_id']} is missing mapping" unless custom_field_key || field_name
-      end
 
       # Join with period since that's the expected submission shape (Client.firstName)
-      # If problematic we can replace this with a hyphen, and change it back to period on submit?
-      [record_type, custom_field_key || field_name].compact.join('.')
+      # If problematic we can replace this with a hyphen, and process is accordingly in ConsumeExternalFormSubmissionsJob
+      [processor_name, custom_field_key || field_name].compact.join('.')
     end
 
-    # need because previous approach assumed that link_id matched mapping custom_field_key, which isnt true
+    # Map { linkd_id => name to use for input field }
+    # Example: { 'client_first_name' => 'Client.firstName' }
+    # Example: { 'link_id_1' => 'custom_field_key_x' }
     def link_id_to_node_name
       @link_id_to_node_name ||= form_definition.link_id_item_hash.map do |link_id, node|
+        # Skip items without mapping
+        # Note: the hash already group items (see link_id_item_hash)
         next unless node['mapping']
 
-        [link_id, node_name(node, for_input: false)]
+        [link_id, node_name(node)]
       end.compact.to_h
     end
 

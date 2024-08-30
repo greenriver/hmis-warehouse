@@ -112,32 +112,34 @@ $(function () {
 });
 
 // conditions: [{input_name: 'name', input_value: 'value'}, ...]
-window.addMultiDependentGroup = function (conditions, targetSelector, enableBehavior = 'ANY') {
-  console.log("conditions", conditions)
-  var target = $(targetSelector); // item with enable_when on it. assumes "ANY"
-  var show = function () {
+// targetSelector: selector for the item that is conditionally shown
+// enableBehavior: 'ANY' or 'ALL' conditions must be met to show the target selector
+window.addDependentGroup = function (conditions, targetSelector, enableBehavior = 'ANY') {
+  const target = $(targetSelector); // the item with enable_when on it
+  const show = function () {
     target.addClass('visible');
     target.attr('aria-hidden', "false");
     target.find('input, select, textarea').prop('disabled', false);
   }
-  var hide = function () {
+  const hide = function () {
     target.removeClass('visible');
     target.attr('aria-hidden', "true");
     target.find('input, select, textarea').prop('disabled', true);
   }
 
-  var watcher = function(event) {
-    var evaluations = conditions.map(function ({ input_name, input_value }) {
-      var el = $('[name="' + input_name + '"]')
-      var input_type = el.prop('type');
+  // When *any* dependent item changes, this function will check all the conditions, and show/hide the target item accordingly.
+  const onDependentItemChanged = function() {
+    const evaluations = conditions.map(function ({ input_name, input_value }) {
+      const el = $('[name="' + input_name + '"]')
+      const input_type = el.prop('type');
 
-      // If the dependent item is a radio button item, we need to look at ALL the radio buttons with the same name, and find the one that is checked.
+      // If the dependent item is a radio button item, we need to look at all the radio buttons with the same name, and find the one that is checked.
       if (input_type === 'radio') {
-        var checked_val = $('[name="' + input_name + '"]:checked').val()
+        const checked_val = $('[name="' + input_name + '"]:checked').val()
         return checked_val === input_value;
       }
 
-      var value = el.val()
+      const value = el.val()
       if (input_type === 'checkbox') {
         if (value === input_value) {
           return el.is(':checked')
@@ -148,7 +150,7 @@ window.addMultiDependentGroup = function (conditions, targetSelector, enableBeha
       return false
     });
 
-    var meetsCondition = enableBehavior === 'ALL' ? evaluations.every(Boolean) : evaluations.some(Boolean)
+    const meetsCondition = enableBehavior === 'ALL' ? evaluations.every(Boolean) : evaluations.some(Boolean)
     if (meetsCondition) {
       show();
     } else {
@@ -156,39 +158,12 @@ window.addMultiDependentGroup = function (conditions, targetSelector, enableBeha
     }
   }
 
-  var fieldNames = conditions.map(c => `[name="${c.input_name}"]`);
-  fieldNames.forEach(function (name) {
-    $(name).on('change', watcher);
+  // add change listener to all dependent fields
+  const dependentItemSelectors = conditions.map(c => `[name="${c.input_name}"]`)
+  dependentItemSelectors.forEach(function (name) {
+    $(name).on('change', onDependentItemChanged);
   });
-  // console.log("fieldNames", fieldNames)
-  // $("form").on('change', fieldNames, watcher);
 
+  // hide conditional item initially
   hide();
 }
-
-// window.addDependentGroup = function (inputName, condValue, targetSelector) {
-//   var target = $(targetSelector);
-//   var show = function () {
-//     target.addClass('visible');
-//     target.attr('aria-hidden', "false");
-//     target.find('input, select, textarea').prop('disabled', false);
-//   }
-//   var hide = function () {
-//     target.removeClass('visible');
-//     target.attr('aria-hidden', "true");
-//     target.find('input, select, textarea').prop('disabled', true);
-//   }
-
-//   $('[name="' + inputName + '"]').on('change', function () {
-//     var el = $(this)
-//     var value = el.val();
-//     if (el.prop('type') === 'checkbox') {
-//       if (value === condValue) {
-//         el.is(':checked') ? show() : hide();
-//       }
-//     } else {
-//       value === condValue ? show() : hide();
-//     }
-//   });
-//   hide();
-// }
