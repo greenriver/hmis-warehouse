@@ -201,11 +201,16 @@ module HmisExternalApis::ExternalForms
       pick_list_options = node['pick_list_options']
 
       if pick_list_reference
+        # Try to resolve the pick_list_reference value from a GraphQL Enum.
+        # This mirrors the logic of `localResolvePickList` on the HMIS Frontend. However, is not as comprehensive,
+        # it only tries to match against a subset of Enums which are commonly referenced (HUD enums).
         found_enum = "Types::HmisSchema::Enums::Hud::#{pick_list_reference}".safe_constantize
-        found_enum ||= "Types::HmisSchema::Enums::#{pick_list_reference}".safe_constantize
+        found_enum ||= "Types::HmisSchema::Enums::#{pick_list_reference}".safe_constantize # need for Race and Gender enums
         raise "Unable to resolve pick list reference: #{pick_list_reference}" unless found_enum
 
         found_enum.values.map do |k, v|
+          # Use a regex to drop the id prefix if it exists: "(1) Yes" => "Yes"
+          # (Pattern is pulled from the `generateEnumDescriptions` script on the HMIS front-end.)
           { value: k.to_s, label: v.description&.gsub(/^\([0-9A-Za-z]+\) /, '') || k.to_s }
         end
       elsif pick_list_options
