@@ -10,11 +10,11 @@ module HopwaCaper::HudReports
 
     included do
       belongs_to(
-        :hopwa_caper_client,
+        :hopwa_caper_service,
         -> do
           where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudHopwaCaper::Client'))
         end,
-        class_name: 'HopwaCaper::Client',
+        class_name: 'HopwaCaper::Service',
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
         optional: true,

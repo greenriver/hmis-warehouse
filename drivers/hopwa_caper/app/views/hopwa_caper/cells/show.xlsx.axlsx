@@ -1,16 +1,15 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: @name.slice(0,30).gsub(':', ' ')) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  sheet.add_row(HopwaCaper::Client.detail_headers_for_export.values, style: title)
-  @clients.each do |client|
-    row = []
-    HopwaCaper::Client.detail_headers_for_export.each_key do |k|
-      if k == 'contacts'
-        row << count_dates(client[k])
-      else
-        row << client[k]
+
+  [[HopwaCaper::Enrollment.detail_headers, @enrollments], [HopwaCaper::Service.detail_headers, @services]].each do |headers, records|
+    next if records.to_a.empty?
+    sheet.add_row(headers.values, style: title)
+    records.each do |record|
+      row = []
+      headers.each_key do |k|
+        row << record[k]
       end
+      sheet.add_row(row)
     end
-    sheet.add_row(row)
-  end
 end

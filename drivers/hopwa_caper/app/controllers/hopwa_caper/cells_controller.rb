@@ -12,7 +12,11 @@ module HopwaCaper
     def show
       @cell = @report.valid_cell_name(params[:id])
       @table = @report.valid_table_name(params[:table])
-      @clients = HopwaCaper::Client.
+      @enrollments = HopwaCaper::Enrollment.
+        joins(hud_reports_universe_members: { report_cell: :report_instance }).
+        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
+        merge(::HudReports::ReportInstance.where(id: @report.id))
+      @services = HopwaCaper::Service.
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
         merge(::HudReports::ReportInstance.where(id: @report.id))

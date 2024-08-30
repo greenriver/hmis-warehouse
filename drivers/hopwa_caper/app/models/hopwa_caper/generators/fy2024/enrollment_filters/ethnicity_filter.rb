@@ -9,7 +9,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
     def apply(scope)
       code = HudUtility2024.race_field_name_to_id.fetch(code_name)
       # Hisp and any other race/ethnicity
-      scope.where("races @> #{SqlHelper.quote_sql_array([code], type: :integer)}")
+      scope.where.contains(races: [code])
     end
 
     def self.all

@@ -21,7 +21,12 @@ module HopwaCaper
     end
 
     scope :overlapping_range, ->(start_date:, end_date:) {
-      where('entry_date <= :end_date AND (exit_date >= :start_date OR exit_date IS NULL)', start_date: start_date, end_date: end_date)
+      table = arel_table
+      where(
+        table[:entry_date].lteq(end_date).and(
+          table[:exit_date].gteq(start_date).or(table[:exit_date].eq(nil)),
+        ),
+      )
     }
 
     scope :latest_by_personal_id, -> {

@@ -23,10 +23,6 @@ module HopwaCaper::Generators::Fy2024::Sheets
       sheet
     end
 
-    def report_client_universe
-      HopwaCaper::Client
-    end
-
     def report_enrollment_universe
       HopwaCaper::Enrollment
     end

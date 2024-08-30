@@ -35,5 +35,22 @@ module HopwaCaper
         fa_amount: service.fa_amount,
       )
     end
+
+    def self.detail_headers
+      special = ['hud_personal_id', 'first_name', 'last_name']
+      remove = ['id', 'created_at', 'updated_at']
+      cols = special + (column_names - special - remove)
+      cols.map do |header|
+        label = case header
+        when 'warehouse_client_id'
+          'Warehouse Client ID'
+        when 'hud_personal_id'
+          'HMIS Personal ID'
+        else
+          header.humanize
+        end
+        [header, label]
+      end.to_h
+    end
   end
 end
