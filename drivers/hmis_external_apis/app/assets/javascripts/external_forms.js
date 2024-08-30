@@ -115,53 +115,40 @@ $(function () {
 // targetSelector: selector for the item that is conditionally shown
 // enableBehavior: 'ANY' or 'ALL' conditions must be met to show the target selector
 window.addDependentGroup = function (conditions, targetSelector, enableBehavior = 'ANY') {
-  const target = $(targetSelector); // the item with enable_when on it
-  const show = function () {
+  var target = $(targetSelector); // the item with enable_when on it
+  var show = function () {
     target.addClass('visible');
     target.attr('aria-hidden', "false");
     target.find('input, select, textarea').prop('disabled', false);
   }
-  const hide = function () {
+  var hide = function () {
     target.removeClass('visible');
     target.attr('aria-hidden', "true");
     target.find('input, select, textarea').prop('disabled', true);
   }
 
   // When *any* dependent item changes, this function will check all the conditions, and show/hide the target item accordingly.
-  const onDependentItemChanged = function() {
-    const evaluations = conditions.map(function ({ input_name, input_value }) {
-      const el = $('[name="' + input_name + '"]')
-      const input_type = el.prop('type');
+  var onDependentItemChanged = function() {
+    var evaluations = conditions.map(function (condition) {
+      var $el = $('[name="' + condition.input_name + '"]')
 
       // If the dependent item is a radio button item, we need to look at all the radio buttons with the same name, and find the one that is checked.
-      if (input_type === 'radio') {
-        const checked_val = $('[name="' + input_name + '"]:checked').val()
-        return checked_val === input_value;
+      if ($el.is(':radio')) {
+        return $('[name="' + condition.input_name + '"]:checked').val() === condition.input_value;
       }
-
-      const value = el.val()
-      if (input_type === 'checkbox') {
-        if (value === input_value) {
-          return el.is(':checked')
-        }
-      } else {
-        return value === input_value
+      if ($el.is(':checkbox')) {
+        return $el.is(':checked') && $el.val() === condition.input_value;
       }
-      return false
+      return $el.val() === condition.input_value;
     });
 
-    const meetsCondition = enableBehavior === 'ALL' ? evaluations.every(Boolean) : evaluations.some(Boolean)
-    if (meetsCondition) {
-      show();
-    } else {
-      hide();
-    }
+    var meetsCondition = enableBehavior === 'ALL' ? evaluations.every(Boolean) : evaluations.some(Boolean)
+    meetsCondition ? show() : hide();
   }
 
   // add change listener to all dependent fields
-  const dependentItemSelectors = conditions.map(c => `[name="${c.input_name}"]`)
-  dependentItemSelectors.forEach(function (name) {
-    $(name).on('change', onDependentItemChanged);
+  conditions.forEach(function (condition) {
+    $('[name="' + condition.input_name+ '"]').on('change', onDependentItemChanged);
   });
 
   // hide conditional item initially
