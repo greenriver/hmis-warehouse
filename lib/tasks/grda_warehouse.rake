@@ -362,7 +362,7 @@ namespace :grda_warehouse do
     rescue StandardError => e
       puts e.message
     end
-    IdentifyExternalClientsJob.run_all!
+    IdentifyExternalClientsJob.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).run_all!
   end
 
   desc 'Save Service History Snapshots'
