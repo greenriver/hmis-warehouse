@@ -27,6 +27,7 @@ module PerformanceMeasurement::EquityAnalysis
     INVESTIGATE_BY = {
       race: RACES,
       ethnicity: ETHNICITIES,
+      race_ethnicity: RACE_ETHNICITY_COMBINATIONS,
       age: AGES,
       gender: GENDERS,
       household_type: HOUSEHOLD_TYPES,
@@ -100,6 +101,17 @@ module PerformanceMeasurement::EquityAnalysis
       return value.underscore.to_sym if value.underscore.starts_with?('ethnicit')
 
       "ethnicity_#{value.underscore}".to_sym
+    end
+
+    def race_ethnicity_params
+      (@builder.race_ethnicity || []).map { |d| race_ethnicity_value_to_scope(d) }
+    end
+
+    def race_ethnicity_value_to_scope(value)
+      value = value.to_s
+      return value.underscore.to_sym if value.underscore.starts_with?('race_ethnicit')
+
+      "race_ethnicity_#{value.underscore}".to_sym
     end
 
     def household_type_params

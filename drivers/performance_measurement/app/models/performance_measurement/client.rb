@@ -88,12 +88,81 @@ module PerformanceMeasurement
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_not_collected)
     end
 
+    # Ethnicity Scopes
     scope :ethnicity_hispanic_latinaeo, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_hispanic_latinaeo)
     end
 
     scope :ethnicity_non_hispanic_latinaeo, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_not_hispanic_latinaeo)
+    end
+
+    # Race Ethnicity Combination Scopes
+    scope :race_ethnicity_am_ind_ak_native, -> do
+      race_am_ind_ak_native.ethnicity_non_hispanic_latinaeo
+    end
+
+    scope :race_ethnicity_am_ind_ak_native_hispanic_latinaeo, -> do
+      race_am_ind_ak_native.ethnicity_hispanic_latinaeo
+    end
+
+    scope :race_ethnicity_asian, -> do
+      race_asian.ethnicity_non_hispanic_latinaeo
+    end
+
+    scope :race_ethnicity_asian_hispanic_latinaeo, -> do
+      race_asian.ethnicity_hispanic_latinaeo
+    end
+
+    scope :race_ethnicity_black_af_american, -> do
+      race_black_af_american.ethnicity_non_hispanic_latinaeo
+    end
+
+    scope :race_ethnicity_black_af_american_hispanic_latinaeo, -> do
+      race_black_af_american.ethnicity_hispanic_latinaeo
+    end
+
+    scope :race_ethnicity_hispanic_latinaeo, -> do
+      # TODO: this needs all 0s every where else
+      ethnicity_hispanic_latinaeo
+    end
+
+    scope :race_ethnicity_mid_east_n_african, -> do
+      race_mid_east_n_african.ethnicity_non_hispanic_latinaeo
+    end
+
+    scope :race_ethnicity_mid_east_n_african_hispanic_latinaeo, -> do
+      race_mid_east_n_african.ethnicity_hispanic_latinaeo
+    end
+
+    scope :race_ethnicity_native_hi_pacific, -> do
+      race_native_hi_pacific.ethnicity_non_hispanic_latinaeo
+    end
+
+    scope :race_ethnicity_native_hi_pacific_hispanic_latinaeo, -> do
+      race_native_hi_pacific.ethnicity_hispanic_latinaeo
+    end
+
+    scope :race_ethnicity_white, -> do
+      race_white.ethnicity_non_hispanic_latinaeo
+    end
+
+    scope :race_ethnicity_white_hispanic_latinaeo, -> do
+      race_white.ethnicity_hispanic_latinaeo
+    end
+
+    scope :race_ethnicity_multi_racial, -> do
+      # TODO
+      # .ethnicity_non_hispanic_latinaeo
+    end
+
+    scope :race_ethnicity_multi_racial_hispanic_latinaeo, -> do
+      # TODO
+      # .ethnicity_hispanic_latinaeo
+    end
+
+    scope :race_ethnicity_race_none, -> do
+      race_none
     end
 
     def self.column_titles(period: 'reporting')

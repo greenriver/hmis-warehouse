@@ -11,6 +11,7 @@ module PerformanceMeasurement::EquityAnalysis
       default: PerformanceMeasurement::EquityAnalysis::Data,
       race: PerformanceMeasurement::EquityAnalysis::RaceData,
       ethnicity: PerformanceMeasurement::EquityAnalysis::EthnicityData,
+      raceand_ethnicity_combinations: PerformanceMeasurement::EquityAnalysis::RaceEthnicityData,
       age: PerformanceMeasurement::EquityAnalysis::AgeData,
       gender: PerformanceMeasurement::EquityAnalysis::GenderData,
       household_type: PerformanceMeasurement::EquityAnalysis::HouseholdTypeData,
@@ -95,6 +96,19 @@ module PerformanceMeasurement::EquityAnalysis
       return unless ethnicity.any?
 
       "Ethnicity: #{names}"
+    end
+
+    def race_ethnicity
+      @params[:race_ethnicity]&.reject(&:blank?) || []
+    end
+
+    def describe_race_ethnicity
+      names = race_ethnicity.map do |key|
+        PerformanceMeasurement::EquityAnalysis::Data::RACE_ETHNICITY_COMBINATIONS[key.to_sym]
+      end.reject(&:blank?).join(', ')
+      return unless race_ethnicity.any?
+
+      "Race and Ethnicity Combination: #{names}"
     end
 
     def age
@@ -195,6 +209,7 @@ module PerformanceMeasurement::EquityAnalysis
       [
         'Race',
         'Ethnicity',
+        'Race and Ethnicity Combinations',
         'Age',
         'Gender',
         'Household Type',
