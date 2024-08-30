@@ -6,6 +6,7 @@
 
 module PerformanceMeasurement
   class Client < GrdaWarehouseBase
+    include Filter::FilterScopes # for race-ethnicity combination scopes
     self.table_name = :pm_clients
     acts_as_paranoid
 
@@ -98,67 +99,72 @@ module PerformanceMeasurement
     end
 
     # Race Ethnicity Combination Scopes
+    def report_scope_source # needed for filter scopes
+      self.class
+    end
+
+    private def join_clients_method
+      :source_client
+    end
+
     scope :race_ethnicity_am_ind_ak_native, -> do
-      race_am_ind_ak_native.ethnicity_non_hispanic_latinaeo
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :AmIndAKNative, false))
     end
 
     scope :race_ethnicity_am_ind_ak_native_hispanic_latinaeo, -> do
-      race_am_ind_ak_native.ethnicity_hispanic_latinaeo
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :AmIndAKNative, true))
     end
 
     scope :race_ethnicity_asian, -> do
-      race_asian.ethnicity_non_hispanic_latinaeo
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :Asian, false))
     end
 
     scope :race_ethnicity_asian_hispanic_latinaeo, -> do
-      race_asian.ethnicity_hispanic_latinaeo
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :Asian, true))
     end
 
     scope :race_ethnicity_black_af_american, -> do
-      race_black_af_american.ethnicity_non_hispanic_latinaeo
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :BlackAfAmerican, false))
     end
 
     scope :race_ethnicity_black_af_american_hispanic_latinaeo, -> do
-      race_black_af_american.ethnicity_hispanic_latinaeo
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :BlackAfAmerican, true))
     end
 
     scope :race_ethnicity_hispanic_latinaeo, -> do
-      # TODO: this needs all 0s every where else
-      ethnicity_hispanic_latinaeo
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :HispanicLatinaeo, true))
     end
 
     scope :race_ethnicity_mid_east_n_african, -> do
-      race_mid_east_n_african.ethnicity_non_hispanic_latinaeo
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :MidEastNAfrican, false))
     end
 
     scope :race_ethnicity_mid_east_n_african_hispanic_latinaeo, -> do
-      race_mid_east_n_african.ethnicity_hispanic_latinaeo
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :MidEastNAfrican, true))
     end
 
     scope :race_ethnicity_native_hi_pacific, -> do
-      race_native_hi_pacific.ethnicity_non_hispanic_latinaeo
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :NativeHIPacific, false))
     end
 
     scope :race_ethnicity_native_hi_pacific_hispanic_latinaeo, -> do
-      race_native_hi_pacific.ethnicity_hispanic_latinaeo
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :NativeHIPacific, true))
     end
 
     scope :race_ethnicity_white, -> do
-      race_white.ethnicity_non_hispanic_latinaeo
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :White, false))
     end
 
     scope :race_ethnicity_white_hispanic_latinaeo, -> do
-      race_white.ethnicity_hispanic_latinaeo
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :White, true))
     end
 
     scope :race_ethnicity_multi_racial, -> do
-      # TODO
-      # .ethnicity_non_hispanic_latinaeo
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :MultiRacial, false))
     end
 
     scope :race_ethnicity_multi_racial_hispanic_latinaeo, -> do
-      # TODO
-      # .ethnicity_hispanic_latinaeo
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :MultiRacial, true))
     end
 
     scope :race_ethnicity_race_none, -> do
