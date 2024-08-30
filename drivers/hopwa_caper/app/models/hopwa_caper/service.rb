@@ -9,6 +9,7 @@ module HopwaCaper
     self.table_name = 'hopwa_caper_services'
 
     belongs_to :enrollment, class_name: 'HopwaCaper::Enrollment', primary_key: :enrollment_id
+    delegate :fist_name, :last_name, :personal_id, to: :enrollemnt
 
     def self.as_report_members
       all.map do |record|
@@ -24,7 +25,7 @@ module HopwaCaper
         report_household_id: [service.data_source_id, enrollment.household_id, report.id].join(':'),
         report_instance_id: report.id,
 
-        warehouse_client_id: client.id,
+        destination_client_id: client.id,
         enrollment_id: enrollment.id,
         service_id: service.id,
         hud_personal_id: client.personal_id,
@@ -37,12 +38,11 @@ module HopwaCaper
     end
 
     def self.detail_headers
-      special = ['hud_personal_id', 'first_name', 'last_name']
       remove = ['id', 'created_at', 'updated_at']
       cols = special + (column_names - special - remove)
       cols.map do |header|
         label = case header
-        when 'warehouse_client_id'
+        when 'destination_client_id'
           'Warehouse Client ID'
         when 'hud_personal_id'
           'HMIS Personal ID'

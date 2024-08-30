@@ -118,15 +118,15 @@ module HopwaCaper::Generators::Fy2024
       end
 
       # batch process clients
-      report.hopwa_caper_enrollments.distinct.pluck(:warehouse_client_id).in_groups_of(100, false) do |client_ids|
-        enrollments = report.hopwa_caper_enrollments.where(warehouse_client_id: client_ids).order(:id)
+      report.hopwa_caper_enrollments.distinct.pluck(:destination_client_id).in_groups_of(100, false) do |client_ids|
+        enrollments = report.hopwa_caper_enrollments.where(destination_client_id: client_ids).order(:id)
         ensure_uniform_client_attrs(enrollments)
       end
 
       # batch process households
       report.hopwa_caper_enrollments.distinct.pluck(:report_household_id).in_groups_of(100, false) do |household_ids|
         enrollments = report.hopwa_caper_enrollments.where(report_household_id: household_ids).order(:id)
-        set_hopwa_eligability(enrollments)
+        update_hopwa_eligability(enrollments)
       end
 
       true
@@ -134,7 +134,7 @@ module HopwaCaper::Generators::Fy2024
 
     # ensure consistent values for individuals (can vary based on enrollment entry date)
     def ensure_uniform_client_attrs(enrollment_rows)
-      groups = enrollment_rows.sort_by(&:id).group_by(&:warehouse_client_id).values
+      groups = enrollment_rows.sort_by(&:id).group_by(&:destination_client_id).values
       changed = []
       groups.each do |group|
         uniform_attrs = {
@@ -152,7 +152,7 @@ module HopwaCaper::Generators::Fy2024
     end
 
     # try and figure out which person in a household is hopwa eligible
-    def set_hopwa_eligability(enrollment_rows)
+    def update_hopwa_eligability(enrollment_rows)
       households = enrollment_rows.group_by(&:report_household_id).values
       eligible_enrollments = households.map do |enrollments|
         # if the hoh is hiv+

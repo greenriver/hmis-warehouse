@@ -2,13 +2,14 @@ class HopwaCaper < ActiveRecord::Migration[7.0]
   def change
     create_table :hopwa_caper_enrollments do |t|
       t.references :report_instance, null: false
-      t.references :warehouse_client, index: false, null: false
+      t.references :destination_client, null: false
       t.references :enrollment, index: false, null: false
       t.string :report_household_id, null: false, index: true
 
-      # required by cell members reporting view
+      # for reference by cell members reporting view
       t.string :first_name
       t.string :last_name
+      t.string :personal_id
 
       # demographics
       t.integer :age
@@ -47,7 +48,7 @@ class HopwaCaper < ActiveRecord::Migration[7.0]
 
     create_table :hopwa_caper_services do |t|
       t.references :report_instance, null: false
-      t.references :warehouse_client, index: false, null: false
+      t.references :destination_client, null: false
       t.references :enrollment, index: false, null: false
       t.references :service, index: false, null: false
       t.string :report_household_id, null: false, index: true

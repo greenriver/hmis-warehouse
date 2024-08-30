@@ -30,7 +30,7 @@ module HopwaCaper
     }
 
     scope :latest_by_personal_id, -> {
-      distinct_on(:warehouse_client_id).order(warehouse_client_id: :desc, entry_date: :desc, id: :desc)
+      distinct_on(:destination_client_id).order(destination_client_id: :desc, entry_date: :desc, id: :desc)
     }
 
     def self.head_of_household
@@ -79,7 +79,7 @@ module HopwaCaper
       new(
         report_instance_id: report.id,
         report_household_id: [enrollment.data_source_id, enrollment.household_id, report.id].join(':'),
-        warehouse_client_id: client.id,
+        destination_client_id: client.id,
         enrollment_id: enrollment.id,
         hud_personal_id: client.personal_id,
 
@@ -116,14 +116,14 @@ module HopwaCaper
     end
 
     def self.detail_headers
-      special = ['hud_personal_id', 'first_name', 'last_name']
+      special = ['personal_id', 'first_name', 'last_name']
       remove = ['id', 'created_at', 'updated_at']
       cols = special + (column_names - special - remove)
       cols.map do |header|
         label = case header
-        when 'warehouse_client_id'
+        when 'destination_client_id'
           'Warehouse Client ID'
-        when 'hud_personal_id'
+        when 'personal_id'
           'HMIS Personal ID'
         else
           header.humanize

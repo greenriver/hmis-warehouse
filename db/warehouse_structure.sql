@@ -18433,6 +18433,7 @@ ALTER SEQUENCE public.homeless_summary_report_results_id_seq OWNED BY public.hom
 CREATE TABLE public.hopwa_caper_enrollments (
     id bigint NOT NULL,
     report_instance_id bigint NOT NULL,
+    destination_client_id bigint NOT NULL,
     warehouse_client_id bigint NOT NULL,
     enrollment_id bigint NOT NULL,
     report_household_id character varying NOT NULL,
@@ -18492,6 +18493,7 @@ ALTER SEQUENCE public.hopwa_caper_enrollments_id_seq OWNED BY public.hopwa_caper
 CREATE TABLE public.hopwa_caper_services (
     id bigint NOT NULL,
     report_instance_id bigint NOT NULL,
+    destination_client_id bigint NOT NULL,
     warehouse_client_id bigint NOT NULL,
     enrollment_id bigint NOT NULL,
     service_id bigint NOT NULL,

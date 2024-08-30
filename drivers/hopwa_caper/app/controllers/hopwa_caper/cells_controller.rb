@@ -17,6 +17,7 @@ module HopwaCaper
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
         merge(::HudReports::ReportInstance.where(id: @report.id))
       @services = HopwaCaper::Service.
+        preload(:enrollment).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
         merge(::HudReports::ReportInstance.where(id: @report.id))
