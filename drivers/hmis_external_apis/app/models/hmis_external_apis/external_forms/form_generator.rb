@@ -12,11 +12,8 @@ module HmisExternalApis::ExternalForms
     def initialize(context, form_definition)
       @stack = []
       @context = context
-      @form_definition = form_definition # Hmis::Form::Definition
+      @form_definition = form_definition # Hmis::Form::Definition record
     end
-    # NEEDS:
-    # - multi-select (race/gender)
-    # - more than one conditional rule
 
     delegate :register_field,
              :render_form_input,
@@ -117,7 +114,7 @@ module HmisExternalApis::ExternalForms
 
     def render_choice_node(node)
       options = resolve_pick_list(node)
-      raise "missing options in #{node.inspect} " unless options.present?
+      raise "missing options in #{node.inspect}" unless options.present?
 
       render_form_group(node: node) do
         case node['component']
@@ -183,7 +180,7 @@ module HmisExternalApis::ExternalForms
       field_name = node.dig('mapping', 'field_name')
 
       # Join with period since that's the expected submission shape (Client.firstName)
-      # If problematic we can replace this with a hyphen, and process is accordingly in ConsumeExternalFormSubmissionsJob
+      # If problematic we can use another separator and process accordingly in ConsumeExternalFormSubmissionsJob
       [processor_name, custom_field_key || field_name].compact.join('.')
     end
 
@@ -192,8 +189,7 @@ module HmisExternalApis::ExternalForms
     # Example: { 'link_id_1' => 'custom_field_key_x' }
     def link_id_to_node_name
       @link_id_to_node_name ||= form_definition.link_id_item_hash.map do |link_id, node|
-        # Skip items without mapping
-        # Note: the hash already group items (see link_id_item_hash)
+        # Skip items without mapping. Note: the hash already excludes group items (see link_id_item_hash)
         next unless node['mapping']
 
         [link_id, node_name(node)]
