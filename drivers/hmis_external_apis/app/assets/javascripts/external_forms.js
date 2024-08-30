@@ -12,9 +12,45 @@ $(function () {
     document.querySelector('main').remove();
     $('#successModal').modal('show');
   }
+  // generuid uid unlikely to have collisions, without using external library (uuid) or modern browser features (crypto)
+  var generateUid = () =>
+    String(
+      Date.now().toString(32) +
+        Math.random().toString(16)
+    ).replace(/\./g, '')
+
+  var setNewHouseholdId = function () {
+    window.householdId = generateUid();
+    window.householdSize = undefined;
+    window.householdNext = undefined;
+    window.existingHousehold = false;
+  }
+
+  var setHouseholdId = function () {
+    var params = new URL(document.location.toString()).searchParams;
+    var householdId = params.get("hh_id");
+    var householdSize = params.get("hh_size");
+    var householdNext = params.get("hh_next");
+    if (householdId) {
+      window.householdId = householdId;
+      window.householdSize = householdSize;
+      window.householdNext = householdNext;
+      window.existingHousehold = true;
+      $('#household_warning').show();
+    } else {
+      setNewHouseholdId();
+    }
+    console.log('householdId:', window.householdId);
+    console.log('householdSize:', window.householdSize);
+    console.log('householdNext:', window.householdNext);
+  }
+  
+  setHouseholdId();
 
   $('.reload-button').on('click', function () {
-    window.location.reload();
+    // window.location.reload();
+    // reload without query params, to reset household too
+    window.location = window.location.pathname;
   });
 
   var captchaKey = appConfig.recaptchaKey;
@@ -111,11 +147,37 @@ $(function () {
   });
 });
 
+window.addHouseholdSizeListener = function (householdSizeInputName  = 'household_size') {
+  var submitAndAddAnotherEl = $('#submitAndAddAnother');
+  var householdSizeEl = $(`[name="${householdSizeInputName}"]`);
+
+  if (window.existingHousehold) {
+    // Form is for an existing household, so hide the household size question
+    householdSizeEl.parent().hide();
+    householdSizeEl.attr('aria-hidden', "true");
+    householdSizeEl.find('input, select, textarea').prop('disabled', true);
+    // Update the "submit" button to say "Submit and complete household"?
+    // also make sure that the"normal" submit reloads the page WITHOUT hh_id
+  } else {
+    // For a new household (without hh_id param), HIDE the "Submit and add another" button initially.
+    submitAndAddAnotherEl.hide();
+    // Show it if household_size input is entered as 2 or more.
+    householdSizeEl.on('change', function () {
+      if ($(this).val() > 1) {
+        submitAndAddAnotherEl.show();
+      } else {
+        submitAndAddAnotherEl.hide();
+      }
+    });
+  }
+}
+
 // conditions: [{input_name: 'name', input_value: 'value'}, ...]
 // targetSelector: selector for the item that is conditionally shown
 // enableBehavior: 'ANY' or 'ALL' conditions must be met to show the target selector
 window.addDependentGroup = function (conditions, targetSelector, enableBehavior = 'ANY') {
   const target = $(targetSelector); // the item with enable_when on it
+  console.log(targetSelector, target)
   const show = function () {
     target.addClass('visible');
     target.attr('aria-hidden', "false");
