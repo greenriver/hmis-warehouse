@@ -12,28 +12,35 @@ $(function () {
     document.querySelector('main').remove();
     $('#successModal').modal('show');
   }
-  // generuid uid unlikely to have collisions, without using external library (uuid) or modern browser features (crypto)
-  var generateUid = function () {
-    String(
-      Date.now().toString(32) +
-        Math.random().toString(16)
-    ).replace(/\./g, '')
+  // Generate a "household id" that is unlikely to have collisions among form submissions,
+  // without using external library (uuid) or modern browser features (crypto)
+  var generateHouseholdId = function () {
+    var current = Date.now().toString(); // OK? https://caniuse.com/mdn-javascript_builtins_date_now
+    var rand = Math.random().toString(16).substring(2)
+    return String('HH' + current + rand).toUpperCase();
+  }
+
+  var isValidHouseholdId = function (id) {
+    // safe? will it ever be a different length due to browser differences?
+    return id.length === 28 && id.substring(0, 2) === 'HH';
   }
 
   var setHouseholdId = function () {
     var params = new URL(document.location.toString()).searchParams;
-    var householdId = params.get("hh_id");
-    if (householdId) {
+    var householdIdParam = params.get("hh_id");
+
+    if (householdIdParam && isValidHouseholdId(householdIdParam)) {
       // Form will add a client to the same household as the previous submission (hh_id)
-      window.householdId = householdId;
+      window.householdId = householdIdParam;
       window.existingHousehold = true;
+      console.log('Using Household ID param:', window.householdId);
       $('#household_warning').show();
     } else {
       // Form will create a new household for this submission
-      window.householdId = generateUid();
+      window.householdId = generateHouseholdId();
       window.existingHousehold = false;
+      console.log('Created new Household ID:', window.householdId);
     }
-    console.log('householdId:', window.householdId);
   }
   
   setHouseholdId();
