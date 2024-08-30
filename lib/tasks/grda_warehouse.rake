@@ -362,6 +362,7 @@ namespace :grda_warehouse do
     rescue StandardError => e
       puts e.message
     end
+    IdentifyExternalClientsJob.run_all!
   end
 
   desc 'Save Service History Snapshots'
