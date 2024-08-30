@@ -9,9 +9,9 @@ module HmisExternalApis::ExternalFormsHelper
     "hmis_external_apis/external_forms/#{partial}"
   end
 
-  def render_form_input(label:, input_type: 'text', name:, input_pattern: nil, input_mode: 'text', required: false, input_placeholder: nil, input_class: nil, input_html_id: next_html_id, input_helper: nil, input_invalid_feedback: nil) # rubocop:disable Metrics/ParameterLists
+  def render_form_input(label:, input_type: 'text', name:, input_pattern: nil, input_mode: 'text', required: false, input_placeholder: nil, input_class: nil, input_html_id: next_html_id, input_helper: nil, input_invalid_feedback: nil, is_household_size: false) # rubocop:disable Metrics/ParameterLists
     input_invalid_feedback ||= required ? 'This is required' : nil
-    render partial_path('form/input'), label: label, input_type: input_type, name: name, required: required, input_pattern: input_pattern, html_id: input_html_id, input_mode: input_mode, input_placeholder: input_placeholder, input_class: input_class, input_helper: input_helper, input_invalid_feedback: input_invalid_feedback
+    render partial_path('form/input'), label: label, input_type: input_type, name: name, required: required, input_pattern: input_pattern, html_id: input_html_id, input_mode: input_mode, input_placeholder: input_placeholder, input_class: input_class, input_helper: input_helper, input_invalid_feedback: input_invalid_feedback, is_household_size: is_household_size
   end
 
   def render_form_textarea(label:, name:, required: false, rows: 2, input_invalid_feedback: nil)
@@ -19,8 +19,8 @@ module HmisExternalApis::ExternalFormsHelper
     render partial_path('form/textarea'), label: label, name: name, required: required, rows: rows, html_id: next_html_id, input_invalid_feedback: input_invalid_feedback
   end
 
-  def render_numeric_input(label:, name:, required: false, input_placeholder: nil, input_pattern: '\d*', input_html_id: nil, input_helper: nil, input_invalid_feedback: 'Must be a number')
-    render_form_input(label: label, name: name, required: required, input_pattern: input_pattern, input_mode: 'numeric', input_placeholder: input_placeholder, input_html_id: input_html_id, input_helper: input_helper, input_invalid_feedback: input_invalid_feedback)
+  def render_numeric_input(label:, name:, required: false, input_placeholder: nil, input_pattern: '\d*', input_html_id: next_html_id, input_helper: nil, input_invalid_feedback: 'Must be a number', is_household_size: false)
+    render_form_input(label: label, name: name, required: required, input_pattern: input_pattern, input_mode: 'numeric', input_placeholder: input_placeholder, input_html_id: input_html_id, input_helper: input_helper, input_invalid_feedback: input_invalid_feedback, is_household_size: is_household_size)
   end
 
   def render_form_date(legend:, name: nil, required: false)

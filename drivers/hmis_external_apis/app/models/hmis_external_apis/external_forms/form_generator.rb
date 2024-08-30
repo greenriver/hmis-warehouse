@@ -59,6 +59,10 @@ module HmisExternalApis::ExternalForms
       when 'CHOICE'
         render_choice_node(node)
       when 'INTEGER'
+        # Expect a certain `link_id` for household_size, which is rendered specially because it impacts
+        # form submission options. Not ideal to rely on a link id, use some other mechanism to flag this item?
+        # is_household_size_field = node['link_id'] == 'household_size'
+        # is_household_size_field ? render_household_size_node(node) : render_numeric_node(node)
         render_numeric_node(node)
       else
         raise "node type #{node_type} not supported in #{node.inspect}"
@@ -89,8 +93,9 @@ module HmisExternalApis::ExternalForms
     end
 
     def render_numeric_node(node)
+      is_household_size = node['link_id'] == 'household_size'
       render_form_group(node: node) do
-        render_numeric_input(label: node['text'], name: node_name(node), required: node['required'])
+        render_numeric_input(label: node['text'], name: node_name(node), required: node['required'], is_household_size: is_household_size)
       end
     end
 

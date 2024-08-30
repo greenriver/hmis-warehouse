@@ -2,6 +2,7 @@
 
 $(function () {
   var form = document.querySelector('form');
+
   var handleError = function () {
     $('#spinnerModal').modal('hide');
     $('#errorModal').modal('show');
@@ -10,9 +11,18 @@ $(function () {
     $('#spinnerModal').modal('hide');
     form.reset();
     document.querySelector('main').remove();
+
+    // If HH Size > 1, or we just submitted a non-HoH member, show the option to add another member in the Success modal
+    if (window.householdSize > 1 || window.existingHousehold) {
+      $('#addAnotherHouseholdMemberButton').show();
+    }
     $('#successModal').modal('show');
   }
-  // Generate a "household id" that is unlikely to have collisions among form submissions,
+
+  // MAYBE TODO: move all this JS to addHouseholdSizeListener or another function so it's only conditionally
+  // loaded if this form deals with household submissions. (Again, inferred from household_size presence, or Enrollment mappings?👀)
+
+  // Generates a "household id" that is unlikely to have collisions among form submissions,
   // without using external library (uuid) or modern browser features (crypto)
   var generateHouseholdId = function () {
     var current = Date.now().toString(); // OK? https://caniuse.com/mdn-javascript_builtins_date_now
@@ -46,9 +56,12 @@ $(function () {
   setHouseholdId();
 
   $('.reload-button').on('click', function () {
-    // window.location.reload();
-    // reload without query params, to reset household too
+    // drop hh_id param
     window.location = window.location.pathname;
+  });
+
+  $('#addAnotherHouseholdMemberButton').on('click', function () {
+    window.location = window.location.pathname + '?hh_id=' + window.householdId;
   });
 
   var captchaKey = appConfig.recaptchaKey;
@@ -65,10 +78,12 @@ $(function () {
   }
 
   var submitWithPresign = function (captchaToken) {
-    var formData = {};
+    var formData = { householdId: window.householdId };
     $(form).serializeArray().forEach(function (item) {
       formData[item.name] = item.value;
     });
+    console.log("submitting", formData);
+    return handleSuccess(); // just for testing
 
     // Request a presigned URL
     $.ajax({
@@ -103,6 +118,7 @@ $(function () {
   }
 
   var submitWithCaptcha = function () {
+    return submitWithPresign(null); // just for testing
     $('#spinnerModal').modal('show');
     grecaptcha.ready(function () {
       try {
@@ -145,27 +161,21 @@ $(function () {
   });
 });
 
-window.addHouseholdSizeListener = function (householdSizeInputName  = 'household_size') {
-  var $hhSubmitEl = $('#submitAndAddAnother');
-  var $hhSizeEl = $('[name="' + householdSizeInputName + '"]');
-
+window.addHouseholdSizeListener = function (targetSelector) {
+  var $hhSizeEl = $(targetSelector);
   if (window.existingHousehold) {
     // Form is for an existing household, so hide the household size question
-    $hhSizeEl.parent().hide();
+    $hhSizeEl.removeClass('visible');
     $hhSizeEl.attr('aria-hidden', "true");
     $hhSizeEl.find('input, select, textarea').prop('disabled', true);
-    // TODO: Update the "submit" button to say "Submit and complete household"?
-    // TODO: also make sure that the"normal" submit reloads the page WITHOUT hh_id
   } else {
-    // For a new household (without hh_id param), HIDE the "Submit and add another" button initially.
-    $hhSubmitEl.hide();
-    // Show it if household_size input is entered as 2 or more.
+    // Store Household Size on the window so we have it after successful submission, to
+    // decide whether to show the "Add another HHM" button.
     $hhSizeEl.on('change', function () {
-      if ($(this).val() > 1) {
-        $hhSubmitEl.show();
-      } else {
-        $hhSubmitEl.hide();
-      }
+      //TODO: do something better/safer than parseInt. also trim. should this field be required?
+      var hhSize = parseInt($(this).val());
+      console.log("hh size", hhSize);
+      window.householdSize = hhSize || 0;
     });
   }
 }

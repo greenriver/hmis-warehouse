@@ -105,7 +105,9 @@
       .modal-body
         %p You've successfully submitted the form
       .modal-footer
-        %button.btn.btn-primary.reload-button{ type: "button" } Continue
+        -# FIXME: this button should be hidden properly with disabled and aria-hidden
+        %button.btn.btn-primary{ type: "button", id: 'addAnotherHouseholdMemberButton', style: 'display:none' } Add another household member
+        %button.btn.btn-primary.reload-button{ type: "button" } Done
 
     = render_modal(html_id: 'errorModal', title: 'Error') do
       .modal-body
