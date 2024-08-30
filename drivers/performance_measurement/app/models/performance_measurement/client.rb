@@ -68,10 +68,6 @@ module PerformanceMeasurement
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_white)
     end
 
-    scope :race_hispanic_latinaeo, -> do
-      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_hispanic_latinaeo)
-    end
-
     scope :race_mid_east_n_african, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_mid_east_n_african)
     end
@@ -90,6 +86,14 @@ module PerformanceMeasurement
 
     scope :race_not_collected, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_not_collected)
+    end
+
+    scope :ethnicity_hispanic_latinaeo, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_hispanic_latinaeo)
+    end
+
+    scope :ethnicity_non_hispanic_latinaeo, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_not_hispanic_latinaeo)
     end
 
     def self.column_titles(period: 'reporting')

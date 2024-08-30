@@ -10,6 +10,7 @@ module PerformanceMeasurement::EquityAnalysis
     CHART_DATA_KEY_TO_CLASS = {
       default: PerformanceMeasurement::EquityAnalysis::Data,
       race: PerformanceMeasurement::EquityAnalysis::RaceData,
+      ethnicity: PerformanceMeasurement::EquityAnalysis::EthnicityData,
       age: PerformanceMeasurement::EquityAnalysis::AgeData,
       gender: PerformanceMeasurement::EquityAnalysis::GenderData,
       household_type: PerformanceMeasurement::EquityAnalysis::HouseholdTypeData,
@@ -81,6 +82,19 @@ module PerformanceMeasurement::EquityAnalysis
       return unless race.any?
 
       "Race: #{names}"
+    end
+
+    def ethnicity
+      @params[:ethnicity]&.reject(&:blank?) || []
+    end
+
+    def describe_ethnicity
+      names = ethnicity.map do |key|
+        PerformanceMeasurement::EquityAnalysis::Data::ETHNICITIES[key.to_sym]
+      end.reject(&:blank?).join(', ')
+      return unless ethnicity.any?
+
+      "Ethnicity: #{names}"
     end
 
     def age
@@ -180,6 +194,7 @@ module PerformanceMeasurement::EquityAnalysis
     def investigate_by_options
       [
         'Race',
+        'Ethnicity',
         'Age',
         'Gender',
         'Household Type',
@@ -188,6 +203,10 @@ module PerformanceMeasurement::EquityAnalysis
 
     def race_options
       PerformanceMeasurement::EquityAnalysis::Data::RACES.to_a
+    end
+
+    def ethnicity_options
+      PerformanceMeasurement::EquityAnalysis::Data::ETHNICITIES.to_a
     end
 
     def age_options
