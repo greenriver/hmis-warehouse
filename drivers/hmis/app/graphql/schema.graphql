@@ -4128,6 +4128,10 @@ type FormItem {
   Component to use for display/input of this item
   """
   component: Component
+
+  """
+  Custom rules that apply to this item
+  """
   customRule: JSON
 
   """
@@ -4207,6 +4211,10 @@ type FormItem {
   Whether the item must be included in data results
   """
   required: Boolean
+
+  """
+  Rules that apply to this item
+  """
   rule: JSON
 
   """
