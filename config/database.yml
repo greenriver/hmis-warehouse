@@ -20,6 +20,12 @@ default_app_db: &default_app_db
   <% if ENV['DATABASE_HOST'] %>
   host: <%= ENV['DATABASE_HOST'] %>
   <% end %>
+  variables:
+    # our dbs our on SSDs so random access is almost as cheap as seq_page_cost
+    random_page_cost: 1.1
+    # can improve performance for queries that involve large sorts or hash operations but increasing this value too
+    # much could lead to excessive memory usage
+    work_mem: 8MB
 
 default_warehouse_db: &default_warehouse_db
   adapter: <%= ENV['WAREHOUSE_DATABASE_ADAPTER'] %>
