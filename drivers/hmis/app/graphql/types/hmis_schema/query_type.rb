@@ -399,9 +399,16 @@ module Types
 
     field :external_form_definition, Types::Forms::FormDefinition, null: true do
       argument :identifier, String, required: true
+      argument :id, ID, required: false # not required for backwards compat
     end
-    def external_form_definition(identifier:)
+    def external_form_definition(identifier:, id: nil)
       raise 'Access denied' unless current_user.can_manage_external_form_submissions?
+
+      if id
+        # If the user is looking for a specific form version, return it, as long as it's an external form
+        definition = Hmis::Form::Definition.find(id)
+        return definition if definition.role == 'EXTERNAL_FORM'
+      end
 
       Hmis::Form::Definition.with_role(:EXTERNAL_FORM).where(identifier: identifier).order(version: :desc).first
     end

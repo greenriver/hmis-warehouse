@@ -19,7 +19,6 @@ module Mutations
 
       record.assign_attributes(**input.to_params)
 
-      # todo @Martha - validation
       errors = []
 
       if record.status == 'reviewed' && !record.spam
@@ -28,15 +27,15 @@ module Mutations
         # Only if there are Client and/or Enrollment fields in the form definition, initialize an enrollment
         # (which will in turn initialize a Client, inside the form processor).
         if definition.link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping.record_type) }
+          # todo @Martha - do we need to check for additional permissions here, like can manage clients/enrollments?
           project = Hmis::Hud::Project.find(project_id)
           record.build_enrollment(project: project, data_source: project.data_source, entry_date: record.created_at)
         end
 
         form_processor = record.form_processor || record.build_form_processor(definition: definition)
 
-        # todo @Martha values vs. hud_values
         form_processor.values = record.raw_data
-        form_processor.hud_values = record.raw_data
+        form_processor.hud_values = input.hud_values
 
         # todo @Martha - validations see submit_form.rb
         # form_validations = form_processor.collect_form_validations
