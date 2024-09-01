@@ -13,21 +13,29 @@ module Mutations
     field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: false
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
-    def resolve(id:, project_id:, input:)
+    def resolve(...)
+      Hmis::Hud::Base.transaction do
+        _resolve(...)
+      end
+    end
+
+    protected
+
+    def _resolve(id:, project_id:, input:)
       record = HmisExternalApis::ExternalForms::FormSubmission.find(id)
       raise 'Access denied' unless allowed?(permissions: [:can_manage_external_form_submissions])
 
       record.assign_attributes(**input.to_params)
 
-      errors = []
+      errors = HmisErrors::Errors.new
 
-      if record.status == 'reviewed' && !record.spam
+      if record.status_changed? && record.status == 'reviewed' && !record.spam
         definition = record.definition
 
         # Only if there are Client and/or Enrollment fields in the form definition, initialize an enrollment
         # (which will in turn initialize a Client, inside the form processor).
         if definition.link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping.record_type) }
-          # todo @Martha - do we need to check for additional permissions here, like can manage clients/enrollments?
+          # todo @martha - do we need to check for additional permissions here, like can manage clients/enrollments?
           project = Hmis::Hud::Project.find(project_id)
           record.build_enrollment(project: project, data_source: project.data_source, entry_date: record.created_at)
         end
@@ -37,28 +45,34 @@ module Mutations
         form_processor.values = record.raw_data
         form_processor.hud_values = input.hud_values
 
-        # todo @Martha - validations see submit_form.rb
-        # form_validations = form_processor.collect_form_validations
-        # errors.push(*form_validations)
+        # Validate based on form definition
+        form_validations = form_processor.collect_form_validations
+        errors.push(*form_validations)
 
+        # Run to create CDEs, and client/enrollment if applicable
         form_processor.run!(user: current_user)
 
-        # record_validations = form_processor.collect_record_validations(user: current_user)
-        # errors.push(*record_validations)
+        # Collect validations and warnings from AR Validator classes
+        record_validations = form_processor.collect_record_validations(user: current_user)
+        errors.push(*record_validations)
 
-        form_processor.save! # saves related records so maybe the above is not needed?
+        errors.deduplicate!
+        return { errors: errors } if errors.any?
 
-        # todo @martha - transaction
-        if record.enrollment
+        if record.enrollment&.new_record?
           record.enrollment.client.save!
           record.enrollment.save_new_enrollment!
         end
+
+        form_processor.save!
       end
 
       if record.valid?
-        record.save! # todo @Martha don't need to save again
+        record.save!
       else
-        errors = record.errors
+        # todo @martha - how to arrange this? rollback transacction if record not valid
+        # but record shoudl be saved if valid, whether form processor is present or not
+        errors.add_ar_errors(record.errors&.errors)
         record = nil
       end
 

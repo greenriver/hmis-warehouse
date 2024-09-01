@@ -51,6 +51,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
 
     it 'should create CDE' do
       expect do
+        # todo @martha - this fails bc not passing hud_values to the input, which is expected
         response, result = post_graphql({ id: submission.id, project_id: p1.id, input: { status: 'reviewed' } }) { mutation }
         expect(response.status).to eq(200), result
         expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
