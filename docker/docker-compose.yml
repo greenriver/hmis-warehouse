@@ -185,10 +185,8 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
-      # You may want to store your db data locally rather than in a docker volume
-      # to do that, set:
-      # DB_DATA_VOLUME=./dev/db_data
-      DB_DATA_VOLUME: ${DB_DATA_VOLUME:-dbdata_pg16}
+      PGPASSWORD: postgres
+      PGUSER: postgres
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -d postgres'"]
       interval: 10s
@@ -196,7 +194,8 @@ services:
       retries: 3
     volumes:
       # Name each new postgres major version explicitly (dbdata_pg17 when we get to that)
-      - ${DB_DATA_VOLUME:-dbdata_pg16}:/var/lib/postgresql/data
+      # If you'd rather use a local volume, you can customize this in docker-compose.override.yaml
+      - dbdata_pg16:/var/lib/postgresql/data
       - ./tmp/dumps:/tmp/dumps
     ports:
       - 5432

@@ -1,6 +1,6 @@
 #!/bin/env bash
 
-set -x
+set -ex
 set -oi pipefail
 
 # If you need to start over for some reason, destroy the db container and run:
