@@ -4,7 +4,16 @@
 # https://github.com/rails/rails/issues/38924#issuecomment-612881746
 # i have to unroll some parts so that it's simple enough for rails to figure out that I want to use multi-db
 
+global_pg_db_config: &global_pg_db_config
+  variables:
+    # our dbs use SSDs so random access is almost as cheap as seq_page_cost
+    random_page_cost: 1.1
+    # can improve performance for queries that involve large sorts or hash operations but increasing this value too
+    # much could lead to excessive memory usage
+    work_mem: 8MB
+
 default_app_db: &default_app_db
+  <<: *global_pg_db_config
   adapter: <%= ENV['DATABASE_ADAPTER'] %>
   pool: 5
   timeout: 5000
@@ -20,14 +29,9 @@ default_app_db: &default_app_db
   <% if ENV['DATABASE_HOST'] %>
   host: <%= ENV['DATABASE_HOST'] %>
   <% end %>
-  variables:
-    # our dbs use SSDs so random access is almost as cheap as seq_page_cost
-    random_page_cost: 1.1
-    # can improve performance for queries that involve large sorts or hash operations but increasing this value too
-    # much could lead to excessive memory usage
-    work_mem: 8MB
 
 default_warehouse_db: &default_warehouse_db
+  <<: *global_pg_db_config
   adapter: <%= ENV['WAREHOUSE_DATABASE_ADAPTER'] %>
   pool: 5
   timeout: 5000
@@ -45,6 +49,7 @@ default_warehouse_db: &default_warehouse_db
   <% end %>
 
 default_health_db: &default_health_db
+  <<: *global_pg_db_config
   adapter: <%= ENV['HEALTH_DATABASE_ADAPTER'] %>
   pool: 5
   timeout: 5000
@@ -62,6 +67,7 @@ default_health_db: &default_health_db
   <% end %>
 
 default_reporting_db: &default_reporting_db
+  <<: *global_pg_db_config
   adapter: <%= ENV['REPORTING_DATABASE_ADAPTER'] %>
   pool: 5
   timeout: 5000
@@ -79,6 +85,7 @@ default_reporting_db: &default_reporting_db
   <% end %>
 
 default_cas_db: &default_cas_db
+  <<: *global_pg_db_config
   adapter: <%= ENV['CAS_DATABASE_ADAPTER'] %>
   pool: 5
   timeout: 5000
