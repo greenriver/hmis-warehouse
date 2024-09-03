@@ -186,16 +186,12 @@ RSpec.feature 'Assessment definition selection', type: :system do
     end
 
     def submit_household_assessment
-      assert_text 'Save & Submit'
-      find("button[type='submit']").trigger('click')
-      print page.body
-      assert_text 'Submitting'
-      print page.body
-      assert_text 'This assessment has been submitted' # Submit succeeded -- failing on CI but not locally
+      find('button', text: 'Save & Submit').trigger('click')
+      assert_text 'This assessment has been submitted' # Submit succeeded
     end
 
     def save_household_assessment
-      click_button 'Save Assessment'
+      find('button', text: 'Save Assessment').trigger('click')
       assert_text(/Last saved [0-9] seconds? ago/) # Save succeeded
     end
 
