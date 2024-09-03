@@ -186,7 +186,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
     end
 
     def submit_household_assessment
-      find('button', text: 'Save & Submit').trigger('click')
+      find('button', text: 'Save & Submit').trigger('click') # note: using click_button fails on CI (#6619)
       assert_text 'This assessment has been submitted' # Submit succeeded
     end
 
@@ -246,7 +246,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
         fill_in 'new_question', with: 'e2 answer'
 
         expect do
-          submit_household_assessment # xx
+          submit_household_assessment
         end.to change(e2.custom_assessments, :count).by(0).
           and change(e2_assessment.custom_data_elements, :count).by(1)
 
