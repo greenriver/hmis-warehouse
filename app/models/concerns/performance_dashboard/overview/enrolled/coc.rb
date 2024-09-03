@@ -9,7 +9,7 @@ module PerformanceDashboard::Overview::Enrolled::Coc
 
   # NOTE: always count the most-recently started enrollment within the range
   def enrolled_by_coc
-    @enrolled_by_coc ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @enrolled_by_coc ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: PerformanceDashboards::Overview::EXPIRATION_LENGTH) do
       buckets = coc_buckets.map { |b| [b, []] }.to_h
       counted = {}
       enrolled.joins(:enrollment_coc_at_entry).

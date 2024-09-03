@@ -21,11 +21,12 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
   let!(:e1) { create :hud_enrollment, data_source: ds, project: p1, client: c1, relationship_to_hoh: 1, household_id: '123' }
   let!(:coc1) { create :hud_project_coc, data_source: ds, project_id: p1.project_id, state: 'MA' }
   let(:a) { create :csg_engage_agency }
-  let(:pm) { create :csg_engage_program_mapping, project: p1, agency: a }
+  let(:p) { create :csg_engage_program, agency: a }
+  let!(:pm) { create :csg_engage_program_mapping, project: p1, program: p }
 
   describe 'structure tests' do
     it 'should have the right structure' do
-      report = MaReports::CsgEngage::ReportComponents::Report.new(pm)
+      report = MaReports::CsgEngage::ReportComponents::Report.new(p)
       result = nil
       expect { result = report.serialize }.not_to raise_error
 
@@ -35,11 +36,11 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
         'Action' => 'Import',
         'Programs' => contain_exactly(
           include(
-            'Program Name' => pm.csg_engage_name,
-            'Import Keyword' => pm.csg_engage_import_keyword,
+            'Program Name' => p.csg_engage_name,
+            'Import Keyword' => p.csg_engage_import_keyword,
             'Households' => contain_exactly(
               include(
-                'Household Identifier' => e1.id.to_s,
+                'Household Identifier' => have_attributes(length: 20),
                 'Household Members' => contain_exactly(
                   include(
                     'Household Member' => include(
@@ -75,7 +76,7 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
       ].each do |attrs, expected|
         it "should have the right value (#{expected}) for values: #{attrs}" do
           c1.update!(**HudUtility2024.gender_id_to_field_name.values.uniq.map { |v| [v, 0] }.to_h, **attrs)
-          result = MaReports::CsgEngage::ReportComponents::Report.new(pm).serialize
+          result = MaReports::CsgEngage::ReportComponents::Report.new(p).serialize
           expect(result.dig('Programs', 0, 'Households', 0, 'Household Members', 0, 'Household Member', 'Gender')).to eq(expected)
         end
       end
@@ -101,7 +102,7 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
         ].each do |latino_val, expected|
           it "should have the right value (#{expected}) for ethnicity #{latino_val} and race: #{attrs}" do
             c1.update!(**HudUtility2024.race_id_to_field_name.values.uniq.map { |v| [v, 0] }.to_h, **attrs, HispanicLatinaeo: latino_val)
-            result = MaReports::CsgEngage::ReportComponents::Report.new(pm).serialize
+            result = MaReports::CsgEngage::ReportComponents::Report.new(p).serialize
             expect(result.dig('Programs', 0, 'Households', 0, 'Household Members', 0, 'Household Member', 'Race 1/Ethnicity 1')).to eq(expected)
           end
         end
@@ -149,7 +150,7 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
           OtherIncomeSourceIdentify: 'Stuff',
           BenefitsFromAnySource: 1,
         )
-        result = MaReports::CsgEngage::ReportComponents::Report.new(pm).serialize
+        result = MaReports::CsgEngage::ReportComponents::Report.new(p).serialize
 
         expect(result.dig('Programs', 0, 'Households', 0, 'Household Members', 0, 'Income')).to(
           include(

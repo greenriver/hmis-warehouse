@@ -131,7 +131,7 @@ module Filter::FilterScopes
       scope.merge(race_scope)
     end
 
-    private def multi_racial_clients(include_hispanic_latinaeo: true)
+    private def multi_racial_clients(include_hispanic_latinaeo: false)
       # Looking at all races with responses of 1, where we have a sum > 1
       columns = [
         c_t[:AmIndAKNative],

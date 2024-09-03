@@ -25,6 +25,7 @@ libcurl
 libgcc
 libintl
 libmagic
+libheif
 libstdc++
 libx11
 libxext

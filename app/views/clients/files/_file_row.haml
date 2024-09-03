@@ -31,7 +31,7 @@
           .label.label-info.mb-2 Confidential
         - if file.visible_in_window
           .font-italic.mb-2 This file is visible in the window
-        - if file.client_file.variable?
+        - if ! file.client_file.variable?
           .mb-2
             = link_to preview_client_file_path(id: file.id), class: 'btn btn-secondary btn-sm', target: '_blank' do
               %span.icon-eye

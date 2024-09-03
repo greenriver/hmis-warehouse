@@ -111,7 +111,7 @@ module HudDataQualityReport::Generators::Fy2020
             alcohol_abuse_entry: [1, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_exit: [1, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_latest: [1, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
-            annual_assessment_expected: annual_assessment_expected?(last_service_history_enrollment),
+            annual_assessment_expected: annual_assessment_expected?(enrollment: last_service_history_enrollment, report_end_date: @report.end_date),
             annual_assessment_in_window: annual_assessment_in_window?(last_service_history_enrollment, income_at_annual_assessment&.InformationDate),
             approximate_time_to_move_in: approximate_move_in_dates[last_service_history_enrollment.client_id],
             came_from_street_last_night: enrollment.PreviousStreetESSH,

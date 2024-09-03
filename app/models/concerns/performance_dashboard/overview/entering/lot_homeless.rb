@@ -9,15 +9,16 @@ module PerformanceDashboard::Overview::Entering::LotHomeless
 
   # NOTE: always count the most-recently started enrollment within the range
   def entering_by_lot_homeless
-    @entering_by_lot_homeless ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @entering_by_lot_homeless ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: PerformanceDashboards::Overview::EXPIRATION_LENGTH) do
       buckets = lot_homeless_buckets.map { |b| [b, []] }.to_h
       counted = {}
       entering.preload(:processed_client).order(first_date_in_program: :desc).each do |client|
         next unless client.processed_client
+
         lot = client.processed_client.days_homeless_last_three_years
-          counted[lot_homeless_bucket(lot)] ||= Set.new
-          buckets[lot_homeless_bucket(lot)] << client.client_id unless counted[lot_homeless_bucket(lot)].include?(client.client_id)
-          counted[lot_homeless_bucket(lot)] << client.client_id
+        counted[lot_homeless_bucket(lot)] ||= Set.new
+        buckets[lot_homeless_bucket(lot)] << client.client_id unless counted[lot_homeless_bucket(lot)].include?(client.client_id)
+        counted[lot_homeless_bucket(lot)] << client.client_id
       end
       buckets
     end
