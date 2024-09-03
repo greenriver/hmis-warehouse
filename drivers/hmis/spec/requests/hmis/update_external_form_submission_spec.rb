@@ -94,11 +94,11 @@ RSpec.describe 'Update External Form Submission', type: :request do
         create(:hmis_external_form_definition, append_items: items)
       end
       let!(:submission) do
-        raw_data = {
+        data = {
           'first_name': 'Oranges',
           'relationship_to_hoh': 'SELF_HEAD_OF_HOUSEHOLD',
         }
-        create(:hmis_external_form_submission, raw_data: raw_data, definition: definition, submitted_at: Date.current)
+        create(:hmis_external_form_submission, raw_data: data, cleaned_values: data, definition: definition, submitted_at: Date.current)
       end
 
       it 'should create client' do

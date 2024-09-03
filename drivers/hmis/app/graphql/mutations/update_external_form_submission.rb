@@ -35,14 +35,13 @@ module Mutations
         # Only if there are Client and/or Enrollment fields in the form definition, initialize an enrollment
         # (which will in turn initialize a Client, inside the form processor).
         if definition.link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping.record_type) }
-          # todo @martha - do we need to check for additional permissions here, like can manage clients/enrollments?
           project = Hmis::Hud::Project.find(project_id)
           record.build_enrollment(project: project, data_source: project.data_source, entry_date: record.created_at)
         end
 
         form_processor = record.form_processor || record.build_form_processor(definition: definition)
 
-        form_processor.values = record.raw_data
+        form_processor.values = record.cleaned_values
         form_processor.hud_values = input.hud_values
 
         # Validate based on form definition

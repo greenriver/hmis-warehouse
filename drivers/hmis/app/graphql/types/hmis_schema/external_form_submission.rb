@@ -20,14 +20,14 @@ module Types
     field :status, HmisSchema::Enums::ExternalFormSubmissionStatus, null: false
     field :notes, String, null: true
     field :definition, Forms::FormDefinition, null: false
-    field :values, GraphQL::Types::JSON, null: false
+    field :values, GraphQL::Types::JSON, null: true
 
     def definition
       load_ar_association(object, :definition)
     end
 
     def values
-      object.raw_data
+      object.cleaned_values
     end
   end
 end

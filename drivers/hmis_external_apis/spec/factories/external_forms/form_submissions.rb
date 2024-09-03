@@ -6,5 +6,6 @@ FactoryBot.define do
     spam_score { 1.0 }
     sequence(:object_key)
     raw_data { { 'your_name' => 'value' } }
+    cleaned_values { { 'your_name' => 'value' } }
   end
 end
