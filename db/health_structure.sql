@@ -4714,7 +4714,8 @@ CREATE TABLE public.qualifying_activities (
     valid_unpayable_reasons character varying[],
     deleted_at date,
     claim_metadata_type character varying,
-    claim_metadata_id bigint
+    claim_metadata_id bigint,
+    data_source_id bigint
 );
 
 
@@ -8584,6 +8585,13 @@ CREATE INDEX index_qualifying_activities_on_claim_id ON public.qualifying_activi
 --
 
 CREATE INDEX index_qualifying_activities_on_claim_metadata ON public.qualifying_activities USING btree (claim_metadata_type, claim_metadata_id);
+
+
+--
+-- Name: index_qualifying_activities_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_qualifying_activities_on_data_source_id ON public.qualifying_activities USING btree (data_source_id);
 
 
 --
