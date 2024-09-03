@@ -7,6 +7,11 @@
 module Filter::FilterScopes
   extend ActiveSupport::Concern
   included do
+    # Override as necessary
+    private def join_clients_method
+      :client
+    end
+
     private def filter_for_user_access(scope)
       scope.joins(:project).
         merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports))
@@ -97,19 +102,19 @@ module Filter::FilterScopes
       ages += Filters::FilterBase.age_range(:over_sixty_one).to_a if @filter.age_ranges.include?(:over_sixty_one)
       ages += Filters::FilterBase.age_range(:over_sixty_four).to_a if @filter.age_ranges.include?(:over_sixty_four)
 
-      scope.joins(:client).where(age_calculation.in(ages))
+      scope.joins(join_clients_method).where(age_calculation.in(ages))
     end
 
     private def filter_for_gender(scope)
       return scope unless @filter.genders.present?
 
-      scope = scope.joins(:client)
+      scope = scope.joins(join_clients_method)
       gender_scope = nil
       @filter.genders.each do |value|
         column = HudUtility2024.gender_id_to_field_name[value]
         next unless column
 
-        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(HudUtility2024.gender_comparison_value(value)))
+        gender_query = report_scope_source.joins(join_clients_method).where(c_t[column.to_sym].eq(HudUtility2024.gender_comparison_value(value)))
         gender_scope = add_alternative(gender_scope, gender_query)
       end
       scope.merge(gender_scope)
@@ -143,7 +148,7 @@ module Filter::FilterScopes
       ]
       columns << c_t[:HispanicLatinaeo] if include_hispanic_latinaeo
 
-      report_scope_source.joins(:client).
+      report_scope_source.joins(join_clients_method).
         where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
     end
 
@@ -156,7 +161,7 @@ module Filter::FilterScopes
     end
 
     private def race_alternative(key)
-      report_scope_source.joins(:client).where(c_t[key].eq(1))
+      report_scope_source.joins(join_clients_method).where(c_t[key].eq(1))
     end
 
     private def filter_for_race_ethnicity_combinations(scope)
@@ -170,10 +175,10 @@ module Filter::FilterScopes
         race_ethnicity_scope = add_alternative(race_ethnicity_scope, alternative)
       end
 
-      scope.joins(:client).merge(race_ethnicity_scope)
+      scope.joins(join_clients_method).merge(race_ethnicity_scope)
     end
 
-    private def race_ethnicity_alternative(scope, key, hispanic_latinaeo = false)
+    def race_ethnicity_alternative(scope, key, hispanic_latinaeo = false)
       columns = (HudUtility2024.race_fields - [:RaceNone]).map { |k| [k, 0] }.to_h
 
       key = key.to_sym
@@ -201,7 +206,7 @@ module Filter::FilterScopes
     private def filter_for_veteran_status(scope)
       return scope unless @filter.veteran_statuses.present?
 
-      scope.joins(:client).where(c_t[:VeteranStatus].in(@filter.veteran_statuses))
+      scope.joins(join_clients_method).where(c_t[:VeteranStatus].in(@filter.veteran_statuses))
     end
 
     private def filter_for_project_type(scope, all_project_types: nil)
@@ -374,7 +379,7 @@ module Filter::FilterScopes
     private def filter_for_active_roi(scope)
       return scope unless @filter.active_roi
 
-      scope.joins(:client).merge(GrdaWarehouse::Hud::Client.consent_form_valid)
+      scope.joins(join_clients_method).merge(GrdaWarehouse::Hud::Client.consent_form_valid)
     end
 
     private def filter_for_first_time_homeless_in_past_two_years(scope)
