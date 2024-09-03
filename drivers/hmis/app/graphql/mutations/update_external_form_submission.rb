@@ -29,6 +29,11 @@ module Mutations
 
       errors = HmisErrors::Errors.new
 
+      unless record.valid?
+        errors.add_ar_errors(record.errors&.errors)
+        return { errors: errors }
+      end
+
       if record.status_changed? && record.status == 'reviewed' && !record.spam
         definition = record.definition
 
@@ -66,14 +71,7 @@ module Mutations
         form_processor.save!
       end
 
-      if record.valid?
-        record.save!
-      else
-        # todo @martha! - how to arrange this? rollback transacction if record not valid
-        # but record shoudl be saved if valid, whether form processor is present or not
-        errors.add_ar_errors(record.errors&.errors)
-        record = nil
-      end
+      record.save! # checked for validity above
 
       {
         external_form_submission: record,
