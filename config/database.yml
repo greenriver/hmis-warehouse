@@ -6,10 +6,18 @@
 
 global_pg_db_config: &global_pg_db_config
   variables:
-    # our dbs use SSDs so random access is almost as cheap as seq_page_cost
+    # random_page_cost: Cost of a non-sequentially fetched disk page
+    # Set to 1.1 because our databases use SSDs, making random access almost as efficient as sequential.
+    # This setting helps the query planner make more accurate decisions about index usage.
     random_page_cost: 1.1
-    # can improve performance for queries that involve large sorts or hash operations but increasing this value too
-    # much could lead to excessive memory usage
+    # seq_page_cost: Cost of a sequentially fetched disk page
+    # Set to 1 (default value) to maintain consistency with our adjusted random_page_cost.
+    # This ensures a balanced cost model for the query planner when comparing sequential vs. index scans.
+    seq_page_cost: 1
+    # work_mem: Memory used for sort operations and hash tables per operation
+    # Increased to 8MB to potentially improve performance for queries involving large sorts or hash operations.
+    # Be cautious: setting this too high can lead to excessive memory usage, especially on busy systems with many concurrent operations.
+    # Monitor memory usage and adjust as needed based on your workload and available resources.
     work_mem: 8MB
 
 default_app_db: &default_app_db
