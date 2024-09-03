@@ -169,7 +169,7 @@ services:
       timeout: 3s
       retries: 3
     volumes:
-      - dbdata_pg13:/var/lib/postgresql/data
+      - ${DB_DATA_VOLUME_PREVIOUS:-dbdata_pg13}:/var/lib/postgresql/data
     ports:
       - 5432
     expose:
@@ -194,8 +194,11 @@ services:
       retries: 3
     volumes:
       # Name each new postgres major version explicitly (dbdata_pg17 when we get to that)
-      # If you'd rather use a local volume, you can customize this in docker-compose.override.yaml
-      - dbdata_pg16:/var/lib/postgresql/data
+      # You may want to store your db data locally rather than in a docker volume
+      # to do that, set DB_DATA_VOLUME in your env or use a docker override file
+      # For example:
+      #   DB_DATA_VOLUME=./dev/db_data
+      - ${DB_DATA_VOLUME:-dbdata_pg16}:/var/lib/postgresql/data
       - ./tmp/dumps:/tmp/dumps
     ports:
       - 5432
