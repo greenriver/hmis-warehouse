@@ -22,7 +22,7 @@ class HmisExternalApis::PublishExternalFormsJob
     publication = definition.external_form_publications.new
 
     renderer = HmisExternalApis::ExternalFormsController.renderer.new
-    raw_content = renderer.render('hmis_external_apis/external_forms/form', assigns: { form_definition: definition.definition, page_title: definition.title })
+    raw_content = renderer.render('hmis_external_apis/external_forms/form', assigns: { form_definition: definition, page_title: definition.title })
 
     publication.object_key = definition.external_form_object_key
     publication.content_digest = digest = Digest::MD5.hexdigest(raw_content)
