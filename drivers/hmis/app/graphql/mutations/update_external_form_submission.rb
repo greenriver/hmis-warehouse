@@ -10,7 +10,7 @@ module Mutations
     argument :id, ID, required: true
     argument :project_id, ID, required: false # not required for backwards compatibility
 
-    field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: false
+    field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(...)
@@ -70,7 +70,7 @@ module Mutations
       if record.valid?
         record.save!
       else
-        # todo @martha - how to arrange this? rollback transacction if record not valid
+        # todo @martha! - how to arrange this? rollback transacction if record not valid
         # but record shoudl be saved if valid, whether form processor is present or not
         errors.add_ar_errors(record.errors&.errors)
         record = nil

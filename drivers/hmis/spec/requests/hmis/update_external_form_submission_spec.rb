@@ -51,13 +51,21 @@ RSpec.describe 'Update External Form Submission', type: :request do
 
     it 'should create CDE' do
       expect do
-        # todo @martha - this fails bc not passing hud_values to the input, which is expected
-        response, result = post_graphql({ id: submission.id, project_id: p1.id, input: { status: 'reviewed' } }) { mutation }
+        input = {
+          id: submission.id,
+          project_id: p1.id,
+          input: {
+            status: 'reviewed',
+            hud_values: submission.raw_data,
+          },
+        }
+
+        response, result = post_graphql(input) { mutation }
         expect(response.status).to eq(200), result
         expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
-      end.to(change(Hmis::Hud::CustomDataElement, :count).by(1)).
-        and(not_change(Hmis::Hud::Enrollment, :count)).
-        and(not_change(Hmis::Hud::Client, :count))
+      end.to change(Hmis::Hud::CustomDataElement, :count).by(1).
+        and not_change(Hmis::Hud::Enrollment, :count).
+        and not_change(Hmis::Hud::Client, :count)
     end
 
     context 'when the submission has client record info' do
@@ -72,14 +80,42 @@ RSpec.describe 'Update External Form Submission', type: :request do
             },
             'text': 'First name',
           },
+          {
+            'type': 'CHOICE',
+            'pick_list_reference': 'RelationshipToHoH',
+            'link_id': 'relationship_to_hoh',
+            'mapping': {
+              'field_name': 'relationshipToHoH',
+              'record_type': 'ENROLLMENT',
+            },
+            'text': 'Relationship to HoH',
+          },
         ]
         create(:hmis_external_form_definition, append_items: items)
       end
-      let!(:submission) { create(:hmis_external_form_submission, raw_data: { 'Client.firstName': 'Oranges' }, definition: definition, submitted_at: Date.current) }
+      let!(:submission) do
+        raw_data = {
+          'first_name': 'Oranges',
+          'relationship_to_hoh': 'SELF_HEAD_OF_HOUSEHOLD',
+        }
+        create(:hmis_external_form_submission, raw_data: raw_data, definition: definition, submitted_at: Date.current)
+      end
 
       it 'should create client' do
         expect do
-          response, result = post_graphql({ id: submission.id, project_id: p1.id, input: { status: 'reviewed' } }) { mutation }
+          input = {
+            id: submission.id,
+            project_id: p1.id,
+            input: {
+              status: 'reviewed',
+              hud_values: {
+                'Client.firstName': 'Oranges',
+                'Enrollment.relationshipToHoH': 'SELF_HEAD_OF_HOUSEHOLD',
+              }.stringify_keys,
+            },
+          }
+
+          response, result = post_graphql(input) { mutation }
           expect(response.status).to eq(200), result
           expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
         end.to change(Hmis::Hud::Client, :count).by(1).
