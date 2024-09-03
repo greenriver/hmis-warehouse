@@ -23,5 +23,6 @@ module Types
     field :answer_number, Integer, 'If question is numeric, value for comparison', null: true
     field :answer_boolean, Boolean, 'If question is boolean type, value for comparison', null: true
     field :compare_question, String, 'The linkId of a question to compare with the question using the operator', null: true
+    field :answer_date, GraphQL::Types::ISO8601Date, 'If question is date type, value for comparison', null: true
   end
 end

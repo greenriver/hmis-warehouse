@@ -70,6 +70,9 @@ The `debug` helper, defined in [e2e_tests.rb](e2e_tests.rb), enables pausing the
 - Click the icon for Current Sessions (left sidebar between `<>` and the Settings gear icon).
 - Under "Current Sessions" there should be a link to "Open Path HMIS." Clicking this link will take you to the current session, in which you can interact and inspect the DOM.
 
+Other debugging tips:
+- Use `byebug`
+- Use `print page.body` to print the page contents at a given point
 
 ## Run Full E2E test suite locally
 
