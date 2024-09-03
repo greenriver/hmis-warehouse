@@ -118,13 +118,14 @@ module HudLsa
     def available_report_versions
       {
         'FY 2022' => { slug: :fy2022, active: false },
-        'FY 2023' => { slug: :fy2023, active: true },
+        'FY 2023' => { slug: :fy2023, active: false },
+        'FY 2024' => { slug: :fy2024, active: true },
       }.freeze
     end
     helper_method :available_report_versions
 
     def default_report_version
-      :fy2023
+      :fy2024
     end
 
     private def filter_class
@@ -135,6 +136,7 @@ module HudLsa
       {
         fy2022: HudLsa::Generators::Fy2022::Lsa,
         fy2023: HudLsa::Generators::Fy2023::Lsa,
+        fy2024: HudLsa::Generators::Fy2024::Lsa,
       }
     end
 

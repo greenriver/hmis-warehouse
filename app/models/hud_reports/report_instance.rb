@@ -49,9 +49,20 @@ module HudReports
 
       case state
       when 'Waiting'
-        'Queued to start'
+        if job_failed? || related_job.blank?
+          # provide a "fast fail" if the delayed job failed or we can't find one
+          'Failed'
+        else
+          'Queued to start'
+        end
       when 'Started'
         if started_at.present? && started_at < 24.hours.ago
+          'Failed'
+        elsif job_failed?
+          # provide a "fast fail" if the delayed job failed (and we can find one)
+          'Failed'
+        elsif related_job.blank?
+          # if the related delayed job has been deleted, probably because it failed and was cleaned up
           'Failed'
         elsif started_at.present?
           "#{state} at #{started_at}"
@@ -77,6 +88,19 @@ module HudReports
 
     def failures
       report_cells.where.not(error_messages: nil).pluck(:question, :cell_name, :status, :error_messages)
+    end
+
+    private def job_failed?
+      related_job.present? && related_job.failed?
+    end
+
+    def related_job
+      # See if we can find a related job (this is really overloading the jobs_for_class scope, but should work)
+      dj = Delayed::Job.jobs_for_class('RunReportJob').jobs_for_class(id.to_s)
+      return dj&.first if dj.count == 1
+
+      # If we didn't find an obvious match, just return nothing
+      nil
     end
 
     # Mark a question as started
@@ -116,9 +140,14 @@ module HudReports
       state == 'Completed'
     end
 
+    def failed?
+      current_status == 'Failed'
+    end
+
     def running?
       return false if started_at.present? && started_at < 24.hours.ago
       return false if started_at.blank? && created_at < 24.hours.ago
+      return false if failed?
 
       state.in?(['Waiting', 'Started'])
     end
