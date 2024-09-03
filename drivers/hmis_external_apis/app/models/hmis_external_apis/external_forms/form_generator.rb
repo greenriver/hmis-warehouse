@@ -112,8 +112,19 @@ module HmisExternalApis::ExternalForms
     end
 
     def render_display_node(node)
+      classes = case node['component']
+      when 'ALERT_INFO'
+        'alert alert-info'
+      when 'ALERT_WARNING'
+        'alert alert-warning'
+      when 'ALERT_ERROR'
+        'alert alert-danger'
+      when 'ALERT_SUCCESS'
+        'alert alert-success'
+      end
+
       render_form_group(node: node) do
-        context.tag.div(node['text'].html_safe)
+        context.tag.div(node['text'].html_safe, class: classes)
       end
     end
 
