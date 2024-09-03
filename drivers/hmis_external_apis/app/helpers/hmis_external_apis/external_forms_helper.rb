@@ -73,10 +73,10 @@ module HmisExternalApis::ExternalFormsHelper
     render partial_path('form/checkbox'), label: label, name: name, html_id: next_html_id, required: required
   end
 
-  def render_dependent_block(input_name:, input_value:, &block)
+  def render_dependent_block(conditions:, &block)
     content = capture(&block)
     content_tag(:div, content, class: 'dependent-form-group fade-effect')
-    render partial_path('form/dependent_group'), content: content, html_id: next_html_id, input_name: input_name, input_value: input_value
+    render partial_path('form/dependent_group'), content: content, html_id: next_html_id, conditions: conditions
   end
 
   def next_html_id

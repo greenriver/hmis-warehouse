@@ -1,5 +1,5 @@
-%h1.h3.mb-4= @form_definition['name']
+%h1.h3.mb-4= @form_definition.title
 %form{method: 'post', autocomplete: "off",  novalidate: true }
-  - @form_definition['item']&.each do |node|
-    = HmisExternalApis::ExternalForms::FormGenerator.new(self).render_node(node).html_safe
+  - @form_definition.definition['item']&.each do |node|
+    = HmisExternalApis::ExternalForms::FormGenerator.new(self, @form_definition).render_node(node).html_safe
   = render_form_actions
