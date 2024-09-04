@@ -21,11 +21,7 @@ export FILENAME=db_previous.dumpall.sql
 mkdir -p tmp/dumps
 
 echo Dumping old database
-docker-compose exec \
-  db_previous pg_dumpall \
-  --exclude-database=template\* \
-  --exclude-database=postgres \
-  > tmp/dumps/$FILENAME
+docker-compose exec db_previous pg_dumpall --exclude-database=template\* --exclude-database=postgres > tmp/dumps/$FILENAME
 
 echo Importing to new database
 docker-compose exec \
