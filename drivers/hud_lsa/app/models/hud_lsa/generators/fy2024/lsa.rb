@@ -166,6 +166,9 @@ module HudLsa::Generators::Fy2024
     def fetch_summary_results
       load 'lib/rds_sql_server/lsa/fy2024/lsa_report_summary.rb'
       summary = LsaSqlServer::LSAReportSummary.new
+      summary_result&.destroy!
+      self.summary_result = nil
+      save!
       create_summary_result(summary: summary.fetch_summary)
     end
 
@@ -287,7 +290,7 @@ module HudLsa::Generators::Fy2024
         File.open(File.join(extract_path, file_name)) do |file|
           headers = file.first
           file.lazy.each_slice(read_rows) do |lines|
-            content = CSV.parse(lines.join, headers: headers)
+            content = ::CSV.parse(lines.join, headers: headers)
             import_headers = content.first.headers
             next unless content.any?
 
@@ -333,7 +336,7 @@ module HudLsa::Generators::Fy2024
           klass.primary_key = 'id'
           remove_primary_key = true
         end
-        CSV.open(path, 'wb', force_quotes: force_quotes) do |csv|
+        ::CSV.open(path, 'wb', force_quotes: force_quotes) do |csv|
           headers = klass.csv_columns.map { |m| if m == :Zip then :ZIP else m end }.map(&:to_s)
           add_rows_to_export(csv, headers: headers, klass: klass)
         end
@@ -353,7 +356,7 @@ module HudLsa::Generators::Fy2024
           klass.primary_key = 'id'
           remove_primary_key = true
         end
-        CSV.open(path, 'wb') do |csv|
+        ::CSV.open(path, 'wb') do |csv|
           # Force a primary key for fetching in batches
           add_rows_to_export(csv, headers: klass.column_names, klass: klass)
         end

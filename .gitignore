@@ -155,7 +155,7 @@ drivers/datalab_testkit/spec/fixtures/results/*
 !/app/assets/builds/.keep
 
 /drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/*
-drivers/hud_lsa/spec/fixtures/files/lsa/fy2023/sample_hmis_export/*.csv
+drivers/hud_lsa/spec/fixtures/files/lsa/*/*/*.csv
 
 # Superset storage
 docker/superset/op/superset.db
