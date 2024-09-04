@@ -50,5 +50,12 @@ module HmisExternalApis::ExternalForms
       'date',
       'json',
     ].map { |v| [v, "value_#{v}"] }
+
+    # keys that are added to raw_values upon submission, but are not part of the form values
+    EXTRANEOUS_KEYS = ['captcha_score', 'form_definition_id', 'form_content_digest'].freeze
+
+    def form_values
+      raw_data.reject { |key, _| EXTRANEOUS_KEYS.include?(key) }
+    end
   end
 end

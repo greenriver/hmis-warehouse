@@ -32,7 +32,7 @@ module Types
       # ExternalFormSubmissions always display using the values from raw_data. Example: If the form processor created
       # a client, and then a user manually updates the client's name in HMIS, the form review UI should still display
       # the client name that was originally submitted with the form.
-      object.raw_data
+      object.form_values
     end
   end
 end

@@ -25,8 +25,6 @@ module Mutations
       raise HmisErrors::ApiError.new(msg, display_message: 'Unable to process form submission due to invalid values. Contact your administrator if the problem persists.')
     end
 
-    EXTRANEOUS_KEYS = ['captcha_score', 'form_definition_id', 'form_content_digest'].freeze
-
     def _resolve(id:, project_id:, input:)
       record = HmisExternalApis::ExternalForms::FormSubmission.find(id)
       raise 'Access denied' unless allowed?(permissions: [:can_manage_external_form_submissions])
@@ -58,7 +56,7 @@ module Mutations
 
         form_processor = record.form_processor || record.build_form_processor(definition: definition)
 
-        form_processor.hud_values = record.raw_data.reject { |key, _| EXTRANEOUS_KEYS.include?(key) }
+        form_processor.hud_values = record.form_values
         # We skip the form_processor.collect_form_validations step, because the external form has already been
         # submitted. If it's invalid, there is nothing the user can do about it now.
         # Also skip form_processor.collect_record_validations since e don't want to completely block from processing
