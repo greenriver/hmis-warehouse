@@ -144,7 +144,7 @@ module HmisExternalApis::ExternalForms
         render_node(child)
       end
       case node['component']
-      when 'INPUT_GROUP', nil
+      when 'INPUT_GROUP'
         render_form_group(node: node) do
           render_form_fieldset(legend: node['text']) do
             context.safe_join(contents, "\n")

@@ -2,5 +2,6 @@
   %p
     %span.font-weight-bold= 'Warning:'
     You are adding a member to an existing household. If you are trying to add a new member that is NOT part of the previous household, click the below button to refresh.
+  -# FIXME: should ensure button is disabled and aria-hidden when alert is hidden
   %button.btn.btn-sm.btn-primary.reload-button{ type: "button" }
     I'm finished with this household, reload page

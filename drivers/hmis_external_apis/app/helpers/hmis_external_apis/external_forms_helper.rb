@@ -51,8 +51,8 @@ module HmisExternalApis::ExternalFormsHelper
     end
   end
 
-  def render_form_actions(allow_household_submit: true)
-    render partial_path('form/actions'), allow_household_submit: allow_household_submit
+  def render_form_actions
+    render partial_path('form/actions')
   end
 
   def render_form_fieldset(legend:, required: false, &block)
