@@ -397,20 +397,22 @@ module Types
       Hmis::Form::Definition.find(id)
     end
 
-    field :external_form_definition, Types::Forms::FormDefinition, null: true do
+    field :external_form_definition, Types::Forms::FormDefinition, null: true, deprecation_reason: 'use definition from the individual submission to display' do
       argument :identifier, String, required: true
-      argument :id, ID, required: false # not required for backwards compat
     end
-    def external_form_definition(identifier:, id: nil)
+    def external_form_definition(identifier:)
       raise 'Access denied' unless current_user.can_manage_external_form_submissions?
 
-      if id
-        # If the user is looking for a specific form version, return it, as long as it's an external form
-        definition = Hmis::Form::Definition.find(id)
-        return definition if definition.role == 'EXTERNAL_FORM'
-      end
-
       Hmis::Form::Definition.with_role(:EXTERNAL_FORM).where(identifier: identifier).order(version: :desc).first
+    end
+
+    field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true do
+      argument :id, ID, required: true
+    end
+    def external_form_submission(id:)
+      raise 'Access denied' unless current_user.can_manage_external_form_submissions?
+
+      HmisExternalApis::ExternalForms::FormSubmission.find(id)
     end
 
     field :form_identifier, Types::Forms::FormIdentifier, null: true do

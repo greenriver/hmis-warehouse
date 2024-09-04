@@ -21,6 +21,8 @@ module Mutations
 
     protected
 
+    EXTRANEOUS_KEYS = ['captcha_score', 'form_definition_id', 'form_content_digest'].freeze
+
     def _resolve(id:, project_id:, input:)
       record = HmisExternalApis::ExternalForms::FormSubmission.find(id)
       raise 'Access denied' unless allowed?(permissions: [:can_manage_external_form_submissions])
@@ -42,16 +44,15 @@ module Mutations
         if definition.link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping.record_type) }
           project = Hmis::Hud::Project.find(project_id)
           record.build_enrollment(project: project, data_source: project.data_source, entry_date: record.created_at)
+          # Assume that required values on Client and Enrollment (e.g. relationship to HoH) are present
+          # and correctly mapped in raw_values. The form processor record validator will fail otherwise.
         end
 
         form_processor = record.form_processor || record.build_form_processor(definition: definition)
 
-        form_processor.values = record.cleaned_values
-        form_processor.hud_values = input.hud_values
-
-        # Validate based on form definition
-        form_validations = form_processor.collect_form_validations
-        errors.push(*form_validations)
+        form_processor.hud_values = record.raw_data.reject { |key, _| EXTRANEOUS_KEYS.include?(key) }
+        # We skip the form_processor.collect_form_validations step, because the external form has already been
+        # submitted. If it's invalid, there is nothing the user can do about it now.
 
         # Run to create CDEs, and client/enrollment if applicable
         form_processor.run!(user: current_user)

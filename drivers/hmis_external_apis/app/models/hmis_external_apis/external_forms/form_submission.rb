@@ -35,14 +35,9 @@ module HmisExternalApis::ExternalForms
         submitted_at: last_modified,
         definition_id: form_definition.id,
         raw_data: raw_data,
-        cleaned_values: clean(raw_data),
       }
       submission.save!
       submission
-    end
-
-    protected def clean(raw_data)
-      raw_data.select { |link_id, _| definition.link_id_item_hash.key?(link_id) }
     end
 
     VALUE_FIELDS = [

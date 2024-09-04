@@ -64,7 +64,7 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
       filters: filters,
     }
     response, result = post_graphql(variables) { query }
-    expect(response.status).to eq 200
+    expect(response.status).to eq(200), result.inspect
     expected = {
       'id' => submission.id.to_s,
       'values' => { 'your_name' => 'value' },
@@ -79,7 +79,7 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
     it 'should return submissions' do
       submission = create(:hmis_external_form_submission, definition: definition, submitted_at: today.midnight, raw_data: { 'your_name' => 'ebeneezer' })
       response, result = post_graphql({ id: p1.id, formDefinitionIdentifier: definition.identifier }) { query }
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       expected = {
         'id' => submission.id.to_s,
         'values' => { 'your_name' => 'ebeneezer' },
@@ -104,7 +104,7 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
 
     it 'should return all, including spam, when include_spam filter is passed' do
       response, result = post_graphql({ id: p1.id, formDefinitionIdentifier: definition.identifier }) { query }
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       expect(result.dig('data', 'project', 'externalFormSubmissions', 'nodesCount')).to eq(1) # doesn't include spam
 
       filters = { 'includeSpam' => true }
@@ -114,7 +114,7 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
         filters: filters,
       }
       response, result = post_graphql(variables) { query }
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       expect(result.dig('data', 'project', 'externalFormSubmissions', 'nodesCount')).to eq(2) # includes spam
     end
   end

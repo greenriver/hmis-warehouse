@@ -12,9 +12,6 @@ module Types
     argument :spam, Boolean, required: false
     argument :notes, String, required: false
 
-    # transformed HUD values as JSON
-    argument :hud_values, Types::JsonObject, required: false
-
     def to_params
       {
         status: status,

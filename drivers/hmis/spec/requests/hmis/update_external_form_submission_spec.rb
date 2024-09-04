@@ -56,7 +56,6 @@ RSpec.describe 'Update External Form Submission', type: :request do
           project_id: p1.id,
           input: {
             status: 'reviewed',
-            hud_values: submission.raw_data,
           },
         }
 
@@ -95,10 +94,13 @@ RSpec.describe 'Update External Form Submission', type: :request do
       end
       let!(:submission) do
         data = {
-          'first_name': 'Oranges',
-          'relationship_to_hoh': 'SELF_HEAD_OF_HOUSEHOLD',
-        }
-        create(:hmis_external_form_submission, raw_data: data, cleaned_values: data, definition: definition, submitted_at: Date.current)
+          'Client.firstName': 'Oranges',
+          'Enrollment.relationshipToHoH': 'SELF_HEAD_OF_HOUSEHOLD',
+          'captcha_score': '1.',
+          'form_definition_id': definition.id,
+          'form_content_digest': 'something random',
+        }.stringify_keys
+        create(:hmis_external_form_submission, raw_data: data, definition: definition, submitted_at: Date.current)
       end
 
       it 'should create client' do
@@ -108,10 +110,6 @@ RSpec.describe 'Update External Form Submission', type: :request do
             project_id: p1.id,
             input: {
               status: 'reviewed',
-              hud_values: {
-                'Client.firstName': 'Oranges',
-                'Enrollment.relationshipToHoH': 'SELF_HEAD_OF_HOUSEHOLD',
-              }.stringify_keys,
             },
           }
 
