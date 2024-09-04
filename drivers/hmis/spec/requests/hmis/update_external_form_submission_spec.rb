@@ -37,7 +37,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
   end
 
   let!(:access_control) do
-    create_access_control(hmis_user, p1, with_permission: [:can_manage_external_form_submissions, :can_view_project])
+    create_access_control(hmis_user, p1, with_permission: [:can_manage_external_form_submissions, :can_view_project, :can_edit_enrollments])
   end
 
   before(:each) do
@@ -46,7 +46,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
 
   context 'when reviewing a submission' do
     let!(:definition) { create(:hmis_external_form_definition) }
-    let!(:submission) { create(:hmis_external_form_submission, definition: definition, submitted_at: Date.current) }
+    let!(:submission) { create(:hmis_external_form_submission, definition: definition) }
     let!(:cded) { create(:hmis_custom_data_element_definition, owner_type: submission.class.sti_name, key: 'your_name', data_source: ds1, user: u1) }
 
     it 'should create CDE' do
@@ -100,7 +100,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
           'form_definition_id': definition.id,
           'form_content_digest': 'something random',
         }.stringify_keys
-        create(:hmis_external_form_submission, raw_data: data, definition: definition, submitted_at: Date.current)
+        create(:hmis_external_form_submission, raw_data: data, definition: definition)
       end
 
       it 'should create client' do
