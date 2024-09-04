@@ -8,6 +8,7 @@ module HmisExternalApis::ExternalForms
   class FormSubmission < ::HmisExternalApis::HmisExternalApisBase
     self.table_name = 'hmis_external_form_submissions'
     belongs_to :definition, class_name: 'Hmis::Form::Definition'
+    # Enrollment that was generated as a result of processing this form submission. Only applicable for certain external forms, like the PIT.
     belongs_to :enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
     include ::Hmis::Hud::Concerns::FormSubmittable
 
