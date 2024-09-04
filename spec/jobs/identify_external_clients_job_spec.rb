@@ -7,8 +7,9 @@
 require 'rails_helper'
 
 RSpec.describe IdentifyExternalClientsJob, type: :job do
-  let(:inbox_s3) { instance_double('AwsS3') }
-  let(:outbox_s3) { instance_double('AwsS3') }
+  let(:s3) { instance_double('AwsS3') }
+  let(:inbox_path) { 'inbox' }
+  let(:outbox_path) { 'outbox' }
   let(:external_id_field) { 'GHOCID' }
 
   describe 'processing files' do
@@ -25,11 +26,11 @@ RSpec.describe IdentifyExternalClientsJob, type: :job do
     end
 
     before do
-      allow(inbox_s3).to receive(:list_objects).and_return([double(key: 'test.csv')])
-      allow(inbox_s3).to receive(:get_file_type).and_return('text/csv')
-      allow(inbox_s3).to receive(:get_as_io).and_return(StringIO.new(csv_content))
-      allow(outbox_s3).to receive(:store)
-      allow(inbox_s3).to receive(:delete)
+      allow(s3).to receive(:list_objects).and_return([double(key: 'test.csv')])
+      allow(s3).to receive(:get_file_type).and_return('text/csv')
+      allow(s3).to receive(:get_as_io).and_return(StringIO.new(csv_content))
+      allow(s3).to receive(:store)
+      allow(s3).to receive(:delete)
     end
 
     [
@@ -65,7 +66,7 @@ RSpec.describe IdentifyExternalClientsJob, type: :job do
         end
         if expected_match_idx
           it 'should match client to the CSV' do
-            expect(outbox_s3).to receive(:store).with(hash_including(name: 'test-results.csv')) do |args|
+            expect(s3).to receive(:store).with(hash_including(name: [outbox_path, 'test-results.csv'].join('/'))) do |args|
               content = args[:content]
               csv = CSV.parse(content, headers: true)
               row = csv.first
@@ -73,16 +74,16 @@ RSpec.describe IdentifyExternalClientsJob, type: :job do
               destination_id = clients[expected_match_idx].warehouse_client_source.destination_id
               expect(row['Client ID']).to eq(destination_id.to_s)
             end
-            expect(inbox_s3).to receive(:delete).with(key: 'test.csv')
+            expect(s3).to receive(:delete).with(key: 'test.csv')
 
-            described_class.perform_now(inbox_s3: inbox_s3, outbox_s3: outbox_s3, external_id_field: external_id_field)
+            described_class.perform_now(s3: s3, inbox_path: inbox_path, outbox_path: outbox_path, external_id_field: external_id_field)
           end
         else
           it 'should not match the client to the CSV' do
-            expect(outbox_s3).not_to receive(:store)
-            expect(inbox_s3).not_to receive(:delete)
+            expect(s3).not_to receive(:store)
+            expect(s3).not_to receive(:delete)
 
-            described_class.perform_now(inbox_s3: inbox_s3, outbox_s3: outbox_s3, external_id_field: external_id_field)
+            described_class.perform_now(s3: s3, inbox_path: inbox_path, outbox_path: outbox_path, external_id_field: external_id_field)
           end
         end
       end
@@ -92,24 +93,25 @@ RSpec.describe IdentifyExternalClientsJob, type: :job do
   describe 'error handling' do
     it 'logs an error for malformed CSV files' do
       malformed_csv_content = "first_name,last_name,ssn4,dob,#{external_id_field}\nJohn,Doe,\"1234,1990-01-01,1" # Unclosed quoted field
-      allow(inbox_s3).to receive(:list_objects).and_return([double(key: 'test.csv')])
-      allow(inbox_s3).to receive(:get_file_type).and_return('text/csv')
-      allow(inbox_s3).to receive(:get_as_io).and_return(StringIO.new(malformed_csv_content))
+      allow(s3).to receive(:list_objects).and_return([double(key: 'test.csv')])
+      allow(s3).to receive(:get_file_type).and_return('text/csv')
+      allow(s3).to receive(:get_as_io).and_return(StringIO.new(malformed_csv_content))
       allow(Rails.logger).to receive(:error)
 
-      described_class.perform_now(inbox_s3: inbox_s3, outbox_s3: outbox_s3, external_id_field: external_id_field)
+      described_class.perform_now(s3: s3, inbox_path: inbox_path, outbox_path: outbox_path, external_id_field: external_id_field)
       expect(Rails.logger).to have_received(:error).with(/CSV parsing error/).once
     end
 
-    it 'logs an error for invalid content type' do
-      invalid_content_type = "first_name,last_name,ssn4,dob,#{external_id_field}\nJohn,Doe,1234,1990-01-01,1"
-      allow(inbox_s3).to receive(:list_objects).and_return([double(key: 'test.csv')])
-      allow(inbox_s3).to receive(:get_file_type).and_return('application/json')
-      allow(inbox_s3).to receive(:get_as_io).and_return(StringIO.new(invalid_content_type))
-      allow(Rails.logger).to receive(:error)
+    # Disabled, for now since we aren't checking the content type
+    # it 'logs an error for invalid content type' do
+    #   invalid_content_type = "first_name,last_name,ssn4,dob,#{external_id_field}\nJohn,Doe,1234,1990-01-01,1"
+    #   allow(s3).to receive(:list_objects).and_return([double(key: 'test.csv')])
+    #   allow(s3).to receive(:get_file_type).and_return('application/json')
+    #   allow(s3).to receive(:get_as_io).and_return(StringIO.new(invalid_content_type))
+    #   allow(Rails.logger).to receive(:error)
 
-      described_class.perform_now(inbox_s3: inbox_s3, outbox_s3: outbox_s3, external_id_field: external_id_field)
-      expect(Rails.logger).to have_received(:error).with(/invalid content type/).once
-    end
+    #   described_class.perform_now(s3: s3, inbox_path: inbox_path, outbox_path: outbox_path, external_id_field: external_id_field)
+    #   expect(Rails.logger).to have_received(:error).with(/invalid content type/).once
+    # end
   end
 end
