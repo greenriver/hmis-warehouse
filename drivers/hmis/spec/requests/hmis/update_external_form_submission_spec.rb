@@ -67,7 +67,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
         and not_change(Hmis::Hud::Client, :count)
     end
 
-    context 'when the submission has client record info' do
+    context 'when the form definition accepts client/enrollment information' do
       let!(:definition) do
         items = [
           {
@@ -92,19 +92,48 @@ RSpec.describe 'Update External Form Submission', type: :request do
         ]
         create(:hmis_external_form_definition, append_items: items)
       end
-      let!(:submission) do
-        data = {
-          'Client.firstName': 'Oranges',
-          'Enrollment.relationshipToHoH': 'SELF_HEAD_OF_HOUSEHOLD',
-          'captcha_score': '1.',
-          'form_definition_id': definition.id,
-          'form_content_digest': 'something random',
-        }.stringify_keys
-        create(:hmis_external_form_submission, raw_data: data, definition: definition)
+
+      context 'when the submission info is all present and correct' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'Oranges',
+            'Enrollment.relationshipToHoH': 'SELF_HEAD_OF_HOUSEHOLD', # TODO - this will not be passed
+            'captcha_score': '1.',
+            'form_definition_id': definition.id,
+            'form_content_digest': 'something random',
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should create client' do
+          expect do
+            input = {
+              id: submission.id,
+              project_id: p1.id,
+              input: {
+                status: 'reviewed',
+              },
+            }
+
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1)
+        end
       end
 
-      it 'should create client' do
-        expect do
+      context 'when the submission info is not valid' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'Oranges',
+            # missing relationship to HoH, so it will throw
+            # TODO - this will be fixed soon so need to find another error case to test this scenario
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should raise an error' do
           input = {
             id: submission.id,
             project_id: p1.id,
@@ -112,12 +141,8 @@ RSpec.describe 'Update External Form Submission', type: :request do
               status: 'reviewed',
             },
           }
-
-          response, result = post_graphql(input) { mutation }
-          expect(response.status).to eq(200), result
-          expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
-        end.to change(Hmis::Hud::Client, :count).by(1).
-          and change(Hmis::Hud::Enrollment, :count).by(1)
+          expect_gql_error post_graphql(input) { mutation }
+        end
       end
     end
   end

@@ -21,6 +21,10 @@ module Mutations
 
     protected
 
+    def error_out(msg)
+      raise HmisErrors::ApiError.new(msg, display_message: 'Unable to process form submission due to invalid values. Contact your administrator if the problem persists.')
+    end
+
     EXTRANEOUS_KEYS = ['captcha_score', 'form_definition_id', 'form_content_digest'].freeze
 
     def _resolve(id:, project_id:, input:)
@@ -57,18 +61,20 @@ module Mutations
         form_processor.hud_values = record.raw_data.reject { |key, _| EXTRANEOUS_KEYS.include?(key) }
         # We skip the form_processor.collect_form_validations step, because the external form has already been
         # submitted. If it's invalid, there is nothing the user can do about it now.
+        # Also skip form_processor.collect_record_validations since e don't want to completely block from processing
+        # if the external submission results in invalid values. We should process and allow correction after-the-fact.
 
         # Run to create CDEs, and client/enrollment if applicable
         form_processor.run!(user: current_user)
-
-        # Collect validations and warnings from AR Validator classes
-        record_validations = form_processor.collect_record_validations(user: current_user)
-        errors.push(*record_validations)
 
         errors.deduplicate!
         return { errors: errors } if errors.any?
 
         if record.enrollment&.new_record?
+          # Raise with user-facing error message so that we get notified (rather than returning errors in the response body)
+          error_out(record.enrollment.client.errors.full_messages) unless record.enrollment.client.valid?
+          error_out(record.enrollment.errors.full_messages) unless record.enrollment.valid?
+
           record.enrollment.client.save!
           record.enrollment.save_new_enrollment!
         end
