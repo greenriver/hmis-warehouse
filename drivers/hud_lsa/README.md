@@ -28,6 +28,6 @@ By setting the `test` flag, it will ignore the export process and use the suppli
 You can compare the test results to the sample results with the provided LSA Comparison Tool.  First, download and expand the results from the test run to `var/lsa/generated`.
 
 ```
-r = HudLsa::Generators::Fy2024::LsaComparisonTool.new('drivers/hud_lsa/spec/fixtures/files/lsa/fy2024/sample_results', 'var/lsa/generated')
-r.compare
+checker = HudLsa::Generators::Fy2024::LsaComparisonTool.new('drivers/hud_lsa/spec/fixtures/files/lsa/fy2024/sample_results', 'var/lsa/generated')
+checker.compare
 ```
