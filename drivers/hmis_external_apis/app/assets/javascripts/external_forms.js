@@ -12,15 +12,13 @@ $(function () {
     form.reset();
     document.querySelector('main').remove();
 
-    // If HH Size > 1, or we just submitted a non-HoH member, show the option to add another member in the Success modal
-    if (window.householdSize > 1 || window.existingHousehold) {
+    // If 'Family' selected, or we just submitted a non-HoH member to an existing household,
+    // show the option to add another member in the Success modal.
+    if (window.isFamilyHoH || window.isFamilyMember) {
       $('#addAnotherHouseholdMemberButton').show();
     }
     $('#successModal').modal('show');
   }
-
-  // MAYBE TODO: move all this JS to addHouseholdSizeListener or another function so it's only conditionally
-  // loaded if this form deals with household submissions. (Again, inferred from household_size presence, or Enrollment mappings?👀)
 
   // Generates a "household id" that is unlikely to have collisions among form submissions,
   // without using external library (uuid) or modern browser features (crypto)
@@ -30,30 +28,28 @@ $(function () {
     return String('HH' + current + rand).toUpperCase();
   }
 
-  var isValidHouseholdId = function (id) {
-    // safe? will it ever be a different length due to browser differences?
-    return id.length === 28 && id.substring(0, 2) === 'HH';
-  }
-
-  var setHouseholdId = function () {
+  var setWindowHouseholdId = function () {
     var params = new URL(document.location.toString()).searchParams;
-    var householdIdParam = params.get("hh_id");
+    var hh_id = params.get("hh_id");
 
-    if (householdIdParam && isValidHouseholdId(householdIdParam)) {
-      // Form will add a client to the same household as the previous submission (hh_id)
-      window.householdId = householdIdParam;
-      window.existingHousehold = true;
-      console.log('Using Household ID param:', window.householdId);
-      $('#household_warning').show();
+    // If valid hh_id param exists, then we are adding a client to the same household
+    // as the previous submission
+    if (hh_id && hh_id.length === 28 && hh_id.substring(0, 2) === 'HH') {
+      window.householdId = hh_id;
+      window.isFamilyMember = true;
+      window.isFamilyHoH = false;
+      // console.log('Using Household ID param:', window.householdId);
+      $('#householdWarning').show();
     } else {
-      // Form will create a new household for this submission
+      // Generate a new new household for this submission
       window.householdId = generateHouseholdId();
-      window.existingHousehold = false;
-      console.log('Created new Household ID:', window.householdId);
+      window.isFamilyMember = false;
+      window.isFamilyHoH = false; // don't know yet if this will be a family or individual
+      // console.log('Created new Household ID:', window.householdId);
     }
   }
-  
-  setHouseholdId();
+  // Set initial householdId on the window
+  setWindowHouseholdId();
 
   $('.reload-button').on('click', function () {
     // drop hh_id param
@@ -161,21 +157,22 @@ $(function () {
   });
 });
 
-window.addHouseholdSizeListener = function (targetSelector) {
+window.addHouseholdTypeListener = function (targetSelector) {
   var $hhSizeEl = $(targetSelector);
-  if (window.existingHousehold) {
-    // Form is for an existing household, so hide the household size question
-    $hhSizeEl.removeClass('visible');
-    $hhSizeEl.attr('aria-hidden', "true");
-    $hhSizeEl.find('input, select, textarea').prop('disabled', true);
+  if (window.isFamilyMember) {
+    // Form is for an existing household (hh_id present),
+    // so set and disable the household question
+    $(targetSelector + '[value="Family"]').prop('checked', true); // default to Family
+    $hhSizeEl.prop('disabled', true);
   } else {
-    // Store Household Size on the window so we have it after successful submission, to
+    // Store Household type on the window so we have it after successful submission, to
     // decide whether to show the "Add another HHM" button.
-    $hhSizeEl.on('change', function () {
-      //TODO: do something better/safer than parseInt. also trim. should this field be required?
-      var hhSize = parseInt($(this).val());
-      console.log("hh size", hhSize);
-      window.householdSize = hhSize || 0;
+    $hhSizeEl.on('change', function (event) {
+      if (event.target.value === 'Family' && event.target.checked) {
+        window.isFamilyHoH = true;
+      } else {
+        window.isFamilyHoH = false;
+      }
     });
   }
 }

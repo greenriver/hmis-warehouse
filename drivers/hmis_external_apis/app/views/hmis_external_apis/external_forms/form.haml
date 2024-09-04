@@ -4,3 +4,16 @@
   - @form_definition.definition['item']&.each do |node|
     = HmisExternalApis::ExternalForms::FormGenerator.new(self, @form_definition).render_node(node).html_safe
   = render_form_actions
+-# Expect hard-coded link_id to indicate whether this form is for an individual or a family.
+-# If family, will show options for adding additional household members.
+-# If this link_id is not present, none of the household-specific JS will be loaded.
+- individual_or_family_node = @form_definition.link_id_item_hash['individual_or_family']
+- if individual_or_family_node
+  - node_name = HmisExternalApis::ExternalForms::FormGenerator.node_name(individual_or_family_node)
+  - content_for :page_js do
+    :javascript
+      'use strict';
+      $(function() {
+        var target = '[name="' + #{node_name.to_json.html_safe} + '"]';
+        window.addHouseholdTypeListener(target);
+      });

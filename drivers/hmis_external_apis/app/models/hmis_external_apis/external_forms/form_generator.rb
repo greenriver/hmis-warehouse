@@ -59,10 +59,6 @@ module HmisExternalApis::ExternalForms
       when 'CHOICE'
         render_choice_node(node)
       when 'INTEGER'
-        # Expect a certain `link_id` for household_size, which is rendered specially because it impacts
-        # form submission options. Not ideal to rely on a link id, use some other mechanism to flag this item?
-        # is_household_size_field = node['link_id'] == 'household_size'
-        # is_household_size_field ? render_household_size_node(node) : render_numeric_node(node)
         render_numeric_node(node)
       else
         raise "node type #{node_type} not supported in #{node.inspect}"
@@ -93,9 +89,8 @@ module HmisExternalApis::ExternalForms
     end
 
     def render_numeric_node(node)
-      is_household_size = node['link_id'] == 'household_size'
       render_form_group(node: node) do
-        render_numeric_input(label: node['text'], name: node_name(node), required: node['required'], is_household_size: is_household_size)
+        render_numeric_input(label: node['text'], name: node_name(node), required: node['required'])
       end
     end
 
@@ -149,7 +144,7 @@ module HmisExternalApis::ExternalForms
         render_node(child)
       end
       case node['component']
-      when 'INPUT_GROUP'
+      when 'INPUT_GROUP', nil
         render_form_group(node: node) do
           render_form_fieldset(legend: node['text']) do
             context.safe_join(contents, "\n")
@@ -188,7 +183,7 @@ module HmisExternalApis::ExternalForms
       return context.capture(&block)
     end
 
-    def node_name(node)
+    def self.node_name(node)
       record_type = node.dig('mapping', 'record_type')
       processor_name = Hmis::Form::RecordType.find(record_type).processor_name if record_type
 
@@ -198,6 +193,10 @@ module HmisExternalApis::ExternalForms
       # Join with period since that's the expected submission shape (Client.firstName)
       # If problematic we can use another separator and process accordingly in ConsumeExternalFormSubmissionsJob
       [processor_name, custom_field_key || field_name].compact.join('.')
+    end
+
+    def node_name(node)
+      self.class.node_name(node)
     end
 
     # Map { linkd_id => name to use for input field }

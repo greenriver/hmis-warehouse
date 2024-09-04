@@ -3,11 +3,3 @@
 .invalid-feedback= input_invalid_feedback
 - if input_helper
   .form-text.small.text-muted= input_helper
-- if local_assigns[:is_household_size]
-  - content_for :page_js do
-    :javascript
-      'use strict';
-      $(function() {
-        var target = '#' + #{html_id.to_json.html_safe};
-        window.addHouseholdSizeListener(target);
-      });

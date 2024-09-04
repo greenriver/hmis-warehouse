@@ -70,6 +70,10 @@
       .form-check {
         margin: 0.25rem;
       }
+      /* reduce padding for groups of checkboxes */
+      fieldset > .form-group:has(> .form-check) {
+          margin-bottom: 0px;
+      }
 
   %body.bg-light
     %nav.sticky-top.navbar-light.border-bottom.bg-white.mb-4.shadow-sm
