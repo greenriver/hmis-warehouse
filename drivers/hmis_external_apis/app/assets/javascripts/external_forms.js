@@ -20,40 +20,8 @@ $(function () {
     $('#successModal').modal('show');
   }
 
-  // Generates a "household id" that is unlikely to have collisions among form submissions,
-  // without using external library (uuid) or modern browser features (crypto)
-  var generateHouseholdId = function () {
-    var current = Date.now().toString(); // OK? https://caniuse.com/mdn-javascript_builtins_date_now
-    var rand = Math.random().toString(16).substring(2)
-    return String('HH' + current + rand).toUpperCase();
-  }
-
-  var setWindowHouseholdId = function () {
-    var params = new URL(document.location.toString()).searchParams;
-    var hh_id = params.get("hh_id");
-
-    // If valid hh_id param exists, then we are adding a client to the same household
-    // as the previous submission
-    if (hh_id && hh_id.length === 28 && hh_id.substring(0, 2) === 'HH') {
-      window.householdId = hh_id;
-      window.isFamilyMember = true;
-      window.isFamilyHoH = false;
-      // console.log('Using Household ID param:', window.householdId);
-      $('#householdWarning').show();
-    } else {
-      // Generate a new new household for this submission
-      window.householdId = generateHouseholdId();
-      window.isFamilyMember = false;
-      window.isFamilyHoH = false; // don't know yet if this will be a family or individual
-      // console.log('Created new Household ID:', window.householdId);
-    }
-  }
-  // Set initial householdId on the window
-  setWindowHouseholdId();
-
   $('.reload-button').on('click', function () {
-    // drop hh_id param
-    window.location = window.location.pathname;
+    window.location = window.location.pathname; // drop hh_id param
   });
 
   $('#addAnotherHouseholdMemberButton').on('click', function () {
@@ -74,12 +42,18 @@ $(function () {
   }
 
   var submitWithPresign = function (captchaToken) {
-    var formData = { householdId: window.householdId };
+    var formData = {};
     $(form).serializeArray().forEach(function (item) {
       formData[item.name] = item.value;
     });
-    console.log("submitting", formData);
-    return handleSuccess(); // just for testing
+
+    if (window.householdId) {
+      // If form collects household information, add householdId and relationshipToHoH to submission
+      formData['Enrollment.householdId'] = window.householdId;
+      if (!formData['Enrollment.relationshipToHoH']) {
+        formData['Enrollment.relationshipToHoH'] = window.isFamilyMember ? 'DATA_NOT_COLLECTED' : 'SELF_HEAD_OF_HOUSEHOLD';
+      }
+    }
 
     // Request a presigned URL
     $.ajax({
@@ -114,7 +88,6 @@ $(function () {
   }
 
   var submitWithCaptcha = function () {
-    return submitWithPresign(null); // just for testing
     $('#spinnerModal').modal('show');
     grecaptcha.ready(function () {
       try {
@@ -157,31 +130,69 @@ $(function () {
   });
 });
 
-window.addHouseholdTypeListener = function (targetSelector) {
-  var $hhSizeEl = $(targetSelector);
+window.addHouseholdTypeListener = function (individualOrFamilySelector) {
+  // Generates a "household id" that is unlikely to have collisions among form submissions,
+  // without using external library (uuid) or modern browser features (crypto)
+  var generateHouseholdId = function () {
+    var current = Date.now().toString(); // OK? https://caniuse.com/mdn-javascript_builtins_date_now
+    var rand = Math.random().toString(16).substring(2)
+    return String('HH' + current + rand).toUpperCase();
+  }
+
+  var setWindowHouseholdId = function () {
+    var params = new URL(document.location.toString()).searchParams;
+    var hh_id = params.get("hh_id");
+
+    // If valid hh_id param exists, then we are adding a client to the same household
+    // as the previous submission
+    if (hh_id && hh_id.length === 28 && hh_id.substring(0, 2) === 'HH') {
+      window.householdId = hh_id;
+      window.isFamilyMember = true;
+      window.isFamilyHoH = false;
+      // Show alert indicating that the user is adding a new member to an existing household
+      $('#householdWarning').show();
+    } else {
+      // Generate a new new household for this submission
+      window.householdId = generateHouseholdId();
+      window.isFamilyHoH = false; // don't know yet if this will be a family or individual
+      window.isFamilyMember = false;
+    }
+  }
+  // Set initial householdId on the window
+  setWindowHouseholdId();
+
+  // Listener for household type (Individual or Family)
+  //
+  // Expected item attributes:
+  //
+  // { "link_id": "individual_or_family",
+  //   "type": "CHOICE",
+  //   "pick_list_options": [{"code": "Individual"}, {"code": "Family"}]
+  // }
+  var $hhTypeEl = $(individualOrFamilySelector); // Selector for "Individual or Family" radio buttons
   if (window.isFamilyMember) {
-    // Form is for an existing household (hh_id present),
-    // so set and disable the household question
-    $(targetSelector + '[value="Family"]').prop('checked', true); // default to Family
-    $hhSizeEl.prop('disabled', true);
+    // Form is for an existing household (hh_id present), so set to 'Family' and disable.
+    $(individualOrFamilySelector + '[value="Family"]').prop('checked', true); // default to Family
+    $hhTypeEl.prop('disabled', true);
   } else {
     // Store Household type on the window so we have it after successful submission, to
     // decide whether to show the "Add another HHM" button.
-    $hhSizeEl.on('change', function (event) {
-      if (event.target.value === 'Family' && event.target.checked) {
-        window.isFamilyHoH = true;
-      } else {
-        window.isFamilyHoH = false;
-      }
+    $hhTypeEl.on('change', function (event) {
+      window.isFamilyHoH = event.target.value === 'Family' && !!event.target.checked;
     });
   }
 }
+
+
 
 // conditions: [{input_name: 'name', input_value: 'value'}, ...]
 // targetSelector: selector for the item that is conditionally shown
 // enableBehavior: 'ANY' or 'ALL' conditions must be met to show the target selector
 window.addDependentGroup = function (conditions, targetSelector, enableBehavior = 'ANY') {
   var target = $(targetSelector); // the item with enable_when on it
+
+  // note: special methods instead of using show() and hide() because
+  // the .fade-effect class uses visibility:hidden
   var show = function () {
     target.addClass('visible');
     target.attr('aria-hidden', "false");
