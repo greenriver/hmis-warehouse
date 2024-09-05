@@ -111,8 +111,11 @@ $(function () {
   });
 });
 
-window.addDependentGroup = function (inputName, condValue, targetSelector) {
-  var target = $(targetSelector);
+// conditions: [{input_name: 'name', input_value: 'value'}, ...]
+// targetSelector: selector for the item that is conditionally shown
+// enableBehavior: 'ANY' or 'ALL' conditions must be met to show the target selector
+window.addDependentGroup = function (conditions, targetSelector, enableBehavior = 'ANY') {
+  var target = $(targetSelector); // the item with enable_when on it
   var show = function () {
     target.addClass('visible');
     target.attr('aria-hidden', "false");
@@ -124,16 +127,30 @@ window.addDependentGroup = function (inputName, condValue, targetSelector) {
     target.find('input, select, textarea').prop('disabled', true);
   }
 
-  $('[name="' + inputName + '"]').on('change', function () {
-    var el = $(this)
-    var value = el.val();
-    if (el.prop('type') === 'checkbox') {
-      if (value === condValue) {
-        el.is(':checked') ? show() : hide();
+  // When *any* dependent item changes, this function will check all the conditions, and show/hide the target item accordingly.
+  var onDependentItemChanged = function() {
+    var evaluations = conditions.map(function (condition) {
+      var $el = $('[name="' + condition.input_name + '"]')
+
+      // If the dependent item is a radio button item, we need to look at all the radio buttons with the same name, and find the one that is checked.
+      if ($el.is(':radio')) {
+        return $('[name="' + condition.input_name + '"]:checked').val() === condition.input_value;
       }
-    } else {
-      value === condValue ? show() : hide();
-    }
+      if ($el.is(':checkbox')) {
+        return $el.is(':checked') && $el.val() === condition.input_value;
+      }
+      return $el.val() === condition.input_value;
+    });
+
+    var meetsCondition = enableBehavior === 'ALL' ? evaluations.every(Boolean) : evaluations.some(Boolean)
+    meetsCondition ? show() : hide();
+  }
+
+  // add change listener to all dependent fields
+  conditions.forEach(function (condition) {
+    $('[name="' + condition.input_name+ '"]').on('change', onDependentItemChanged);
   });
+
+  // hide conditional item initially
   hide();
 }
