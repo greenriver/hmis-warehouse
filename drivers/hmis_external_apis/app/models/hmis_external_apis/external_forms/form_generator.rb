@@ -119,7 +119,6 @@ module HmisExternalApis::ExternalForms
       end
 
       render_form_group(node: node) do
-        context.tag.div(node['text'].html_safe)
         context.tag.div(node['text'].html_safe, class: classes)
       end
     end
