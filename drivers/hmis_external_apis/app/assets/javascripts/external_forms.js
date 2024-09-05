@@ -38,7 +38,7 @@ $(function () {
 
     // Request a presigned URL
     $.ajax({
-      url: presignUrl,
+      url: presignUrl, // NOTE: for local testing, this should be "/hmis_external_api/external_forms/presign"
       type: 'GET',
       contentType: 'application/json',
       data: { captchaToken: captchaToken },
