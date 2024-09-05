@@ -114,8 +114,22 @@ module MaReports::CsgEngage::ReportComponents
     # field('Expense')
 
     field('Services') do
-      enrollment.services.map do |service|
-        MaReports::CsgEngage::ReportComponents::Service.new(service)
+      services = enrollment.services.order(DateProvided: :desc).limit(1)
+
+      if services.present?
+        services.map do |service|
+          MaReports::CsgEngage::ReportComponents::Service.new(service)
+        end
+      else
+        [
+          {
+            'Service' => {
+              'ServiceDateTimeBegin' => enrollment.EntryDate&.strftime('%m/%d/%Y'),
+              'ServiceDateTimeEnd' => enrollment.exit&.ExitDate&.strftime('%m/%d/%Y'),
+              'ServiceProvided' => 'Project Enrollment',
+            },
+          },
+        ]
       end
     end
 
