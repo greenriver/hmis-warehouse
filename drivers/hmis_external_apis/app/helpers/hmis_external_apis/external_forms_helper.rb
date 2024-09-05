@@ -19,7 +19,7 @@ module HmisExternalApis::ExternalFormsHelper
     render partial_path('form/textarea'), label: label, name: name, required: required, rows: rows, html_id: next_html_id, input_invalid_feedback: input_invalid_feedback
   end
 
-  def render_numeric_input(label:, name:, required: false, input_placeholder: nil, input_pattern: '\d*', input_html_id: nil, input_helper: nil, input_invalid_feedback: 'Must be a number')
+  def render_numeric_input(label:, name:, required: false, input_placeholder: nil, input_pattern: '\d*', input_html_id: next_html_id, input_helper: nil, input_invalid_feedback: 'Must be a number')
     render_form_input(label: label, name: name, required: required, input_pattern: input_pattern, input_mode: 'numeric', input_placeholder: input_placeholder, input_html_id: input_html_id, input_helper: input_helper, input_invalid_feedback: input_invalid_feedback)
   end
 
