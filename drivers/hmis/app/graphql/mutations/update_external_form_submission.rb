@@ -13,21 +13,9 @@ module Mutations
     field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
-    def resolve(...)
-      Hmis::Hud::Base.transaction do
-        _resolve(...)
-      end
-    end
-
-    protected
-
-    def error_out(msg)
-      raise HmisErrors::ApiError.new(msg, display_message: 'Unable to process form submission due to invalid values. Contact your administrator if the problem persists.')
-    end
-
-    def _resolve(id:, project_id:, input:)
+    def resolve(id:, project_id:, input:)
       record = HmisExternalApis::ExternalForms::FormSubmission.find(id)
-      raise 'Access denied' unless allowed?(permissions: [:can_manage_external_form_submissions])
+      access_denied! unless allowed?(permissions: [:can_manage_external_form_submissions])
 
       record.assign_attributes(**input.to_params)
 
@@ -48,23 +36,32 @@ module Mutations
 
         record.run_form_processor(project, current_user)
 
-        if record.enrollment&.new_record?
-          # Raise with user-facing error message so that we get notified (rather than returning errors in the response body)
-          error_out(record.enrollment.client.errors.full_messages) unless record.enrollment.client.valid?
-          error_out(record.enrollment.errors.full_messages) unless record.enrollment.valid?
+        Hmis::Hud::Base.transaction do
+          if record.enrollment&.new_record?
+            # Raise with user-facing error message so that we get notified (rather than returning errors in the response body)
+            error_out(record.enrollment.client.errors.full_messages) unless record.enrollment.client.valid?
+            error_out(record.enrollment.errors.full_messages) unless record.enrollment.valid?
 
-          record.enrollment.client.save!
-          record.enrollment.save_new_enrollment!
+            record.enrollment.client.save!
+            record.enrollment.save_new_enrollment!
+          end
+          record.form_processor.save!
+          record.save!
         end
-        record.form_processor.save!
+      else
+        record.save!
       end
-
-      record.save! # checked for validity above
 
       {
         external_form_submission: record,
         errors: errors,
       }
+    end
+
+    protected
+
+    def error_out(msg)
+      raise HmisErrors::ApiError.new(msg, display_message: 'Unable to process form submission due to invalid values. Contact your administrator if the problem persists.')
     end
   end
 end
