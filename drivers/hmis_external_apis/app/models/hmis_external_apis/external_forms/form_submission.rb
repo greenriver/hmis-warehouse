@@ -12,6 +12,13 @@ module HmisExternalApis::ExternalForms
     belongs_to :enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
     has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', as: :owner
 
+    validate :validate_status_change
+    private def validate_status_change
+      return unless status_changed? && status.present? && status_was.present?
+
+      errors.add(:status, :invalid, full_message: 'Cannot change status from Reviewed to New') if status_was == 'reviewed' && status == 'new'
+    end
+
     include ::Hmis::Hud::Concerns::FormSubmittable
 
     # The recaptcha spam score is a float between 0 (likely spam) and 1.0 (likely real)
@@ -65,7 +72,7 @@ module HmisExternalApis::ExternalForms
 
       # Only if there are Client and/or Enrollment fields in the form definition, initialize an enrollment
       # (which will in turn initialize a Client, inside the form processor).
-      if definition.updates_client_or_enrollment? && !enrollment # Not if enrollment already exists - it's already been processed
+      if definition.updates_client_or_enrollment?
         household_id = form_values['Enrollment.householdId']
         relationship_to_hoh = form_values['Enrollment.relationshipToHoH']
 
@@ -103,7 +110,7 @@ module HmisExternalApis::ExternalForms
         )
       end
 
-      form_processor = self.form_processor || build_form_processor(definition: definition)
+      form_processor = build_form_processor(definition: definition)
 
       form_processor.hud_values = values_to_process
       # We skip the form_processor.collect_form_validations step, because the external form has already been

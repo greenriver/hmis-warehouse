@@ -44,20 +44,30 @@ RSpec.describe 'Update External Form Submission', type: :request do
     hmis_login(user)
   end
 
-  context 'when reviewing a submission' do
-    let!(:definition) { create(:hmis_external_form_definition) }
-    let!(:submission) { create(:hmis_external_form_submission, definition: definition) }
-    let!(:cded) { create(:hmis_custom_data_element_definition, owner_type: submission.class.sti_name, key: 'your_name', data_source: ds1, user: u1) }
-    let!(:input) do
-      {
-        id: submission.id,
-        project_id: p1.id,
-        input: {
-          status: 'reviewed',
-        },
-      }
-    end
+  let!(:definition) { create(:hmis_external_form_definition) }
+  let!(:submission) { create(:hmis_external_form_submission, definition: definition) }
+  let!(:cded) { create(:hmis_custom_data_element_definition, owner_type: submission.class.sti_name, key: 'your_name', data_source: ds1, user: u1) }
+  let!(:input) do
+    {
+      id: submission.id,
+      project_id: p1.id,
+      input: {
+        status: 'reviewed',
+      },
+    }
+  end
 
+  context 'when submission was already reviewed' do
+    let!(:submission) { create(:hmis_external_form_submission, definition: definition, status: 'reviewed') }
+
+    it 'cannot update back to new' do
+      response, result = post_graphql({ **input, input: { status: 'new' } }) { mutation }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'updateExternalFormSubmission', 'errors', 0, 'fullMessage')).to eq('Cannot change status from Reviewed to New')
+    end
+  end
+
+  context 'when reviewing a submission' do
     it 'should create CDE' do
       expect do
         response, result = post_graphql(input) { mutation }
@@ -81,16 +91,6 @@ RSpec.describe 'Update External Form Submission', type: :request do
           expect_gql_error(post_graphql(input) { mutation })
         end.to not_change(Hmis::Hud::CustomDataElement, :count)
       end
-    end
-
-    it 'should be fine when un-reviewing and re-reviewing' do
-      post_graphql(input) { mutation }
-      post_graphql({ **input, input: { status: 'new' } }) { mutation }
-
-      expect do
-        response, result = post_graphql(input) { mutation }
-        expect(response.status).to eq(200), result.inspect
-      end.to not_change(Hmis::Hud::CustomDataElement, :count) # already processed, so doesn't duplicate CDEs
     end
 
     context 'when the form definition accepts client/enrollment information' do
@@ -285,17 +285,6 @@ RSpec.describe 'Update External Form Submission', type: :request do
           end.to not_change(Hmis::Hud::CustomDataElement, :count).
             and not_change(Hmis::Hud::Client, :count)
         end
-      end
-
-      it 'should be fine when un-reviewing and re-reviewing' do
-        post_graphql(input) { mutation }
-        post_graphql({ **input, input: { status: 'new' } }) { mutation }
-
-        expect do
-          response, result = post_graphql(input) { mutation }
-          expect(response.status).to eq(200), result.inspect
-        end.to not_change(Hmis::Hud::Client, :count).
-          and not_change(Hmis::Hud::Enrollment, :count)
       end
     end
   end
