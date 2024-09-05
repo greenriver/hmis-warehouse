@@ -84,8 +84,6 @@ $(function () {
     });
   };
 
-  $('#confirmSubmitModalButton').on('click', submitWithCaptcha);
-
   form.addEventListener('submit', function (event) {
     event.preventDefault(); // Prevent the default form submission
     event.stopPropagation();
@@ -101,7 +99,7 @@ $(function () {
       const y = invalid.get(0).getBoundingClientRect().top + window.scrollY;
       window.scrollTo(0, y - 120);
     } else {
-      $('#confirmSubmitModal').modal('show');
+      submitWithCaptcha();
     }
   });
 

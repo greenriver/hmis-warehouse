@@ -87,13 +87,6 @@
           %p.m-0 We're sorry, but our website requires JavaScript to function properly. Please enable JavaScript in your browser settings and refresh this page.
       .card.p-3= yield
 
-    = render_modal(html_id: 'confirmSubmitModal', title: 'Are You Ready to Submit?') do
-      .modal-body
-        %p Please take a moment to double-check your entries. Submit the form when you're ready.
-      .modal-footer
-        %button.mr-3.btn.btn-outline-primary{ type: "button", "data-dismiss" => "modal" } Go Back
-        %button#confirmSubmitModalButton.btn.btn-primary{ type: "button", "data-dismiss" => "modal" } Yes, Submit Now
-
     = render_modal(html_id: 'spinnerModal', title: 'Loading', blocker: true) do
       .modal-body
         .d-flex
