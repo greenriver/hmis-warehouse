@@ -582,7 +582,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     block.call(node)
   end
 
-  def creates_client_or_enrollment?
+  def updates_client_or_enrollment?
     link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping.record_type) }.present?
   end
 

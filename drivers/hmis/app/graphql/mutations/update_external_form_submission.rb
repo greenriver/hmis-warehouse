@@ -30,7 +30,7 @@ module Mutations
         project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: project_id)
         access_denied! unless project
 
-        if record.definition.creates_client_or_enrollment?
+        if record.definition.updates_client_or_enrollment?
           access_denied! unless current_permission?(permission: :can_edit_enrollments, entity: project)
         end
 

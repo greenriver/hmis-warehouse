@@ -65,7 +65,7 @@ module HmisExternalApis::ExternalForms
 
       # Only if there are Client and/or Enrollment fields in the form definition, initialize an enrollment
       # (which will in turn initialize a Client, inside the form processor).
-      if definition.creates_client_or_enrollment? && !enrollment # Not if enrollment already exists - it's already been processed
+      if definition.updates_client_or_enrollment? && !enrollment # Not if enrollment already exists - it's already been processed
         household_id = form_values['Enrollment.householdId']
         relationship_to_hoh = form_values['Enrollment.relationshipToHoH']
 
