@@ -1852,6 +1852,16 @@ class Translation < ApplicationRecord
       'c_pathways_service_indicators_shelter_restriction' => 'I\'ve faced indefinite restrictions and a history of restrictions from area shelters',
       'c_share_permission' => 'Permission to Share Your Information with Partner Agencies',
       'c_singleadult_sro' => 'If you are a single adult, would you consider living in a single room occupancy (SRO)?',
+      'c_transfer_barrier_meth' => 'Have been convicted or found guilty of producing methamphetamine on subsidized properties',
+      'c_transfer_barrier_PHAterm' => 'Have been evicted from a BHA development or have had a BHA voucher terminated within the last three years',
+      'c_transfer_barrier_SORI' => 'Registered sex offender (level 1,2,3) - lifetime registration (SORI)',
+      'c_rrh_transfer_daily_life_functions' => 'Does client have a physical or mental impairment that substantially limits one or more daily life functions? Daily life functions include: obtaining food/eating, sleeping, physical movement, caring for one’s personal hygiene, and communicating.',
+      'c_rrh_transfer_addiction_history' => 'Does the client have a history of substance use disorder that prevents them from living independently without support services?',
+      'c_rrh_transfer_federal_benefits' => 'Does the client qualify for federal benefits?',
+      'c_rrh_transfer_eviction_history' => 'Does the client have one eviction within the last 5 years?',
+      'c_rrh_transfer_eviction_history_disabilty_cause' => 'Were any previous evictions due to a disability or substance use disorder',
+      'c_transfer_rrh_enrollment_moves' => 'How many times has the client moved while enrolled in rapid Re-housing?',
+      'c_latest_date_financial_assistance_eligibility_rrh' => 'Enter date for last day of financial assistance',
     }
   end
 end
