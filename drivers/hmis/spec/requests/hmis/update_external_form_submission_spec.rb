@@ -89,61 +89,172 @@ RSpec.describe 'Update External Form Submission', type: :request do
             },
             'text': 'Relationship to HoH',
           },
+          {
+            'type': 'STRING',
+            'link_id': 'household_id',
+            'mapping': {
+              'field_name': 'householdId',
+              'record_type': 'ENROLLMENT',
+            },
+          },
         ]
         create(:hmis_external_form_definition, append_items: items)
       end
 
-      context 'when the submission info is all present and correct' do
-        let!(:submission) do
-          data = {
-            'Client.firstName': 'Oranges',
-            'Enrollment.relationshipToHoH': 'SELF_HEAD_OF_HOUSEHOLD', # TODO - this will not be passed
-            'captcha_score': '1.',
-            'form_definition_id': definition.id,
-            'form_content_digest': 'something random',
-          }.stringify_keys
-          create(:hmis_external_form_submission, raw_data: data, definition: definition)
-        end
+      let!(:submission) do
+        data = {
+          'Client.firstName': 'Oranges',
+          'captcha_score': '1.', # also test that extraneous fields get filtered out
+          'form_definition_id': definition.id,
+          'form_content_digest': 'something random',
+        }.stringify_keys
+        create(:hmis_external_form_submission, raw_data: data, definition: definition)
+      end
 
-        it 'should create client' do
+      let!(:input) do
+        {
+          id: submission.id,
+          project_id: p1.id,
+          input: {
+            status: 'reviewed',
+          },
+        }
+      end
+
+      context 'when the submission specifies client info only' do
+        it 'should create client and enrollment' do
           expect do
-            input = {
-              id: submission.id,
-              project_id: p1.id,
-              input: {
-                status: 'reviewed',
-              },
-            }
-
             response, result = post_graphql(input) { mutation }
             expect(response.status).to eq(200), result
             expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
           end.to change(Hmis::Hud::Client, :count).by(1).
             and change(Hmis::Hud::Enrollment, :count).by(1)
+
+          submission.reload
+          expect(submission.enrollment.relationship_to_hoh).to eq(1)
         end
       end
 
-      context 'when the submission info is not valid' do
+      context 'when the submission specifies a valid household ID and relationship to HoH' do
+        let!(:household_id) { Hmis::Hud::Enrollment.generate_household_id }
         let!(:submission) do
           data = {
             'Client.firstName': 'Oranges',
-            # missing relationship to HoH, so it will throw
-            # TODO - this will be fixed soon so need to find another error case to test this scenario
+            'Enrollment.householdId': household_id,
+            'Enrollment.relationshipToHoH': 'SPOUSE_OR_PARTNER',
           }.stringify_keys
           create(:hmis_external_form_submission, raw_data: data, definition: definition)
         end
 
-        it 'should raise an error' do
-          input = {
-            id: submission.id,
-            project_id: p1.id,
-            input: {
-              status: 'reviewed',
-            },
-          }
-          expect_gql_error post_graphql(input) { mutation }
+        it 'should create enrollment with correct household ID and relationship to HoH' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1)
+
+          submission.reload
+          expect(submission.enrollment.household_id).to eq(household_id)
+          expect(submission.enrollment.relationship_to_hoh).to eq(3)
         end
       end
+
+      context 'when the submission specifies an existing household ID' do
+        let!(:existing_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1 }
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'Oranges',
+            'Enrollment.householdId': existing_enrollment.household_id,
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should create enrollment with same household ID and default to Data Not Collected for relationship to HoH' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1)
+
+          submission.reload
+          expect(submission.enrollment.household.enrollments).to include(existing_enrollment)
+          expect(submission.enrollment.relationship_to_hoh).to eq(99)
+        end
+      end
+
+      context 'when the submission specifies an invalid household ID that already exists in another project' do
+        let!(:p2) { create :hmis_hud_project, data_source: ds1 }
+        let!(:existing_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p2 }
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'Oranges',
+            'Enrollment.householdId': existing_enrollment.household_id,
+            'Enrollment.relationshipToHoH': 'SPOUSE_OR_PARTNER',
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should create enrollment in a new HH' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1)
+
+          submission.reload
+          expect(submission.enrollment.household_id).not_to eq(existing_enrollment.household_id)
+          expect(submission.enrollment.household.enrollments.count).to eq(1)
+          expect(submission.enrollment.relationship_to_hoh).to eq(1) # provided relationship to HoH is also overridden
+        end
+      end
+
+      context 'when the submission specifies a household ID that is brand new' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'Oranges',
+            'Enrollment.householdId': Hmis::Hud::Enrollment.generate_household_id,
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should create enrollment in a new HH' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1)
+
+          submission.reload
+          expect(submission.enrollment.household.enrollments.count).to eq(1)
+          expect(submission.enrollment.relationship_to_hoh).to eq(1)
+        end
+      end
+
+      # context 'when the submission info is not valid' do
+      #   let!(:submission) do
+      #     data = {
+      #       'Client.firstName': 'Oranges',
+      #       # missing relationship to HoH, so it will throw
+      #       # TODO - this will be fixed soon so need to find another error case to test this scenario
+      #     }.stringify_keys
+      #     create(:hmis_external_form_submission, raw_data: data, definition: definition)
+      #   end
+      #
+      #   it 'should raise an error' do
+      #     input = {
+      #       id: submission.id,
+      #       project_id: p1.id,
+      #       input: {
+      #         status: 'reviewed',
+      #       },
+      #     }
+      #     expect_gql_error post_graphql(input) { mutation }
+      #   end
+      # end
     end
   end
 end

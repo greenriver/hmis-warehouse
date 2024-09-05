@@ -61,17 +61,50 @@ module HmisExternalApis::ExternalForms
     end
 
     def run_form_processor(project, current_user)
+      values_to_process = form_values.clone
+
       # Only if there are Client and/or Enrollment fields in the form definition, initialize an enrollment
       # (which will in turn initialize a Client, inside the form processor).
       if definition.creates_client_or_enrollment?
-        build_enrollment(project: project, data_source: project.data_source, entry_date: created_at)
-        # Assume that required values on Client and Enrollment (e.g. relationship to HoH) are present
-        # and correctly mapped in raw_values. The form processor record validator will fail otherwise.
+        household_id = form_values['Enrollment.householdId']
+        relationship_to_hoh = form_values['Enrollment.relationshipToHoH']
+
+        # If hh ID is provided, check whether it already exists in anther project. If it does, it's invalid
+        if household_id && !Hmis::Hud::Enrollment.where(household_id: household_id).where.not(project: project).exists?
+          # If a relationship to HoH was provided, use that
+          # TODO - If invalid, the form processor will throw later on
+          unless relationship_to_hoh
+            # If this hh ID doesn't already exist on any enrollment within this project, then it's new
+            hh_id_new = !Hmis::Hud::Enrollment.where(household_id: household_id).where(project: project).exists?
+
+            # Default to 1 SELF if this is a new hh ID and 99 Data Not Collected if not
+            relationship_to_hoh = hh_id_new ? 1 : 99
+          end
+        else
+          # If no hh ID was provided, or the provided one was invalid, generate a new one.
+          household_id = Hmis::Hud::Enrollment.generate_household_id
+          # Reset relationship to 1 SELF if we're generating a new hh ID, regardless of whether it was provided.
+          relationship_to_hoh = 1
+
+          # Remove keys from the values to process if they exist, otherwise the form processor will override the values we just set.
+          values_to_process.delete('Enrollment.householdId')
+          values_to_process.delete('Enrollment.relationshipToHoH')
+        end
+
+        build_enrollment(
+          project: project,
+          data_source: project.data_source,
+          entry_date: created_at,
+          household_id: household_id,
+          relationship_to_hoh: relationship_to_hoh,
+          # user is provided by the form processor only when there are enrollment-related fields provided in form_values
+          user: Hmis::Hud::User.from_user(current_user),
+        )
       end
 
       form_processor = build_form_processor(definition: definition)
 
-      form_processor.hud_values = form_values
+      form_processor.hud_values = values_to_process
       # We skip the form_processor.collect_form_validations step, because the external form has already been
       # submitted. If it's invalid, there is nothing the user can do about it now.
       # Also skip form_processor.collect_record_validations since e don't want to completely block from processing
