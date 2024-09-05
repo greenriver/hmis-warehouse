@@ -61,7 +61,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
     it 'should create CDE' do
       expect do
         response, result = post_graphql(input) { mutation }
-        expect(response.status).to eq(200), result
+        expect(response.status).to eq(200), result.inspect
         expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
       end.to change(Hmis::Hud::CustomDataElement, :count).by(1).
         and not_change(Hmis::Hud::Enrollment, :count).
@@ -81,6 +81,16 @@ RSpec.describe 'Update External Form Submission', type: :request do
           expect_gql_error(post_graphql(input) { mutation })
         end.to not_change(Hmis::Hud::CustomDataElement, :count)
       end
+    end
+
+    it 'should be fine when un-reviewing and re-reviewing' do
+      post_graphql(input) { mutation }
+      post_graphql({ **input, input: { status: 'new' } }) { mutation }
+
+      expect do
+        response, result = post_graphql(input) { mutation }
+        expect(response.status).to eq(200), result.inspect
+      end.to not_change(Hmis::Hud::CustomDataElement, :count) # already processed, so doesn't duplicate CDEs
     end
 
     context 'when the form definition accepts client/enrollment information' do
@@ -131,7 +141,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
         it 'should create both client and enrollment' do
           expect do
             response, result = post_graphql(input) { mutation }
-            expect(response.status).to eq(200), result
+            expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
           end.to change(Hmis::Hud::Client, :count).by(1).
             and change(Hmis::Hud::Enrollment, :count).by(1)
@@ -155,7 +165,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
         it 'should create enrollment with correct household ID and relationship to HoH' do
           expect do
             response, result = post_graphql(input) { mutation }
-            expect(response.status).to eq(200), result
+            expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
           end.to change(Hmis::Hud::Client, :count).by(1).
             and change(Hmis::Hud::Enrollment, :count).by(1)
@@ -179,7 +189,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
         it 'should create enrollment with same household ID and default to Data Not Collected for relationship to HoH' do
           expect do
             response, result = post_graphql(input) { mutation }
-            expect(response.status).to eq(200), result
+            expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
           end.to change(Hmis::Hud::Client, :count).by(1).
             and change(Hmis::Hud::Enrollment, :count).by(1)
@@ -205,7 +215,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
         it 'should create enrollment in a new HH' do
           expect do
             response, result = post_graphql(input) { mutation }
-            expect(response.status).to eq(200), result
+            expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
           end.to change(Hmis::Hud::Client, :count).by(1).
             and change(Hmis::Hud::Enrollment, :count).by(1)
@@ -229,7 +239,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
         it 'should create enrollment in a new HH' do
           expect do
             response, result = post_graphql(input) { mutation }
-            expect(response.status).to eq(200), result
+            expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
           end.to change(Hmis::Hud::Client, :count).by(1).
             and change(Hmis::Hud::Enrollment, :count).by(1)
@@ -255,6 +265,17 @@ RSpec.describe 'Update External Form Submission', type: :request do
           end.to not_change(Hmis::Hud::CustomDataElement, :count).
             and not_change(Hmis::Hud::Client, :count)
         end
+      end
+
+      it 'should be fine when un-reviewing and re-reviewing' do
+        post_graphql(input) { mutation }
+        post_graphql({ **input, input: { status: 'new' } }) { mutation }
+
+        expect do
+          response, result = post_graphql(input) { mutation }
+          expect(response.status).to eq(200), result.inspect
+        end.to not_change(Hmis::Hud::Client, :count).
+          and not_change(Hmis::Hud::Enrollment, :count)
       end
     end
   end
