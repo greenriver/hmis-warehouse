@@ -69,27 +69,28 @@ module HmisExternalApis::ExternalForms
         household_id = form_values['Enrollment.householdId']
         relationship_to_hoh = form_values['Enrollment.relationshipToHoH']
 
-        # If hh ID is provided, check whether it already exists in anther project. If it does, it's invalid
-        if household_id && !Hmis::Hud::Enrollment.where(household_id: household_id).where.not(project: project).exists?
-          # If a relationship to HoH was provided, use that
-          # TODO - If invalid, the form processor will throw later on
-          unless relationship_to_hoh
-            # If this hh ID doesn't already exist on any enrollment within this project, then it's new
-            hh_id_new = !Hmis::Hud::Enrollment.where(household_id: household_id).where(project: project).exists?
+        # drop household id if it doesn't match expected format
+        hh_invalid_format = household_id && !(household_id.starts_with?('HH') && household_id.size > 20)
+        # drop household id if it has a conflict in this data source in another project (just to be safe)
+        hh_invalid_exists = household_id && Hmis::Hud::Enrollment.where(household_id: household_id, data_source: project.data_source).where.not(project: project).exists?
 
-            # Default to 1 SELF if this is a new hh ID and 99 Data Not Collected if not
-            relationship_to_hoh = hh_id_new ? 1 : 99
-          end
-        else
-          # If no hh ID was provided, or the provided one was invalid, generate a new one.
-          household_id = Hmis::Hud::Enrollment.generate_household_id
-          # Reset relationship to 1 SELF if we're generating a new hh ID, regardless of whether it was provided.
-          relationship_to_hoh = 1
-
-          # Remove keys from the values to process if they exist, otherwise the form processor will override the values we just set.
+        if hh_invalid_format || hh_invalid_exists
+          household_id = nil
+          relationship_to_hoh = nil
           values_to_process.delete('Enrollment.householdId')
           values_to_process.delete('Enrollment.relationshipToHoH')
         end
+
+        if relationship_to_hoh && !Types::HmisSchema::Enums::Hud::RelationshipToHoH.values.keys.include?(relationship_to_hoh)
+          relationship_to_hoh = nil
+          values_to_process.delete('Enrollment.relationshipToHoH')
+        end
+
+        # if no household id, generate a new one
+        household_id ||= Hmis::Hud::Enrollment.generate_household_id
+
+        # set default relationship_to_hoh (1 for new household, 99 for existing household)
+        relationship_to_hoh ||= project.enrollments.where(household_id: household_id).exists? ? 99 : 1
 
         build_enrollment(
           project: project,

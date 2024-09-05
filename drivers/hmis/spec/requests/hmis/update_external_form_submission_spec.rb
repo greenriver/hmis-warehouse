@@ -152,7 +152,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
       end
 
       context 'when the submission specifies a valid household ID and relationship to HoH' do
-        let!(:household_id) { Hmis::Hud::Enrollment.generate_household_id }
+        let!(:household_id) { 'HH_' + Hmis::Hud::Enrollment.generate_household_id.truncate(20, omission: '') }
         let!(:submission) do
           data = {
             'Client.firstName': 'Oranges',
@@ -176,8 +176,28 @@ RSpec.describe 'Update External Form Submission', type: :request do
         end
       end
 
+      context 'when the submission specifies an invalid relationship to HoH' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'Oranges',
+            'Enrollment.relationshipToHoH': 'foo bar',
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should create enrollment defaulting to SELF relationship to HoH' do
+          response, result = post_graphql(input) { mutation }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+
+          submission.reload
+          expect(submission.enrollment.relationship_to_hoh).to eq(1)
+        end
+      end
+
       context 'when the submission specifies an existing household ID' do
-        let!(:existing_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1 }
+        let!(:household_id) { 'HH_' + Hmis::Hud::Enrollment.generate_household_id.truncate(20, omission: '') }
+        let!(:existing_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, household_id: household_id }
         let!(:submission) do
           data = {
             'Client.firstName': 'Oranges',
