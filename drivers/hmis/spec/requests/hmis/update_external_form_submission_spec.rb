@@ -48,23 +48,39 @@ RSpec.describe 'Update External Form Submission', type: :request do
     let!(:definition) { create(:hmis_external_form_definition) }
     let!(:submission) { create(:hmis_external_form_submission, definition: definition) }
     let!(:cded) { create(:hmis_custom_data_element_definition, owner_type: submission.class.sti_name, key: 'your_name', data_source: ds1, user: u1) }
+    let!(:input) do
+      {
+        id: submission.id,
+        project_id: p1.id,
+        input: {
+          status: 'reviewed',
+        },
+      }
+    end
 
     it 'should create CDE' do
       expect do
-        input = {
-          id: submission.id,
-          project_id: p1.id,
-          input: {
-            status: 'reviewed',
-          },
-        }
-
         response, result = post_graphql(input) { mutation }
         expect(response.status).to eq(200), result
         expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
       end.to change(Hmis::Hud::CustomDataElement, :count).by(1).
         and not_change(Hmis::Hud::Enrollment, :count).
         and not_change(Hmis::Hud::Client, :count)
+    end
+
+    context 'when there is an unexpected key on the input' do
+      let!(:submission) do
+        data = {
+          'foo': 'bar',
+        }.stringify_keys
+        create(:hmis_external_form_submission, raw_data: data, definition: definition)
+      end
+
+      it 'should raise an error' do
+        expect do
+          expect_gql_error(post_graphql(input) { mutation })
+        end.to not_change(Hmis::Hud::CustomDataElement, :count)
+      end
     end
 
     context 'when the form definition accepts client/enrollment information' do
@@ -111,18 +127,8 @@ RSpec.describe 'Update External Form Submission', type: :request do
         create(:hmis_external_form_submission, raw_data: data, definition: definition)
       end
 
-      let!(:input) do
-        {
-          id: submission.id,
-          project_id: p1.id,
-          input: {
-            status: 'reviewed',
-          },
-        }
-      end
-
       context 'when the submission specifies client info only' do
-        it 'should create client and enrollment' do
+        it 'should create both client and enrollment' do
           expect do
             response, result = post_graphql(input) { mutation }
             expect(response.status).to eq(200), result
@@ -234,27 +240,22 @@ RSpec.describe 'Update External Form Submission', type: :request do
         end
       end
 
-      # context 'when the submission info is not valid' do
-      #   let!(:submission) do
-      #     data = {
-      #       'Client.firstName': 'Oranges',
-      #       # missing relationship to HoH, so it will throw
-      #       # TODO - this will be fixed soon so need to find another error case to test this scenario
-      #     }.stringify_keys
-      #     create(:hmis_external_form_submission, raw_data: data, definition: definition)
-      #   end
-      #
-      #   it 'should raise an error' do
-      #     input = {
-      #       id: submission.id,
-      #       project_id: p1.id,
-      #       input: {
-      #         status: 'reviewed',
-      #       },
-      #     }
-      #     expect_gql_error post_graphql(input) { mutation }
-      #   end
-      # end
+      context 'when the submission specifies a client attribute that is invalid' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'bar',
+            'Client.veteranStatus': 'foo',
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should raise an error and not process the client' do
+          expect do
+            expect_gql_error(post_graphql(input) { mutation })
+          end.to not_change(Hmis::Hud::CustomDataElement, :count).
+            and not_change(Hmis::Hud::Client, :count)
+        end
+      end
     end
   end
 end
