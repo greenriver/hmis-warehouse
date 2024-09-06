@@ -3,7 +3,9 @@ module PerformanceMeasurement::EquityAnalysis
     include ArelHelper
     include GrdaWarehouse::UsCensusApi::Aggregates
 
-    RACES = HudUtility2024.races
+    RACES = HudUtility2024.races.except('HispanicLatinaeo')
+    ETHNICITIES = HudUtility2024.ethnicities.except(:unknown)
+    RACE_ETHNICITY_COMBINATIONS = HudUtility2024.race_ethnicity_combinations
     AGES = Filters::FilterBase.available_census_age_ranges
     GENDERS = HudUtility2024.genders
 
@@ -24,6 +26,8 @@ module PerformanceMeasurement::EquityAnalysis
 
     INVESTIGATE_BY = {
       race: RACES,
+      ethnicity: ETHNICITIES,
+      race_ethnicity: RACE_ETHNICITY_COMBINATIONS,
       age: AGES,
       gender: GENDERS,
       household_type: HOUSEHOLD_TYPES,
@@ -86,6 +90,28 @@ module PerformanceMeasurement::EquityAnalysis
       return value.underscore.to_sym if value.underscore.starts_with?('race')
 
       "race_#{value.underscore}".to_sym
+    end
+
+    def ethnicity_params
+      (@builder.ethnicity || []).map { |d| ethnicity_value_to_scope(d) }
+    end
+
+    def ethnicity_value_to_scope(value)
+      value = value.to_s
+      return value.underscore.to_sym if value.underscore.starts_with?('ethnicit')
+
+      "ethnicity_#{value.underscore}".to_sym
+    end
+
+    def race_ethnicity_params
+      (@builder.race_ethnicity || []).map { |d| race_ethnicity_value_to_scope(d) }
+    end
+
+    def race_ethnicity_value_to_scope(value)
+      value = value.to_s
+      return value.underscore.to_sym if value.underscore.starts_with?('race_ethnicit')
+
+      "race_ethnicity_#{value.underscore}".to_sym
     end
 
     def household_type_params
@@ -184,8 +210,31 @@ module PerformanceMeasurement::EquityAnalysis
         age_ranges = age_params.map { |d| Filters::FilterBase.age_range(d) }
         scope = scope.where("#{period}_age" => age_ranges)
       end
-      scope = gender_params[1..].inject(scope.send(gender_params[0])) { |query, scope_name| query.or(scope.send(scope_name)) } if gender_params.any?
-      scope = race_params[1..].inject(scope.send(race_params[0])) { |query, scope_name| query.or(scope.send(scope_name)) } if race_params.any?
+
+      if gender_params.any?
+        chosen_scope = PerformanceMeasurement::Client.send(gender_params[0])
+        gender_params[1..].each do |chosen|
+          chosen_scope = chosen_scope.or(PerformanceMeasurement::Client.send(chosen))
+        end
+        scope = scope.where(id: chosen_scope.select(:id))
+      end
+
+      if race_params.any?
+        chosen_scope = PerformanceMeasurement::Client.send(race_params[0])
+        race_params[1..].each do |chosen|
+          chosen_scope = chosen_scope.or(PerformanceMeasurement::Client.send(chosen))
+        end
+        scope = scope.where(id: chosen_scope.select(:id))
+      end
+
+      if ethnicity_params.any?
+        chosen_scope = PerformanceMeasurement::Client.send(ethnicity_params[0])
+        ethnicity_params[1..].each do |chosen|
+          chosen_scope = chosen_scope.or(PerformanceMeasurement::Client.send(chosen))
+        end
+        scope = scope.where(id: chosen_scope.select(:id))
+      end
+
       scope = scope.joins(client_projects: { project: :hud_project }).where(p_t[GrdaWarehouse::Hud::Project.project_type_column].in(project_type_params)) if project_type_params.any?
       scope = scope.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(project_id: project_params)) if project_params.any?
       scope = scope.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(household_type: household_type_params)) if household_type_params.any?

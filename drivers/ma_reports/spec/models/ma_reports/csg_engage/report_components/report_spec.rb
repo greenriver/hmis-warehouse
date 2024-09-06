@@ -165,5 +165,55 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
         )
       end
     end
+
+    describe 'service values' do
+      it 'should have the right values for a present service' do
+        create(
+          :hud_service,
+          enrollment: e1,
+          data_source: ds,
+          date_provided: Date.today - 1.day,
+        )
+        s2 = create(
+          :hud_service,
+          enrollment: e1,
+          data_source: ds,
+          date_provided: Date.today,
+        )
+        result = MaReports::CsgEngage::ReportComponents::Report.new(p).serialize
+        expect(result.dig('Programs', 0, 'Households', 0, 'Household Members', 0, 'Services')).to(
+          # Should only contain the latest service
+          contain_exactly(
+            include(
+              'Service' => include(
+                'ServiceProvided' => 'Unknown Service Type',
+                'ServiceDateTimeBegin' => s2.DateProvided.strftime('%m/%d/%Y'),
+              ),
+            ),
+          ),
+        )
+      end
+
+      it 'should have the right values for a member without any services' do
+        create(
+          :hud_exit,
+          enrollment: e1,
+          data_source: ds,
+          exit_date: Date.today,
+        )
+        result = MaReports::CsgEngage::ReportComponents::Report.new(p).serialize
+        expect(result.dig('Programs', 0, 'Households', 0, 'Household Members', 0, 'Services')).to(
+          contain_exactly(
+            include(
+              'Service' => include(
+                'ServiceDateTimeBegin' => e1.EntryDate.strftime('%m/%d/%Y'),
+                'ServiceDateTimeEnd' => e1.exit.ExitDate.strftime('%m/%d/%Y'),
+                'ServiceProvided' => 'Project Enrollment',
+              ),
+            ),
+          ),
+        )
+      end
+    end
   end
 end
