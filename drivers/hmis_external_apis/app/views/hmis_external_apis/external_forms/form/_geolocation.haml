@@ -48,6 +48,7 @@
         helperText.text("Geolocation is not supported by this browser.");
         getLocationButton.prop('disabled', true)
         input.val('unavailable');
+        input.removeClass('is-invalid').addClass('is-valid');
       }
 
       var setPosition = function(position) {
@@ -65,6 +66,7 @@
         }
         marker = L.marker([lat, lon]).addTo(map);
         input.val(JSON.stringify({ "latitude": lat, "longitude": lon }));
+        input.removeClass('is-invalid').addClass('is-valid');
       }
 
       var onError = function(error) {
@@ -73,6 +75,7 @@
         clearButton.hide();
         helperText.text("Location unavailable.", error.message);
         input.val('unavailable');
+        input.removeClass('is-invalid').addClass('is-valid');
       }
 
       var setLoading = function(isLoading) {
@@ -98,5 +101,6 @@
         clearButton.hide();
         mapContainer.hide();
         input.val('cleared');
+        input.removeClass('is-invalid').addClass('is-valid');
       })
     });
