@@ -283,7 +283,7 @@ class Hmis::Hud::Processors::Base
       case value
       when nil, ''
         nil
-      when true, false
+      when true, false, 0, 1
         value
       else
         raise "unexpected value \"#{value}\""
