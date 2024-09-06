@@ -583,7 +583,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def updates_client_or_enrollment?
-    link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping.record_type) }.present?
+    link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping&.record_type) }.present?
   end
 
   # Find and/or initialize CustomDataElementDefinitions that are collected by this form.
