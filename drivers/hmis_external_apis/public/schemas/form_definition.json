@@ -54,7 +54,8 @@
             "ORGANIZATION",
             "CE PARTICIPATION",
             "SERVICE",
-            "YOUTH_EDUCATION_STATUS"
+            "YOUTH_EDUCATION_STATUS",
+            "GEOLOCATION"
           ]
         },
         "field_name": {
@@ -708,6 +709,21 @@
           "then": {
             "$ref": "#/$defs/genericInputFormNode"
           }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "GEOLOCATION"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/geolocationFormNode"
+          }
         }
       ],
       "unevaluatedProperties": false
@@ -953,6 +969,19 @@
                 "SSN"
               ]
             }
+          }
+        }
+      ]
+    },
+    "geolocationFormNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/genericInputFormNode"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "component": "COORDINATES"
           }
         }
       ]

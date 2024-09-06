@@ -34,6 +34,10 @@ module HmisExternalApis::ExternalFormsHelper
     render partial_path('form/select'), label: label, options: options, name: name, required: required, html_id: next_html_id
   end
 
+  def render_form_geolocation(label:, name:, required: false)
+    render partial_path('form/geolocation'), label: label, name: name, required: required
+  end
+
   def render_form_radio_group(legend:, name:, required: false, options:, &block)
     render_form_fieldset(legend: legend, required: required) do
       radios = render(partial_path('form/radio_group_options'), options: options, name: name, required: required, html_id: next_html_id)

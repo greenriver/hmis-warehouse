@@ -26,6 +26,7 @@ module HmisExternalApis::ExternalForms
              :render_form_fieldset,
              :render_section,
              :render_form_checkbox,
+             :render_form_geolocation,
              :render_dependent_block,
              :name_from_label,
              to: :context
@@ -60,6 +61,8 @@ module HmisExternalApis::ExternalForms
         render_choice_node(node)
       when 'INTEGER'
         render_numeric_node(node)
+      when 'GEOLOCATION'
+        render_geolocation_node(node)
       else
         raise "node type #{node_type} not supported in #{node.inspect}"
       end
@@ -125,6 +128,12 @@ module HmisExternalApis::ExternalForms
         else
           raise "component #{node['component']} not supported in #{node.inspect}"
         end
+      end
+    end
+
+    def render_geolocation_node(node)
+      render_form_group(node: node) do
+        render_form_geolocation(label: node['text'], required: node['required'], name: node_name(node))
       end
     end
 

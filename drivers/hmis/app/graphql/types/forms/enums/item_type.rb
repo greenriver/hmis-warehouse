@@ -26,5 +26,6 @@ module Types
     value 'IMAGE'
     value 'FILE'
     value 'OBJECT'
+    value 'GEOLOCATION'
   end
 end
