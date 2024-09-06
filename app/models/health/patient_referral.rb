@@ -468,7 +468,7 @@ module Health
       patient_with_medicaid_id = Health::Patient.with_deleted.where(medicaid_id: medicaid_id).first_or_initialize
       patient_attached_to_client = Health::Patient.with_deleted.find_by(client_id: destination_client.id)
 
-      unless patient_attached_to_client.present? && patient_with_medicaid_id.id == patient_attached_to_client.id
+      if patient_attached_to_client.present? && patient_with_medicaid_id.id != patient_attached_to_client.id
         raise MedicaidIdConflict(
           "Referral #{id}: Patient #{patient_with_medicaid_id.id} has associated Medicaid ID, " +
             "but, patient #{patient_attached_to_client.id} matches by personal identifiers",
