@@ -57,7 +57,7 @@ $(function () {
 
     // Request a presigned URL
     $.ajax({
-      url: presignUrl,
+      url: presignUrl, // NOTE: for local testing, this should be "/hmis_external_api/external_forms/presign"
       type: 'GET',
       contentType: 'application/json',
       data: { captchaToken: captchaToken },
@@ -109,7 +109,9 @@ $(function () {
     event.preventDefault(); // Prevent the default form submission
     event.stopPropagation();
 
-    $('.needs-validation').find('input,select,textarea').each(function () {
+    /* only validate fields that are not disabled, as a way to skip validation on hidden inputs
+       (only works because we happen to disable hidden inputs) */
+    $('.needs-validation').find('input,select,textarea').filter(':not(:disabled)').each(function () {
       $(this).removeClass('is-valid is-invalid').addClass(this.checkValidity() ? 'is-valid' : 'is-invalid');
     });
 
@@ -126,7 +128,12 @@ $(function () {
 
   $('.needs-validation').find('input,select,textarea').on('focusout', function () {
     // check element validity and change class
-    $(this).removeClass('is-valid is-invalid').addClass(this.checkValidity() ? 'is-valid' : 'is-invalid');
+    var isValid = this.checkValidity();
+    $(this).removeClass('is-valid is-invalid').addClass(isValid ? 'is-valid' : 'is-invalid');
+    // If this is a valid radio button, mark other radio options as valid too
+    if (isValid && $(this).is(':radio')) {
+      $('input[name="' + this.name + '"]').removeClass('is-valid is-invalid').addClass(isValid ? 'is-valid' : 'is-invalid');
+    }
   });
 });
 
