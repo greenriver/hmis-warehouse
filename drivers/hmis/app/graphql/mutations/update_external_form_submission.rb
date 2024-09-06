@@ -13,7 +13,7 @@ module Mutations
     field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
-    def resolve(id:, project_id:, input:)
+    def resolve(id:, project_id: nil, input:)
       record = HmisExternalApis::ExternalForms::FormSubmission.find(id)
       access_denied! unless allowed?(permissions: [:can_manage_external_form_submissions])
 
