@@ -3,8 +3,7 @@
   clear_id = next_html_id
   text_id = next_html_id
   map_id = next_html_id
-  input_id = next_html_id
-%label{for:input_id, class: required && 'required'}= label
+%label{for:html_id, class: required && 'required'}= label
 %br
 %button.btn.btn-secondary.mb-2{id: get_location_id}
   Get location
@@ -16,7 +15,7 @@
 -# A note about required behavior for Geolocation:
 -# Clicking the "Get location" button is required, but the user is allowed to clear and still submit.
 -# The user is also not blocked from submitting if geolocation errors / is unavailable.
-%input{id: input_id, hidden: true, name: name, required: required}
+%input{id: html_id, hidden: true, name: name, required: required}
 .invalid-feedback This is required
 
 - content_for :page_js do
@@ -27,7 +26,7 @@
       var getLocationButtonId = '#' + #{get_location_id.to_json.html_safe};
       var clearButtonId = '#' + #{clear_id.to_json.html_safe};
       var mapContainerId = '#' + #{map_id.to_json.html_safe};
-      var inputId = '#' + #{input_id.to_json.html_safe}
+      var inputId = '#' + #{html_id.to_json.html_safe}
 
       var helperText = $(helperTextId);
       var getLocationButton = $(getLocationButtonId);

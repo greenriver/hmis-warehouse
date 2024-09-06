@@ -35,7 +35,7 @@ module HmisExternalApis::ExternalFormsHelper
   end
 
   def render_form_geolocation(label:, name:, required: false)
-    render partial_path('form/geolocation'), label: label, name: name, required: required
+    render partial_path('form/geolocation'), label: label, name: name, required: required, html_id: next_html_id
   end
 
   def render_form_radio_group(legend:, name:, required: false, options:, &block)
