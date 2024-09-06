@@ -722,7 +722,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/geolocationFormNode"
+            "$ref": "#/$defs/genericInputFormNode"
           }
         }
       ],
@@ -969,19 +969,6 @@
                 "SSN"
               ]
             }
-          }
-        }
-      ]
-    },
-    "geolocationFormNode": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/genericInputFormNode"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "component": "COORDINATES"
           }
         }
       ]
