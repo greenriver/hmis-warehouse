@@ -396,9 +396,10 @@ module Health
 
       update(effective_date: Date.current)
       # look for an existing patient
-      if Health::Patient.where(medicaid_id: medicaid_id).exists?
-        patient = Health::Patient.where(medicaid_id: medicaid_id).first
-        create_patient(patient.client)
+      patient = Health::Patient.with_deleted.find_by(medicaid_id: medicaid_id)
+
+      if patient.present?
+        create_patient(patient.client) # Create will update the existing client
       else
         source_client = create_source_client
         destination_client = connect_destination_client(source_client)
@@ -464,13 +465,18 @@ module Health
     end
 
     def create_patient destination_client
-      linked_patient = Health::Patient.with_deleted.find_by(client_id: destination_client.id)
-      patient = Health::Patient.with_deleted.where(medicaid_id: medicaid_id).first_or_initialize
+      patient_with_medicaid_id = Health::Patient.with_deleted.where(medicaid_id: medicaid_id).first_or_initialize
+      patient_attached_to_client = Health::Patient.with_deleted.find_by(client_id: destination_client.id)
 
-      # The medicaid id has changed, or points to a different client!
-      raise MedicaidIdConflict, "Patient: #{patient.client_id}, linked_patient: #{linked_patient.id}" if linked_patient.present? && patient.client_id != linked_patient.id
+      unless patient_attached_to_client.present? && patient_with_medicaid_id.id == patient_attached_to_client.id
+        raise MedicaidIdConflict(
+          "Referral #{id}: Patient #{patient_with_medicaid_id.id} has associated Medicaid ID, " +
+            "but, patient #{patient_attached_to_client.id} matches by personal identifiers",
+        )
+      end
 
-      patient.assign_attributes(
+      # Update patient w/ data from referral
+      patient_with_medicaid_id.assign_attributes(
         id_in_source: id,
         first_name: first_name,
         last_name: last_name,
@@ -481,11 +487,13 @@ module Health
         pilot: false,
         # engagement_date: engagement_date,
         data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first,
-        deleted_at: nil,
+        deleted_at: nil, # Resurrect patient if previously deleted
       )
-      patient.save!
-      patient.import_epic_team_members
-      update(patient_id: patient.id)
+      patient_with_medicaid_id.save!
+      patient_with_medicaid_id.import_epic_team_members
+
+      # Link patient to referral
+      update(patient_id: patient_with_medicaid_id.id)
     end
 
     def self.text_search(text)
