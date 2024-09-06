@@ -29,12 +29,12 @@ module LsaSqlServer
       ReportingBase.connection.reconnect!
     end
 
-    def setup_test_report
-      [
-        'lib/rds_sql_server/lsa/fy2024/sample_code/03_01a LSA Parameters and Metadata.sql',
-        # 'lib/rds_sql_server/lsa/fy2024/sample_code/03_01b LSA Parameters and Metadata for HIC.sql',
-      ].each do |step|
-        run_query(step)
+    def setup_test_report(type: :lsa)
+      case type
+      when :lsa
+        run_query('lib/rds_sql_server/lsa/fy2024/sample_code/03_01a LSA Parameters and Metadata.sql')
+      when :hic
+        run_query('lib/rds_sql_server/lsa/fy2024/sample_code/03_01b LSA Parameters and Metadata for HIC.sql')
       end
     end
 

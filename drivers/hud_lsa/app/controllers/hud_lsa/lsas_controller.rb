@@ -21,6 +21,7 @@ module HudLsa
     def create
       if @filter.valid?
         @report = report_class.from_filter(@filter, report_name, build_for_questions: generator.questions.keys)
+
         @report.state = 'Waiting'
         @report.question_names = @report.class.questions.keys
         @report.save!

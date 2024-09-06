@@ -25,7 +25,7 @@ module HudLsa::Generators::Fy2024
     include MissingDataConcern
     include ViewRelatedConcern
     include StatusProgressionConcern
-    attr_accessor :report, :destroy_rds, :hmis_export_id, :test
+    attr_accessor :report, :destroy_rds, :hmis_export_id, :test, :test_type
     has_one_attached :result_file
     has_one_attached :intermediate_file
     has_one :summary_result, class_name: 'HudLsa::Fy2024::SummaryResult', foreign_key: :hud_report_instance_id
@@ -390,7 +390,7 @@ module HudLsa::Generators::Fy2024
         ::Rds.database = sql_server_database
         ::Rds.timeout = 60_000_000
         load 'lib/rds_sql_server/lsa/fy2024/lsa_queries.rb'
-        LsaSqlServer::LSAQueries.new.setup_test_report
+        LsaSqlServer::LSAQueries.new.setup_test_report(type: test_type || :lsa)
       else
         LsaSqlServer::LSAReport.delete_all
         LsaSqlServer::LSAReport.create!(

@@ -19,6 +19,7 @@ Tests can be run by re-using a previous run:
 ```
 r = HudLsa::Generators::Fy2024::Lsa.last
 r.test = true
+# r.test_type = :hic # to test the HIC version
 # r.destroy_rds = false # uncomment to keep the RDS server alive after completion
 r.run!
 ```

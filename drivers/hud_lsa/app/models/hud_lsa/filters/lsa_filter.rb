@@ -24,7 +24,7 @@ module HudLsa::Filters
       return unless pit_date.present?
 
       self.start = pit_date
-      self.end = pit_date + 1.day
+      self.end = pit_date
       self
     end
 
