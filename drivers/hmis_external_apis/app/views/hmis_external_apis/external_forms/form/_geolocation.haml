@@ -13,7 +13,8 @@
 .form-text.text-muted.mb-2{id: text_id}
   Loading...
 %div.leaflet-container{id: map_id}
-%input{id: input_id, hidden: true, name: name}
+%input{id: input_id, hidden: true, name: name, required: required}
+.invalid-feedback This is required
 
 - content_for :page_js do
   :javascript
