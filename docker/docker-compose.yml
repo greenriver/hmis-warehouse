@@ -155,6 +155,7 @@ services:
     build:
       context: docker/pg13
     container_name: db_previous
+    image: warehousepg:13
     profiles:
       - manual
     environment:
@@ -181,6 +182,7 @@ services:
       context: docker/pg16
       shm_size: 1g
     container_name: hmis-warehouse-db
+    image: warehousepg:16
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
