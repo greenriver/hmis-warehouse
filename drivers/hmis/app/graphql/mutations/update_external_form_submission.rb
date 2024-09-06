@@ -13,7 +13,7 @@ module Mutations
     field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
-    def resolve(id:, project_id: nil, input:)
+    def resolve(id:, input:, project_id: nil)
       record = HmisExternalApis::ExternalForms::FormSubmission.find(id)
       access_denied! unless allowed?(permissions: [:can_manage_external_form_submissions])
 
@@ -28,13 +28,12 @@ module Mutations
 
       if record.status_changed? && record.status == 'reviewed' && !record.spam
         project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: project_id)
-        access_denied! unless project
 
         if record.definition.updates_client_or_enrollment?
           access_denied! unless current_permission?(permission: :can_edit_enrollments, entity: project)
         end
 
-        record.run_form_processor(project, current_user)
+        record.run_form_processor(current_user, project: project)
 
         Hmis::Hud::Base.transaction do
           if record.enrollment&.new_record?

@@ -15,8 +15,8 @@ RSpec.describe 'Update External Form Submission', type: :request do
     <<~GRAPHQL
       mutation UpdateExternalFormSubmission(
         $id: ID!
-        $projectId: ID!
         $input: ExternalFormSubmissionInput!
+        $projectId: ID
       ) {
         updateExternalFormSubmission(id: $id, projectId: $projectId, input: $input) {
           externalFormSubmission {
@@ -50,7 +50,6 @@ RSpec.describe 'Update External Form Submission', type: :request do
   let!(:input) do
     {
       id: submission.id,
-      project_id: p1.id,
       input: {
         status: 'reviewed',
       },
@@ -135,6 +134,16 @@ RSpec.describe 'Update External Form Submission', type: :request do
           'form_content_digest': 'something random',
         }.stringify_keys
         create(:hmis_external_form_submission, raw_data: data, definition: definition)
+      end
+
+      let!(:input) do
+        {
+          id: submission.id,
+          project_id: p1.id,
+          input: {
+            status: 'reviewed',
+          },
+        }
       end
 
       context 'when the submission specifies client info only' do

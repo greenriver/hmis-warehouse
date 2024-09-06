@@ -67,12 +67,16 @@ module HmisExternalApis::ExternalForms
       raw_data.reject { |key, _| EXTRANEOUS_KEYS.include?(key) }
     end
 
-    def run_form_processor(project, current_user)
+    # Run a FormProcessor against the values, to build related records (such as CustomDataElements, Enrollment, etc). It does not save the related records.
+    # Note: project is only needed if the form creates Enrollments. If the form only generates CDEs, it doesn't need a project. (it can retrieve the data source ID from current_user)
+    def run_form_processor(current_user, project: nil)
       values_to_process = form_values.clone
 
       # Only if there are Client and/or Enrollment fields in the form definition, initialize an enrollment
       # (which will in turn initialize a Client, inside the form processor).
       if definition.updates_client_or_enrollment?
+        raise 'Access denied' unless project
+
         household_id = form_values['Enrollment.householdId']
         relationship_to_hoh = form_values['Enrollment.relationshipToHoH']
 
