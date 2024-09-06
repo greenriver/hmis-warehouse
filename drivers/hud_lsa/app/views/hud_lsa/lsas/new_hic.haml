@@ -1,5 +1,6 @@
 - content_for :title, "Run #{report_class.generic_title} for HIC"
 %header.mb-3
   %h1= content_for :title
+= render 'missing_rds'
 = render 'missing_data'
 = render 'hic_form'

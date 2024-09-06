@@ -34,6 +34,10 @@ class Rds
     @timeout || 50_000_000
   end
 
+  def self.rds_available?
+    new.client.present?
+  end
+
   def initialize
     self.client = Aws::RDS::Client.new
   rescue RuntimeError
@@ -259,7 +263,7 @@ class Rds
   end
 
   def my_instance
-    sqlservers.find do |server|
+    sqlservers&.find do |server|
       server.db_instance_identifier == identifier
     end
   rescue Aws::RDS::Errors::ServiceUnavailable
