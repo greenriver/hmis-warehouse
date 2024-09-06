@@ -67,8 +67,6 @@ untracked
 .vscode
 docker-compose.dev.yml
 yarn-error.log
-/dev/minio/*
-/dev/auth/certs/*
 
 # docker deployment
 docker/deploy/REVISION
@@ -168,8 +166,7 @@ docker/superset/op/.did.db.init
 lib/data/*.xlsx
 
 # Development ENV
-/dev/minio/**
-/dev/db_data/**
+/dev**
 /app/assets/builds/**
 /drivers/hud_spm_report/spec/fixpoints/enrollment_universe/warehouse_app_test.sql
 /drivers/hud_spm_report/spec/fixpoints/enrollment_universe/warehouse_test.sql
