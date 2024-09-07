@@ -46,6 +46,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
       [HopwaCaper::Generators::Fy2024::ServiceFilters::RecordTypeFilter.any_hopwa_assistance]
     end
 
+    # note, clients are counted only if they received service
     def demographics_sheet_a(sheet)
       scope = relevant_enrollments.where(hopwa_eligible: true)
       demographics_breakdown_table(sheet, enrollment_scope: scope)

@@ -52,6 +52,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
           'HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance',
           'HUD: HOPWA - Short-Term Supportive Facility',
           'HUD: HOPWA - Transitional Housing (facility based or TBRA)',
+          'HUD: HUD/VASH',
           'HUD: HOPWA - CV',
         ],
       )

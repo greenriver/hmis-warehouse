@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# run manually with
+# Reporting::Hud::RunReportJob.new.perform(HopwaCaper::Generators::Fy2024::Generator.name, HudReports::ReportInstance.last, email:false)
 module HopwaCaper::Generators::Fy2024
   class Generator < ::HudReports::GeneratorBase
     def self.fiscal_year
@@ -102,6 +104,8 @@ module HopwaCaper::Generators::Fy2024
           hud_enrollment = service_history_enrollment.enrollment
 
           client = hud_enrollment.client.destination_client
+          next unless client
+
           enrollment_rows << HopwaCaper::Enrollment.from_hud_record(report: report, client: client, enrollment: hud_enrollment)
           service_rows += hud_enrollment.services.map do |hud_service|
             HopwaCaper::Service.from_hud_record(report: report, client: client, enrollment: hud_enrollment, service: hud_service)

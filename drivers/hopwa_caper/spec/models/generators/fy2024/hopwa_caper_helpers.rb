@@ -19,7 +19,7 @@ module HopwaCaperHelpers
   def run_report(report)
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     GrdaWarehouse::ChEnrollment.maintain!
-    process_imported_fixtures(skip_location_cleanup: true)
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
     generator.new(report).run!(email: false)
     report.reload
   end
@@ -45,18 +45,42 @@ module HopwaCaperHelpers
     )
   end
 
-  HopwaCaperTextHousehold = Struct.new(:hoh, :spouse, keyword_init: true)
-  def create_hopwa_eligible_household(project:)
-    hoh = create(:hud_client, data_source: data_source)
+  HopwaCaperTestHousehold = Struct.new(:hoh, :other_members, keyword_init: true) do
+    def enrollments
+      [hoh] + (other_members || [])
+    end
+  end
+
+  def create_hopwa_eligible_household(project:, hoh_client: nil, other_clients: [])
+    hoh_client ||= create(:hud_client, data_source: data_source)
     @household_id ||= 0
     @household_id += 1
-    enrollment = create(:hud_enrollment, client: hoh, project: project, entry_date: report_start_date, household_id: @household_id, relationship_to_hoh: 1)
+    hoh_enrollment = create(
+      :hud_enrollment,
+      client: hoh_client,
+      project: project,
+      entry_date: report_start_date,
+      household_id: @household_id,
+      relationship_to_hoh: 1,
+    )
 
-    # FIXME: not sure how we generate "service history enrollments"
-    create(:grda_warehouse_service_history, :service_history_entry, client_id: hoh.id, first_date_in_program: enrollment.entry_date, enrollment: enrollment)
+    other_members = other_clients.map do |client|
+      create(
+        :hud_enrollment,
+        client: client,
+        project: project,
+        entry_date: report_start_date,
+        household_id: @household_id,
+        relationship_to_hoh: 99,
+      )
+    end
 
-    create(:hud_disability, disability_type: hiv_positive, enrollment: enrollment)
-    HopwaCaperTextHousehold.new(hoh: enrollment)
+    # FIXME
+    create(:grda_warehouse_service_history, :service_history_entry, client_id: hoh_client.id, first_date_in_program: hoh_enrollment.entry_date, enrollment: hoh_enrollment)
+
+    # disability record sets the HOH as hopwa eligible
+    create(:hud_disability, disability_type: hiv_positive, enrollment: hoh_enrollment)
+    HopwaCaperTestHousehold.new(hoh: hoh_enrollment, other_members: other_members)
   end
 
   # help wrangle cell structure for test
