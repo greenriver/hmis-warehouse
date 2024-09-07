@@ -65,7 +65,9 @@ module HudLsa
     helper_method :report_class
 
     private def missing_data
-      @missing_data ||= report.missing_data(current_user)
+      filter = nil
+      filter = @filter if filtered?
+      @missing_data ||= report.missing_data(current_user, filter: filter)
     end
     helper_method :missing_data
 
@@ -111,6 +113,11 @@ module HudLsa
       filter_p[:coc_code] = params[:filter].try(:[], :coc_codes).presence
       filter_p
     end
+
+    def filtered?
+      filter_params.present?
+    end
+    helper_method :filtered?
 
     private def report_name
       active_version.title

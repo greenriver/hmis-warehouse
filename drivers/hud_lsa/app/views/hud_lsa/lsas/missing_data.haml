@@ -1,0 +1,4 @@
+- content_for :title, "#{report_class.generic_title} Data Issues"
+%header.mb-3
+  %h1= content_for :title
+= render 'missing_data'
