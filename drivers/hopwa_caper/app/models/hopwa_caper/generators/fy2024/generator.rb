@@ -51,7 +51,6 @@ module HopwaCaper::Generators::Fy2024
         HopwaCaper::Generators::Fy2024::Sheets::TbraSheet,
         HopwaCaper::Generators::Fy2024::Sheets::StrmuSheet,
         HopwaCaper::Generators::Fy2024::Sheets::PhpSheet,
-        HopwaCaper::Generators::Fy2024::Sheets::SupportiveServicesSheet,
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze

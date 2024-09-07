@@ -20,12 +20,12 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     protected
 
-    def relevant_enrollments_filter
-      HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa
+    def relevant_enrollments_filters
+      [HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa]
     end
 
-    def relevant_services_filter
-      HopwaCaper::Generators::Fy2024::ServiceFilters::RecordTypeFilter.hopwa_financial_assistance
+    def relevant_services_filters
+      [HopwaCaper::Generators::Fy2024::ServiceFilters::RecordTypeFilter.hopwa_financial_assistance]
     end
 
     def service_type_filters

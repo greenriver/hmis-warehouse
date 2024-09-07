@@ -10,7 +10,7 @@ RSpec.shared_context 'HOPWA CAPER shared context' do
   let(:report_start_date) { today - 1.year }
   let(:report_end_date) { today }
   let(:data_source) { create :source_data_source }
-  let(:organization) { create :hud_organization, data_source: data_source}
+  let(:organization) { create :hud_organization, data_source: data_source }
   let(:user) { create(:acl_user) }
   let!(:report_group) { create :collection }
   # report viewer is a role factory. We also need can_view_projects to pass the access check in

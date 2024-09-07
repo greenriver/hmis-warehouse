@@ -38,12 +38,12 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     protected
 
-    def relevant_enrollments_filter
-      HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.all_hopwa
+    def relevant_enrollments_filters
+      [HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.all_hopwa]
     end
 
-    def relevant_services_filter
-      HopwaCaper::Generators::Fy2024::ServiceFilters::RecordTypeFilter.any_hopwa_assistance
+    def relevant_services_filters
+      [HopwaCaper::Generators::Fy2024::ServiceFilters::RecordTypeFilter.any_hopwa_assistance]
     end
 
     def demographics_sheet_a(sheet)

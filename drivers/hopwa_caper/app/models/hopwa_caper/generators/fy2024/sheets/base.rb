@@ -32,21 +32,29 @@ module HopwaCaper::Generators::Fy2024::Sheets
       sheet.add_header(col: 'B', label: 'This Report')
     end
 
-    def relevant_enrollments(enrollment_filter: relevant_enrollments_filter, service_filter: relevant_services_filter)
-      service_scope = service_filter.apply(HopwaCaper::Service.where(date_provided: @report.start_date...@report.end_date))
-      enrollments = enrollment_filter.apply(@report.hopwa_caper_enrollments)
-      enrollments.
+    # enrollments to report on in this sheet
+    def relevant_enrollments(enrollment_filters: relevant_enrollments_filters, service_filters: relevant_services_filters)
+      service_scope = service_filters.
+        reduce(HopwaCaper::Service.all) { |scope, filter| filter.apply(scope) }.
+        where(date_provided: @report.start_date...@report.end_date)
+
+      enrollment_filters.
+        reduce(@report.hopwa_caper_enrollments) { |scope, filter| filter.apply(scope) }.
         overlapping_range(start_date: @report.start_date, end_date: @report.end_date).
         joins(:services).
         merge(service_scope)
     end
 
-    def relevant_services(enrollment_filter: relevant_enrollments_filter, service_filter: relevant_services_filter, start_date: @report.start_date)
-      enrollment_scope = enrollment_filter.apply(HopwaCaper::Enrollment.overlapping_range(start_date: start_date, end_date: @report.end_date))
-      service_scope = @report.hopwa_caper_services.
+    # services to report on in this sheet
+    def relevant_services(enrollment_filters: relevant_enrollments_filters, service_filters: relevant_services_filters, start_date: @report.start_date)
+      enrollment_scope = enrollment_filters.
+        reduce(HopwaCaper::Enrollment.all) { |scope, filter| filter.apply(scope) }.
+        overlapping_range(start_date: start_date, end_date: @report.end_date)
+
+      service_filters.
+        reduce(@report.hopwa_caper_services) { |scope, filter| filter.apply(scope) }.
         where(date_provided: start_date...@report.end_date).
         joins(:enrollment).merge(enrollment_scope)
-      service_filter.apply(service_scope)
     end
   end
 end
