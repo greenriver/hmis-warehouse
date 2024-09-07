@@ -10,10 +10,24 @@ RSpec.shared_context 'HOPWA CAPER shared context' do
   let(:report_start_date) { today - 1.year }
   let(:report_end_date) { today }
   let(:data_source) { create :source_data_source }
-  let(:user) { create(:user) }
+  let(:organization) { create :hud_organization, data_source: data_source}
+  let(:user) { create(:acl_user) }
+  let!(:report_group) { create :collection }
+  # report viewer is a role factory. We also need can_view_projects to pass the access check in
+  # GrdaWarehouse::Lookups::CocCode.viewable_by
+  let!(:report_viewer) { create :report_viewer, can_view_projects: true }
+
+  # these seem to be missing. CoC from seed maker maintain_lookups
+  before(:all) do
+    HudUtility2024.cocs.each do |code, name|
+      coc = GrdaWarehouse::Lookups::CocCode.where(coc_code: code).first_or_initialize
+      coc.update(official_name: name)
+    end
+  end
+
   before(:each) do
     AccessGroup.maintain_system_groups
-    AccessGroup.where(name: 'All Data Sources').first.add(user)
+    setup_access_control(user, report_viewer, report_group)
   end
 
   let(:hiv_positive) do

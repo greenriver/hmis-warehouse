@@ -83,8 +83,6 @@ module HopwaCaper::Generators::Fy2024
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @report.start_date, end_date: @report.end_date)
-      # FIXME- I don't know how to create these from a spec
-      return scope if Rails.env.test?
 
       @filter = self.class.filter_class.new(
         user_id: @report.user_id,
