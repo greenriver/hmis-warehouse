@@ -7,10 +7,9 @@
 module HudLsa::Generators::Fy2024::MissingDataConcern
   extend ActiveSupport::Concern
 
-  def missing_data(user, filter: nil)
+  def missing_data(user, project_ids: [])
     @missing_data = {}
     @range = ::Filters::HudFilterBase.new(start: Date.current - 3.years, end: Date.current)
-    project_ids = filter&.effective_project_ids || []
     @missing_data[:missing_housing_type] = missing_housing_types(user, project_ids: project_ids)
     @missing_data[:missing_geocode] = missing_geocodes(user, project_ids: project_ids)
     @missing_data[:missing_geography_type] = geography_types(user, project_ids: project_ids)

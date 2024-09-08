@@ -6,6 +6,7 @@
 
 module HudLsa
   class LsasController < ::HudReports::BaseController
+    include AjaxModalRails::Controller
     before_action :filter
     before_action :set_report, only: [:show, :destroy, :running, :download, :download_intermediate]
     before_action :set_reports, except: [:index, :running_all_questions]
@@ -64,10 +65,16 @@ module HudLsa
     end
     helper_method :report_class
 
+    def data_missing
+      @modal_size = :xl
+      respond_to do |format|
+        format.html {}
+        format.json { render json: missing_data[:show_missing_data] }
+      end
+    end
+
     private def missing_data
-      filter = nil
-      filter = @filter if filtered?
-      @missing_data ||= report.missing_data(current_user, filter: filter)
+      @missing_data ||= report.missing_data(current_user, project_ids: filter_params[:project_ids] || [])
     end
     helper_method :missing_data
 
