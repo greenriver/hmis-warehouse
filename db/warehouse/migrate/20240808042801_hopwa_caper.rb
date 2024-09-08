@@ -38,8 +38,8 @@ class HopwaCaper < ActiveRecord::Migration[7.0]
       t.integer :duration_days
       t.integer :housing_assessment_at_exit
       t.integer :subsidy_information
-      t.boolean :ever_perscribed_anti_retroviral_therapy, null: false, default: false
-      t.boolean :viral_load_supression, null: false, default: false
+      t.boolean :ever_prescribed_anti_retroviral_therapy, null: false, default: false
+      t.boolean :viral_load_suppression, null: false, default: false
 
       t.numeric :percent_ami
 

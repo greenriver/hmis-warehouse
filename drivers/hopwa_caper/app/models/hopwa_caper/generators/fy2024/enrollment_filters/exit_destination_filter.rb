@@ -5,15 +5,48 @@
 ###
 
 module HopwaCaper::Generators::Fy2024::EnrollmentFilters
-  ExitDestinationFilter = Struct.new(:label, :code, keyword_init: true) do
+  ExitDestinationFilter = Struct.new(:label, :types, keyword_init: true) do
     def apply(scope)
-      scope.where(exit_destination: code)
+      scope.where(exit_destination: codes)
     end
 
-    def self.all
-      HudUtility2024.destinations.map do |code, label|
-        new(label: label, code: code)
+    protected def codes
+      HudUtility2024.destinations.invert
+      types.map do |type|
+        HudUtility2024.destinations.invert.fetch(type)
       end
+    end
+
+    def self.all_destinations
+      HudUtility2024.destinations.map do |_code, label|
+        new(label: label, types: [label])
+      end
+    end
+
+    def self.php_destinations
+      [
+        new(
+          label: 'How many households exited to other HOPWA housing programs?',
+          types: [
+            'Moved from one HOPWA funded project to HOPWA TH',
+            'Moved from one HOPWA funded project to HOPWA PH',
+          ],
+        ),
+        new(
+          label: 'How many households exited to other housing subsidy programs?',
+          types: [
+            'Owned by client, with ongoing housing subsidy',
+            'Rental by client, with ongoing housing subsidy',
+          ],
+        ),
+        new(
+          label: 'How many households exited to private housing?',
+          types: [
+            'Rental by client, no ongoing housing subsidy',
+            'Owned by client, no ongoing housing subsidy',
+          ],
+        ),
+      ]
     end
 
     # FIXME: it's unclear how we can implement the spec below. Returning exit destinations for now

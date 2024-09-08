@@ -39,7 +39,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
       end
     end
 
-    def add_sevices_fa_amount_row(sheet, label:, services:)
+    def add_services_fa_amount_row(sheet, label:, services:)
       sum = services.map(&:fa_amount).compact.sum
       sheet.append_row(label: label) do |row|
         row.append_cell_members(members: services.as_report_members, value: sum)
@@ -76,7 +76,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
         enrollments: relevant_enrollments.where(exit_date: nil),
       )
 
-      filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ExitDestinationFilter.all
+      filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ExitDestinationFilter.all_destinations
       filters.each do |filter|
         add_household_enrollments_row(sheet, label: filter.label, enrollments: filter.apply(relevant_enrollments))
       end

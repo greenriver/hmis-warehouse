@@ -35,11 +35,18 @@ module HopwaCaper::Generators::Fy2024::Sheets
     end
 
     def expenditures_sheet(sheet)
-      add_sevices_fa_amount_row(
+      add_services_fa_amount_row(
         sheet,
         label: 'What were the HOPWA funds expended for PHP?',
         services: relevant_services,
       )
+    end
+
+    def housing_outcomes_sheet(sheet)
+      filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ExitDestinationFilter.php_destinations
+      filters.each do |filter|
+        add_household_enrollments_row(sheet, label: filter.label, enrollments: filter.apply(relevant_enrollments))
+      end
     end
   end
 end

@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -19617,8 +19617,8 @@ CREATE TABLE public.hopwa_caper_enrollments (
     duration_days integer,
     housing_assessment_at_exit integer,
     subsidy_information integer,
-    ever_perscribed_anti_retroviral_therapy boolean DEFAULT false NOT NULL,
-    viral_load_supression boolean DEFAULT false NOT NULL,
+    ever_prescribed_anti_retroviral_therapy boolean DEFAULT false NOT NULL,
+    viral_load_suppression boolean DEFAULT false NOT NULL,
     percent_ami numeric
 );
 
@@ -63515,5 +63515,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240808042801'),
 ('20240815175202'),
 ('20240821180638');
-
-

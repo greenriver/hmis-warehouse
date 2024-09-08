@@ -110,8 +110,8 @@ module HopwaCaper
         hiv_positive: hiv_disabilities.any?,
         chronically_homeless: enrollment.chronically_homeless_at_start,
         prior_living_situation: enrollment.LivingSituation || 99,
-        viral_load_supression: (hiv_disabilities.any? { |d| d.measured_viral_load&.< 200 }),
-        ever_perscribed_anti_retroviral_therapy: (hiv_disabilities.any? { |d| d.anti_retroviral == 1 }),
+        viral_load_suppression: (hiv_disabilities.any? { |d| d.measured_viral_load&.< 200 }),
+        ever_prescribed_anti_retroviral_therapy: (hiv_disabilities.any? { |d| d.anti_retroviral == 1 }),
       )
     end
 

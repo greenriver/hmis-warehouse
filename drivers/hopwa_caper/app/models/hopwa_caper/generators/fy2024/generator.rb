@@ -94,8 +94,6 @@ module HopwaCaper::Generators::Fy2024
     end
 
     def build_hopwa_caper_models
-      # for client attrs, use dest client (which is a Client). For enrollment attrs, we use the enrollment itself that is for the filtered projects (as-is). Use distinct-on by warehouse-client-id. We do want to perserve the PersonalID (skip project and enrollment id). Also persist the datasource_id.
-
       scope = service_history_enrollments.preload(enrollment: [:income_benefits, { client: :destination_client }, :disabilities, { project: :funders }])
       scope.in_batches(of: 100, order: :desc) do |batch|
         enrollment_rows = []
@@ -123,7 +121,7 @@ module HopwaCaper::Generators::Fy2024
       # batch process households
       report.hopwa_caper_enrollments.distinct.pluck(:report_household_id).in_groups_of(100, false) do |household_ids|
         enrollments = report.hopwa_caper_enrollments.where(report_household_id: household_ids).order(:id)
-        update_hopwa_eligability(enrollments)
+        update_hopwa_eligibility(enrollments)
       end
 
       true
@@ -137,8 +135,8 @@ module HopwaCaper::Generators::Fy2024
         uniform_attrs = {
           age: group.map(&:age).compact.max,
           hiv_positive: groups.any?(:hiv_positive),
-          ever_perscribed_anti_retroviral_therapy: groups.any?(:ever_perscribed_anti_retroviral_therapy),
-          viral_load_supression: groups.any?(:viral_load_supression),
+          ever_prescribed_anti_retroviral_therapy: groups.any?(:ever_prescribed_anti_retroviral_therapy),
+          viral_load_suppression: groups.any?(:viral_load_suppression),
         }
         group.each do |enrollment|
           enrollment.attributes = uniform_attrs
@@ -149,7 +147,7 @@ module HopwaCaper::Generators::Fy2024
     end
 
     # try and figure out which person in a household is hopwa eligible
-    def update_hopwa_eligability(enrollment_rows)
+    def update_hopwa_eligibility(enrollment_rows)
       households = enrollment_rows.group_by(&:report_household_id).values
       eligible_enrollments = households.map do |enrollments|
         # if the hoh is hiv+

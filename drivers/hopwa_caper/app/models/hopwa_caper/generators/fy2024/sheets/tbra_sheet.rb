@@ -10,7 +10,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
     QUESTION_NUMBERS = ['Q2'].freeze
     CONTENTS = [
       { method: :households_served_sheet, label: 'TBRA Households Served and Expenditures' },
-      { method: :other_rental_assistance_sheet, label: 'Other (Non-TBRA) Rental Assistance Households Served and Expenditures' },
+      # { method: :other_rental_assistance_sheet, label: 'Other (Non-TBRA) Rental Assistance Households Served and Expenditures' },
       { method: :income_levels_sheet, label: 'Income Levels for Households Served by this Activity' },
       { method: :income_sources_sheet, label: 'Sources of Income for Households Served by this Activity' },
       { method: :medical_insurance, label: 'Medical Insurance for Households Served by this Activity' },
@@ -31,37 +31,31 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     def households_served_sheet(sheet)
       add_household_enrollments_row(sheet, label: 'How many households were served with HOPWA TBRA assistance?', enrollments: relevant_enrollments)
-
-      sheet.append_row(label: 'What were the total HOPWA funds expended for TBRA rental assistance?') do |row|
-        row.append_cell_members(
-          members: relevant_services.as_report_members,
-          value: relevant_services.sum(:fa_amount),
-        )
-      end
+      add_services_fa_amount_row(sheet, label: 'What were the total HOPWA funds expended for TBRA rental assistance?', services: relevant_services)
     end
 
     def other_rental_assistance_sheet(sheet)
-      # unclear if this is actually something we can get out of HMIS
-      # services = HopwaCaper::Service.where(date_provided: @report.start_date..end_date: @report.end_date).  where(record_type: 151, type_provided: 1)
-      # scope = @report.hopwa_caper_enrollments
-      #   .not_tbra_funded
-      #   .overlapping_range(start_date: @report.start_date, end_date: @report.end_date)
-      #   .joins(:services).merge(services)
+      non_hopwa_rent_service = HopwaCaper::Service.
+        where(date_provided: @report.start_date...@report.end_date).
+        where.not(record_type: 151).where(type_provided: 1)
 
-      # sheet.append_row(label: 'How many total households were served with Other (non-TBRA) Rental Assistance?') do |row|
-      #   cell_scope = relevant_enrollments.head_of_household
-      #   row.append_cell_members(members: cell_scope.as_report_members)
-      # end
+      # households that received non-hopwa rent assistance
+      enrollment_scope = relevant_enrollments(services_filters: []).merge(non_hopwa_rent_service)
+      add_household_enrollments_row(
+        sheet,
+        label: 'How many total households were served with Other (non-TBRA) Rental Assistance?',
+        enrollments: enrollment_scope,
+      )
     end
 
     def health_outcomes_sheet(sheet)
       sheet.append_row(label: 'How many HOPWA-eligible individuals served with TBRA this year have ever been prescribed Anti-Retroviral Therapy?') do |row|
-        cell_scope = relevant_enrollments.where(hopwa_eligible: true, ever_perscribed_anti_retroviral_therapy: true)
+        cell_scope = relevant_enrollments.where(hopwa_eligible: true, ever_prescribed_anti_retroviral_therapy: true)
         row.append_cell_members(members: cell_scope.latest_by_personal_id.as_report_members)
       end
 
       sheet.append_row(label: 'How many HOPWA-eligible persons served with TBRA have shown an improved viral load or achieved viral suppression?') do |row|
-        cell_scope = relevant_enrollments.where(hopwa_eligible: true, viral_load_supression: true)
+        cell_scope = relevant_enrollments.where(hopwa_eligible: true, viral_load_suppression: true)
         row.append_cell_members(members: cell_scope.latest_by_personal_id.as_report_members)
       end
     end

@@ -62,7 +62,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
     def expenditures_sheet(sheet)
       sheet.append_row(label: 'What were the HOPWA funds expended for the following budget line items?')
       service_type_filters.all.each do |filter|
-        add_sevices_fa_amount_row(
+        add_services_fa_amount_row(
           sheet,
           label: "STRMU #{filter.label}",
           services: filter.apply(relevant_services),
