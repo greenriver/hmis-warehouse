@@ -45,8 +45,8 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
 
   let!(:definition) do
     fd = create(:hmis_external_form_definition)
-    HmisExternalApis::PublishExternalFormsJob.new.perform(fd.id)
-    fd.reload
+    # HmisExternalApis::PublishExternalFormsJob.new.perform(fd.id)
+    # fd.reload
     Hmis::Form::Instance.create!(definition: fd, entity: p1, active: true)
     fd
   end
@@ -91,8 +91,8 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
   context 'when there are several external forms' do
     let!(:definition_2) do
       fd = create(:hmis_external_form_definition)
-      HmisExternalApis::PublishExternalFormsJob.new.perform(fd.id)
-      fd.reload
+      # HmisExternalApis::PublishExternalFormsJob.new.perform(fd.id)
+      # fd.reload
       Hmis::Form::Instance.create!(definition: fd, entity: p1, active: true)
       fd
     end

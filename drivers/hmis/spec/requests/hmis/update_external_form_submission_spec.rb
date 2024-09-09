@@ -126,16 +126,6 @@ RSpec.describe 'Update External Form Submission', type: :request do
         create(:hmis_external_form_definition, append_items: items)
       end
 
-      let!(:submission) do
-        data = {
-          'Client.firstName': 'Oranges',
-          'captcha_score': '1.', # also test that extraneous fields get filtered out
-          'form_definition_id': definition.id,
-          'form_content_digest': 'something random',
-        }.stringify_keys
-        create(:hmis_external_form_submission, raw_data: data, definition: definition)
-      end
-
       let!(:input) do
         {
           id: submission.id,
@@ -147,6 +137,16 @@ RSpec.describe 'Update External Form Submission', type: :request do
       end
 
       context 'when the submission specifies client info only' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'Oranges',
+            'captcha_score': '1.', # also test that extraneous fields get filtered out
+            'form_definition_id': definition.id,
+            'form_content_digest': 'something random',
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
         it 'should create both client and enrollment' do
           expect do
             response, result = post_graphql(input) { mutation }
