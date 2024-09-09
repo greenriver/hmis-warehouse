@@ -122,6 +122,7 @@ Naming/MethodParameterName:
     - io
     - to
     - qa
+    - s3
 
 Style/MixinUsage:
   Enabled: false

@@ -26,5 +26,8 @@
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Queue Report', data: { 'filter-projects-target' => 'submitButton' }
+    = link_to data_missing_hud_reports_lsas_path, class: ['btn', 'btn-warning', 'ml-auto'], data: { 'filter-projects-target' => 'missingItems', loads_in_ajax_modal: true, default_href: data_missing_hud_reports_lsas_path } do
+      %i.icon-warning
+      Missing Data
 
   = render 'warehouse_reports/filters', f: f

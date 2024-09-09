@@ -906,6 +906,28 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "4f50bd02cffae24567d5d511f692ceeae1ac8183f4092cb176a63afabf3b18df",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "drivers/hmis_external_apis/app/views/hmis_external_apis/external_forms/form.haml",
+      "line": 4,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "HmisExternalApis::ExternalForms::FormGenerator.new(self, @form_definition).render_node(node)",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "hmis_external_apis/external_forms/form"
+      },
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "4fc9f21b2bb85e03dc293e0734000e9c5f28c5c40d08ee8a8c153c38e7175df7",
@@ -1118,7 +1140,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "lib/rds_sql_server/rds.rb",
-      "line": 237,
+      "line": 243,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBootstrapModel.connection.execute(\"if not exists(select * from sys.databases where name = '#{database}')\\n  select 0;\\nelse\\n  select 1;\\n\")",
       "render_path": null,
@@ -2193,7 +2215,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/performance_measurement/app/models/performance_measurement/equity_analysis/data.rb",
-      "line": 185,
+      "line": 211,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "scope.where(\"#{period}_age\" => (age_params.map do\n Filters::FilterBase.age_range(d)\n end))",
       "render_path": null,
@@ -2707,7 +2729,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "lib/rds_sql_server/rds.rb",
-      "line": 251,
+      "line": 257,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBootstrapModel.connection.execute(\"if not exists(select * from sys.databases where name = '#{database}')\\n  create database #{database}\\n\")",
       "render_path": null,
@@ -2977,28 +2999,6 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "f32a91544ec2960cf67499214f9dd41072818f5c4c0d756d32c389c908bb7426",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "drivers/hmis_external_apis/app/views/hmis_external_apis/external_forms/form.haml",
-      "line": 4,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "HmisExternalApis::ExternalForms::FormGenerator.new(self).render_node(node)",
-      "render_path": null,
-      "location": {
-        "type": "template",
-        "template": "hmis_external_apis/external_forms/form"
-      },
-      "user_input": null,
-      "confidence": "High",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "f47f3a7065a132bc6a80a941cd002157fd72f089cf801dcd4be2d52746d410fa",
@@ -3183,6 +3183,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-09-03 20:34:06 +0000",
+  "updated": "2024-09-09 11:54:08 +0000",
   "brakeman_version": "6.1.2"
 }
