@@ -21,11 +21,14 @@ $(function () {
   }
 
   $('.reload-button').on('click', function () {
-    window.location = window.location.pathname; // drop hh_id param
+    const url = new URL(window.location.href);
+    window.location.href = url.origin + url.pathname; // drop hh_id param
   });
 
   $('#addAnotherHouseholdMemberButton').on('click', function () {
-    window.location = window.location.pathname + '?hh_id=' + window.householdId;
+    const url = new URL(window.location.href);
+    url.searchParams.set('hh_id', window.householdId);
+    window.location.href = url.toString();
   });
 
   var captchaKey = appConfig.recaptchaKey;
@@ -141,7 +144,7 @@ window.addHouseholdTypeListener = function (individualOrFamilySelector) {
   // Generates a "household id" that is unlikely to have collisions among form submissions,
   // without using external library (uuid) or modern browser features (crypto)
   var generateHouseholdId = function () {
-    var current = Date.now().toString(); // OK? https://caniuse.com/mdn-javascript_builtins_date_now
+    var current = (new Date()).getTime().toString()
     var rand = Math.random().toString(16).substring(2)
     return String('HH' + current + rand).toUpperCase();
   }
