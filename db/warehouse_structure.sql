@@ -13637,7 +13637,7 @@ CREATE TABLE public.hmis_client_alerts (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    expiration_date date NOT NULL,
+    expiration_date date,
     created_by_id bigint NOT NULL,
     client_id bigint NOT NULL,
     priority character varying
@@ -18545,7 +18545,8 @@ CREATE TABLE public.hmis_form_processors (
     ce_event_id bigint,
     owner_type character varying NOT NULL,
     owner_id bigint NOT NULL,
-    backup_values jsonb
+    backup_values jsonb,
+    clh_location_id bigint
 );
 
 
@@ -54548,6 +54549,13 @@ CREATE INDEX index_hmis_form_processors_on_chronic_health_condition_id ON public
 
 
 --
+-- Name: index_hmis_form_processors_on_clh_location_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_clh_location_id ON public.hmis_form_processors USING btree (clh_location_id);
+
+
+--
 -- Name: index_hmis_form_processors_on_developmental_disability_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63353,6 +63361,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240731155357'),
 ('20240815175202'),
 ('20240821180638'),
-('20240829152828');
+('20240829152828'),
+('20240909150028');
 
 
