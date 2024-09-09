@@ -28,7 +28,7 @@ module HopwaCaper
         destination_client_id: client.id,
         enrollment_id: enrollment.id,
         service_id: service.id,
-        hud_personal_id: client.personal_id,
+        personal_id: client.personal_id,
 
         date_provided: service.date_provided,
         record_type: service.record_type,

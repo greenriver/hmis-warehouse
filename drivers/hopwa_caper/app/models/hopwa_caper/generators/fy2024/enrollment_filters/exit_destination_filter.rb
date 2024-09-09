@@ -11,10 +11,48 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
     end
 
     protected def codes
-      HudUtility2024.destinations.invert
+      lookups = HudUtility2024.destinations.invert
       types.map do |type|
-        HudUtility2024.destinations.invert.fetch(type)
+        lookups.fetch(type)
       end
+    end
+
+    def self.other_hopwa_program
+      new(
+        label: 'How many households exited to other HOPWA housing programs?',
+        types: [
+          'Moved from one HOPWA funded project to HOPWA TH',
+          'Moved from one HOPWA funded project to HOPWA PH',
+        ],
+      )
+    end
+
+    def self.other_subsidy_program
+      new(
+        label: 'How many households exited to other housing subsidy programs?',
+        types: [
+          'Owned by client, with ongoing housing subsidy',
+          'Rental by client, with ongoing housing subsidy',
+        ],
+      )
+    end
+
+    def self.private_housing
+      new(
+        label: 'How many households exited to private housing?',
+        types: [
+          'Rental by client, no ongoing housing subsidy',
+          'Owned by client, no ongoing housing subsidy',
+        ],
+      )
+    end
+
+    def self.php_destinations
+      [
+        other_hopwa_program,
+        other_subsidy_program,
+        private_housing,
+      ]
     end
 
     def self.all_destinations
@@ -23,61 +61,28 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
       end
     end
 
-    def self.php_destinations
-      [
-        new(
-          label: 'How many households exited to other HOPWA housing programs?',
-          types: [
-            'Moved from one HOPWA funded project to HOPWA TH',
-            'Moved from one HOPWA funded project to HOPWA PH',
-          ],
-        ),
-        new(
-          label: 'How many households exited to other housing subsidy programs?',
-          types: [
-            'Owned by client, with ongoing housing subsidy',
-            'Rental by client, with ongoing housing subsidy',
-          ],
-        ),
-        new(
-          label: 'How many households exited to private housing?',
-          types: [
-            'Rental by client, no ongoing housing subsidy',
-            'Owned by client, no ongoing housing subsidy',
-          ],
-        ),
-      ]
-    end
-
     # FIXME: it's unclear how we can implement the spec below. Returning exit destinations for now
-    # def self.all
+    # def self.all_destinations
     #  [
+    #    other_hopwa_program,
+    #    other_subsidy_program,
     #    new(
-    #      label: 'other HOPWA housing programs',
+    #      label: 'How many households exited to an emergency shelter?',
     #      types: [
-    #        "Moved from one HOPWA funded project to HOPWA TH",
-    #        "Moved from one HOPWA funded project to HOPWA PH",
-    #      ]
-    #    ),
-    #    new(
-    #      label: 'other housing subsidy programs',
-    #      types: [],
-    #    ),
-    #    new(
-    #      label: 'an emergency shelter',
-    #      types: "Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter",
-    #    ),
-    #    new(
-    #      label: 'private housing',
-    #      types: [
+    #         'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, Host Home shelter',
     #      ],
-    #    ),
-    #    new(
-    #      label: 'transitional housing (time limited - up to 24 months)',
-    #      types: [
-    #        "Transitional housing for homeless persons (including homeless youth)"
-    #      ]
-    #    ),
+    #     ),
+    #     private_housing,
+    #     new(
+    #       label: 'How many households exited to transitional housing (time limited - up to 24 months)?',
+    #       types: [
+    #         "Transitional housing for homeless persons (including homeless youth)",
+    #         "Staying or living with family, temporary tenure (e.g. room, apartment, or house)",
+    #         "Staying or living with friends, temporary tenure (e.g. room, apartment, or house)",
+    #         "Hotel or motel paid for without emergency shelter voucher",
+    #         "Residential project or halfway house with no homeless criteria",
+    #       ],
+    #     ),
     #    new(
     #      label: 'an institutional arrangement expected to last less than six months',
     #      types: [
@@ -105,8 +110,10 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
     #      types: [],
     #    ),
     #    new(
-    #      label: 'a place not meant for human habitation',
-    #      types: "Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)",
+    #      label: 'How many households exited to a place not meant for human habitation?',
+    #      types: [
+    #        'Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)'
+    #      ],
     #    ),
     #    new(
     #      label: 'How many of the HOPWA eligible individuals died?',

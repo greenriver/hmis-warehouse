@@ -21,8 +21,8 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
       )
     end
 
-    before(:each) do
-      household.enrollments.each do |member|
+    let!(:services) do
+      household.enrollments.map do |member|
         create_service(
           enrollment: member,
           record_type: hopwa_financial_assistance,

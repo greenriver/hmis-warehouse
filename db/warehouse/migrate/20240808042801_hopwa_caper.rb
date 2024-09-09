@@ -9,7 +9,7 @@ class HopwaCaper < ActiveRecord::Migration[7.0]
       # for reference by cell members reporting view
       t.string :first_name
       t.string :last_name
-      t.string :personal_id
+      t.string :personal_id, null: false
 
       # demographics
       t.integer :age
@@ -25,7 +25,6 @@ class HopwaCaper < ActiveRecord::Migration[7.0]
 
       t.integer :project_funders, array: true
       t.string :project_type
-      t.string :hud_personal_id, null: false
 
       t.string :income_benefit_source_types, array: true
       t.string :medical_insurance_types, array: true
@@ -52,7 +51,7 @@ class HopwaCaper < ActiveRecord::Migration[7.0]
       t.references :enrollment, index: false, null: false
       t.references :service, index: false, null: false
       t.string :report_household_id, null: false, index: true
-      t.string :hud_personal_id, null: false
+      t.string :personal_id, null: false
       t.date :date_provided
       t.integer :record_type
       t.integer :type_provided

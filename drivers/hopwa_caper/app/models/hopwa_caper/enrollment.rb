@@ -81,7 +81,7 @@ module HopwaCaper
         report_household_id: [enrollment.data_source_id, enrollment.household_id, report.id].join(':'),
         destination_client_id: client.id,
         enrollment_id: enrollment.id,
-        hud_personal_id: client.personal_id,
+        personal_id: client.personal_id,
 
         first_name: client.first_name,
         last_name: client.last_name,

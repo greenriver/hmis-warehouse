@@ -14,7 +14,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
       scope.where(age: range, dob_quality: [1, 2])
     end
 
-    # there's no col in the spec missing dobs
+    # there's no bucket in the spec to count individuals with missing dobs
     def self.all
       [
         new(label: 'Younger than 18', range: 0...18),
