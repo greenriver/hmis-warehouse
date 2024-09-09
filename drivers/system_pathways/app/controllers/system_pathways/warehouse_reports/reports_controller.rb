@@ -31,7 +31,10 @@ module SystemPathways::WarehouseReports
       params.permit!
       @pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @report.filter, show_filter: show_filter)
       respond_to do |format|
-        format.html {}
+        format.html do
+          # FIXME: this is temporary
+          render 'show_pdf'
+        end
         format.xlsx do
           filename = "#{@report.title&.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
@@ -189,6 +192,7 @@ module SystemPathways::WarehouseReports
     end
 
     def filter_params
+      set_filter if @filter.nil? # Handle PDF generation
       site_coc_codes = GrdaWarehouse::Config.default_site_coc_codes || [@filter.coc_code_options_for_select(user: current_user).first]
       default_options = {
         sub_population: :clients,

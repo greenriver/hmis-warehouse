@@ -44,6 +44,7 @@ module SystemPathways::DocumentExports
             print_background: true,
             display_header_footer: false,
             header_template: '',
+            wait_until: 'networkidle0',
             margin: {
               bottom: '.75in',
             },

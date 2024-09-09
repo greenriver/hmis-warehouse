@@ -11,3 +11,10 @@
   - @pathways_chart.project_type_node_names_with_data.each.with_index do |label, i|
     .mb-8.page-break-avoid
       = render 'node', label: label, i: i, pathways: @pathways_chart
+
+-# TODO:
+-# 1. This should loop over equity.known_categories passing label and key to a shared partial
+-# 2. Need to figure out how to force the loading of chart_loader.js to be sync
+-# 3. Need to see if we can remove the links on the tables
+= render 'system_pathways/warehouse_reports/reports/pdf/equity/race'
+= render 'system_pathways/warehouse_reports/reports/pdf/equity/ethnicity'

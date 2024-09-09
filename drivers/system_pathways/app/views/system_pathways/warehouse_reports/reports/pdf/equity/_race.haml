@@ -1,0 +1,116 @@
+- equity = SystemPathways::Equity.new(report: @report, filter: @filter, show_filter: show_filter)
+#equity-controller.equity.mt-4{ data: { controller: 'chart-loader', chart: 'document.equityRace' }}
+  - url = URI(@report.chart_data_path('equity'))
+  .d-flex.mb-6
+    - chart_header = "#{@pathways_chart.client_word} by "
+    %h3
+      = chart_header
+      %span{ data: { 'chart-loader-target' => 'header' }} Race
+    .dropdown.ml-auto
+      %button.btn.btn-sm.btn-secondary.dropdown-toggle{ type: :button, data: { toggle: :dropdown}, aria: { expanded: false }}
+        Demographic Breakdown
+        %i.ml-2.icon-angle-down
+      .dropdown-menu.options
+        - label = 'Race'
+        - key = 'race'
+        - url.query = show_filter.for_params.merge(demographic_breakdown: key).to_query
+        - table_link = {}
+        - table_link = { 'table-link' => details_system_pathways_warehouse_reports_report_url(@report, **show_filter.for_params.merge(chart: 'equity')) } if can_access_some_version_of_clients?
+        - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key, 'table-name' => "Table - #{chart_header} #{label}" }.merge(table_link)
+        - classes = ['dropdown-item', 'jChartLoaderItemEquity']
+        = link_to(label, url.to_s, data: data, class: classes)
+  #equity-chart-race-wrapper{ data: { 'chart-loader-target' => 'wrapper' }}
+    #equity-chart-race.mb-6{ data: { 'chart-loader-target' => 'chart' }}
+    #equity-table-race{ data: { 'chart-loader-target' => 'table' }}
+
+  = content_for :page_js do
+    :javascript
+      document.equityRace = bb.generate({
+        data: {
+          columns: [],
+          type: 'bar',
+          x: 'x',
+          groups: [],
+          labels: {
+            format: function(v, id, i, j) {
+              if (v == 0) return '';
+              if (! id) return v;
+
+              let numbers = d3.map(this.data(), d => d.values[i].value);
+              let total = numbers.reduce((partialSum, a) => partialSum + a, 0);
+              let percentage = v/total;
+              //console.log(i,j, d3.map(j, el => el.getBBox().width)[i])
+              if (percentage < 0.15) {
+                return '';
+              }
+              return d3.format('.0%')(percentage);
+            },
+            centered: true,
+          }
+        },
+        legend: {
+          position: "right"
+        },
+        tooltip: {
+          order: '', // Enforce group order
+          format: {
+            value: (value, ratio, id, index) => d3.format(",")(value),
+          },
+          contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
+            const tooltip_title = defaultTitleFormat(d[0].x)
+            let total_count = 0
+            $(d).each(i => {
+              const row = d[i];
+              if (row != null) {
+                total_count += row.value;
+              }
+            });
+            let html = "<table class='bb-tooltip'>"
+            html += "<thead>"
+            html += `<tr><th colspan='3'>${tooltip_title}</th></tr>`
+            html += "<tr><th></th><th>Clients</th><th>Percent</th></tr>"
+            html += "</thead>"
+            html += "<tbody>"
+            $(d).each(i => {
+              const row = d[i];
+              if (row != null) {
+                const bg_color = color(row.id);
+                html += `<tr class='bb-tooltip-name-'>`;
+                const box = `<td class='name'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${row.name}</td>`;
+                const value = `<td>${d3.format(",")(row.value)}</td>`;
+                const percent = `<td>${d3.format(".0%")(row.value / total_count)}</td>`;
+                html += box;
+                html += value;
+                html += percent;
+                return html += "</tr>";
+              }
+            });
+            html += "</tbody>";
+            html += "<tfoot>";
+            html += `<tr><th>Total</th><th>${d3.format(",")(total_count)}</th><th></th></tr>`;
+            html += "</tfoot>";
+            html += '</table>';
+            return html;
+
+          }
+
+        },
+        bindto: '#equity-chart-race',
+        size: {
+          height: 100,
+        },
+        bar: {
+          padding: 5,
+        },
+        axis: {
+          rotated: true,
+          x: {
+            type: 'category'
+          }
+        },
+        grid: {
+          x: {
+            show: true
+          }
+        }
+      });
