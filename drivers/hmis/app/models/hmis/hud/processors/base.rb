@@ -97,8 +97,8 @@ class Hmis::Hud::Processors::Base
     # The field was left empty. Save as nil or 99.
     if value.nil?
       enum_type&.data_not_collected_value
-    elsif is_array && value.empty?
-      [enum_type&.data_not_collected_value].compact
+    elsif value.empty? # array or empty string
+      is_array ? [enum_type&.data_not_collected_value].compact : enum_type&.data_not_collected_value
     # The field was hidden. Always save as nil.
     elsif value == HIDDEN_FIELD_VALUE
       nil

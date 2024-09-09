@@ -122,6 +122,14 @@ RSpec.describe 'Update External Form Submission', type: :request do
               'record_type': 'ENROLLMENT',
             },
           },
+          {
+            'type': 'STRING',
+            'link_id': 'veteran_status',
+            'mapping': {
+              'field_name': 'veteranStatus',
+              'record_type': 'CLIENT',
+            },
+          },
         ]
         create(:hmis_external_form_definition, append_items: items)
       end
@@ -293,6 +301,28 @@ RSpec.describe 'Update External Form Submission', type: :request do
             expect_gql_error(post_graphql(input) { mutation })
           end.to not_change(Hmis::Hud::CustomDataElement, :count).
             and not_change(Hmis::Hud::Client, :count)
+        end
+      end
+
+      context 'when the submission specifies a client attribute that is blank' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'bar',
+            'Client.veteranStatus': '',
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should process the blank attribute as data not collected' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1)
+
+          submission.reload
+          expect(submission.enrollment.client.veteran_status).to eq(99)
         end
       end
     end
