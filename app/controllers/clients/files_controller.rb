@@ -83,9 +83,6 @@ module Clients
           @file.save!
         end
 
-        # Ensure client is updated if this is an ROI
-        @file.set_client_consent
-
         # Keep various client fields in sync with files if appropriate
         @client.sync_cas_attributes_with_files
       rescue StandardError
