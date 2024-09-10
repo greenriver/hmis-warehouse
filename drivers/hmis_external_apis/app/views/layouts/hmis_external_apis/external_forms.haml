@@ -103,9 +103,10 @@
 
     = render_modal(html_id: 'successModal', title: 'Success', blocker: true) do
       .modal-body
-        %p You've successfully submitted the form
+        %p Your response has been recorded.
       .modal-footer
-        %button.btn.btn-primary.reload-button{ type: "button" } Continue
+        %button.btn.btn-primary{ type: "button", id: 'addAnotherHouseholdMemberButton', style: 'display:none' } Add another household member
+        %button.btn.btn-primary.reload-button{ type: "button" } Done
 
     = render_modal(html_id: 'errorModal', title: 'Error') do
       .modal-body

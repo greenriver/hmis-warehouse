@@ -183,7 +183,7 @@ module HmisExternalApis::ExternalForms
       return context.capture(&block)
     end
 
-    def node_name(node)
+    def self.node_name(node)
       record_type = node.dig('mapping', 'record_type')
       processor_name = Hmis::Form::RecordType.find(record_type).processor_name if record_type
 
@@ -193,6 +193,10 @@ module HmisExternalApis::ExternalForms
       # Join with period since that's the expected submission shape (Client.firstName)
       # If problematic we can use another separator and process accordingly in ConsumeExternalFormSubmissionsJob
       [processor_name, custom_field_key || field_name].compact.join('.')
+    end
+
+    def node_name(node)
+      self.class.node_name(node)
     end
 
     # Map { linkd_id => name to use for input field }
