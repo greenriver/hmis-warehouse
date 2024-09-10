@@ -149,9 +149,10 @@ module InactiveClientReport
         map { |id, first_name, last_name, date| [id, "#{last_name}, #{first_name}", date] }.
         group_by(&:shift).
         map do |id, values|
+          latest_assessment = values.max_by(&:last)
           { id => {
-            assessor: values.max_by(&:last).first,
-            assessment_date: values.max_by(&:last).last,
+            assessor: latest_assessment.first,
+            assessment_date: latest_assessment.last,
           } }
         end.
         reduce :merge
