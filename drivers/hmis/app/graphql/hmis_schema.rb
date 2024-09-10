@@ -46,4 +46,9 @@ class HmisSchema < GraphQL::Schema
     # For example, use Rails' GlobalID library (https://github.com/rails/globalid):
     GlobalID.find(global_id)
   end
+
+  # Override hook to handle cases when `authorized?` returns false for an object (Default behavior is to return nil)
+  def self.unauthorized_object(error)
+    raise GraphQL::ExecutionError, "#{error.type.graphql_name}##{error.object&.id} failed authorization check"
+  end
 end
