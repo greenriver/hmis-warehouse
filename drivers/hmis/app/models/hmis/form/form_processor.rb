@@ -215,6 +215,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     when Hmis::Hud::CustomAssessment
       # An assessment can modify the client that it's associated with
       owner.client
+    when HmisExternalApis::ExternalForms::FormSubmission
+      # External forms can create new clients, such as PIT
+      owner.enrollment.client || owner.enrollment.build_client(personal_id: Hmis::Hud::Base.generate_uuid)
     end
   end
 
@@ -389,6 +392,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       CeAssessment: Hmis::Hud::Processors::CeAssessmentProcessor,
       Event: Hmis::Hud::Processors::CeEventProcessor,
       CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
+      # External forms
+      FormSubmission: Hmis::Hud::Processors::ExternalFormSubmissionProcessor,
     }.freeze
   end
 

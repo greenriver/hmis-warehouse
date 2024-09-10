@@ -37,10 +37,6 @@
         max-width: 540px;
         margin-bottom: 4rem;
       }
-      .dependent-form-group > .form-group {
-        padding-left : 1.25rem;
-        border-left: 5px solid #eee;
-      }
       @media (max-width: 540px) {
         main.container {
           padding-left: 0;
@@ -71,6 +67,10 @@
       }
       .form-check {
         margin: 0.25rem;
+      }
+      /* reduce padding for groups of checkboxes */
+      fieldset > .form-group:has(> .form-check) {
+          margin-bottom: 0px;
       }
       .leaflet-container {
         height: 500px;
