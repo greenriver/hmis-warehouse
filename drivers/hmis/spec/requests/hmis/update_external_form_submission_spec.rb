@@ -130,6 +130,14 @@ RSpec.describe 'Update External Form Submission', type: :request do
               'record_type': 'CLIENT',
             },
           },
+          {
+            'type': 'GEOLOCATION',
+            'link_id': 'geolocation',
+            'mapping': {
+              'field_name': 'coordinates',
+              'record_type': 'GEOLOCATION',
+            },
+          },
         ]
         create(:hmis_external_form_definition, append_items: items)
       end
@@ -323,6 +331,31 @@ RSpec.describe 'Update External Form Submission', type: :request do
 
           submission.reload
           expect(submission.enrollment.client.veteran_status).to eq(99)
+        end
+      end
+
+      context 'when the submission specifies geolocation' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'bar',
+            'Geolocation.coordinates': { 'latitude': 40.812497, 'longitude': -77.882926 }.to_json, # todo @Martha will it come thru this way? test in real life
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should save to Client Location History table' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1).
+            and change(ClientLocationHistory::Location, :count).by(1)
+
+          submission.reload
+          clh = submission.enrollment.enrollment_location_histories.first
+          expect(clh.lat).to eq(40.812497)
+          expect(clh.lon).to eq(-77.882926)
         end
       end
     end

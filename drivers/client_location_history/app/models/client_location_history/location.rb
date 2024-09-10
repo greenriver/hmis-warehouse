@@ -10,6 +10,7 @@ module ClientLocationHistory
     belongs_to :source, polymorphic: true, optional: true
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :place, class_name: 'GrdaWarehouse::Place', primary_key: [:lat, :lon], foreign_key: [:lat, :lon], optional: true
+    # todo @martha - comment here this isn't used
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Enrollment', optional: true
 
     def as_point

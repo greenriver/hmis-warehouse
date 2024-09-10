@@ -7,11 +7,11 @@
 %br
 %button.btn.btn-secondary.mb-2{id: get_location_id}
   Get location
-%button.btn.btn-secondary.mb-2{id: clear_id}
+%button.hide.btn.btn-secondary.mb-2{id: clear_id}
   Clear
-.form-text.text-muted.mb-2{id: text_id}
+.form-text.hide.text-muted.mb-2{id: text_id}
   Loading...
-%div.leaflet-container{id: map_id}
+%div.hide.leaflet-container{id: map_id}
 -# A note about required behavior for Geolocation:
 -# Clicking the "Get location" button is required, but the user is allowed to clear and still submit.
 -# The user is also not blocked from submitting if geolocation errors / is unavailable.
