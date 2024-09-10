@@ -49,6 +49,6 @@ class HmisSchema < GraphQL::Schema
 
   # Override hook to handle cases when `authorized?` returns false for an object (Default behavior is to return nil)
   def self.unauthorized_object(error)
-    raise GraphQL::ExecutionError, "#{error.type.graphql_name}##{error.object&.id} failed authorization check"
+    raise GraphQL::UnauthorizedError, "#{error.type.graphql_name}##{error.object&.id} failed authorization check"
   end
 end
