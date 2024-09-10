@@ -32,10 +32,10 @@ module Hmis::Hud::Processors
 
     def assign_metadata
       @processor.send(factory_name, create: false)&.assign_attributes(
+        source: @processor.enrollment_factory,
         located_on: @processor.enrollment_factory.entry_date, # todo @martha - get the submission date. should be enrollment entry. comment about why
         processed_at: Time.now,
         collected_by: @processor.enrollment_factory.project.name,
-        client: @processor.client_factory.becomes(GrdaWarehouse::Hud::Client), # TODO @martha - this is a source client. discuss on PR
       )
     end
   end

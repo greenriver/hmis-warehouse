@@ -41,8 +41,8 @@ module Mutations
             error_out(record.enrollment.client.errors.full_messages) unless record.enrollment.client.valid?
             error_out(record.enrollment.errors.full_messages) unless record.enrollment.valid?
 
-            record.enrollment.client.save!
             record.enrollment.save_new_enrollment!
+            record.enrollment.client.save!
           end
           record.form_processor.save!
           record.save!

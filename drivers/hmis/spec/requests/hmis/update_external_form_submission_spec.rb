@@ -354,8 +354,10 @@ RSpec.describe 'Update External Form Submission', type: :request do
 
           submission.reload
           clh = submission.enrollment.enrollment_location_histories.first
-          expect(clh.lat).to eq(40.812497)
+          expect(clh.client_id).to eq(submission.enrollment.client.id)
+          expect(clh.lat).to eq(40.812497) # todo @martha - test double precision works correctly with values coming from frontend
           expect(clh.lon).to eq(-77.882926)
+          # todo @Martha - add expect with timestamps
         end
       end
     end
