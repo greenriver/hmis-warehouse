@@ -10,6 +10,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
   connect() {
     // allow access to this controller from other controllers
     this.element['chartLoader'] = this
+    document.body.innerHTML += '<div>TESTING</div>';
     // trigger initial click to load data
     this.loadChartData(new Event('click'));
     this.initial_config = this.chart().config();
@@ -137,6 +138,8 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
         if (active_menu_item) active_menu_item.classList.add('active');
         this.updateTable(json, target);
         this.disableLoader();
+
+        $('body').append('<div class="jChartDone">Data loaded</div>')
       })
   }
 

@@ -45,6 +45,9 @@ module SystemPathways::DocumentExports
             display_header_footer: false,
             header_template: '',
             wait_until: 'networkidle0',
+            # window_status: 'ready',
+            # wait_for_selector: '.jChartDone',
+            # wait_for_timeout: 15000,
             margin: {
               bottom: '.75in',
             },

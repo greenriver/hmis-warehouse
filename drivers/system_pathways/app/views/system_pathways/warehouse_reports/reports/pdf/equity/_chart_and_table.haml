@@ -1,31 +1,23 @@
-- equity = SystemPathways::Equity.new(report: @report, filter: @filter, show_filter: show_filter)
-#equity-controller.equity.mt-4{ data: { controller: 'chart-loader', chart: 'document.equityEthnicity' }}
+- document_chart_name = "equity#{key.camelize}"
+#equity-controller.equity.mt-4{ data: { controller: 'chart-loader', chart: "document.#{document_chart_name}" }}
   - url = URI(@report.chart_data_path('equity'))
   .d-flex.mb-6
     - chart_header = "#{@pathways_chart.client_word} by "
     %h3
       = chart_header
-      %span{ data: { 'chart-loader-target' => 'header' }} Ethnicity
-    .dropdown.ml-auto
-      %button.btn.btn-sm.btn-secondary.dropdown-toggle{ type: :button, data: { toggle: :dropdown}, aria: { expanded: false }}
-        Demographic Breakdown
-        %i.ml-2.icon-angle-down
-      .dropdown-menu.options
-        - label = 'Ethnicity'
-        - key = 'ethnicity'
-        - url.query = show_filter.for_params.merge(demographic_breakdown: key).to_query
-        - table_link = {}
-        - table_link = { 'table-link' => details_system_pathways_warehouse_reports_report_url(@report, **show_filter.for_params.merge(chart: 'equity')) } if can_access_some_version_of_clients?
-        - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key, 'table-name' => "Table - #{chart_header} #{label}" }.merge(table_link)
-        - classes = ['dropdown-item', 'jChartLoaderItemEquity']
-        = link_to(label, url.to_s, data: data, class: classes)
-  #equity-chart-ethnicity-wrapper{ data: { 'chart-loader-target' => 'wrapper' }}
-    #equity-chart-ethnicity.mb-6{ data: { 'chart-loader-target' => 'chart' }}
-    #equity-table-ethnicity{ data: { 'chart-loader-target' => 'table' }}
+      %span{ data: { 'chart-loader-target' => 'header' }} #{label}
+
+    - url.query = show_filter.for_params.merge(demographic_breakdown: key).to_query
+    - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key, 'table-name' => "Table - #{chart_header} #{label}" }
+    - classes = ['hide', 'jChartLoaderItemEquity']
+    = link_to(label, url.to_s, data: data, class: classes)
+  %div{id: "equity-chart-#{key}-wrapper", data: { 'chart-loader-target' => 'wrapper' }}
+    .mb-6{id: "equity-chart-#{key}", data: { 'chart-loader-target' => 'chart' }}
+    %div{id: "equity-table-#{key}", data: { 'chart-loader-target' => 'table' }}
 
   = content_for :page_js do
     :javascript
-      document.equityEthnicity = bb.generate({
+      document['#{document_chart_name}'] = bb.generate({
         data: {
           columns: [],
           type: 'bar',
@@ -95,7 +87,7 @@
           }
 
         },
-        bindto: '#equity-chart-ethnicity',
+        bindto: '#equity-chart-#{key}',
         size: {
           height: 100,
         },

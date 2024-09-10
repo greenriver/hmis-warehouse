@@ -16,5 +16,6 @@
 -# 1. This should loop over equity.known_categories passing label and key to a shared partial
 -# 2. Need to figure out how to force the loading of chart_loader.js to be sync
 -# 3. Need to see if we can remove the links on the tables
-= render 'system_pathways/warehouse_reports/reports/pdf/equity/race'
-= render 'system_pathways/warehouse_reports/reports/pdf/equity/ethnicity'
+- equity = SystemPathways::Equity.new(report: @report, filter: @filter, show_filter: show_filter)
+- equity.known_categories.each do |label, key|
+  = render 'system_pathways/warehouse_reports/reports/pdf/equity/chart_and_table', equity: equity, label: label, key: key
