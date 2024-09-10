@@ -361,7 +361,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
           expect(clh.lat).to eq(40.812497)
           expect(clh.lon).to eq(-77.882926)
           expect(clh.located_on).to eq(DateTime.yesterday)
-          expect(clh.processed_at > DateTime.yesterday).to be_true
+          expect(clh.processed_at > DateTime.yesterday).to be true
         end
       end
 

@@ -96,14 +96,14 @@ module HmisExternalApis::ExternalForms
         household_id ||= Hmis::Hud::Enrollment.generate_household_id
 
         # set default relationship_to_hoh (1 for new household, 99 for existing household)
-        relationship_to_hoh ||= project.enrollments.where(household_id: household_id).exists? ? 99 : 1
+        relationship_to_hoh ||= project.enrollments.where(household_id: household_id).exists? ? 'DATA_NOT_COLLECTED' : 'SELF_HEAD_OF_HOUSEHOLD'
 
         build_enrollment(
           project: project,
           data_source: project.data_source,
           entry_date: created_at,
           household_id: household_id,
-          relationship_to_hoh: relationship_to_hoh,
+          relationship_to_hoh: Types::HmisSchema::Enums::Hud::RelationshipToHoH.values[relationship_to_hoh]&.value,
           # user is provided by the form processor only when there are enrollment-related fields provided in form_values
           user: Hmis::Hud::User.from_user(current_user),
         )
