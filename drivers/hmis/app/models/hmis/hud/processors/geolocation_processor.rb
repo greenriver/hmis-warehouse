@@ -19,6 +19,7 @@ module Hmis::Hud::Processors
       attribute_name = ar_attribute_name(field)
 
       if attribute_name == 'coordinates'
+        # todo @martha - handle cleared or unavailable. don't create the record
         attribute_value = JSON.parse(value, symbolize_names: true)
         latitude = attribute_value[:latitude]
         longitude = attribute_value[:longitude]
