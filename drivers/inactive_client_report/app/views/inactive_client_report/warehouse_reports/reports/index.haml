@@ -42,6 +42,7 @@
                 %th Most-Recent Current Living Situation
                 %th Most-Recent Bed Night
                 %th Most-Recent CE Assessment
+                %th Most-Recent CE Assessor
             %tbody
               - @clients.each do |client|
                 - projects = client.last_intentional_contacts( current_user, include_confidential_names: false, include_dates: true).select(&:present?)
@@ -61,7 +62,8 @@
                   %td= @report.max_entry_date(client)
                   %td= @report.most_recent_cls(client)
                   %td= @report.most_recent_bed_night(client)
-                  %td= @report.most_recent_ce_assessment(client)
+                  %td= @report.most_recent_ce_assessment(client)&.dig(:assessment_date)
+                  %td= @report.most_recent_ce_assessment(client)&.dig(:assessor)
 
         = render 'common/pagination_bottom', item_name: 'client'
       - else
