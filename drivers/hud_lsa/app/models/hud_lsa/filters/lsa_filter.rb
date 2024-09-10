@@ -18,7 +18,9 @@ module HudLsa::Filters
     # If a single day for the PIT has been selected, set the start and end dates from the 'on' date
     def update(filters)
       # CoC Codes get treated in some odd ways, try to standardize, LSA & HIC can only run on one CoC at a time
-      filters[:coc_code] = filters[:coc_code].first if filters[:coc_code].is_a?(Array)
+      raise ArgumentError, 'Only one CoC code is allowed' if filters[:coc_code].is_a?(Array) && filters[:coc_code].reject(&:blank?).count > 1
+
+      filters[:coc_code] = filters[:coc_code].reject(&:blank?).first if filters[:coc_code].is_a?(Array)
       super
 
       filters = filters.to_h.with_indifferent_access

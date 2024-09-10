@@ -97,10 +97,8 @@ module HudReports
     def related_job
       # See if we can find a related job (this is really overloading the jobs_for_class scope, but should work)
       dj = Delayed::Job.jobs_for_class('RunReportJob').jobs_for_class(id.to_s)
-      return dj&.first if dj.count == 1
-
       # If we didn't find an obvious match, just return nothing
-      nil
+      dj&.first unless dj.many?
     end
 
     # Mark a question as started
