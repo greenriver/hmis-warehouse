@@ -10,14 +10,20 @@ RSpec.describe 'Import Two Epics', type: :model do
     cleanup
   end
 
-  it 'Creates 1 patient for each medicaid ID' do
+  it 'Only creates 1 patient for each medicaid ID' do
     medicaid_id_count = Health::EpicPatient.pluck(:medicaid_id).uniq.count
     expect(Health::Patient.count).to eq medicaid_id_count
   end
 
-  it 'attaches QAs correctly' do
+  it 'attaches QAs from both imports' do
     Health::Patient.find_each do |patient|
       expect(patient.qualifying_activities.count).to eq(patient.epic_qualifying_activities.count)
+    end
+  end
+
+  it 'de-dups team members' do
+    Health::Patient.bh_cp.find_each do |patient| # Pilot patients do not get team members via importer
+      expect(patient.team_members.pluck(:email).compact).to contain_exactly(*patient.epic_team_members.pluck(:email).uniq.compact)
     end
   end
 
