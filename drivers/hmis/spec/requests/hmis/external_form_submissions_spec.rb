@@ -27,11 +27,10 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
              formDefinitionIdentifier: $formDefinitionIdentifier
              filters: $filters
           ) {
+            nodesCount
             nodes {
               id
-              customDataElements {
-                key
-              }
+              values
             }
           }
         }
@@ -44,10 +43,10 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
     create_access_control(hmis_user, p1, with_permission: [:can_manage_external_form_submissions, :can_view_project])
   end
 
-  let!(:form_definition) do
+  let!(:definition) do
     fd = create(:hmis_external_form_definition)
-    HmisExternalApis::PublishExternalFormsJob.new.perform(fd.id)
-    fd.reload
+    # HmisExternalApis::PublishExternalFormsJob.new.perform(fd.id)
+    # fd.reload
     Hmis::Form::Instance.create!(definition: fd, entity: p1, active: true)
     fd
   end
@@ -57,20 +56,66 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
   end
 
   it 'should resolve external form submissions' do
-    submission = create(:hmis_external_form_submission, definition: form_definition, submitted_at: today.midnight)
-    submission.process_custom_data_elements!(form_definition: form_definition)
+    submission = create(:hmis_external_form_submission, definition: definition, submitted_at: today.midnight)
     filters = { 'status' => 'new', submitted_date: today.strftime('%Y-%m-%d') }
     variables = {
       id: p1.id,
-      formDefinitionIdentifier: form_definition.identifier,
+      formDefinitionIdentifier: definition.identifier,
       filters: filters,
     }
     response, result = post_graphql(variables) { query }
-    expect(response.status).to eq 200
+    expect(response.status).to eq(200), result.inspect
     expected = {
       'id' => submission.id.to_s,
-      'customDataElements' => [{ 'key' => 'your_name' }],
+      'values' => { 'your_name' => 'value' },
     }
     expect(result.dig('data', 'project', 'externalFormSubmissions', 'nodes')).to contain_exactly(expected)
+  end
+
+  context 'when form rule applies to the organization, not the project' do
+    let!(:definition) { create :hmis_external_form_definition }
+    let!(:rule) { create :hmis_form_instance, definition_identifier: definition.identifier, entity: p1.organization, active: true }
+
+    it 'should return submissions' do
+      submission = create(:hmis_external_form_submission, definition: definition, submitted_at: today.midnight, raw_data: { 'your_name' => 'ebeneezer' })
+      response, result = post_graphql({ id: p1.id, formDefinitionIdentifier: definition.identifier }) { query }
+      expect(response.status).to eq(200), result.inspect
+      expected = {
+        'id' => submission.id.to_s,
+        'values' => { 'your_name' => 'ebeneezer' },
+      }
+      expect(result.dig('data', 'project', 'externalFormSubmissions', 'nodes')).to contain_exactly(expected)
+    end
+  end
+
+  context 'when there are several external forms' do
+    let!(:definition_2) do
+      fd = create(:hmis_external_form_definition)
+      # HmisExternalApis::PublishExternalFormsJob.new.perform(fd.id)
+      # fd.reload
+      Hmis::Form::Instance.create!(definition: fd, entity: p1, active: true)
+      fd
+    end
+
+    let!(:sub1) { create(:hmis_external_form_submission, definition: definition, submitted_at: today.midnight) }
+    let!(:sub1_spam) { create(:hmis_external_form_submission, definition: definition, submitted_at: today.midnight, spam_score: 0) }
+    let!(:sub2) { create(:hmis_external_form_submission, definition: definition_2, submitted_at: today.midnight) }
+    let!(:sub2_spam) { create(:hmis_external_form_submission, definition: definition_2, submitted_at: today.midnight, spam_score: 0) }
+
+    it 'should return all, including spam, when include_spam filter is passed' do
+      response, result = post_graphql({ id: p1.id, formDefinitionIdentifier: definition.identifier }) { query }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'project', 'externalFormSubmissions', 'nodesCount')).to eq(1) # doesn't include spam
+
+      filters = { 'includeSpam' => true }
+      variables = {
+        id: p1.id,
+        formDefinitionIdentifier: definition.identifier,
+        filters: filters,
+      }
+      response, result = post_graphql(variables) { query }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'project', 'externalFormSubmissions', 'nodesCount')).to eq(2) # includes spam
+    end
   end
 end
