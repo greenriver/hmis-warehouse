@@ -86,7 +86,7 @@ module InactiveClientReport
       [
         most_recent_cls(client),
         most_recent_bed_night(client),
-        most_recent_ce_assessment(client),
+        most_recent_ce_assessment(client)&.dig(:assessment_date),
         max_entry_date(client),
       ].compact.max
     end
@@ -141,10 +141,20 @@ module InactiveClientReport
     end
 
     def max_assessment_by_client_id
+      u_t = GrdaWarehouse::Hud::User.arel_table
       client_scope.
-        joins(:source_assessments).
-        group(c_t[:id]).
-        maximum(as_t[:AssessmentDate])
+        joins(source_assessments: :user).
+        pluck(c_t[:id], u_t[:UserFirstName], u_t[:UserLastName], as_t[:AssessmentDate]).
+        uniq.
+        map { |id, first_name, last_name, date| [id, "#{last_name}, #{first_name}", date] }.
+        group_by(&:shift).
+        map do |id, values|
+          { id => {
+            assessor: values.max_by(&:last).first,
+            assessment_date: values.max_by(&:last).last,
+          } }
+        end.
+        reduce :merge
     end
 
     private def max_entries_by_client_id
