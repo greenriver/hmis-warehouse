@@ -281,7 +281,7 @@ RSpec.describe Hmis::SessionsController, type: :request do
         }
       }
     GRAPHQL
-    response, = post_graphql(input: {}) { query }
+    response, = post_graphql(input: { first_name: 'Tester' }) { query }
     response
   end
 end
