@@ -88,14 +88,9 @@ module HmisExternalApis::ExternalForms
         if hh_invalid_format || hh_invalid_exists
           household_id = nil
           relationship_to_hoh = nil
-          values_to_process.delete('Enrollment.householdId')
-          values_to_process.delete('Enrollment.relationshipToHoH')
         end
 
-        if relationship_to_hoh && !Types::HmisSchema::Enums::Hud::RelationshipToHoH.values.keys.include?(relationship_to_hoh)
-          relationship_to_hoh = nil
-          values_to_process.delete('Enrollment.relationshipToHoH')
-        end
+        relationship_to_hoh = nil if relationship_to_hoh && !Types::HmisSchema::Enums::Hud::RelationshipToHoH.values.keys.include?(relationship_to_hoh)
 
         # if no household id, generate a new one
         household_id ||= Hmis::Hud::Enrollment.generate_household_id
@@ -112,6 +107,9 @@ module HmisExternalApis::ExternalForms
           # user is provided by the form processor only when there are enrollment-related fields provided in form_values
           user: Hmis::Hud::User.from_user(current_user),
         )
+
+        values_to_process.delete('Enrollment.householdId')
+        values_to_process.delete('Enrollment.relationshipToHoH')
       end
 
       form_processor = build_form_processor(definition: definition)

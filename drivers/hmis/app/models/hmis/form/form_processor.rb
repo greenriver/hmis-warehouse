@@ -352,7 +352,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   def clh_location_factory(create: true)
     return clh_location if clh_location.present? || !create
 
-    # todo @Martha - this is src client, discuss on PR
     self.clh_location = client_factory.client_location_histories.build
   end
 

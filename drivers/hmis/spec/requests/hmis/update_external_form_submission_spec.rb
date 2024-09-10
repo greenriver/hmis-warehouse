@@ -327,7 +327,8 @@ RSpec.describe 'Update External Form Submission', type: :request do
             expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
           end.to change(Hmis::Hud::Client, :count).by(1).
-            and change(Hmis::Hud::Enrollment, :count).by(1)
+            and change(Hmis::Hud::Enrollment, :count).by(1).
+            and not_change(ClientLocationHistory::Location, :count)
 
           submission.reload
           expect(submission.enrollment.client.veteran_status).to eq(99)
@@ -338,9 +339,9 @@ RSpec.describe 'Update External Form Submission', type: :request do
         let!(:submission) do
           data = {
             'Client.firstName': 'bar',
-            'Geolocation.coordinates': { 'latitude': 40.812497, 'longitude': -77.882926 }.to_json, # todo @Martha will it come thru this way? test in real life
+            'Geolocation.coordinates': { 'latitude': 40.812497, 'longitude': -77.882926 }.to_json,
           }.stringify_keys
-          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+          create(:hmis_external_form_submission, raw_data: data, definition: definition, created_at: DateTime.yesterday)
         end
 
         it 'should save to Client Location History table' do
@@ -353,11 +354,34 @@ RSpec.describe 'Update External Form Submission', type: :request do
             and change(ClientLocationHistory::Location, :count).by(1)
 
           submission.reload
+          expect(submission.enrollment.entry_date).to eq(DateTime.yesterday)
+
           clh = submission.enrollment.enrollment_location_histories.first
           expect(clh.client_id).to eq(submission.enrollment.client.id)
-          expect(clh.lat).to eq(40.812497) # todo @martha - test double precision works correctly with values coming from frontend
+          expect(clh.lat).to eq(40.812497)
           expect(clh.lon).to eq(-77.882926)
-          # todo @Martha - add expect with timestamps
+          expect(clh.located_on).to eq(DateTime.yesterday)
+          expect(clh.processed_at > DateTime.yesterday).to be_true
+        end
+      end
+
+      context 'when geolocation is not available' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'bar',
+            'Geolocation.coordinates': { 'notCollectedReason': 'error' }.to_json,
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should not save a save CLH record' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1).
+            and not_change(ClientLocationHistory::Location, :count)
         end
       end
     end

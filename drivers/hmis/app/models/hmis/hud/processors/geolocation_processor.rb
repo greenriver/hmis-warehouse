@@ -6,12 +6,10 @@
 module Hmis::Hud::Processors
   class GeolocationProcessor < Base
     def factory_name
-      # todo @martha - rename this
       :clh_location_factory
     end
 
     def schema
-      # todo @martha - test this
       nil
     end
 
@@ -19,11 +17,13 @@ module Hmis::Hud::Processors
       attribute_name = ar_attribute_name(field)
 
       if attribute_name == 'coordinates'
-        # todo @martha - handle cleared or unavailable. don't create the record
         attribute_value = JSON.parse(value, symbolize_names: true)
         latitude = attribute_value[:latitude]
         longitude = attribute_value[:longitude]
-        raise unless latitude && longitude
+        not_collected_reason = attribute_value[:notCollectedReason]
+        raise ArgumentError, 'Geolocation coordinates in unexpected format' unless (latitude && longitude) || not_collected_reason
+
+        return @processor.send(factory_name).destroy if not_collected_reason
 
         @processor.send(factory_name).assign_attributes(lat: latitude, lon: longitude)
       else
@@ -32,9 +32,12 @@ module Hmis::Hud::Processors
     end
 
     def assign_metadata
-      @processor.send(factory_name, create: false)&.assign_attributes(
+      clh = @processor.send(factory_name, create: false)
+      return if clh&.destroyed?
+
+      clh&.assign_attributes(
         source: @processor.enrollment_factory,
-        located_on: @processor.enrollment_factory.entry_date, # todo @martha - get the submission date. should be enrollment entry. comment about why
+        located_on: @processor.enrollment_factory.entry_date, # entry_date holds the submission time of the form
         processed_at: Time.now,
         collected_by: @processor.enrollment_factory.project.name,
       )
