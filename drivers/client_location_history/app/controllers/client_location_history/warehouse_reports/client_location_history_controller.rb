@@ -14,6 +14,8 @@ module ClientLocationHistory::WarehouseReports
     before_action :filter
 
     def index
+      # This is intentionally only displaying locations that are tied to the destination client, even though there may
+      # also be locations tied to source clients (for locations collected in HMIS and/or external forms)
       ids = ClientLocationHistory::Location.joins(:client).
         merge(GrdaWarehouse::Hud::Client.destination_visible_to(current_user)).
         where(located_on: filter.range).
