@@ -75,6 +75,8 @@ module Clients
         else
           @file.save!
         end
+        # Ensure client is updated if this is an ROI
+        @file.set_client_consent
         # Remove any view caches for this client since permissions may have changed
         @client.clear_view_cache
         # Keep various client fields in sync with files if appropriate
