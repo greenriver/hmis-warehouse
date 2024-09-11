@@ -25,6 +25,7 @@ module Hmis::Hud::Concerns::Shared
       warehouse_class.find(id)
     end
 
+    # todo @martha - remove if not used
     def as_warehouse_unpersisted
       raise 'Use as_warehouse' if persisted?
 

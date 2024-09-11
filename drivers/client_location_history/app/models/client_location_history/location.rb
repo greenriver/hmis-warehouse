@@ -12,6 +12,13 @@ module ClientLocationHistory
     belongs_to :place, class_name: 'GrdaWarehouse::Place', primary_key: [:lat, :lon], foreign_key: [:lat, :lon], optional: true
     # this relation isn't used; use polymorphic `source` above
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
+    after_save :fix_source
+
+    def fix_source
+      return unless source_type == 'Hmis::Hud::Enrollment'
+
+      update_column(:source_type, 'GrdaWarehouse::Hud::Enrollment')
+    end
 
     def as_point
       [lat, lon]

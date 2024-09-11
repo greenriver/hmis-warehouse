@@ -36,8 +36,7 @@ module Hmis::Hud::Processors
       return if clh&.destroyed?
 
       clh&.assign_attributes(
-        client: @processor.client_factory.as_warehouse_unpersisted,
-        # source: @processor.enrollment_factory.as_warehouse_unpersisted, # clh_locations should reference GrdaWarehouse enrollment
+        source: @processor.enrollment_factory,
         located_on: @processor.enrollment_factory.entry_date, # entry_date holds the submission time of the form
         processed_at: Time.now,
         collected_by: @processor.enrollment_factory.project.name,

@@ -352,7 +352,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   def clh_location_factory(create: true)
     return clh_location if clh_location.present? || !create
 
-    self.clh_location = enrollment_factory.as_warehouse_unpersisted.enrollment_location_histories.build
+    self.clh_location = client_factory.client_location_histories.build
   end
 
   private def container_processor(container)
