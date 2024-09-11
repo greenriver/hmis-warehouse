@@ -59,7 +59,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :current_living_situations, **hmis_enrollment_relation('CurrentLivingSituation'), inverse_of: :enrollment, dependent: :destroy
   has_many :employment_educations, **hmis_enrollment_relation('EmploymentEducation'), inverse_of: :enrollment, dependent: :destroy
   has_many :youth_education_statuses, **hmis_enrollment_relation('YouthEducationStatus'), inverse_of: :enrollment, dependent: :destroy
-  has_many :enrollment_location_histories, class_name: 'ClientLocationHistory::Location', as: :source
+  # todo @martha - driver; not needed?
+  # has_many :enrollment_location_histories, class_name: 'ClientLocationHistory::Location', as: :source
 
   # CE Assessments
   has_many :assessments, **hmis_enrollment_relation('Assessment'), inverse_of: :enrollment, dependent: :destroy

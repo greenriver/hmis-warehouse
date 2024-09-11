@@ -55,7 +55,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
   has_many :services, through: :enrollments # HUD Services only
   has_many :custom_services, through: :enrollments # Custom Services only
-  has_many :client_location_histories, class_name: 'ClientLocationHistory::Location'
+  # todo @martha - driver; not needed?
+  # has_many :client_location_histories, class_name: 'ClientLocationHistory::Location'
 
   # History of merges into this client
   has_many :merge_histories, class_name: 'Hmis::ClientMergeHistory', primary_key: :id, foreign_key: :retained_client_id
