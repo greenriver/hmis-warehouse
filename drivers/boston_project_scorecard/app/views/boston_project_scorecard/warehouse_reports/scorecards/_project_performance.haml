@@ -22,7 +22,7 @@
       %td
         1.a.
         %b RRH:
-        Exits RRH to PH (benchmark 80%)
+        Exits from RRH to a Permanent Destination
       %td
         APR Table
         = link_to_apr('Q23c', 'Question 23')
@@ -45,7 +45,7 @@
       %td
         1.b.
         %b PSH:
-        = "% of clients who remained in PSH or exited to PH (benchmark 80%) (stayers & leavers)"
+        Percent of clients who remained in PSH or exited to a Permanent Destination (stayers & leavers)
       %td
         B1 from APR Table
         = link_to_apr('Q5a', 'Question 5')
@@ -79,18 +79,18 @@
         = link_to_apr('Q19a2,', 'Question 19')
         Cell J2 (Leavers)
       %td
-        12 pts: 100-75%
+        12 pts: 100-20%
         %br
-        6 pts: 74-55%
+        6 pts: 19-15%
         %br
-        4 pts: 54-25%
+        4 pts: 14-7%
         %br
-        0 pts: 24% - 0%
+        0 pts: 6% - 0%
       %td= @report.increased_employment_income_value
       %td= @report.increased_employment_income_score
     %tr
       %td
-        3. % of clients who increased
+        3. % of clients who maintained or increased
         %b non-earned income
         (ex. social benefits)
         %br
@@ -99,18 +99,20 @@
         APR Tables
         %br
         = link_to_apr('Q19a1,', 'Question 19')
-        Cell J4 (Stayers)
+        (Stayers)
         %br
         = link_to_apr('Q19a2,', 'Question 19')
-        Cell J4 (Leavers)
+        (Leavers)
+        %br
+        %small ((Q19a1 D4+E4+F4)+(Q19a2 D4+E4+F4)) / (Q19a1 H4 + Q19a2 H4) *100
       %td
-        12 pts: 100-75%
+        12 pts: 100-50%
         %br
-        6 pts: 74-55%
+        6 pts: 49-37%
         %br
-        4 pts: 54-25%
+        4 pts: 36-17%
         %br
-        0 pts: 24% - 0%
+        0 pts: 16% - 0%
       %td= @report.increased_other_income_value
       %td= @report.increased_other_income_score
     %tr
@@ -146,9 +148,9 @@
       %td= @report.utilization_rate_value
       %td= @report.utilization_rate_score
     %tr
-      %td 6. % of "No Concern" the project received as a result of the most recent program monitoring evaluation
+      %td 6A. % of "No Concern" the project recevied as a result of the most recent program self-monitoring evaluation
       %td
-        CoC Program Monitoring Report
+        2024 Program Monitoring Development Officer Review Sheet & CoC Program Monitoring Report
       %td
         3pts: 100-90%
         %br
@@ -159,3 +161,15 @@
         0pts: 79-0%
       %td= f.input :no_concern, collection: @report.no_concern_options, as: :pretty_boolean_group, label: "Choose one:"
       %td= @report.no_concern_score
+    %tr
+      %td 6B For providers that participated in the 2024 modified process, were all requested materials submitted by the MOH deadline of 6/11/24?
+      %td
+        Program Monitoring Development Officer Confirmation
+      %td
+        3pts: All materials were submitted on time
+        %br
+        1pt: Materials were submitted but deadline was missed
+        %br
+        0pts: Materials were not submitted
+      %td= f.input :materials_concern, collection: @report.materials_concern_options, as: :pretty_boolean_group, label: "Choose one:"
+      %td= @report.materials_concern

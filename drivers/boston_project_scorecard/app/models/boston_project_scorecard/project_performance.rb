@@ -18,6 +18,15 @@ module BostonProjectScorecard
         }
       end
 
+      def materials_concern_options
+        {
+          'All materials were submitted on time': 3,
+          'Materials were submitted but deadline was missed': 1,
+          'Materials were not submitted': 0,
+          'Not Applicable': -1,
+        }
+      end
+
       def rrh?
         project_type == 13
       end
@@ -66,22 +75,26 @@ module BostonProjectScorecard
         0
       end
 
-      def performance_score(value)
-        return 0 unless value
+      def increased_employment_income_score
+        return 0 unless increased_employment_income
 
-        return 12 if value >= 75
-        return 6 if value >= 55
-        return 4 if value >= 25
+        # Specified rounded comparison
+        return 12 if increased_employment_income.round >= 20
+        return 6 if increased_employment_income.round >= 19
+        return 4 if increased_employment_income.round >= 7
 
         0
       end
 
-      def increased_employment_income_score
-        performance_score(increased_employment_income)
-      end
-
       def increased_other_income_score
-        performance_score(increased_other_income)
+        return 0 unless increased_other_income
+
+        # Specified rounded comparison
+        return 12 if increased_other_income.round >= 50
+        return 6 if increased_other_income.round >= 37
+        return 4 if increased_other_income.round >= 17
+
+        0
       end
 
       def days_to_lease_up_score

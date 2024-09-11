@@ -62,8 +62,8 @@ module BostonProjectScorecard
       def efficiency_score
         return unless cost_efficiency_value.present?
 
-        return 6 if project_type.in?([3, 9, 10]) && cost_efficiency_value <= 19_968 # PSH, PH - housing only, PH - with services
-        return 6 if project_type.in?([13]) && cost_efficiency_value <= 13_566 # RRH
+        return 6 if project_type.in?([3, 9, 10]) && cost_efficiency_value <= 19_497 # PSH, PH - housing only, PH - with services
+        return 6 if project_type.in?([13]) && cost_efficiency_value <= 14_022 # RRH
 
         0
       end

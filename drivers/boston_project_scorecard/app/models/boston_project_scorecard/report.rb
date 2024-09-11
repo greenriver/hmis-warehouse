@@ -194,13 +194,14 @@ module BostonProjectScorecard
         one_a_value = percentage(answer(apr, 'Q23c', 'B43'))
         one_b_value = percentage((answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B40') + answer(apr, 'Q23c', 'B41')) / (answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B42')).to_f)
 
-        adult_count = answer(apr, 'Q19a1', 'H2') + answer(apr, 'Q19a2', 'H2')
+        adult_with_earned_income_count = answer(apr, 'Q19a1', 'H2') + answer(apr, 'Q19a2', 'H2')
         employment_increased = answer(apr, 'Q19a1', 'I2') + answer(apr, 'Q19a2', 'I2')
-        other_increased = answer(apr, 'Q19a1', 'I4') + answer(apr, 'Q19a2', 'I4')
+        other_increased_retained = answer(apr, 'Q19a1', 'D4') + answer(apr, 'Q19a1', 'E4') + answer(apr, 'Q19a1', 'F4') + answer(apr, 'Q19a2', 'D4') + answer(apr, 'Q19a2', 'E4') + answer(apr, 'Q19a2', 'F4')
         employment_percent = 0
-        employment_percent = employment_increased / adult_count.to_f if adult_count.positive?
+        employment_percent = employment_increased / adult_with_earned_income_count.to_f if adult_with_earned_income_count.positive?
+        all_adults_count = answer(apr, 'Q19a1', 'H4') + answer(apr, 'Q19a2', 'H4')
         other_percent = 0
-        other_percent = other_increased / adult_count.to_f if adult_count.positive?
+        other_percent = other_increased_retained / all_adults_count.to_f if all_adults_count.positive?
 
         assessment_answers.merge!(
           {
