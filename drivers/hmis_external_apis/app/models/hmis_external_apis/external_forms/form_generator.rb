@@ -167,6 +167,7 @@ module HmisExternalApis::ExternalForms
       if node['enable_behavior']
         conditions = node['enable_when']&.map do |condition|
           raise "only supports enable_when with 'question' and 'answer_code' (got: #{condition})" unless condition.key?('question') && condition.key?('answer_code')
+          raise "only supports enable_when with 'EQUAL' operator (got: #{condition['operator']})" unless condition['operator'] == 'EQUAL'
 
           input_dependent_link_id = condition['question']
           input_name = link_id_to_node_name[input_dependent_link_id]

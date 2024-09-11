@@ -78,23 +78,17 @@ module HmisExternalApis::ExternalForms
         raise 'Access denied' unless project
 
         household_id = form_values['Enrollment.householdId']
-        relationship_to_hoh = form_values['Enrollment.relationshipToHoH']
+        # Relationship to HoH is expected to be enum format, eg 'SELF_HEAD_OF_HOUSEHOLD'. This translates it to integer value (SELF_HEAD_OF_HOUSEHOLD => 1)
+        relationship_to_hoh = Types::HmisSchema::Enums::Hud::RelationshipToHoH.values.excluding('INVALID')[form_values['Enrollment.relationshipToHoH']]&.value
 
-        # drop household id if it doesn't match expected format
+        # household id doesn't match expected format
         hh_invalid_format = household_id && !(household_id.starts_with?('HH') && household_id.size > 20)
-        # drop household id if it has a conflict in this data source in another project (just to be safe)
-        hh_invalid_exists = household_id && Hmis::Hud::Enrollment.where(household_id: household_id, data_source: project.data_source).where.not(project: project).exists?
+        # household id has a conflict in this data source in another project (just to be safe)
+        hh_conflict = household_id && Hmis::Hud::Enrollment.where(household_id: household_id, data_source: project.data_source).where.not(project: project).exists?
 
-        if hh_invalid_format || hh_invalid_exists
+        if hh_invalid_format || hh_conflict
           household_id = nil
           relationship_to_hoh = nil
-          values_to_process.delete('Enrollment.householdId')
-          values_to_process.delete('Enrollment.relationshipToHoH')
-        end
-
-        if relationship_to_hoh && !Types::HmisSchema::Enums::Hud::RelationshipToHoH.values.keys.include?(relationship_to_hoh)
-          relationship_to_hoh = nil
-          values_to_process.delete('Enrollment.relationshipToHoH')
         end
 
         # if no household id, generate a new one
@@ -102,6 +96,10 @@ module HmisExternalApis::ExternalForms
 
         # set default relationship_to_hoh (1 for new household, 99 for existing household)
         relationship_to_hoh ||= project.enrollments.where(household_id: household_id).exists? ? 99 : 1
+
+        # No need to processs thes fields further, so remove them
+        values_to_process.delete('Enrollment.householdId')
+        values_to_process.delete('Enrollment.relationshipToHoH')
 
         build_enrollment(
           project: project,
