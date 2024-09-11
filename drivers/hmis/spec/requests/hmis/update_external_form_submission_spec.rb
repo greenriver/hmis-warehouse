@@ -349,7 +349,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
             response, result = post_graphql(input) { mutation }
             expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
-          end.to change(Hmis::Hud::Client, :count).by(1). # fails here - both records got saved under different ids.
+          end.to change(Hmis::Hud::Client, :count).by(1).
             and change(Hmis::Hud::Enrollment, :count).by(1).
             and change(ClientLocationHistory::Location, :count).by(1)
 
@@ -362,6 +362,17 @@ RSpec.describe 'Update External Form Submission', type: :request do
           expect(clh.lon).to eq(-77.882926)
           expect(clh.located_on).to eq(DateTime.yesterday)
           expect(clh.processed_at > DateTime.yesterday).to be true
+        end
+
+        it 'should still work when auto enter is turned on in the project' do
+          Hmis::ProjectAutoEnterConfig.create!(project: p1)
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1).
+            and change(ClientLocationHistory::Location, :count).by(1)
         end
       end
 

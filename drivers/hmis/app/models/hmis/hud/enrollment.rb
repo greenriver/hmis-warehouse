@@ -282,7 +282,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def save_new_enrollment!
-    raise 'Unexpected: save_new_enrollment called on a persisted enrollment' if persisted?
+    # raise 'Unexpected: save_new_enrollment called on a persisted enrollment' if persisted?
 
     if Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(project)
       # If auto-enter is configured for this project, save as non-WIP and generate an empty intake.
