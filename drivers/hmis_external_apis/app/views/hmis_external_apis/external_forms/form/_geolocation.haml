@@ -7,12 +7,12 @@
 %br
 %button.btn.btn-secondary.mb-2{id: get_location_id}
   Get location
--# Use the `.hide` class, insted of jquery's hide, to avoid flicker effect on page load
-%button.hide.btn.btn-secondary.mb-2{id: clear_id}
+-# Use the `.d-none` class on page load to avoid flicker effect
+%button.d-none.btn.btn-secondary.mb-2{id: clear_id}
   Clear
-.form-text.hide.text-muted.mb-2{id: text_id}
+.form-text.d-none.text-muted.mb-2{id: text_id}
   Loading...
-%div.hide.leaflet-container{id: map_id}
+%div.d-none.leaflet-container{id: map_id}
 -# A note about required behavior for Geolocation:
 -# Clicking the "Get location" button is required, but the user is allowed to clear and still submit.
 -# The user is also not blocked from submitting if geolocation errors / is unavailable.
