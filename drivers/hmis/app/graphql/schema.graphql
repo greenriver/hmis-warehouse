@@ -5515,6 +5515,7 @@ enum ItemType {
   DATE
   DISPLAY
   FILE
+  GEOLOCATION
   GROUP
   IMAGE
   INTEGER
@@ -9771,6 +9772,11 @@ enum RelatedRecordType {
   Exit
   """
   EXIT
+
+  """
+  Geolocation
+  """
+  GEOLOCATION
 
   """
   HealthAndDv

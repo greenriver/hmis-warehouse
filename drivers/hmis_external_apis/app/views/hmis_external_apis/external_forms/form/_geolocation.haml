@@ -1,0 +1,115 @@
+:ruby
+  get_location_id = next_html_id
+  clear_id = next_html_id
+  text_id = next_html_id
+  map_id = next_html_id
+%label{for:html_id, class: required && 'required'}= label
+%br
+%button.btn.btn-secondary.mb-2{id: get_location_id}
+  Get location
+%button.btn.btn-secondary.mb-2{id: clear_id}
+  Clear
+.form-text.text-muted.mb-2{id: text_id}
+  Loading...
+%div.leaflet-container{id: map_id}
+-# A note about required behavior for Geolocation:
+-# Clicking the "Get location" button is required, but the user is allowed to clear and still submit.
+-# The user is also not blocked from submitting if geolocation errors / is unavailable.
+%input{id: html_id, hidden: true, name: name, required: required}
+.invalid-feedback This is required
+
+- content_for :page_js do
+  :javascript
+    // 'use strict';
+    $(function() {
+      var helperTextId = '#' + #{text_id.to_json.html_safe};
+      var getLocationButtonId = '#' + #{get_location_id.to_json.html_safe};
+      var clearButtonId = '#' + #{clear_id.to_json.html_safe};
+      var mapContainerId = '#' + #{map_id.to_json.html_safe};
+      var inputId = '#' + #{html_id.to_json.html_safe}
+
+      var helperText = $(helperTextId);
+      var getLocationButton = $(getLocationButtonId);
+      var clearButton = $(clearButtonId);
+      var mapContainer = $(mapContainerId);
+      var input = $(inputId);
+
+      helperText.hide();
+      mapContainer.hide();
+      clearButton.hide();
+
+      var map = L.map(#{map_id.to_json.html_safe},  {
+        dragging: false,
+        boxZoom: false,
+        tapHold: false,
+        touchZoom: false,
+        doubleClickZoom: false,
+        scrollWheelZoom: false,
+      });
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(map);
+      var marker;
+
+      if (!navigator.geolocation) {
+        helperText.show();
+        helperText.text("Geolocation is not supported by this browser.");
+        getLocationButton.prop('disabled', true)
+        input.val(JSON.stringify({ "notCollectedReason": "unsupported" }));
+        input.removeClass('is-invalid').addClass('is-valid');
+      }
+
+      var setPosition = function(position) {
+        setLoading(false);
+        mapContainer.show();
+        clearButton.show();
+
+        var lat = position.coords.latitude;
+        var lon = position.coords.longitude;
+
+        // 13 is zoom level, consistent with WH MapWithMarkers
+        map.setView([lat, lon], 13);
+        if (marker) {
+          marker.remove();
+        }
+        marker = L.marker([lat, lon]).addTo(map);
+        input.val(JSON.stringify({ "latitude": lat, "longitude": lon }));
+        input.removeClass('is-invalid').addClass('is-valid');
+      }
+
+      var onError = function(error) {
+        getLocationButton.prop('disabled', false);
+        mapContainer.hide();
+        clearButton.hide();
+        helperText.text("Location unavailable.", error.message);
+        input.val(JSON.stringify({ "notCollectedReason": "error" }));
+        input.removeClass('is-invalid').addClass('is-valid');
+      }
+
+      var setLoading = function(isLoading) {
+        if (isLoading) {
+          getLocationButton.prop('disabled', true);
+          helperText.text('Loading...')
+          helperText.show();
+        } else {
+          getLocationButton.prop('disabled', false);
+          helperText.hide();
+        }
+      }
+
+      getLocationButton.click(function(event) {
+        event.preventDefault();
+        setLoading(true);
+        navigator.geolocation.getCurrentPosition(setPosition, onError);
+      });
+
+      clearButton.click(function(event) {
+        event.preventDefault();
+        marker.remove();
+        clearButton.hide();
+        mapContainer.hide();
+        input.val(JSON.stringify({ "notCollectedReason": "cleared" }));
+        input.removeClass('is-invalid').addClass('is-valid');
+      })
+    });
