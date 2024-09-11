@@ -16,19 +16,18 @@ module Hmis::Hud::Processors
     def process(field, value)
       attribute_name = ar_attribute_name(field)
 
-      if attribute_name == 'coordinates'
-        attribute_value = JSON.parse(value, symbolize_names: true)
-        latitude = attribute_value[:latitude]
-        longitude = attribute_value[:longitude]
-        not_collected_reason = attribute_value[:notCollectedReason]
-        raise ArgumentError, 'Geolocation coordinates in unexpected format' unless (latitude && longitude) || not_collected_reason
+      raise ArgumentError, "Unexpected attribute for Geolocation: #{attribute_name}" unless attribute_name == 'coordinates'
 
-        return @processor.send(factory_name).destroy if not_collected_reason
+      attribute_value = JSON.parse(value, symbolize_names: true)
+      latitude = attribute_value[:latitude]
+      longitude = attribute_value[:longitude]
+      not_collected_reason = attribute_value[:notCollectedReason]
 
-        @processor.send(factory_name).assign_attributes(lat: latitude, lon: longitude)
-      else
-        @processor.send(factory_name).assign_attributes(attribute_name => value)
-      end
+      raise ArgumentError, 'Geolocation coordinates in unexpected format' unless (latitude && longitude) || not_collected_reason
+
+      return @processor.send(factory_name).destroy if not_collected_reason
+
+      @processor.send(factory_name).assign_attributes(lat: latitude, lon: longitude)
     end
 
     def assign_metadata
