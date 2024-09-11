@@ -39,6 +39,8 @@ module GrdaWarehouse::Hud
     CACHE_EXPIRY = if Rails.env.production? then 1.hours else 30.seconds end
 
     has_many :client_files
+    has_many :client_file_consent_forms_signed, -> { consent_forms.signed }, class_name: 'GrdaWarehouse::ClientFile'
+    has_many :client_file_consent_forms_signed_confirmed, -> { consent_forms.signed.confirmed }, class_name: 'GrdaWarehouse::ClientFile'
     has_many :health_files
     has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base', inverse_of: :client
     has_many :ce_assessments, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
@@ -61,7 +63,7 @@ module GrdaWarehouse::Hud
         :AssessmentDate,
         source_arel_table: as_t,
         group_on: [:PersonalID, :data_source_id],
-        scope: pathways_or_rrh,
+        scope: pathways_or_rrh.where(DateDeleted: nil),
       )
     end, **hud_assoc(:PersonalID, 'Assessment')
 
@@ -577,7 +579,7 @@ module GrdaWarehouse::Hud
     scope :race_none, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:RaceNone].eq(1)).
+          where(c_t[:RaceNone].in([8, 9, 99])).
           select(:destination_id),
       )
     end
@@ -1114,6 +1116,10 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def revoked_consent?
+      release_current_status == self.class.revoked_consent_string
+    end
+
     def release_current_status
       active_consent_model.release_current_status
     end
@@ -1154,9 +1160,9 @@ module GrdaWarehouse::Hud
       if release_duration == 'Use Expiration Date'
         consent_form_signed_on.present? && consent_form_valid?
       elsif GrdaWarehouse::Config.get(:auto_confirm_consent)
-        client_files.consent_forms.signed.exists?
+        client_file_consent_forms_signed.to_a.any?
       else
-        client_files.consent_forms.signed.confirmed.exists?
+        client_file_consent_forms_signed_confirmed.to_a.any?
       end
     end
 

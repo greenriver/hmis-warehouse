@@ -11,6 +11,10 @@ module HmisUtil
 
     DATA_DIR = 'drivers/hmis/lib/form_data'.freeze
 
+    def initialize(env_key: nil)
+      @env_key = env_key if env_key.presence # allow override for testing
+    end
+
     def self.seed_all
       new.seed_all
     end
@@ -260,14 +264,16 @@ module HmisUtil
       # Ensure HUD rules are set
       record.set_hud_requirements
 
+      # could create CDEDs here but we plan to do it manually
+      # record.introspect_custom_data_element_definitions.each(&:save!)
+
       # Validate definition
+      # puts "Validating FormDefinition: \"#{record.identifier}\" ##{record.id}"
       errors = Hmis::Form::DefinitionValidator.perform(
         form_definition,
         role,
-        # Don't validate CDEDs in dev env, to make it easier to test seeding installation-specific forms
-        # skip_cded_validation: Rails.env.development?,
-        # TODO - always skip for now to unblock deployment; revert to above when we sort out the issues
-        skip_cded_validation: true,
+        # Don't validate CDEDs in test/dev env, to make it easier to test seeding installation-specific forms
+        skip_cded_validation: ENV.fetch('SKIP_CDED_VALIDATION', 'false') == 'true' || Rails.env.test? || Rails.env.development?,
       )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 

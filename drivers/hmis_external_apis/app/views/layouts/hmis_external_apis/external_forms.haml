@@ -35,10 +35,6 @@
         max-width: 540px;
         margin-bottom: 4rem;
       }
-      .dependent-form-group > .form-group {
-        padding-left : 1.25rem;
-        border-left: 5px solid #eee;
-      }
       @media (max-width: 540px) {
         main.container {
           padding-left: 0;
@@ -57,7 +53,7 @@
         position: relative;
         opacity: 1;
         visibility: visible;
-        max-height: 2000px; /* Adjust as necessary to fit content */
+        max-height: 8000px; /* Adjust as necessary to fit content */
       }
       /* override primary color for contrast */
       .btn-primary.btn-primary {
@@ -69,6 +65,10 @@
       }
       .form-check {
         margin: 0.25rem;
+      }
+      /* reduce padding for groups of checkboxes */
+      fieldset > .form-group:has(> .form-check) {
+          margin-bottom: 0px;
       }
 
   %body.bg-light

@@ -127,6 +127,9 @@
         "value_number": {
           "type": "integer"
         },
+        "value_date": {
+          "type": "string"
+        },
         "offset": {
           "type": "integer"
         },
@@ -444,6 +447,9 @@
           "type": "boolean"
         },
         "answer_group_code": {
+          "type": "string"
+        },
+        "answer_date": {
           "type": "string"
         }
       }

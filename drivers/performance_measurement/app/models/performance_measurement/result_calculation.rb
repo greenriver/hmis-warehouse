@@ -184,11 +184,7 @@ module PerformanceMeasurement::ResultCalculation
     def count_of_homeless_clients_in_range(detail, project: nil)
       field = detail[:calculation_column]
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
-      comparison_count = if existing_static_comparison_spm.present?
-        existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
-      else
-        client_count(field, :comparison, project_id: project&.project_id)
-      end
+      comparison_count = client_count(field, :comparison, project_id: project&.project_id)
 
       progress = calculate_processed(detail[:goal_calculation], reporting_count, comparison_count)
       PerformanceMeasurement::Result.new(
@@ -213,11 +209,7 @@ module PerformanceMeasurement::ResultCalculation
     def count_of_sheltered_homeless_clients(detail, project: nil)
       field = detail[:calculation_column]
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
-      comparison_count = if existing_static_comparison_spm.present?
-        existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
-      else
-        client_count(field, :comparison, project_id: project&.project_id)
-      end
+      comparison_count = client_count(field, :comparison, project_id: project&.project_id)
 
       progress = calculate_processed(detail[:goal_calculation], reporting_count, comparison_count)
       PerformanceMeasurement::Result.new(
@@ -347,19 +339,16 @@ module PerformanceMeasurement::ResultCalculation
       field = detail[:calculation_column]
 
       reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
-      comparison_count = if existing_static_comparison_spm.present?
-        existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
-      else
-        client_count_present(field, :comparison, project_id: project&.project_id)
-      end
       reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
-      comparison_days = if existing_static_comparison_spm.present?
+      reporting_average = average(reporting_days, reporting_count)
+
+      comparison_average = if existing_static_comparison_spm.present?
         existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
       else
-        client_sum(field, :comparison, project_id: project&.project_id)
+        comparison_count = client_count_present(field, :comparison, project_id: project&.project_id)
+        comparison_days = client_sum(field, :comparison, project_id: project&.project_id)
+        average(comparison_days, comparison_count)
       end
-      reporting_average = average(reporting_days, reporting_count)
-      comparison_average = average(comparison_days, comparison_count)
 
       progress = calculate_processed(detail[:goal_calculation], reporting_average)
       PerformanceMeasurement::Result.new(
@@ -485,19 +474,16 @@ module PerformanceMeasurement::ResultCalculation
       field = detail[:calculation_column]
 
       reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
-      comparison_count = if existing_static_comparison_spm.present?
-        existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
-      else
-        client_count_present(field, :comparison, project_id: project&.project_id)
-      end
       reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
-      comparison_days = if existing_static_comparison_spm.present?
+      reporting_average = average(reporting_days, reporting_count)
+
+      comparison_average = if existing_static_comparison_spm.present?
         existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
       else
-        client_sum(field, :comparison, project_id: project&.project_id)
+        comparison_count = client_count_present(field, :comparison, project_id: project&.project_id)
+        comparison_days = client_sum(field, :comparison, project_id: project&.project_id)
+        average(comparison_days, comparison_count)
       end
-      reporting_average = average(reporting_days, reporting_count)
-      comparison_average = average(comparison_days, comparison_count)
 
       progress = calculate_processed(detail[:goal_calculation], reporting_average)
       PerformanceMeasurement::Result.new(

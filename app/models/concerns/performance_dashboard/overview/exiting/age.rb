@@ -8,7 +8,7 @@ module PerformanceDashboard::Overview::Exiting::Age
   extend ActiveSupport::Concern
 
   def exiting_by_age
-    @exiting_by_age ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @exiting_by_age ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: PerformanceDashboards::Overview::EXPIRATION_LENGTH) do
       buckets = age_buckets.map { |b| [b, []] }.to_h
       counted = {}
       exiting.order(first_date_in_program: :desc).

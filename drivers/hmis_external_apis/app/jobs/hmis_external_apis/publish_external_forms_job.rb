@@ -16,16 +16,21 @@ class HmisExternalApis::PublishExternalFormsJob
     definition = Hmis::Form::Definition.find(definition_id)
     raise unless definition.external_form_object_key.present?
 
+    # In order to publish to S3, the form should already be published in HMIS (ideally via Form Builder)
+    raise "cannot publish form with status #{definition.status}" unless definition.published?
+
     publication = definition.external_form_publications.new
 
     renderer = HmisExternalApis::ExternalFormsController.renderer.new
-    raw_content = renderer.render('hmis_external_apis/external_forms/form', assigns: { form_definition: definition.definition, page_title: definition.title })
+    raw_content = renderer.render('hmis_external_apis/external_forms/form', assigns: { form_definition: definition, page_title: definition.title })
 
     publication.object_key = definition.external_form_object_key
     publication.content_digest = digest = Digest::MD5.hexdigest(raw_content)
     publication.content = process_content(raw_content, digest: digest, definition_id: definition.id)
     publication.content_definition = definition.definition
 
+    # Note: Most likely, the form was already published using the Form Builder, so the CDEDs have already been created.
+    # Future improvement would be to invoke this job from publish mutation so that External Forms can be published to S3 from the config tool.
     update_cdeds(definition)
 
     upload_to_s3(publication)

@@ -82,7 +82,7 @@ module MedicaidHmisInterchange
     end
 
     def self.sftp_credentials
-      ::Health::ImportConfig.find_by(kind: :medicaid_hmis_exchange)
+      ::Health::ImportConfig.active.find_by(kind: :medicaid_hmis_exchange)
     end
 
     private def sftp_credentials

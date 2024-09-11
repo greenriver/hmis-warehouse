@@ -58,14 +58,14 @@ module Health
     end
 
     def detail
-      @agency_id = params.require(:entity)[:entity_id]&.to_i
+      agency_name = params.require(:entity)[:entity_id]
       @section = params.require(:entity)[:section]
       @patient_ids = params.require(:entity)[:patient_ids]&.split(',')&.map(&:to_i)
       @patients = Health::Patient.bh_cp.where(id: @patient_ids).
         preload(:care_coordinator).
         order(last_name: :asc, first_name: :asc)
 
-      @agency = Health::Agency.find(@agency_id)
+      @agency = Health::Agency.find_by(name: agency_name)
     end
 
     def set_dates

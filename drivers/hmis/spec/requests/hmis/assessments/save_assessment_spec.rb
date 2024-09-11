@@ -37,7 +37,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       enrollment_id: e1.id.to_s,
       form_definition_id: fd1.id,
       values: { 'linkid_date' => test_assessment_date },
-      hud_values: { 'informationDate' => test_assessment_date },
+      hud_values: { 'assessmentDate' => test_assessment_date },
     }
   end
 
@@ -123,7 +123,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     input = test_input.merge({
                                assessment_id: assessment_id,
                                values: { 'linkid_date' => new_information_date },
-                               hud_values: { 'informationDate' => new_information_date },
+                               hud_values: { 'assessmentDate' => new_information_date },
                              })
 
     response, result = post_graphql(input: { input: input }) { mutation }
@@ -175,6 +175,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end.to raise_error(RuntimeError)
     end
 
+    it 'should error if form definition is draft' do
+      draft = create(:hmis_form_definition, version: 2, status: Hmis::Form::Definition::DRAFT, identifier: fd1.identifier)
+      expect_gql_error post_graphql(input: { input: test_input.merge(form_definition_id: draft.id) }) { mutation }
+    end
+
     [
       [
         'should error if assessment date is missing',
@@ -182,7 +187,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         ->(_date) do
           [
             {
-              'fullMessage' => 'Information Date must exist',
+              'fullMessage' => 'Assessment Date must exist',
               'type' => 'required',
               'severity' => 'error',
             },
@@ -257,15 +262,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expected_errors = expected_errors_cb.call(today)
 
         input = test_input.merge(
-          hud_values: { 'informationDate' => date&.strftime('%Y-%m-%d') },
+          hud_values: { 'assessmentDate' => date&.strftime('%Y-%m-%d') },
           values: { 'linkid_date' => date&.strftime('%Y-%m-%d') },
         )
         response, result = post_graphql(input: { input: input }) { mutation }
         errors = result.dig('data', 'saveAssessment', 'errors')
         expect(response.status).to eq(200), result&.inspect
         expected_match = expected_errors.map do |h|
-          a_hash_including(**h, 'readableAttribute' => 'Information Date',
-                                'attribute' => 'informationDate',
+          a_hash_including(**h, 'readableAttribute' => 'Assessment Date',
+                                'attribute' => 'assessmentDate',
                                 'linkId' => 'linkid_date')
         end
         expect(errors).to match(expected_match)

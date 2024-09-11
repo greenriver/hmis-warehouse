@@ -1,31 +1,40 @@
 name: Rails Tests
 
 on:
+  # NOTE: runs on both PRs and pulls. This would normally cause redundant jobs to run but there are conditions on github.event_name in the matrix to avoid this. In particular, we want the system tests to run only on PR so we can use the base_ref to infer the appropriate release branch name in the hmis FE repo (see issue #6566)
   push:
     branches:
       - '*'
       - '**/*'
-  # NOTE: you don't need to build all PRs if you are also building all branches
-  # pull_request:
-  #   branches:
-  #     - '*'
-  #     - '**/*'
+  pull_request:
+    branches:
+      - '*'
+      - '**/*'
 concurrency:
   group: ${{ github.ref }}-tests
   cancel-in-progress: true
 
 jobs:
+  determine_matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo 'matrix={"test_group":[{"id":"system_tests","system_tests":"true"}]}' >> $GITHUB_OUTPUT
+          else
+            echo 'matrix={"test_group":[{"id":"ci_bucket_1","tag":"ci_bucket:bucket-1"},{"id":"ci_bucket_2","tag":"ci_bucket:bucket-2"},{"id":"ci_bucket_3","tag":"ci_bucket:bucket-3"},{"id":"ci_bucket_4","tag":"ci_bucket:bucket-4"},{"id":"ci_bucket_default","tag":"~ci_bucket","logging_tests":true,"okta_tests":true}]}' >> $GITHUB_OUTPUT
+          fi
+
   # Label of the container job
   tests:
+    needs: determine_matrix
     strategy:
       fail-fast: false
-      matrix:
-        test_group:
-          - {id: 'ci_bucket_1', tag: 'ci_bucket:bucket-1'}
-          - {id: 'ci_bucket_2', tag: 'ci_bucket:bucket-2'}
-          - {id: 'ci_bucket_3', tag: 'ci_bucket:bucket-3'}
-          - {id: 'ci_bucket_4', tag: 'ci_bucket:bucket-4'}
-          - {id: 'ci_bucket_default', tag: '~ci_bucket', system_tests: true, logging_tests: true, okta_tests: true}
+      matrix: ${{fromJson(needs.determine_matrix.outputs.matrix)}}
+
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
 
@@ -144,7 +153,7 @@ jobs:
 
       - name: Install gems
         run: |
-          gem install bundler --version=2.5.7
+          gem install bundler --version=2.5.17
           bundle config set --local without 'production staging development'
           bundle install --jobs 4 --retry 3
 

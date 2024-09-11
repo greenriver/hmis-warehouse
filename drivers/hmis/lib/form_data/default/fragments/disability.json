@@ -298,139 +298,20 @@
     },
     {
       "type": "GROUP",
-      "link_id": "hopwa_disability",
+      "link_id": "hopwa_section",
       "text": "HOPWA Questions",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "q_4_08_2",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ],
       "item": [
         {
-          "type": "CHOICE",
-          "link_id": "W4_2",
-          "required": false,
-          "text": "T-Cell (CD4) Count Available",
-          "pick_list_reference": "NoYesReasonsForMissingData",
-          "mapping": {
-            "record_type": "DISABILITY_GROUP",
-            "field_name": "tCellCountAvailable"
-          },
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "q_4_08_2",
-              "operator": "EQUAL",
-              "answer_code": "YES"
-            }
-          ]
-        },
-        {
-          "type": "INTEGER",
-          "link_id": "W4_A",
-          "required": false,
-          "text": "T-Cell Count",
-          "mapping": {
-            "record_type": "DISABILITY_GROUP",
-            "field_name": "tCellCount"
-          },
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "W4_2",
-              "operator": "EQUAL",
-              "answer_code": "YES"
-            }
-          ]
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "W4_B",
-          "required": false,
-          "text": "How was the information obtained?",
-          "pick_list_reference": "TCellSourceViralLoadSource",
-          "mapping": {
-            "record_type": "DISABILITY_GROUP",
-            "field_name": "tCellSource"
-          },
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "W4_2",
-              "operator": "EQUAL",
-              "answer_code": "YES"
-            }
-          ]
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "W4_3",
-          "required": false,
-          "text": "Viral Load Information Available",
-          "pick_list_reference": "ViralLoadAvailable",
-          "mapping": {
-            "record_type": "DISABILITY_GROUP",
-            "field_name": "viralLoadAvailable"
-          },
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "q_4_08_2",
-              "operator": "EQUAL",
-              "answer_code": "YES"
-            }
-          ]
-        },
-        {
-          "type": "INTEGER",
-          "link_id": "W4_C",
-          "required": false,
-          "text": "Viral Load Count",
-          "mapping": {
-            "record_type": "DISABILITY_GROUP",
-            "field_name": "viralLoad"
-          },
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "W4_3",
-              "operator": "EQUAL",
-              "answer_code": "AVAILABLE"
-            }
-          ]
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "W4_D",
-          "required": false,
-          "text": "How was the information obtained?",
-          "pick_list_reference": "TCellSourceViralLoadSource",
-          "mapping": {
-            "record_type": "DISABILITY_GROUP",
-            "field_name": "viralLoadSource"
-          },
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "W4_3",
-              "operator": "EQUAL",
-              "answer_code": "AVAILABLE"
-            }
-          ]
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "W6_2",
-          "required": false,
-          "text": "Has the participant been prescribed anti-retroviral drugs?",
-          "pick_list_reference": "NoYesReasonsForMissingData",
-          "mapping": {
-            "record_type": "DISABILITY_GROUP",
-            "field_name": "antiRetroviral"
-          },
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "q_4_08_2",
-              "operator": "EQUAL",
-              "answer_code": "YES"
-            }
-          ]
+          "fragment": "#hopwa_disability",
+          "_comment": "The hopwa_disability fragment has a rule in HudAssessmentFormRules2024 ensuring that it is only included for HOPWA-funded projects. For non-HOPWA programs, this whole hopwa_section group is excluded (because groups are excluded if all children are excluded)."
         }
       ]
     }

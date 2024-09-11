@@ -1,0 +1,41 @@
+{
+  "type": "GROUP",
+  "link_id": "hopwa_annual_section",
+  "prefill": true,
+  "text": "HOPWA Questions",
+  "_comment": "The hopwa_disability fragment already has a rule in HudAssessmentFormRules2024 ensuring that it is only included for HOPWA-funded projects. We need this additional rule here to toggle whether the extra HIV/AIDS Disability question is shown.",
+  "rule": {
+    "operator": "ALL",
+    "parts": [
+      {
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HUD: HOPWA"
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "hiv_aids_disability",
+      "text": "HIV/AIDS",
+      "mapping": {
+        "record_type": "DISABILITY_GROUP",
+        "field_name": "hivAids"
+      },
+      "pick_list_reference": "NoYesReasonsForMissingData"
+    },
+    {
+      "fragment": "#hopwa_disability",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "_comment": "Only ask w4/w6 if disability response is Yes for HIV/AIDS. Even at HOPWA programs, there may be other household members who respond No.",
+          "question": "hiv_aids_disability",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    }
+  ]
+}

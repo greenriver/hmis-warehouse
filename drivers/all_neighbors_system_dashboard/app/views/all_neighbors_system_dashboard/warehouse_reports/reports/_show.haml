@@ -3,9 +3,6 @@
 .all-neighbors__dashboard
   .row.mt-5{class: css_namespace('all', 'summary')}
     - all_data.header_data.each_with_index do |d, i|
-      -# TODO: feature flag so we can test returns to homelessness without exposing them in production
-      - next if d[:id].to_s == 'no_return' && (! params[:debug].present? && Rails.env.production?)
-
       .col-xs-12.mb-5.col-md
         .d-flex
           %div.pr-3{class: css_namespace('all', 'summary_icon')}

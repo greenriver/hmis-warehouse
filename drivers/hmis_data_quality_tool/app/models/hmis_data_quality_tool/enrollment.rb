@@ -274,7 +274,7 @@ module HmisDataQualityTool
 
       # Annuals are expected for stayers where the HoH has been present more than a year
       # and the client in question was present on the most-recent anniversary date
-      annual_expected = if annual_assessment_expected?(hoh) && stayer
+      annual_expected = if annual_assessment_expected?(enrollment: hoh, report_end_date: report.end_date) && stayer
         anniversary_date = anniversary_date(entry_date: hoh.first_date_in_program, report_end_date: report.end_date)
         enrollment_range = (enrollment.EntryDate .. [enrollment&.exit&.ExitDate, report.end_date].compact.min)
         enrollment_range.cover?(anniversary_date)
