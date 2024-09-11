@@ -25,17 +25,6 @@ module Hmis::Hud::Concerns::Shared
       warehouse_class.find(id)
     end
 
-    # todo @martha - remove if not used
-    def as_warehouse_unpersisted
-      raise 'Use as_warehouse' if persisted?
-
-      warehouse_class = "GrdaWarehouse::Hud::#{self.class.name.demodulize}".constantize
-      as_warehouse = warehouse_class.new
-      attributes = self.attributes.select { |k, _v| as_warehouse.attributes.keys.member?(k.to_s) }
-      as_warehouse.assign_attributes(attributes)
-      as_warehouse
-    end
-
     def self.enrollment_related_hud_class_names
       [
         'Disability',

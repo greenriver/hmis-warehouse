@@ -15,7 +15,8 @@ module ClientLocationHistory
     after_save :fix_source
 
     def fix_source
-      # todo @Martha - add commentary here if it is the method we end up going with
+      # This somewhat hacky solution gets around the fact that during HMIS Form Processing, we haven't yet saved the
+      # Enrollment being generated, so we don't yet have an ID with which to get the Warehouse enrollment.
       return unless source_type.starts_with? 'Hmis::Hud::'
 
       update_column(:source_type, source_type.sub('Hmis::Hud::', 'GrdaWarehouse::Hud::'))
