@@ -114,7 +114,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   ].freeze
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
-  validates :identifier, uniqueness: { scope: :version }
 
   ENROLLMENT_CONFIG = {
     owner_class: 'Hmis::Hud::Enrollment',
@@ -325,6 +324,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where(status: PUBLISHED)
   end
 
+  validate :validate_external_form_object_key
+  def validate_external_form_object_key
+    return unless role == 'EXTERNAL_FORM' && external_form_object_key.present?
+
+    # Ensure that external_form_object_key is not reused across forms with different identifiers
+    object_key_taken = Hmis::Form::Definition.where(external_form_object_key: external_form_object_key).
+      where.not(identifier: identifier).exists?
+    errors.add(:external_form_object_key, 'has already been taken') if object_key_taken
+  end
+
   def self.apply_filters(input)
     Hmis::Filter::FormDefinitionFilter.new(input).filter_scope(self)
   end
@@ -391,6 +400,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   def published?
     status == PUBLISHED
+  end
+
+  def valid_status_for_submit?
+    published? || retired?
   end
 
   def self.owner_class_for_role(role)

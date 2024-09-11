@@ -6,21 +6,45 @@
 
 # Reads objects from the inbox S3 bucket, processes each CSV file, matches clients to warehouse db, and then writes the results to the outbox S3 bucket.
 class IdentifyExternalClientsJob < BaseJob
-  # @param inbox_s3 [AwsS3] read from this bucket
-  # @param outbox_s3 [AwsS3] write into this bucket
+  queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+  # Setup looks something like:
+  # GrdaWarehouse::RemoteCredential::S3.create(
+  #   username: 'unknown',
+  #   password: 'unknown',
+  #   slug: 'identify_external_clients',
+  #   bucket: 'bucket-name',
+  #   path: 'analytic-store/unprocessed',
+  #   endpoint: 'analytic-store/processed',
+  #   additional_headers: { 'external_id_field' => 'external_client_id' },
+  # )
+  def self.run_all!
+    GrdaWarehouse::RemoteCredentials::S3.active.where(slug: 'identify_external_clients').each do |cred|
+      s3 = AwsS3.new(bucket_name: cred.bucket)
+      inbox_path = cred.path
+      outbox_path = cred.endpoint
+      external_id_field = cred.additional_headers['external_id_field']
+      IdentifyExternalClientsJob.new(s3: s3, inbox_path: inbox_path, outbox_path: outbox_path, external_id_field: external_id_field).perform_now
+    end
+  end
+
+  # @param s3 [AwsS3] read and write to this bucket
+  # @param inbox_path [String] read from this path
+  # @param outbox_path [String] write into this path
   # @param external_id_field [String] field to return in the results
-  def perform(inbox_s3:, outbox_s3:, external_id_field:)
+  def perform(s3:, inbox_path:, outbox_path:, external_id_field:)
     with_lock do
       build_lookups
-      inbox_s3.list_objects.each do |input_object|
+      s3.list_objects(prefix: inbox_path).each do |input_object|
         input_key = input_object.key
-        content_type = inbox_s3.get_file_type(key: input_key)
-        if content_type.present? && content_type != 'text/csv'
-          log("invalid content type #{content_type}", object_key: input_key)
-          next
-        end
 
-        data_string = inbox_s3.get_as_io(key: input_key)
+        # Disabling content check, file is a CSV but coming back as a bytestream
+        # content_type = s3.get_file_type(key: input_key)
+        # if content_type.present? && content_type != 'text/csv'
+        #   log("invalid content type #{content_type}", object_key: input_key)
+        #   next
+        # end
+
+        data_string = s3.get_as_io(key: input_key)
 
         input_rows = data_string ? parse_csv_string(data_string, key: input_key) : nil
         if input_rows.blank?
@@ -37,26 +61,24 @@ class IdentifyExternalClientsJob < BaseJob
         log("matched #{output_rows.size} of #{input_rows.size} rows", type: :info, object_key: input_key)
 
         # s3.store raises on failure
-        outbox_s3.store(
+        s3.store(
           content: format_as_csv(output_rows.compact),
-          name: upload_name(input_key),
+          name: upload_name(input_key, prefix: outbox_path),
           content_type: 'text/csv; charset=utf-8',
         )
 
         # if we successfully processed the input object, delete it from the bucket
-        inbox_s3.delete(key: input_key)
+        s3.delete(key: input_key)
       end
     end
   end
 
   protected
 
-  def upload_name(filename)
-    dir = File.dirname(filename)
-    dir = dir == '.' ? nil : dir
+  def upload_name(filename, prefix: nil)
     base = File.basename(filename, '.*')
     ext = File.extname(filename)
-    [dir, "#{base}-results#{ext}"].compact.join('/')
+    [prefix, "#{base}-results#{ext}"].compact.join('/')
   end
 
   private def build_lookups
@@ -103,9 +125,9 @@ class IdentifyExternalClientsJob < BaseJob
     return if external_id.blank?
 
     matches = [
-      @ssn_lookup.get_ids(ssn: ssn4),
-      @dob_lookup.get_ids(dob: dob),
-      @name_lookup.get_ids(first_name: first_name, last_name: last_name),
+      @ssn_lookup.get_ids(ssn: ssn4.to_s),
+      @dob_lookup.get_ids(dob: dob&.to_date),
+      @name_lookup.get_ids(first_name: first_name.to_s, last_name: last_name.to_s),
     ]
 
     match = get_best_match(matches)
@@ -114,7 +136,7 @@ class IdentifyExternalClientsJob < BaseJob
 
   # matching id is found in at least two match sets
   def get_best_match(match_sets, min_rank: 2)
-    ranks =  match_sets.flatten.tally
+    ranks = match_sets.flatten.tally
 
     best_match = nil
     max_rank = match_sets.size

@@ -52,8 +52,14 @@ FactoryBot.define do
     end
     transient do
       data_source { nil } # Data source needed to create CDEDs
+      append_items { nil } # Items to append to FormDefinition content
     end
     after(:create) do |instance, evaluator|
+      if evaluator.append_items
+        instance.definition['item'][0]['item'].push(*Array.wrap(evaluator.append_items))
+        instance.save!
+      end
+
       next unless instance.published? && evaluator.data_source
 
       # Create CDEDs for items that have { mapping: { custom_field_key: '...' } }
@@ -194,7 +200,7 @@ FactoryBot.define do
   end
 
   # Custom Assessment that creates/updates a Custom Data Element
-  factory :custom_assessment_with_custom_fields_and_rules, parent: :hmis_form_definition do
+  factory :custom_assessment_with_custom_fields, parent: :hmis_form_definition do
     role { :CUSTOM_ASSESSMENT }
     title { 'Test Custom Assessment' }
     sequence(:identifier) { |n| "custom_assessment_#{n}" }
@@ -223,6 +229,71 @@ FactoryBot.define do
                 'text': 'Custom question 1',
                 'mapping': {
                   'custom_field_key': 'custom_question_1',
+                },
+              },
+            ],
+          },
+        ],
+      }.deep_stringify_keys
+    end
+  end
+
+  # Custom Assessment that has advanced features that aren't available to all users
+  factory :custom_assessment_with_field_rules_and_autofill, parent: :hmis_form_definition do
+    role { :CUSTOM_ASSESSMENT }
+    title { 'Advanced Assessment' }
+    sequence(:identifier) { |n| "custom_assessment_#{n}" }
+    definition do
+      {
+        'item': [
+          {
+            'type': 'GROUP',
+            'text': 'Test Custom Assessment',
+            'link_id': 'section_1',
+            'item': [
+              {
+                'type': 'DATE',
+                'required': true,
+                'link_id': 'assessment_date',
+                'text': 'Assessment Date',
+                'assessment_date': true,
+                'mapping': {
+                  'field_name': 'assessmentDate',
+                },
+              },
+              {
+                'text': 'Yes or no?',
+                'type': 'BOOLEAN',
+                'link_id': 'yes_or_no',
+                'mapping': {
+                  'custom_field_key': 'yes_or_no',
+                },
+              },
+              {
+                'text': 'Conditionally autofilled',
+                'type': 'STRING',
+                'link_id': 'conditionally_autofilled',
+                'mapping': {
+                  'custom_field_key': 'conditionally_autofilled',
+                },
+                'autofill_values': [
+                  {
+                    'value_code': 'filled',
+                    'autofill_when': [
+                      {
+                        'operator': 'EQUAL',
+                        'question': 'yes_or_no',
+                        'answer_boolean': true,
+                      },
+                    ],
+                    'autofill_behavior': 'ALL',
+                    'autofill_readonly': false,
+                  },
+                ],
+                'custom_rule': {
+                  'variable': 'projectId',
+                  'operator': 'NOT_EQUAL',
+                  'value': 'some-particular-project-id',
                 },
               },
             ],
