@@ -7,6 +7,7 @@
 %br
 %button.btn.btn-secondary.mb-2{id: get_location_id}
   Get location
+-# Use the `.hide` class, insted of jquery's hide, to avoid flicker effect on page load
 %button.hide.btn.btn-secondary.mb-2{id: clear_id}
   Clear
 .form-text.hide.text-muted.mb-2{id: text_id}
@@ -33,10 +34,6 @@
       var clearButton = $(clearButtonId);
       var mapContainer = $(mapContainerId);
       var input = $(inputId);
-
-      helperText.hide();
-      mapContainer.hide();
-      clearButton.hide();
 
       var map = L.map(#{map_id.to_json.html_safe});
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {

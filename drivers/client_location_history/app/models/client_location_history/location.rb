@@ -15,6 +15,7 @@ module ClientLocationHistory
     after_save :fix_source
 
     def fix_source
+      # todo @Martha - add commentary here if it is the method we end up going with
       return unless source_type.starts_with? 'Hmis::Hud::'
 
       update_column(:source_type, source_type.sub('Hmis::Hud::', 'GrdaWarehouse::Hud::'))
