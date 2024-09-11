@@ -262,6 +262,40 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
   end
+
+  describe 'Searching against bad data' do
+    let!(:client) { create :hmis_hud_client, first_name: 'Genevieve', data_source: ds1 }
+    def perform_search
+      post_graphql(input: { first_name: client.first_name }) { query }
+    end
+
+    it 'should raise when authorization check failed (regression #6641)' do
+      # remove client access
+      remove_permissions(access_control, :can_view_clients)
+
+      # mock a scenario where client search incorrectly returns a Client that will fail the `authorized?` check (ClientAccessLoader query)
+      expect(Hmis::Hud::Client).to receive(:client_search).and_return(Hmis::Hud::Client.where(id: client.id))
+
+      expect_gql_error perform_search, message: /failed authorization check/
+    end
+
+    context 'when client has an Enrollment at a deleted project (regression #6641)' do
+      before(:each) do
+        # client has 1 non-deleted Enrollment that is at a deleted Project (specific regression scenario)
+        enrollment = create(:hmis_hud_enrollment, client: client, data_source: ds1)
+        enrollment.project.delete
+        raise unless enrollment.reload.project.nil? # confirm setup
+      end
+
+      it 'should return the client' do
+        # search should successfully return the client, despite their "bad" Enrollment
+        response, result = perform_search
+        expect(response.status).to eq(200), result.inspect
+        clients = result.dig('data', 'clientSearch', 'nodes')
+        expect(clients).to contain_exactly(a_hash_including({ 'id' => client.id.to_s }))
+      end
+    end
+  end
 end
 
 RSpec.configure do |c|
