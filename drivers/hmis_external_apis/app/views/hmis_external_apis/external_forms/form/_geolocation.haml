@@ -38,7 +38,14 @@
       mapContainer.hide();
       clearButton.hide();
 
-      var map = L.map(#{map_id.to_json.html_safe});
+      var map = L.map(#{map_id.to_json.html_safe},  {
+        dragging: false,
+        boxZoom: false,
+        tapHold: false,
+        touchZoom: false,
+        doubleClickZoom: false,
+        scrollWheelZoom: false,
+      });
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
