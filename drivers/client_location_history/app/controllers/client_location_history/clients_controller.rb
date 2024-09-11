@@ -15,8 +15,6 @@ module ClientLocationHistory
     before_action :set_client
 
     def map
-      # This is intentionally only displaying locations that are tied to the destination client, even though there may
-      # also be locations tied to source clients (for locations collected in HMIS and/or external forms)
       @locations = @client.client_location_histories.where(located_on: filter.range)
       @markers = @locations.map(&:as_marker)
       @bounds = ClientLocationHistory::Location.bounds(@locations)
