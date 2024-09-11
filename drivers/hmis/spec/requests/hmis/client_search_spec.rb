@@ -284,7 +284,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         # client has 1 non-deleted Enrollment that is at a deleted Project (specific regression scenario)
         enrollment = create(:hmis_hud_enrollment, client: client, data_source: ds1)
         enrollment.project.delete
-        expect(enrollment.reload.project).to be_nil # confirm setup
+        raise unless enrollment.reload.project.nil? # confirm setup
       end
 
       it 'should return the client' do

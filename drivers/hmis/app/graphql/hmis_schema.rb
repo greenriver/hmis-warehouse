@@ -54,7 +54,7 @@ class HmisSchema < GraphQL::Schema
     raise GraphQL::UnauthorizedError, "#{error.type.graphql_name}##{error.object&.id} failed authorization check"
   end
 
-  # Return nil for anauthorized fields. This is expeced in some cases, for example non-summary fields on Enrollment.
+  # Return nil for unauthorized fields. This is expeced in some cases, for example non-summary fields on Enrollment.
   def self.unauthorized_field(_error)
     nil
   end
