@@ -80,7 +80,7 @@ module Health
         reached_client: care_hub_reached_key(qa),
         activity: care_hub_activity_key(qa),
       )
-      qa.save
+      qa.save(validate: false)
     end
 
     def self.update_qualifying_activities!
