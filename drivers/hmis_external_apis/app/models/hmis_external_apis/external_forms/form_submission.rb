@@ -78,8 +78,7 @@ module HmisExternalApis::ExternalForms
         raise 'Access denied' unless project
 
         household_id = form_values['Enrollment.householdId']
-        # Relationship to HoH is expected to be enum format, eg 'SELF_HEAD_OF_HOUSEHOLD'. This translates it to integer value (SELF_HEAD_OF_HOUSEHOLD => 1)
-        relationship_to_hoh = Types::HmisSchema::Enums::Hud::RelationshipToHoH.values.excluding('INVALID')[form_values['Enrollment.relationshipToHoH']]&.value
+        relationship_to_hoh = form_values['Enrollment.relationshipToHoH']
 
         # household id doesn't match expected format
         hh_invalid_format = household_id && !(household_id.starts_with?('HH') && household_id.size > 20)
@@ -90,6 +89,9 @@ module HmisExternalApis::ExternalForms
           household_id = nil
           relationship_to_hoh = nil
         end
+
+        # Relationship to HoH is expected to be enum format, eg 'SELF_HEAD_OF_HOUSEHOLD'. This translates it to integer value (SELF_HEAD_OF_HOUSEHOLD => 1), or nil if invalid
+        relationship_to_hoh = Types::HmisSchema::Enums::Hud::RelationshipToHoH.values.excluding('INVALID')[relationship_to_hoh]&.value
 
         # if no household id, generate a new one
         household_id ||= Hmis::Hud::Enrollment.generate_household_id
