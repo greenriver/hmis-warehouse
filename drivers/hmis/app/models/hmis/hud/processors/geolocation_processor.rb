@@ -36,7 +36,10 @@ module Hmis::Hud::Processors
 
       clh&.assign_attributes(
         source: @processor.enrollment_factory,
-        located_on: @processor.enrollment_factory.entry_date, # entry_date holds the submission time of the form
+        # TODO(#5726) For PIT, entry_date holds the submission time of the form, but that won't be true for CLS
+        # or other geolocation collection. One idea is to update this to onl yset located_on from the enrollment
+        # as a fallback, but receive it from the form otherwise: {record_type:GEOLOCATION, field_name: located_on}
+        located_on: @processor.enrollment_factory.entry_date,
         processed_at: Time.current,
         collected_by: @processor.enrollment_factory.project.name,
       )
