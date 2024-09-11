@@ -38,7 +38,7 @@ module Hmis::Hud::Processors
       clh&.assign_attributes(
         source: @processor.enrollment_factory,
         located_on: @processor.enrollment_factory.entry_date, # entry_date holds the submission time of the form
-        processed_at: Time.now,
+        processed_at: Time.current,
         collected_by: @processor.enrollment_factory.project.name,
       )
     end
