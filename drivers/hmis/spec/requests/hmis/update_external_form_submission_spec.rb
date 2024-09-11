@@ -357,7 +357,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
           expect(submission.enrollment.entry_date).to eq(DateTime.yesterday)
 
           clh = submission.enrollment.as_warehouse.enrollment_location_histories.first
-          # expect(clh.client_id).to eq(submission.enrollment.client.id)
+          expect(clh.client_id).to eq(submission.enrollment.client.id)
           expect(clh.lat).to eq(40.812497)
           expect(clh.lon).to eq(-77.882926)
           expect(clh.located_on).to eq(DateTime.yesterday)

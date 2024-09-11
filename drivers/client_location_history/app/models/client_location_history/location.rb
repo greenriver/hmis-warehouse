@@ -15,9 +15,9 @@ module ClientLocationHistory
     after_save :fix_source
 
     def fix_source
-      return unless source_type == 'Hmis::Hud::Enrollment'
+      return unless source_type.starts_with? 'Hmis::Hud::'
 
-      update_column(:source_type, 'GrdaWarehouse::Hud::Enrollment')
+      update_column(:source_type, source_type.sub('Hmis::Hud::', 'GrdaWarehouse::Hud::'))
     end
 
     def as_point
