@@ -29,13 +29,9 @@ module Health
     phi_attr :dob, Phi::Date, 'Date of birth of patient'
     phi_attr :ssn, Phi::Ssn, 'Social security number of patient'
     phi_attr :existed_previously, Phi::NeedsReview
-    phi_attr :data_source_id, Phi::SmallPopulation, "Source of data (may identify provider)"
+    phi_attr :data_source_id, Phi::SmallPopulation, 'Source of data (may identify provider)'
 
-    has_one :patient, **epic_assoc(
-      model: :patient,
-      primary_key: :medicaid_id,
-      foreign_key: :medicaid_id,
-    )
+    has_one :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id
     has_one :client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: :client_id, foreign_key: :id
     has_one :he_vaccination, class_name: 'GrdaWarehouse::HealthEmergency::Vaccination', foreign_key: :health_vaccination_id
 
