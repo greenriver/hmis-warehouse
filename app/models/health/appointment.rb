@@ -54,7 +54,7 @@ module Health
       ]
     end
 
-    def clean_row(row:, _data_source_id:)
+    def clean_row(row:, data_source_id:) # rubocop:disable Lint/UnusedMethodArgument
       # these don't include timezone data, using Time.parse puts it in
       # the local timezone with the correct time.
       row['datetime'] = begin
