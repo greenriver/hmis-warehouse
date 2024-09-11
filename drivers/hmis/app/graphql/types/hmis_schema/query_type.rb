@@ -39,6 +39,8 @@ module Types
     end
 
     def client_search(input:, **args)
+      raise 'Invalid search. At least 1 search param is required.' unless input.to_h.excluding(:projects, :organizations).values.compact_blank.any?
+
       # if the search should also sort by rank
       sorted = args[:sort_order] == :best_match
       search_scope = Hmis::Hud::Client.client_search(

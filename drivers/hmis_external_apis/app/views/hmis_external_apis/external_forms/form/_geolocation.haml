@@ -7,7 +7,6 @@
 %br
 %button.btn.btn-secondary.mb-2{id: get_location_id}
   Get location
--# Use the `.d-none` class on page load to avoid flicker effect
 %button.d-none.btn.btn-secondary.mb-2{id: clear_id}
   Clear
 .form-text.d-none.text-muted.mb-2{id: text_id}
@@ -35,7 +34,14 @@
       var mapContainer = $(mapContainerId);
       var input = $(inputId);
 
-      var map = L.map(#{map_id.to_json.html_safe});
+      var map = L.map(#{map_id.to_json.html_safe},  {
+        dragging: false,
+        boxZoom: false,
+        tapHold: false,
+        touchZoom: false,
+        doubleClickZoom: false,
+        scrollWheelZoom: false,
+      });
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
