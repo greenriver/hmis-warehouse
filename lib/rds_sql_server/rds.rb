@@ -34,11 +34,17 @@ class Rds
     @timeout || 50_000_000
   end
 
-  def initialize
-    self.client = Aws::RDS::Client.new
+  def self.rds_available?
+    new.client.present?
   end
 
-  define_method(:sqlservers) { _list.select { |server| server.engine.match(/sqlserver/) } }
+  def initialize
+    self.client = Aws::RDS::Client.new
+  rescue RuntimeError
+    self.client = nil
+  end
+
+  define_method(:sqlservers) { _list&.select { |server| server.engine.match(/sqlserver/) } }
 
   def start!
     status = current_state
@@ -68,7 +74,7 @@ class Rds
     end
   end
 
-  define_method(:terminate!) { client.delete_db_instance(db_instance_identifier: identifier, skip_final_snapshot: true) }
+  define_method(:terminate!) { client&.delete_db_instance(db_instance_identifier: identifier, skip_final_snapshot: true) }
   define_method(:host)       { ENV['LSA_DB_HOST'].presence || my_instance&.endpoint&.address }
   define_method(:exists?)    { !!my_instance }
 
@@ -257,7 +263,7 @@ class Rds
   end
 
   def my_instance
-    sqlservers.find do |server|
+    sqlservers&.find do |server|
       server.db_instance_identifier == identifier
     end
   rescue Aws::RDS::Errors::ServiceUnavailable
@@ -283,6 +289,6 @@ class Rds
     resp.db_instances.first
   end
 
-  define_method(:_list)       { client.describe_db_instances.db_instances }
-  define_method(:_operations) { client.operation_names }
+  define_method(:_list)       { client&.describe_db_instances&.db_instances }
+  define_method(:_operations) { client&.operation_names }
 end

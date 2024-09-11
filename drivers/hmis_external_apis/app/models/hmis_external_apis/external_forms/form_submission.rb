@@ -80,36 +80,38 @@ module HmisExternalApis::ExternalForms
         household_id = form_values['Enrollment.householdId']
         relationship_to_hoh = form_values['Enrollment.relationshipToHoH']
 
-        # drop household id if it doesn't match expected format
+        # household id doesn't match expected format
         hh_invalid_format = household_id && !(household_id.starts_with?('HH') && household_id.size > 20)
-        # drop household id if it has a conflict in this data source in another project (just to be safe)
-        hh_invalid_exists = household_id && Hmis::Hud::Enrollment.where(household_id: household_id, data_source: project.data_source).where.not(project: project).exists?
+        # household id has a conflict in this data source in another project (just to be safe)
+        hh_conflict = household_id && Hmis::Hud::Enrollment.where(household_id: household_id, data_source: project.data_source).where.not(project: project).exists?
 
-        if hh_invalid_format || hh_invalid_exists
+        if hh_invalid_format || hh_conflict
           household_id = nil
           relationship_to_hoh = nil
         end
 
-        relationship_to_hoh = nil if relationship_to_hoh && !Types::HmisSchema::Enums::Hud::RelationshipToHoH.values.keys.include?(relationship_to_hoh)
+        # Relationship to HoH is expected to be enum format, eg 'SELF_HEAD_OF_HOUSEHOLD'. This translates it to integer value (SELF_HEAD_OF_HOUSEHOLD => 1), or nil if invalid
+        relationship_to_hoh = Types::HmisSchema::Enums::Hud::RelationshipToHoH.values.excluding('INVALID')[relationship_to_hoh]&.value
 
         # if no household id, generate a new one
         household_id ||= Hmis::Hud::Enrollment.generate_household_id
 
         # set default relationship_to_hoh (1 for new household, 99 for existing household)
-        relationship_to_hoh ||= project.enrollments.where(household_id: household_id).exists? ? 'DATA_NOT_COLLECTED' : 'SELF_HEAD_OF_HOUSEHOLD'
+        relationship_to_hoh ||= project.enrollments.where(household_id: household_id).exists? ? 99 : 1
+
+        # No need to processs thes fields further, so remove them
+        values_to_process.delete('Enrollment.householdId')
+        values_to_process.delete('Enrollment.relationshipToHoH')
 
         build_enrollment(
           project: project,
           data_source: project.data_source,
           entry_date: created_at,
           household_id: household_id,
-          relationship_to_hoh: Types::HmisSchema::Enums::Hud::RelationshipToHoH.values[relationship_to_hoh]&.value,
+          relationship_to_hoh: relationship_to_hoh,
           # user is provided by the form processor only when there are enrollment-related fields provided in form_values
           user: Hmis::Hud::User.from_user(current_user),
         )
-
-        values_to_process.delete('Enrollment.householdId')
-        values_to_process.delete('Enrollment.relationshipToHoH')
       end
 
       form_processor = build_form_processor(definition: definition)
