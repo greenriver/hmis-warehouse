@@ -12,6 +12,8 @@ module GrdaWarehouse
     include ClientFileBase
     include ArelHelper
 
+    CONSENT_FORM_TAG_CACHE_KEY = 'consent_form_tagging_ids/tag_ids'.freeze
+
     mount_uploader :file, FileUploader # This is probably no necessary, but added to be safe
     acts_as_taggable
 
@@ -128,7 +130,7 @@ module GrdaWarehouse
     scope :consent_forms, -> do
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
-      consent_form_tagging_ids = Rails.cache.fetch('consent_form_tagging_ids/tag_ids', expires_in: 2.minutes) do
+      consent_form_tagging_ids = Rails.cache.fetch(CONSENT_FORM_TAG_CACHE_KEY, expires_in: 2.minutes) do
         consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
           name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name),
         ).pluck(:id)
@@ -144,7 +146,7 @@ module GrdaWarehouse
     scope :non_consent, -> do
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), exclude: true)
-      consent_form_tagging_ids = Rails.cache.fetch('consent_form_tagging_ids/tag_ids', expires_in: 2.minutes) do
+      consent_form_tagging_ids = Rails.cache.fetch(CONSENT_FORM_TAG_CACHE_KEY, expires_in: 2.minutes) do
         consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
           name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name),
         ).pluck(:id)
@@ -308,6 +310,8 @@ module GrdaWarehouse
     end
 
     def set_client_consent
+      # Invalidate consent form tag cache before we check for consent forms
+      Rails.cache.delete(CONSENT_FORM_TAG_CACHE_KEY)
       # If the client consent is not valid,
       # update client to match file (don't overwrite with blanks)
       #
