@@ -33,8 +33,8 @@ module Health
     phi_attr :data_source_id, Phi::SmallPopulation, 'Source of data (may identify provider)'
 
     has_one :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id
-    has_many :appointments, **epic_assoc(model: :appointment, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :patient
-    has_many :medications, **epic_assoc(model: :medication, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :patient
+    has_many :appointments, **epic_assoc(model: :appointment, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :epic_patient
+    has_many :medications, **epic_assoc(model: :medication, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :epic_patient
     has_many :problems, **epic_assoc(model: :problem, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :patient
     has_many :visits, **epic_assoc(model: :visit, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :patient
     has_many :epic_goals, **epic_assoc(model: :epic_goal, primary_key: :id_in_source, foreign_key: :patient_id), inverse_of: :patient

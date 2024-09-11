@@ -16,13 +16,14 @@ module Health
     phi_attr :name, Phi::NeedsReview, 'Name of medication'
     phi_attr :instructions, Phi::FreeText, "Medication's instructions"
     phi_attr :id_in_source, Phi::OtherIdentifier
-    phi_attr :data_source_id, Phi::SmallPopulation, "Source of data (may identify provider)"
+    phi_attr :data_source_id, Phi::SmallPopulation, 'Source of data (may identify provider)'
 
-    belongs_to :patient, **epic_assoc(
-      model: :patient,
+    belongs_to :epic_patient, **epic_assoc(
+      model: :epic_patient,
       primary_key: :id_in_source,
       foreign_key: :patient_id,
     ), inverse_of: :medications, optional: true
+    has_one :patient, through: :epic_patient
 
     self.source_key = :OM_ID
 

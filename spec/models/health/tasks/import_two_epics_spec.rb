@@ -21,6 +21,18 @@ RSpec.describe 'Import Two Epics', type: :model do
     end
   end
 
+  it 'attaches medications from both imports' do
+    Health::Patient.find_each do |patient|
+      expect(patient.medications.count).to eq(patient.epic_medications.count)
+    end
+  end
+
+  it 'attaches appointments from both imports' do
+    Health::Patient.find_each do |patient|
+      expect(patient.appointments.count).to eq(patient.epic_appointments.count)
+    end
+  end
+
   it 'de-dups team members' do
     Health::Patient.bh_cp.find_each do |patient| # Pilot patients do not get team members via importer
       expect(patient.team_members.pluck(:email).compact).to contain_exactly(*patient.epic_team_members.pluck(:email).uniq.compact)
