@@ -49,7 +49,7 @@
       var marker;
 
       if (!navigator.geolocation) {
-        helperText.show();
+        helperText.removeClass('d-none');
         helperText.text("Geolocation is not supported by this browser.");
         getLocationButton.prop('disabled', true)
         input.val(JSON.stringify({ "notCollectedReason": "unsupported" }));
@@ -58,8 +58,8 @@
 
       var setPosition = function(position) {
         setLoading(false);
-        mapContainer.show();
-        clearButton.show();
+        mapContainer.removeClass('d-none');
+        clearButton.removeClass('d-none');
 
         var lat = position.coords.latitude;
         var lon = position.coords.longitude;
@@ -76,8 +76,8 @@
 
       var onError = function(error) {
         getLocationButton.prop('disabled', false);
-        mapContainer.hide();
-        clearButton.hide();
+        mapContainer.addClass('d-none');
+        clearButton.addClass('d-none');
         helperText.text("Location unavailable.", error.message);
         input.val(JSON.stringify({ "notCollectedReason": "error" }));
         input.removeClass('is-invalid').addClass('is-valid');
@@ -87,10 +87,10 @@
         if (isLoading) {
           getLocationButton.prop('disabled', true);
           helperText.text('Loading...')
-          helperText.show();
+          helperText.removeClass('d-none');
         } else {
           getLocationButton.prop('disabled', false);
-          helperText.hide();
+          helperText.addClass('d-none');
         }
       }
 
@@ -103,8 +103,8 @@
       clearButton.click(function(event) {
         event.preventDefault();
         marker.remove();
-        clearButton.hide();
-        mapContainer.hide();
+        clearButton.addClass('d-none');
+        mapContainer.addClass('d-none');
         input.val(JSON.stringify({ "notCollectedReason": "cleared" }));
         input.removeClass('is-invalid').addClass('is-valid');
       })
