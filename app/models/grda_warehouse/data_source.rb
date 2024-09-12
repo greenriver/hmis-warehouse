@@ -593,7 +593,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     return unless entity&.data_source_id == id
 
     base = "https://#{hmis}"
-    base += ':5173' if Rails.env.development?
+    base += ':5173' if Rails.env.development? # port used by hmis vite dev server
 
     url = case entity
     when GrdaWarehouse::Hud::Project, Hmis::Hud::Project
