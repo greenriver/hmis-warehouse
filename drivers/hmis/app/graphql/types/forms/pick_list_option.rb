@@ -152,7 +152,7 @@ module Types
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
       when 'OTHER_FUNDERS'
-        Hmis::Hud::Funder.where(data_source_id: user.hmis_data_source_id).open_on_date.
+        Hmis::Hud::Funder.where(data_source_id: user.hmis_data_source_id).
           where(Funder: HudUtility2024.local_or_other_funding_source).where.not(OtherFunder: nil).
           pluck(:OtherFunder).uniq.sort.map do |other_funder|
             { code: other_funder, label: other_funder }
