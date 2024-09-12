@@ -131,10 +131,18 @@ module BostonProjectScorecard
         0
       end
 
+      # No-concern and materials-concern are interrelated, and only one can be chosen.
+      # Preference no-concern since it's first on the page
       def no_concern_score
         return nil if no_concern&.negative?
 
         no_concern
+      end
+
+      def materials_concern_score
+        return nil if materials_concern&.negative? || no_concern_score.present? && no_concern > -1
+
+        materials_concern
       end
     end
   end
