@@ -554,6 +554,12 @@ class Role < ApplicationRecord
         category: 'Client Extras',
         sub_category: 'General Client Access',
       },
+      can_view_project_locations: {
+        description: 'Access to the map view of project locations',
+        administrative: false,
+        category: 'Client Extras',
+        sub_category: 'Privacy',
+      },
       can_edit_client_notes: {
         description: 'Ability to edit any client note, used to remove inappropriate notes',
         administrative: true,

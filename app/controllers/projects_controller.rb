@@ -10,6 +10,7 @@ class ProjectsController < ApplicationController
   before_action :require_can_edit_projects!, only: [:edit, :update]
   before_action :set_project, only: [:show, :update, :edit, :destroy]
   before_action :set_census_params, only: [:show]
+  before_action :set_location_params, only: [:show]
   before_action :require_can_view_confidential_project_names!, if: -> { !can_edit_projects? && @project.confidential? }
 
   include ArelHelper
@@ -60,6 +61,46 @@ class ProjectsController < ApplicationController
       aggregation_level: :by_project,
       aggregation_type: :inventory,
     }
+  end
+
+  private def set_location_params
+    return unless RailsDrivers.loaded.include?(:client_location_history)
+
+    @locations = @project.enrollment_location_histories.where(located_on: location_filter.range)
+    @markers = @locations.map { |l| l.as_marker_with_name(current_user) }
+    @bounds = ClientLocationHistory::Location.bounds(@locations)
+    @markers = ClientLocationHistory::Location.highlight(@markers)
+    @options = {
+      bounds: @bounds,
+      cluster: true,
+      marker_color: '#72A0C1',
+    }
+  end
+
+  private def location_filter
+    @location_filter ||= filter_class.new(
+      user_id: current_user.id,
+      enforce_one_year_range: false,
+    ).set_from_params(location_filter_params[:location_filters])
+  end
+
+  def location_filter_params
+    opts = params
+    opts[:location_filters] ||= {}
+    opts[:location_filters][:enforce_one_year_range] = false
+    opts[:location_filters][:start] ||= 6.years.ago
+    opts[:location_filters][:end] ||= 1.days.ago
+    opts.permit(
+      location_filters: [
+        :start,
+        :end,
+      ],
+    )
+  end
+  helper_method :location_filter_params
+
+  private def filter_class
+    ::Filters::FilterBase
   end
 
   private def project_scope
