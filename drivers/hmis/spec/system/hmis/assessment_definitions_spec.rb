@@ -43,7 +43,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
 
     context 'with no existing assessment' do
       it 'creates a new assessment with the most recent form version' do
-        click_button 'New Assessment'
+        find('button', text: 'New Assessment').trigger('click')
         click_link definition.title
         mui_date_select 'Assessment Date', date: today
 
