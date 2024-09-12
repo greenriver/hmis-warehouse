@@ -15,7 +15,7 @@ module Mutations
       access_denied! unless project
       access_denied! unless current_permission?(permission: :can_edit_enrollments, entity: project)
 
-      clients = Hmis::Hud::Client.viewable_by(current_user).where(id: input.client_ids).preload(:enrollments)
+      clients = Hmis::Hud::Client.viewable_by(current_user).where(id: input.client_ids)
       access_denied! unless clients.count == input.client_ids.uniq.length
 
       cst = Hmis::Hud::CustomServiceType.find(input.service_type_id)
@@ -87,10 +87,14 @@ module Mutations
           else
             Hmis::Hud::CustomService.new(custom_service_type: cst, **attrs)
           end
-          # Pass form_submission context to validate uniqueness of bed nights per day.
-          # Note: an improvement would be to raise a user-facing error if any service(s) were duplicates for bed nights,
-          # and let other changes save successfully.
-          service.save!(context: :form_submission)
+
+          # validate with form_submission context to check bed night uniqueness constraint
+          is_valid = service.valid?(:form_submission)
+
+          # If validation failed because this Enrollment already has a Bed Night on this date, then skip saving it. This could happen from a race condition in the app, or multiple users assigning bed nights.
+          next if !is_valid && service.errors.full_messages == ['Enrollment has already been taken']
+
+          service.save!
         end
       end
 
