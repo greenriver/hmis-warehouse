@@ -11,14 +11,14 @@
       %th Score
   %tbody
     %tr
-      %th.bg-info.align-middle.text-center{rowspan: 4} Alignment with HUD and  Boston CoC system-wide policy priorities
+      %th.bg-info.align-middle.text-center{rowspan: 6} Alignment with HUD and  Boston CoC system-wide policy priorities
       %td 15. Type of housing project proposal; RRH, PSH, Joint TH-RRH
       %td Project Application
       %td
         6: PSH
         %br
         3: RRH/Joint TH-RRH
-      %th.align-middle.text-center{rowspan: 6}
+      %th.align-middle.text-center{rowspan: 8}
         Weight
         #{@report.policy_alignment_weight}%
       %td= @report.project_type_value
@@ -46,6 +46,20 @@
       %td Up to 6 pts: 1 pts for each sub-population served
       %td= f.input :vulnerable_subpopulations_served, collection: @report.vulnerable_subpopulations_served_options, as: :pretty_boolean_group, multiple: true, label: 'Select all sub-populations served:'
       %td= @report.vulnerable_subpopulations_served_score
+    %tr
+      %td
+        19. Did at least 1 housing manager from the agency complete the 6 assigned LMS courses?
+      %td LMS report emailed to Development Officer
+      %td N/A
+      %td= f.input :lms_completed, as: :pretty_boolean, label: 'Completed assigned LMS'
+      %td
+    %tr
+      %td
+        20. Did the agency certify they completed HUD's Equal Access Self-Assessment?
+      %td City Application - organizational survey responses emailed to Development Officer
+      %td N/A
+      %td= f.input :lms_completed, as: :pretty_boolean, label: 'Completed equal access self-assessment'
+      %td
     %tr
       %th.bg-info.align-middle{rowspan: 2}
         .text-center Racial Equity

@@ -140,6 +140,9 @@ module BostonProjectScorecard
         :plan_to_address_barriers,
         :required_match_percent_met,
         :no_concern,
+        :materials_concern,
+        :lms_completed,
+        :self_certified,
       ].freeze
     end
 
