@@ -171,18 +171,13 @@ module BostonProjectScorecard
     def run_and_save!
       update(started_at: Time.current)
 
-      # previous = if project_id.present?
-      #   self.class.where(project_id: project_id).
-      #     where.not(id: id).
-      #     order(id: :desc).
-      #     first
-      # else
-      #   self.class.where(project_group_id: project_group_id).
-      #     where.not(id: id).
-      #     order(id: :desc).
-      #     first
-      # end
-      apr = apr_report if RailsDrivers.loaded.include?(:hud_apr)
+      apr = nil
+      comparison_apr = nil
+
+      if RailsDrivers.loaded.include?(:hud_apr)
+        apr = apr_report
+        comparison_apr = apr_compmarison_report
+      end
       project_type = if project_id.present?
         project.project_type
       else
@@ -192,7 +187,7 @@ module BostonProjectScorecard
 
       assessment_answers = {}
 
-      if apr.present?
+      if apr.present? && comparison_apr.present?
         # Project Performance
         one_a_value = percentage(answer(apr, 'Q23c', 'B43'))
         one_b_value = percentage((answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B40') + answer(apr, 'Q23c', 'B41')) / (answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B42')).to_f)
@@ -217,7 +212,8 @@ module BostonProjectScorecard
             increased_leaver_other_income: percentage(answer(apr, 'Q19a2', 'J4')),
             increased_employment_income: percentage(employment_percent),
             increased_other_income: percentage(other_percent),
-            days_to_lease_up: answer(apr, 'Q22c', 'B12').round,
+            days_to_lease_up: answer(apr, 'Q22c', 'B11').round,
+            days_to_lease_up_comparison: answer(comparison_apr, 'Q22c', 'B11').round,
           },
         )
 
@@ -295,6 +291,38 @@ module BostonProjectScorecard
       ]
       generator = HudApr.current_generator(report: :apr)
       apr = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
+      generator.new(apr).run!(email: false, manual: false)
+
+      apr
+    end
+
+    # Run an APR for the 365 days prior to support calculations for #4
+    private def apr_compmarison_report
+      filter = ::Filters::HudFilterBase.new(user_id: user_id)
+      if project_id.present?
+        project_ids = [project_id]
+      else
+        project_ids = GrdaWarehouse::ProjectGroup.viewable_by(User.find(user_id)).find(project_group_id).projects.pluck(:id)
+      end
+      coc_codes = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
+        merge(GrdaWarehouse::Hud::Project.where(id: project_ids)).
+        distinct.
+        pluck(GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce)
+      filter.update(
+        {
+          start: start_date,
+          end: end_date,
+          project_ids: project_ids,
+          coc_codes: coc_codes,
+          comparison_pattern: :prior_year,
+        },
+      )
+      comparison_filter = filter.to_comparison
+      questions = [
+        'Question 22',
+      ]
+      generator = HudApr.current_generator(report: :apr)
+      apr = HudReports::ReportInstance.from_filter(comparison_filter, generator.title, build_for_questions: questions)
       generator.new(apr).run!(email: false, manual: false)
 
       apr

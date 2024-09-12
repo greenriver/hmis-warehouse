@@ -116,20 +116,23 @@
       %td= @report.increased_other_income_value
       %td= @report.increased_other_income_score
     %tr
-      %td 4. Time to Lease Up; Average days from project enrollment date to move-in date
+      %td 4. Time to Lease Up; Reduction in average days from project enrollment date to move-in date compared to prior grant year or below 90 days
       %td
         APR Table
         = link_to_apr('Q22c:', 'Question 22')
-        Length of Time between Project Start Date and Housing Move-in Date, Row 11B: Average Length of time to Housing
+        Length of Time between Project Start Date and Housing Move-in Date, Row 11B: Average Length of time to Housing comparison between current fiscal period and previous fiscal period
       %td
-        12 pts: 1-30 days
+        12 pts: Decreased by at least 5% compared to previous FY or lower than 90 days
         %br
-        6 pts: 31-60 day
+        6 pts: Decreased by at 4%-1% compared to previous FY
         %br
-        4 pts: 61-180 days
-        %br
-        0 pts: over 180 days, or less than 1 day
-      %td= @report.days_to_lease_up_value
+        0 pts: No change compared to previous FY, increase, or average of less than 1 day
+      %td
+        = @report.days_to_lease_up_value
+        - if @report.days_to_lease_up_change.present?
+          %br
+          = "#{@report.days_to_lease_up_change}%"
+          year-over-year change
       %td= @report.days_to_lease_up_score
     %tr
       %td 5. Project utilization rate from current project operating year

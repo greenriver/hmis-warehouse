@@ -13,4 +13,23 @@
         .removeClass('incomplete-field');
       });
       $('.report-form input').first().trigger('change');
+
+      // Prevent both 6a and 6b from being selected (per spec)
+      var no_concern = '.report-form input[name="boston_project_scorecard_report[no_concern]"]'
+      var no_concern_hidden = '.report-form input[name="boston_project_scorecard_report[no_concern]"][type="hidden"]'
+      var materials_concern = '.report-form input[name="boston_project_scorecard_report[materials_concern]"]'
+      var materials_concern_hidden = '.report-form input[name="boston_project_scorecard_report[materials_concern]"][type="hidden"]'
+      $(no_concern + ',' + materials_concern).on('change', function(e) {
+        var clicked_value = e.currentTarget.value;
+        // -1 is Not Applicable, that's allowed to be chosen in both situations, so do nothing in that case
+        if(clicked_value != -1) {
+          console.log($(e.currentTarget).attr('name'))
+          // determine which input we clicked, and set the other to Not Applicable (-1)
+          if($(e.currentTarget).attr('name') == $(no_concern).attr('name')) {
+            $(materials_concern).last().trigger('click');
+          } else {
+            $(no_concern).last().trigger('click');
+          }
+        }
+      });
     });
