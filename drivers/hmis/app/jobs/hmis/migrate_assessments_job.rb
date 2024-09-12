@@ -43,7 +43,7 @@ module Hmis
     #  - DateCreated = earliest creation date of related records
     #  - DateUpdated = latest update date of related records
     #  - UserID = UserID from the related record that was most recently updated
-    def perform(data_source_id:, project_ids: nil, clobber: false, delete_dangling_records: false, preferred_source_hash: nil, generate_empty_intakes: false)
+    def perform(data_source_id:, project_ids: nil, clobber: false, delete_dangling_records: false, preferred_source_hash: nil, generate_empty_intakes: false, enrollments: nil)
       setup_notifier('Migrate HMIS Assessments')
 
       self.data_source_id = data_source_id
@@ -53,6 +53,11 @@ module Hmis
       self.preferred_source_hash = preferred_source_hash
       self.generate_empty_intakes = generate_empty_intakes
       raise 'Not an HMIS Data source' if ::GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
+
+      if enrollments
+        @full_enrollment_scope = enrollments.not_in_progress
+        raise 'invalid enrollment scope' if enrollments.where.not(data_source_id: data_source_id).exists?
+      end
 
       debug_log "MigrateAssessmentsJob starting at #{Time.current.to_fs(:db)}"
 
