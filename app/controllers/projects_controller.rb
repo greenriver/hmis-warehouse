@@ -69,7 +69,6 @@ class ProjectsController < ApplicationController
     @locations = @project.enrollment_location_histories.where(located_on: location_filter.range)
     @markers = @locations.map { |l| l.as_marker_with_name(current_user) }
     @bounds = ClientLocationHistory::Location.bounds(@locations)
-    @markers = ClientLocationHistory::Location.highlight(@markers)
     @options = {
       bounds: @bounds,
       cluster: true,
@@ -88,8 +87,8 @@ class ProjectsController < ApplicationController
     opts = params
     opts[:location_filters] ||= {}
     opts[:location_filters][:enforce_one_year_range] = false
-    opts[:location_filters][:start] ||= 6.years.ago
-    opts[:location_filters][:end] ||= 1.days.ago
+    opts[:location_filters][:start] ||= 1.year.ago
+    opts[:location_filters][:end] ||= Date.current
     opts.permit(
       location_filters: [
         :start,
