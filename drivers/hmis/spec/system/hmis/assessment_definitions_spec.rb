@@ -37,7 +37,6 @@ RSpec.feature 'Assessment definition selection', type: :system do
     before(:each) do
       create(:hmis_form_instance, definition: definition, entity: p1) # enable the form in p1
       sign_in(hmis_user)
-      disable_transitions
 
       visit "/client/#{c1.id}/enrollments/#{e1.id}/assessments"
     end
@@ -169,7 +168,6 @@ RSpec.feature 'Assessment definition selection', type: :system do
     before(:each) do
       create(:hmis_form_instance, definition: definition, entity: p1) # enable the form in p1
       sign_in(hmis_user)
-      disable_transitions
 
       visit "/client/#{c1.id}/enrollments/#{e1.id}/assessments"
       click_link 'Intake'

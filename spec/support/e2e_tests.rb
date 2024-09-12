@@ -51,6 +51,8 @@ module E2eTests
       # It could be useful to be able to configure this path from the outside (e.g., on CI).
       ::Capybara.save_path = ENV.fetch('CAPYBARA_ARTIFACTS', './tmp/capybara')
 
+      # ::Capybara.disable_animation = true # if this works can we remove the js?
+
       raise "can't connect to chrome on #{ENV['CHROME_URL']} run `docker-compose up -d chrome`" unless RemoteChrome.connected?
 
       remote_options = RemoteChrome.options
