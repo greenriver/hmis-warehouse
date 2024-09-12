@@ -10,5 +10,13 @@ module MaReports::CsgEngage
     belongs_to :agency, class_name: 'MaReports::CsgEngage::Agency'
     has_many :program_reports, class_name: 'MaReports::CsgEngage::ProgramReport'
     has_many :program_mappings, class_name: 'MaReports::CsgEngage::ProgramMapping'
+
+    def households_scope
+      GrdaWarehouse::Hud::Enrollment.joins(:project).where(project: { id: project_ids }).heads_of_households.order(:HouseholdID, :id)
+    end
+
+    def project_ids
+      program_mappings.pluck(:project_id)
+    end
   end
 end

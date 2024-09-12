@@ -6,11 +6,13 @@
 
 module MaReports::CsgEngage::ReportComponents
   class Program < Base
-    attr_accessor :program
+    attr_accessor :program, :batch_size, :batch_index
 
-    def initialize(program)
+    def initialize(program, batch_size: 1000, batch_index: 0)
       @program = program
       @now = DateTime.current
+      @batch_size = batch_size
+      @batch_index = batch_index
     end
 
     field('Program Name') { program.csg_engage_name }
@@ -31,7 +33,7 @@ module MaReports::CsgEngage::ReportComponents
     end
 
     def households_scope
-      GrdaWarehouse::Hud::Enrollment.joins(:project).where(project: { id: project_ids }).heads_of_households.preload(project: [:project_cocs])
+      program.households_scope.limit(batch_size).offset(batch_size * batch_index).preload(project: [:project_cocs])
     end
   end
 end
