@@ -52,13 +52,13 @@ module BostonProjectScorecard
       end
 
       def days_to_lease_up_value
-        "Days to lease-up: #{days_to_lease_up}"
+        days_to_lease_up
       end
 
       def days_to_lease_up_change
         return unless days_to_lease_up_comparison&.positive?
 
-        ((days_to_lease_up - days_to_lease_up_comparison) / days_to_lease_up_comparison) * 100
+        ((days_to_lease_up - days_to_lease_up_comparison.to_f) / days_to_lease_up_comparison) * 100
       end
 
       def rrh_exits_to_ph_score

@@ -128,10 +128,14 @@
         %br
         0 pts: No change compared to previous FY, increase, or average of less than 1 day
       %td
+        Days to lease-up (current year):
         = @report.days_to_lease_up_value
+        %br
+        Days to lease-up (prior year):
+        = @report.days_to_lease_up_comparison
         - if @report.days_to_lease_up_change.present?
           %br
-          = "#{@report.days_to_lease_up_change}%"
+          = "#{@report.days_to_lease_up_change.round}%"
           year-over-year change
       %td= @report.days_to_lease_up_score
     %tr
