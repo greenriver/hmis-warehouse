@@ -18,6 +18,7 @@ class Cronjob
     self.jobname = namify(description)
     self.capacity_type = capacity_type
     self.k8s_image = ENV.fetch('K8S_IMAGE', 'set_k8s_image_somehow_to_test:v1') # provided by kyverno
+    self.k8s_service_account_name = ENV.fetch('K8S_SERVICE_ACCOUNT_NAME', 'default') # provided by kyverno
   end
 
   def self.clear!
