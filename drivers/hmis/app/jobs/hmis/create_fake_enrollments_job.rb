@@ -289,7 +289,6 @@ module Hmis
       race_attributes = HudUtility2024.races.keys.excluding('RaceNone').each_with_object(0).to_h
       race_attributes[race_attributes.keys.sample] = 1
       race_attributes[race_attributes.keys.sample] = 1 if rand_boolean # set another race
-      race_attributes['RaceNone'] = 99
       race_attributes
     end
 
@@ -297,7 +296,6 @@ module Hmis
       gender_attributes = HudUtility2024.gender_fields.map(&:to_s).excluding('GenderNone').each_with_object(0).to_h
       gender_attributes[gender_attributes.keys.sample] = 1
       gender_attributes[gender_attributes.keys.sample] = 1 if rand_boolean # set another gender
-      gender_attributes['GenderNone'] = 99
       gender_attributes
     end
     # rubocop:enable Lint/EachWithObjectArgument
