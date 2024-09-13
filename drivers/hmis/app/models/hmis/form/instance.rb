@@ -93,8 +93,7 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     return unless definition.role.to_s == 'EXTERNAL_FORM'
 
     # External forms can only have Project-level rules, because they are not meant to be reviewed in multiple projects
-    errors.add(:base, :invalid, full_message: 'External forms only support rule specification by Project') if entity_type != 'Hmis::Hud::Project' || funder.present? || other_funder.present? || project_type.present?
-
+    errors.add(:base, :invalid, full_message: 'External forms only support rule specification by Project') if entity_type != 'Hmis::Hud::Project'
     # External forms can only have ONE active Project-level rule
     errors.add(:base, :invalid, full_message: 'External forms can only have one active rule') if new_record? && definition.instances.active.for_projects.exists?
   end
