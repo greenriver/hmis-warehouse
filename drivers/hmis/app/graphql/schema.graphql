@@ -6641,6 +6641,11 @@ enum PickListType {
   ORGANIZATION
 
   """
+  OtherFunder values for all Funders across the installation
+  """
+  OTHER_FUNDERS
+
+  """
   Unit types that are eligible to be added to project
   """
   POSSIBLE_UNIT_TYPES_FOR_PROJECT

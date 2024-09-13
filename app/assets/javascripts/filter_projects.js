@@ -20,6 +20,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       'funderIds',
       'cocCodes',
       'calculatedProjects',
+      'missingItems',
       'submitButton',
     ]
   }
@@ -74,19 +75,84 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
     }).done((ret) => {
       // console.debug('success')
       if (ret.includes('No Projects')) {
-        if ($('.jProjectWarning').length == 0) {
-          $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jProjectWarning">This report will not work unless you have included at least one project above.</p>')
-        }
+        this.addProjectDataWarning()
         $(this.submitButtonTarget).attr('disabled', 'disabled');
+        this.resetMissingDataLink()
       }
       else {
-        $('.jProjectWarning').remove();
-        $(this.submitButtonTarget).data('title', '').removeAttr('disabled');
+        // we have some projects, so remove the warning
+        this.removeProjectDataWarning()
+        this.updateMissingDataLink(ret)
+        if (this.checkMissingData(ret)) {
+          // we have some data issues
+          this.addMissingDataWarning()
+          $(this.submitButtonTarget).attr('disabled', 'disabled');
+        }
+        else {
+          // All good to proceed
+          this.removeMissingDataWarning()
+          $(this.submitButtonTarget).data('title', '').removeAttr('disabled');
+        }
       }
       $(this.calculatedProjectsTarget).html(ret)
     }).fail((ret) => {
       console.error(['Failed to fetch project list', ret])
     })
+  }
+
+  resetMissingDataLink() {
+    if (!this.hasMissingItemsTarget) {
+      return
+    }
+
+    $(this.missingItemsTarget).attr('href', $(this.missingItemsTarget).data('defaultHref'));
+  }
+
+  updateMissingDataLink(html) {
+    if (!this.hasMissingItemsTarget) {
+      return
+    }
+    $(this.missingItemsTarget).attr('href', this.buildMissingDataLink(html));
+  }
+
+  checkMissingData(html) {
+    if (! this.hasMissingItemsTarget) {
+      return false
+    }
+    return $.ajax({ async: false, type: 'GET', url: this.buildMissingDataLink(html, true) }).done().responseJSON
+  }
+
+  buildMissingDataLink(html, json=false) {
+    const base_missing_data_url = $(this.missingItemsTarget).data('defaultHref');
+    const project_ids = $(html).find('li[value]').map(function () { return $(this).attr('value') }).get()
+    if(json) {
+      return base_missing_data_url + '.json?' + $.param({ filter: { project_ids: project_ids, coc_codes: $(this.cocCodesTarget).val() } })
+    } else {
+      return base_missing_data_url + '?' + $.param({ filter: { project_ids: project_ids, coc_codes: $(this.cocCodesTarget).val() } })
+    }
+  }
+
+  addMissingDataWarning() {
+    if (!this.hasMissingItemsTarget) {
+      return
+    }
+    if ($('.jMissingDataWarning').length == 0) {
+      $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jMissingDataWarning">This report will not work unless the required project descriptor data is present, please see "Missing Data".</p>')
+    }
+  }
+
+  removeMissingDataWarning() {
+    $('.jMissingDataWarning').remove();
+  }
+
+  addProjectDataWarning() {
+    if ($('.jProjectWarning').length == 0) {
+      $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jProjectWarning">This report will not work unless you have included at least one project above.</p>')
+    }
+  }
+
+  removeProjectDataWarning() {
+    $('.jProjectWarning').remove();
   }
 
   prepNativeEvents() {
