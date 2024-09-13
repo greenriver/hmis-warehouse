@@ -39,13 +39,13 @@ class BaseJob < ApplicationJob
     end
 
     def before_handler(job)
-      self.start_time = Time.now
+      self.start_time = Time.current
       DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: job.queue_name, priority: job.priority, status: 'started', job_name: job.class.name })
     end
 
     def after_handler(job)
       DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: job.queue_name, priority: job.priority, status: 'success', job_name: job.class.name })
-      DjMetrics.instance.dj_job_run_length_seconds_metric.observe(Time.now - start_time, labels: { job_name: job.class.name })
+      DjMetrics.instance.dj_job_run_length_seconds_metric.observe(Time.current - start_time, labels: { job_name: job.class.name })
       DjMetrics.instance.refresh_queue_sizes!
     end
   end
