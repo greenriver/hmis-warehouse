@@ -191,7 +191,7 @@ module BostonProjectScorecard
       if apr.present? && comparison_apr.present?
         # Project Performance
         one_a_value = percentage(answer(apr, 'Q23c', 'B43'))
-        one_b_value = percentage((answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B42') + answer(apr, 'Q23c', 'B41')) / (answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B40')).to_f)
+        one_b_value = percentage((answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B40') + answer(apr, 'Q23c', 'B41')) / (answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B42')).to_f)
 
         adult_with_earned_income_count = answer(apr, 'Q19a1', 'H2') + answer(apr, 'Q19a2', 'H2')
         employment_increased = answer(apr, 'Q19a1', 'I2') + answer(apr, 'Q19a2', 'I2')
