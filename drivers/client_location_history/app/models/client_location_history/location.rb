@@ -28,42 +28,32 @@ module ClientLocationHistory
       [lat, lon]
     end
 
-    def label
-      [
-        "Seen on: #{located_on}",
-        "by #{collected_by}",
-      ]
-    end
-
-    def label_for_project
-      [
-        "Seen at: #{processed_at}",
-      ]
-    end
-
-    def as_marker
+    def as_marker(user = nil, label_attributes = [:located_on, :collected_by])
       {
         lat_lon: as_point,
-        label: label,
+        label: label(user, label_attributes),
         date: located_on,
         highlight: false,
       }
     end
 
-    def as_marker_with_name(user, base_label = label)
-      name = if user.can_view_clients?
+    private def label(user, label_attributes)
+      raise ArgumentError if label_attributes.include?(:name) && !user
+
+      [
+        label_attributes.include?(:name) ? name_for_label(user) : nil,
+        label_attributes.include?(:located_on) ? "Seen on: #{located_on}" : nil,
+        label_attributes.include?(:processed_at) ? "Processed at: #{processed_at}" : nil,
+        label_attributes.include?(:collected_by) ? "by #{collected_by}" : nil,
+      ].compact
+    end
+
+    private def name_for_label(user)
+      if user.can_view_clients?
         link_for(client_path(client), client.name)
       else
         client.name
       end
-      as_marker.merge(
-        client_id: client.id,
-        label: [name] + base_label,
-      )
-    end
-
-    def as_marker_for_project(user)
-      as_marker_with_name(user, label_for_project)
     end
 
     private def link_for(path, text)

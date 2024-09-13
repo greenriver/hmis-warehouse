@@ -20,7 +20,7 @@ module ClientLocationHistory::WarehouseReports
         order(:client_id, located_on: :desc).
         distinct_on(:client_id).pluck(:id)
       @contacts = ClientLocationHistory::Location.where(id: ids).preload(:client)
-      @markers = @contacts.map { |c| c.as_marker_with_name(current_user) }
+      @markers = @contacts.map { |c| c.as_marker(current_user, [:name, :located_on, :collected_by]) }
       @bounds = ClientLocationHistory::Location.bounds(@contacts)
       @markers = ClientLocationHistory::Location.highlight(@markers)
       @options = {
