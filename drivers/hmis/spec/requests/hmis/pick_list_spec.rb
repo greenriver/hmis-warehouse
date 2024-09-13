@@ -328,10 +328,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'EXTERNAL_FORM_TYPES_FOR_PROJECT' do
     let!(:external_form) { create :hmis_form_definition, identifier: 'test-external', role: :EXTERNAL_FORM }
 
-    context 'when form rule applies to an organization' do
-      let!(:rule) { create :hmis_form_instance, definition_identifier: 'test-external', entity: p1.organization, active: true }
+    context 'when form rule applies to a project' do
+      let!(:rule) { create :hmis_form_instance, definition_identifier: 'test-external', entity: p1, active: true }
 
-      it 'should return the external form for a project under that organization' do
+      it 'should return the external form for the project' do
         response, result = post_graphql(pick_list_type: 'EXTERNAL_FORM_TYPES_FOR_PROJECT', projectId: p1.id) { query }
         expect(response.status).to eq 200
         options = result.dig('data', 'pickList')

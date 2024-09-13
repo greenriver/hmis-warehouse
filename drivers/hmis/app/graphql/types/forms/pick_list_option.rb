@@ -445,9 +445,8 @@ module Types
     def self.external_form_types_for_project(project)
       return [] unless project.present?
 
-      # This is slow since it calls project_match on every form instance. Since we only call it on 1 project at a time,
-      # not in batch, it's OK for now.
-      Hmis::Form::Instance.for_project_through_entities(project).
+      # External forms can only be enabled by Project-level instances
+      Hmis::Form::Instance.for_project(project).
         with_role(:EXTERNAL_FORM).
         preload(:definition).
         order(:id).
