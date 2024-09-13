@@ -73,6 +73,7 @@ module GrdaWarehouse::Hud
     # project_coc has been deleted
     belongs_to :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], optional: true
 
+    # Needs to come after has_many :enrollments, bc one extension uses a has_many through: :enrollments relation
     include RailsDrivers::Extensions
 
     scope :residential, -> do
@@ -359,6 +360,11 @@ module GrdaWarehouse::Hud
         hmis_participating_project_override: :HMISParticipatingProject,
         target_population_override: :TargetPopulation,
       }
+    end
+
+    # todo @martha - test this, it doesn't appear to be working?
+    def can?(user, permission: :can_view_projects)
+      self.class.viewable_by(user, permission: permission).where(id: id).exists?
     end
 
     def self.can_see_all_projects?(user)

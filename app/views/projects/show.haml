@@ -122,7 +122,7 @@
   .mb-4.card
     = render 'hmis_csv_importer/import_overrides/table', overrides: overrides, data_source: @project.data_source, editable: false, show_associated_project: false
 
-- if RailsDrivers.loaded.include?(:client_location_history) && can_view_project_locations?
+- if RailsDrivers.loaded.include?(:client_location_history) && @project.can?(current_user, permission: :can_view_project_locations)
   = render 'client_location_history/projects/map'
 
 - if @show_census

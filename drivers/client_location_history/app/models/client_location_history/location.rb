@@ -14,6 +14,8 @@ module ClientLocationHistory
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
     after_save :fix_source
 
+    MARKER_COLOR = '#72A0C1'.freeze
+
     def fix_source
       # This somewhat hacky solution gets around the fact that during HMIS Form Processing, we haven't yet saved the
       # Enrollment being generated, so we don't yet have an ID with which to get the Warehouse enrollment.
