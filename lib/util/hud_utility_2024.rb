@@ -610,6 +610,10 @@ module HudUtility2024
     [21]
   end
 
+  def local_or_other_funding_source
+    46
+  end
+
   # SPM definition of CoC funded projects
   def spm_coc_funders
     [2, 3, 4, 5, 43, 44, 54, 55]
