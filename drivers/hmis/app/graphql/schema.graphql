@@ -6641,7 +6641,7 @@ enum PickListType {
   ORGANIZATION
 
   """
-  OtherFunder values for all active Funders across the installation
+  OtherFunder values for all Funders across the installation
   """
   OTHER_FUNDERS
 

@@ -17,7 +17,7 @@ module Types
     value 'OPEN_PROJECTS', 'Open Projects that the user can see'
     value 'PROJECTS_RECEIVING_REFERRALS', 'Open Projects that can receive referrals'
     value 'ORGANIZATION', 'All Organizations that the User can see'
-    value 'OTHER_FUNDERS', 'OtherFunder values for all active Funders across the installation'
+    value 'OTHER_FUNDERS', 'OtherFunder values for all Funders across the installation'
     value 'ASSESSMENT_NAMES', 'Assessment names, including custom assessments and assessments that are inactive. If a project is specified, the list is limited to assessments that exist in the project (both active and inactive).'
     value 'GEOCODE'
     value 'STATE'
