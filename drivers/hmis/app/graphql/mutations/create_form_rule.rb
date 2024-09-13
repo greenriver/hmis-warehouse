@@ -9,7 +9,7 @@ module Mutations
     argument :definition_id, ID, required: true
     argument :input, Types::Admin::FormRuleInput, required: true
 
-    field :form_rule, Types::Admin::FormRule, null: true
+    field :form_rule, Types::Admin::FormRule, null: false
 
     def resolve(definition_id:, input:)
       definition = Hmis::Form::Definition.exclude_definition_from_select.find(definition_id)
@@ -23,7 +23,7 @@ module Mutations
         { form_rule: instance }
       else
         errors = HmisErrors::Errors.new
-        errors.add_ar_errors(instance.errors.errors)
+        errors.add_ar_errors(instance.errors)
         { errors: errors }
       end
     end

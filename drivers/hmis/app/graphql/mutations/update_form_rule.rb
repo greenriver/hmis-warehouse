@@ -11,7 +11,6 @@ module Mutations
 
     field :form_rule, Types::Admin::FormRule, null: false
 
-    # note: this mutation is now ONLY used for deleting form rules. should deprecate and replace with a new mutation
     def resolve(id:, input:)
       instance = Hmis::Form::Instance.find_by(id: id)
       raise 'not found' unless instance
@@ -21,11 +20,14 @@ module Mutations
 
       instance.assign_attributes(input.to_attributes)
 
-      raise instance.errors.full_messages.join(', ') unless instance.valid? || instance.active == false # allow deactivating an invalid rule
-
-      instance.save!(validate: false)
-
-      { form_rule: instance }
+      if instance.valid?
+        instance.save!
+        { form_rule: instance }
+      else
+        errors = HmisErrors::Errors.new
+        errors.add_ar_errors(instance.errors)
+        { errors: errors }
+      end
     end
   end
 end

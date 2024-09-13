@@ -1619,7 +1619,7 @@ type CreateFormRulePayload {
   """
   clientMutationId: String
   errors: [ValidationError!]!
-  formRule: FormRule
+  formRule: FormRule!
 }
 
 """
