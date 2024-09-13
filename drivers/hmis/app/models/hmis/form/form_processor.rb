@@ -49,6 +49,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     owner_type == Hmis::Hud::CustomAssessment.sti_name
   end
 
+  def external_form_submission?
+    owner_type == HmisExternalApis::ExternalForms::FormSubmission.sti_name
+  end
+
   def unknown_field_error(definition)
     RuntimeError.new("Not a submittable field for Form Definition '#{definition.title}' (ID: #{definition.id})")
   end
@@ -97,6 +101,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         # This related record will be created or updated, so assign the metadata and information date.
         processor&.assign_metadata
         processor&.information_date(owner.assessment_date) if custom_assessment?
+        processor&.information_date(owner.submitted_at) if external_form_submission?
       end
     end
 

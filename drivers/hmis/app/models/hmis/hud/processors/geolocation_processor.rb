@@ -30,17 +30,22 @@ module Hmis::Hud::Processors
       @processor.send(factory_name).assign_attributes(lat: latitude, lon: longitude)
     end
 
+    def information_date(date)
+      clh = @processor.send(factory_name, create: false)
+      return if clh&.destroyed?
+
+      # TODO(#5726) This logic may need to be updated for CLS.
+      # Maybe unintuitive, but for PIT, we store the timestamp of the form submission in the processed_at field because
+      # it is a granular timestamp and not a date like located_on.
+      clh&.assign_attributes(processed_at: date, located_on: date)
+    end
+
     def assign_metadata
       clh = @processor.send(factory_name, create: false)
       return if clh&.destroyed?
 
       clh&.assign_attributes(
         source: @processor.enrollment_factory,
-        # TODO(#5726) For PIT, entry_date holds the submission time of the form, but that won't be true for CLS
-        # or other geolocation collection. One idea is to update this to onl yset located_on from the enrollment
-        # as a fallback, but receive it from the form otherwise: {record_type:GEOLOCATION, field_name: located_on}
-        located_on: @processor.enrollment_factory.entry_date,
-        processed_at: Time.current,
         collected_by: @processor.enrollment_factory.project.name,
       )
     end
