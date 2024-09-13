@@ -56,7 +56,7 @@ module Hmis
       project_scope = if project_ids
         Hmis::Hud::Project.where(data_source: @data_source, id: project_ids)
       else
-        Hmis::Hud::Project.where(data_source: @data_source).where.not(OrganizationID: 'f1178021d91c4ecb84831f36ea2f25e7')
+        Hmis::Hud::Project.where(data_source: @data_source)
       end
 
       # Generate and import data in batches
@@ -143,7 +143,7 @@ module Hmis
       )
 
       links = enrollments.heads_of_households.sample(10).map do |enrollment|
-        @data_source.hmis_url_for(enrollment.as_warehouse)
+        @data_source.hmis_url_for(enrollment)
       end
       log("Created #{enrollments_to_import.size} Enrollments")
       log("Samples: #{links.join('   ')}")
