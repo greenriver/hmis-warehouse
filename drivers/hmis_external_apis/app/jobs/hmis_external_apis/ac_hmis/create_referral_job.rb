@@ -284,7 +284,7 @@ module HmisExternalApis::AcHmis
 
     # Accepts a list of 2024 integer values for gender from Data Dictionary
     def gender_attributes_from_codes(codes)
-      attributes = HudUtility2024.gender_id_to_field_name.invert.map do |k, v|
+      attributes = HudUtility2024.gender_id_to_field_name.invert.excluding(:GenderNone).map do |k, v|
         [k, codes.include?(v) ? 1 : 0]
       end.to_h
       attributes[:GenderNone] = attributes.values.sum.zero? ? 99 : nil
@@ -293,7 +293,7 @@ module HmisExternalApis::AcHmis
 
     # Accepts a list of 2024 integer values for race from Data Dictionary
     def race_attributes_from_codes(codes)
-      attributes = HudUtility2024.race_id_to_field_name.invert.map do |k, v|
+      attributes = HudUtility2024.race_id_to_field_name.invert.excluding(:RaceNone).map do |k, v|
         [k, codes.include?(v) ? 1 : 0]
       end.to_h
       attributes[:RaceNone] = attributes.values.sum.zero? ? 99 : nil
