@@ -67,7 +67,7 @@ class ProjectsController < ApplicationController
     return unless RailsDrivers.loaded.include?(:client_location_history)
 
     @locations = @project.enrollment_location_histories.where(located_on: location_filter.range)
-    @markers = @locations.map { |l| l.as_marker_with_name(current_user) }
+    @markers = @locations.map { |l| l.as_marker_for_project(current_user) }
     @bounds = ClientLocationHistory::Location.bounds(@locations)
     @options = {
       bounds: @bounds,

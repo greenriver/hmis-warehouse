@@ -35,6 +35,12 @@ module ClientLocationHistory
       ]
     end
 
+    def label_for_project
+      [
+        "Seen at: #{processed_at}",
+      ]
+    end
+
     def as_marker
       {
         lat_lon: as_point,
@@ -44,7 +50,7 @@ module ClientLocationHistory
       }
     end
 
-    def as_marker_with_name(user)
+    def as_marker_with_name(user, base_label = label)
       name = if user.can_view_clients?
         link_for(client_path(client), client.name)
       else
@@ -52,8 +58,12 @@ module ClientLocationHistory
       end
       as_marker.merge(
         client_id: client.id,
-        label: [name] + label,
+        label: [name] + base_label,
       )
+    end
+
+    def as_marker_for_project(user)
+      as_marker_with_name(user, label_for_project)
     end
 
     private def link_for(path, text)
