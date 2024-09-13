@@ -64,6 +64,8 @@ class CronInstaller
 
       entry_number += 1
     end
+
+    Cronjob.clear_defunct_vpas!
   end
 
   def ecs
