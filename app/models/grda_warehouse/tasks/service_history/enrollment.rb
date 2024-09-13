@@ -108,6 +108,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # should patch or rebuild, or do nothing.  If you need more fine grained control
     # use patch_service_history! or create_service_history! directly
     def rebuild_service_history!
+      return false if self.EntryDate.blank?
       return false if self.EntryDate < '1970-01-01'.to_date
       return false if destination_client.blank? || project.blank?
       return false if already_processed?
@@ -179,7 +180,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # Rails.logger.debug '===RebuildEnrollmentsJob=== Checked for changes'
       # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
       days = []
-      if project.present?
+      # Don't process any enrollments that are missing projects or entry dates
+      if project.present? && self.EntryDate.present?
         date = self.EntryDate
         self.class.transaction do
           remove_existing_service_history_for_enrollment
@@ -690,7 +692,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def head_of_household?
-      @head_of_household ||= (self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1) # 1 = Self
+      @head_of_household ||= self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1 # 1 = Self
     end
 
     def nbn_tracking?
@@ -719,6 +721,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def build_for_dates
+      return [] if self.EntryDate.blank?
+
       @build_for_dates ||= if entry_exit_tracking?
         (self.EntryDate..build_until).map do |date|
           [date, service_type_from_project_type(project.project_type)]
