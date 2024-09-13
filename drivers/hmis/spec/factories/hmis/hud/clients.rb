@@ -45,12 +45,12 @@ FactoryBot.define do
       with_custom_client_name { false }
     end
     after(:build) do |client, evaluator|
-      race_attributes = HudUtility2024.races.except('RaceNone').keys.map { |r| [r, [0, 1].sample] }.to_h
-      race_attributes['RaceNone'] = 99 if race_attributes.values.sum.zero?
+      race_attributes = HudUtility2024.races.except('RaceNone').keys.map { |r| [r, [1, 0].sample] }.to_h
+      race_attributes['RaceNone'] = [8, 9, 99].sample if race_attributes.values.sum.zero?
       client.assign_attributes(race_attributes)
 
-      gender_attributes = HudUtility2024.gender_fields.excluding(:GenderNone).map { |r| [r, [0, 1].sample] }.to_h
-      gender_attributes['GenderNone'] = 99 if gender_attributes.values.sum.zero?
+      gender_attributes = HudUtility2024.gender_fields.excluding(:GenderNone).map { |r| [r, [1, 0].sample] }.to_h
+      gender_attributes['GenderNone'] = [8, 9, 99].sample if gender_attributes.values.sum.zero?
       client.assign_attributes(gender_attributes)
 
       client.build_primary_custom_client_name if evaluator.with_custom_client_name
