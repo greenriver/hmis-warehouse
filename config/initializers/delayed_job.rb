@@ -11,15 +11,6 @@ Delayed::Worker.queue_attributes = {
   long_running: { priority: 5 },
 }
 
-# if ENV['EKS'] == 'true'
-#   Rails.application.config.to_prepare do
-#     unless DjMetrics.instance.initialized
-#       Rails.logger.info 'Bootstrapping prometheus metrics'
-#       DjMetrics.instance.clear!
-#     end
-#   end
-# end
-
 module Delayed
   module Backend
     module ActiveRecord

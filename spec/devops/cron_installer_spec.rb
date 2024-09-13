@@ -8,6 +8,7 @@ RSpec.describe CronInstaller, type: :model do
   it 'adds jitter to the minute a task should run' do
     plain = []
     with_jitter = []
+    subject.cluster_type = :ecs
 
     subject.send(:each_cron_entry, add_jitter: false) do |cron_expression, _|
       plain << cron_expression
@@ -52,13 +53,13 @@ RSpec.describe CronInstaller, type: :model do
         subject.run!
       end
 
-      # it 'deletes cronjobs' do
-      #   Cronjob.clear!
-      #   create_cronjob
-      #   expect(cronjob.send(:cron_list).length).to eq(1)
-      #   Cronjob.clear!
-      #   expect(cronjob.send(:cron_list).length).to eq(0)
-      # end
+      it 'deletes cronjobs' do
+        Cronjob.clear!
+        create_cronjob
+        expect(cronjob.send(:cron_list).length).to eq(1)
+        Cronjob.clear!
+        expect(cronjob.send(:cron_list).length).to eq(0)
+      end
 
     else
       it 'is not normally tested in CI because setup is too involved' do

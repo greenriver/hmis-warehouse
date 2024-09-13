@@ -5,12 +5,6 @@ if [[ "$RAILS_ENV" != 'development' ]] ; then
   sed -i.bak '/pg_fixtures/d' Gemfile
 fi
 
-echo 'Constructing an ERB-free database.yml file...'
-T1=`date +%s`
-bundle exec ./bin/materialize.database.yaml.rb
-T2=`date +%s`
-echo "...database materialize took $(expr $T2 - $T1) seconds"
-
 echo 'Setting Timezone'
 cp /usr/share/zoneinfo/$TIMEZONE /app/etc-localtime
 echo $TIMEZONE > /etc/timezone

@@ -1,200 +1,186 @@
----
-global_pg_db_config:
-  variables: &1
+# please wake me up when this is a feature
+# https://github.com/rails/rails/pull/38721
+# for now, since rails strip all erb from yaml before loading config
+# https://github.com/rails/rails/issues/38924#issuecomment-612881746
+# i have to unroll some parts so that it's simple enough for rails to figure out that I want to use multi-db
+
+global_pg_db_config: &global_pg_db_config
+  variables:
+    # random_page_cost: Cost of a non-sequentially fetched disk page
+    # Set to 1.1 because our databases use SSDs, making random access almost as efficient as sequential.
+    # This setting helps the query planner make more accurate decisions about index usage.
     random_page_cost: 1.1
+    # seq_page_cost: Cost of a sequentially fetched disk page
+    # Set to 1 (default value) to maintain consistency with our adjusted random_page_cost.
+    # This ensures a balanced cost model for the query planner when comparing sequential vs. index scans.
     seq_page_cost: 1
+    # work_mem: Memory used for sort operations and hash tables per operation
+    # Increased to 8MB to potentially improve performance for queries involving large sorts or hash operations.
+    # Be cautious: setting this too high can lead to excessive memory usage, especially on busy systems with many concurrent operations.
+    # Monitor memory usage and adjust as needed based on your workload and available resources.
     work_mem: 8MB
-default_app_db:
-  variables: *1
-  adapter: postgresql
+
+default_app_db: &default_app_db
+  <<: *global_pg_db_config
+  adapter: <%= ENV['DATABASE_ADAPTER'] %>
   pool: 5
   timeout: 5000
-  port: 5432
-  username: postgres
-  password: postgres
-  host: hmis-warehouse-db
-default_warehouse_db:
-  variables: *1
-  adapter: postgis
+  <% if ENV['DATABASE_PORT'] %>
+  port: <%= ENV['DATABASE_PORT'] %>
+  <% end %>
+  <% if ENV['DATABASE_USER'] %>
+  username: <%= ENV['DATABASE_USER'] %>
+  <% end %>
+  <% if ENV['DATABASE_PASS'] %>
+  password: <%= ENV['DATABASE_PASS'] %>
+  <% end %>
+  <% if ENV['DATABASE_HOST'] %>
+  host: <%= ENV['DATABASE_HOST'] %>
+  <% end %>
+
+default_warehouse_db: &default_warehouse_db
+  <<: *global_pg_db_config
+  adapter: <%= ENV['WAREHOUSE_DATABASE_ADAPTER'] %>
   pool: 5
   timeout: 5000
-  port: 5432
-  username: postgres
-  password: postgres
-  host: hmis-warehouse-db
-default_health_db:
-  variables: *1
-  adapter: postgresql
+  <% if ENV['WAREHOUSE_DATABASE_PORT'] %>
+  port: <%= ENV['WAREHOUSE_DATABASE_PORT'] %>
+  <% end %>
+  <% if ENV['WAREHOUSE_DATABASE_USER'] %>
+  username: <%= ENV['WAREHOUSE_DATABASE_USER'] %>
+  <% end %>
+  <% if ENV['WAREHOUSE_DATABASE_PASS'] %>
+  password: <%= ENV['WAREHOUSE_DATABASE_PASS'] %>
+  <% end %>
+  <% if ENV['WAREHOUSE_DATABASE_HOST'] %>
+  host: <%= ENV['WAREHOUSE_DATABASE_HOST'] %>
+  <% end %>
+
+default_health_db: &default_health_db
+  <<: *global_pg_db_config
+  adapter: <%= ENV['HEALTH_DATABASE_ADAPTER'] %>
   pool: 5
   timeout: 5000
-  port: 5432
-  username: postgres
-  password: postgres
-  host: hmis-warehouse-db
-default_reporting_db:
-  variables: *1
-  adapter: postgresql
+  <% if ENV['HEALTH_DATABASE_PORT'] %>
+  port: <%= ENV['HEALTH_DATABASE_PORT'] %>
+  <% end %>
+  <% if ENV['HEALTH_DATABASE_USER'] %>
+  username: <%= ENV['HEALTH_DATABASE_USER'] %>
+  <% end %>
+  <% if ENV['HEALTH_DATABASE_PASS'] %>
+  password: <%= ENV['HEALTH_DATABASE_PASS'] %>
+  <% end %>
+  <% if ENV['HEALTH_DATABASE_HOST'] %>
+  host: <%= ENV['HEALTH_DATABASE_HOST'] %>
+  <% end %>
+
+default_reporting_db: &default_reporting_db
+  <<: *global_pg_db_config
+  adapter: <%= ENV['REPORTING_DATABASE_ADAPTER'] %>
   pool: 5
   timeout: 5000
-  port: 5432
-  username: postgres
-  password: postgres
-  host: hmis-warehouse-db
-default_cas_db:
-  variables: *1
-  adapter: postgresql
+  <% if ENV['REPORTING_DATABASE_PORT'] %>
+  port: <%= ENV['REPORTING_DATABASE_PORT'] %>
+  <% end %>
+  <% if ENV['REPORTING_DATABASE_USER'] %>
+  username: <%= ENV['REPORTING_DATABASE_USER'] %>
+  <% end %>
+  <% if ENV['REPORTING_DATABASE_PASS'] %>
+  password: <%= ENV['REPORTING_DATABASE_PASS'] %>
+  <% end %>
+  <% if ENV['REPORTING_DATABASE_HOST'] %>
+  host: <%= ENV['REPORTING_DATABASE_HOST'] %>
+  <% end %>
+
+default_cas_db: &default_cas_db
+  <<: *global_pg_db_config
+  adapter: <%= ENV['CAS_DATABASE_ADAPTER'] %>
   pool: 5
   timeout: 5000
-  username: postgres
-  password: postgres
-  host: hmis-warehouse-db
-other_db:
-  warehouse: &2
-    variables: *1
-    adapter: postgis
-    pool: 5
-    timeout: 5000
-    port: 5432
-    username: postgres
-    password: postgres
-    host: hmis-warehouse-db
-    database: hmis_warehouse_dev
+  <% if ENV['CAS_DATABASE_PORT'] %>
+  port: <%= ENV['CAS_DATABASE_PORT'] %>
+  <% end %>
+  <% if ENV['CAS_DATABASE_USER'] %>
+  username: <%= ENV['CAS_DATABASE_USER'] %>
+  <% end %>
+  <% if ENV['CAS_DATABASE_PASS'] %>
+  password: <%= ENV['CAS_DATABASE_PASS'] %>
+  <% end %>
+  <% if ENV['CAS_DATABASE_HOST'] %>
+  host: <%= ENV['CAS_DATABASE_HOST'] %>
+  <% end %>
+
+other_db: &other_db
+  warehouse:
+    <<: *default_warehouse_db
+    database: <%= ENV['WAREHOUSE_DATABASE_DB'] %>
     migrations_paths: db/warehouse/migrate
-  health: &3
-    variables: *1
-    adapter: postgresql
-    pool: 5
-    timeout: 5000
-    port: 5432
-    username: postgres
-    password: postgres
-    host: hmis-warehouse-db
-    database: health_dev
+
+  health:
+    <<: *default_health_db
+    database: <%= ENV['HEALTH_DATABASE_DB'] %>
     migrations_paths: db/health/migrate
-  reporting: &4
-    variables: *1
-    adapter: postgresql
-    pool: 5
-    timeout: 5000
-    port: 5432
-    username: postgres
-    password: postgres
-    host: hmis-warehouse-db
-    database: hmis_reporting_dev
+
+  reporting:
+    <<: *default_reporting_db
+    database: <%= ENV['REPORTING_DATABASE_DB'] %>
     migrations_paths: db/reporting/migrate
-  cas: &5
-    variables: *1
-    adapter: postgresql
-    pool: 5
-    timeout: 5000
-    username: postgres
-    password: postgres
-    host: hmis-warehouse-db
-    database: cas_dev
+
+  <% if ENV['DATABASE_CAS_DB'].present? %>
+  cas:
+    <<: *default_cas_db
+    database: <%= ENV.fetch("CAS_DATABASE_DB") { ENV['DATABASE_CAS_DB'] } %>
     migrations_paths: db/cas/migrate
-ssl:
-  sslmode: verify-full
-  sslrootcert: "/etc/ssl/certs/us-east-1-bundle.pem"
+  <% end %>
+
+ssl: &ssl
+  sslmode: <%= ENV.fetch('DATABASE_SSLMODE') { 'verify-full' } %>
+  sslrootcert: /etc/ssl/certs/us-east-1-bundle.pem
+
 development:
   primary:
-    database: hmis_warehouse_app_dev
-    variables: *1
-    adapter: postgresql
-    pool: 5
-    timeout: 5000
-    port: 5432
-    username: postgres
-    password: postgres
-    host: hmis-warehouse-db
-  warehouse: *2
-  health: *3
-  reporting: *4
-  cas: *5
+    database: <%= ENV['DATABASE_APP_DB'] %>
+    <<: *default_app_db
+  <<: *other_db
+
 staging:
   primary:
-    database: hmis_warehouse_app_dev
-    variables: *1
-    adapter: postgresql
-    pool: 5
-    timeout: 5000
-    port: 5432
-    username: postgres
-    password: postgres
-    host: hmis-warehouse-db
-    sslmode: verify-full
-    sslrootcert: "/etc/ssl/certs/us-east-1-bundle.pem"
-  warehouse: *2
-  health: *3
-  reporting: *4
-  cas: *5
+    database: <%= ENV['DATABASE_APP_DB'] %>
+    <<: *default_app_db
+    <<: *ssl
+  <<: *other_db
+
 production:
   primary:
-    database: hmis_warehouse_app_dev
-    variables: *1
-    adapter: postgresql
-    pool: 5
-    timeout: 5000
-    port: 5432
-    username: postgres
-    password: postgres
-    host: hmis-warehouse-db
-    sslmode: verify-full
-    sslrootcert: "/etc/ssl/certs/us-east-1-bundle.pem"
-  warehouse: *2
-  health: *3
-  reporting: *4
-  cas: *5
+    database: <%= ENV['DATABASE_APP_DB'] %>
+    <<: *default_app_db
+    <<: *ssl
+  <<: *other_db
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
 test:
   primary:
-    variables: *1
-    adapter: postgresql
-    pool: 5
-    timeout: 5000
-    port: 5432
-    username: postgres
-    password: postgres
-    host: hmis-warehouse-db
-    database:
+    <<: *default_app_db
+    database: <%= ENV['DATABASE_APP_DB_TEST'] %>
+
   warehouse:
-    variables: *1
-    adapter: postgis
-    pool: 5
-    timeout: 5000
-    port: 5432
-    username: postgres
-    password: postgres
-    host: hmis-warehouse-db
-    database:
+    <<: *default_warehouse_db
+    database: <%= ENV['WAREHOUSE_DATABASE_DB_TEST'] %>
     migrations_paths: db/warehouse/migrate
+
   health:
-    variables: *1
-    adapter: postgresql
-    pool: 5
-    timeout: 5000
-    port: 5432
-    username: postgres
-    password: postgres
-    host: hmis-warehouse-db
-    database:
+    <<: *default_health_db
+    database: <%= ENV['HEALTH_DATABASE_DB_TEST'] %>
     migrations_paths: db/health/migrate
+
   reporting:
-    variables: *1
-    adapter: postgresql
-    pool: 5
-    timeout: 5000
-    port: 5432
-    username: postgres
-    password: postgres
-    host: hmis-warehouse-db
-    database:
+    <<: *default_reporting_db
+    database: <%= ENV['REPORTING_DATABASE_DB_TEST'] %>
     migrations_paths: db/reporting/migrate
+
   cas:
-    variables: *1
-    adapter: postgresql
-    pool: 5
-    timeout: 5000
-    username: postgres
-    password: postgres
-    host: hmis-warehouse-db
-    database:
+    <<: *default_cas_db
+    database: <%= ENV['CAS_DATABASE_DB_TEST'] %>
     migrations_paths: db/cas/migrate
