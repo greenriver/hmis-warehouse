@@ -8,14 +8,16 @@ module Mutations
   class UpdateExternalFormSubmission < CleanBaseMutation
     argument :input, Types::HmisSchema::ExternalFormSubmissionInput, required: true
     argument :id, ID, required: true
-    argument :project_id, ID, required: false # not required for backwards compatibility
 
     field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
-    def resolve(id:, input:, project_id: nil)
+    def resolve(id:, input:)
       record = HmisExternalApis::ExternalForms::FormSubmission.find(id)
-      access_denied! unless allowed?(permissions: [:can_manage_external_form_submissions])
+      # project where the submission is reviewed
+      project = record.parent_project
+
+      access_denied! unless current_permission?(permission: :can_manage_external_form_submissions, entity: project)
 
       record.assign_attributes(**input.to_params)
 
@@ -27,8 +29,6 @@ module Mutations
       end
 
       if record.status_changed? && record.status == 'reviewed' && !record.spam
-        project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: project_id)
-
         if record.definition.updates_client_or_enrollment?
           access_denied! unless current_permission?(permission: :can_edit_enrollments, entity: project)
         end

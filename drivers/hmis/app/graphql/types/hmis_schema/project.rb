@@ -229,9 +229,10 @@ module Types
     end
 
     def external_form_submissions(**args)
-      # Not optimized performance, but reduces duplication of project_match logic
-      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM) # Don't filter by active; show all past submissions
-      identifiers = instances.for_project_through_entities(object).select(:definition_identifier)
+      # Find form instances for this project.
+      # Don't filter by active; show all past submissions.
+      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).for_project(object)
+      identifiers = instances.select(:definition_identifier)
 
       scope = HmisExternalApis::ExternalForms::FormSubmission.
         joins(:definition).
