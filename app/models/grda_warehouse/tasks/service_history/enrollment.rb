@@ -199,7 +199,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           end
           # Rails.logger.debug '===RebuildEnrollmentsJob=== Days built'
           # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
-          if exit.present?
+          if exit.present? && exit.ExitDate.present?
             date = exit.ExitDate
             insert = build_service_history_enrollment_insert(exit_record(date))
             service_history_enrollment_source.connection.insert(insert.to_sql)
