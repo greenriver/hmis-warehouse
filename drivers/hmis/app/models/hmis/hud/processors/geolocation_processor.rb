@@ -31,10 +31,13 @@ module Hmis::Hud::Processors
     end
 
     def information_date(date)
+      clh = @processor.send(factory_name, create: false)
+      return if clh&.destroyed?
+
       # TODO(#5726) This logic may need to be updated for CLS.
       # Maybe unintuitive, but for PIT, we store the timestamp of the form submission in the processed_at field because
       # it is a granular timestamp and not a date like located_on.
-      @processor.send(factory_name, create: false)&.assign_attributes(processed_at: date, located_on: date)
+      clh&.assign_attributes(processed_at: date, located_on: date)
     end
 
     def assign_metadata
