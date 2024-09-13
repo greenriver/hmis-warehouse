@@ -341,7 +341,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
             'Client.firstName': 'bar',
             'Geolocation.coordinates': { 'latitude': 40.812497, 'longitude': -77.882926 }.to_json,
           }.stringify_keys
-          create(:hmis_external_form_submission, raw_data: data, definition: definition, created_at: DateTime.yesterday)
+          create(:hmis_external_form_submission, raw_data: data, definition: definition, submitted_at: 1.day.ago)
         end
 
         it 'should save to Client Location History table' do
@@ -360,8 +360,8 @@ RSpec.describe 'Update External Form Submission', type: :request do
           expect(clh.client_id).to eq(submission.enrollment.client.id)
           expect(clh.lat).to eq(40.812497)
           expect(clh.lon).to eq(-77.882926)
-          expect(clh.located_on).to eq(DateTime.yesterday)
-          expect(clh.processed_at > DateTime.yesterday).to be true
+          expect(clh.located_on).to eq(Date.yesterday)
+          expect(clh.processed_at).to eq(submission.submitted_at)
         end
 
         it 'should still work when auto enter is turned on in the project' do
