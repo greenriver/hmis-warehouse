@@ -24,6 +24,7 @@ module BostonProjectScorecard
     belongs_to :user, class_name: 'User', optional: true
     belongs_to :secondary_reviewer, class_name: 'User', optional: true
     belongs_to :apr, class_name: 'HudReports::ReportInstance', optional: true
+    belongs_to :comparison_apr, class_name: 'HudReports::ReportInstance', optional: true
 
     scope :started_between, ->(start_date:, end_date:) do
       where(started_at: (start_date..end_date))
@@ -190,7 +191,7 @@ module BostonProjectScorecard
       if apr.present? && comparison_apr.present?
         # Project Performance
         one_a_value = percentage(answer(apr, 'Q23c', 'B43'))
-        one_b_value = percentage((answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B40') + answer(apr, 'Q23c', 'B41')) / (answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B42')).to_f)
+        one_b_value = percentage((answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B42') + answer(apr, 'Q23c', 'B41')) / (answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B40')).to_f)
 
         adult_with_earned_income_count = answer(apr, 'Q19a1', 'H2') + answer(apr, 'Q19a2', 'H2')
         employment_increased = answer(apr, 'Q19a1', 'I2') + answer(apr, 'Q19a2', 'I2')
@@ -204,6 +205,7 @@ module BostonProjectScorecard
         assessment_answers.merge!(
           {
             apr_id: apr.id,
+            comparison_apr_id: comparison_apr.id,
             rrh_exits_to_ph: one_a_value,
             psh_stayers_or_to_ph: one_b_value,
             increased_stayer_employment_income: percentage(answer(apr, 'Q19a1', 'J2')),

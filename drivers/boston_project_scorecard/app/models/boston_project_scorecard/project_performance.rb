@@ -8,6 +8,7 @@ module BostonProjectScorecard
   module ProjectPerformance
     extend ActiveSupport::Concern
     included do
+      # NOTE: all comparisons shoud be done against a rounded value
       def no_concern_options
         {
           'Providers with 90% or more "no concern"': 3,
@@ -64,9 +65,9 @@ module BostonProjectScorecard
       def rrh_exits_to_ph_score
         return unless rrh?
 
-        return 12 if rrh_exits_to_ph >= 75
-        return 6 if rrh_exits_to_ph >= 55
-        return 4 if rrh_exits_to_ph >= 25
+        return 12 if rrh_exits_to_ph.round >= 75
+        return 6 if rrh_exits_to_ph.round >= 55
+        return 4 if rrh_exits_to_ph.round >= 25
 
         0
       end
@@ -74,9 +75,9 @@ module BostonProjectScorecard
       def psh_stayers_or_to_ph_score
         return unless psh?
 
-        return 12 if psh_stayers_or_to_ph >= 75
-        return 6 if psh_stayers_or_to_ph >= 55
-        return 4 if psh_stayers_or_to_ph >= 25
+        return 12 if psh_stayers_or_to_ph.round >= 75
+        return 6 if psh_stayers_or_to_ph.round >= 55
+        return 4 if psh_stayers_or_to_ph.round >= 25
 
         0
       end
@@ -84,7 +85,6 @@ module BostonProjectScorecard
       def increased_employment_income_score
         return 0 unless increased_employment_income
 
-        # Specified rounded comparison
         return 12 if increased_employment_income.round >= 20
         return 6 if increased_employment_income.round >= 19
         return 4 if increased_employment_income.round >= 7
@@ -95,7 +95,6 @@ module BostonProjectScorecard
       def increased_other_income_score
         return 0 unless increased_other_income
 
-        # Specified rounded comparison
         return 12 if increased_other_income.round >= 50
         return 6 if increased_other_income.round >= 37
         return 4 if increased_other_income.round >= 17
@@ -125,8 +124,8 @@ module BostonProjectScorecard
 
       def utilization_rate_score
         return unless utilization_rate_percent.present?
-        return 6 if utilization_rate_percent >= 85
-        return 3 if utilization_rate_percent >= 75
+        return 6 if utilization_rate_percent.round >= 85
+        return 3 if utilization_rate_percent.round >= 75
 
         0
       end

@@ -26,7 +26,7 @@
       %td
         APR Table
         = link_to_apr('Q23c', 'Question 23')
-        Cell 46B
+        Cell B43
       %td
         12 pts: 100-75%
         %br
@@ -47,13 +47,14 @@
         %b PSH:
         Percent of clients who remained in PSH or exited to a Permanent Destination (stayers & leavers)
       %td
-        B1 from APR Table
+        APR Table
         = link_to_apr('Q5a', 'Question 5')
         %br
-        B43, B44, B45 from APR Table
+        APR Table
         = link_to_apr('Q23c', 'Question 23')
-        %br
-        %small (B1 - B43 + B44) / (B1 - B45)
+        %br.mb-4
+        -# FIXME
+        %small (Q5a B2 - Q23c B42 + Q23c B41) / (Q5a B2 - Q23c B40)
       %td
         12 pts: 100-75%
         %br
@@ -74,10 +75,10 @@
         APR Tables
         %br
         = link_to_apr('Q19a1,', 'Question 19')
-        Cell J2 (Stayers)
         %br
         = link_to_apr('Q19a2,', 'Question 19')
-        Cell J2 (Leavers)
+        %br.mb-4
+        %small (Q19a1 I2 + Q19a2 I2) / (Q19a1 H2 + Q19a2 H2) * 100
       %td
         12 pts: 100-20%
         %br
@@ -103,7 +104,7 @@
         %br
         = link_to_apr('Q19a2,', 'Question 19')
         (Leavers)
-        %br
+        %br.mb-4
         %small ((Q19a1 D4+E4+F4)+(Q19a2 D4+E4+F4)) / (Q19a1 H4 + Q19a2 H4) *100
       %td
         12 pts: 100-50%
@@ -119,8 +120,11 @@
       %td 4. Time to Lease Up; Reduction in average days from project enrollment date to move-in date compared to prior grant year or below 90 days
       %td
         APR Table
-        = link_to_apr('Q22c:', 'Question 22')
-        Length of Time between Project Start Date and Housing Move-in Date, Row 11B: Average Length of time to Housing comparison between current fiscal period and previous fiscal period
+        = link_to_apr('Q22c', 'Question 22')
+        %br
+        Comparison APR Table
+        = link_to_apr('Q22c', 'Question 22', comparison: true)
+        Length of Time between Project Start Date and Housing Move-in Date, Row 11B: Average Length of time to Housing comparison between current fiscal period and previous fiscal period.
       %td
         12 pts: Decreased by at least 5% compared to previous FY or lower than 90 days
         %br

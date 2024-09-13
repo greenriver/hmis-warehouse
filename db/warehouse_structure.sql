@@ -4447,7 +4447,8 @@ CREATE TABLE public.boston_project_scorecard_reports (
     materials_concern integer,
     lms_completed boolean,
     self_certified boolean,
-    days_to_lease_up_comparison integer
+    days_to_lease_up_comparison integer,
+    comparison_apr_id bigint
 );
 
 
@@ -52100,6 +52101,13 @@ CREATE INDEX index_boston_project_scorecard_reports_on_apr_id ON public.boston_p
 
 
 --
+-- Name: index_boston_project_scorecard_reports_on_comparison_apr_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_boston_project_scorecard_reports_on_comparison_apr_id ON public.boston_project_scorecard_reports USING btree (comparison_apr_id);
+
+
+--
 -- Name: index_boston_project_scorecard_reports_on_project_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63340,6 +63348,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240731155357'),
 ('20240815175202'),
 ('20240821180638'),
-('20240912125052');
+('20240912125052'),
+('20240913130213');
 
 
