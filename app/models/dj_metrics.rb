@@ -66,13 +66,13 @@ class DjMetrics
       @queues << queue
       others.delete(queue)
       Rails.logger.info "Setting #{queue} to size #{size}"
-      dj_queue_size_metric.set(size, labels: { queue: queue })
+      dj_queue_size_metric.set(size, labels: { queue: queue.encode('ascii-8bit') })
     end
 
     # These are the ones that are now empty (if any)
     others.each do |queue|
       Rails.logger.info "Setting #{queue} to size 0"
-      dj_queue_size_metric.set(0, labels: { queue: queue })
+      dj_queue_size_metric.set(0, labels: { queue: queue.encode('ascii-8bit') })
     end
   end
 
