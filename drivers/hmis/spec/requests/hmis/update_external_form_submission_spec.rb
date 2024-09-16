@@ -354,14 +354,14 @@ RSpec.describe 'Update External Form Submission', type: :request do
             and change(ClientLocationHistory::Location, :count).by(1)
 
           submission.reload
-          expect(submission.enrollment.entry_date).to eq(DateTime.yesterday)
+          expect(submission.enrollment.entry_date).to eq(Date.current)
 
           clh = submission.enrollment.as_warehouse.enrollment_location_histories.first
           expect(clh.client_id).to eq(submission.enrollment.client.id)
           expect(clh.lat).to eq(40.812497)
           expect(clh.lon).to eq(-77.882926)
           expect(clh.located_on).to eq(Date.yesterday)
-          expect(clh.processed_at).to eq(submission.submitted_at)
+          expect(clh.located_at).to eq(submission.submitted_at)
         end
 
         it 'should still work when auto enter is turned on in the project' do

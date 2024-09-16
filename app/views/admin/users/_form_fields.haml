@@ -78,8 +78,8 @@
             = f.input :training_completed, label: 'Check to OVERRIDE course completion requirement'
     - if RailsDrivers.loaded.include?(:superset) && Superset.available?
       .form-access-control
-        %h3 Superset Configuration
+        %h3 OP Analytics Superset Configuration
         .well
-          = f.input :superset_roles, as: :select_two, collection: Superset.available_superset_roles, label: 'Superset Role', hint: 'These roles will be used for this user when the login to Superset.  Role changes only take effect on the next Superset login.  If no role is specified the default role will be assigned on first login.', input_html: { multiple: true }
+          = f.input :superset_roles, as: :select_two, collection: Superset.available_superset_roles, label: 'Superset Role', hint: 'These roles will be used for this user when the login to Superset. If no role is specified the default "Report Runner" role will be assigned on first login. Role changes only take effect on the next Superset login.', input_html: { multiple: true }
 
 = render '/users/user_viewable_entities', f: f, roles: Role.editable.order(:name)

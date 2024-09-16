@@ -101,7 +101,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         # This related record will be created or updated, so assign the metadata and information date.
         processor&.assign_metadata
         processor&.information_date(owner.assessment_date) if custom_assessment?
-        processor&.information_date(owner.submitted_at) if external_form_submission?
       end
     end
 

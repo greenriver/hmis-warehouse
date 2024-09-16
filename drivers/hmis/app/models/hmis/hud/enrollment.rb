@@ -282,16 +282,28 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def save_new_enrollment!
-    # raise 'Unexpected: save_new_enrollment called on a persisted enrollment' if persisted?
+    raise 'Unexpected: save_new_enrollment called on a persisted enrollment' if persisted?
 
-    if Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(project)
+    if should_auto_enter?
       # If auto-enter is configured for this project, save as non-WIP and generate an empty intake.
-      save_not_in_progress!
-      build_synthetic_intake_assessment.save!
+      save_and_auto_enter!
     else
       # Otherwise, save as WIP
       save_in_progress!
     end
+  end
+
+  def should_auto_enter?
+    Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(project)
+  end
+
+  def save_and_auto_enter!
+    # In general, use save_new_enrollment! above to guard against duplicating synthetic assessments for an enrollment
+    # that is already persisted. This is a special case used by the external form submission mutations; since the
+    # Location table is related to both Client and Enrollment, by the time Client is saved, the Enrollment has also
+    # already been persisted, but it's still guaranteed to be a new enrollment.
+    save_not_in_progress!
+    build_synthetic_intake_assessment.save!
   end
 
   def save_in_progress!

@@ -5659,7 +5659,8 @@ CREATE TABLE public.clh_locations (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    enrollment_id bigint
+    enrollment_id bigint,
+    located_at timestamp(6) without time zone
 );
 
 
@@ -64344,6 +64345,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240815175202'),
 ('20240821180638'),
 ('20240829152828'),
-('20240909150028');
+('20240909150028'),
+('20240916182206');
 
 

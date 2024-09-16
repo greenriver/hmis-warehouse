@@ -106,7 +106,7 @@ module HmisExternalApis::ExternalForms
         build_enrollment(
           project: project,
           data_source: project.data_source,
-          entry_date: submitted_at, # Enrollment entry date is set to the date of form submission
+          entry_date: Date.current, # Enrollment entry date is set to the date of form review
           household_id: household_id,
           relationship_to_hoh: relationship_to_hoh,
           # user is provided by the form processor only when there are enrollment-related fields provided in form_values

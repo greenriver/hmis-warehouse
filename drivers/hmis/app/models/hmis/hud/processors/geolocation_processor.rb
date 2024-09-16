@@ -30,23 +30,28 @@ module Hmis::Hud::Processors
       @processor.send(factory_name).assign_attributes(lat: latitude, lon: longitude)
     end
 
-    def information_date(date)
-      clh = @processor.send(factory_name, create: false)
-      return if clh&.destroyed?
-
-      # TODO(#5726) This logic may need to be updated for CLS.
-      # Maybe unintuitive, but for PIT, we store the timestamp of the form submission in the processed_at field because
-      # it is a granular timestamp and not a date like located_on.
-      clh&.assign_attributes(processed_at: date, located_on: date)
-    end
-
     def assign_metadata
       clh = @processor.send(factory_name, create: false)
       return if clh&.destroyed?
 
+      owner = @processor.owner_factory
+      located_on, located_at = case owner
+      when HmisExternalApis::ExternalForms::FormSubmission
+        [owner.submitted_at.to_date, owner.submitted_at]
+      when Hmis::Hud::CurrentLivingSituation
+        [nil, owner.InformationDate]
+      when Hmis::Hud::CustomAssessment
+        [nil, owner.AssessmentDate]
+      else
+        raise 'unable to determine located_on date for client location'
+      end
+
       clh&.assign_attributes(
         source: @processor.enrollment_factory,
         collected_by: @processor.enrollment_factory.project.name,
+        located_on: located_on,
+        located_at: located_at,
+        processed_at: Time.current,
       )
     end
   end
