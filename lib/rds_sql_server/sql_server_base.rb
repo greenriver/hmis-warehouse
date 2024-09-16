@@ -1,6 +1,8 @@
 class SqlServerBase < ActiveRecord::Base
+  cattr_accessor :rds
+
   begin
-    rds = Rds.new
+    rds ||= Rds.new
     cert_path = ENV['RDS_CERT_PATH'].presence || '/etc/ssl/certs/us-east-1-bundle.pem'
 
     conf = {
