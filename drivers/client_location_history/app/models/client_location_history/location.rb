@@ -28,7 +28,7 @@ module ClientLocationHistory
       [lat, lon]
     end
 
-    def as_marker(user = nil, label_attributes = [:located_on, :collected_by])
+    def as_marker(user = nil, label_attributes = [:seen_on, :collected_by])
       {
         lat_lon: as_point,
         label: label(user, label_attributes),
@@ -42,8 +42,7 @@ module ClientLocationHistory
 
       [
         label_attributes.include?(:name) ? name_for_label(user) : nil,
-        label_attributes.include?(:located_on) ? "Seen on: #{located_on}" : nil,
-        label_attributes.include?(:processed_at) ? "Processed at: #{processed_at}" : nil,
+        label_attributes.include?(:seen_on) ? "Seen on: #{located_at || located_on}" : nil,
         label_attributes.include?(:collected_by) ? "by #{collected_by}" : nil,
       ].compact
     end
