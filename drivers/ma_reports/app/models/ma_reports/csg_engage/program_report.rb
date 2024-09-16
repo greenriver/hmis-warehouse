@@ -32,7 +32,7 @@ module MaReports::CsgEngage
 
       results = []
 
-      (0..(program.households_scope.count / batch_size)).each do |batch_index|
+      (0..(program.households_scope.distinct(:HouseholdID).count / batch_size)).each do |batch_index|
         data = MaReports::CsgEngage::ReportComponents::Report.new(program, batch_size: batch_size, batch_index: batch_index).serialize
         results << MaReports::CsgEngage::Credential.first.post(data)
       end

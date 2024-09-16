@@ -33,7 +33,8 @@ module MaReports::CsgEngage::ReportComponents
     end
 
     def households_scope
-      program.households_scope.limit(batch_size).offset(batch_size * batch_index).preload(project: [:project_cocs])
+      hh_ids = program.households_scope.limit(batch_size).offset(batch_size * batch_index).distinct(:HouseholdID).pluck(:HouseholdID)
+      program.households_scope.where(HouseholdID: hh_ids).preload(project: [:project_cocs])
     end
   end
 end
