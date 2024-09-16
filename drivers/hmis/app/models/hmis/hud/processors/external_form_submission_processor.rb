@@ -17,8 +17,5 @@ module Hmis::Hud::Processors
     def assign_metadata
       # nothing to assign
     end
-
-    def information_date(_)
-    end
   end
 end
