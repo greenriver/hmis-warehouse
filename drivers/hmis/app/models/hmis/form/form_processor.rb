@@ -49,10 +49,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     owner_type == Hmis::Hud::CustomAssessment.sti_name
   end
 
-  def external_form_submission?
-    owner_type == HmisExternalApis::ExternalForms::FormSubmission.sti_name
-  end
-
   def unknown_field_error(definition)
     RuntimeError.new("Not a submittable field for Form Definition '#{definition.title}' (ID: #{definition.id})")
   end
