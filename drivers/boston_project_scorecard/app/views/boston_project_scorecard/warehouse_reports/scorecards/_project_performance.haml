@@ -26,7 +26,8 @@
       %td
         APR Table
         = link_to_apr('Q23c', 'Question 23')
-        Cell B43
+        %hr
+        %small Q23c B43
       %td
         12 pts: 100-75%
         %br
@@ -52,8 +53,7 @@
         %br
         APR Table
         = link_to_apr('Q23c', 'Question 23')
-        %br.mb-4
-        -# FIXME
+        %hr
         %small (Q5a B2 - Q23c B40 + Q23c B41) / (Q5a B2 - Q23c B42)
       %td
         12 pts: 100-75%
@@ -77,7 +77,7 @@
         = link_to_apr('Q19a1,', 'Question 19')
         %br
         = link_to_apr('Q19a2,', 'Question 19')
-        %br.mb-4
+        %hr
         %small (Q19a1 I2 + Q19a2 I2) / (Q19a1 H2 + Q19a2 H2) * 100
       %td
         12 pts: 100-20%
@@ -104,7 +104,7 @@
         %br
         = link_to_apr('Q19a2,', 'Question 19')
         (Leavers)
-        %br.mb-4
+        %hr
         %small ((Q19a1 D4+E4+F4)+(Q19a2 D4+E4+F4)) / (Q19a1 H4 + Q19a2 H4) *100
       %td
         12 pts: 100-50%
@@ -124,7 +124,10 @@
         %br
         Comparison APR Table
         = link_to_apr('Q22c', 'Question 22', comparison: true)
-        Length of Time between Project Start Date and Housing Move-in Date, Row 11B: Average Length of time to Housing comparison between current fiscal period and previous fiscal period.
+        %br
+        Length of Time between Project Start Date and Housing Move-in Date, Cell B11: Average Length of time to Housing comparison between current fiscal period and previous fiscal period.
+        %hr
+        %small ((Q22c B11 current year - Q22c B11 prior year) / Q22c B11 prior year) * 100
       %td
         12 pts: Decreased by at least 5% compared to previous FY or lower than 90 days
         %br
@@ -146,10 +149,12 @@
       %td 5. Project utilization rate from current project operating year
       %td
         APR (quarterly average for operating year)
-        %p
-          APR Table
+        %br
+        APR Table
         = link_to_apr('Q8b', 'Question 8')
-        Average of cells B2, B3, B4, B5 / Total Number of Households Served
+        %hr
+        %small
+          Average of cells B2, B3, B4, B5 / Total Number of Households Served (#12 from the financial performance section)
       %td
         6 pts: 85 -over 100%
         %br

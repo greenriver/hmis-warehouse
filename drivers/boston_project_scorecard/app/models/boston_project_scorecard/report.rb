@@ -103,7 +103,7 @@ module BostonProjectScorecard
       v = 0 if v.nan?
       v = 0 if v.infinite?
 
-      "#{v.round(2)}%"
+      "#{v.round}%"
     end
 
     private def percentage(value)
