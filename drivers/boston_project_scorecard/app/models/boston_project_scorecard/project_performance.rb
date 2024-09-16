@@ -102,6 +102,8 @@ module BostonProjectScorecard
         0
       end
 
+      # NOTE: if days_to_lease_up_comparison is 0 or blank, points are only given based on
+      # overall days within the current year
       def days_to_lease_up_score
         return 12 if days_to_lease_up < 90
         return 12 if days_to_lease_up_change.present? && days_to_lease_up_change.round < -5
