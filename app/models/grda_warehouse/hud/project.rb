@@ -362,11 +362,6 @@ module GrdaWarehouse::Hud
       }
     end
 
-    # todo @martha - test this, it doesn't appear to be working?
-    def can?(user, permission: :can_view_projects)
-      self.class.viewable_by(user, permission: permission).where(id: id).exists?
-    end
-
     def self.can_see_all_projects?(user)
       visible_count = viewable_by(user).distinct.count
       visible_count.positive? && visible_count == all.count

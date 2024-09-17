@@ -49,6 +49,10 @@
           %tr
             %th Project Contacts
             %td= link_to 'View/Edit', project_contacts_path(@project)
+        - if RailsDrivers.loaded.include?(:client_location_history)
+          %tr
+            %th Client Locations
+            %td= link_to 'View', map_client_location_history_project_path(@project)
         %tr
           %th
             %span{data: {toggle: :tooltip, title: @project.confidential_hint}} Confidential Project?
