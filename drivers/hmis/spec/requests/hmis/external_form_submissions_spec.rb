@@ -45,8 +45,6 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
 
   let!(:definition) do
     fd = create(:hmis_external_form_definition)
-    # HmisExternalApis::PublishExternalFormsJob.new.perform(fd.id)
-    # fd.reload
     Hmis::Form::Instance.create!(definition: fd, entity: p1, active: true)
     fd
   end
@@ -55,44 +53,48 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
     hmis_login(user)
   end
 
+  def perform_query(filters: {})
+    response, result = post_graphql({ id: p1.id, formDefinitionIdentifier: definition.identifier, filters: filters }) { query }
+    expect(response.status).to eq(200), result.inspect
+    result.dig('data', 'project', 'externalFormSubmissions', 'nodes')
+  end
+
+  context 'when user lacks can_manage_external_form_submissions at p1' do
+    before(:each) { remove_permissions(access_control, :can_manage_external_form_submissions) }
+    it 'should not resolve external form submissions at p1' do
+      results = perform_query
+      expect(results).to be_empty
+    end
+    it 'should not resolve external form submissions at p1, even if user has perm at another project' do
+      p2 = create(:hmis_hud_project, data_source: ds1, organization: o1)
+      create_access_control(hmis_user, p2, with_permission: [:can_manage_external_form_submissions, :can_view_project])
+
+      results = perform_query
+      expect(results).to be_empty
+    end
+  end
+
   it 'should resolve external form submissions' do
     submission = create(:hmis_external_form_submission, definition: definition, submitted_at: today.midnight)
     filters = { 'status' => 'new', submitted_date: today.strftime('%Y-%m-%d') }
-    variables = {
-      id: p1.id,
-      formDefinitionIdentifier: definition.identifier,
-      filters: filters,
-    }
-    response, result = post_graphql(variables) { query }
-    expect(response.status).to eq(200), result.inspect
     expected = {
       'id' => submission.id.to_s,
       'values' => { 'your_name' => 'value' },
     }
-    expect(result.dig('data', 'project', 'externalFormSubmissions', 'nodes')).to contain_exactly(expected)
+    result = perform_query(filters: filters)
+    expect(result).to contain_exactly(expected)
   end
 
-  context 'when form rule applies to the organization, not the project' do
-    let!(:definition) { create :hmis_external_form_definition }
-    let!(:rule) { create :hmis_form_instance, definition_identifier: definition.identifier, entity: p1.organization, active: true }
+  it 'should not resolve submissions if External Form definition is inactive' do
+    definition.instances.first.update!(active: false)
 
-    it 'should return submissions' do
-      submission = create(:hmis_external_form_submission, definition: definition, submitted_at: today.midnight, raw_data: { 'your_name' => 'ebeneezer' })
-      response, result = post_graphql({ id: p1.id, formDefinitionIdentifier: definition.identifier }) { query }
-      expect(response.status).to eq(200), result.inspect
-      expected = {
-        'id' => submission.id.to_s,
-        'values' => { 'your_name' => 'ebeneezer' },
-      }
-      expect(result.dig('data', 'project', 'externalFormSubmissions', 'nodes')).to contain_exactly(expected)
-    end
+    results = perform_query
+    expect(results).to be_empty
   end
 
   context 'when there are several external forms' do
     let!(:definition_2) do
       fd = create(:hmis_external_form_definition)
-      # HmisExternalApis::PublishExternalFormsJob.new.perform(fd.id)
-      # fd.reload
       Hmis::Form::Instance.create!(definition: fd, entity: p1, active: true)
       fd
     end

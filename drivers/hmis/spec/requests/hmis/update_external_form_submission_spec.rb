@@ -16,9 +16,8 @@ RSpec.describe 'Update External Form Submission', type: :request do
       mutation UpdateExternalFormSubmission(
         $id: ID!
         $input: ExternalFormSubmissionInput!
-        $projectId: ID
       ) {
-        updateExternalFormSubmission(id: $id, projectId: $projectId, input: $input) {
+        updateExternalFormSubmission(id: $id, input: $input) {
           externalFormSubmission {
             id
             submittedAt
@@ -45,6 +44,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
   end
 
   let!(:definition) { create(:hmis_external_form_definition) }
+  let!(:instance) { create(:hmis_form_instance, definition: definition, entity: p1) }
   let!(:submission) { create(:hmis_external_form_submission, definition: definition) }
   let!(:cded) { create(:hmis_custom_data_element_definition, owner_type: submission.class.sti_name, key: 'your_name', data_source: ds1, user: u1) }
   let!(:input) do
@@ -54,6 +54,21 @@ RSpec.describe 'Update External Form Submission', type: :request do
         status: 'reviewed',
       },
     }
+  end
+
+  context 'when user lacks can_manage_external_form_submissions' do
+    before(:each) { remove_permissions(access_control, :can_manage_external_form_submissions) }
+
+    it 'access is denied' do
+      expect_access_denied post_graphql(input) { mutation }
+    end
+
+    it 'access is denied (user has perm in a different project)' do
+      p2 = create(:hmis_hud_project, data_source: ds1, organization: o1)
+      create_access_control(hmis_user, p2, with_permission: [:can_manage_external_form_submissions, :can_view_project])
+
+      expect_access_denied post_graphql(input) { mutation }
+    end
   end
 
   context 'when submission was already reviewed' do
@@ -145,7 +160,6 @@ RSpec.describe 'Update External Form Submission', type: :request do
       let!(:input) do
         {
           id: submission.id,
-          project_id: p1.id,
           input: {
             status: 'reviewed',
           },

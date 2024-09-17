@@ -10,7 +10,7 @@ module HmisExternalApis::ExternalForms
     belongs_to :definition, class_name: 'Hmis::Form::Definition'
     # Enrollment that was generated as a result of processing this form submission. Only applicable for certain external forms, like the PIT.
     belongs_to :enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
-    has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', as: :owner
+    has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', as: :owner, dependent: :destroy
 
     validate :validate_status_change
     private def validate_status_change
@@ -29,6 +29,14 @@ module HmisExternalApis::ExternalForms
 
     def spam
       spam_score && spam_score < SPAM_THRESHOLD
+    end
+
+    # HMIS Project where this External FormSubmission is reviewed.
+    # External Form definitions are only expected to have ONE active project, and
+    # this will raise an error if that's not the case.
+    # (It doesn't make sense for an external form to be 'managed' in multiple projects.)
+    def parent_project
+      definition.instances.active.for_projects.sole.entity
     end
 
     def self.apply_filters(input)

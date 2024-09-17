@@ -6180,7 +6180,7 @@ type Mutation {
     """
     input: UpdateClientImageInput!
   ): UpdateClientImagePayload
-  updateExternalFormSubmission(id: ID!, input: ExternalFormSubmissionInput!, projectId: ID): UpdateExternalFormSubmissionPayload
+  updateExternalFormSubmission(id: ID!, input: ExternalFormSubmissionInput!): UpdateExternalFormSubmissionPayload
   updateFormDefinition(id: ID!, input: FormDefinitionInput!): UpdateFormDefinitionPayload
   updateFormRule(
     """
