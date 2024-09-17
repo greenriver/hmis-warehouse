@@ -76,9 +76,10 @@ module Hmis
         remaining -= n
       end
 
-      # queue client deduplication and service history processing
-      Hmis::Hud::Client.last.send(:warehouse_identify_duplicate_clients) if generate_clients && !Rails.env.development?
-      Hmis::Hud::Enrollment.last.send(:queue_service_history_processing!)
+      # Queue job to generate Warehouse Client records (or attaches to existing warehouse clients if duplicate)
+      Hmis::Hud::Client.warehouse_identify_duplicate_clients if generate_clients
+      # Queue job to generate ServiceHistoryEnrollments
+      Hmis::Hud::Enrollment.queue_service_history_processing!
     end
 
     def delete_faked_data!(export_id: 'FAKED')
