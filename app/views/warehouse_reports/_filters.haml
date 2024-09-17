@@ -1,7 +1,7 @@
 - submit_button ||= ''
 
 = f.error_notification
-.c-filters.c-card{ class: ('mb-4' if local_assigns[:small_mb])}
+.c-filters.c-card
   .c-card__content
     = yield :filters_message
     - if content_for?(:filters_col_l) || content_for?(:filters_col_r)

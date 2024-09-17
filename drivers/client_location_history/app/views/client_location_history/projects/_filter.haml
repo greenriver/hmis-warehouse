@@ -1,4 +1,4 @@
-= simple_form_for @location_filter, as: :location_filters, url: project_path, method: :get do |f|
+= simple_form_for @filter, as: :filters, url: map_client_location_history_project_path, method: :get do |f|
   - content_for :filters_col_full do
     .row
       .col-sm-3
@@ -9,4 +9,4 @@
   - content_for :filter_actions do
     = f.submit 'Update Filter', class: ['btn', 'btn-primary']
 
-  = render 'warehouse_reports/filters', f:f, small_mb: true
+  = render 'warehouse_reports/filters', f:f
