@@ -161,7 +161,7 @@ module Hmis
         enrollment.HouseholdID = hh_id if hh_id
         hh_id ||= enrollment.HouseholdID
         enrollment
-      end.flatten
+      end
     end
 
     def build_fake_client
