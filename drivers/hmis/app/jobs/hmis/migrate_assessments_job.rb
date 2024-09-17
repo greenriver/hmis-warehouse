@@ -43,7 +43,18 @@ module Hmis
     #  - DateCreated = earliest creation date of related records
     #  - DateUpdated = latest update date of related records
     #  - UserID = UserID from the related record that was most recently updated
-    def perform(data_source_id:, project_ids: nil, clobber: false, delete_dangling_records: false, preferred_source_hash: nil, generate_empty_intakes: false, enrollments: nil)
+    #
+    # Parameters:
+    #
+    # @param data_source_id [Integer] The ID of the HMIS data source.
+    # @param project_ids [Array<Integer>] (optional) An array of project IDs to limit the enrollment scope
+    # @param enrollments [ActiveRecord::Relation] (optional) An ActiveRecord relation of enrollments to process
+    # @param clobber [Boolean] (optional) Whether to delete existing HUD CustomAssessment and FormProcessor records before generating.
+    # @param delete_dangling_records [Boolean] (optional) Whether to delete dangling records that are not tied to any assessment.
+    # @param preferred_source_hash [String] (optional) The preferred source hash to use when choosing between duplicate records.
+    # @param generate_empty_intakes [Boolean] (optional) Whether to generate empty intake assessments for enrollments missing an intake.
+    # @raise [ArgumentError] If the data source is not an HMIS data source or if both project_ids and enrollments are provided.
+    def perform(data_source_id:, project_ids: nil, enrollments: nil, clobber: false, delete_dangling_records: false, preferred_source_hash: nil, generate_empty_intakes: false)
       setup_notifier('Migrate HMIS Assessments')
 
       self.data_source_id = data_source_id
@@ -52,7 +63,8 @@ module Hmis
       self.delete_dangling_records = delete_dangling_records
       self.preferred_source_hash = preferred_source_hash
       self.generate_empty_intakes = generate_empty_intakes
-      raise 'Not an HMIS Data source' if ::GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
+      raise ArgumentError, 'Not an HMIS Data source' if ::GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
+      raise ArgumentError, 'Can pass project_ids or enrollments, but not both' if project_ids.present? && enrollments.present?
 
       if enrollments
         @full_enrollment_scope = enrollments.not_in_progress
