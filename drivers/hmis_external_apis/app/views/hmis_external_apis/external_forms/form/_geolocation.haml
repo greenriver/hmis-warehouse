@@ -7,11 +7,11 @@
 %br
 %button.btn.btn-secondary.mb-2{id: get_location_id}
   Get location
-%button.btn.btn-secondary.mb-2{id: clear_id}
+%button.d-none.btn.btn-secondary.mb-2{id: clear_id}
   Clear
-.form-text.text-muted.mb-2{id: text_id}
+.form-text.d-none.text-muted.mb-2{id: text_id}
   Loading...
-%div.leaflet-container{id: map_id}
+%div.d-none.leaflet-container{id: map_id}
 -# A note about required behavior for Geolocation:
 -# Clicking the "Get location" button is required, but the user is allowed to clear and still submit.
 -# The user is also not blocked from submitting if geolocation errors / is unavailable.
@@ -34,10 +34,6 @@
       var mapContainer = $(mapContainerId);
       var input = $(inputId);
 
-      helperText.hide();
-      mapContainer.hide();
-      clearButton.hide();
-
       var map = L.map(#{map_id.to_json.html_safe},  {
         dragging: false,
         boxZoom: false,
@@ -53,7 +49,7 @@
       var marker;
 
       if (!navigator.geolocation) {
-        helperText.show();
+        helperText.removeClass('d-none');
         helperText.text("Geolocation is not supported by this browser.");
         getLocationButton.prop('disabled', true)
         input.val(JSON.stringify({ "notCollectedReason": "unsupported" }));
@@ -62,8 +58,8 @@
 
       var setPosition = function(position) {
         setLoading(false);
-        mapContainer.show();
-        clearButton.show();
+        mapContainer.removeClass('d-none');
+        clearButton.removeClass('d-none');
 
         var lat = position.coords.latitude;
         var lon = position.coords.longitude;
@@ -80,8 +76,8 @@
 
       var onError = function(error) {
         getLocationButton.prop('disabled', false);
-        mapContainer.hide();
-        clearButton.hide();
+        mapContainer.addClass('d-none');
+        clearButton.addClass('d-none');
         helperText.text("Location unavailable.", error.message);
         input.val(JSON.stringify({ "notCollectedReason": "error" }));
         input.removeClass('is-invalid').addClass('is-valid');
@@ -91,10 +87,10 @@
         if (isLoading) {
           getLocationButton.prop('disabled', true);
           helperText.text('Loading...')
-          helperText.show();
+          helperText.removeClass('d-none');
         } else {
           getLocationButton.prop('disabled', false);
-          helperText.hide();
+          helperText.addClass('d-none');
         }
       }
 
@@ -107,8 +103,8 @@
       clearButton.click(function(event) {
         event.preventDefault();
         marker.remove();
-        clearButton.hide();
-        mapContainer.hide();
+        clearButton.addClass('d-none');
+        mapContainer.addClass('d-none');
         input.val(JSON.stringify({ "notCollectedReason": "cleared" }));
         input.removeClass('is-invalid').addClass('is-valid');
       })

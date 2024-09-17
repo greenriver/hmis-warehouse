@@ -130,6 +130,14 @@ RSpec.describe 'Update External Form Submission', type: :request do
               'record_type': 'CLIENT',
             },
           },
+          {
+            'type': 'GEOLOCATION',
+            'link_id': 'geolocation',
+            'mapping': {
+              'field_name': 'coordinates',
+              'record_type': 'GEOLOCATION',
+            },
+          },
         ]
         create(:hmis_external_form_definition, append_items: items)
       end
@@ -319,10 +327,72 @@ RSpec.describe 'Update External Form Submission', type: :request do
             expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
           end.to change(Hmis::Hud::Client, :count).by(1).
-            and change(Hmis::Hud::Enrollment, :count).by(1)
+            and change(Hmis::Hud::Enrollment, :count).by(1).
+            and not_change(ClientLocationHistory::Location, :count)
 
           submission.reload
           expect(submission.enrollment.client.veteran_status).to eq(99)
+        end
+      end
+
+      context 'when the submission specifies geolocation' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'bar',
+            'Geolocation.coordinates': { 'latitude': 40.812497, 'longitude': -77.882926 }.to_json,
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition, submitted_at: 1.day.ago)
+        end
+
+        it 'should save to Client Location History table' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1).
+            and change(ClientLocationHistory::Location, :count).by(1)
+
+          submission.reload
+          expect(submission.enrollment.entry_date).to eq(Date.current)
+
+          clh = submission.enrollment.as_warehouse.enrollment_location_histories.first
+          expect(clh.client_id).to eq(submission.enrollment.client.id)
+          expect(clh.lat).to eq(40.812497)
+          expect(clh.lon).to eq(-77.882926)
+          expect(clh.located_on).to eq(Date.yesterday)
+          expect(clh.located_at).to eq(submission.submitted_at)
+        end
+
+        it 'should still work when auto enter is turned on in the project' do
+          Hmis::ProjectAutoEnterConfig.create!(project: p1)
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1).
+            and change(ClientLocationHistory::Location, :count).by(1)
+        end
+      end
+
+      context 'when geolocation is not available' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'bar',
+            'Geolocation.coordinates': { 'notCollectedReason': 'error' }.to_json,
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should not save a save CLH record' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1).
+            and not_change(ClientLocationHistory::Location, :count)
         end
       end
     end

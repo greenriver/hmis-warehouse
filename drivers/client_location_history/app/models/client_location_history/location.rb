@@ -10,7 +10,17 @@ module ClientLocationHistory
     belongs_to :source, polymorphic: true, optional: true
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :place, class_name: 'GrdaWarehouse::Place', primary_key: [:lat, :lon], foreign_key: [:lat, :lon], optional: true
-    belongs_to :enrollment, class_name: 'GrdaWarehouse::Enrollment', optional: true
+    # this relation isn't used; use polymorphic `source` above
+    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
+    before_create :ensure_grda_warehouse_source
+
+    private def ensure_grda_warehouse_source
+      # This somewhat hacky solution gets around the fact that during HMIS Form Processing, we haven't yet saved the
+      # Enrollment being generated, so we don't yet have an ID with which to get the Warehouse enrollment.
+      return unless source_type&.starts_with? 'Hmis::Hud::'
+
+      self.source_type = source_type.sub('Hmis::Hud::', 'GrdaWarehouse::Hud::')
+    end
 
     def as_point
       [lat, lon]

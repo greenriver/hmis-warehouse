@@ -42,7 +42,7 @@ module Mutations
             error_out(record.enrollment.errors.full_messages) unless record.enrollment.valid?
 
             record.enrollment.client.save!
-            record.enrollment.save_new_enrollment!
+            record.enrollment.should_auto_enter? ? record.enrollment.save_and_auto_enter! : record.enrollment.save_in_progress!
           end
           record.form_processor.save!
           record.save!
