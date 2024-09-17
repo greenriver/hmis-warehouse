@@ -229,9 +229,9 @@ module Types
     end
 
     def external_form_submissions(**args)
-      # Find form instances for this project.
-      # Don't filter by active; show all past submissions.
-      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).for_project(object)
+      # Find form instances for this project. Only include active instances. (Unlike other form types, we do not support
+      # viewing "legacy" form submissions from inactive instances, to simplify implementation.)
+      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).for_project(object).active
       identifiers = instances.select(:definition_identifier)
 
       scope = HmisExternalApis::ExternalForms::FormSubmission.

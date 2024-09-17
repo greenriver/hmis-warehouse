@@ -452,7 +452,7 @@ module Types
       return [] unless project.present?
 
       # External forms can only be enabled by Project-level instances
-      Hmis::Form::Instance.for_project(project).
+      Hmis::Form::Instance.for_project(project).active.
         with_role(:EXTERNAL_FORM).
         preload(:definition).
         order(:id).
