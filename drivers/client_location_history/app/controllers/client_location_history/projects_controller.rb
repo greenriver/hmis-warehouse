@@ -7,6 +7,8 @@
 module ClientLocationHistory
   class ProjectsController < ApplicationController
     before_action :set_project
+    before_action :require_can_view_projects!
+    before_action :require_can_view_project_locations!
 
     def map
       @locations = @project.enrollment_location_histories.where(located_on: filter.range)
@@ -28,7 +30,9 @@ module ClientLocationHistory
     end
 
     private def project_scope
-      project_source.viewable_by(current_user, confidential_scope_limiter: :all, permission: :can_view_project_locations)
+      project_source.
+        viewable_by(current_user, confidential_scope_limiter: :all, permission: :can_view_projects).
+        viewable_by(current_user, permission: :can_view_project_locations)
     end
 
     private def filter

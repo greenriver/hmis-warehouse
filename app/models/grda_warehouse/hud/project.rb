@@ -324,6 +324,10 @@ module GrdaWarehouse::Hud
       # END_ACL
     end
 
+    def can?(user, permission: :can_view_projects)
+      self.class.viewable_by(user, permission: permission).where(id: id).exists?
+    end
+
     scope :editable_by, ->(user) do
       return none unless user&.can_edit_projects?
 
