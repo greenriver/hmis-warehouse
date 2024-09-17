@@ -21,7 +21,7 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      cohort_client.client.DOB
+      dob_or_age(cohort_client.client.DOB)
     end
   end
 end
