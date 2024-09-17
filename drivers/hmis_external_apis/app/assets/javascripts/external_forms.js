@@ -112,10 +112,14 @@ $(function () {
     event.preventDefault(); // Prevent the default form submission
     event.stopPropagation();
 
-    /* only validate fields that are not disabled, as a way to skip validation on hidden inputs
-       (only works because we happen to disable hidden inputs) */
-    $('.needs-validation').find('input,select,textarea').filter(':not(:disabled)').each(function () {
-      $(this).removeClass('is-valid is-invalid').addClass(this.checkValidity() ? 'is-valid' : 'is-invalid');
+    $('.needs-validation').find('input,select,textarea').each(function () {
+      var isHidden = $(this).closest('.dependent-form-group:not(.visible)').length > 0
+      if (isHidden) {
+        // This element is hidden because it has conditional visibility, so we don't need to validate it and we can clear the validity status
+        $(this).removeClass('is-valid is-invalid')
+      } else {
+        $(this).removeClass('is-valid is-invalid').addClass(this.checkValidity() ? 'is-valid' : 'is-invalid');
+      }
     });
 
     var invalid = $('.is-invalid');
