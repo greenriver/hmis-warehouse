@@ -14,6 +14,7 @@ Include a summary of the changes and a link to the related issue. List any depen
 
 ## Checklist before requesting review
 - [ ] I have performed a self-review of my code
+- [ ] I have run the code that is being changed under ideal conditions, and it doesn't fail
 - [ ] If adding a new endpoint / exposing data in a new way, I have:
   - [ ] ensured the API can't leak data from other data sources
   - [ ] ensured this does not introduce N+1s
