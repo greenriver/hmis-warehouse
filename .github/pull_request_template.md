@@ -1,18 +1,15 @@
-[//]: # 'remove this if PR is for a release-* branch'
-# _Please squash merge this PR_
+## _Merging this PR_
+- use the squash-merge strategy for PRs targeting a release-X branch
+- use a merge-commit or rebase strategy for PRs targeting the stable branch
 
 ## Description
-
-Include a summary of the changes and a link to the related issue. List any dependencies that are required for this change.
+[//]: # (Summarize changes and include links related issue. List any new dependencies)
 
 ## Type of change
-[//]: # 'remove options that are not relevant'
-- [ ] Bug fix
-- [ ] New feature (adds functionality)
-- [ ] Code clean-up / housekeeping
-- [ ] Dependency update
+[//]: # (e.g., Bug fix, New feature, Code clean-up, Dependency update)
 
 ## Checklist before requesting review
+[//]: # (Remove any items that are not applicable)
 - [ ] I have performed a self-review of my code
 - [ ] I have run the code that is being changed under ideal conditions, and it doesn't fail
 - [ ] If adding a new endpoint / exposing data in a new way, I have:
