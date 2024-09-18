@@ -173,6 +173,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
             'captcha_score': '1.', # also test that extraneous fields get filtered out
             'form_definition_id': definition.id,
             'form_content_digest': 'something random',
+            'Geolocation.coordinates': '',
           }.stringify_keys
           create(:hmis_external_form_submission, raw_data: data, definition: definition)
         end
@@ -183,7 +184,8 @@ RSpec.describe 'Update External Form Submission', type: :request do
             expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
           end.to change(Hmis::Hud::Client, :count).by(1).
-            and change(Hmis::Hud::Enrollment, :count).by(1)
+            and change(Hmis::Hud::Enrollment, :count).by(1).
+            and not_change(ClientLocationHistory::Location, :count)
 
           submission.reload
           expect(submission.enrollment.relationship_to_hoh).to eq(1)
