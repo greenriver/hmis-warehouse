@@ -114,12 +114,10 @@ module MaReports::CsgEngage::ReportComponents
     # field('Expense')
 
     field('Services') do
-      services = enrollment.services.order(DateProvided: :desc).limit(1)
+      latest_service = enrollment.services.max_by(&:DateProvided)
 
-      if services.present?
-        services.map do |service|
-          MaReports::CsgEngage::ReportComponents::Service.new(service)
-        end
+      if latest_service.present?
+        [MaReports::CsgEngage::ReportComponents::Service.new(latest_service)]
       else
         [
           {
@@ -215,7 +213,7 @@ module MaReports::CsgEngage::ReportComponents
     end
 
     def latest_income_benefit
-      @latest_income_benefit ||= enrollment.income_benefits.order(:information_date).last
+      @latest_income_benefit ||= enrollment.income_benefits.max_by(&:information_date)
     end
   end
 end

@@ -20,8 +20,9 @@ module MaReports::CsgEngage::ReportComponents
 
     field('Households') do
       result = []
-      households_scope.find_each do |enrollment|
-        result << MaReports::CsgEngage::ReportComponents::Household.new(enrollment)
+      enrollments_index = enrollments.group_by(&:HouseholdID)
+      households_scope.find_each do |hoh_enrollment|
+        result << MaReports::CsgEngage::ReportComponents::Household.new(hoh_enrollment, enrollments_index[hoh_enrollment.HouseholdID])
       end
       result
     end
@@ -35,6 +36,12 @@ module MaReports::CsgEngage::ReportComponents
     def households_scope
       hh_ids = program.households_scope.limit(batch_size).offset(batch_size * batch_index).distinct(:HouseholdID).pluck(:HouseholdID)
       program.households_scope.where(HouseholdID: hh_ids).preload(project: [:project_cocs])
+    end
+
+    def enrollments
+      hh_ids = households_scope.pluck(:HouseholdID)
+      project_ids = households_scope.pluck(:ProjectID)
+      program.enrollments_scope.where(HouseholdID: hh_ids, ProjectID: project_ids).preload(:client, :income_benefits, :services, :exit)
     end
   end
 end

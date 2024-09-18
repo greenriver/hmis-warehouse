@@ -12,7 +12,11 @@ module MaReports::CsgEngage
     has_many :program_mappings, class_name: 'MaReports::CsgEngage::ProgramMapping'
 
     def households_scope
-      GrdaWarehouse::Hud::Enrollment.joins(:project).where(project: { id: project_ids }).heads_of_households.order(:HouseholdID, :id)
+      enrollments_scope.heads_of_households.order(:HouseholdID)
+    end
+
+    def enrollments_scope
+      GrdaWarehouse::Hud::Enrollment.joins(:project).where(project: { id: project_ids })
     end
 
     def project_ids

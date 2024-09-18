@@ -39,8 +39,8 @@ module MaReports::CsgEngage
 
       update(
         completed_at: Time.zone.now,
-        raw_result: results,
-        json_result: JSON.parse(results),
+        raw_result: results.join('\n'),
+        json_result: results.map { |res| JSON.parse(res) },
         imported_program_name: program.csg_engage_name,
         imported_import_keyword: program.csg_engage_import_keyword,
       )
