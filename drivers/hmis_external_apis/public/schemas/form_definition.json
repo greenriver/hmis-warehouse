@@ -448,6 +448,9 @@
         },
         "answer_group_code": {
           "type": "string"
+        },
+        "answer_date": {
+          "type": "string"
         }
       }
     },

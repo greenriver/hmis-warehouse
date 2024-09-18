@@ -186,12 +186,12 @@ RSpec.feature 'Assessment definition selection', type: :system do
     end
 
     def submit_household_assessment
-      click_button 'Save & Submit'
+      find('button', text: 'Save & Submit').trigger('click') # note: using click_button fails on CI (#6619)
       assert_text 'This assessment has been submitted' # Submit succeeded
     end
 
     def save_household_assessment
-      click_button 'Save Assessment'
+      find('button', text: 'Save Assessment').trigger('click')
       assert_text(/Last saved [0-9] seconds? ago/) # Save succeeded
     end
 
