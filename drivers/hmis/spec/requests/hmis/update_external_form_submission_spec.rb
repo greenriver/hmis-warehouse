@@ -108,55 +108,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
     end
 
     context 'when the form definition accepts client/enrollment information' do
-      let!(:definition) do
-        items = [
-          {
-            'type': 'STRING',
-            'link_id': 'first_name',
-            'mapping': {
-              'field_name': 'firstName',
-              'record_type': 'CLIENT',
-            },
-            'text': 'First name',
-          },
-          {
-            'type': 'CHOICE',
-            'pick_list_reference': 'RelationshipToHoH',
-            'link_id': 'relationship_to_hoh',
-            'mapping': {
-              'field_name': 'relationshipToHoH',
-              'record_type': 'ENROLLMENT',
-            },
-            'text': 'Relationship to HoH',
-          },
-          {
-            'type': 'STRING',
-            'link_id': 'household_id',
-            'mapping': {
-              'field_name': 'householdId',
-              'record_type': 'ENROLLMENT',
-            },
-          },
-          {
-            'type': 'STRING',
-            'link_id': 'veteran_status',
-            'mapping': {
-              'field_name': 'veteranStatus',
-              'record_type': 'CLIENT',
-            },
-          },
-          {
-            'type': 'GEOLOCATION',
-            'link_id': 'geolocation',
-            'mapping': {
-              'field_name': 'coordinates',
-              'record_type': 'GEOLOCATION',
-            },
-          },
-        ]
-        create(:hmis_external_form_definition, append_items: items)
-      end
-
+      let!(:definition) { create(:hmis_external_form_definition_updates_client) }
       let!(:input) do
         {
           id: submission.id,

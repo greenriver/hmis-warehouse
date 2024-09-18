@@ -14,8 +14,9 @@ module Hmis::Hud::Processors
     end
 
     def process(field, value)
-      attribute_name = ar_attribute_name(field)
+      return if value.nil? || value.empty?
 
+      attribute_name = ar_attribute_name(field)
       raise ArgumentError, "Unexpected attribute for Geolocation: #{attribute_name}" unless attribute_name == 'coordinates'
 
       attribute_value = JSON.parse(value, symbolize_names: true)
