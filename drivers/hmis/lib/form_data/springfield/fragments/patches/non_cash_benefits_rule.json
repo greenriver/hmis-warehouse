@@ -17,9 +17,9 @@
         },
         {
           "_comment": "client request (#6428)",
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "547"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: HOME"
         },
         {
           "_comment": "Local or N/A funder, less some projects. TODO: use a project group",
