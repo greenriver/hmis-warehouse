@@ -291,5 +291,15 @@ module
         )
       end
     end
+
+    protected def build_days_since_contact_control_section
+      ::Filters::UiControlSection.new(id: 'days_since_contact', title: 'Contact').tap do |section|
+        section.add_control(
+          id: 'days_since_contact',
+          value: @filter.days_since_contact_words,
+          label: 'Days Since Contact',
+        )
+      end
+    end
   end
 end
