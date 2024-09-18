@@ -1448,6 +1448,8 @@ module Filters
         'System-Wide'
       when 2
         'Project-Focused'
+      when 3
+        'HIC'
       else
         'Auto Select'
       end
