@@ -14,6 +14,8 @@ module ClientLocationHistory
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
     before_create :ensure_grda_warehouse_source
 
+    MARKER_COLOR = '#72A0C1'.freeze
+
     private def ensure_grda_warehouse_source
       # This somewhat hacky solution gets around the fact that during HMIS Form Processing, we haven't yet saved the
       # Enrollment being generated, so we don't yet have an ID with which to get the Warehouse enrollment.
@@ -26,32 +28,31 @@ module ClientLocationHistory
       [lat, lon]
     end
 
-    def label
-      [
-        "Seen on: #{located_on}",
-        "by #{collected_by}",
-      ]
-    end
-
-    def as_marker
+    def as_marker(user = nil, label_attributes = [:seen_on, :collected_by])
       {
         lat_lon: as_point,
-        label: label,
+        label: label(user, label_attributes),
         date: located_on,
         highlight: false,
       }
     end
 
-    def as_marker_with_name(user)
-      name = if user.can_view_clients?
+    private def label(user, label_attributes)
+      raise ArgumentError if label_attributes.include?(:name) && !user
+
+      [
+        label_attributes.include?(:name) ? name_for_label(user) : nil,
+        label_attributes.include?(:seen_on) ? "Seen on: #{located_at || located_on}" : nil,
+        label_attributes.include?(:collected_by) ? "by #{collected_by}" : nil,
+      ].compact
+    end
+
+    private def name_for_label(user)
+      if user.can_view_clients?
         link_for(client_path(client), client.name)
       else
         client.name
       end
-      as_marker.merge(
-        client_id: client.id,
-        label: [name] + label,
-      )
     end
 
     private def link_for(path, text)
