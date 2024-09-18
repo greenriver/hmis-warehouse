@@ -3873,13 +3873,27 @@ enum ExpelledReason {
 }
 
 type ExternalFormSubmission {
+  """
+  ID of Client that was generated from this submission, if any
+  """
+  clientId: ID
   customDataElements: [CustomDataElement!]!
   definition: FormDefinition!
+
+  """
+  ID of Enrollment that was generated from this submission, if any
+  """
+  enrollmentId: ID
   id: ID!
   notes: String
   spam: Boolean
   status: ExternalFormSubmissionStatus!
   submittedAt: ISO8601DateTime!
+
+  """
+  summary fields for identifying the submission
+  """
+  summaryFields: [KeyValue!]!
   values: JSON
 }
 
@@ -5543,6 +5557,11 @@ scalar JSON
 Arbitrary JSON Type
 """
 scalar JsonObject
+
+type KeyValue {
+  key: String!
+  value: String
+}
 
 """
 HUD LastGradeCompleted (R4.1)
