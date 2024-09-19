@@ -188,7 +188,7 @@ module GrdaWarehouse::Hud
 
     scope :ce_participating, ->(range) do
       joins(:ce_participations).
-        merge(GrdaWarehouse::Hud::CeParticipation.within_range(range))
+        merge(GrdaWarehouse::Hud::CeParticipation.ce_participating.within_range(range))
     end
 
     def coc_funded?
