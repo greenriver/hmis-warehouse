@@ -47,9 +47,11 @@ module Health
     end
 
     def self.update_thrive_assessments!
+      Rails.logger.info 'EpicThrive: start update_thrive_assessments!'
       HealthThriveAssessment::Assessment.transaction do
         unprocessed.find_each(&:update_thrive_assessment!)
       end
+      Rails.logger.info 'EpicThrive: end update_thrive_assessments!'
     end
 
     def update_thrive_assessment!
