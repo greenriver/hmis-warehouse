@@ -23,7 +23,6 @@
         var clicked_value = e.currentTarget.value;
         // -1 is Not Applicable, that's allowed to be chosen in both situations, so do nothing in that case
         if(clicked_value != -1) {
-          console.log($(e.currentTarget).attr('name'))
           // determine which input we clicked, and set the other to Not Applicable (-1)
           if($(e.currentTarget).attr('name') == $(no_concern).attr('name')) {
             $(materials_concern).last().trigger('click');
