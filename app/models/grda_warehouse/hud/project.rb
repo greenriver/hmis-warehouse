@@ -186,6 +186,11 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :ce_participating, ->(range) do
+      joins(:ce_participations).
+        merge(GrdaWarehouse::Hud::CeParticipation.within_range(range))
+    end
+
     def coc_funded?
       return self.ContinuumProject == 1 if hud_continuum_funded.nil?
 
