@@ -30,7 +30,6 @@ then
   . .env
 else
   echo Not sourcing environment variables from secretsmanager
-  # TODO: does everything behave or do we need to "env > .env"
 fi
 
 echo 'Constructing an ERB-free database.yml file...'
