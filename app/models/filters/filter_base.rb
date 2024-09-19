@@ -76,6 +76,8 @@ module Filters
     attribute :involves_ce, String, default: nil
     attribute :disabling_condition, Boolean, default: nil
     attribute :dates_to_compare, Symbol, default: :entry_to_exit
+    attribute :days_since_contact_min, Integer, default: nil
+    attribute :days_since_contact_max, Integer, default: nil
     attribute :required_files, Array, default: []
     attribute :optional_files, Array, default: []
     attribute :active_roi, Boolean, default: false
@@ -169,6 +171,8 @@ module Filters
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
       self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).blank?
       self.dates_to_compare = filters.dig(:dates_to_compare)&.to_sym || dates_to_compare
+      self.days_since_contact_min = filters.dig(:days_since_contact_min).to_i unless filters.dig(:days_since_contact_min).blank?
+      self.days_since_contact_max = filters.dig(:days_since_contact_max).to_i unless filters.dig(:days_since_contact_max).blank?
       self.mask_small_populations = filters.dig(:mask_small_populations).in?(['1', 'true', true]) unless filters.dig(:mask_small_populations).nil?
       self.required_files = filters.dig(:required_files)&.reject(&:blank?)&.map(&:to_i).presence || required_files
       self.optional_files = filters.dig(:optional_files)&.reject(&:blank?)&.map(&:to_i).presence || optional_files
@@ -287,6 +291,8 @@ module Filters
         :cohort_column_housed_date,
         :cohort_column_matched_date,
         :dates_to_compare,
+        :days_since_contact_min,
+        :days_since_contact_max,
         :active_roi,
         :mask_small_populations,
         coc_codes: [],
@@ -369,6 +375,8 @@ module Filters
       times_homeless_in_last_three_years: 'Times Homeless in Past 3 Years',
       require_service: 'Require Service During Range',
       dates_to_compare: 'Dates to Compare',
+      days_since_contact_min: 'Days Since Contact Min',
+      days_since_contact_max: 'Days Since Contact Max',
       required_files: 'Required Files',
       optional_files: 'Optional Files',
       active_roi: 'With Active ROI',
@@ -509,6 +517,14 @@ module Filters
       "#{s.to_fs} - #{e.to_fs}"
     end
 
+    def days_since_contact_words
+      return 'Any' if days_since_contact_min.blank? && days_since_contact_max.blank?
+      return "#{days_since_contact_min} or more days" if days_since_contact_max.blank? || days_since_contact_max.zero?
+      return "#{days_since_contact_max} or fewer days" if days_since_contact_min.blank? || days_since_contact_min.zero?
+
+      "Between and #{days_since_contact_min} and #{days_since_contact_max} days"
+    end
+
     def length
       (self.end - start).to_i
     rescue StandardError
@@ -587,6 +603,7 @@ module Filters
       scope = filter_for_cohorts(scope)
       scope = filter_for_active_roi(scope)
       scope = filter_for_times_homeless(scope)
+      scope = filter_for_days_since_contact(scope)
       scope
     end
 
@@ -1448,6 +1465,8 @@ module Filters
         'System-Wide'
       when 2
         'Project-Focused'
+      when 3
+        'HIC'
       else
         'Auto Select'
       end
