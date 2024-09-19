@@ -292,7 +292,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def should_auto_enter?
-    Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(project).present?
+    project.should_auto_enter?
   end
 
   def save_and_auto_enter!
