@@ -77,7 +77,7 @@ module HmisExternalApis::ExternalForms
         when 'EMAIL'
           render_form_input(label: node['text'], name: node_name(node), required: node['required'], input_type: 'email', input_invalid_feedback: 'Enter a valid email address')
         else
-          render_form_input(label: node['text'], name: node_name(node), required: node['required'], input_type: 'text')
+          render_form_input(label: node['text'], name: node_name(node), required: node['required'], input_type: 'text', input_helper: node['helper_text'])
         end
       end
     end
@@ -96,7 +96,7 @@ module HmisExternalApis::ExternalForms
 
     def render_text_node(node)
       render_form_group(node: node) do
-        render_form_textarea(label: node['text'], name: node_name(node), required: node['required'])
+        render_form_textarea(label: node['text'], name: node_name(node), required: node['required'], input_helper: node['helper_text'])
       end
     end
 
@@ -107,8 +107,19 @@ module HmisExternalApis::ExternalForms
     end
 
     def render_display_node(node)
+      classes = case node['component']
+      when 'ALERT_INFO'
+        'alert alert-info'
+      when 'ALERT_WARNING'
+        'alert alert-warning'
+      when 'ALERT_ERROR'
+        'alert alert-danger'
+      when 'ALERT_SUCCESS'
+        'alert alert-success'
+      end
+
       render_form_group(node: node) do
-        context.tag.div(node['text'].html_safe)
+        context.tag.div(node['text'].html_safe, class: classes)
       end
     end
 

@@ -579,7 +579,7 @@ module GrdaWarehouse::Hud
     scope :race_none, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:RaceNone].eq(1)).
+          where(c_t[:RaceNone].in([8, 9, 99])).
           select(:destination_id),
       )
     end
