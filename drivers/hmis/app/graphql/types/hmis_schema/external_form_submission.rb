@@ -40,22 +40,26 @@ module Types
 
     # "Summary" fields are a subset of the form's fields that are displayed on the external forms review table.
     # Includes Client first/last name plus any CDEDs where show_in_summary is true.
+    Field = Struct.new(:id, :key, :value, keyword_init: true)
     def summary_fields
       cdeds_by_key = load_ar_association(definition, :custom_data_element_definitions).
         select(&:show_in_summary).
         index_by(&:key).stringify_keys
 
-      cded_keys = cdeds_by_key.keys
+      cded_keys = cdeds_by_key.keys.to_set
 
       object.form_values.map do |key, value|
+        value = sanitized_value(value)
+        next unless value
+
         case key.to_s
         when 'Client.firstName'
-          OpenStruct.new(id: 'first', key: 'First Name', value: value)
+          Field.new(id: 'first', key: 'First Name', value: value)
         when 'Client.lastName'
-          OpenStruct.new(id: 'last', key: 'Last Name', value: value)
-        when *cded_keys
+          Field.new(id: 'last', key: 'Last Name', value: value)
+        when cded_keys
           cded = cdeds_by_key[key]
-          OpenStruct.new(id: cded.id, key: cded.label, value: value)
+          Field.new(id: cded.id, key: cded.label, value: value)
         end
       end.compact.sort_by(&:key)
     end
@@ -65,6 +69,10 @@ module Types
       return unless enrollment
 
       load_ar_association(enrollment, :client)&.id
+    end
+
+    private def sanitized_value(value)
+      value&.to_s&.strip&.truncate(100)&.gsub(/[[:cntrl:]]/, '').presence
     end
   end
 end
