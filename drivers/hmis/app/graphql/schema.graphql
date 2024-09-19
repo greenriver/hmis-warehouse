@@ -11091,7 +11091,7 @@ enum StaticFormRole {
   """
   External form submission review
   """
-  EXTERNAL_FORM_SUBMISSION_REVIEW
+  EXTERNAL_FORM_SUBMISSION_REVIEW @deprecated(reason: "External forms are moving to a directly configured react form, rather than a static form.")
 
   """
   Form definition
