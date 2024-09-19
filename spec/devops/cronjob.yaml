@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cronjob-1
+  namespace: warehouse-qa-staging
+  labels:
+    cron-source: rails
+  annotations:
+    description: alpine sleep
+spec:
+  schedule: "*/5 */5 */5 * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 2
+      suspend: false
+      template:
+        metadata:
+          annotations:
+            karpenter.sh/do-not-disrupt: "true"
+          labels:
+            cron-source: rails
+        spec:
+          containers:
+          - name: cronjob-1
+            image: alpine
+            imagePullPolicy: Always
+            command: ["sleep"]
+            args: ["10"]
+          restartPolicy: OnFailure
+          terminationGracePeriodSeconds: 10
