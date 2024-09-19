@@ -5,7 +5,6 @@
 ###
 
 class BaseJob < ApplicationJob
-  STARTING_PATH = File.realpath(FileUtils.pwd)
   include NotifierConfig
 
   attr_accessor :start_time
