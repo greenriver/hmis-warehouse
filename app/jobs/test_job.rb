@@ -32,7 +32,7 @@ class TestJob < BaseJob
     bloater = {}
 
     while (Time.now - a) < length_in_seconds
-      Rails.logger.info "Simulating processing. In `#{STARTING_PATH}` directory."
+      Rails.logger.info 'Simulating processing.'
       bloater[Random.rand.to_s] = Array.new(memory_bloat_per_second * SLEEP_TIME) if memory_bloat_per_second
       sleep SLEEP_TIME
     end

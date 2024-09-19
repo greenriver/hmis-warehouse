@@ -20,9 +20,9 @@ class CronInstaller
     if cluster_type.present?
       self.cluster_type = cluster_type.to_sym
     elsif ENV['EKS'] == 'true'
-      self.cluster_type = :eks
+      self.cluster_type = :eks_mode
     else
-      self.cluster_type = :ecs
+      self.cluster_type = :ecs_mode
     end
   end
 
@@ -33,7 +33,7 @@ class CronInstaller
 
   private
 
-  def eks
+  def eks_mode
     entry_number = 0
 
     Cronjob.clear!
@@ -68,7 +68,7 @@ class CronInstaller
     Cronjob.clear_defunct_vpas!
   end
 
-  def ecs
+  def ecs_mode
     entry_number = 0
 
     ScheduledTask.clear!(target_group_name)
