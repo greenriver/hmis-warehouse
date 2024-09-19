@@ -59,6 +59,7 @@ module InactiveClientReport
       }
       [
         build_general_control_section(options: options),
+        build_days_since_contact_control_section,
         build_coc_control_section,
       ]
     end

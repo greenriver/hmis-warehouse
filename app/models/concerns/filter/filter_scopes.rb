@@ -443,5 +443,48 @@ module Filter::FilterScopes
 
       scope.joins(:enrollment).where(e_t[:TimesHomelessPastThreeYears].in(@filter.times_homeless_in_last_three_years))
     end
+
+    # Filters for the given range of days since the last contact,
+    # where contact is any of:
+    # Enrollment.EntryDate
+    # Assessment.AssessmentDate
+    # Service.DateProvided
+    # CurrentLivingSituation.InformationDate
+    private def filter_for_days_since_contact(scope)
+      return scope unless @filter.days_since_contact_min.present? || @filter.days_since_contact_max.present?
+
+      range = @filter.days_since_contact_min..@filter.days_since_contact_max
+      on_date = @filter.on
+      # Find the IDs of the destination clients who meet the initial scope AND the filter
+      inner_query = GrdaWarehouse::Hud::Client.destination.
+        left_outer_joins(:source_enrollments, :source_assessments, :source_services, :source_current_living_situations).
+        group(:id).
+        select(
+          c_t[:id],
+          Arel::Nodes::Subtraction.new(
+            Arel::Nodes.build_quoted(on_date.to_fs(:db)),
+            nf(
+              'MAX',
+              [
+                nf(
+                  'GREATEST',
+                  [
+                    as_t[:AssessmentDate],
+                    s_t[:DateProvided],
+                    e_t[:EntryDate],
+                    cls_t[:InformationDate],
+                  ],
+                ),
+              ],
+            ),
+          ).as('days'),
+        )
+      filtered_client_ids = GrdaWarehouse::Hud::Client.unscoped.
+        select(:id).
+        from(inner_query, :inner_query).
+        where('inner_query.days'.to_sym => range)
+      # Then return the initial scope filtered down to those ids
+      scope.where(client_id: filtered_client_ids)
+    end
   end
 end
