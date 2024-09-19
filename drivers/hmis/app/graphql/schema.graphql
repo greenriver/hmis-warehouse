@@ -3874,14 +3874,14 @@ enum ExpelledReason {
 
 type ExternalFormSubmission {
   """
-  ID of Client that was generated from this submission, if any
+  Client that was generated from this submission, if any
   """
   clientId: ID
   customDataElements: [CustomDataElement!]!
   definition: FormDefinition!
 
   """
-  ID of Enrollment that was generated from this submission, if any
+  Enrollment that was generated from this submission, if any
   """
   enrollmentId: ID
   id: ID!
@@ -3891,7 +3891,7 @@ type ExternalFormSubmission {
   submittedAt: ISO8601DateTime!
 
   """
-  summary fields for identifying the submission
+  Key/value responses for certain summary-level form questions
   """
   summaryFields: [KeyValue!]!
   values: JSON
