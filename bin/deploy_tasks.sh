@@ -56,13 +56,11 @@ bundle exec rake db:seed
 T2=`date +%s`
 echo "...rake db:seed took $(expr $T2 - $T1) seconds"
 
-if [[ "$EKS" != "true" ]]; then
-  echo 'Installing cron'
-  T1=`date +%s`
-  bundle exec rails runner ./config/deploy/docker/lib/cron_installer.rb
-  T2=`date +%s`
-  echo "..../bin/cron_installer.rb took $(expr $T2 - $T1) seconds"
-fi
+echo 'Installing cron'
+T1=`date +%s`
+bundle exec rails runner ./config/deploy/docker/lib/cron_installer.rb
+T2=`date +%s`
+echo "..../bin/cron_installer.rb took $(expr $T2 - $T1) seconds"
 
 # keep this always at the end of this file
 echo Making interface aware this script completed
