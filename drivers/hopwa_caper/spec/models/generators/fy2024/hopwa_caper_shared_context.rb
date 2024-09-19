@@ -10,6 +10,7 @@ RSpec.shared_context 'HOPWA CAPER shared context' do
   let(:report_start_date) { today - 1.year }
   let(:report_end_date) { today }
   let(:data_source) { create :source_data_source }
+  let!(:destination_data_source) { create :destination_data_source } # allows client deduplication to run
   let(:organization) { create :hud_organization, data_source: data_source }
   let(:user) { create(:acl_user) }
   let!(:report_group) { create :collection }

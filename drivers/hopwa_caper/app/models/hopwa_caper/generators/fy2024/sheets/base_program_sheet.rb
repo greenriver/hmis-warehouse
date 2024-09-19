@@ -15,7 +15,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
       raise unless tables.one?
 
       question_sheet(question: tables.first) do |sheet|
-        add_two_col_header(sheet)
+        add_sheet_header(sheet, title: self.class::SHEET_TITLE)
         contents.each do |opts|
           opts => {method:, label:}
           # header
@@ -28,8 +28,22 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     protected
 
+    def add_sheet_header(sheet, title:)
+      sheet.add_header(col: 'A', label: title)
+      sheet.add_header(col: 'B', label: '')
+
+      sheet.append_row(label: 'Question') do |row|
+        row.append_cell_value(value: 'This Report')
+      end
+    end
+
     # add a labeled row, enrollments are counted only their HOH
     def add_household_enrollments_row(sheet, label:, enrollments:)
+      if enrollments.nil?
+        sheet.append_row(label: label)
+        return
+      end
+
       members = @report.
         hopwa_caper_enrollments.
         head_of_household.
@@ -39,23 +53,15 @@ module HopwaCaper::Generators::Fy2024::Sheets
       end
     end
 
-    def add_services_fa_amount_row(sheet, label:, services:)
-      sum = services.map(&:fa_amount).compact.sum
-      sheet.append_row(label: label) do |row|
-        row.append_cell_members(members: services.as_report_members, value: sum)
-      end
-    end
-
     def income_levels_sheet(sheet)
       filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::IncomeBenefitLevelFilter.all
       filters.each do |filter|
-        add_household_enrollments_row(sheet, label: "What is the number of #{filter.label}?", enrollments: filter.apply(relevant_enrollments))
+        add_household_enrollments_row(sheet, label: filter.label, enrollments: filter.apply(relevant_enrollments))
       end
     end
 
     def income_sources_sheet(sheet)
       filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::IncomeBenefitSourceFilter.all
-      sheet.append_row(label: 'How many households accessed or maintained access to the following sources of income in the past year?')
       filters.each do |filter|
         add_household_enrollments_row(sheet, label: filter.label, enrollments: filter.apply(relevant_enrollments))
       end
@@ -63,7 +69,6 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     def medical_insurance(sheet)
       filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::MedicalInsuranceFilter.all
-      sheet.append_row(label: 'How many households accessed or maintained access to the following sources of medical insurance in the past year?')
       filters.each do |filter|
         add_household_enrollments_row(sheet, label: filter.label, enrollments: filter.apply(relevant_enrollments))
       end

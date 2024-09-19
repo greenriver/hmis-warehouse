@@ -19613,6 +19613,7 @@ CREATE TABLE public.hopwa_caper_enrollments (
     hopwa_eligible boolean DEFAULT false NOT NULL,
     chronically_homeless boolean DEFAULT false NOT NULL,
     prior_living_situation integer,
+    rental_subsidy_type integer,
     exit_destination integer,
     duration_days integer,
     housing_assessment_at_exit integer,

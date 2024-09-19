@@ -32,7 +32,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
         new(label: 'Native Hawaiian/Other Pacific Islander', code_names: [:NativeHIPacific]),
         new(label: 'White', code_names: [:White]),
       ]
-      other_filter = GroupFilter.new(label: 'Other Multi-Racial', exclude_filters: filters)
+      other_filter = ExcludeFilter.new(label: 'Other Multi-Racial', filters: filters)
       filters + [other_filter]
     end
   end

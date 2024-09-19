@@ -8,9 +8,10 @@ module HopwaCaper::Generators::Fy2024::Sheets
   class TbraSheet < BaseProgramSheet
     QUESTION_NUMBER = 'Q2: TBRA'.freeze
     QUESTION_NUMBERS = ['Q2'].freeze
+    SHEET_TITLE = 'Complete this section for all Households served with HOPWA Tenant-Based Rental Assistance (TBRA) by your organization in the reporting year.'.freeze
     CONTENTS = [
       { method: :households_served_sheet, label: 'TBRA Households Served and Expenditures' },
-      # { method: :other_rental_assistance_sheet, label: 'Other (Non-TBRA) Rental Assistance Households Served and Expenditures' },
+      { method: :other_rental_assistance_sheet, label: 'Other (Non-TBRA) Rental Assistance Households Served and Expenditures' },
       { method: :income_levels_sheet, label: 'Income Levels for Households Served by this Activity' },
       { method: :income_sources_sheet, label: 'Sources of Income for Households Served by this Activity' },
       { method: :medical_insurance, label: 'Medical Insurance for Households Served by this Activity' },
@@ -31,21 +32,19 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     def households_served_sheet(sheet)
       add_household_enrollments_row(sheet, label: 'How many households were served with HOPWA TBRA assistance?', enrollments: relevant_enrollments)
-      add_services_fa_amount_row(sheet, label: 'What were the total HOPWA funds expended for TBRA rental assistance?', services: relevant_services)
+      sheet.append_row(label: 'What were the total HOPWA funds expended for TBRA rental assistance?')
     end
 
     def other_rental_assistance_sheet(sheet)
-      non_hopwa_rent_service = HopwaCaper::Service.
-        where(date_provided: @report.start_date...@report.end_date).
-        where.not(record_type: 151).where(type_provided: 1)
-
-      # households that received non-hopwa rent assistance
-      enrollment_scope = relevant_enrollments(services_filters: []).merge(non_hopwa_rent_service)
-      add_household_enrollments_row(
-        sheet,
-        label: 'How many total households were served with Other (non-TBRA) Rental Assistance?',
-        enrollments: enrollment_scope,
-      )
+      # we can't calculate these
+      [
+        'How many total households were served with Other (non-TBRA) Rental Assistance?',
+        'What were the total HOPWA funds expended for Other (non-TBRA) Rental Assistance, as approved in the grant agreement?',
+        'Describe the Other (non-TBRA) Rental Assistance provided. (150 characters).',
+        'TBRA Household Total (TBRA + Other)',
+      ].each do |label|
+        sheet.append_row(label: label)
+      end
     end
 
     def health_outcomes_sheet(sheet)

@@ -12,7 +12,7 @@ module HopwaCaper::HudReports
       belongs_to(
         :hopwa_caper_service,
         -> do
-          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudHopwaCaper::Client'))
+          where(::HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HopwaCaper::Service'))
         end,
         class_name: 'HopwaCaper::Service',
         foreign_key: :universe_membership_id,
@@ -23,7 +23,7 @@ module HopwaCaper::HudReports
       belongs_to(
         :hopwa_caper_enrollment,
         -> do
-          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudHopwaCaper::Enrollment'))
+          where(::HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HopwaCaper::Enrollment'))
         end,
         class_name: 'HopwaCaper::Enrollment',
         foreign_key: :universe_membership_id,

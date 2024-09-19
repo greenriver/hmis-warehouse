@@ -12,15 +12,13 @@ module HopwaCaper
     def show
       @cell = @report.valid_cell_name(params[:id])
       @table = @report.valid_table_name(params[:table])
-      @enrollments = HopwaCaper::Enrollment.
+      @enrollments = @report.hopwa_caper_enrollments.
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id))
-      @services = HopwaCaper::Service.
+        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell))
+      @services = @report.hopwa_caper_services.
         preload(:enrollment).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id))
+        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell))
       @name = "#{generator.file_prefix} #{@question} #{@cell}"
       respond_to do |format|
         format.html {}

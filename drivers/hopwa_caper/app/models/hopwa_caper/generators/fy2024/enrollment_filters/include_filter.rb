@@ -4,13 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# all rows matching any filters
 module HopwaCaper::Generators::Fy2024::EnrollmentFilters
-  GroupFilter = Struct.new(:label, :exclude_filters, keyword_init: true) do
+  IncludeFilter = Struct.new(:label, :filters, keyword_init: true) do
     def apply(scope)
-      exclude_scope = exclude_filters.reduce(scope) do |result, filter|
-        filter.apply(result)
-      end
-      scope.where.not(id: exclude_scope.select(:id))
+      filtered_scope = filters.map { |filter| filter.apply(scope) }.reduce { |a, b| a.or(b) }
+      scope.where(id: filtered_scope.select(:id))
     end
   end
 end

@@ -24,7 +24,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
         new(label: 'Transgender Female', code_names: [:Transgender, :Woman]),
         new(label: 'Transgender Male', code_names: [:Transgender, :Man]),
       ]
-      filters + [GroupFilter.new(label: 'Gender not Disclosed', exclude_filters: filters)]
+      filters + [ExcludeFilter.new(label: 'Gender not Disclosed', filters: filters)]
     end
   end
 end

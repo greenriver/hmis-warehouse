@@ -17,7 +17,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
     end
 
     def self.all
-      [
+      filters = [
         new(
           label: 'Earned Income from Employment',
           types: [:Earned],
@@ -71,6 +71,11 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
           types: [],
         ),
       ]
+      total_filter = IncludeFilter.new(
+        label: 'How many households accessed or maintained access to the following sources of income in the past year?',
+        filters: filters
+      )
+      [total_filter] + filters
     end
   end
 end

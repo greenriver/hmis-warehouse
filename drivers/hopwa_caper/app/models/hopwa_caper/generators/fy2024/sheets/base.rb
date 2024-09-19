@@ -27,29 +27,18 @@ module HopwaCaper::Generators::Fy2024::Sheets
       HopwaCaper::Enrollment
     end
 
-    def add_two_col_header(sheet, label: 'Question')
-      sheet.add_header(col: 'A', label: label)
-      sheet.add_header(col: 'B', label: 'This Report')
-    end
-
     # enrollments to report on in this sheet
-    def relevant_enrollments(enrollment_filters: relevant_enrollments_filters, service_filters: relevant_services_filters)
-      service_scope = service_filters.
-        reduce(HopwaCaper::Service.all) { |scope, filter| filter.apply(scope) }.
-        where(date_provided: @report.start_date...@report.end_date)
-
+    def relevant_enrollments(enrollment_filters: relevant_enrollments_filters, start_date: @report.start_date, end_date: @report.end_date)
       enrollment_filters.
         reduce(@report.hopwa_caper_enrollments) { |scope, filter| filter.apply(scope) }.
-        overlapping_range(start_date: @report.start_date, end_date: @report.end_date).
-        joins(:services).
-        merge(service_scope)
+        overlapping_range(start_date: start_date, end_date: end_date)
     end
 
     # services to report on in this sheet
-    def relevant_services(enrollment_filters: relevant_enrollments_filters, service_filters: relevant_services_filters, start_date: @report.start_date)
+    def relevant_services(enrollment_filters: relevant_enrollments_filters, service_filters: relevant_services_filters, start_date: @report.start_date, end_date: @report.end_date)
       enrollment_scope = enrollment_filters.
         reduce(HopwaCaper::Enrollment.all) { |scope, filter| filter.apply(scope) }.
-        overlapping_range(start_date: start_date, end_date: @report.end_date)
+        overlapping_range(start_date: start_date, end_date: end_date)
 
       service_filters.
         reduce(@report.hopwa_caper_services) { |scope, filter| filter.apply(scope) }.

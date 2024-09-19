@@ -9,6 +9,13 @@ module HopwaCaper
     include SqlHelper
     self.table_name = 'hopwa_caper_enrollments'
 
+    has_many :hud_reports_universe_members,
+      -> do
+        where(::HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HopwaCaper::Enrollment'))
+      end,
+      inverse_of: :universe_membership,
+      class_name: 'HudReports::UniverseMember',
+      foreign_key: :universe_membership_id
     has_many :services, class_name: 'HopwaCaper::Service', primary_key: :enrollment_id
 
     def self.as_report_members
@@ -87,8 +94,8 @@ module HopwaCaper
         last_name: client.last_name,
 
         age: client.age_on([report.start_date, enrollment.entry_date].max),
-        dob: client.DOB,
-        dob_quality: client.DOBDataQuality,
+        dob: client.dob,
+        dob_quality: client.dob_data_quality,
         genders: client.gender_multi.sort,
         races: client.race_multi.sort,
         veteran: client.veteran?,
@@ -109,7 +116,8 @@ module HopwaCaper
 
         hiv_positive: hiv_disabilities.any?,
         chronically_homeless: enrollment.chronically_homeless_at_start,
-        prior_living_situation: enrollment.LivingSituation || 99,
+        prior_living_situation: enrollment.living_situation || 99,
+        rental_subsidy_type: enrollment.rental_subsidy_type,
         viral_load_suppression: (hiv_disabilities.any? { |d| d.measured_viral_load&.< 200 }),
         ever_prescribed_anti_retroviral_therapy: (hiv_disabilities.any? { |d| d.anti_retroviral == 1 }),
       )

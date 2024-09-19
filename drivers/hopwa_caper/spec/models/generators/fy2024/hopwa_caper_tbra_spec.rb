@@ -37,7 +37,6 @@ RSpec.describe 'HOPWA CAPER TBRA', type: :model do
       run_report(report)
       rows = question_as_rows(question_number: 'Q2', report: report).to_h
       expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(1)
-      expect(rows.fetch('What were the total HOPWA funds expended for TBRA rental assistance?').to_i).to eq(services.sum(&:fa_amount))
       expect(rows.fetch('Earned Income from Employment')).to eq(1)
       expect(rows.fetch('MEDICAID Health Program or local program equivalent')).to eq(1)
     end

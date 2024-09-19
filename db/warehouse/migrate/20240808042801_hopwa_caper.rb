@@ -33,6 +33,7 @@ class HopwaCaper < ActiveRecord::Migration[7.0]
       t.boolean :hopwa_eligible, null: false, default: false
       t.boolean :chronically_homeless, null: false, default: false
       t.integer :prior_living_situation
+      t.integer :rental_subsidy_type
       t.integer :exit_destination
       t.integer :duration_days
       t.integer :housing_assessment_at_exit

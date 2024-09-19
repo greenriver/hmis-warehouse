@@ -8,6 +8,14 @@ module HopwaCaper
   class Service < GrdaWarehouseBase
     self.table_name = 'hopwa_caper_services'
 
+    has_many :hud_reports_universe_members,
+    -> do
+      where(::HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HopwaCaper::Service'))
+    end,
+    inverse_of: :universe_membership,
+    class_name: 'HudReports::UniverseMember',
+    foreign_key: :universe_membership_id
+
     belongs_to :enrollment, class_name: 'HopwaCaper::Enrollment', primary_key: :enrollment_id
     delegate :fist_name, :last_name, :personal_id, to: :enrollemnt
 
@@ -39,6 +47,7 @@ module HopwaCaper
 
     def self.detail_headers
       remove = ['id', 'created_at', 'updated_at']
+      special = ['personal_id', 'first_name', 'last_name']
       cols = special + (column_names - special - remove)
       cols.map do |header|
         label = case header

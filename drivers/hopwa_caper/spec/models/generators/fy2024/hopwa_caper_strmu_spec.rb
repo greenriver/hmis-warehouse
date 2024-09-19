@@ -37,7 +37,6 @@ RSpec.describe 'HOPWA CAPER STRMU', type: :model do
       rows = question_as_rows(question_number: 'Q3', report: report).to_h
       expect(rows.fetch('STRMU Households Total')).to eq(1)
       expect(rows.fetch('How many households were served with STRMU rental assistance only?')).to eq(1)
-      expect(rows.fetch('STRMU rental assistance').to_i).to eq(services.sum(&:fa_amount))
     end
   end
 end

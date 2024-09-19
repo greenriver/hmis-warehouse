@@ -8,6 +8,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
   class StrmuSheet < BaseProgramSheet
     QUESTION_NUMBER = 'Q3: STRMU'.freeze
     QUESTION_NUMBERS = ['Q3'].freeze
+    SHEET_TITLE = 'Complete this section for all Households served with HOPWA Short-Term Rent, Mortgage, and Utilities Assistance (STRMU) by your organization in the reporting year.'.freeze
     CONTENTS = [
       { method: :households_served_sheet, label: 'Households Served by this Activity - STRMU Breakdown' },
       { method: :expenditures_sheet, label: 'STRMU Expenditures' },
@@ -62,24 +63,26 @@ module HopwaCaper::Generators::Fy2024::Sheets
     def expenditures_sheet(sheet)
       sheet.append_row(label: 'What were the HOPWA funds expended for the following budget line items?')
       service_type_filters.all.each do |filter|
-        add_services_fa_amount_row(
+        sheet.append_row(label: "STRMU #{filter.label}")
+      end
+      sheet.append_row(label: 'Total STRMU Expenditures')
+    end
+
+    def longevity_sheet(sheet)
+      filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::StrmuLongevityFilter.all(start_date: @report.start_date, end_date: @report.end_date)
+      filters.each do |filter|
+        personal_ids = filter.having(relevant_enrollments.group(:personal_id)).pluck(:personal_id)
+        add_household_enrollments_row(
           sheet,
-          label: "STRMU #{filter.label}",
-          services: filter.apply(relevant_services),
+          label: filter.label,
+          enrollments: relevant_enrollments.where(personal_id: personal_ids),
         )
       end
     end
 
-    def longevity_sheet(sheet)
-      filters = HopwaCaper::Generators::Fy2024::ServiceFilters::StrmuLongevityFilter.all(@report.start_date)
-      relevant_services(start_date: @report.start_date - 5.years)
-      filters.each do |filter|
-        add_household_enrollments_row(
-          sheet,
-          label: filter.label,
-          enrollments: filter.having(relevant_services.group(:report_household_id)),
-        )
-      end
+    def housing_outcomes_sheet(sheet)
+      super
+      sheet.append_row(label: 'How many households are likely to need additional Short-Term Rent, Mortgage and Utilities assistance to maintain the current housing arrangements?')
     end
   end
 end
