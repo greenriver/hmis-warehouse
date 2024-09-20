@@ -17,16 +17,16 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
     def self.all
       [
         new(
-          label: "What is the number of households with income below 30% of Area Median Income?",
-          type: "30% or less"
+          label: 'What is the number of households with income below 30% of Area Median Income?',
+          type: '30% or less',
         ),
         new(
-          label: "What is the number of households with income between 31% and 50% of Area Median Income?",
-          type: "31% to 50%",
+          label: 'What is the number of households with income between 31% and 50% of Area Median Income?',
+          type: '31% to 50%',
         ),
         new(
-          label: "What is the number of households with income between 51% and 80% of Area Median Income?",
-          type: "51% to 80%"
+          label: 'What is the number of households with income between 51% and 80% of Area Median Income?',
+          type: '51% to 80%',
         ),
       ]
     end

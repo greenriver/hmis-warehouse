@@ -13,7 +13,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
     end
 
     def self.all
-      filters =[
+      filters = [
         new(
           label: 'MEDICAID Health Program or local program equivalent',
           types: [:Medicaid],
@@ -42,7 +42,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
 
       total_filter = IncludeFilter.new(
         label: 'How many households accessed or maintained access to the following sources of medical insurance in the past year?',
-        filters: filters
+        filters: filters,
       )
       [total_filter] + filters
     end

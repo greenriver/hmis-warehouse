@@ -35,7 +35,6 @@ class HopwaCaper < ActiveRecord::Migration[7.0]
       t.integer :prior_living_situation
       t.integer :rental_subsidy_type
       t.integer :exit_destination
-      t.integer :duration_days
       t.integer :housing_assessment_at_exit
       t.integer :subsidy_information
       t.boolean :ever_prescribed_anti_retroviral_therapy, null: false, default: false

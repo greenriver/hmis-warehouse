@@ -41,6 +41,10 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
       )
     end
 
+    def self.tbra_or_php_hopwa
+      IncludeFilter.new(filters: [tbra_hopwa, php_hopwa])
+    end
+
     def self.all_hopwa
       new(
         label: 'ALL HOPWA Funders',

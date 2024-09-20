@@ -73,7 +73,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
       ]
       total_filter = IncludeFilter.new(
         label: 'How many households accessed or maintained access to the following sources of income in the past year?',
-        filters: filters
+        filters: filters,
       )
       [total_filter] + filters
     end

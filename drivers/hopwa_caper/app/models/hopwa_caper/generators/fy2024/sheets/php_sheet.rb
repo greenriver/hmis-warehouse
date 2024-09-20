@@ -19,12 +19,13 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     protected
 
-    def expenditures_sheet(sheet)
-      sheet.append_row(label: 'What were the HOPWA funds expended for PHP?')
+    def relevant_enrollments
+      program_filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.php_hopwa
+      overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments))
     end
 
-    def relevant_enrollments_filters
-      [HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.php_hopwa]
+    def expenditures_sheet(sheet)
+      sheet.append_row(label: 'What were the HOPWA funds expended for PHP?')
     end
 
     def households_served_sheet(sheet)
@@ -37,11 +38,11 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     def housing_outcomes_sheet(sheet)
       filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ExitDestinationFilter.php_destinations
-      total_filter =  HopwaCaper::Generators::Fy2024::EnrollmentFilters::IncludeFilter.new(label: 'Housing Outcomes for Households Served by this Activity', filters: filters)
+      total_filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::IncludeFilter.new(label: 'Housing Outcomes for Households Served by this Activity', filters: filters)
       add_household_enrollments_row(
         sheet,
         label: 'Housing Outcomes for Households Served by this Activity',
-        enrollments: total_filter.apply(relevant_enrollments)
+        enrollments: total_filter.apply(relevant_enrollments),
       )
 
       sheet.append_row(label: 'In the context of PHP, "exited" means the housing situation into which the household was placed using the PHP assistance.')

@@ -21,12 +21,19 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     protected
 
-    def relevant_enrollments_filters
-      [HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa]
+    def program_filter
+      HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa
     end
 
-    def relevant_services_filters
-      [HopwaCaper::Generators::Fy2024::ServiceFilters::RecordTypeFilter.hopwa_financial_assistance]
+    def relevant_enrollments
+      overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments))
+    end
+
+    def relevant_services
+      service_filter = HopwaCaper::Generators::Fy2024::ServiceFilters::RecordTypeFilter.hopwa_financial_assistance
+      service_filter.apply(@report.hopwa_caper_services).
+        where(date_provided: @report.start_date...@report.end_date).
+        joins(:enrollment).merge(relevant_enrollments)
     end
 
     def service_type_filters
@@ -69,13 +76,12 @@ module HopwaCaper::Generators::Fy2024::Sheets
     end
 
     def longevity_sheet(sheet)
-      filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::StrmuLongevityFilter.all(start_date: @report.start_date, end_date: @report.end_date)
+      filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::StrmuLongevityFilter.for_report(@report)
       filters.each do |filter|
-        personal_ids = filter.having(relevant_enrollments.group(:personal_id)).pluck(:personal_id)
         add_household_enrollments_row(
           sheet,
           label: filter.label,
-          enrollments: relevant_enrollments.where(personal_id: personal_ids),
+          enrollments: filter.apply(relevant_enrollments),
         )
       end
     end

@@ -6,66 +6,60 @@
 
 module HopwaCaper::Generators::Fy2024::EnrollmentFilters
   # STRMU is one-time service. Expect a new enrollment/household every time so we count individuals
-  # so we count hopwa-qualified individuals instead
-  # year: constrain to unique years
-  # range: the range within which to count unique years
-  # start/end date: from the report
-  StrmuLongevityFilter = Struct.new(:label, :year_count, :range, :year_offset, :start_date, :end_date, keyword_init: true) do
-    def having(grouped)
-      # Calculate the offset between start_date and the beginning of its year
-      # This allows us to adjust for non-calendar year periods
-      year_offset = (start_date - start_date.beginning_of_year).to_i
-
-      # only look for individuals who where hopwa eligible within the report period
-      params = []
-      hopwa_eligible_sql = <<~SQL
-        BOOL_OR(hopwa_eligible AND entry_date BETWEEN ? AND ?)
-      SQL
-      params += [start_date, end_date]
-
-      # This effectively shifts the year boundary to match our start_date
-      # EXTRACT(YEAR FROM ...) gives us the year as an integer
-      # date_provided - INTERVAL ? DAY subtracts our offset from each date
-      # COUNT(DISTINCT ...) ensures we're counting unique years
-      year_sql = <<~SQL
-        COUNT(DISTINCT EXTRACT(YEAR FROM (entry_date - INTERVAL '#{year_offset} DAY'))) = ?
-      SQL
-      params << year_count
-
-      # only look for individuals who where hopwa eligible within the report date
-      grouped.where(entry_date: range).having("#{hopwa_eligible_sql} AND #{year_sql}", *params)
+  StrmuLongevityFilter = Struct.new(:label, :personal_ids, keyword_init: true) do
+    def apply(scope)
+      scope.where(personal_id: personal_ids)
     end
 
-    def self.all(start_date:, end_date:)
-      year_offset = (start_date - start_date.beginning_of_year).to_i
+    def self.for_report(report)
+      start_date = report.start_date
+      year_offset = start_date.yday - 1 # days since jan 1
+      end_date = report.end_date
+
+      program_filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa
+
+      grouped = program_filter.apply(report.hopwa_caper_enrollments).
+        where(hopwa_eligible: true).
+        where(entry_date: (start_date - 5.years)..end_date).
+        group(:personal_id).
+        pluck(:personal_id, Arel.sql('ARRAY_AGG(entry_date)')).to_h
+
+      buckets = {
+        new: [],
+        prev: [],
+        three_or_more: [],
+        all_five: [],
+      }
+
+      current_year = start_date.year
+      grouped.each do |personal_id, entry_dates|
+        entry_years = entry_dates.map { |d| (d - year_offset).year }.uniq
+        if entry_years == [current_year]
+          buckets[:new] << personal_id
+          next
+        end
+
+        buckets[:prev] << personal_id if entry_years.include?(current_year - 1)
+        buckets[:three_or_more] << personal_id if entry_years.size > 2
+        buckets[:all_five] << personal_id if entry_years.size == 5
+      end
+
       [
         new(
           label: 'How many households have been served by STRMU for the first time this year?',
-          year_count: 1,
-          range: (start_date...end_date),
-          start_date: start_date,
-          end_date: end_date,
+          personal_ids: buckets[:new],
         ),
         new(
           label: 'How many households also received STRMU assistance during the previous year?',
-          year_count: 1,
-          range: ((start_date - 1.year)...start_date),
-          start_date: start_date,
-          end_date: end_date,
+          personal_ids: buckets[:prev],
         ),
         new(
           label: 'How many households received STRMU assistance more than twice during the previous five years?',
-          year_count: 3,
-          range: ((start_date - 5.years)...start_date),
-          start_date: start_date,
-          end_date: end_date,
+          personal_ids: buckets[:three_or_more],
         ),
         new(
           label: 'How many households received STRMU assistance during the last five consecutive years?',
-          year_count: 5,
-          range: ((start_date - 5.years)...start_date),
-          start_date: start_date,
-          end_date: end_date,
+          personal_ids: buckets[:all_five],
         ),
       ]
     end

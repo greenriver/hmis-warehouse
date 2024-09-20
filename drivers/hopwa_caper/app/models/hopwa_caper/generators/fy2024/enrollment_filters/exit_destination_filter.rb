@@ -70,7 +70,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
         new(
           label: 'How many households exited to an emergency shelter?',
           types: [
-            'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter'
+            'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter',
           ],
         ),
         private_housing,
@@ -110,6 +110,5 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
         ),
       ]
     end
-
   end
 end

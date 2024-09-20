@@ -23,7 +23,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
       question_sheet(question: 'Q1') do |sheet|
         demographics_sheet_a(sheet)
         demographics_sheet_b(sheet)
-        sheet.append_row(label: nil) #blank row
+        sheet.append_row(label: nil) # blank row
         demographics_summary(sheet)
         prior_living_situation_sheet(sheet)
       end
@@ -33,13 +33,14 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     protected
 
-    def relevant_enrollments_filters
-      [HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.all_hopwa]
+    def relevant_enrollments
+      program_filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.all_hopwa
+      overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments))
     end
 
     def demographics_sheet_a(sheet)
       scope = relevant_enrollments.where(hopwa_eligible: true)
-      demographics_breakdown_table(sheet, enrollment_scope: scope, header: "Complete the age, gender, race, and ethnicity information for all individuals served with all types of HOPWA assistance.", title: "A. For each racial category, how many HOPWA-eligible Individuals identified as such?")
+      demographics_breakdown_table(sheet, enrollment_scope: scope, header: 'Complete the age, gender, race, and ethnicity information for all individuals served with all types of HOPWA assistance.', title: 'A. For each racial category, how many HOPWA-eligible Individuals identified as such?')
     end
 
     def demographics_sheet_b(sheet)
@@ -47,7 +48,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
       demographics_breakdown_table(sheet, enrollment_scope: scope, title: 'B. For each racial category, how many other household members (beneficiaries) identified as such?')
     end
 
-    def demographics_breakdown_table(sheet, enrollment_scope:, header: nil, title: )
+    def demographics_breakdown_table(sheet, enrollment_scope:, header: nil, title:)
       age_filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::AgeFilter.all
       gender_filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::GenderFilter.all
       ethnicity_filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::EthnicityFilter.all
@@ -56,7 +57,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
       if header
         sheet.add_header(col: 'A', label: header)
         gender_filters.each do
-          age_filters.each do |age_filter|
+          age_filters.each do |_age_filter|
             sheet.add_header(label: '')
           end
         end
@@ -67,12 +68,12 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
       sheet.append_row(label: title) do |row|
         gender_filters.each do |gender_filter|
-          age_filters.each do |age_filter|
+          age_filters.each do |_age_filter|
             row.append_cell_value(value: gender_filter.label)
           end
         end
-        ethnicity_filters.each do |ethnicity_filter|
-          row.append_cell_value(value: "Of the total number of individuals reported for each racial category, how many also identify as Hispanic or Latinx?")
+        ethnicity_filters.each do |_ethnicity_filter|
+          row.append_cell_value(value: 'Of the total number of individuals reported for each racial category, how many also identify as Hispanic or Latinx?')
         end
       end
 
@@ -133,10 +134,11 @@ module HopwaCaper::Generators::Fy2024::Sheets
     end
 
     def prior_living_situation_sheet(sheet)
-      sheet.append_row(label: 'Complete Prior Living Situations for HOPWA-eligible Individuals served by TBRA, P-FBH, ST-TFBH, or PHP')
-      scope = relevant_enrollments.where(hopwa_eligible: true)
-      # FIXME
-      # limit scope for Prior Living Situations to HOPWA-eligible Individuals served by TBRA, P-FBH, ST-TFBH, or PHP
+      # NOTE: currently we do not support P-FBH or ST-TFBH
+      # sheet.append_row(label: 'Complete Prior Living Situations for HOPWA-eligible Individuals served by TBRA, P-FBH, ST-TFBH, or PHP')
+      sheet.append_row(label: 'Complete Prior Living Situations for HOPWA-eligible Individuals served by TBRA or PHP')
+      program_filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.tbra_or_php_hopwa
+      scope = program_filter.apply(relevant_enrollments).where(hopwa_eligible: true)
 
       sheet.append_row(label: 'How many HOPWA-eligible individuals continued receiving HOPWA assistance from the previous year?') do |row|
         cell_scope = scope.where(entry_date: ...@report.start_date)

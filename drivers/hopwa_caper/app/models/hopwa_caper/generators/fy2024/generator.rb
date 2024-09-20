@@ -81,9 +81,11 @@ module HopwaCaper::Generators::Fy2024
     protected
 
     def service_history_enrollments
+      # tbra has a 15 year look-back
+      lookback = 15.years
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
-        open_between(start_date: @report.start_date, end_date: @report.end_date)
+        open_between(start_date: @report.start_date - lookback, end_date: @report.end_date)
 
       @filter = self.class.filter_class.new(
         user_id: @report.user_id,

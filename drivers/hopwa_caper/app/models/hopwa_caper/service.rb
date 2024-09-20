@@ -10,12 +10,12 @@ module HopwaCaper
     self.table_name = 'hopwa_caper_services'
 
     has_many :hud_reports_universe_members,
-    -> do
-      where(::HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HopwaCaper::Service'))
-    end,
-    inverse_of: :universe_membership,
-    class_name: 'HudReports::UniverseMember',
-    foreign_key: :universe_membership_id
+             -> do
+               where(::HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HopwaCaper::Service'))
+             end,
+             inverse_of: :universe_membership,
+             class_name: 'HudReports::UniverseMember',
+             foreign_key: :universe_membership_id
 
     belongs_to :enrollment, class_name: 'HopwaCaper::Enrollment', primary_key: :enrollment_id
     delegate :fist_name, :last_name, :personal_id, to: :enrollemnt

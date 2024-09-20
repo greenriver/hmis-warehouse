@@ -59,7 +59,7 @@ module HopwaCaperHelpers
       :hud_enrollment,
       client: hoh_client,
       project: project,
-      entry_date: report_start_date,
+      entry_date: report_start_date + 1.day,
       household_id: @household_id,
       relationship_to_hoh: 1,
     )

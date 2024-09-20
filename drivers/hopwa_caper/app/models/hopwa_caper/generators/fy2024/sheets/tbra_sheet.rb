@@ -22,12 +22,9 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     protected
 
-    def relevant_enrollments_filters
-      [HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.tbra_hopwa]
-    end
-
-    def relevant_services_filters
-      [HopwaCaper::Generators::Fy2024::ServiceFilters::RecordTypeFilter.hopwa_financial_assistance]
+    def relevant_enrollments
+      program_filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.tbra_hopwa
+      overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments))
     end
 
     def households_served_sheet(sheet)
@@ -60,11 +57,11 @@ module HopwaCaper::Generators::Fy2024::Sheets
     end
 
     def longevity_sheet(sheet)
-      filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::LongevityFilter.all
+      filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::TbraLongevityFilter.for_report(@report)
       filters.each do |filter|
         add_household_enrollments_row(
           sheet,
-          label: "How many households have been served with TBRA #{filter.label}?",
+          label: filter.label,
           enrollments: filter.apply(relevant_enrollments),
         )
       end

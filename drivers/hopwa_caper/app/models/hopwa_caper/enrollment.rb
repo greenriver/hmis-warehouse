@@ -10,12 +10,12 @@ module HopwaCaper
     self.table_name = 'hopwa_caper_enrollments'
 
     has_many :hud_reports_universe_members,
-      -> do
-        where(::HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HopwaCaper::Enrollment'))
-      end,
-      inverse_of: :universe_membership,
-      class_name: 'HudReports::UniverseMember',
-      foreign_key: :universe_membership_id
+             -> do
+               where(::HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HopwaCaper::Enrollment'))
+             end,
+             inverse_of: :universe_membership,
+             class_name: 'HudReports::UniverseMember',
+             foreign_key: :universe_membership_id
     has_many :services, class_name: 'HopwaCaper::Service', primary_key: :enrollment_id
 
     def self.as_report_members
@@ -111,9 +111,6 @@ module HopwaCaper
         subsidy_information: exit&.subsidy_information,
         income_benefit_source_types: income_benefit_source_types.compact.sort.uniq,
         medical_insurance_types: medical_insurance_types.compact.sort.uniq,
-
-        duration_days: ([exit&.exit_date, report.end_date].compact.min - enrollment.entry_date).to_i,
-
         hiv_positive: hiv_disabilities.any?,
         chronically_homeless: enrollment.chronically_homeless_at_start,
         prior_living_situation: enrollment.living_situation || 99,

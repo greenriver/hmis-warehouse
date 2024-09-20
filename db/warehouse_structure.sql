@@ -19615,7 +19615,6 @@ CREATE TABLE public.hopwa_caper_enrollments (
     prior_living_situation integer,
     rental_subsidy_type integer,
     exit_destination integer,
-    duration_days integer,
     housing_assessment_at_exit integer,
     subsidy_information integer,
     ever_prescribed_anti_retroviral_therapy boolean DEFAULT false NOT NULL,

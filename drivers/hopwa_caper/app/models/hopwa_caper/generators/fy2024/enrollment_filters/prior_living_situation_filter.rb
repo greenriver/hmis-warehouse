@@ -7,6 +7,8 @@
 module HopwaCaper::Generators::Fy2024::EnrollmentFilters
   PriorLivingSituationFilter = Struct.new(:label, :types, :rental_subsidy_types, keyword_init: true) do
     def apply(scope)
+      return scope.where(prior_living_situation: [nil, 8, 9, 99]) if types == :unknown
+
       scope = scope.where(rental_subsidy_type: rental_subsidy_type_codes) if rental_subsidy_types
       scope.where(prior_living_situation: codes)
     end
@@ -45,10 +47,10 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
             'Rental by client, with ongoing housing subsidy',
           ],
           rental_subsidy_types: [
-            "VASH housing subsidy",
-            "Permanent Supportive Housing",
-            "Other permanent housing dedicated for formerly homeless persons",
-          ]
+            'VASH housing subsidy',
+            'Permanent Supportive Housing',
+            'Other permanent housing dedicated for formerly homeless persons',
+          ],
         ),
         new(
           label: 'A psychiatric hospital or other psychiatric facility?',
@@ -91,11 +93,15 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
         ),
       ]
 
+      unknown_filter = new(
+        label: "How many individuals newly receiving HOPWA assistance didn't report or refused to report their prior living situation?",
+        types: :unknown,
+      )
       other_filter = ExcludeFilter.new(
         label: 'Any other prior living situation?',
-        filters: filters,
+        filters: filters + [unknown_filter],
       )
-      [other_filter] + filters
+      filters + [other_filter, unknown_filter]
     end
   end
 end

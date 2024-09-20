@@ -71,8 +71,8 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
       end
 
       # demographics & prior living
-      all_rows.slice(25, 25).to_h {|ary| ary.slice(0,2) }.compact_blank.yield_self do |lookup|
-        expect(lookup.fetch("Any other prior living situation?")).to eq(1)
+      all_rows.slice(25, 25).to_h { |ary| ary.slice(0, 2) }.compact_blank.yield_self do |lookup|
+        expect(lookup.fetch("How many individuals newly receiving HOPWA assistance didn't report or refused to report their prior living situation?")).to eq(1)
       end
     end
   end
