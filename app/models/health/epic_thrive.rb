@@ -151,10 +151,16 @@ module Health
       assessment.decline_to_answer = true if !@any_answer && @any_decline
 
       assessment.save!
-      patient.hrsn_screenings.where(instrument_id: assessment.id).first_or_create(
-        instrument: assessment,
-        created_at: assessment.created_at,
-      )
+      # A thrive collected outside of the enrollment window may throw an exception if it
+      # creates an HRSN QA, which we will ignore
+      begin
+        patient.hrsn_screenings.where(instrument_id: assessment.id).first_or_create(
+          instrument: assessment,
+          created_at: assessment.created_at,
+        )
+      rescue ActiveRecord::RecordInvalid
+        nil
+      end
     end
 
     def yes_no(value)
