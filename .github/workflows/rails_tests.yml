@@ -297,6 +297,13 @@ jobs:
           CHROME_URL: http://chrome:3333
         run:
           bash ./bin/run_hmis_system_tests.sh
+          bash ./bin/run_hmis_system_tests.sh
+          bash ./bin/run_hmis_system_tests.sh
+          bash ./bin/run_hmis_system_tests.sh
+          bash ./bin/run_hmis_system_tests.sh
+          bash ./bin/run_hmis_system_tests.sh
+          bash ./bin/run_hmis_system_tests.sh
+          bash ./bin/run_hmis_system_tests.sh
 
       - name: Archive artifacts
         if: always()
