@@ -13,7 +13,7 @@ module Admin::Health
       if params[:q].present?
         @users = User.text_search(params[:q])
       else
-        @users = User.all
+        @users = User.active
       end
       @users = @users.order(last_name: :asc, first_name: :asc)
       @pagy, @users = pagy(@users)

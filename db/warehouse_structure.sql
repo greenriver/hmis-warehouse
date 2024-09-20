@@ -10,13 +10,6 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
--- *not* creating schema, since initdb creates it
-
-
---
 -- Name: fuzzystrmatch; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -2516,26 +2509,26 @@ ALTER SEQUENCE public."Services_id_seq" OWNED BY public."Services".id;
 --
 
 CREATE VIEW public."Site" AS
- SELECT "Geography"."GeographyID",
-    "Geography"."ProjectID",
-    "Geography"."CoCCode",
-    "Geography"."PrincipalSite",
-    "Geography"."Geocode",
-    "Geography"."Address1",
-    "Geography"."City",
-    "Geography"."State",
-    "Geography"."ZIP",
-    "Geography"."DateCreated",
-    "Geography"."DateUpdated",
-    "Geography"."UserID",
-    "Geography"."DateDeleted",
-    "Geography"."ExportID",
-    "Geography".data_source_id,
-    "Geography".id,
-    "Geography"."InformationDate",
-    "Geography"."Address2",
-    "Geography"."GeographyType",
-    "Geography".source_hash
+ SELECT "GeographyID",
+    "ProjectID",
+    "CoCCode",
+    "PrincipalSite",
+    "Geocode",
+    "Address1",
+    "City",
+    "State",
+    "ZIP",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID",
+    data_source_id,
+    id,
+    "InformationDate",
+    "Address2",
+    "GeographyType",
+    source_hash
    FROM public."Geography";
 
 
@@ -3233,45 +3226,45 @@ CREATE VIEW public."bi_AssessmentResults" AS
 --
 
 CREATE VIEW public."bi_Client" AS
- SELECT "Client".id AS personalid,
+ SELECT id AS personalid,
     4 AS "HashStatus",
-    encode(sha256((public.soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."LastName")::text))))::bytea), 'hex'::text) AS "LastName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."NameSuffix")::text))))::bytea), 'hex'::text) AS "NameSuffix",
-    "Client"."NameDataQuality",
-    concat("right"(("Client"."SSN")::text, 4), encode(sha256((lpad(("Client"."SSN")::text, 9, 'x'::text))::bytea), 'hex'::text)) AS "SSN",
-    "Client"."SSNDataQuality",
-    "Client"."DOB",
-    "Client"."DOBDataQuality",
-    "Client"."AmIndAKNative",
-    "Client"."Asian",
-    "Client"."BlackAfAmerican",
-    "Client"."NativeHIOtherPacific",
-    "Client"."White",
-    "Client"."RaceNone",
-    "Client"."Ethnicity",
-    "Client"."Gender",
-    "Client"."VeteranStatus",
-    "Client"."YearEnteredService",
-    "Client"."YearSeparated",
-    "Client"."WorldWarII",
-    "Client"."KoreanWar",
-    "Client"."VietnamWar",
-    "Client"."DesertStorm",
-    "Client"."AfghanistanOEF",
-    "Client"."IraqOIF",
-    "Client"."IraqOND",
-    "Client"."OtherTheater",
-    "Client"."MilitaryBranch",
-    "Client"."DischargeStatus",
-    "Client"."DateCreated",
-    "Client"."DateUpdated",
-    "Client"."UserID",
-    "Client"."DateDeleted",
-    "Client"."ExportID"
+    encode(sha256((public.soundex(upper(btrim(("FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
+    encode(sha256((public.soundex(upper(btrim(("MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
+    encode(sha256((public.soundex(upper(btrim(("LastName")::text))))::bytea), 'hex'::text) AS "LastName",
+    encode(sha256((public.soundex(upper(btrim(("NameSuffix")::text))))::bytea), 'hex'::text) AS "NameSuffix",
+    "NameDataQuality",
+    concat("right"(("SSN")::text, 4), encode(sha256((lpad(("SSN")::text, 9, 'x'::text))::bytea), 'hex'::text)) AS "SSN",
+    "SSNDataQuality",
+    "DOB",
+    "DOBDataQuality",
+    "AmIndAKNative",
+    "Asian",
+    "BlackAfAmerican",
+    "NativeHIOtherPacific",
+    "White",
+    "RaceNone",
+    "Ethnicity",
+    "Gender",
+    "VeteranStatus",
+    "YearEnteredService",
+    "YearSeparated",
+    "WorldWarII",
+    "KoreanWar",
+    "VietnamWar",
+    "DesertStorm",
+    "AfghanistanOEF",
+    "IraqOIF",
+    "IraqOND",
+    "OtherTheater",
+    "MilitaryBranch",
+    "DischargeStatus",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID"
    FROM public."Client"
-  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id = 85));
+  WHERE (("DateDeleted" IS NULL) AND (data_source_id = 85));
 
 
 --
@@ -3633,24 +3626,24 @@ CREATE VIEW public."bi_Exit" AS
 --
 
 CREATE VIEW public."bi_Export" AS
- SELECT "Export".id AS "ExportID",
-    "Export"."SourceType",
-    "Export"."SourceID",
-    "Export"."SourceName",
-    "Export"."SourceContactFirst",
-    "Export"."SourceContactLast",
-    "Export"."SourceContactPhone",
-    "Export"."SourceContactExtension",
-    "Export"."SourceContactEmail",
-    "Export"."ExportDate",
-    "Export"."ExportStartDate",
-    "Export"."ExportEndDate",
-    "Export"."SoftwareName",
-    "Export"."SoftwareVersion",
-    "Export"."ExportPeriodType",
-    "Export"."ExportDirective",
-    "Export"."HashStatus",
-    "Export".data_source_id
+ SELECT id AS "ExportID",
+    "SourceType",
+    "SourceID",
+    "SourceName",
+    "SourceContactFirst",
+    "SourceContactLast",
+    "SourceContactPhone",
+    "SourceContactExtension",
+    "SourceContactEmail",
+    "ExportDate",
+    "ExportStartDate",
+    "ExportEndDate",
+    "SoftwareName",
+    "SoftwareVersion",
+    "ExportPeriodType",
+    "ExportDirective",
+    "HashStatus",
+    data_source_id
    FROM public."Export";
 
 
@@ -3842,18 +3835,18 @@ CREATE VIEW public."bi_Inventory" AS
 --
 
 CREATE VIEW public."bi_Organization" AS
- SELECT "Organization".id AS "OrganizationID",
-    "Organization"."OrganizationName",
-    "Organization"."VictimServicesProvider",
-    "Organization"."OrganizationCommonName",
-    "Organization"."DateCreated",
-    "Organization"."DateUpdated",
-    "Organization"."UserID",
-    "Organization"."DateDeleted",
-    "Organization"."ExportID",
-    "Organization".data_source_id
+ SELECT id AS "OrganizationID",
+    "OrganizationName",
+    "VictimServicesProvider",
+    "OrganizationCommonName",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID",
+    data_source_id
    FROM public."Organization"
-  WHERE ("Organization"."DateDeleted" IS NULL);
+  WHERE ("DateDeleted" IS NULL);
 
 
 --
@@ -3979,11 +3972,11 @@ CREATE TABLE public.data_sources (
 --
 
 CREATE VIEW public.bi_data_sources AS
- SELECT data_sources.id,
-    data_sources.name,
-    data_sources.short_name
+ SELECT id,
+    name,
+    short_name
    FROM public.data_sources
-  WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.deleted_at IS NULL));
+  WHERE ((deleted_at IS NULL) AND (deleted_at IS NULL));
 
 
 --
@@ -4002,9 +3995,9 @@ CREATE TABLE public.lookups_ethnicities (
 --
 
 CREATE VIEW public.bi_lookups_ethnicities AS
- SELECT lookups_ethnicities.id,
-    lookups_ethnicities.value,
-    lookups_ethnicities.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_ethnicities;
 
 
@@ -4024,9 +4017,9 @@ CREATE TABLE public.lookups_funding_sources (
 --
 
 CREATE VIEW public.bi_lookups_funding_sources AS
- SELECT lookups_funding_sources.id,
-    lookups_funding_sources.value,
-    lookups_funding_sources.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_funding_sources;
 
 
@@ -4046,9 +4039,9 @@ CREATE TABLE public.lookups_genders (
 --
 
 CREATE VIEW public.bi_lookups_genders AS
- SELECT lookups_genders.id,
-    lookups_genders.value,
-    lookups_genders.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_genders;
 
 
@@ -4068,9 +4061,9 @@ CREATE TABLE public.lookups_living_situations (
 --
 
 CREATE VIEW public.bi_lookups_living_situations AS
- SELECT lookups_living_situations.id,
-    lookups_living_situations.value,
-    lookups_living_situations.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_living_situations;
 
 
@@ -4090,9 +4083,9 @@ CREATE TABLE public.lookups_project_types (
 --
 
 CREATE VIEW public.bi_lookups_project_types AS
- SELECT lookups_project_types.id,
-    lookups_project_types.value,
-    lookups_project_types.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_project_types;
 
 
@@ -4112,9 +4105,9 @@ CREATE TABLE public.lookups_relationships (
 --
 
 CREATE VIEW public.bi_lookups_relationships AS
- SELECT lookups_relationships.id,
-    lookups_relationships.value,
-    lookups_relationships.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_relationships;
 
 
@@ -4134,9 +4127,9 @@ CREATE TABLE public.lookups_tracking_methods (
 --
 
 CREATE VIEW public.bi_lookups_tracking_methods AS
- SELECT lookups_tracking_methods.id,
-    lookups_tracking_methods.value,
-    lookups_tracking_methods.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_tracking_methods;
 
 
@@ -4156,9 +4149,9 @@ CREATE TABLE public.lookups_yes_no_etcs (
 --
 
 CREATE VIEW public.bi_lookups_yes_no_etcs AS
- SELECT lookups_yes_no_etcs.id,
-    lookups_yes_no_etcs.value,
-    lookups_yes_no_etcs.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_yes_no_etcs;
 
 
@@ -4195,15 +4188,15 @@ CREATE TABLE public.nightly_census_by_projects (
 --
 
 CREATE VIEW public.bi_nightly_census_by_projects AS
- SELECT nightly_census_by_projects.id,
-    nightly_census_by_projects.date,
-    nightly_census_by_projects.project_id,
-    nightly_census_by_projects.veterans,
-    nightly_census_by_projects.non_veterans,
-    nightly_census_by_projects.children,
-    nightly_census_by_projects.adults,
-    nightly_census_by_projects.all_clients,
-    nightly_census_by_projects.beds
+ SELECT id,
+    date,
+    project_id,
+    veterans,
+    non_veterans,
+    children,
+    adults,
+    all_clients,
+    beds
    FROM public.nightly_census_by_projects;
 
 
@@ -4450,7 +4443,12 @@ CREATE TABLE public.boston_project_scorecard_reports (
     increased_other_income double precision,
     invoicing_timeliness integer,
     invoicing_accuracy integer,
-    no_concern integer
+    no_concern integer,
+    materials_concern integer,
+    lms_completed boolean,
+    self_certified boolean,
+    days_to_lease_up_comparison integer,
+    comparison_apr_id bigint
 );
 
 
@@ -25238,16 +25236,16 @@ CREATE TABLE public.service_history_services_2050 (
 --
 
 CREATE MATERIALIZED VIEW public.service_history_services_materialized AS
- SELECT service_history_services.id,
-    service_history_services.service_history_enrollment_id,
-    service_history_services.record_type,
-    service_history_services.date,
-    service_history_services.age,
-    service_history_services.service_type,
-    service_history_services.client_id,
-    service_history_services.project_type,
-    service_history_services.homeless,
-    service_history_services.literally_homeless
+ SELECT id,
+    service_history_enrollment_id,
+    record_type,
+    date,
+    age,
+    service_type,
+    client_id,
+    project_type,
+    homeless,
+    literally_homeless
    FROM public.service_history_services
   WITH NO DATA;
 
@@ -26291,27 +26289,27 @@ ALTER SEQUENCE public.themes_id_seq OWNED BY public.themes.id;
 --
 
 CREATE VIEW public.todd_stats AS
- SELECT pg_stat_all_tables.relname,
+ SELECT relname,
     round((
         CASE
-            WHEN ((pg_stat_all_tables.n_live_tup + pg_stat_all_tables.n_dead_tup) = 0) THEN (0)::double precision
-            ELSE ((pg_stat_all_tables.n_dead_tup)::double precision / ((pg_stat_all_tables.n_dead_tup + pg_stat_all_tables.n_live_tup))::double precision)
+            WHEN ((n_live_tup + n_dead_tup) = 0) THEN (0)::double precision
+            ELSE ((n_dead_tup)::double precision / ((n_dead_tup + n_live_tup))::double precision)
         END * (100.0)::double precision)) AS "Frag %",
-    pg_stat_all_tables.n_live_tup AS "Live rows",
-    pg_stat_all_tables.n_dead_tup AS "Dead rows",
-    pg_stat_all_tables.n_mod_since_analyze AS "Rows modified since analyze",
+    n_live_tup AS "Live rows",
+    n_dead_tup AS "Dead rows",
+    n_mod_since_analyze AS "Rows modified since analyze",
         CASE
-            WHEN (COALESCE(pg_stat_all_tables.last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_vacuum
-            ELSE COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
+            WHEN (COALESCE(last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_vacuum
+            ELSE COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
         END AS last_vacuum,
         CASE
-            WHEN (COALESCE(pg_stat_all_tables.last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_analyze
-            ELSE COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
+            WHEN (COALESCE(last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_analyze
+            ELSE COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
         END AS last_analyze,
-    (pg_stat_all_tables.vacuum_count + pg_stat_all_tables.autovacuum_count) AS vacuum_count,
-    (pg_stat_all_tables.analyze_count + pg_stat_all_tables.autoanalyze_count) AS analyze_count
+    (vacuum_count + autovacuum_count) AS vacuum_count,
+    (analyze_count + autoanalyze_count) AS analyze_count
    FROM pg_stat_all_tables
-  WHERE (pg_stat_all_tables.schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
+  WHERE (schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
 
 
 --
@@ -52103,6 +52101,13 @@ CREATE INDEX index_boston_project_scorecard_reports_on_apr_id ON public.boston_p
 
 
 --
+-- Name: index_boston_project_scorecard_reports_on_comparison_apr_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_boston_project_scorecard_reports_on_comparison_apr_id ON public.boston_project_scorecard_reports USING btree (comparison_apr_id);
+
+
+--
 -- Name: index_boston_project_scorecard_reports_on_project_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60324,7 +60329,7 @@ CREATE UNIQUE INDEX tx_id_ds_id_ft_idx ON public.financial_transactions USING bt
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
 
 
 --
@@ -63342,6 +63347,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240731144633'),
 ('20240731155357'),
 ('20240815175202'),
-('20240821180638');
+('20240821180638'),
+('20240912125052'),
+('20240913130213');
 
 
