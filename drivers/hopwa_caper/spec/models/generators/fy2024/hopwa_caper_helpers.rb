@@ -87,22 +87,4 @@ module HopwaCaperHelpers
     exporter = HudReports::CsvExporter.new(report, question_number)
     exporter.as_array
   end
-
-  # row[][] => table[row_label][col_label]
-  def rows_to_table(rows)
-    result = {}
-    rows = rows.map(&:dup)
-    column_labels = rows.shift[1..] # Remove and store column labels, excluding the first element
-
-    rows.each do |row|
-      row_label = row.shift # Remove and store row label
-      result[row_label] = {}
-
-      row.each_with_index do |value, index|
-        result[row_label][column_labels[index]] = value
-      end
-    end
-
-    result
-  end
 end

@@ -80,7 +80,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
         row.append_cell_value(value: nil)
         gender_filters.each do |gender_filter|
           age_filters.each do |age_filter|
-            row.append_cell_value(value: age_filter.label)
+            row.append_cell_value(value: "#{gender_filter.label} #{age_filter.label}")
           end
         end
         ethnicity_filters.each do |ethnicity_filter|

@@ -85,6 +85,13 @@ module HopwaCaper::Generators::Fy2024::Sheets
       filters.each do |filter|
         add_household_enrollments_row(sheet, label: filter.label, enrollments: filter.apply(relevant_enrollments))
       end
+
+      # note: this is counting individuals, not households
+      sheet.append_row(label: "How many of the HOPWA eligible individuals died?") do |row|
+        filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ExitDestinationFilter.deceased
+        cell_scope = filter.apply(relevant_enrollments.where(hopwa_eligible: true))
+        row.append_cell_members(members: cell_scope.latest_by_personal_id.as_report_members)
+      end
     end
   end
 end

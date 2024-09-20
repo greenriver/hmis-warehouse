@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# services are only used to report on questions around households receiving certain service types
 module HopwaCaper
   class Service < GrdaWarehouseBase
     self.table_name = 'hopwa_caper_services'

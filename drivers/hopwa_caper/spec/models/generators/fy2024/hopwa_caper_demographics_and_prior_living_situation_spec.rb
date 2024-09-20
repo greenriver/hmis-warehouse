@@ -12,6 +12,24 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
     create_hopwa_project(funder: funder)
   end
 
+  # row[][] => table[row_label][col_label]
+  def rows_to_table(rows)
+    result = {}
+    rows = rows.map(&:dup)
+    column_labels = rows.shift[1..] # Remove and store column labels, excluding the first element
+
+    rows.each do |row|
+      row_label = row.shift # Remove and store row label
+      result[row_label] = {}
+
+      row.each_with_index do |value, index|
+        result[row_label][column_labels[index]] = value
+      end
+    end
+
+    result
+  end
+
   context 'With one multi-member household served with rental assistance' do
     let!(:household) do
       create_hopwa_eligible_household(
@@ -38,24 +56,24 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
 
       expect(report.hopwa_caper_enrollments.size).to eq(2)
 
-      question_as_rows(question_number: 'Q1A', report: report).yield_self do |rows|
-        table = rows_to_table(rows)
+      all_rows = question_as_rows(question_number: 'Q1', report: report)
+
+      # hopwa qualified individuals demographics
+      rows_to_table(all_rows.slice(2, 11)).yield_self do |table|
         expect(table['Black/African American & White']['Male 18-30']).to eq(1)
         expect(table['White']['Female 31-50']).to eq(0)
       end
-      question_as_rows(question_number: 'Q1B', report: report).yield_self do |rows|
-        table = rows_to_table(rows)
+
+      # beneficiaries demographics
+      rows_to_table(all_rows.slice(14, 11)).yield_self do |table|
         expect(table['Black/African American & White']['Male 18-30']).to eq(0)
         expect(table['White']['Female 31-50']).to eq(1)
       end
-    end
 
-    it 'reports prior living' do
-      report = create_report([project])
-      run_report(report)
-      expect(report.hopwa_caper_enrollments.size).to eq(2)
-      rows = question_as_rows(question_number: 'Q1C', report: report).to_h
-      expect(rows.fetch("Doesn't know, prefers not to answer, or not collected")).to eq(1)
+      # demographics & prior living
+      all_rows.slice(25, 25).to_h {|ary| ary.slice(0,2) }.compact_blank.yield_self do |lookup|
+        expect(lookup.fetch("Any other prior living situation?")).to eq(1)
+      end
     end
   end
 end

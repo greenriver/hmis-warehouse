@@ -25,17 +25,6 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
       end
     end
 
-    # MISSING_CODES = [8, 9, 99].freeze
-    # def self.all
-    #  # FIXME: this is different from the PLS categories in the spec
-    #  items = HudUtility2024.situations_for(:prior).map do |code, label|
-    #    next if code.in?(MISSING_CODES)
-
-    #    new(label: label, codes: [code])
-    #  end.compact
-    #  items.push new(label: "Doesn't know, prefers not to answer, or not collected", codes: MISSING_CODES)
-    # end
-
     def self.all
       filters = [
         new(

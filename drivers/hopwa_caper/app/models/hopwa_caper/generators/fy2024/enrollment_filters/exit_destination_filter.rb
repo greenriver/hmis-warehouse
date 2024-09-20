@@ -49,6 +49,10 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
       )
     end
 
+    def self.deceased
+      new(label: 'Deceased', types: ['Deceased'])
+    end
+
     def self.php_destinations
       [
         other_hopwa_program,
@@ -57,7 +61,6 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
       ]
     end
 
-    # FIXME: it's unclear how we can implement the spec below. Returning exit destinations for now
     def self.all_destinations
       type_unknown = nil
 
@@ -105,11 +108,8 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
           label: 'How many households were disconnected from care?',
           types: type_unknown,
         ),
-        new(
-          label: 'How many of the HOPWA eligible individuals died?',
-          types: ['Deceased'],
-        ),
       ]
     end
+
   end
 end
