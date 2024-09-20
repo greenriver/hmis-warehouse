@@ -87,7 +87,7 @@ class AwsS3
     @bucket.objects(prefix: prefix).sort_by(&:last_modified).map(&:key)
   end
 
-  def list_objects(max_keys = 1_000, prefix: '')
+  def list_objects(max_keys = 10_000, prefix: '')
     objects = []
     batch = client.list_objects_v2(
       {
