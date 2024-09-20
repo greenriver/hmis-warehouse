@@ -8996,7 +8996,6 @@ type Query {
     role: RecordFormRole!
   ): FormDefinition
   referralPosting(id: ID!): ReferralPosting
-  refreshExternalSubmissions: Boolean
 
   """
   Service lookup
