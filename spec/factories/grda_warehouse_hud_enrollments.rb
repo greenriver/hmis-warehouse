@@ -19,7 +19,7 @@ FactoryBot.define do
     sequence(:EnrollmentID, 1)
     # PersonalID
     # ProjectID
-    # EntryDate
+    EntryDate { 1.years.ago.to_date }
     # HouseholdID
     # RelationshipToHoH
     # LivingSituation
