@@ -609,7 +609,7 @@ module GrdaWarehouse::Tasks
           changed[:gendernones] << dest.id if dest.GenderNone != dest_attr[:GenderNone]
           changed[:veteran_statuses] << dest.id if dest.VeteranStatus != dest_attr[:VeteranStatus]
           changed[:new_vets] << dest.id if dest.VeteranStatus != 1 && dest_attr[:VeteranStatus] == 1
-          changed[:newly_not_vets] << dest.id if dest.VeteranStatus == 1 && dest_attr[:VeteranStatus] == 0 # rubocop:disable Style/NumericPredicate
+          changed[:newly_not_vets] << dest.id if dest.VeteranStatus == 1 && dest_attr[:VeteranStatus] == 0
         end
 
         update_destination_clients(changed_batch)
@@ -749,7 +749,15 @@ module GrdaWarehouse::Tasks
       return unless @clients.any?
       return if @dry_run
 
-      GrdaWarehouse::WarehouseClient.where(destination_id: @clients).update_all(deleted_at: @soft_delete_date)
+      # WarehouseClient doesn't actually use acts as paranoid, but for some reason we set these as deleted
+      # There is upstream tooling in OP Analytics that obeys this deleted_at timestamp, so we'll:
+      # 1. Clear all deleted_at timestamps
+      # 2. Set deleted_at to the @soft_delete_date for any clients who aren't here now
+      # This allows re-using warehouse clients in the same way we re-use HUD Clients
+      GrdaWarehouse::WarehouseClient.transaction do
+        GrdaWarehouse::WarehouseClient.where.not(deleted_at: nil).update_all(deleted_at: nil)
+        GrdaWarehouse::WarehouseClient.where(destination_id: @clients).update_all(deleted_at: @soft_delete_date)
+      end
     end
 
     private def clean_hmis_clients
@@ -797,8 +805,8 @@ module GrdaWarehouse::Tasks
         next unless dob # ignore blanks
 
         client_age = GrdaWarehouse::Hud::Client.age(date: entry_date, dob: dob)
-        incorrect_age_clients << id if age.present? && (age != client_age || age < 0) # rubocop:disable Style/NumericPredicate
-        less_than_zero << id if age.present? && age < 0 # rubocop:disable Style/NumericPredicate
+        incorrect_age_clients << id if age.present? && (age != client_age || age < 0)
+        less_than_zero << id if age.present? && age < 0
         invalidate_clients << id if age.present? && age != client_age
       end
       msg = "Invalidating #{incorrect_age_clients.size} clients because ages don't match the service history."
