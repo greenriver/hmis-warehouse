@@ -754,10 +754,8 @@ module GrdaWarehouse::Tasks
       # 1. Clear all deleted_at timestamps
       # 2. Set deleted_at to the @soft_delete_date for any clients who aren't here now
       # This allows re-using warehouse clients in the same way we re-use HUD Clients
-      GrdaWarehouse::WarehouseClient.transaction do
-        GrdaWarehouse::WarehouseClient.where.not(deleted_at: nil).update_all(deleted_at: nil)
-        GrdaWarehouse::WarehouseClient.where(destination_id: @clients).update_all(deleted_at: @soft_delete_date)
-      end
+      GrdaWarehouse::WarehouseClient.where.not(deleted_at: nil).update_all(deleted_at: nil)
+      GrdaWarehouse::WarehouseClient.where(destination_id: @clients).update_all(deleted_at: @soft_delete_date)
     end
 
     private def clean_hmis_clients
