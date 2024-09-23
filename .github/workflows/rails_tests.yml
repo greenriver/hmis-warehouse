@@ -187,103 +187,103 @@ jobs:
         run: bundle exec rails assets:precompile
 
       # fetch some closed source files
-      # - name: 'Fetch testkit source files'
-      #   uses: keithweaver/aws-s3-github-action@v1.0.0
-      #   with:
-      #     command: cp
-      #     source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2024 }}
-      #     destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
-      #     aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-      #     aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-      #     aws_region: us-east-1
-      #     flags: --recursive
-      # # fetch pre-processed FY2024 data set; note that we need to update this whenever the test kit source
-      # # data changes.  To update:
-      # # 1. Remove the fixtures from `drivers/datalab_testkit/spec/fixpoints/`
-      # # 2. Replace the source and result files in `drivers/datalab_testkit/spec/fixtures` and on S3
-      # # 3. Re-run the tests  rspec drivers/hud_apr/spec/models/fy2024/datalab_2_0_spec.rb
-      # # 4. Update the fixpoint in S3 from the newly generated file
-      # - name: 'Fetch testkit fixpoint files'
-      #   uses: keithweaver/aws-s3-github-action@v1.0.0
-      #   with:
-      #     command: cp
-      #     source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2024 }}
-      #     destination: ./drivers/datalab_testkit/spec/fixpoints/
-      #     aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-      #     aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-      #     aws_region: us-east-1
-      #     flags: --recursive
+      - name: 'Fetch testkit source files'
+        uses: keithweaver/aws-s3-github-action@v1.0.0
+        with:
+          command: cp
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2024 }}
+          destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
+          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+          aws_region: us-east-1
+          flags: --recursive
+      # fetch pre-processed FY2024 data set; note that we need to update this whenever the test kit source
+      # data changes.  To update:
+      # 1. Remove the fixtures from `drivers/datalab_testkit/spec/fixpoints/`
+      # 2. Replace the source and result files in `drivers/datalab_testkit/spec/fixtures` and on S3
+      # 3. Re-run the tests  rspec drivers/hud_apr/spec/models/fy2024/datalab_2_0_spec.rb
+      # 4. Update the fixpoint in S3 from the newly generated file
+      - name: 'Fetch testkit fixpoint files'
+        uses: keithweaver/aws-s3-github-action@v1.0.0
+        with:
+          command: cp
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2024 }}
+          destination: ./drivers/datalab_testkit/spec/fixpoints/
+          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+          aws_region: us-east-1
+          flags: --recursive
 
-      # - name: 'Fetch result files'
-      #   uses: keithweaver/aws-s3-github-action@v1.0.0
-      #   with:
-      #     command: cp
-      #     source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_FY_2024 }}
-      #     destination: ./drivers/datalab_testkit/spec/fixtures/results/
-      #     aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-      #     aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-      #     aws_region: us-east-1
-      #     flags: --recursive
+      - name: 'Fetch result files'
+        uses: keithweaver/aws-s3-github-action@v1.0.0
+        with:
+          command: cp
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_FY_2024 }}
+          destination: ./drivers/datalab_testkit/spec/fixtures/results/
+          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+          aws_region: us-east-1
+          flags: --recursive
 
-      # - name: 'Fetch 2022 -> 2024 source files'
-      #   uses: keithweaver/aws-s3-github-action@v1.0.0
-      #   with:
-      #     command: cp
-      #     source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2024 }}/merged/source
-      #     destination: ./drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/
-      #     aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-      #     aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-      #     aws_region: us-east-1
-      #     flags: --recursive
+      - name: 'Fetch 2022 -> 2024 source files'
+        uses: keithweaver/aws-s3-github-action@v1.0.0
+        with:
+          command: cp
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2024 }}/merged/source
+          destination: ./drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/
+          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+          aws_region: us-east-1
+          flags: --recursive
 
-      # # Regenerate the graphql schema and fail if it has changed
-      # - name: 'Check HMIS GraphQL schema'
-      #   if: matrix.test_group.system_tests
-      #   run: |
-      #     bundle exec rake driver:hmis:dump_graphql_schema
+      # Regenerate the graphql schema and fail if it has changed
+      - name: 'Check HMIS GraphQL schema'
+        if: matrix.test_group.system_tests
+        run: |
+          bundle exec rake driver:hmis:dump_graphql_schema
 
-      # - name: Run tests
-      #   if: matrix.test_group.tag
-      #   env:
-      #     AWS_ACCESS_KEY_ID: local_access_key
-      #     AWS_SECRET_ACCESS_KEY: local_secret_key
-      #     GROVER_NO_SANDBOX: true
-      #     CHROMIUM_PATH: /usr/bin/chromium-browser
-      #     MAX_FAILURES: 60
-      #     LOG_LEVEL: INFO
-      #   run: |
-      #     bundle exec rails ci:update_spec_tags[.github/rspec_buckets.json]
+      - name: Run tests
+        if: matrix.test_group.tag
+        env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          GROVER_NO_SANDBOX: true
+          CHROMIUM_PATH: /usr/bin/chromium-browser
+          MAX_FAILURES: 60
+          LOG_LEVEL: INFO
+        run: |
+          bundle exec rails ci:update_spec_tags[.github/rspec_buckets.json]
 
-      #     # capture rspec profiling information
-      #     # mkdir -p tmp/rspec_profiles
-      #     # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
+          # capture rspec profiling information
+          # mkdir -p tmp/rspec_profiles
+          # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
 
-      #     bundle exec rspec --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
+          bundle exec rspec --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
 
-      # - name: Run okta tests
-      #   if: matrix.test_group.okta_tests
-      #   env:
-      #     AWS_ACCESS_KEY_ID: local_access_key
-      #     AWS_SECRET_ACCESS_KEY: local_secret_key
-      #     GROVER_NO_SANDBOX: true
-      #     CHROMIUM_PATH: /usr/bin/chromium-browser
-      #     MAX_FAILURES: 60
-      #     LOG_LEVEL: INFO
-      #   run: |
-      #     OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
+      - name: Run okta tests
+        if: matrix.test_group.okta_tests
+        env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          GROVER_NO_SANDBOX: true
+          CHROMIUM_PATH: /usr/bin/chromium-browser
+          MAX_FAILURES: 60
+          LOG_LEVEL: INFO
+        run: |
+          OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
 
-      # - name: Run logging tests
-      #   if: matrix.test_group.logging_tests
-      #   env:
-      #     AWS_ACCESS_KEY_ID: local_access_key
-      #     AWS_SECRET_ACCESS_KEY: local_secret_key
-      #     LOG_LEVEL: INFO
-      #   run: |
-      #     TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
-      #     TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
-      #     TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
-      #     TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
-      #     TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color --format p spec/models/logging_spec.rb
+      - name: Run logging tests
+        if: matrix.test_group.logging_tests
+        env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          LOG_LEVEL: INFO
+        run: |
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
+          TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color --format p spec/models/logging_spec.rb
 
       - name: Build front end and run tests
         if: matrix.test_group.system_tests
