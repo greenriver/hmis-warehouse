@@ -37,7 +37,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
       end
     end
 
-    # add a labeled row, enrollments are counted only their HOH
+    # add a labeled row, enrollments are counted by HOH
     def add_household_enrollments_row(sheet, label:, enrollments:)
       if enrollments.nil?
         sheet.append_row(label: label)
@@ -75,21 +75,23 @@ module HopwaCaper::Generators::Fy2024::Sheets
     end
 
     def housing_outcomes_sheet(sheet)
+      # for exits, track the hopwa-qualified individual
+      scope = relevant_enrollments.where(hopwa_eligible: true)
       add_household_enrollments_row(
         sheet,
         label: 'How many households continued receiving this type of HOPWA assistance into the next year?',
-        enrollments: relevant_enrollments.where(exit_date: nil),
+        enrollments: scope.where(exit_date: nil),
       )
 
       filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ExitDestinationFilter.all_destinations
       filters.each do |filter|
-        add_household_enrollments_row(sheet, label: filter.label, enrollments: filter.apply(relevant_enrollments))
+        add_household_enrollments_row(sheet, label: filter.label, enrollments: filter.apply(scope))
       end
 
       # note: this is counting individuals, not households
       sheet.append_row(label: 'How many of the HOPWA eligible individuals died?') do |row|
         filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ExitDestinationFilter.deceased
-        cell_scope = filter.apply(relevant_enrollments.where(hopwa_eligible: true))
+        cell_scope = filter.apply(scope)
         row.append_cell_members(members: cell_scope.latest_by_personal_id.as_report_members)
       end
     end

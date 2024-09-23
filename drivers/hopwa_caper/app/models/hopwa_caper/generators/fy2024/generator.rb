@@ -81,11 +81,14 @@ module HopwaCaper::Generators::Fy2024
     protected
 
     def service_history_enrollments
+      overlapping_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        open_between(start_date: @report.start_date, end_date: @report.end_date)
+
       # tbra has a 15 year look-back
-      lookback = 15.years
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.
-        entry.
-        open_between(start_date: @report.start_date - lookback, end_date: @report.end_date)
+      look_back = 15.years
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        open_between(start_date: @report.start_date - look_back, end_date: @report.end_date).
+        where(client_id: overlapping_enrollments.select(:client_id))
 
       @filter = self.class.filter_class.new(
         user_id: @report.user_id,

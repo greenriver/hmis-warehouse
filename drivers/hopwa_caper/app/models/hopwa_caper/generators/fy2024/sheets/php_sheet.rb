@@ -37,17 +37,19 @@ module HopwaCaper::Generators::Fy2024::Sheets
     end
 
     def housing_outcomes_sheet(sheet)
+      # for exits, track the hopwa-qualified individual
+      scope = relevant_enrollments.where(hopwa_eligible: true)
       filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ExitDestinationFilter.php_destinations
       total_filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::IncludeFilter.new(label: 'Housing Outcomes for Households Served by this Activity', filters: filters)
       add_household_enrollments_row(
         sheet,
         label: 'Housing Outcomes for Households Served by this Activity',
-        enrollments: total_filter.apply(relevant_enrollments),
+        enrollments: total_filter.apply(scope),
       )
 
       sheet.append_row(label: 'In the context of PHP, "exited" means the housing situation into which the household was placed using the PHP assistance.')
       filters.each do |filter|
-        add_household_enrollments_row(sheet, label: filter.label, enrollments: filter.apply(relevant_enrollments))
+        add_household_enrollments_row(sheet, label: filter.label, enrollments: filter.apply(scope))
       end
     end
   end
