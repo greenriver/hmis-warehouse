@@ -548,7 +548,7 @@ module HudApr::Generators::Shared::Fy2024
             ],
           ],
         ],
-        client: [:source_events],
+        client: [:source_events, :source_assessments],
       }
       enrollment_scope_without_preloads.preload(preloads)
     end
@@ -723,35 +723,45 @@ module HudApr::Generators::Shared::Fy2024
     # client in the table above.
     # 5. If, for a given client, none of the records found belong to the same [project id] as the CE assessment from step 1, use the latest of those to report the client in the table above.
     # 6. The intention of the criteria is to locate the most recent logically relevant record pertaining to the CE assessment record reported in Q9a and Q9b by giving preference to data entered by the same project.
-    private def latest_ce_event(she_enrollment, hoh_enrollment, ce_latest_assessment)
-      # need first assessment after report end if it occurred within 90 days of report end
-      # exclude events after that assessment if it exists
-      enrollment = if she_enrollment.client.source_events.present?
-        she_enrollment
+    private def latest_ce_event(latest_she_for_client, latest_enrollment_for_hoh, latest_ce_assessment)
+      # If the client doesn't have any CE events, use the HoH to look for events
+      client = if latest_she_for_client.client.source_events.present?
+        latest_she_for_client.client
       else
-        hoh_enrollment
+        latest_enrollment_for_hoh.client
       end
-      return unless enrollment.present?
+      return unless client.present?
 
-      potential_events = enrollment.client.source_events.select do |e|
-        next_assessment = first_ce_assessment_within_90_days_after_report_range(she_enrollment)
-        if ce_latest_assessment
-          start_date_check = ce_latest_assessment.AssessmentDate
-          end_date_check = [@report.end_date + 90.days, next_assessment&.AssessmentDate].compact.min
-        else
-          start_date_check = @report.start_date
-          end_date_check = @report.end_date
-        end
-        e.EventDate.present? && e.EventDate.between?(
-          start_date_check,
-          end_date_check,
-        ) && e.enrollment.project.participating_in_ce_on?(e.EventDate)
+      # 1. Determine the [date of assessment] (4.19.1) from the latest [Coordinated Entry Assessment] (4.19) for each household in the report universe as described in the report universe instructions and the determining latest assessment instructions.
+      # already determined using `latest_ce_assessment`
+
+      max_assessment_date_post_report_end_date = client.source_assessments.map(&:AssessmentDate).select do |d|
+        d.present? && d.between?(@report.end_date, @report.end_date + 90.days)
+      end.max
+
+      # 2. For all source event for the client
+      potential_events = client.source_events.select do |event|
+        # because we are using a preload, we don't filter earlier events in the SQL, make sure they all occur
+        # on or after the report start
+        next false if event.EventDate <= @report.start_date
+
+        # 2.a [Date of event] >= [date of assessment] from step 1
+        after_assessment = event.EventDate > latest_ce_assessment.AssessmentDate
+        # 2.b Date of event] <= ([report end date] + 90 days)
+        within_90_days_of_report_end = event.EventDate <= (@report.end_date + 90.days)
+        # 2.c [Date of event] < Any [dates of assessment] which are between [report end date] and ([report end date] + 90 days)
+        before_next_assessment = max_assessment_date_post_report_end_date.blank? || event.EventDate < max_assessment_date_post_report_end_date
+        project_ce_participating = event.enrollment.project.participating_in_ce_on?(event.EventDate)
+
+        after_assessment && within_90_days_of_report_end && before_next_assessment && project_ce_participating
       end
-      events_from_project = potential_events.select do |e|
-        e.enrollment.project.id == she_enrollment.project.id
+      # 3. For each client, if any of the records found belong to the same [project id] (2.02.1) as the CE assessment from step 1, use the latest of those to report the client in the table above.
+      events_from_project = potential_events.select do |event|
+        event.enrollment.project.id == latest_ce_assessment.project.id
       end
       return events_from_project.max_by(&:EventDate) if events_from_project.present?
 
+      # 4. If, for a given client, none of the records found belong to the same [project id] (2.02.1) as the CE assessment from step 1, use the latest of those to report the client in the table above.
       potential_events.max_by(&:EventDate)
     end
 
