@@ -160,8 +160,9 @@ module Health
           instrument: assessment,
           created_at: assessment.created_at,
         )
-      rescue ActiveRecord::RecordInvalid
-        nil
+      rescue ActiveRecord::RecordInvalid => e
+        # Ignore only validation fails because of the date of the activity
+        raise unless e.record.errors[:date_of_activity].any?
       end
     end
 
