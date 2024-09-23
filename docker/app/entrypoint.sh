@@ -43,6 +43,15 @@ cp /usr/share/zoneinfo/$TIMEZONE /app/etc-localtime
 echo $TIMEZONE > /etc/timezone
 
 if [ "$CONTAINER_VARIANT" == "dj" ]; then
+  if [[ "${EKS}" == "true" ]] ; then
+    echo "Starting metrics server"
+    cd /app/dj-metrics
+    export BUNDLE_GEMFILE=../Gemfile
+    exec bundle exec rackup --host 0.0.0.0 &
+    cd /app
+    unset BUNDLE_GEMFILE
+  fi
+
   echo "Calling: $@"
   exec bundle exec "$@"
 fi

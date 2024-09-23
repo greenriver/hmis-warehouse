@@ -97,8 +97,6 @@ USER ${USER_ID}
 
 CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
 
-COPY docker/app/entrypoint.dj-metrics.sh /usr/bin/
-
 #########################################
 ## Stage/target for use in development ##
 #########################################
