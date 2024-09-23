@@ -12,7 +12,6 @@ RSpec.shared_context 'SystemSpecHelper' do
   def sign_in(user, password: DEFAULT_USER_PASSWORD)
     # this should go into before-each but that seems to hang up some tests
     visit('/')
-    disable_transitions
 
     fill_in 'Email Address', with: user.email
     fill_in 'Password', with: password
@@ -70,11 +69,6 @@ RSpec.shared_context 'SystemSpecHelper' do
     ensure
       Capybara.ignore_hidden_elements = last_value
     end
-  end
-
-  def disable_transitions
-    @disable_transitions_js ||= File.read(Rails.root.join('spec/assets/disable_transitions.js'))
-    browser.add_script_tag(content: @disable_transitions_js)
   end
 
   def browser
