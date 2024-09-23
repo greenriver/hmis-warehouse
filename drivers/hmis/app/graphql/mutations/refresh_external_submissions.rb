@@ -9,10 +9,10 @@ module Mutations
 
     def resolve
       handlers = ['HmisExternalApis::ConsumeExternalFormSubmissionsJob']
-      return if Delayed::Job.queued?(handlers) || Delayed::Job.running?(handlers)
+      return { success: true } if Delayed::Job.queued?(handlers) || Delayed::Job.running?(handlers)
 
-      queue = ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
-      HmisExternalApis::ConsumeExternalFormSubmissionsJob.delay(priority: 12, queue: queue)
+      queue = ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+      HmisExternalApis::ConsumeExternalFormSubmissionsJob.delay(priority: 0, queue: queue)
 
       { success: true }
     end
