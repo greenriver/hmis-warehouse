@@ -76,7 +76,7 @@ module
           nil,
         ]
         available_coc_codes.each do |coc_code|
-          rows["_Race_data_#{title}"] += [
+          rows["_Race by Ethnicity_data_#{title}"] += [
             race_combination_count(id, coc_code.to_sym),
             race_combination_percentage(id, coc_code.to_sym) / 100,
           ]
