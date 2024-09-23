@@ -757,7 +757,7 @@ module HudApr::Generators::Shared::Fy2024
       end
       # 3. For each client, if any of the records found belong to the same [project id] (2.02.1) as the CE assessment from step 1, use the latest of those to report the client in the table above.
       events_from_project = potential_events.select do |event|
-        event.enrollment.project.id == latest_ce_assessment.project.id
+        event.enrollment.project.id == latest_ce_assessment.enrollment.project.id
       end
       return events_from_project.max_by(&:EventDate) if events_from_project.present?
 
