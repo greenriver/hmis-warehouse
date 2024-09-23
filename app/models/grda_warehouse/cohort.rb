@@ -15,6 +15,8 @@ module GrdaWarehouse
     include Rails.application.routes.url_helpers
 
     acts_as_paranoid
+    has_paper_trail
+
     validates_presence_of :name
     validates :days_of_inactivity, numericality: { only_integer: true, allow_nil: true }
     validates :static_column_count, numericality: { only_integer: true }
