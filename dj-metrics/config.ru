@@ -10,11 +10,6 @@ require_relative '../app/models/dj_metrics'
 
 DjMetrics.instance.register_metrics_for_metrics_endpoint!
 
-# until DjMetrics.instance.metrics_ready?
-#   puts 'Waiting for the metrics directory to be ready'
-#   sleep 2
-# end
-
 use Rack::Deflater
 use Prometheus::Middleware::Exporter
 

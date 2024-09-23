@@ -47,7 +47,7 @@ if [ "$CONTAINER_VARIANT" == "dj" ]; then
     echo "Starting metrics server"
     cd /app/dj-metrics
     export BUNDLE_GEMFILE=../Gemfile
-    exec bundle exec rackup --host 0.0.0.0 &
+    exec bundle exec puma -t 1:5
     cd /app
     unset BUNDLE_GEMFILE
   fi
