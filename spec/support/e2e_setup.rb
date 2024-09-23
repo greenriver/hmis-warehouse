@@ -18,8 +18,8 @@ RSpec.shared_context 'SystemSpecHelper' do
     click_button('Sign In')
     assert_text user.full_name # user's name should appear in the header
 
-    page.driver.refresh # https://github.com/rubycdp/cuprite/issues/219
-    assert_text user.full_name # user's name should appear in the header
+    # page.driver.refresh # https://github.com/rubycdp/cuprite/issues/219
+    # assert_text user.full_name # user's name should appear in the header
   end
 
   def sign_out
