@@ -669,7 +669,9 @@ module Health
     end
 
     def self.update_demographic_from_sources
+      Rails.logger.info 'Patient: start update_demographics_from_sources'
       all.each(&:update_demographics_from_sources)
+      Rails.logger.info 'Patient: end update_demographics_from_sources'
     end
 
     def available_team_members

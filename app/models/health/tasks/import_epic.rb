@@ -99,7 +99,9 @@ module Health::Tasks
 
     def import_files
       Health.models_by_health_filename.each do |file, klass|
+        Rails.logger.info "ImportEpic: start #{file}"
         import(klass: klass, file: file)
+        Rails.logger.info "ImportEpic: end #{file}"
       end
     end
 
