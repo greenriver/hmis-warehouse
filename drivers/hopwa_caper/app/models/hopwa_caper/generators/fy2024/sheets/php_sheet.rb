@@ -14,7 +14,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
       { method: :expenditures_sheet, label: 'PHP Expenditures for Households Served by this Activity' },
       { method: :income_sources_sheet, label: 'Sources of Income for Households Served by this Activity' },
       { method: :medical_insurance, label: 'Medical Insurance for Households Served by this Activity' },
-      { method: :housing_outcomes_sheet, label: 'Housing Outcomes for Households Served by this Activity' },
+      { method: :housing_outcomes_sheet, label: nil },
     ].freeze
 
     protected
