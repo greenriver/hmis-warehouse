@@ -5,22 +5,19 @@
 ###
 
 module HopwaCaper::Generators::Fy2024::EnrollmentFilters
-  TbraLongevityFilter = Struct.new(:label, :personal_ids, keyword_init: true) do
+  TbraLongevityFilter = Struct.new(:label, :client_ids, keyword_init: true) do
     def apply(scope)
-      scope.where(personal_id: personal_ids)
+      scope.where(destination_client_id: client_ids)
     end
 
+    # interpreting the spec as measuring years since the earliest entry-date for a hopwa-qualified individual
     def self.for_report(report)
-      report.start_date
-      end_date = report.end_date
-
       program_filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.tbra_hopwa
 
-      # measure from the earliest entry date for this individual
-      grouped = program_filter.apply(report.hopwa_caper_enrollments).
+      rows = program_filter.apply(report.hopwa_caper_enrollments).
         where(hopwa_eligible: true).
-        group(:personal_id).
-        pluck(:personal_id, Arel.sql('MIN(entry_date)')).to_h
+        group(:destination_client_id).
+        pluck(:destination_client_id, Arel.sql('MIN(entry_date)'))
 
       buckets = {
         'less than one year' => [],
@@ -29,8 +26,8 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
         'more than 10 years, but less than 15 years' => [],
         'more than 15 years' => [],
       }
-      grouped.each do |personal_id, entry_date|
-        years_diff = ((end_date - entry_date) / 365.25).to_i
+      rows.each do |client_id, entry_date|
+        years_diff = ((report.end_date - entry_date) / 365.25).to_i
         if years_diff == 0
           bucket = 'less than one year'
         elsif years_diff.between?(1, 5)
@@ -42,12 +39,17 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
         elsif years_diff > 15
           bucket = 'more than 15 years'
         end
-        buckets[bucket].push(personal_id)
+        buckets[bucket].push(client_id)
       end
 
-      buckets.map do |label, personal_ids|
-        new(label: "How many households have been served with TBRA for #{label}?", personal_ids: personal_ids)
+      filters = buckets.map do |label, client_ids|
+        new(label: "How many households have been served with TBRA for #{label}?", client_ids: client_ids)
       end
+      total_filter = new(
+        label: 'Longevity for Households Served by this Activity',
+        client_ids: buckets.values.flatten,
+      )
+      [total_filter] + filters
     end
   end
 end

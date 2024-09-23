@@ -12,10 +12,10 @@ module HopwaCaper::Generators::Fy2024::Sheets
     CONTENTS = [
       { method: :households_served_sheet, label: 'Households Served by this Activity - STRMU Breakdown' },
       { method: :expenditures_sheet, label: 'STRMU Expenditures' },
-      { method: :income_levels_sheet, label: 'Income Levels for Households Served by this Activity' },
+      { method: :income_levels_sheet, label: nil },
       { method: :income_sources_sheet, label: 'Sources of Income for Households Served by this Activity' },
       { method: :medical_insurance, label: 'Medical Insurance for Households Served by this Activity' },
-      { method: :longevity_sheet, label: 'Longevity for Households Served by this Activity' },
+      { method: :longevity_sheet, label: nil },
       { method: :housing_outcomes_sheet, label: 'Housing Outcomes for Households Served by this Activity' },
     ].freeze
 

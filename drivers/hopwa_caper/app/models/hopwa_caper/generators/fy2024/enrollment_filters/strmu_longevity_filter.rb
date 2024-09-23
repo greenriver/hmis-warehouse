@@ -5,63 +5,55 @@
 ###
 
 module HopwaCaper::Generators::Fy2024::EnrollmentFilters
-  # STRMU is one-time service. Expect a new enrollment/household every time so we count individuals
-  StrmuLongevityFilter = Struct.new(:label, :personal_ids, keyword_init: true) do
+  # STRMU is one-time service. Expect a new enrollment/household every time service is provided
+  StrmuLongevityFilter = Struct.new(:label, :client_ids, keyword_init: true) do
     def apply(scope)
-      scope.where(personal_id: personal_ids)
+      scope.where(destination_client_id: client_ids)
     end
 
     def self.for_report(report)
-      start_date = report.start_date
-      year_offset = start_date.yday - 1 # days since jan 1
-      end_date = report.end_date
-
       program_filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.strmu_hopwa
 
-      grouped = program_filter.apply(report.hopwa_caper_enrollments).
+      rows = program_filter.apply(report.hopwa_caper_enrollments).
         where(hopwa_eligible: true).
-        where(entry_date: (start_date - 5.years)..end_date).
-        group(:personal_id).
-        pluck(:personal_id, Arel.sql('ARRAY_AGG(entry_date)')).to_h
+        where(entry_date: (report.start_date - 5.years)..report.end_date).
+        group(:destination_client_id).
+        pluck(:destination_client_id, Arel.sql('ARRAY_AGG(entry_date)'))
 
+      # since the report asks us to sum these, assume they are expected mutually exclusive
       buckets = {
-        new: [],
-        prev: [],
-        three_or_more: [],
-        all_five: [],
+        'How many households have been served by STRMU for the first time this year?' => [],
+        'How many households also received STRMU assistance during the previous year?' => [],
+        'How many households received STRMU assistance more than twice during the previous five years?' => [],
+        'How many households received STRMU assistance during the last five consecutive years?' => [],
       }
 
-      current_year = start_date.year
-      grouped.each do |personal_id, entry_dates|
-        entry_years = entry_dates.map { |d| (d - year_offset).year }.uniq
-        if entry_years == [current_year]
-          buckets[:new] << personal_id
-          next
+      rows.each do |client_id, entry_dates|
+        # what years are covered by prior enrollments
+        entry_years = entry_dates.map(&:year).uniq.select
+        bucket = nil
+        if entry_years.size >= 5
+          bucket = 'How many households received STRMU assistance during the last five consecutive years?'
+        elsif entry_years.size > 2
+          bucket = 'How many households received STRMU assistance more than twice during the previous five years?'
+        elsif entry_dates.min < report.start_date
+          bucket = 'How many households also received STRMU assistance during the previous year?'
+        elsif entry_dates.min >= report.start_date
+          bucket = 'How many households have been served by STRMU for the first time this year?'
+        else
+          raise "could not determine bucket for #{client_id}: #{entry_dates.inspect}"
         end
-
-        buckets[:prev] << personal_id if entry_years.include?(current_year - 1)
-        buckets[:three_or_more] << personal_id if entry_years.size > 2
-        buckets[:all_five] << personal_id if entry_years.size == 5
+        buckets[bucket] << client_id
       end
 
-      [
-        new(
-          label: 'How many households have been served by STRMU for the first time this year?',
-          personal_ids: buckets[:new],
-        ),
-        new(
-          label: 'How many households also received STRMU assistance during the previous year?',
-          personal_ids: buckets[:prev],
-        ),
-        new(
-          label: 'How many households received STRMU assistance more than twice during the previous five years?',
-          personal_ids: buckets[:three_or_more],
-        ),
-        new(
-          label: 'How many households received STRMU assistance during the last five consecutive years?',
-          personal_ids: buckets[:all_five],
-        ),
-      ]
+      filters = buckets.map do |label, client_ids|
+        new(label: label, client_ids: client_ids)
+      end
+      total = new(
+        label: 'Longevity for Households Served by this Activity',
+        client_ids: buckets.values.flatten,
+      )
+      [total] + filters
     end
   end
 end

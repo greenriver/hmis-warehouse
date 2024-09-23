@@ -51,7 +51,7 @@ module HudReports
       @report.question_names = self.class.questions.keys
       @report.manual = manual
       @report.save!
-      Reporting::Hud::RunReportJob.new.perform(self.class.name, @report.id, email: email)
+      Reporting::Hud::RunReportJob.perform_now(self.class.name, @report.id, email: email)
     end
 
     # This selects just ids for the clients, to ensure uniqueness, but uses select instead of pluck

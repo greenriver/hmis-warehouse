@@ -7,7 +7,8 @@
 module HopwaCaper::Generators::Fy2024::EnrollmentFilters
   IncomeBenefitLevelFilter = Struct.new(:label, :type, keyword_init: true) do
     def apply(scope)
-      scope.where(percent_ami: code)
+      cond = HopwaCaper::Enrollment.group(:report_household_id).having('MAX(percent_ami) = ?', code)
+      scope.where(report_household_id: cond.select(:report_household_id))
     end
 
     def code
@@ -15,7 +16,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
     end
 
     def self.all
-      [
+      filters = [
         new(
           label: 'What is the number of households with income below 30% of Area Median Income?',
           type: '30% or less',
@@ -29,6 +30,11 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
           type: '51% to 80%',
         ),
       ]
+      total_filter = IncludeFilter.new(
+        label: 'Income Levels for Households Served by this Activity',
+        filters: filters,
+      )
+      [total_filter] + filters
     end
   end
 end
