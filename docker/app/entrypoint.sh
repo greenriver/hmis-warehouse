@@ -43,12 +43,12 @@ cp /usr/share/zoneinfo/$TIMEZONE /app/etc-localtime
 echo $TIMEZONE > /etc/timezone
 
 if [ "$CONTAINER_VARIANT" == "dj" ]; then
-  if [[ "${EKS}" == "true" ]] ; then
+  if [[ "${ENABLE_DJ_METRICS}" == "true" ]] ; then
     echo "Starting metrics server"
     cd /app/dj-metrics
     export BUNDLE_GEMFILE=../Gemfile
     # one worker with 5 threads
-    exec bundle exec puma -w 1 -t 1:5
+    exec bundle exec puma -w 0 -t 1:5
     cd /app
     unset BUNDLE_GEMFILE
   fi
