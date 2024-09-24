@@ -326,6 +326,29 @@ RSpec.describe 'Update External Form Submission', type: :request do
         end
       end
 
+      context 'when age group is unknown' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'foobar',
+            'Client.ageRange': "Doesn't know / Prefers not to answer",
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should process the age group onto DOB with low data quality' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1)
+
+          submission.reload
+          expect(submission.enrollment.client.dob).to be_nil
+          expect(submission.enrollment.client.dob_data_quality).to eq(99)
+        end
+      end
+
       context 'when submission specifies both age group and exact DOB' do
         let!(:submission) do
           data = {

@@ -160,29 +160,14 @@ module Hmis::Hud::Processors
     end
 
     private def process_age_range(value)
-      today = Date.current
+      return { dob_data_quality: 99 } if value == "Doesn't know / Prefers not to answer"
 
-      dob = case value
-      when 'Under 18' # todo @martha - use enum
-        today - 17.years
-      when '18-24'
-        today - 21.years
-      when '25-34'
-        today - 26.years
-      when '35-44'
-        today - 36.years
-      when '45-54'
-        today - 46.years
-      when '55-64'
-        today - 56.years
-      when '65+'
-        today - 66.years
-      end
-
-      return {} unless dob
+      dob_range = HudUtility2024.age_range[value]
+      raise ArgumentError, "Unknown value for age range: #{value}" unless dob_range
 
       {
-        dob: dob,
+        # set to a date in the middle of the range
+        dob: Date.current - ((dob_range.begin + dob_range.end) / 2).round.years,
         dob_data_quality: 2, # Approximate or partial DOB reported
       }
     end
