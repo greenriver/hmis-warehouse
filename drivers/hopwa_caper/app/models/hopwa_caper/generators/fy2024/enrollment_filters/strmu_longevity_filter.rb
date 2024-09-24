@@ -28,13 +28,19 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
         'How many households received STRMU assistance during the last five consecutive years?' => [],
       }
 
+      current_year = report.end_date.year
+      service_years = (0..4).map { |i| current_year - i }
       rows.each do |client_id, entry_dates|
         # what years are covered by prior enrollments
-        entry_years = entry_dates.map(&:year).uniq.select
+        entry_years = entry_dates.map(&:year).to_set
+        years_served = service_years.count do |service_year|
+          service_year.in?(entry_years)
+        end
+
         bucket = nil
-        if entry_years.size >= 5
+        if years_served >= 5
           bucket = 'How many households received STRMU assistance during the last five consecutive years?'
-        elsif entry_years.size > 2
+        elsif years_served > 2
           bucket = 'How many households received STRMU assistance more than twice during the previous five years?'
         elsif entry_dates.min < report.start_date
           bucket = 'How many households also received STRMU assistance during the previous year?'
