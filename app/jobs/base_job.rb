@@ -11,7 +11,7 @@ class BaseJob < ApplicationJob
 
   if ENV['EKS'] == 'true'
     # I can't get this to work correctly from the delayed_job initializer
-    Rails.logger.info 'Bootstrapping prometheus metrics'
+    Rails.logger.info 'Registering prometheus metrics for delayed jobs'
     DjMetrics.instance.register_metrics_for_delayed_job_worker!
 
     rescue_from StandardError do |err|
