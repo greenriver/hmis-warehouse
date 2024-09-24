@@ -98,8 +98,8 @@
       .modal-body
         %p Please take a moment to double-check your entries. Submit the form when you're ready.
       .modal-footer
-        %button.mr-3.btn.btn-outline-primary{ type: "button", "data-dismiss" => "modal" } Go Back
-        %button#confirmSubmitModalButton.btn.btn-primary{ type: "button", "data-dismiss" => "modal" } Yes, Submit Now
+        %button.mr-3.btn.btn-outline-primary{ type: "button", "data-dismiss" => "modal" } Check Entries
+        %button#confirmSubmitModalButton.btn.btn-primary{ type: "button", "data-dismiss" => "modal" } Submit Form
 
     = render_modal(html_id: 'spinnerModal', title: 'Loading', blocker: true) do
       .modal-body
