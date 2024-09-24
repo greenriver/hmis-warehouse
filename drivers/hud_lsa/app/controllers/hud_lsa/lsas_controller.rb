@@ -7,6 +7,7 @@
 module HudLsa
   class LsasController < ::HudReports::BaseController
     include AjaxModalRails::Controller
+    include ArelHelper
     before_action :filter
     before_action :set_report, only: [:show, :destroy, :running, :download, :download_intermediate]
     before_action :set_reports, except: [:index, :running_all_questions]
@@ -74,9 +75,20 @@ module HudLsa
     end
 
     private def missing_data
-      @missing_data ||= report.missing_data(current_user, project_ids: filter_params[:project_ids] || [])
+      @missing_data ||= report.missing_data(current_user, project_ids: project_ids_to_check || [])
     end
     helper_method :missing_data
+
+    # This mirrors /api/hud_filters
+    private def project_ids_to_check
+      filter = ::Filters::HudFilterBase.new(user_id: current_user.id)
+      filter.update(filter_params)
+
+      GrdaWarehouse::Hud::Project.
+        joins(:organization).
+        where(id: filter.effective_project_ids).
+        order(o_t[:OrganizationName], p_t[:ProjectName]).pluck(:id)
+    end
 
     private def active_version
       possible_generator_classes[default_report_version]
