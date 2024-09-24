@@ -748,7 +748,7 @@ module HudApr::Generators::Shared::Fy2024
         next false if latest_ce_assessment.blank? || latest_ce_assessment.AssessmentDate.blank?
 
         # 2.a [Date of event] >= [date of assessment] from step 1
-        after_assessment = event.EventDate > latest_ce_assessment.AssessmentDate
+        after_assessment = event.EventDate >= latest_ce_assessment.AssessmentDate
         # 2.b Date of event] <= ([report end date] + 90 days)
         within_90_days_of_report_end = event.EventDate <= (@report.end_date + 90.days)
         # 2.c [Date of event] < Any [dates of assessment] which are between [report end date] and ([report end date] + 90 days)
