@@ -47,7 +47,7 @@ module HudReports
     end
 
     def prepare_report
-      # override with whatever setup is needed
+      @report.start_report
     end
 
     def run!(email: true, manual: true)

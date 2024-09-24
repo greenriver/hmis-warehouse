@@ -29,6 +29,7 @@ module HopwaCaper::Generators::Fy2024
     end
 
     def prepare_report(reset: Rails.env.development?)
+      super()
       reset_report if reset
       build_hopwa_caper_models
     end
@@ -106,7 +107,7 @@ module HopwaCaper::Generators::Fy2024
         batch.each do |service_history_enrollment|
           hud_enrollment = service_history_enrollment.enrollment
 
-          client = hud_enrollment.client.destination_client
+          client = hud_enrollment&.client&.destination_client
           next unless client
 
           enrollment_rows << HopwaCaper::Enrollment.from_hud_record(report: report, client: client, enrollment: hud_enrollment)

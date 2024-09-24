@@ -108,8 +108,7 @@ module HudReports
     # FIXME: maybe a single question column on report_instance to track if this is a single
     # question run or all questions.... Need better start/complete logic
     def start(question, tables)
-      universe(question).update(status: 'Started', metadata: { tables: Array(tables) })
-      start_report if build_for_questions.count == remaining_questions.count
+      universe(question).update!(status: 'Started', metadata: { tables: Array(tables) })
     end
 
     def start_report
@@ -120,14 +119,14 @@ module HudReports
     #
     # @param question [String] the question name (e.g., 'Question 1')
     def complete(question)
-      universe(question).update(status: 'Completed')
+      universe(question).update!(status: 'Completed')
       complete_report if remaining_questions.empty?
     end
 
     def complete_report
       return if @failed
 
-      update(state: 'Completed', completed_at: Time.current)
+      update!(state: 'Completed', completed_at: Time.current)
     end
 
     def completed_questions

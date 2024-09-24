@@ -9,8 +9,8 @@ module HopwaCaper::HudReports
     extend ActiveSupport::Concern
 
     included do
-      has_many :hopwa_caper_enrollments, class_name: 'HopwaCaper::Enrollment', dependent: :destroy, foreign_key: :report_instance_id
-      has_many :hopwa_caper_services, class_name: 'HopwaCaper::Service', dependent: :destroy, foreign_key: :report_instance_id
+      has_many :hopwa_caper_enrollments, class_name: 'HopwaCaper::Enrollment', dependent: :delete_all, foreign_key: :report_instance_id
+      has_many :hopwa_caper_services, class_name: 'HopwaCaper::Service', dependent: :delete_all, foreign_key: :report_instance_id
     end
   end
 end
