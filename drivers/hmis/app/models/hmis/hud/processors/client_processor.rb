@@ -50,6 +50,13 @@ module Hmis::Hud::Processors
       when 'veteran_status'
         # Veteran status is non-nullable. It should be saved as 99 even if hidden. (It's hidden for minors)
         { attribute_name => attribute_value || 99 }
+      when 'age_range'
+        # if precise DOB was already processed, don't overwrite it with vaguer age range
+        client.dob.present? ? {} : process_age_range(value)
+      when 'dob'
+        # if imprecise age range has already been processed, do overwrite it
+        client.dob_data_quality = nil
+        { attribute_name => attribute_value }
       else
         { attribute_name => attribute_value }
       end
@@ -150,6 +157,34 @@ module Hmis::Hud::Processors
       name_attributes = construct_nested_attributes(field, values, additional_attributes: related_record_attributes)
 
       name_attributes.merge(client_attributes)
+    end
+
+    private def process_age_range(value)
+      today = Date.current
+
+      dob = case value
+      when 'Under 18' # todo @martha - use enum
+        today - 17.years
+      when '18-24'
+        today - 21.years
+      when '25-34'
+        today - 26.years
+      when '35-44'
+        today - 36.years
+      when '45-54'
+        today - 46.years
+      when '55-64'
+        today - 56.years
+      when '65+'
+        today - 66.years
+      end
+
+      return {} unless dob
+
+      {
+        dob: dob,
+        dob_data_quality: 2, # Approximate or partial DOB reported
+      }
     end
 
     # Custom handler for MCI field

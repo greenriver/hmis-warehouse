@@ -386,6 +386,24 @@ FactoryBot.define do
                     "field_name": "coordinates",
                     "record_type": "GEOLOCATION"
                   }
+                },
+                {
+                  "type": "CHOICE",
+                  "pick_list_reference": "ClientAgeGroup",
+                  "link_id": "how_old_are_you",
+                  "mapping": {
+                    "field_name": "ageRange",
+                    "record_type": "CLIENT"
+                  }
+                },
+                {
+                  "text": "What is your Date of Birth?",
+                  "type": "DATE",
+                  "link_id": "client_dob",
+                  "mapping": {
+                    "field_name": "dob",
+                    "record_type": "CLIENT"
+                  }
                 }
               ]
             }
