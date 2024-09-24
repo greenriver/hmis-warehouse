@@ -19230,44 +19230,6 @@ ALTER SEQUENCE public.hmis_units_id_seq OWNED BY public.hmis_units.id;
 
 
 --
--- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_wips (
-    id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    project_id bigint,
-    enrollment_id bigint,
-    source_type character varying,
-    source_id bigint,
-    date date NOT NULL,
-    data jsonb,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: hmis_wips_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_wips_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_wips_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_wips_id_seq OWNED BY public.hmis_wips.id;
-
-
---
 -- Name: homeless_summary_report_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -29951,13 +29913,6 @@ ALTER TABLE ONLY public.hmis_units ALTER COLUMN id SET DEFAULT nextval('public.h
 
 
 --
--- Name: hmis_wips id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_wips ALTER COLUMN id SET DEFAULT nextval('public.hmis_wips_id_seq'::regclass);
-
-
---
 -- Name: homeless_summary_report_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -33574,14 +33529,6 @@ ALTER TABLE ONLY public.hmis_unit_types
 
 ALTER TABLE ONLY public.hmis_units
     ADD CONSTRAINT hmis_units_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_wips hmis_wips_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_wips
-    ADD CONSTRAINT hmis_wips_pkey PRIMARY KEY (id);
 
 
 --
@@ -54793,34 +54740,6 @@ CREATE INDEX index_hmis_unit_occupancy_on_unit_id ON public.hmis_unit_occupancy 
 
 
 --
--- Name: index_hmis_wips_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_client_id ON public.hmis_wips USING btree (client_id);
-
-
---
--- Name: index_hmis_wips_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_enrollment_id ON public.hmis_wips USING btree (enrollment_id);
-
-
---
--- Name: index_hmis_wips_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_project_id ON public.hmis_wips USING btree (project_id);
-
-
---
--- Name: index_hmis_wips_on_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_source ON public.hmis_wips USING btree (source_type, source_id);
-
-
---
 -- Name: index_homeless_summary_report_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63391,6 +63310,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240909150028'),
 ('20240912125052'),
 ('20240913130213'),
-('20240916182206');
+('20240916182206'),
+('20240920203113');
 
 
