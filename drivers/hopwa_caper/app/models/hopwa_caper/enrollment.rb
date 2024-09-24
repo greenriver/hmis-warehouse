@@ -101,7 +101,7 @@ module HopwaCaper
         veteran: client.veteran?,
         percent_ami: enrollment.percent_ami,
 
-        relationship_to_hoh: enrollment.relationship_to_hoh,
+        relationship_to_hoh: enrollment.relationship_to_hoh || 99,
         project_funders: project.funders.map(&:funder).compact.sort,
         project_type: project.project_type,
         entry_date: enrollment.entry_date,
