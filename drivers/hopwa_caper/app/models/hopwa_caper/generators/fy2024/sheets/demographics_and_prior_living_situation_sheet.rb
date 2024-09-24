@@ -33,18 +33,18 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
     protected
 
-    def relevant_enrollments
+    def relevant_demographics_enrollments
       program_filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.all_hopwa
       overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments))
     end
 
     def demographics_sheet_a(sheet)
-      scope = relevant_enrollments.where(hopwa_eligible: true)
+      scope = relevant_demographics_enrollments.where(hopwa_eligible: true)
       demographics_breakdown_table(sheet, enrollment_scope: scope, header: 'Complete the age, gender, race, and ethnicity information for all individuals served with all types of HOPWA assistance.', title: 'A. For each racial category, how many HOPWA-eligible Individuals identified as such?')
     end
 
     def demographics_sheet_b(sheet)
-      scope = relevant_enrollments.where(hopwa_eligible: false)
+      scope = relevant_demographics_enrollments.where(hopwa_eligible: false)
       demographics_breakdown_table(sheet, enrollment_scope: scope, title: 'B. For each racial category, how many other household members (beneficiaries) identified as such?')
     end
 
@@ -111,12 +111,12 @@ module HopwaCaper::Generators::Fy2024::Sheets
     end
 
     def demographics_summary(sheet)
-      relevant_enrollments.where(hopwa_eligible: true).tap do |scope|
+      relevant_demographics_enrollments.where(hopwa_eligible: true).tap do |scope|
         sheet.append_row(label: 'Total number of HOPWA-eligible individuals served with HOPWA assistance:') do |row|
           row.append_cell_members(members: scope.latest_by_distinct_client_id.as_report_members)
         end
       end
-      relevant_enrollments.where(hopwa_eligible: false).tap do |scope|
+      relevant_demographics_enrollments.where(hopwa_eligible: false).tap do |scope|
         sheet.append_row(label: 'Total number of other household members (beneficiaries) served with HOPWA assistance:') do |row|
           row.append_cell_members(members: scope.latest_by_distinct_client_id.as_report_members)
         end
@@ -138,28 +138,39 @@ module HopwaCaper::Generators::Fy2024::Sheets
       # sheet.append_row(label: 'Complete Prior Living Situations for HOPWA-eligible Individuals served by TBRA, P-FBH, ST-TFBH, or PHP')
       sheet.append_row(label: 'Complete Prior Living Situations for HOPWA-eligible Individuals served by TBRA or PHP')
       program_filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.tbra_or_php_hopwa
-      scope = program_filter.apply(relevant_enrollments).where(hopwa_eligible: true)
+      relevant_enrollments = overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments)).where(hopwa_eligible: true)
 
       sheet.append_row(label: 'How many HOPWA-eligible individuals continued receiving HOPWA assistance from the previous year?') do |row|
-        cell_scope = scope.where(entry_date: ...@report.start_date)
+        cell_scope = relevant_enrollments.then do |scope|
+          includes_scope = program_filter.apply(@report.hopwa_caper_enrollments).
+            where(hopwa_eligible: true).
+            overlapping_range(start_date: @report.start_date - 1.year, end_date: @report.start_date)
+          scope.where(destination_client_id: includes_scope.select(:destination_client_id))
+        end
         row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)
       end
 
       sheet.append_row(label: 'How many individuals newly receiving HOPWA assistance came from:')
+      # "new" enrollments are those that start within this reporting period
+      new_enrollment_scope = relevant_enrollments.then do |scope|
+        includes_scope = program_filter.apply(@report.hopwa_caper_enrollments).
+          where(hopwa_eligible: true).
+          group(:destination_client_id).
+          having('MIN(entry_date) >= ?', @report.start_date)
+        scope.where(destination_client_id: includes_scope.select(:destination_client_id))
+      end
 
       filters = HopwaCaper::Generators::Fy2024::EnrollmentFilters::PriorLivingSituationFilter.all
       filters.each do |filter|
         sheet.append_row(label: filter.label) do |row|
-          # "new" enrollments are those that start within this reporing period
-          cell_scope = filter.apply(scope.where(entry_date: @report.start_date..))
+          cell_scope = filter.apply(new_enrollment_scope)
           row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)
         end
       end
 
-      newly_homeless_scope = scope.where(entry_date: @report.start_date..).where(prior_living_situation: [101, 116, 302])
-
+      newly_homeless_scope = new_enrollment_scope.where(prior_living_situation: [101, 116, 302])
       sheet.append_row(label: 'How many individuals newly receiving HOPWA assistance during this program year reported a prior living situation of homelessness [place not for human habitation, emergency shelter, transitional housing]:') do |row|
-        row.append_cell_members(members: newly_homeless_scope.as_report_members)
+        row.append_cell_members(members: newly_homeless_scope.latest_by_distinct_client_id.as_report_members)
       end
 
       sheet.append_row(label: 'Also meet the definition of experiencing chronic homelessness?') do |row|
