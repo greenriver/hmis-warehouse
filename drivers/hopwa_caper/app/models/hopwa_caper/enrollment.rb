@@ -19,7 +19,7 @@ module HopwaCaper
     has_many :services, class_name: 'HopwaCaper::Service', primary_key: :enrollment_id
 
     def self.as_report_members
-      all.map do |record|
+      current_scope.map do |record|
         ::HudReports::UniverseMember.new(
           universe_membership_type: sti_name,
           universe_membership_id: record.id,
@@ -36,7 +36,7 @@ module HopwaCaper
       )
     }
 
-    scope :latest_by_personal_id, -> {
+    scope :latest_by_distinct_client_id, -> {
       distinct_on(:destination_client_id).order(destination_client_id: :desc, entry_date: :desc, id: :desc)
     }
 

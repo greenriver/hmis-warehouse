@@ -46,6 +46,10 @@ module HudReports
       Reporting::Hud::RunReportJob.perform_later(self.class.name, @report.id)
     end
 
+    def prepare_report
+      # override with whatever setup is needed
+    end
+
     def run!(email: true, manual: true)
       @report.state = 'Waiting'
       @report.question_names = self.class.questions.keys

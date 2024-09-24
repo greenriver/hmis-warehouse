@@ -7,7 +7,10 @@
 module HopwaCaper::Generators::Fy2024::EnrollmentFilters
   IncomeBenefitLevelFilter = Struct.new(:label, :type, keyword_init: true) do
     def apply(scope)
-      cond = HopwaCaper::Enrollment.group(:report_household_id).having('MAX(percent_ami) = ?', code)
+      cond = HopwaCaper::Enrollment.
+        where(percent_ami: ..4).
+        group(:report_household_id).
+        having('MAX(percent_ami) = ?', code)
       scope.where(report_household_id: cond.select(:report_household_id))
     end
 

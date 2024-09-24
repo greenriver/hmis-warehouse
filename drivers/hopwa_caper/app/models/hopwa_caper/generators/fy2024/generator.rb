@@ -25,22 +25,20 @@ module HopwaCaper::Generators::Fy2024
     end
 
     def self.default_project_type_codes
-      HudUtility2024.path_project_type_codes
+      HudUtility2024.spm_project_type_codes
     end
 
-    def initialize(report)
-      super(report)
-      return unless report&.persisted?
-
-      reset_report
+    def prepare_report(reset: Rails.env.development?)
+      reset_report if reset
       build_hopwa_caper_models
     end
 
     def reset_report
+      # Rails.logger.level = 1
       report.hopwa_caper_enrollments.delete_all
       report.hopwa_caper_services.delete_all
       report.report_cells.with_deleted.destroy_all
-      report.update! state: 'Waiting'
+      # report.update! state: 'Waiting'
     end
 
     def url

@@ -92,7 +92,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
       sheet.append_row(label: 'How many of the HOPWA eligible individuals died?') do |row|
         filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ExitDestinationFilter.deceased
         cell_scope = filter.apply(scope)
-        row.append_cell_members(members: cell_scope.latest_by_personal_id.as_report_members)
+        row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)
       end
     end
   end

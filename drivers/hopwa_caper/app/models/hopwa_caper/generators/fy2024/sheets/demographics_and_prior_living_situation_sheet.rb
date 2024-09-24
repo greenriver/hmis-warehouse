@@ -97,14 +97,14 @@ module HopwaCaper::Generators::Fy2024::Sheets
             age_filters.each do |age_filter|
               filters = [race_filter, age_filter, gender_filter]
               cell_scope = filters.reduce(enrollment_scope) { |scope, filter| filter.apply(scope) }
-              row.append_cell_members(members: cell_scope.latest_by_personal_id.as_report_members)
+              row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)
             end
           end
           # add cells race/ethnicity
           ethnicity_filters.each do |ethnicity_filter|
             filters = [race_filter, ethnicity_filter]
             cell_scope = filters.reduce(enrollment_scope) { |scope, filter| filter.apply(scope) }
-            row.append_cell_members(members: cell_scope.latest_by_personal_id.as_report_members)
+            row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)
           end
         end
       end
@@ -113,22 +113,22 @@ module HopwaCaper::Generators::Fy2024::Sheets
     def demographics_summary(sheet)
       relevant_enrollments.where(hopwa_eligible: true).tap do |scope|
         sheet.append_row(label: 'Total number of HOPWA-eligible individuals served with HOPWA assistance:') do |row|
-          row.append_cell_members(members: scope.latest_by_personal_id.as_report_members)
+          row.append_cell_members(members: scope.latest_by_distinct_client_id.as_report_members)
         end
       end
       relevant_enrollments.where(hopwa_eligible: false).tap do |scope|
         sheet.append_row(label: 'Total number of other household members (beneficiaries) served with HOPWA assistance:') do |row|
-          row.append_cell_members(members: scope.latest_by_personal_id.as_report_members)
+          row.append_cell_members(members: scope.latest_by_distinct_client_id.as_report_members)
         end
 
         sheet.append_row(label: 'How many other household members (beneficiaries) are HIV+?') do |row|
           cell_scope = scope.where(hiv_positive: true)
-          row.append_cell_members(members: cell_scope.latest_by_personal_id.as_report_members)
+          row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)
         end
 
         sheet.append_row(label: 'How many other household members (beneficiaries) are HIV negative or have an unknown HIV status? ') do |row|
           cell_scope = scope.where(hiv_positive: false)
-          row.append_cell_members(members: cell_scope.latest_by_personal_id.as_report_members)
+          row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)
         end
       end
     end
@@ -142,7 +142,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
       sheet.append_row(label: 'How many HOPWA-eligible individuals continued receiving HOPWA assistance from the previous year?') do |row|
         cell_scope = scope.where(entry_date: ...@report.start_date)
-        row.append_cell_members(members: cell_scope.latest_by_personal_id.as_report_members)
+        row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)
       end
 
       sheet.append_row(label: 'How many individuals newly receiving HOPWA assistance came from:')
@@ -152,7 +152,7 @@ module HopwaCaper::Generators::Fy2024::Sheets
         sheet.append_row(label: filter.label) do |row|
           # "new" enrollments are those that start within this reporing period
           cell_scope = filter.apply(scope.where(entry_date: @report.start_date..))
-          row.append_cell_members(members: cell_scope.latest_by_personal_id.as_report_members)
+          row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)
         end
       end
 
@@ -164,12 +164,12 @@ module HopwaCaper::Generators::Fy2024::Sheets
 
       sheet.append_row(label: 'Also meet the definition of experiencing chronic homelessness?') do |row|
         cell_scope = newly_homeless_scope.where(chronically_homeless: true)
-        row.append_cell_members(members: cell_scope.latest_by_personal_id.as_report_members)
+        row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)
       end
 
       sheet.append_row(label: 'Also were veterans?') do |row|
         cell_scope = newly_homeless_scope.where(veteran: true)
-        row.append_cell_members(members: cell_scope.latest_by_personal_id.as_report_members)
+        row.append_cell_members(members: cell_scope.latest_by_distinct_client_id.as_report_members)
       end
     end
   end

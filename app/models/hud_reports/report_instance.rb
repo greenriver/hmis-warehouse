@@ -113,7 +113,7 @@ module HudReports
     end
 
     def start_report
-      update(state: 'Started', started_at: Time.current)
+      update!(state: 'Started', started_at: Time.current)
     end
 
     # Mark a question as completed
