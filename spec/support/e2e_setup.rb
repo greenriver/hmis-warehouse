@@ -16,6 +16,9 @@ RSpec.shared_context 'SystemSpecHelper' do
     fill_in 'Email Address', with: user.email
     fill_in 'Password', with: password
     click_button('Sign In')
+    assert_text user.full_name # user's name should appear in the header
+    page.driver.refresh # https://github.com/rubycdp/cuprite/issues/219
+    assert_text user.full_name
   end
 
   def sign_out
