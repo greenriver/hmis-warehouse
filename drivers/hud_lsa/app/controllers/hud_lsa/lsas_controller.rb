@@ -82,7 +82,7 @@ module HudLsa
     # This mirrors /api/hud_filters
     private def project_ids_to_check
       filter = ::Filters::HudFilterBase.new(user_id: current_user.id)
-      filter.update(filter_params)
+      filter.update(filter_params.merge(coc_codes: [filter_params[:coc_code]]))
 
       GrdaWarehouse::Hud::Project.
         joins(:organization).
