@@ -47,8 +47,8 @@ if [ "$CONTAINER_VARIANT" == "dj" ]; then
     echo "Starting metrics server"
     cd /app/dj-metrics
     export BUNDLE_GEMFILE=../Gemfile
-    # one worker with 5 threads
-    exec bundle exec puma -w 0 -t 1:5
+    # not cluster mode with 5 threads
+    bundle exec puma -w 0 -t 1:5 &
     cd /app
     unset BUNDLE_GEMFILE
   fi
