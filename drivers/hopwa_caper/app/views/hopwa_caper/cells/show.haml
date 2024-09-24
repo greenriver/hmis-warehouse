@@ -1,0 +1,49 @@
+= content_for :crumbs do
+  = link_to path_for_question_result(@question, report: @report) do
+    = "« #{report_short_name} #{@question} Results"
+- content_for :title do
+  = "#{report_short_name} #{@question} #{@cell}"
+
+.d-flex.mb-4
+  .mr-4
+    .input-group
+      %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
+      %span.input-group-append
+        %button.btn.btn-secondary Search
+  - unless @pdf
+    .ml-auto
+      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+        %i.icon.icon-download2
+        Download Excel
+
+- seen = false
+- [[HopwaCaper::Enrollment.detail_headers, @enrollments], [HopwaCaper::Service.detail_headers, @services]].each do |headers, records|
+  - next if records.to_a.empty?
+  - seen = true
+  .card
+    .overflow-x-scroll{style: "height: 800px"}
+      %table.table.table-sm.table-bordered.table-fixed
+        %thead.thead-dark
+          %tr
+            %th
+            - headers.each_value do |header|
+              %th= header
+        %tbody.thead-dark
+          - records.each.with_index do |record, i|
+            %tr
+              %th= i + 1
+              - headers.each_key do |k|
+                %td{style: 'max-width: 600px;'}
+                  = formatted_cell(record[k])
+- if !seen
+  .none-found No records found.
+
+= content_for :page_js do
+  :javascript
+    table = $('.datatable').DataTable({
+      paging: false,
+      "dom": 'lrtip'
+    });
+    $('#table_search').keyup(function(){
+      table.search($(this).val()).draw();
+    });

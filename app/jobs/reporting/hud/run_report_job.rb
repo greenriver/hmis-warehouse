@@ -14,7 +14,7 @@ module Reporting::Hud
 
       # Load the report so we can key the advisory lock off of the specific report
       report = HudReports::ReportInstance.find_by(id: report_id)
-      # Occassionally people delete the report before it actually runs
+      # Occasionally people delete the report before it actually runs
       return unless report.present?
 
       # advisory lock to check the number of jobs running for this generator so we don't
@@ -39,6 +39,7 @@ module Reporting::Hud
 
       puts "Running: #{@generator.class.name} Report ID: #{report_id}"
       report.start_report
+      @generator.prepare_report
       @generator.class.questions.each do |q, klass|
         next unless report.build_for_questions.include?(q)
 
