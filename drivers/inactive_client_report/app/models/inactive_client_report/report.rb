@@ -158,21 +158,28 @@ module InactiveClientReport
     end
 
     def max_assessment_by_client_id
-      u_t = GrdaWarehouse::Hud::User.arel_table
-      client_scope.
-        joins(source_assessments: :user).
-        pluck(c_t[:id], u_t[:UserFirstName], u_t[:UserLastName], as_t[:AssessmentDate]).
-        uniq.
-        map { |id, first_name, last_name, date| [id, "#{last_name}, #{first_name}", date] }.
-        group_by(&:shift).
-        map do |id, values|
-          latest_assessment = values.max_by(&:last)
-          { id => {
-            assessor: latest_assessment.first,
-            assessment_date: latest_assessment.last,
-          } }
-        end.
-        reduce :merge
+      @max_assessment_by_client_id ||= {}.tap do |items|
+        u_t = GrdaWarehouse::Hud::User.arel_table
+        client_enrollment_ids.each_slice(500) do |slice|
+          items.merge!(
+            GrdaWarehouse::Hud::Client.destination.
+              where(e_t[:id].in(slice.flat_map(&:last))).
+              joins(source_enrollments: [assessments: :user]).
+              pluck(c_t[:id], u_t[:UserFirstName], u_t[:UserLastName], as_t[:AssessmentDate]).
+              uniq.
+              map { |id, first_name, last_name, date| [id, "#{last_name}, #{first_name}", date] }.
+              group_by(&:shift).
+              map do |id, values|
+                latest_assessment = values.max_by(&:last)
+                { id => {
+                  assessor: latest_assessment.first,
+                  assessment_date: latest_assessment.last,
+                } }
+              end.
+              reduce(:merge),
+          )
+        end
+      end
     end
 
     private def max_entries_by_client_id
