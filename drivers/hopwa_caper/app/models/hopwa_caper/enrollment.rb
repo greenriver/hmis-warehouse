@@ -17,6 +17,7 @@ module HopwaCaper
              class_name: 'HudReports::UniverseMember',
              foreign_key: :universe_membership_id
     has_many :services, class_name: 'HopwaCaper::Service', primary_key: :enrollment_id
+    belongs_to :enrollment, -> { with_deleted }, class_name: 'GrdaWarehouse::Hud::Enrollment'
 
     def self.as_report_members
       current_scope.map do |record|
@@ -120,9 +121,13 @@ module HopwaCaper
       )
     end
 
+    def hmis_enrollment_id
+      enrollment.enrollment_id
+    end
+
     def self.detail_headers
-      special = ['personal_id', 'first_name', 'last_name']
-      remove = ['id', 'created_at', 'updated_at', 'report_instance_id']
+      special = ['personal_id', 'hmis_enrollment_id', 'first_name', 'last_name']
+      remove = ['id', 'created_at', 'updated_at', 'report_instance_id', 'enrollment_id', 'report_household_id']
       cols = special + (column_names - special - remove)
       cols.map do |header|
         label = case header
@@ -130,6 +135,8 @@ module HopwaCaper
           'Warehouse Client ID'
         when 'personal_id'
           'HMIS Personal ID'
+        when 'hmis_enrollment_id'
+          'HMIS Enrollment ID'
         else
           header.humanize
         end

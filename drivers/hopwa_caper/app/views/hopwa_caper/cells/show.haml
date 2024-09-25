@@ -32,9 +32,9 @@
           - records.each.with_index do |record, i|
             %tr
               %th= i + 1
-              - headers.each_key do |k|
+              - headers.each_key do |field|
                 %td{style: 'max-width: 600px;'}
-                  = formatted_cell(record[k])
+                  = formatted_cell(record.send(field))
 - if !seen
   .none-found No records found.
 

@@ -18,7 +18,7 @@ module HopwaCaper
              foreign_key: :universe_membership_id
 
     belongs_to :enrollment, class_name: 'HopwaCaper::Enrollment', primary_key: :enrollment_id
-    delegate :fist_name, :last_name, :personal_id, to: :enrollemnt
+    delegate :first_name, :last_name, :personal_id, :hmis_enrollment_id, to: :enrollment
 
     def self.as_report_members
       all.map do |record|
@@ -47,15 +47,19 @@ module HopwaCaper
     end
 
     def self.detail_headers
-      remove = ['id', 'created_at', 'updated_at', 'report_instance_id']
-      special = ['personal_id', 'first_name', 'last_name']
+      special = ['personal_id', 'hmis_enrollment_id', 'first_name', 'last_name']
+      remove = ['id', 'created_at', 'updated_at', 'report_instance_id', 'enrollment_id', 'report_household_id']
       cols = special + (column_names - special - remove)
       cols.map do |header|
         label = case header
         when 'destination_client_id'
           'Warehouse Client ID'
-        when 'hud_personal_id'
+        when 'personal_id'
           'HMIS Personal ID'
+        when 'hmis_enrollment_id'
+          'HMIS Enrollment ID'
+        when 'service_id'
+          'HMIS Service ID'
         else
           header.humanize
         end
