@@ -5,20 +5,15 @@
 ###
 
 module ClientLocationHistory
-  class ClientsController < ApplicationController
-    include ClientController
-    include ClientPathGenerator
-    include ClientDependentControllers
-
-    before_action :require_can_view_clients!
-    before_action :require_can_view_client_locations!
-    before_action :set_client
+  class ProjectsController < ApplicationController
+    before_action :set_project
+    before_action :require_can_view_projects!
+    before_action :require_can_view_project_locations!
 
     def map
-      @locations = @client.client_location_histories.where(located_on: filter.range)
-      @markers = @locations.map(&:as_marker)
+      @locations = @project.enrollment_location_histories.where(located_on: filter.range)
+      @markers = @locations.map { |l| l.as_marker(current_user, [:name, :seen_on]) }
       @bounds = ClientLocationHistory::Location.bounds(@locations)
-      @markers = ClientLocationHistory::Location.highlight(@markers)
       @options = {
         bounds: @bounds,
         cluster: true,
@@ -26,12 +21,18 @@ module ClientLocationHistory
       }
     end
 
-    private def client_source
-      ::GrdaWarehouse::Hud::Client
+    private def set_project
+      @project = project_scope.includes(:enrollment_location_histories).find(params[:id].to_i)
     end
 
-    private def client_scope(id: nil)
-      client_source.destination_visible_to(current_user).where(id: id)
+    private def project_source
+      ::GrdaWarehouse::Hud::Project
+    end
+
+    private def project_scope
+      project_source.
+        viewable_by(current_user, confidential_scope_limiter: :all, permission: :can_view_projects).
+        viewable_by(current_user, permission: :can_view_project_locations)
     end
 
     private def filter
@@ -45,8 +46,8 @@ module ClientLocationHistory
       opts = params
       opts[:filters] ||= {}
       opts[:filters][:enforce_one_year_range] = false
-      opts[:filters][:start] ||= 6.years.ago
-      opts[:filters][:end] ||= 1.days.ago
+      opts[:filters][:start] ||= 1.year.ago
+      opts[:filters][:end] ||= Date.current
       opts.permit(
         filters: [
           :start,

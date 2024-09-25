@@ -12,7 +12,6 @@ module GrdaWarehouse::Hud
     include ProjectReport
     include ::HmisStructure::Project
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
 
     attr_accessor :source_id
 
@@ -73,6 +72,9 @@ module GrdaWarehouse::Hud
     # Setup an association to project_cocs that allows us to pull the records even if the
     # project_coc has been deleted
     belongs_to :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], optional: true
+
+    # Needs to come after has_many :enrollments, bc one extension uses a has_many through: :enrollments relation
+    include RailsDrivers::Extensions
 
     scope :residential, -> do
       where(ProjectType: HudUtility2024.residential_project_type_ids)
@@ -320,6 +322,10 @@ module GrdaWarehouse::Hud
         )
       end
       # END_ACL
+    end
+
+    def can?(user, permission: :can_view_projects)
+      self.class.viewable_by(user, permission: permission).where(id: id).exists?
     end
 
     scope :editable_by, ->(user) do

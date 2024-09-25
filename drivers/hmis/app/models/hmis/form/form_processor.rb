@@ -39,6 +39,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   # Coordinated Entry (CE) Assessment that was created by the processor. The HUD model for CE Assessment is 'Assessment'
   belongs_to :ce_assessment, class_name: 'Hmis::Hud::Assessment', optional: true, autosave: true
   belongs_to :ce_event, class_name: 'Hmis::Hud::Event', optional: true, autosave: true
+  belongs_to :clh_location, class_name: 'ClientLocationHistory::Location', optional: true, autosave: true
 
   validate :hmis_records_are_valid, on: :form_submission
 
@@ -215,6 +216,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     when Hmis::Hud::CustomAssessment
       # An assessment can modify the client that it's associated with
       owner.client
+    when HmisExternalApis::ExternalForms::FormSubmission
+      # External forms can create new clients, such as PIT
+      owner.enrollment.client || owner.enrollment.build_client(personal_id: Hmis::Hud::Base.generate_uuid)
     end
   end
 
@@ -345,6 +349,12 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       build(**common_attributes)
   end
 
+  def clh_location_factory(create: true)
+    return clh_location if clh_location.present? || !create
+
+    self.clh_location = client_factory.client_location_histories.build
+  end
+
   private def container_processor(container)
     container = container.to_sym
 
@@ -389,6 +399,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       CeAssessment: Hmis::Hud::Processors::CeAssessmentProcessor,
       Event: Hmis::Hud::Processors::CeEventProcessor,
       CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
+      # External forms
+      FormSubmission: Hmis::Hud::Processors::ExternalFormSubmissionProcessor,
+      Geolocation: Hmis::Hud::Processors::GeolocationProcessor,
     }.freeze
   end
 
