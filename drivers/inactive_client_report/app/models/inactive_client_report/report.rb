@@ -117,27 +117,44 @@ module InactiveClientReport
       }
     end
 
+    # Clients the user can see an enrollment for who are also in the report scope
+    # This ignores report scope to look for contacts at any project viewable by the user
     def client_scope
       c_ids = client_ids.presence || report_scope.select(:client_id)
       GrdaWarehouse::Hud::Client.
         where(id: c_ids).
-        joins(service_history_entries: :project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(filter.user))
+        joins(service_history_entries: :enrollment).
+        merge(GrdaWarehouse::Hud::Enrollment.visible_to(filter.user))
+    end
+
+    # For performance, we'll need to fetch max IDs in batches.
+    # We want a client's dates to be fetched in a single batch, and dates
+    # are tied to enrollments, so we'll generate a hash in the format { client_id => [enrollment_ids] }
+    # that can be used to batch fetch all enrollments for a batch of clients
+    private def client_enrollment_ids
+      @client_enrollment_ids ||= client_scope.pluck(:id, e_t[:id]).
+        group_by(&:shift).
+        transform_values(&:flatten)
+    end
+
+    private def batch_fetch_items(join:, column:)
+      {}.tap do |items|
+        client_enrollment_ids.each_slice(500) do |slice|
+          items.merge!(GrdaWarehouse::Hud::Client.destination.
+            joins(**join).
+            where(e_t[:id].in(slice.flat_map(&:last))).
+            group(c_t[:id]).
+            maximum(column))
+        end
+      end
     end
 
     def max_current_living_situation_by_client_id
-      client_scope.
-        joins(:source_current_living_situations).
-        group(c_t[:id]).
-        maximum(cls_t[:InformationDate])
+      @max_current_living_situation_by_client_id ||= batch_fetch_items(join: { source_enrollments: :current_living_situations }, column: cls_t[:InformationDate])
     end
 
     def max_bed_night_by_client_id
-      client_scope.
-        joins(:source_services).
-        merge(GrdaWarehouse::Hud::Service.bed_night).
-        group(c_t[:id]).
-        maximum(s_t[:DateProvided])
+      @max_bed_night_by_client_id ||= batch_fetch_items(join: { source_enrollments: :services }, column: s_t[:DateProvided])
     end
 
     def max_assessment_by_client_id
