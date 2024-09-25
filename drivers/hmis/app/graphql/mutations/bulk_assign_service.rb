@@ -91,8 +91,13 @@ module Mutations
           # validate with form_submission context to check bed night uniqueness constraint
           is_valid = service.valid?(:form_submission)
 
-          # If validation failed because this Enrollment already has a Bed Night on this date, then skip saving it. This could happen from a race condition in the app, or multiple users assigning bed nights.
-          next if !is_valid && service.errors.full_messages == ['Enrollment has already been taken']
+          # If the validation failed because this Enrollment already has a Bed Night on the requested date, just skip saving it and proceed.
+          # This allows retries to be successful if the service is re-submitted. It also gracefully handles case where the user is looking at a stale
+          # list of clients, so the client appears to be unassigned but is actually already assigned.
+          next if service.errors.full_messages == ['Enrollment has already been taken']
+
+          # if validation failed for some other reason, raise
+          raise "Invalid service: #{service.errors.full_messages.join(', ')}" unless is_valid
 
           service.save!
         end
