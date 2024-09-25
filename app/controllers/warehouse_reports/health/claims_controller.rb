@@ -96,6 +96,8 @@ module WarehouseReports::Health
         update_all(ignored: true)
       Health::QualifyingActivity.unsubmitted.where(id: no_ignore_list).
         update_all(ignored: false)
+
+      redirect_to action: :index
     end
 
     def qualifying_activity_dates
