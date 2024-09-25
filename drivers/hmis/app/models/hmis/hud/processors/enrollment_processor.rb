@@ -82,6 +82,9 @@ module Hmis::Hud::Processors
       enrollment.active_unit_occupancy&.assign_attributes(occupancy_period_attributes: { end_date: Date.current })
 
       # Assign to specified unit
+      # Note: this will currently raise an exception if the unit is unavailable (and user will see the generic "An error occurred" message).
+      # This could be improved by generating a validation error instead (or even an ApiError with a better message), but we aren't
+      # currently set up to do that from processors
       enrollment.assign_unit(unit: unit, start_date: Date.current, user: @processor.current_user)
     end
 
