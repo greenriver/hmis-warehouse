@@ -266,11 +266,23 @@ module UserConcern
     end
 
     def two_factor_label
-      Translation.translate('Boston DND HMIS Warehouse')
+      label = Translation.translate('Boston DND HMIS Warehouse')
+      Rails.env.production? ? label : "#{label} [#{Rails.env}]"
     end
 
     def two_factor_issuer
       "#{two_factor_label} #{email}"
+    end
+
+    # clears all otp secrets
+    def reset_two_factor_model_attrs
+      self.encrypted_otp_secret = nil
+      self.encrypted_otp_secret_iv = nil
+      self.encrypted_otp_secret_salt = nil
+      self.otp_backup_codes = nil
+      self.otp_secret = nil
+      self.confirmed_2fa = 0
+      self.otp_required_for_login = false
     end
 
     def my_root_path
