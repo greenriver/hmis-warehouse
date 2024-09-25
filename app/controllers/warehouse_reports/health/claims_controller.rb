@@ -102,7 +102,7 @@ module WarehouseReports::Health
 
     def qualifying_activity_dates
       dates = {}
-      params[:date]&.each do |qa_id, date|
+      params[:date].each do |qa_id, date|
         dates[qa_id.to_i] = date.to_date
       end
       Health::QualifyingActivity.unsubmitted.where(id: dates.keys).find_each do |qa|
