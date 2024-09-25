@@ -55,6 +55,9 @@ RSpec.describe 'HOPWA CAPER Demographics & Prior Living Situation', type: :model
       run_report(report)
 
       expect(report.hopwa_caper_enrollments.size).to eq(2)
+      expect(report.hopwa_caper_enrollments.where(hiv_positive: true).size).to eq(1)
+      expect(report.hopwa_caper_enrollments.where(ever_prescribed_anti_retroviral_therapy: true).size).to eq(1)
+      expect(report.hopwa_caper_enrollments.where(viral_load_suppression: true).size).to eq(1)
 
       all_rows = question_as_rows(question_number: 'Q1', report: report)
 

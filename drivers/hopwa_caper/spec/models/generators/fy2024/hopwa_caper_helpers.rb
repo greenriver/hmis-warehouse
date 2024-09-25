@@ -78,7 +78,14 @@ module HopwaCaperHelpers
     # create(:grda_warehouse_service_history, :service_history_entry, client_id: hoh_client.id, first_date_in_program: hoh_enrollment.entry_date, enrollment: hoh_enrollment)
 
     # disability record sets the HOH as hopwa eligible
-    create(:hud_disability, disability_type: hiv_positive, enrollment: hoh_enrollment)
+    create(
+      :hud_disability,
+      disability_type: hiv_positive,
+      enrollment: hoh_enrollment,
+      anti_retroviral: 1,
+      viral_load_available: 1,
+      viral_load: 100,
+    )
     HopwaCaperTestHousehold.new(hoh: hoh_enrollment, other_members: other_members)
   end
 

@@ -146,9 +146,9 @@ module HopwaCaper::Generators::Fy2024
       groups.each do |group|
         uniform_attrs = {
           age: group.map(&:age).compact.max,
-          hiv_positive: groups.any?(:hiv_positive),
-          ever_prescribed_anti_retroviral_therapy: groups.any?(:ever_prescribed_anti_retroviral_therapy),
-          viral_load_suppression: groups.any?(:viral_load_suppression),
+          hiv_positive: group.any?(&:hiv_positive),
+          ever_prescribed_anti_retroviral_therapy: group.any?(&:ever_prescribed_anti_retroviral_therapy),
+          viral_load_suppression: group.any?(&:viral_load_suppression),
         }
         group.each do |enrollment|
           enrollment.attributes = uniform_attrs
