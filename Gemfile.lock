@@ -277,7 +277,7 @@ GEM
     benchmark-trend (0.4.0)
     bigdecimal (3.1.7)
     bindex (0.8.1)
-    bootsnap (1.18.3)
+    bootsnap (1.18.4)
       msgpack (~> 1.2)
     bootstrap (4.6.2)
       autoprefixer-rails (>= 9.1.0)
@@ -430,12 +430,36 @@ GEM
     dotenv-rails (3.1.0)
       dotenv (= 3.1.0)
       railties (>= 6.1)
+    dry-configurable (1.2.0)
+      dry-core (~> 1.0, < 2)
+      zeitwerk (~> 2.6)
+    dry-core (1.0.1)
+      concurrent-ruby (~> 1.0)
+      zeitwerk (~> 2.6)
+    dry-inflector (1.1.0)
     dry-initializer (3.1.1)
+    dry-logic (1.5.0)
+      concurrent-ruby (~> 1.0)
+      dry-core (~> 1.0, < 2)
+      zeitwerk (~> 2.6)
+    dry-struct (1.6.0)
+      dry-core (~> 1.0, < 2)
+      dry-types (>= 1.7, < 2)
+      ice_nine (~> 0.11)
+      zeitwerk (~> 2.6)
+    dry-types (1.7.2)
+      bigdecimal (~> 3.0)
+      concurrent-ruby (~> 1.0)
+      dry-core (~> 1.0)
+      dry-inflector (~> 1.0)
+      dry-logic (~> 1.4)
+      zeitwerk (~> 2.6)
     ed25519 (1.3.0)
     email_check (1.0.2)
     encryptor (3.0.0)
     erubi (1.12.0)
     erubis (2.7.0)
+    excon (0.111.0)
     execjs (2.9.1)
     factory_bot (6.4.6)
       activesupport (>= 5.0.0)
@@ -494,7 +518,7 @@ GEM
       execjs (~> 2.0)
       sprockets (>= 2.0.0)
       tilt (>= 1.2)
-    hashdiff (1.1.0)
+    hashdiff (1.0.1)
     hashie (5.0.0)
     heapy (0.2.0)
       thor
@@ -539,8 +563,20 @@ GEM
       hana (~> 1.3)
       regexp_parser (~> 2.0)
       simpleidn (~> 0.2)
+    jsonpath (1.1.5)
+      multi_json
     jwt (2.8.1)
       base64
+    k8s-ruby (0.16.0)
+      dry-configurable
+      dry-struct
+      dry-types
+      excon (~> 0.71)
+      hashdiff (~> 1.0.0)
+      jsonpath (~> 1.1)
+      recursive-open-struct (~> 1.1.3)
+      yajl-ruby (~> 1.4.0)
+      yaml-safe_load_stream3
     kaminari (1.2.2)
       activesupport (>= 4.1.0)
       kaminari-actionview (= 1.2.2)
@@ -605,6 +641,8 @@ GEM
     multi_json (1.15.0)
     multi_xml (0.6.0)
     multipart-post (2.4.0)
+    mustermann (3.0.3)
+      ruby2_keywords (~> 0.0.1)
     mutex_m (0.2.0)
     net-http (0.4.1)
       uri
@@ -692,7 +730,7 @@ GEM
     psych (5.1.2)
       stringio
     public_suffix (5.0.5)
-    puma (6.4.2)
+    puma (6.4.3)
       nio4r (~> 2.0)
     pwned (2.4.1)
     racc (1.8.0)
@@ -752,6 +790,7 @@ GEM
     rbtree (0.4.6)
     rdoc (6.6.3.1)
       psych (>= 4.0.0)
+    recursive-open-struct (1.1.3)
     redcarpet (3.6.0)
     redis (5.2.0)
       redis-client (>= 0.22.0)
@@ -779,8 +818,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
-    rexml (3.3.6)
-      strscan
+    rexml (3.3.7)
     rgeo (2.4.0)
     rgeo-activerecord (7.0.1)
       activerecord (>= 5.0)
@@ -905,6 +943,11 @@ GEM
     simplecov-html (0.12.3)
     simplecov_json_formatter (0.1.4)
     simpleidn (0.2.3)
+    sinatra (3.2.0)
+      mustermann (~> 3.0)
+      rack (~> 2.2, >= 2.2.4)
+      rack-protection (= 3.2.0)
+      tilt (~> 2.0)
     slack-notifier (2.4.0)
     snaky_hash (2.0.1)
       hashie
@@ -938,7 +981,6 @@ GEM
     stringio (3.1.1)
     strong_migrations (1.8.0)
       activerecord (>= 5.2)
-    strscan (3.1.0)
     sync (0.5.0)
     temple (0.10.3)
     term-ansicolor (1.7.2)
@@ -984,7 +1026,7 @@ GEM
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
-    webrick (1.8.1)
+    webrick (1.8.2)
     websocket-driver (0.7.6)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
@@ -1015,6 +1057,8 @@ GEM
       anyway_config (>= 1.3, < 3)
       railties
       yabeda (~> 0.8)
+    yajl-ruby (1.4.3)
+    yaml-safe_load_stream3 (0.1.2)
     zeitwerk (2.6.15)
 
 PLATFORMS
@@ -1132,6 +1176,7 @@ DEPENDENCIES
   jsbundling-rails (~> 1.1)
   json
   json_schemer (~> 2.3.0)
+  k8s-ruby
   kaminari
   kiba
   kiba-common
@@ -1166,6 +1211,7 @@ DEPENDENCIES
   premailer
   pretender
   progress_bar
+  prometheus-client
   pry-rails
   puma (~> 6.4)
   rack (>= 2.2.8.1)
@@ -1212,6 +1258,7 @@ DEPENDENCIES
   shoulda
   simple_form
   simplecov
+  sinatra
   slack-notifier
   soundex
   spring

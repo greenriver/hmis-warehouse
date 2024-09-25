@@ -1318,6 +1318,7 @@ CREATE TABLE public."CustomServiceTypes" (
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
+    bulk boolean DEFAULT false NOT NULL,
     supports_bulk_assignment boolean DEFAULT false NOT NULL
 );
 
@@ -1348,6 +1349,13 @@ COMMENT ON COLUMN public."CustomServiceTypes".hud_record_type IS 'Only applicabl
 --
 
 COMMENT ON COLUMN public."CustomServiceTypes".hud_type_provided IS 'Only applicable if this is a HUD service';
+
+
+--
+-- Name: COLUMN "CustomServiceTypes".bulk; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServiceTypes".bulk IS 'whether to support bulk service assignment for this type in the hmis application';
 
 
 --
@@ -4450,7 +4458,12 @@ CREATE TABLE public.boston_project_scorecard_reports (
     increased_other_income double precision,
     invoicing_timeliness integer,
     invoicing_accuracy integer,
-    no_concern integer
+    no_concern integer,
+    materials_concern integer,
+    lms_completed boolean,
+    self_certified boolean,
+    days_to_lease_up_comparison integer,
+    comparison_apr_id bigint
 );
 
 
@@ -5659,7 +5672,8 @@ CREATE TABLE public.clh_locations (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    enrollment_id bigint
+    enrollment_id bigint,
+    located_at timestamp(6) without time zone
 );
 
 
@@ -11838,10 +11852,10 @@ CREATE TABLE public.hmis_2024_affiliations (
     "AffiliationID" character varying,
     "ProjectID" character varying,
     "ResProjectID" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -11888,10 +11902,10 @@ CREATE TABLE public.hmis_2024_assessment_questions (
     "AssessmentQuestionOrder" integer,
     "AssessmentQuestion" character varying,
     "AssessmentAnswer" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -11936,10 +11950,10 @@ CREATE TABLE public.hmis_2024_assessment_results (
     "PersonalID" character varying,
     "AssessmentResultType" character varying,
     "AssessmentResult" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -11986,10 +12000,10 @@ CREATE TABLE public.hmis_2024_assessments (
     "AssessmentType" integer,
     "AssessmentLevel" integer,
     "PrioritizationStatus" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12038,10 +12052,10 @@ CREATE TABLE public.hmis_2024_ce_participations (
     "ReceivesReferrals" integer,
     "CEParticipationStatusStartDate" date,
     "CEParticipationStatusEndDate" date,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12121,10 +12135,10 @@ CREATE TABLE public.hmis_2024_clients (
     "OtherTheater" integer,
     "MilitaryBranch" integer,
     "DischargeStatus" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12176,10 +12190,10 @@ CREATE TABLE public.hmis_2024_current_living_situations (
     "LeaseOwn60Day" integer,
     "MovedTwoOrMore" integer,
     "LocationDetails" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12233,10 +12247,10 @@ CREATE TABLE public.hmis_2024_disabilities (
     "ViralLoadSource" integer,
     "AntiRetroviral" integer,
     "DataCollectionStage" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12285,10 +12299,10 @@ CREATE TABLE public.hmis_2024_employment_educations (
     "EmploymentType" integer,
     "NotEmployedReason" integer,
     "DataCollectionStage" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12393,10 +12407,10 @@ CREATE TABLE public.hmis_2024_enrollments (
     "TranslationNeeded" integer,
     "PreferredLanguage" integer,
     "PreferredLanguageDifferent" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12445,10 +12459,10 @@ CREATE TABLE public.hmis_2024_events (
     "LocationCrisisOrPHHousing" character varying,
     "ReferralResult" integer,
     "ResultDate" date,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12526,10 +12540,10 @@ CREATE TABLE public.hmis_2024_exits (
     "InPersonIndividual" integer,
     "InPersonGroup" integer,
     "CMExitReason" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12577,7 +12591,7 @@ CREATE TABLE public.hmis_2024_exports (
     "SourceContactPhone" character varying,
     "SourceContactExtension" character varying,
     "SourceContactEmail" character varying,
-    "ExportDate" timestamp(6) without time zone,
+    "ExportDate" timestamp without time zone,
     "ExportStartDate" date,
     "ExportEndDate" date,
     "SoftwareName" character varying,
@@ -12631,10 +12645,10 @@ CREATE TABLE public.hmis_2024_funders (
     "GrantID" character varying,
     "StartDate" date,
     "EndDate" date,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12686,10 +12700,10 @@ CREATE TABLE public.hmis_2024_health_and_dvs (
     "PregnancyStatus" integer,
     "DueDate" date,
     "DataCollectionStage" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12733,10 +12747,10 @@ CREATE TABLE public.hmis_2024_hmis_participations (
     "HMISParticipationType" integer,
     "HMISParticipationStatusStartDate" date,
     "HMISParticipationStatusEndDate" date,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12847,10 +12861,10 @@ CREATE TABLE public.hmis_2024_income_benefits (
     "NoRyanWhiteReason" integer,
     "ConnectionWithSOAR" integer,
     "DataCollectionStage" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12906,10 +12920,10 @@ CREATE TABLE public.hmis_2024_inventories (
     "ESBedType" integer,
     "InventoryStartDate" date,
     "InventoryEndDate" date,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12952,10 +12966,10 @@ CREATE TABLE public.hmis_2024_organizations (
     "OrganizationName" character varying,
     "VictimServiceProvider" integer,
     "OrganizationCommonName" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13004,10 +13018,10 @@ CREATE TABLE public.hmis_2024_project_cocs (
     "State" character varying,
     "Zip" character varying,
     "GeographyType" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13060,10 +13074,10 @@ CREATE TABLE public.hmis_2024_projects (
     "TargetPopulation" integer,
     "HOPWAMedAssistedLivingFac" integer,
     "PITCount" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13115,10 +13129,10 @@ CREATE TABLE public.hmis_2024_services (
     "FAStartDate" date,
     "FAEndDate" date,
     "ReferralOutcome" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13163,9 +13177,9 @@ CREATE TABLE public.hmis_2024_users (
     "UserPhone" character varying,
     "UserExtension" character varying,
     "UserEmail" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13212,10 +13226,10 @@ CREATE TABLE public.hmis_2024_youth_education_statuses (
     "MostRecentEdStatus" integer,
     "CurrentEdStatus" integer,
     "DataCollectionStage" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -18198,7 +18212,8 @@ CREATE TABLE public.hmis_external_form_submissions (
     definition_id bigint NOT NULL,
     object_key character varying NOT NULL,
     raw_data jsonb NOT NULL,
-    notes text
+    notes text,
+    enrollment_id bigint
 );
 
 
@@ -18428,8 +18443,8 @@ CREATE TABLE public.hmis_form_definitions (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     title character varying NOT NULL,
-    external_form_object_key character varying,
     deleted_at timestamp without time zone,
+    external_form_object_key character varying,
     backup_definition jsonb
 );
 
@@ -18540,9 +18555,10 @@ CREATE TABLE public.hmis_form_processors (
     current_living_situation_id integer,
     ce_assessment_id bigint,
     ce_event_id bigint,
-    backup_values jsonb,
     owner_type character varying NOT NULL,
-    owner_id bigint NOT NULL
+    owner_id bigint NOT NULL,
+    backup_values jsonb,
+    clh_location_id bigint
 );
 
 
@@ -19211,44 +19227,6 @@ CREATE SEQUENCE public.hmis_units_id_seq
 --
 
 ALTER SEQUENCE public.hmis_units_id_seq OWNED BY public.hmis_units.id;
-
-
---
--- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_wips (
-    id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    project_id bigint,
-    enrollment_id bigint,
-    source_type character varying,
-    source_id bigint,
-    date date NOT NULL,
-    data jsonb,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: hmis_wips_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_wips_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_wips_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_wips_id_seq OWNED BY public.hmis_wips.id;
 
 
 --
@@ -29935,13 +29913,6 @@ ALTER TABLE ONLY public.hmis_units ALTER COLUMN id SET DEFAULT nextval('public.h
 
 
 --
--- Name: hmis_wips id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_wips ALTER COLUMN id SET DEFAULT nextval('public.hmis_wips_id_seq'::regclass);
-
-
---
 -- Name: homeless_summary_report_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -33558,14 +33529,6 @@ ALTER TABLE ONLY public.hmis_unit_types
 
 ALTER TABLE ONLY public.hmis_units
     ADD CONSTRAINT hmis_units_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_wips hmis_wips_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_wips
-    ADD CONSTRAINT hmis_wips_pkey PRIMARY KEY (id);
 
 
 --
@@ -52103,6 +52066,13 @@ CREATE INDEX index_boston_project_scorecard_reports_on_apr_id ON public.boston_p
 
 
 --
+-- Name: index_boston_project_scorecard_reports_on_comparison_apr_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_boston_project_scorecard_reports_on_comparison_apr_id ON public.boston_project_scorecard_reports USING btree (comparison_apr_id);
+
+
+--
 -- Name: index_boston_project_scorecard_reports_on_project_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54448,6 +54418,13 @@ CREATE INDEX index_hmis_external_form_submissions_on_definition_id ON public.hmi
 
 
 --
+-- Name: index_hmis_external_form_submissions_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_form_submissions_on_enrollment_id ON public.hmis_external_form_submissions USING btree (enrollment_id);
+
+
+--
 -- Name: index_hmis_external_referral_postings_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54539,6 +54516,13 @@ CREATE INDEX index_hmis_form_processors_on_chronic_health_condition_id ON public
 
 
 --
+-- Name: index_hmis_form_processors_on_clh_location_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_clh_location_id ON public.hmis_form_processors USING btree (clh_location_id);
+
+
+--
 -- Name: index_hmis_form_processors_on_developmental_disability_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54585,6 +54569,13 @@ CREATE INDEX index_hmis_form_processors_on_income_benefit_id ON public.hmis_form
 --
 
 CREATE INDEX index_hmis_form_processors_on_mental_health_disorder_id ON public.hmis_form_processors USING btree (mental_health_disorder_id);
+
+
+--
+-- Name: index_hmis_form_processors_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_owner ON public.hmis_form_processors USING btree (owner_type, owner_id);
 
 
 --
@@ -54746,34 +54737,6 @@ CREATE INDEX index_hmis_unit_occupancy_on_hmis_service_id ON public.hmis_unit_oc
 --
 
 CREATE INDEX index_hmis_unit_occupancy_on_unit_id ON public.hmis_unit_occupancy USING btree (unit_id);
-
-
---
--- Name: index_hmis_wips_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_client_id ON public.hmis_wips USING btree (client_id);
-
-
---
--- Name: index_hmis_wips_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_enrollment_id ON public.hmis_wips USING btree (enrollment_id);
-
-
---
--- Name: index_hmis_wips_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_project_id ON public.hmis_wips USING btree (project_id);
-
-
---
--- Name: index_hmis_wips_on_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_source ON public.hmis_wips USING btree (source_type, source_id);
 
 
 --
@@ -60324,7 +60287,7 @@ CREATE UNIQUE INDEX tx_id_ds_id_ft_idx ON public.financial_transactions USING bt
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
 
 
 --
@@ -63342,6 +63305,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240731144633'),
 ('20240731155357'),
 ('20240815175202'),
-('20240821180638');
+('20240821180638'),
+('20240829152828'),
+('20240909150028'),
+('20240912125052'),
+('20240913130213'),
+('20240916182206'),
+('20240920203113');
 
 

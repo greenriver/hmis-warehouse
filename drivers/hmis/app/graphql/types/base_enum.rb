@@ -39,7 +39,7 @@ module Types
         # Ensure we are using DATA_NOT_COLLECTED key for 99s
         member_values[:key] = 'DATA_NOT_COLLECTED' if member_values[:value]&.to_s == '99'
 
-        value to_enum_key(member_values[:key]), member_values[:desc], value: member_values[:value]
+        value to_enum_key(member_values[:key]), member_values[:desc], value: member_values[:value], deprecation_reason: member_values[:deprecation_reason]
       end
     end
 

@@ -610,6 +610,10 @@ module HudUtility2024
     [21]
   end
 
+  def local_or_other_funding_source
+    46
+  end
+
   # SPM definition of CoC funded projects
   def spm_coc_funders
     [2, 3, 4, 5, 43, 44, 54, 55]
@@ -633,6 +637,7 @@ module HudUtility2024
       'HUD: Rural Special NOFO' => [55],
       'HUD: HUD-VASH' => [20],
       'HUD: PFS' => [HudUtility2024.funding_source('HUD: Pay for Success', true, raise_on_missing: true)], # Pay for Success
+      'HUD: HOME' => [50, 51],
     }
   end
 

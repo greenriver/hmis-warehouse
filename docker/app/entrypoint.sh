@@ -30,7 +30,6 @@ then
   . .env
 else
   echo Not sourcing environment variables from secretsmanager
-  # TODO: does everything behave or do we need to "env > .env"
 fi
 
 echo 'Constructing an ERB-free database.yml file...'
@@ -42,6 +41,11 @@ echo "...database materialize took $(expr $T2 - $T1) seconds"
 echo 'Setting Timezone'
 cp /usr/share/zoneinfo/$TIMEZONE /app/etc-localtime
 echo $TIMEZONE > /etc/timezone
+
+if [ "$CONTAINER_VARIANT" == "dj" ]; then
+  echo "Calling: $@"
+  exec bundle exec "$@"
+fi
 
 # echo 'Syncing the client assets from s3...'
 # T1=`date +%s`
