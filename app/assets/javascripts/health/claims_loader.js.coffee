@@ -12,6 +12,7 @@ class App.Health.ClaimsLoader
             $('.payable-wrapper').append($(data).filter('.payable'))
             $('.unpayable-wrapper').append($(data).filter('.unpayable'))
             $('.duplicate-wrapper').append($(data).filter('.duplicate'))
+            $('.ineligible-wrapper').append($(data).filter('.ineligible'))
             $('.missing-components-wrapper').append($(data).filter('.missing_components'))
 
             $(document).dequeue("fx")

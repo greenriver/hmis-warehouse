@@ -1,0 +1,32 @@
+.d-flex
+  .mr-4
+    = render 'health/qualifying_activities/payability_key'
+  .ml-auto
+    = f.submit 'Update Qualifying Activities', class: "btn btn-primary"
+
+- qa_group.each do |_, qas|
+  .mt-4
+    - sample_qa = qas.first
+    - client_id = sample_qa.patient.client_id
+    - panel_id = "client-#{client_id}"
+    - included_ineligible_qas = qas.reject(&:ignored)
+    - content_for :panel_collapse_content, flush: true do
+      .d-flex.mb-4
+        Medicaid ID:
+        = link_to sample_qa.patient.medicaid_id, polymorphic_path(health_enrollments_path_generator, client_id: sample_qa.patient.client_id), target: "_blank"
+      .overflow-scroll
+        %table.table.table-sm.table-striped.table-hover
+          %thead
+            %tr
+              %th Date
+              %th Staff
+              %th Source
+              %th Activity
+              %th Mode of Contact
+              %th Client Reached
+              %th Procedure Code
+              %th.text-center Ignore?
+          %tbody
+            = render 'ineligible_rows', qas: included_ineligible_qas, f: f
+            = render 'ineligible_rows', qas: qas.select(&:ignored), f: f
+    = render 'common/panel_collapse', id: panel_id, title: "#{sample_qa.patient.name}", default_open: if included_ineligible_qas.count.positive? then 'yes' else 'no' end

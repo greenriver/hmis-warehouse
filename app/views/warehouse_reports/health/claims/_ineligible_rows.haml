@@ -1,0 +1,24 @@
+- qas.each do |qa|
+  %tr{class: qa.validity_class, data: {id: qa.id}}
+    %td= f.input :date_of_activity, as: :date_picker, label: false, required: false, input_html: { name: "date[#{qa.id}]", value: qa.date_of_activity }
+    %td= qa.user_full_name
+    %td= qa.source_type
+    %td= qa.activity_title(qa.activity)
+    %td= qa.mode_of_contact_title(qa.mode_of_contact)
+    %td= qa.client_reached_title(qa.reached_client)
+    %td.qa__procedure-code
+      - if qa.naturally_payable?
+        = qa.procedure_with_modifiers
+      - else
+        %span{data: {toggle: :tooltip, title: "#{qa.procedure_with_modifiers} is not a valid Procedure Code"}}
+          = qa.procedure_with_modifiers
+    %td.text-center.jForcePayable
+      .btn-group.btn-group-toggle{data: {toggle: :buttons}}
+        - btn_classes = if ! qa.ignored then 'btn-danger active' else 'btn-secondary' end
+        %label.btn.btn-xs.jNo{class: btn_classes}
+          = radio_button_tag "ignored[#{qa.id}]", false, ! qa.ignored
+          No
+        - btn_classes = if qa.ignored then 'btn-success active' else 'btn-secondary' end
+        %label.btn.btn-xs.jYes{class: btn_classes}
+          = radio_button_tag "ignored[#{qa.id}]", true, qa.ignored
+          Yes
