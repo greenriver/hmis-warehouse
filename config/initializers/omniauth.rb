@@ -65,6 +65,8 @@ if ENV['OKTA_DOMAIN'].present?
       new_path = '/?authError=generic'
       Rack::Response.new(['302 Moved'], 302, 'Location' => new_path).finish
     }
+    raise 'Okta is not supported for multi-HMIS installations' if ENV['HMIS_HOSTNAME'].split(',').size > 1
+
     Rails.application.middleware.use OmniAuth::Builder do
       provider(
         OmniAuth::Strategies::CustomOkta,
