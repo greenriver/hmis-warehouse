@@ -80,8 +80,11 @@ module HopwaCaper::Generators::Fy2024
     protected
 
     def service_history_enrollments
+      funder_ids = HudUtility2024.funder_components.fetch('HUD: HOPWA')
+      funder_table = GrdaWarehouse::Hud::Funder.arel_table
       overlapping_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        open_between(start_date: @report.start_date, end_date: @report.end_date)
+        open_between(start_date: @report.start_date, end_date: @report.end_date).
+        joins(project: :funders).where(funder_table[:funder].in(funder_ids))
 
       # tbra has a 15 year look-back
       look_back = 15.years
@@ -93,7 +96,7 @@ module HopwaCaper::Generators::Fy2024
         user_id: @report.user_id,
         enforce_one_year_range: false,
       ).update(@report.options)
-      @filter.funder_ids = HudUtility2024.funder_components.fetch('HUD: HOPWA')
+      @filter.funder_ids = funder_ids
 
       @filter.project_ids = @report.project_ids
       @filter.apply(scope)
