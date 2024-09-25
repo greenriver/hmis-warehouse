@@ -122,7 +122,7 @@ module HopwaCaper
 
     def self.detail_headers
       special = ['personal_id', 'first_name', 'last_name']
-      remove = ['id', 'created_at', 'updated_at']
+      remove = ['id', 'created_at', 'updated_at', 'report_instance_id']
       cols = special + (column_names - special - remove)
       cols.map do |header|
         label = case header

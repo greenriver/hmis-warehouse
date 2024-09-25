@@ -48,7 +48,6 @@ module HudReports
 
       sanitized_message = "#{e.message} at #{Rails.backtrace_cleaner.clean(e.backtrace, :all).join('; ')}}"
       @report.answer(question: self.class.question_number).update!(error_messages: sanitized_message, status: 'Failed')
-      @report.update!(state: 'Failed')
       raise
     end
 

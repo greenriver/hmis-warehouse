@@ -38,17 +38,30 @@ module Reporting::Hud
       end
 
       puts "Running: #{@generator.class.name} Report ID: #{report_id}"
-      report.start_report
-      @generator.prepare_report
-      @generator.class.questions.each do |q, klass|
-        next unless report.build_for_questions.include?(q)
 
-        klass.new(@generator, report).run!
+      capture_failure do
+        @generator.prepare_report
+        @generator.class.questions.each do |q, klass|
+          klass.new(@generator, report).run! if report.build_for_questions.include?(q)
+        end
       end
 
       report_completed = report.complete_report
       NotifyUser.driver_hud_report_finished(@generator).deliver_now if report.user_id && email
       report_completed
+    end
+
+    protected def capture_failure
+      begin
+        yield
+      rescue StandardError => e
+        # for debugging sql issues in tests, raise immediately since attempting further updates will crash in failed tx
+        # and we'd like to get the backtrace from the original exception
+        raise if Rails.env.test? && e.is_a?(ActiveRecord::StatementInvalid)
+
+        @report.update!(state: 'Failed') unless @report.failed?
+        raise
+      end
     end
 
     private def requeue_job(class_name)

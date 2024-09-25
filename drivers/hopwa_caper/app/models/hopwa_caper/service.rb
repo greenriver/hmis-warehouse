@@ -47,7 +47,7 @@ module HopwaCaper
     end
 
     def self.detail_headers
-      remove = ['id', 'created_at', 'updated_at']
+      remove = ['id', 'created_at', 'updated_at', 'report_instance_id']
       special = ['personal_id', 'first_name', 'last_name']
       cols = special + (column_names - special - remove)
       cols.map do |header|
