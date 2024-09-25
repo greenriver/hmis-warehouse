@@ -16,6 +16,11 @@ RSpec.shared_context 'SystemSpecHelper' do
     fill_in 'Email Address', with: user.email
     fill_in 'Password', with: password
     click_button('Sign In')
+    assert_text user.full_name # user's name should appear in the header
+
+    # Refresh page to addrss intermittent "_cuprite is not defined" failures on CI https://github.com/rubycdp/cuprite/issues/219
+    page.driver.refresh
+    assert_text user.full_name
   end
 
   def sign_out
