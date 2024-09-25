@@ -69,13 +69,8 @@ module Mutations
             if project_has_units
               error_out('Failed to enroll client because there are no available units.') if available_units.empty?
 
-              begin
-                enrollment.assign_unit(unit: available_units.pop, start_date: input.date_provided, user: current_user)
-              rescue HmisErrors::ApiError => e
-                # Display user-facing message for 'Enrollment is already assigned to a different unit' and
-                # 'Unit is already assigned to a different household'
-                error_out(e.message)
-              end
+              # This will raise user-facing error if unit is unavailable
+              enrollment.assign_unit(unit: available_units.pop, start_date: input.date_provided, user: current_user)
             end
 
             enrollment.save_new_enrollment!
