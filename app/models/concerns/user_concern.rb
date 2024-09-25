@@ -35,6 +35,7 @@ module UserConcern
            :two_factor_backupable,
            password_length: 10..128,
            otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
+           otp_secret_length: 26, # 128 bits keys, per RFC 4226. See GHSA-qjxf-mc72-wjr2
            otp_number_of_backup_codes: 10
 
     include OmniauthSupport
