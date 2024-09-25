@@ -52,16 +52,14 @@ module Reporting::Hud
     end
 
     protected def capture_failure
-      begin
-        yield
-      rescue StandardError => e
-        # for debugging sql issues in tests, raise immediately since attempting further updates will crash in failed tx
-        # and we'd like to get the backtrace from the original exception
-        raise if Rails.env.test? && e.is_a?(ActiveRecord::StatementInvalid)
+      yield
+    rescue StandardError => e
+      # for debugging sql issues in tests, raise immediately since attempting further updates will crash in failed tx
+      # and we'd like to get the backtrace from the original exception
+      raise if Rails.env.test? && e.is_a?(ActiveRecord::StatementInvalid)
 
-        @report.update!(state: 'Failed') unless @report.failed?
-        raise
-      end
+      @report.update!(state: 'Failed') unless @report.failed?
+      raise
     end
 
     private def requeue_job(class_name)
