@@ -302,4 +302,96 @@ FactoryBot.define do
       }.deep_stringify_keys
     end
   end
+
+  factory :hmis_external_form_definition, parent: :hmis_form_definition do
+    sequence(:external_form_object_key) do |n|
+      "sample_external_form_#{n}"
+    end
+    role { 'EXTERNAL_FORM' }
+    definition do
+      JSON.parse(<<~JSON)
+        {
+          "name": "Test form",
+          "item": [
+            {
+              "type": "GROUP",
+              "link_id": "group_1",
+              "text": "Test group",
+              "item": [
+                {
+                  "link_id": "your_name",
+                  "required": true,
+                  "type": "STRING",
+                  "text": "Your Name",
+                  "mapping": {"custom_field_key": "your_name"}
+                }
+              ]
+            }
+          ]
+        }
+      JSON
+    end
+  end
+
+  factory :hmis_external_form_definition_updates_client, parent: :hmis_external_form_definition do
+    definition do
+      JSON.parse(<<~JSON)
+        {
+          "name": "Test form",
+          "item": [
+            {
+              "type": "GROUP",
+              "link_id": "group_1",
+              "text": "Test group",
+              "item": [
+                {
+                  "type": "STRING",
+                  "link_id": "first_name",
+                  "mapping": {
+                    "field_name": "firstName",
+                    "record_type": "CLIENT"
+                  },
+                  "text": "First name"
+                },
+                {
+                  "type": "CHOICE",
+                  "pick_list_reference": "RelationshipToHoH",
+                  "link_id": "relationship_to_hoh",
+                  "mapping": {
+                    "field_name": "relationshipToHoH",
+                    "record_type": "ENROLLMENT"
+                  },
+                  "text": "Relationship to HoH"
+                },
+                {
+                  "type": "STRING",
+                  "link_id": "household_id",
+                  "mapping": {
+                    "field_name": "householdId",
+                    "record_type": "ENROLLMENT"
+                  }
+                },
+                {
+                  "type": "STRING",
+                  "link_id": "veteran_status",
+                  "mapping": {
+                    "field_name": "veteranStatus",
+                    "record_type": "CLIENT"
+                  }
+                },
+                {
+                  "type": "GEOLOCATION",
+                  "link_id": "geolocation",
+                  "mapping": {
+                    "field_name": "coordinates",
+                    "record_type": "GEOLOCATION"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      JSON
+    end
+  end
 end
