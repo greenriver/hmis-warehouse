@@ -350,11 +350,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     return if current_occupancy.present? && current_occupancy.unit == unit
 
     # error: this enrollment is already assigned to a different unit
-    raise HmisErrors::ApiError, 'Enrollment is already assigned to a different unit' if current_occupancy.present?
+    raise HmisErrors::UnitAssignmentError, 'Enrollment is already assigned to a different unit' if current_occupancy.present?
 
     # error: the unit is occupied by someone who is NOT in this household
     occupants = unit.occupants_on(start_date)
-    raise HmisErrors::ApiError, 'Unit is already assigned to a different household' if occupants.where.not(household_id: household_id).present?
+    raise HmisErrors::UnitAssignmentError, 'Unit is already assigned to a different household' if occupants.where.not(household_id: household_id).present?
 
     # include project id here since it may not be available during after_save hooks due to WIP
     self.unit_occupancy_changes = { project_id: unit.project_id, unit_type: unit.unit_type, user_id: user.id } if unit.unit_type

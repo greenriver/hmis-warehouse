@@ -789,7 +789,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       new_enrollment = build(:hmis_hud_enrollment, client: c1, project: p1, household_id: e1.household_id)
 
       hud_values = complete_hud_values.merge('currentUnit' => unit.id)
-      expect { process_record(record: new_enrollment, hud_values: hud_values, user: hmis_user, definition: definition) }.to raise_error(StandardError)
+      expect { process_record(record: new_enrollment, hud_values: hud_values, user: hmis_user, definition: definition) }.to raise_error(HmisErrors::UnitAssignmentError)
     end
   end
 

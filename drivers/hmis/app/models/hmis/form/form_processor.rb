@@ -77,6 +77,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         else
           raise unknown_field_error(definition)
         end
+      rescue HmisErrors::ApiError => e
+        # If the processor raised an ApiError, then re-raise it. It may contain a user-facing message that should be shown.
+        raise e
       rescue StandardError => e
         err_with_context = "Error processing field '#{container}.#{field}': #{e.message}"
         Sentry.capture_exception(StandardError.new(err_with_context))
