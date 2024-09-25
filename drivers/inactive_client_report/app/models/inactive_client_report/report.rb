@@ -118,12 +118,11 @@ module InactiveClientReport
     end
 
     def client_scope
-      scope = GrdaWarehouse::Hud::Client.
+      c_ids = client_ids.presence || report_scope.select(:client_id)
+      GrdaWarehouse::Hud::Client.
+        where(id: c_ids).
         joins(service_history_entries: :project).
-        merge(GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: report_scope.select(:client_id))).
         merge(GrdaWarehouse::Hud::Project.viewable_by(filter.user))
-      scope = scope.where(id: client_ids) if client_ids.present?
-      scope
     end
 
     def max_current_living_situation_by_client_id
