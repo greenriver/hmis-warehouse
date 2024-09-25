@@ -12,9 +12,6 @@ module GrdaWarehouse::Tasks
     def initialize(run_post_processing: true)
       setup_notifier('IdentifyDuplicates')
       @run_post_processing = run_post_processing
-      super()
-      build_source_lookups
-      build_destination_lookups
     end
 
     def run!
@@ -27,6 +24,8 @@ module GrdaWarehouse::Tasks
     end
 
     def identify_duplicates
+      build_source_lookups
+      build_destination_lookups
       restore_previously_deleted_destinations
       Rails.logger.info 'Loading unprocessed clients'
       started_at = DateTime.now
@@ -116,6 +115,8 @@ module GrdaWarehouse::Tasks
 
     # look at all existing records for duplicates and merge destination clients
     def match_existing!
+      build_source_lookups
+      build_destination_lookups
       @to_merge = find_merge_candidates
       user = User.setup_system_user
 
@@ -164,17 +165,17 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
     end
 
-    def find_current_id_for(id)
+    private def find_current_id_for(id)
       return merge_history.current_destination(id) unless client_destinations.where(id: id).exists?
 
       return id
     end
 
-    def merge_history
+    private def merge_history
       @merge_history ||= GrdaWarehouse::ClientMergeHistory.new
     end
 
-    def find_merge_candidates
+    private def find_merge_candidates
       to_merge = Set.new
       all_splits = GrdaWarehouse::ClientSplitHistory.pluck(:split_from, :split_into)
       splits_by_from = all_splits.group_by(&:first)

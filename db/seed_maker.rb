@@ -349,7 +349,10 @@ class SeedMaker
     end
 
     # Create HMIS Data Source
-    hmis_ds = GrdaWarehouse::DataSource.source.where(hmis: ENV['HMIS_HOSTNAME']).first_or_create! do |ds|
+    hostnames = ENV['HMIS_HOSTNAME'].split(',')
+    raise 'hmis seed doesn\'t support multiple hostnames' if hostnames.size > 1
+
+    hmis_ds = GrdaWarehouse::DataSource.source.where(hmis: hostnames.first).first_or_create! do |ds|
       ds.name = 'HMIS'
       ds.short_name = 'HMIS'
       ds.authoritative = true
