@@ -139,7 +139,6 @@ module Hmis
       Hmis::MigrateAssessmentsJob.perform_now(
         data_source_id: @data_source.id,
         enrollments: enrollments,
-        project_ids: projects.pluck(:id),
         generate_empty_intakes: true,
       )
 
