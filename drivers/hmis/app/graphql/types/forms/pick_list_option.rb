@@ -151,6 +151,12 @@ module Types
           preload(:organization).
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
+      when 'OTHER_FUNDERS'
+        Hmis::Hud::Funder.where(data_source_id: user.hmis_data_source_id).
+          where(Funder: HudUtility2024.local_or_other_funding_source).where.not(OtherFunder: nil).
+          pluck(:OtherFunder).uniq.sort.map do |other_funder|
+            { code: other_funder, label: other_funder }
+          end
       end
     end
 
@@ -445,7 +451,8 @@ module Types
     def self.external_form_types_for_project(project)
       return [] unless project.present?
 
-      Hmis::Form::Instance.for_project(project).
+      # External forms can only be enabled by Project-level instances
+      Hmis::Form::Instance.for_project(project).active.
         with_role(:EXTERNAL_FORM).
         preload(:definition).
         order(:id).
@@ -520,7 +527,8 @@ module Types
     end
 
     def self.projects_receiving_referrals
-      Hmis::Hud::Project.receiving_referrals.
+      Hmis::Hud::Project.where(data_source_id: current_user.hmis_data_source_id).
+        receiving_referrals.
         joins(:organization).preload(:organization).
         sort_by_option(:organization_and_name).
         map(&:to_pick_list_option)

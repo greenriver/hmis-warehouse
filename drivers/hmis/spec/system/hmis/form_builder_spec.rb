@@ -18,7 +18,6 @@ RSpec.feature 'HMIS Form Builder', type: :system do
 
   before(:each) do
     sign_in(hmis_user)
-    disable_transitions
   end
 
   context 'with no existing form' do

@@ -104,6 +104,8 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
 
   # Check for obvious match is private...
   def check_for_obvious_match(client_id)
-    GrdaWarehouse::Tasks::IdentifyDuplicates.new.send(:check_for_obvious_match, client_id)
+    inst = GrdaWarehouse::Tasks::IdentifyDuplicates.new
+    inst.send(:build_destination_lookups)
+    inst.send(:check_for_obvious_match, client_id)
   end
 end
