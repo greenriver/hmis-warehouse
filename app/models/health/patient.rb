@@ -141,7 +141,7 @@ module Health
     # If there is already a housing status on the date, update it, otherwise create a new one
     #
     # Note that this is often called in an after_save hook, so care needs to be take not to create cycles
-    def record_housing_status(status, on_date: Date.current)
+    def record_housing_status(status, on_date: Date.current, validate_qa: true)
       return unless status.present? && on_date.present?
 
       prior_housing_status = recent_housing_status
@@ -154,11 +154,11 @@ module Health
         housing_statuses.create(collected_on: on_date, status: status)
       end
 
-      generate_daily_hrsn_qa(housing_status) if prior_housing_status.present? && on_date > '2024-03-01'.to_date
+      generate_daily_hrsn_qa(housing_status, validate_qa) if prior_housing_status.present? && on_date > '2024-03-01'.to_date
       housing_status
     end
 
-    private def generate_daily_hrsn_qa(housing_status)
+    private def generate_daily_hrsn_qa(housing_status, validate_qa)
       return unless engaged? # Daily HRSNs are not produced until the patient is engaged
 
       previous_status = housing_statuses.as_of(date: housing_status.collected_on - 1.day).first
@@ -168,7 +168,7 @@ module Health
       return if housing_status.collected_on < Health::QualifyingActivityV2::EFFECTIVE_DATE_RANGE.first # SDoH QAs added in CP 2.0
 
       user = User.system_user # Mark created QAs as from the system
-      ::Health::QualifyingActivity.create!(
+      qa = ::Health::QualifyingActivity.new(
         source_type: housing_status.class.name,
         source_id: housing_status.id,
         user_id: user.id,
@@ -179,7 +179,9 @@ module Health
         patient_id: id,
         activity: :sdoh_positive,
         follow_up: 'Patient SDoH Screening Positive',
-      ).maintain_cached_values
+      )
+      qa.save(validate: validate_qa)
+      qa.maintain_cached_values if qa.persisted?
     end
 
     scope :pilot, -> { where pilot: true }
@@ -667,7 +669,9 @@ module Health
     end
 
     def self.update_demographic_from_sources
+      Rails.logger.info 'Patient: start update_demographics_from_sources'
       all.each(&:update_demographics_from_sources)
+      Rails.logger.info 'Patient: end update_demographics_from_sources'
     end
 
     def available_team_members

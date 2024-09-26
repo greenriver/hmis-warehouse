@@ -37,6 +37,46 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
   }
 
   update() {
+    let data = this.formData()
+
+    $(this.calculatedProjectsTarget).html('<p class="well rollup-container"></p>')
+    // Fetch the asynchronous nature of the query from the HTML, we'll set it to true for Development only
+    const async = $(this.projectsTarget).data('async')
+
+    $.ajax({
+      // It is not ideal to call this synchronously as it sometimes hangs the browser temporarily,
+      // but if these complete out of order, the project list gets funky.
+      async: async,
+      url: '/api/hud_filters',
+      type: 'POST',
+      data: data,
+    }).done((ret) => {
+      // console.debug('success')
+      if (ret.includes('No Projects')) {
+        this.addProjectDataWarning()
+        $(this.submitButtonTarget).attr('disabled', 'disabled');
+      }
+      else {
+        // we have some projects, so remove the warning
+        this.removeProjectDataWarning()
+        if (this.checkMissingData()) {
+          // we have some data issues
+          this.addMissingDataWarning()
+          $(this.submitButtonTarget).attr('disabled', 'disabled');
+        }
+        else {
+          // All good to proceed
+          this.removeMissingDataWarning()
+          $(this.submitButtonTarget).data('title', '').removeAttr('disabled');
+        }
+      }
+      $(this.calculatedProjectsTarget).html(ret)
+    }).fail((ret) => {
+      console.error(['Failed to fetch project list', ret])
+    })
+  }
+
+  formData() {
     let data = {
       project_ids: $(this.projectsTarget).val(),
       data_source_ids: $(this.dataSourcesTarget).val(),
@@ -60,76 +100,15 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
     if (this.hasSupportedProjectTypesValue) {
       data.supported_project_types = this.supportedProjectTypesValue
     }
-
-    $(this.calculatedProjectsTarget).html('<p class="well rollup-container"></p>')
-    // Fetch the asynchronous nature of the query from the HTML, we'll set it to true for Development only
-    const async = $(this.projectsTarget).data('async')
-
-    $.ajax({
-      // It is not ideal to call this synchronously as it sometimes hangs the browser temporarily,
-      // but if these complete out of order, the project list gets funky.
-      async: async,
-      url: '/api/hud_filters',
-      type: 'POST',
-      data: data,
-    }).done((ret) => {
-      // console.debug('success')
-      if (ret.includes('No Projects')) {
-        this.addProjectDataWarning()
-        $(this.submitButtonTarget).attr('disabled', 'disabled');
-        this.resetMissingDataLink()
-      }
-      else {
-        // we have some projects, so remove the warning
-        this.removeProjectDataWarning()
-        this.updateMissingDataLink(ret)
-        if (this.checkMissingData(ret)) {
-          // we have some data issues
-          this.addMissingDataWarning()
-          $(this.submitButtonTarget).attr('disabled', 'disabled');
-        }
-        else {
-          // All good to proceed
-          this.removeMissingDataWarning()
-          $(this.submitButtonTarget).data('title', '').removeAttr('disabled');
-        }
-      }
-      $(this.calculatedProjectsTarget).html(ret)
-    }).fail((ret) => {
-      console.error(['Failed to fetch project list', ret])
-    })
+    return data
   }
 
-  resetMissingDataLink() {
-    if (!this.hasMissingItemsTarget) {
-      return
-    }
-
-    $(this.missingItemsTarget).attr('href', $(this.missingItemsTarget).data('defaultHref'));
-  }
-
-  updateMissingDataLink(html) {
-    if (!this.hasMissingItemsTarget) {
-      return
-    }
-    $(this.missingItemsTarget).attr('href', this.buildMissingDataLink(html));
-  }
-
-  checkMissingData(html) {
+  checkMissingData() {
     if (! this.hasMissingItemsTarget) {
       return false
     }
-    return $.ajax({ async: false, type: 'GET', url: this.buildMissingDataLink(html, true) }).done().responseJSON
-  }
-
-  buildMissingDataLink(html, json=false) {
-    const base_missing_data_url = $(this.missingItemsTarget).data('defaultHref');
-    const project_ids = $(html).find('li[value]').map(function () { return $(this).attr('value') }).get()
-    if(json) {
-      return base_missing_data_url + '.json?' + $.param({ filter: { project_ids: project_ids, coc_codes: $(this.cocCodesTarget).val() } })
-    } else {
-      return base_missing_data_url + '?' + $.param({ filter: { project_ids: project_ids, coc_codes: $(this.cocCodesTarget).val() } })
-    }
+    return $.ajax({
+      async: false, type: 'POST', url: $(this.missingItemsTarget).attr('formaction') + '.json', data: { filter: this.formData() } }).done().responseJSON
   }
 
   addMissingDataWarning() {
