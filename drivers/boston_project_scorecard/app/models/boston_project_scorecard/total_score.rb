@@ -23,7 +23,6 @@ module BostonProjectScorecard
       def project_performance_available
         max = 57
         max -= 24 unless rrh? || psh?
-        max -= 3 if no_concern_score.nil?
 
         max
       end

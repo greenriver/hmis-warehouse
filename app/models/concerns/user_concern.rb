@@ -526,7 +526,7 @@ module UserConcern
         merge(Health::CoordinationTeam.lead_by(team_leader_ids + [id])).
         pluck(:user_id)
 
-      User.where(id: team_member_ids)
+      User.where(id: team_member_ids).active
     end
 
     # patients with CC or NCM relationship to this user
