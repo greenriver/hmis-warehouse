@@ -51,12 +51,7 @@ module Hmis::Hud::Processors
         # Veteran status is non-nullable. It should be saved as 99 even if hidden. (It's hidden for minors)
         { attribute_name => attribute_value || 99 }
       when 'age_range'
-        # if precise DOB was already processed, don't overwrite it with vaguer age range
-        client.dob.present? ? {} : process_age_range(value)
-      when 'dob'
-        # if imprecise age range has already been processed, do overwrite it
-        client.dob_data_quality = nil
-        { attribute_name => attribute_value }
+        process_age_range(value) unless @hud_values.key?('Client.dob') # Prioritize exact DOB if it is provided
       else
         { attribute_name => attribute_value }
       end
