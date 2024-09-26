@@ -48,16 +48,21 @@ module ClientAccessControl
     end
 
     def available_projects(month:, year:, client:, user:)
-      @available_projects ||= ::GrdaWarehouse::Hud::Project.
-        joins(service_history_enrollments: :enrollment).
-        merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)).
-        merge(
-          ::GrdaWarehouse::ServiceHistoryEnrollment.open_between(
-            start_date: date_range_for(month: month, year: year).first,
-            end_date: date_range_for(month: month, year: year).last,
-          ).where(client_id: client.id),
-        ).distinct.to_a.
-        sort_by { |p| p.name(user) }
+      @available_projects ||= begin
+        projects = ::GrdaWarehouse::Hud::Project.
+          joins(service_history_enrollments: :enrollment).
+          merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)).
+          merge(
+            ::GrdaWarehouse::ServiceHistoryEnrollment.open_between(
+              start_date: date_range_for(month: month, year: year).first,
+              end_date: date_range_for(month: month, year: year).last,
+            ).where(client_id: client.id),
+          ).distinct.to_a.
+          sort_by { |p| p.name(user) }
+        # projects = projects.select { |p| client.project_ids_available_to(user).include?(p.ProjectID) } if ::GrdaWarehouse::Config.get(:client_dashboard).to_s == 'va'
+        projects = projects.select { |p| p.can?(user) } if ::GrdaWarehouse::Config.get(:client_dashboard).to_s == 'va'
+        projects
+      end
     end
 
     def available_project_types(month:, year:, client:, user:)
@@ -281,7 +286,9 @@ module ClientAccessControl
             days: week,
           }
           projects = {}
-          enrollments(month: month, year: year, client: client, week: week, user: user).each do |she|
+          enrollments = enrollments(month: month, year: year, client: client, week: week, user: user)
+          enrollments = enrollments.select { |e| e.project.can?(user) } if ::GrdaWarehouse::Config.get(:client_dashboard).to_s == 'va'
+          enrollments.each do |she|
             project = she.project
             projects = add_project_for_week(projects: projects, project: project, she: she, user: user)
             if she.move_in_date.present?
