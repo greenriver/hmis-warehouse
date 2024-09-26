@@ -6,24 +6,24 @@ if ENV['ENABLE_HMIS_API'] == 'true' && hmis_hostnames.present?
   Rails.application.config.middleware.insert_before 0, Rack::Cors do
     # Allow requests to /hmis from the HMIS frontend host
     allow do
-      origins *hmis_hostnames
+      origins(*hmis_hostnames)
 
       resource '/hmis/*',
-        headers: :any,
-        methods: [:get, :post, :delete, :put, :patch, :options, :head],
-        credentials: true
+               headers: :any,
+               methods: [:get, :post, :delete, :put, :patch, :options, :head],
+               credentials: true
 
       # Used for PDF preview
       resource '/rails/active_storage/blob/*',
-        headers: :any,
-        methods: [:get, :options, :head],
-        credentials: true
+               headers: :any,
+               methods: [:get, :options, :head],
+               credentials: true
 
       # Used for logo and other assets
       resource '/assets/*',
-        headers: :any,
-        methods: [:get, :options, :head],
-        credentials: true
+               headers: :any,
+               methods: [:get, :options, :head],
+               credentials: true
     end
   end
 end
