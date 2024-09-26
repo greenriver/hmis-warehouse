@@ -303,7 +303,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
         end
       end
 
-      context 'when the submission specifies ageGroup, a special-case client attribute' do
+      context 'when the submission specifies age range, a special-case client attribute' do
         let!(:submission) do
           data = {
             'Client.firstName': 'foobar',
@@ -312,7 +312,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
           create(:hmis_external_form_submission, raw_data: data, definition: definition)
         end
 
-        it 'should process the age group onto DOB with low data quality' do
+        it 'should process the age range onto DOB with low data quality' do
           expect do
             response, result = post_graphql(input) { mutation }
             expect(response.status).to eq(200), result.inspect
@@ -326,7 +326,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
         end
       end
 
-      context 'when age group is unknown' do
+      context 'when age range is filled out as unknown' do
         let!(:submission) do
           data = {
             'Client.firstName': 'foobar',
@@ -335,7 +335,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
           create(:hmis_external_form_submission, raw_data: data, definition: definition)
         end
 
-        it 'should process the age group onto DOB with low data quality' do
+        it 'should process onto data quality 99' do
           expect do
             response, result = post_graphql(input) { mutation }
             expect(response.status).to eq(200), result.inspect

@@ -160,16 +160,26 @@ module Hmis::Hud::Processors
     end
 
     private def process_age_range(value)
-      return { dob_data_quality: 99 } if value == "Doesn't know / Prefers not to answer"
+      case value
+      when *HudUtility2024.age_range.keys
+        # value matches a known age range, so process it onto dob with low DQ
+        { dob: approximate_dob(value), dob_data_quality: 2 }
+      when *HudUtility2024.dob_data_quality_options.values_at(8, 9, 99)
+        # value matches a known missing data reason, so store that. (not currently expected but future-proofing for desired pick lists)
+        { dob_data_quality: HudUtility2024.dob_data_quality(value, true, raise_on_missing: true) }
+      when /doesn't know|prefers not to answer|not collected/i
+        # value string-matches a missing data reason (PIT form is an example), so don't raise and store 99
+        { dob_data_quality: 99 }
+      else
+        # this might be an age range that we don't support processing, so raise
+        raise "Unknown value for age range: #{value}"
+      end
+    end
 
+    private def approximate_dob(value)
       dob_range = HudUtility2024.age_range[value]
-      raise ArgumentError, "Unknown value for age range: #{value}" unless dob_range
-
-      {
-        # set to a date in the middle of the range
-        dob: Date.current - ((dob_range.begin + dob_range.end) / 2).round.years,
-        dob_data_quality: 2, # Approximate or partial DOB reported
-      }
+      # Pick date in the middle of the range. Set to start of year so it's more obvious that the data quality is low.
+      Date.current.beginning_of_year - ((dob_range.begin + dob_range.end) / 2).round.years
     end
 
     # Custom handler for MCI field
