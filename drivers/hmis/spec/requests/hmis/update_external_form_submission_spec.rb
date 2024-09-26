@@ -55,6 +55,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
       },
     }
   end
+  let(:today) { Date.current }
 
   context 'when user lacks can_manage_external_form_submissions' do
     before(:each) { remove_permissions(access_control, :can_manage_external_form_submissions) }
@@ -322,7 +323,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
             and change(Hmis::Hud::Enrollment, :count).by(1)
 
           submission.reload
-          expect(submission.enrollment.client.dob).to be_between(Date.today - 24.years, Date.today - 18.years)
+          expect(submission.enrollment.client.dob).to be_between(today - 24.years, today - 18.years)
           expect(submission.enrollment.client.dob_data_quality).to eq(2)
         end
       end
@@ -368,7 +369,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
             and change(Hmis::Hud::Enrollment, :count).by(1)
 
           submission.reload
-          expect(submission.enrollment.client.dob).to be_between(Date.today - 90.years, Date.today - 65.years)
+          expect(submission.enrollment.client.dob).to be_between(today - 90.years, today - 65.years)
           expect(submission.enrollment.client.dob_data_quality).to eq(2)
         end
       end
@@ -378,7 +379,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
           data = {
             'Client.firstName': 'foobar',
             'Client.ageRange': '18-24',
-            'Client.dob': (Date.today - 20.years).to_formatted_s(:iso8601),
+            'Client.dob': (today - 20.years).to_formatted_s(:iso8601),
           }.stringify_keys
           create(:hmis_external_form_submission, raw_data: data, definition: definition)
         end
@@ -392,7 +393,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
             and change(Hmis::Hud::Enrollment, :count).by(1)
 
           submission.reload
-          expect(submission.enrollment.client.dob).to eq(Date.today - 20.years)
+          expect(submission.enrollment.client.dob).to eq(today - 20.years)
           expect(submission.enrollment.client.dob_data_quality).to be_nil
         end
       end
