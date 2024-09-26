@@ -308,6 +308,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
           data = {
             'Client.firstName': 'foobar',
             'Client.ageRange': '18-24',
+            'Client.dob': '',
           }.stringify_keys
           create(:hmis_external_form_submission, raw_data: data, definition: definition)
         end

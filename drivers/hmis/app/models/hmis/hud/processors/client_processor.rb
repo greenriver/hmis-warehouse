@@ -51,7 +51,8 @@ module Hmis::Hud::Processors
         # Veteran status is non-nullable. It should be saved as 99 even if hidden. (It's hidden for minors)
         { attribute_name => attribute_value || 99 }
       when 'age_range'
-        process_age_range(value) unless @hud_values.key?('Client.dob') # Prioritize exact DOB if it is provided
+        # Prioritize exact DOB if it is provided
+        process_age_range(value) unless @hud_values.key?('Client.dob') && @hud_values['Client.dob'].present?
       else
         { attribute_name => attribute_value }
       end
