@@ -74,6 +74,10 @@ ASSET_CHECKSUM=$(ASSETS_PREFIX=${ASSETS_PREFIX} ./bin/asset_checksum) # This sho
 T2=`date +%s`
 echo "...checksumming took $(expr $T2 - $T1) seconds"
 
+if grep 'Access denied' asset.checksum.log > /dev/null 2>&1; then
+  echo "Looks like you cannot access the assets bucket. Check your IAM permissions"
+fi
+
 # echo "asset.checksum.log"
 # cat asset.checksum.log
 
