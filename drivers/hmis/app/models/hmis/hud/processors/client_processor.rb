@@ -173,8 +173,17 @@ module Hmis::Hud::Processors
 
     private def approximate_dob(value)
       dob_range = HudUtility2024.age_range[value]
-      # Pick date in the middle of the range. Set to start of year so it's more obvious that the data quality is low.
-      Date.current.beginning_of_year - ((dob_range.begin + dob_range.end) / 2).round.years
+
+      years_ago = if dob_range.end.infinite?
+        # For an infinite range like 65+, just use the beginning of the range
+        dob_range.begin
+      else
+        # Otherwise pick something in the middle of the range
+        ((dob_range.begin + dob_range.end) / 2).round
+      end
+
+      # Set to start of year so it's more obvious that the data quality is low.
+      Date.current.beginning_of_year - years_ago.years
     end
 
     # Custom handler for MCI field

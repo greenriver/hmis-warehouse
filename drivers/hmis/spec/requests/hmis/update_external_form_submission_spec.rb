@@ -349,6 +349,29 @@ RSpec.describe 'Update External Form Submission', type: :request do
         end
       end
 
+      context 'when the submission specifies age range with an open-ended range' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'foobar',
+            'Client.ageRange': '65+',
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should process the age range' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1)
+
+          submission.reload
+          expect(submission.enrollment.client.dob).to be_between(Date.today - 90.years, Date.today - 65.years)
+          expect(submission.enrollment.client.dob_data_quality).to eq(2)
+        end
+      end
+
       context 'when submission specifies both age group and exact DOB' do
         let!(:submission) do
           data = {
