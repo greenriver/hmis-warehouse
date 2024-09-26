@@ -55,6 +55,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
       },
     }
   end
+  let(:today) { Date.current }
 
   context 'when user lacks can_manage_external_form_submissions' do
     before(:each) { remove_permissions(access_control, :can_manage_external_form_submissions) }
@@ -300,6 +301,100 @@ RSpec.describe 'Update External Form Submission', type: :request do
 
           submission.reload
           expect(submission.enrollment.client.veteran_status).to eq(99)
+        end
+      end
+
+      context 'when the submission specifies age range, a special-case client attribute' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'foobar',
+            'Client.ageRange': '18-24',
+            'Client.dob': '',
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should process the age range onto DOB with low data quality' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1)
+
+          submission.reload
+          expect(submission.enrollment.client.dob).to be_between(today - 24.years, today - 18.years)
+          expect(submission.enrollment.client.dob_data_quality).to eq(2)
+        end
+      end
+
+      context 'when age range is filled out as unknown' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'foobar',
+            'Client.ageRange': "Doesn't know / Prefers not to answer",
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should process onto data quality 99' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1)
+
+          submission.reload
+          expect(submission.enrollment.client.dob).to be_nil
+          expect(submission.enrollment.client.dob_data_quality).to eq(99)
+        end
+      end
+
+      context 'when the submission specifies age range with an open-ended range' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'foobar',
+            'Client.ageRange': '65+',
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should process the age range' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1)
+
+          submission.reload
+          expect(submission.enrollment.client.dob).to be_between(today - 90.years, today - 65.years)
+          expect(submission.enrollment.client.dob_data_quality).to eq(2)
+        end
+      end
+
+      context 'when submission specifies both age group and exact DOB' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'foobar',
+            'Client.ageRange': '18-24',
+            'Client.dob': (today - 20.years).to_formatted_s(:iso8601),
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should prioritize exact DOB' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1)
+
+          submission.reload
+          expect(submission.enrollment.client.dob).to eq(today - 20.years)
+          expect(submission.enrollment.client.dob_data_quality).to be_nil
         end
       end
 
