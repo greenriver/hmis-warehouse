@@ -59,7 +59,7 @@ module ClientAccessControl
             ).where(client_id: client.id),
           ).distinct.to_a.
           sort_by { |p| p.name(user) }
-        # projects = projects.select { |p| client.project_ids_available_to(user).include?(p.ProjectID) } if ::GrdaWarehouse::Config.get(:client_dashboard).to_s == 'va'
+        # Limit the visible projects to just those available to the user for when the VA dashboard is being used.
         projects = projects.select { |p| p.can?(user) } if ::GrdaWarehouse::Config.get(:client_dashboard).to_s == 'va'
         projects
       end
@@ -287,6 +287,7 @@ module ClientAccessControl
           }
           projects = {}
           enrollments = enrollments(month: month, year: year, client: client, week: week, user: user)
+          # Limit the visible projects to just those available to the user for when the VA dashboard is being used.
           enrollments = enrollments.select { |e| e.project.can?(user) } if ::GrdaWarehouse::Config.get(:client_dashboard).to_s == 'va'
           enrollments.each do |she|
             project = she.project
