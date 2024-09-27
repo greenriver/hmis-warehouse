@@ -96,6 +96,13 @@ RSpec.describe 'Validate import files', type: :model do
     expect(GrdaWarehouse::Hud::Client.where(PersonalID: 'FAILURE').count).to eq(1)
   end
 
+  it 'excludes expected client failures' do
+    aggregate_failures 'validating' do
+      expect(HmisCsvValidation::NonBlank.where("source_type LIKE '%Client'").where(validated_column: 'PersonalID').count).to eq(1)
+      expect(GrdaWarehouse::Hud::Client.where(FirstName: 'MISSING_P_ID').count).to eq(0)
+    end
+  end
+
   # CurrentLivingSituations
   it 'includes expected current_living_situation' do
     expect(GrdaWarehouse::Hud::CurrentLivingSituation.count).to eq(2)
