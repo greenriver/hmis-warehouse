@@ -17,9 +17,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
     end
 
     hostname = ENV['FQDN']
-
-    themes = GrdaWarehouse::Theme.where(client: ENV['CLIENT']&.to_sym).where.not(hmis_value: nil)
-    themes = themes.where(origin: current_hmis_host) if themes.size > 1
+    theme = GrdaWarehouse::Theme.hmis_theme_for_origin(current_hmis_host)
 
     render json: {
       oktaPath: okta_enabled ? '/hmis/users/auth/okta' : nil,
@@ -33,7 +31,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
       casUrl: GrdaWarehouse::Config.get(:cas_url),
       revision: Git.revision,
       branch: Git.branch,
-      theme: themes.first&.hmis_value,
+      theme: theme&.hmis_value,
       globalFeatureFlags: {
         # Whether to show MCI ID in client search results
         mciId: HmisExternalApis::AcHmis::Mci.enabled?,
