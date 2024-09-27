@@ -34,8 +34,8 @@ module HopwaCaper::Generators::Fy2024::Sheets
     protected
 
     def relevant_demographics_enrollments
-      program_filter = HopwaCaper::Generators::Fy2024::EnrollmentFilters::ProjectFunderFilter.all_hopwa
-      overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments))
+      # assume all included enrollments are hopwa funded, don't filter by funder
+      overlapping_enrollments(@report.hopwa_caper_enrollments)
     end
 
     def demographics_sheet_a(sheet)

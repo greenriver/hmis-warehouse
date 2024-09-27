@@ -44,22 +44,5 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
     def self.tbra_or_php_hopwa
       IncludeFilter.new(filters: [tbra_hopwa, php_hopwa])
     end
-
-    def self.all_hopwa
-      new(
-        label: 'ALL HOPWA Funders',
-        types: [
-          'HUD: HOPWA - Hotel/Motel Vouchers',
-          'HUD: HOPWA - Housing Information',
-          'HUD: HOPWA - Permanent Housing (facility based or TBRA)',
-          'HUD: HOPWA - Permanent Housing Placement',
-          'HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance',
-          'HUD: HOPWA - Short-Term Supportive Facility',
-          'HUD: HOPWA - Transitional Housing (facility based or TBRA)',
-          'HUD: HUD/VASH',
-          'HUD: HOPWA - CV',
-        ],
-      )
-    end
   end
 end
