@@ -186,13 +186,13 @@ RSpec.describe 'Validate import files', type: :model do
   end
 
   it 'includes expected exits failures' do
-    expect(HmisCsvImporter::HmisCsvValidation::NonBlank.where("source_type LIKE '%Exit'").count).to eq(2)
+    expect(HmisCsvImporter::HmisCsvValidation::NonBlank.where("source_type LIKE '%Exit'").count).to eq(3)
   end
 
   it 'includes expected exits validations' do
     aggregate_failures 'validating' do
       expect(HmisCsvImporter::HmisCsvValidation::InclusionInSet.where("source_type LIKE '%Exit'").count).to eq(1)
-      expect(HmisCsvImporter::HmisCsvValidation::NonBlankValidation.where("source_type LIKE '%:Exit'").count).to eq(2)
+      expect(HmisCsvImporter::HmisCsvValidation::NonBlankValidation.where("source_type LIKE '%:Exit'").count).to eq(1)
     end
   end
 
