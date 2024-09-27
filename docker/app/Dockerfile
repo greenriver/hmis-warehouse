@@ -107,6 +107,7 @@ USER root
 
 COPY docker/app/entrypoint.dev.sh /usr/bin/
 COPY docker/app/entrypoint.spec.sh /usr/bin/
+COPY docker/app/entrypoint.dj-eks-test.sh /usr/bin/
 ENTRYPOINT ["/usr/bin/entrypoint.dev.sh"]
 
 RUN git config --global --add safe.directory /app \

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require './app'
+require_relative './app'
 require 'prometheus/middleware/exporter'
 require 'prometheus/client/data_stores/direct_file_store'
 require 'prometheus/client/gauge'

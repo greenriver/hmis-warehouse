@@ -45,12 +45,8 @@ echo $TIMEZONE > /etc/timezone
 if [ "$CONTAINER_VARIANT" == "dj" ]; then
   if [[ "${ENABLE_DJ_METRICS}" == "true" ]] ; then
     echo "Starting metrics server"
-    cd /app/dj-metrics
-    export BUNDLE_GEMFILE=../Gemfile
     # not cluster mode with 5 threads
-    bundle exec puma -w 0 -t 1:5 &
-    cd /app
-    unset BUNDLE_GEMFILE
+    bundle exec puma --no-config -w 0 -t 1:5 /app/dj-metrics/config.ru &
   fi
 
   echo "Calling: $@"
