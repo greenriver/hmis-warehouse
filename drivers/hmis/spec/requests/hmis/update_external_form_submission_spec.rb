@@ -458,6 +458,29 @@ RSpec.describe 'Update External Form Submission', type: :request do
             and not_change(ClientLocationHistory::Location, :count)
         end
       end
+
+      context 'when disability questions are answered' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'bar',
+            'DisabilityGroup.developmentalDisability': '1',
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should save correctly' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1).
+            and change(Hmis::Hud::Disability, :count).by(1)
+
+          submission.reload
+          expect(submission.enrollment.disabilities.sole.disability_type).to eq(6)
+        end
+      end
     end
   end
 end

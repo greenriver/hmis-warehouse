@@ -113,6 +113,7 @@ module HmisExternalApis::ExternalForms
         values_to_process.delete('Enrollment.relationshipToHoH')
 
         build_enrollment(
+          enrollment_id: Hmis::Hud::Base.generate_uuid,
           project: project,
           data_source: project.data_source,
           entry_date: created_at,

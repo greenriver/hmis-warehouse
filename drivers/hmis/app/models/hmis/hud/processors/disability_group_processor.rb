@@ -9,7 +9,11 @@ module Hmis::Hud::Processors
     def process(field, value)
       if field_mapping.key?(field)
         disability_type, disability_field, enum_type = field_mapping[field]
-        disability_value = attribute_value_for_enum(enum_type, value)
+        disability_value = if enum_type.values.values.map(&:value).map(&:to_s).include?(value)
+          value
+        else
+          attribute_value_for_enum(enum_type, value)
+        end
         @processor.send(disability_type).assign_attributes(disability_field => disability_value)
       elsif hiv_aids_fields.include?(field)
         attribute_name = ar_attribute_name(field)
@@ -33,6 +37,7 @@ module Hmis::Hud::Processors
         @processor.send(factory_name, create: false)&.assign_attributes(
           user: @processor.hud_user,
           data_source_id: @processor.hud_user.data_source_id,
+          client: @processor.client_factory(create: false),
         )
       end
     end

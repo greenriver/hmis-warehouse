@@ -404,6 +404,17 @@ FactoryBot.define do
                     "field_name": "dob",
                     "record_type": "CLIENT"
                   }
+                },
+                {
+                  "text": "Do you have a developmental disability?",
+                  "type": "BOOLEAN",
+                  "link_id": "developmental_disability",
+                  "mapping": {
+                    "field_name": "developmentalDisability",
+                    "record_type": "DISABILITY_GROUP"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
                 }
               ]
             }

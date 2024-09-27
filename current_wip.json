@@ -1,0 +1,796 @@
+{
+  "item": [
+    {
+      "text": "<div style='background-color:#f5f5f5;padding:15px;font-size:18px'><div style='text-align:center;margin-bottom:12px;'><div style='font-size:20px;font-weight:600;'>Welcome to the 2025 PIT count!</div><span>We thank you for volunteering!</span></div><div style='font-size:12px;text-align:center;margin-bottom:6px;'>RECOMMENDED SCRIPT FOR CLIENT INTERACTION:</div>Hi, my name is <i style='color:#757575;'>(Your Name Here)</i>. I'm volunteering/working with Partnership Home, and we're trying to survey folks sleeping outside tonight. It will only take a few minutes, and you don't have to answer anything you don't want to answer. Are you willing to chat with us?</div>",
+      "type": "DISPLAY",
+      "link_id": "welcome_to_the_2025_pit_count_we_thank_y",
+      "readonly_text": "Welcome to the 2025 PIT count!",
+      "disabled_display": "HIDDEN"
+    },
+    {
+      "text": "Volunteer Name",
+      "type": "STRING",
+      "link_id": "volunteer_name",
+      "mapping": {
+        "custom_field_key": "external_form_pit_2024_volunteer_name_2"
+      },
+      "required": true,
+      "read_only": false,
+      "warn_if_empty": false,
+      "disabled_display": "HIDDEN"
+    },
+    {
+      "text": "Is this survey Observational Only or In-Person Interaction?",
+      "type": "CHOICE",
+      "link_id": "survey_type",
+      "mapping": {
+        "custom_field_key": "external_form_pit_2024_survey_type_2"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "read_only": false,
+      "warn_if_empty": false,
+      "disabled_display": "HIDDEN",
+      "pick_list_options": [
+        {
+          "code": "In-Person Interaction"
+        },
+        {
+          "code": "Observational Only"
+        }
+      ]
+    },
+    {
+      "text": "Is this survey for an Individual or a Family?",
+      "type": "CHOICE",
+      "link_id": "individual_or_family",
+      "mapping": {
+        "custom_field_key": "external_form_pit_2024_individual_or_family"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "read_only": false,
+      "warn_if_empty": false,
+      "disabled_display": "HIDDEN",
+      "pick_list_options": [
+        {
+          "code": "Individual"
+        },
+        {
+          "code": "Family"
+        }
+      ]
+    },
+    {
+      "text": "<div style='text-align:center;'>Please remember to record a survey for <u>each</u> person in a family unit.</div>",
+      "type": "DISPLAY",
+      "link_id": "please_remember_to_record_a_survey_for_e",
+      "component": "ALERT_INFO",
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "individual_or_family",
+          "answer_code": "Family"
+        }
+      ],
+      "readonly_text": "Please remember to record a survey for each person in a family unit.",
+      "enable_behavior": "ALL",
+      "disabled_display": "HIDDEN"
+    },
+    {
+      "text": "Geolocation",
+      "type": "GEOLOCATION",
+      "link_id": "geolocation",
+      "mapping": {
+        "field_name": "coordinates",
+        "record_type": "GEOLOCATION"
+      },
+      "disabled_display": "HIDDEN"
+    },
+    {
+      "item": [
+        {
+          "text": "Where are you sleeping tonight?",
+          "type": "CHOICE",
+          "link_id": "where_are_you_sleeping_tonight",
+          "mapping": {
+            "custom_field_key": "external_form_pit_2024_where_are_you_sleeping_tonight_2"
+          },
+          "required": true,
+          "read_only": false,
+          "warn_if_empty": false,
+          "disabled_display": "HIDDEN",
+          "pick_list_options": [
+            {
+              "code": "Street or sidewalk"
+            },
+            {
+              "code": "Vehicle (car, van, RV, truck) "
+            },
+            {
+              "code": "Park"
+            },
+            {
+              "code": "Abandoned building"
+            },
+            {
+              "code": "Bus, train station, airport "
+            },
+            {
+              "code": "Under bridge/overpass"
+            },
+            {
+              "code": "Woods or outdoor encampment"
+            },
+            {
+              "code": "Other location"
+            },
+            {
+              "code": "Doesn't know / Prefers not to answer"
+            }
+          ]
+        },
+        {
+          "text": "Describe location",
+          "type": "TEXT",
+          "link_id": "describe_location",
+          "mapping": {
+            "custom_field_key": "external_form_pit_2024_describe_location"
+          },
+          "enable_when": [
+            {
+              "operator": "EQUAL",
+              "question": "where_are_you_sleeping_tonight",
+              "answer_code": "Other location"
+            }
+          ],
+          "enable_behavior": "ALL",
+          "disabled_display": "HIDDEN"
+        },
+        {
+          "item": [
+            {
+              "text": "<b>Observation Only Instruction:</b><br/><ul><li>Please enter the word \"PIT\" for the person's FIRST NAME.</li><li>Please enter Survey Takers First Initial, Last Initial, plus a letter (i.e., A, B, C, D, etc.) for the persons' LAST NAME.</li></ul>",
+              "type": "DISPLAY",
+              "link_id": "observation_only_instruction_please_ente",
+              "enable_when": [
+                {
+                  "operator": "EQUAL",
+                  "question": "survey_type",
+                  "answer_code": "Observational Only"
+                }
+              ],
+              "enable_behavior": "ALL",
+              "disabled_display": "HIDDEN"
+            },
+            {
+              "text": "First Name",
+              "type": "STRING",
+              "link_id": "name",
+              "mapping": {
+                "field_name": "firstName",
+                "record_type": "CLIENT"
+              },
+              "required": true,
+              "read_only": false,
+              "warn_if_empty": false,
+              "disabled_display": "HIDDEN"
+            },
+            {
+              "text": "Last Name",
+              "type": "STRING",
+              "link_id": "last_name",
+              "mapping": {
+                "field_name": "lastName",
+                "record_type": "CLIENT"
+              },
+              "required": true,
+              "read_only": false,
+              "warn_if_empty": false,
+              "disabled_display": "HIDDEN"
+            },
+            {
+              "text": "Age Range (estimate if necessary)",
+              "type": "CHOICE",
+              "link_id": "how_old_are_you",
+              "mapping": {
+                "field_name": "ageRange",
+                "record_type": "CLIENT"
+              },
+              "required": true,
+              "read_only": false,
+              "warn_if_empty": false,
+              "disabled_display": "HIDDEN",
+              "pick_list_options": [
+                {
+                  "code": "Under 18"
+                },
+                {
+                  "code": "18-24"
+                },
+                {
+                  "code": "25-34"
+                },
+                {
+                  "code": "35-44"
+                },
+                {
+                  "code": "45-54"
+                },
+                {
+                  "code": "55-64"
+                },
+                {
+                  "code": "65+"
+                },
+                {
+                  "code": "Doesn't know / Prefers not to answer"
+                }
+              ]
+            },
+            {
+              "text": "What is your Date of Birth?",
+              "type": "DATE",
+              "link_id": "client_dob",
+              "mapping": {
+                "field_name": "dob",
+                "record_type": "CLIENT"
+              },
+              "required": false,
+              "enable_when": [
+                {
+                  "operator": "EQUAL",
+                  "question": "survey_type",
+                  "answer_code": "In-Person Interaction"
+                }
+              ],
+              "enable_behavior": "ALL",
+              "disabled_display": "HIDDEN"
+            },
+            {
+              "item": [
+                {
+                  "text": "American Indian, Alaska Native, or Indigenous",
+                  "type": "BOOLEAN",
+                  "link_id": "race_AmIndAKNative",
+                  "mapping": {
+                    "field_name": "AmIndAKNative",
+                    "record_type": "CLIENT"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
+                },
+                {
+                  "text": "Asian or Asian American",
+                  "type": "BOOLEAN",
+                  "link_id": "race_Asian",
+                  "mapping": {
+                    "field_name": "Asian",
+                    "record_type": "CLIENT"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
+                },
+                {
+                  "text": "Black, African American, or African",
+                  "type": "BOOLEAN",
+                  "link_id": "race_BlackAfAmerican",
+                  "mapping": {
+                    "field_name": "BlackAfAmerican",
+                    "record_type": "CLIENT"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
+                },
+                {
+                  "text": "Hispanic/Latina/e/o",
+                  "type": "BOOLEAN",
+                  "link_id": "race_HispanicLatinaeo",
+                  "mapping": {
+                    "field_name": "HispanicLatinaeo",
+                    "record_type": "CLIENT"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
+                },
+                {
+                  "text": "Middle Eastern or North African",
+                  "type": "BOOLEAN",
+                  "link_id": "race_MidEastNAfrican",
+                  "mapping": {
+                    "field_name": "MidEastNAfrican",
+                    "record_type": "CLIENT"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
+                },
+                {
+                  "text": "Native Hawaiian or Pacific Islander",
+                  "type": "BOOLEAN",
+                  "link_id": "race_NativeHIPacific",
+                  "mapping": {
+                    "field_name": "NativeHIPacific",
+                    "record_type": "CLIENT"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
+                },
+                {
+                  "text": "White",
+                  "type": "BOOLEAN",
+                  "link_id": "race_White",
+                  "mapping": {
+                    "field_name": "White",
+                    "record_type": "CLIENT"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
+                }
+              ],
+              "text": "What is your race and ethnicity?",
+              "type": "GROUP",
+              "link_id": "race_group",
+              "component": "INPUT_GROUP",
+              "enable_when": [
+                {
+                  "operator": "EQUAL",
+                  "question": "survey_type",
+                  "answer_code": "In-Person Interaction"
+                }
+              ],
+              "enable_behavior": "ALL",
+              "disabled_display": "HIDDEN"
+            },
+            {
+              "item": [
+                {
+                  "text": "Woman",
+                  "type": "BOOLEAN",
+                  "link_id": "gender_Woman",
+                  "mapping": {
+                    "field_name": "Woman",
+                    "record_type": "CLIENT"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
+                },
+                {
+                  "text": "Man",
+                  "type": "BOOLEAN",
+                  "link_id": "gender_Man",
+                  "mapping": {
+                    "field_name": "Man",
+                    "record_type": "CLIENT"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
+                },
+                {
+                  "text": "Non-Binary",
+                  "type": "BOOLEAN",
+                  "link_id": "gender_NonBinary",
+                  "mapping": {
+                    "field_name": "NonBinary",
+                    "record_type": "CLIENT"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
+                },
+                {
+                  "text": "Transgender",
+                  "type": "BOOLEAN",
+                  "link_id": "gender_Transgender",
+                  "mapping": {
+                    "field_name": "Transgender",
+                    "record_type": "CLIENT"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
+                },
+                {
+                  "text": "Questioning",
+                  "type": "BOOLEAN",
+                  "link_id": "gender_Questioning",
+                  "mapping": {
+                    "field_name": "Questioning",
+                    "record_type": "CLIENT"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
+                },
+                {
+                  "text": "Culturally Specific Identity (e.g., Two-Spirit)",
+                  "type": "BOOLEAN",
+                  "link_id": "gender_CulturallySpecific",
+                  "mapping": {
+                    "field_name": "CulturallySpecific",
+                    "record_type": "CLIENT"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
+                },
+                {
+                  "text": "Different Identity",
+                  "type": "BOOLEAN",
+                  "link_id": "gender_DifferentIdentity",
+                  "mapping": {
+                    "field_name": "DifferentIdentity",
+                    "record_type": "CLIENT"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
+                }
+              ],
+              "text": "What is your gender?",
+              "type": "GROUP",
+              "link_id": "gender_group",
+              "component": "INPUT_GROUP",
+              "enable_when": [
+                {
+                  "operator": "EQUAL",
+                  "question": "survey_type",
+                  "answer_code": "In-Person Interaction"
+                }
+              ],
+              "enable_behavior": "ALL",
+              "disabled_display": "HIDDEN"
+            },
+            {
+              "item": [
+                {
+                  "item": [
+                    {
+                      "text": "Veteran Status",
+                      "type": "CHOICE",
+                      "link_id": "hoh_veteran_status",
+                      "mapping": {
+                        "field_name": "veteranStatus",
+                        "record_type": "CLIENT"
+                      },
+                      "repeats": false,
+                      "required": true,
+                      "read_only": false,
+                      "warn_if_empty": false,
+                      "disabled_display": "HIDDEN",
+                      "pick_list_options": [
+                        {
+                          "code": "NO",
+                          "label": "No"
+                        },
+                        {
+                          "code": "YES",
+                          "label": "Yes"
+                        },
+                        {
+                          "code": "DATA_NOT_COLLECTED",
+                          "label": "Doesn't know / Prefers not to answer"
+                        }
+                      ]
+                    },
+                    {
+                      "text": "The next set of questions asks about sensitive topics. You don't have to answer any questions that you don't want to.",
+                      "type": "DISPLAY",
+                      "link_id": "sensitive_topics_message",
+                      "disabled_display": "HIDDEN"
+                    },
+                    {
+                      "text": "Do you have a substance use disorder?",
+                      "type": "CHOICE",
+                      "link_id": "substance_use_disorder",
+                      "mapping": {
+                        "field_name": "substanceUseDisorder",
+                        "record_type": "DISABILITY_GROUP"
+                      },
+                      "required": false,
+                      "disabled_display": "HIDDEN",
+                      "pick_list_reference": "DisabilityResponse"
+                    },
+                    {
+                      "text": "Do you have a chronic health condition?",
+                      "type": "CHOICE",
+                      "link_id": "chronic_health_condition",
+                      "mapping": {
+                        "field_name": "chronicHealthCondition",
+                        "record_type": "DISABILITY_GROUP"
+                      },
+                      "required": false,
+                      "disabled_display": "HIDDEN",
+                      "pick_list_reference": "NoYesReasonsForMissingData"
+                    },
+                    {
+                      "text": "Do you have a mental health disorder?",
+                      "type": "CHOICE",
+                      "link_id": "mental_health_disorder",
+                      "mapping": {
+                        "field_name": "mentalHealthDisorder",
+                        "record_type": "DISABILITY_GROUP"
+                      },
+                      "required": false,
+                      "disabled_display": "HIDDEN",
+                      "pick_list_reference": "NoYesReasonsForMissingData"
+                    },
+                    {
+                      "text": "Do you have a physical disability?",
+                      "type": "CHOICE",
+                      "link_id": "physical_disability",
+                      "mapping": {
+                        "field_name": "physicalDisability",
+                        "record_type": "DISABILITY_GROUP"
+                      },
+                      "required": false,
+                      "disabled_display": "HIDDEN",
+                      "pick_list_reference": "NoYesReasonsForMissingData"
+                    },
+                    {
+                      "text": "Do you have a developmental disability?",
+                      "type": "CHOICE",
+                      "link_id": "developmental_disability",
+                      "mapping": {
+                        "field_name": "developmentalDisability",
+                        "record_type": "DISABILITY_GROUP"
+                      },
+                      "required": false,
+                      "disabled_display": "HIDDEN",
+                      "pick_list_reference": "NoYesReasonsForMissingData"
+                    },
+                    {
+                      "text": "Do you have HIV/AIDS?",
+                      "type": "CHOICE",
+                      "link_id": "hiv_aids",
+                      "mapping": {
+                        "field_name": "hivAids",
+                        "record_type": "DISABILITY_GROUP"
+                      },
+                      "required": false,
+                      "disabled_display": "HIDDEN",
+                      "pick_list_reference": "NoYesReasonsForMissingData"
+                    }
+                  ],
+                  "type": "GROUP",
+                  "link_id": "interview_only_questions",
+                  "enable_when": [
+                    {
+                      "operator": "EQUAL",
+                      "question": "survey_type",
+                      "answer_code": "In-Person Interaction"
+                    }
+                  ],
+                  "enable_behavior": "ALL",
+                  "disabled_display": "HIDDEN"
+                }
+              ],
+              "type": "GROUP",
+              "link_id": "adult_only_questions",
+              "enable_when": [
+                {
+                  "operator": "EQUAL",
+                  "question": "how_old_are_you",
+                  "answer_code": "18-24"
+                },
+                {
+                  "operator": "EQUAL",
+                  "question": "how_old_are_you",
+                  "answer_code": "25-34"
+                },
+                {
+                  "operator": "EQUAL",
+                  "question": "how_old_are_you",
+                  "answer_code": "35-44"
+                },
+                {
+                  "operator": "EQUAL",
+                  "question": "how_old_are_you",
+                  "answer_code": "45-54"
+                },
+                {
+                  "operator": "EQUAL",
+                  "question": "how_old_are_you",
+                  "answer_code": "55-64"
+                },
+                {
+                  "operator": "EQUAL",
+                  "question": "how_old_are_you",
+                  "answer_code": "65+"
+                },
+                {
+                  "operator": "EQUAL",
+                  "question": "how_old_are_you",
+                  "answer_code": "Doesn't know / Prefers not to answer"
+                }
+              ],
+              "enable_behavior": "ANY",
+              "disabled_display": "HIDDEN"
+            }
+          ],
+          "type": "GROUP",
+          "link_id": "demographic_questions",
+          "disabled_display": "HIDDEN"
+        },
+        {
+          "item": [
+            {
+              "text": "Is this the first time you have been homeless?",
+              "type": "CHOICE",
+              "link_id": "first_time_homeless",
+              "mapping": {
+                "custom_field_key": "external_form_pit_2024_first_time_homeless"
+              },
+              "required": true,
+              "component": "DROPDOWN",
+              "read_only": false,
+              "warn_if_empty": false,
+              "disabled_display": "HIDDEN",
+              "pick_list_options": [
+                {
+                  "code": "No"
+                },
+                {
+                  "code": "Yes"
+                },
+                {
+                  "code": "Doesn't know / Prefers not to answer"
+                }
+              ]
+            },
+            {
+              "text": "How long have you been homeless this time? Only include time spent staying in shelters and/or on the streets.",
+              "type": "CHOICE",
+              "link_id": "how_long_have_you_been_homeless_this_tim",
+              "mapping": {
+                "field_name": "lengthOfStay",
+                "record_type": "ENROLLMENT"
+              },
+              "required": true,
+              "component": "DROPDOWN",
+              "read_only": false,
+              "warn_if_empty": false,
+              "disabled_display": "HIDDEN",
+              "pick_list_options": [
+                {
+                  "code": "ONE_WEEK_OR_MORE_BUT_LESS_THAN_ONE_MONTH",
+                  "label": "Less than 1 month"
+                },
+                {
+                  "code": "ONE_MONTH_OR_MORE_BUT_LESS_THAN_90_DAYS",
+                  "label": "1-5 months"
+                },
+                {
+                  "code": "NUM_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
+                  "label": "6-11 months"
+                },
+                {
+                  "code": "ONE_YEAR_OR_LONGER",
+                  "label": "12 months or more"
+                },
+                {
+                  "code": "DATA_NOT_COLLECTED",
+                  "label": "Doesn't know / Prefers not to answer"
+                }
+              ]
+            },
+            {
+              "text": "Including this time, how many times have you been homeless in the past 3 years? Was it 4 or more times or less than 4 times?",
+              "type": "CHOICE",
+              "link_id": "times_homeless",
+              "mapping": {
+                "field_name": "timesHomelessPastThreeYears",
+                "record_type": "ENROLLMENT"
+              },
+              "required": true,
+              "brief_text": "Times Homeless",
+              "enable_when": [
+                {
+                  "operator": "EQUAL",
+                  "question": "first_time_homeless",
+                  "answer_code": "No"
+                }
+              ],
+              "warn_if_empty": true,
+              "enable_behavior": "ALL",
+              "disabled_display": "HIDDEN",
+              "pick_list_options": [
+                {
+                  "code": "THREE_TIMES",
+                  "label": "Less than 4 times"
+                },
+                {
+                  "code": "FOUR_OR_MORE_TIMES",
+                  "label": "4 or more times"
+                },
+                {
+                  "code": "DATA_NOT_COLLECTED",
+                  "label": "Doesn't know / Prefers not to answer"
+                }
+              ]
+            },
+            {
+              "text": "If you add up all the times you have been homeless in the last 3 years, how long have you been homeless?",
+              "type": "CHOICE",
+              "link_id": "months_homeless_past_three_years",
+              "mapping": {
+                "field_name": "monthsHomelessPastThreeYears",
+                "record_type": "ENROLLMENT"
+              },
+              "required": true,
+              "brief_text": "Times Homeless",
+              "enable_when": [
+                {
+                  "operator": "EQUAL",
+                  "question": "first_time_homeless",
+                  "answer_code": "No"
+                }
+              ],
+              "warn_if_empty": true,
+              "enable_behavior": "ALL",
+              "disabled_display": "HIDDEN",
+              "pick_list_options": [
+                {
+                  "code": "NUM_1",
+                  "label": "1-5 months"
+                },
+                {
+                  "code": "NUM_6",
+                  "label": "6-11 months"
+                },
+                {
+                  "code": "NUM_12",
+                  "label": "12 months or more"
+                },
+                {
+                  "code": "DATA_NOT_COLLECTED",
+                  "label": "Doesn't know / Prefers not to answer"
+                }
+              ]
+            }
+          ],
+          "text": "Homeless History",
+          "type": "GROUP",
+          "hidden": false,
+          "link_id": "homeless_history",
+          "enable_when": [
+            {
+              "operator": "EQUAL",
+              "question": "survey_type",
+              "answer_code": "In-Person Interaction"
+            }
+          ],
+          "enable_behavior": "ALL",
+          "disabled_display": "HIDDEN"
+        },
+        {
+          "item": [
+            {
+              "text": "Volunteer Notes (Optional)",
+              "type": "TEXT",
+              "link_id": "volunteer_notes",
+              "mapping": {
+                "custom_field_key": "external_form_pit_2024_volunteer_notes"
+              },
+              "disabled_display": "HIDDEN"
+            }
+          ],
+          "text": "Notes",
+          "type": "GROUP",
+          "link_id": "notes_group",
+          "disabled_display": "HIDDEN"
+        }
+      ],
+      "type": "GROUP",
+      "link_id": "survey_content",
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "survey_type",
+          "answer_code": "In-Person Interaction"
+        },
+        {
+          "operator": "EQUAL",
+          "question": "survey_type",
+          "answer_code": "Observational Only"
+        }
+      ],
+      "enable_behavior": "ANY",
+      "disabled_display": "HIDDEN"
+    }
+  ]
+}
