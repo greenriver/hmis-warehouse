@@ -94,24 +94,23 @@ services:
     <<: *backend
     command: ./bin/rake jobs:work
     entrypoint: ''
+    # once we're fully on EKS, we can refactor this.
+    # ports:
+    #   # visit localhost:34533/metrics
+    #   - "${DJ_METRICS_PORT:-34533}:9292"
+    # expose:
+    #   - "9292"
+    # healthcheck:
+    #   test: ["CMD", "curl", "http://localhost:9292/metrics"]
+    #   interval: 30s
+    #   timeout: 3s
+    #   retries: 3
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_started
       minio:
-        condition: service_started
-
-  dj-metrics:
-    <<: *backend
-    entrypoint: /usr/bin/entrypoint.dj-metrics.sh
-    ports:
-      # visit localhost:34533/metrics
-      - "${DJ_METRICS_PORT:-34533}:9292"
-    expose:
-      - "9292"
-    depends_on:
-      dj:
         condition: service_started
 
   yarn:
