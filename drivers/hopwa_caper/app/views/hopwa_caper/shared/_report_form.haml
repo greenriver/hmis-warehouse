@@ -1,5 +1,6 @@
 - coc_cols = if active_report_versions.count > 1 then 'col-sm-3' else 'col-sm-6' end
 - default_coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
+
 = simple_form_for @filter, as: :filter, url: url, data: { controller: 'filter-projects' } do |f|
   - content_for :filters_col_full do
     .hud-report-options
