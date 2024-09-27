@@ -13,9 +13,7 @@ class DjMetrics
   def initialize
     Prometheus::Client.config.data_store = Prometheus::Client::DataStores::DirectFileStore.new(dir: METRICS_DIR)
 
-    @queues = Set.new(['short_running', 'default_priority', 'long_running'])
-
-    monkey_patch!
+    @queues = Set.new(['short_running', 'default_priority', 'long_running', 'mailers'])
   end
 
   def register_metrics_for_metrics_endpoint!
@@ -83,22 +81,5 @@ class DjMetrics
 
   def prometheus
     @prometheus ||= Prometheus::Client.registry
-  end
-
-  def monkey_patch!
-    ::Prometheus::Client::DataStores::DirectFileStore.define_method(:open_file) do |filename, readonly|
-      mode = \
-        if readonly
-          'r:ascii-8bit'
-        elsif File.exist?(filename)
-          'r+b:ascii-8bit'
-        else
-          'w+b:ascii-8bit'
-        end
-
-      @f = File.open(filename, mode)
-      resize_file(INITIAL_FILE_SIZE) if @f.size.empty? && !readonly
-      @capacity = @f.size
-    end
   end
 end
