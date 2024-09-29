@@ -4,12 +4,11 @@ Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
   # enable reloading if we're using spring
-  # if ENV['SPRING_SPAWN_ENV']
-  #   config.enable_reloading = true
-  # else
-  #   config.enable_reloading = false
-  # end
-  config.cache_classes = true
+  if ENV['DISABLE_SPRING'].presence != '0'
+    config.enable_reloading = true
+  else
+    config.enable_reloading = false
+  end
 
   # Do not eager load code on boot. This avoids loading your whole application
   # just for the purpose of running a single test. If you are using a tool that
