@@ -3,11 +3,13 @@ require 'active_support/core_ext/integer/time'
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
-  # enable reloading if we're using spring
+  # enable reloading if we're using spring. Note
+  # note, newer versions of rails replace config.cache_classes with enable_reloading
   if (ENV['DISABLE_SPRING'].presence || '0') != '0'
-    config.enable_reloading = true
+    # spring enabled
+    config.cache_classes = false
   else
-    config.enable_reloading = false
+    config.cache_classes = true
   end
 
   # Do not eager load code on boot. This avoids loading your whole application
