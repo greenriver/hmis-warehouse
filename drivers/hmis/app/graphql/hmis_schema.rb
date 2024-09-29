@@ -9,7 +9,7 @@ class HmisSchema < GraphQL::Schema
   query(Types::HmisSchema::QueryType)
 
   trace_with(GraphqlTraceBehavior)
-  trace_with(GraphQL::Tracing::SentryTrace) if Sentry.configuration&.traces_sample_rate.positive?
+  trace_with(GraphQL::Tracing::SentryTrace) if Sentry.configuration&.traces_sample_rate&.positive?
 
   # For batch-loading (see https://graphql-ruby.org/dataloader/overview.html)
   # - after upgrade to Rails 7.1 we could replace Dataloader with AsyncDataloader for performance
