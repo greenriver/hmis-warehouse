@@ -78,7 +78,7 @@ RSpec.configure do |config|
 
     example_file_paths = RSpec.world.filtered_examples.values.flatten.map { |e| e.metadata[:file_path] }.uniq
     # load fixpoints if we're running tests that may need them
-    if example_file_paths.grep(%r{/drivers/(hud_path_report|hud_spm_report|hud_data_quality_report)/}).any?
+    if example_file_paths.grep(%r{/drivers/(hud_path_report|hud_spm_report|hud_data_quality_report)/}).any? # rubocop:disable Style/RegexpLiteral
       Dir.glob('{drivers,spec}/**/fixpoints/*.yml').each do |filename|
         FileUtils.rm(filename)
       end
@@ -93,10 +93,11 @@ RSpec.configure do |config|
     end
 
     # load hmis forms if we're testing the driver
-    if example_file_paths.grep(%r{/drivers/hmis/}).any?
+    if example_file_paths.grep(%r{/drivers/hmis/}).any? # rubocop:disable Style/RegexpLiteral
       ::HmisUtil::JsonForms.seed_all if ENV['ENABLE_HMIS_API'] == 'true'
     end
 
+    # I'm not sure that we need these on every test run
     # GrdaWarehouse::Utility.clear!
     # Delayed::Job.delete_all
     AccessGroup.maintain_system_groups
