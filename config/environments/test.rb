@@ -4,7 +4,7 @@ Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
   # enable reloading if we're using spring
-  if ENV['DISABLE_SPRING'].presence != '0'
+  if (ENV['DISABLE_SPRING'].presence || '0') != '0'
     config.enable_reloading = true
   else
     config.enable_reloading = false
