@@ -459,11 +459,39 @@ RSpec.describe 'Update External Form Submission', type: :request do
         end
       end
 
-      context 'when disability questions are answered' do
+      context 'when disability questions are answered positively' do
         let!(:submission) do
           data = {
             'Client.firstName': 'bar',
             'DisabilityGroup.developmentalDisability': '1',
+            'DisabilityGroup.physicalDisability': '1',
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should save correctly' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1).
+            and change(Hmis::Hud::Disability, :count).by(2)
+
+          submission.reload
+          expect(submission.enrollment.disabilities).to contain_exactly(
+            have_attributes(disability_type: 6, indefinite_and_impairs: 1),
+            have_attributes(disability_type: 5, indefinite_and_impairs: 99),
+          )
+          expect(submission.enrollment.disabling_condition).to be_truthy
+        end
+      end
+
+      context 'when disability questions are answered negatively' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'bar',
+            'DisabilityGroup.developmentalDisability': '0',
           }.stringify_keys
           create(:hmis_external_form_submission, raw_data: data, definition: definition)
         end
@@ -478,7 +506,9 @@ RSpec.describe 'Update External Form Submission', type: :request do
             and change(Hmis::Hud::Disability, :count).by(1)
 
           submission.reload
-          expect(submission.enrollment.disabilities.sole.disability_type).to eq(6)
+          expect(submission.enrollment.disabilities).to contain_exactly(
+            have_attributes(disability_type: 6, disability_response: 0, indefinite_and_impairs: nil),
+          )
         end
       end
     end

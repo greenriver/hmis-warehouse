@@ -14,6 +14,10 @@ module HmisStructure::Disability
   end
 
   module ClassMethods
+    def positive_responses
+      [1, 2, 3].freeze
+    end
+
     def hud_csv_file_name(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       'Disabilities.csv'
     end

@@ -415,6 +415,17 @@ FactoryBot.define do
                   },
                   "component": "CHECKBOX",
                   "disabled_display": "HIDDEN"
+                },
+                {
+                  "text": "Do you have a physical disability?",
+                  "type": "BOOLEAN",
+                  "link_id": "physical_disability",
+                  "mapping": {
+                    "field_name": "physicalDisability",
+                    "record_type": "DISABILITY_GROUP"
+                  },
+                  "component": "CHECKBOX",
+                  "disabled_display": "HIDDEN"
                 }
               ]
             }

@@ -14,7 +14,19 @@ module Hmis::Hud::Processors
         else
           attribute_value_for_enum(enum_type, value)
         end
-        @processor.send(disability_type).assign_attributes(disability_field => disability_value)
+
+        attributes = { disability_field => disability_value }
+
+        if Hmis::Hud::Disability.positive_responses.include?(disability_value.to_i)
+          attributes['indefinite_and_impairs'] = 99 unless @hud_values["DisabilityGroup.#{field}IndefiniteAndImpairs"].present?
+
+          if ['developmentalDisability', 'hivAids'].freeze.include?(field)
+            attributes['indefinite_and_impairs'] = 1
+            @processor.send(:enrollment_factory, create: false).assign_attributes(disabling_condition: 1)
+          end
+        end
+
+        @processor.send(disability_type).assign_attributes(attributes)
       elsif hiv_aids_fields.include?(field)
         attribute_name = ar_attribute_name(field)
         attribute_value = attribute_value_for_enum(graphql_enum(field), value)
