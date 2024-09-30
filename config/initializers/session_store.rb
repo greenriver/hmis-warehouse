@@ -9,5 +9,5 @@ Rails.application.config.session_store(
   key: "_#{Rails.application.class.module_parent_name.downcase}_session",
   httponly: true,
   same_site: :lax,
-  secure: true,
+  secure: !Rails.env.test?, # CI fails when the session is secure
 )
