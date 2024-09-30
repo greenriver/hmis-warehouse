@@ -21,10 +21,13 @@
           = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: { placeholder: 'Please Choose', data: {'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update' }}, label: 'CoC Codes', hint: default_coc_code
       .row
         .col-sm-6
-          = f.input :lsa_scope, collection: HudLsa::Fy2022::Report.available_lsa_scopes, label: 'LSA Scope', include_blank: 'Auto Select', as: :select_two, hint: 'If any projects are explicitly chosen, LSA Scope will be Project-Focused, otherwise it will be System-Wide.  Official HUD submissions must be System-Wide'
+          = f.input :lsa_scope, collection: HudLsa::Fy2024::Report.available_lsa_scopes, label: 'LSA Scope', include_blank: 'Auto Select', as: :select_two, hint: 'If any projects are explicitly chosen, LSA Scope will be Project-Focused, otherwise it will be System-Wide.  Official HUD submissions must be System-Wide'
       = render 'hud_reports/project_filter', f: f, api_projects_parameters: { project_types: @filter.default_project_type_codes }
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Queue Report', data: { 'filter-projects-target' => 'submitButton' }
+    = button_tag type: :submit, formaction: data_missing_hud_reports_lsas_path, formtarget: :_blank, class: ['btn', 'btn-warning', 'ml-auto'], data: { 'filter-projects-target' => 'missingItems' } do
+      %i.icon-warning
+      Missing Data
 
   = render 'warehouse_reports/filters', f: f

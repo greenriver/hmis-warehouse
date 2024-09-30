@@ -46,4 +46,16 @@ class HmisSchema < GraphQL::Schema
     # For example, use Rails' GlobalID library (https://github.com/rails/globalid):
     GlobalID.find(global_id)
   end
+
+  # Raise exception when `authorized?` returns false for an object (Default behavior is to return nil)
+  # This is an unexpected error because we should always be doing permission checks
+  # (e.g. applying viewable_by scope) before trying to resolve something.
+  def self.unauthorized_object(error)
+    raise GraphQL::UnauthorizedError, "#{error.type.graphql_name}##{error.object&.id} failed authorization check"
+  end
+
+  # Return nil for unauthorized fields. This is expeced in some cases, for example non-summary fields on Enrollment.
+  def self.unauthorized_field(_error)
+    nil
+  end
 end
