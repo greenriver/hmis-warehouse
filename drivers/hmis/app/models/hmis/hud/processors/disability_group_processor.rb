@@ -9,11 +9,7 @@ module Hmis::Hud::Processors
     def process(field, value)
       if field_mapping.key?(field)
         disability_type, disability_field, enum_type = field_mapping[field]
-        disability_value = if enum_type.values.values.map(&:value).map(&:to_s).include?(value)
-          value
-        else
-          attribute_value_for_enum(enum_type, value)
-        end
+        disability_value = attribute_value_for_enum(enum_type, value)
 
         attributes = { disability_field => disability_value }
 

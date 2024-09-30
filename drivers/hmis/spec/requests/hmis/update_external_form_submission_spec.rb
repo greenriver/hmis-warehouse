@@ -480,8 +480,8 @@ RSpec.describe 'Update External Form Submission', type: :request do
 
           submission.reload
           expect(submission.enrollment.disabilities).to contain_exactly(
-            have_attributes(disability_type: 6, indefinite_and_impairs: 1),
-            have_attributes(disability_type: 5, indefinite_and_impairs: 99),
+            have_attributes(disability_type: 6, indefinite_and_impairs: 1, disability_response: 1),
+            have_attributes(disability_type: 5, indefinite_and_impairs: 99, disability_response: 1),
           )
           expect(submission.enrollment.disabling_condition).to be_truthy
         end
