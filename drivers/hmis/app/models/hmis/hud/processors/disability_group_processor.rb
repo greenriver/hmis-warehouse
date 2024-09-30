@@ -13,13 +13,8 @@ module Hmis::Hud::Processors
 
         attributes = { disability_field => disability_value }
 
-        if Hmis::Hud::Disability.positive_responses.include?(disability_value.to_i)
-          attributes['indefinite_and_impairs'] = 99 unless @hud_values["DisabilityGroup.#{field}IndefiniteAndImpairs"].present?
-
-          if ['developmentalDisability', 'hivAids'].freeze.include?(field)
-            attributes['indefinite_and_impairs'] = 1
-            @processor.send(:enrollment_factory, create: false).assign_attributes(disabling_condition: 1)
-          end
+        if Hmis::Hud::Disability.positive_responses.include?(disability_value.to_i) && ['developmentalDisability', 'hivAids'].include?(field) # rubocop:disable Style/IfUnlessModifier
+          @processor.send(:enrollment_factory, create: false).assign_attributes(disabling_condition: 1)
         end
 
         @processor.send(disability_type).assign_attributes(attributes)

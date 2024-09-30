@@ -106,7 +106,7 @@ class Hmis::Hud::Processors::Base
     elsif is_array
       value.map { |val| enum_type&.value_for(val) || val }
     else
-      enum_type&.flexible_value_for(value) || value
+      enum_type&.value_for(value) || value
     end
   end
 

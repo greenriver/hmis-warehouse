@@ -67,29 +67,6 @@ module Types
       values[key].value
     end
 
-    # Given a token that could be either a key OR a value OR a string representation of an int value,
-    # return the int value that we should save to the database. Examples: 'YES' => 1, '1' => 1,  1 => 1
-    def self.flexible_value_for(token)
-      if values.key?(token)
-        values[token].value
-      elsif value?(token)
-        token
-      elsif value?(token.to_i)
-        token.to_i
-      else
-        raise "Unrecognized key '#{token}' for enum #{name}"
-      end
-    end
-
-    def self.value?(maybe_val)
-      # values is the hash of string => GraphQL::Schema::EnumValue
-      # values.values is the values list of that hash, aka a list of GraphQL::Schema::EnumValue
-      # values.values.map(&:value) is the list of value attributes on those GraphQL::Schema::EnumValues
-      # whew!
-      @internal_values ||= values.values.map(&:value)
-      @internal_values.include?(maybe_val)
-    end
-
     def self.key_for(value)
       member = enum_member_for_value(value)
       raise "Unrecognized value '#{value}' for enum #{name}" unless member.present?

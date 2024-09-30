@@ -118,6 +118,10 @@ module GrdaWarehouse::Hud
       }
     end
 
+    def positive_responses
+      [1, 2, 3].freeze
+    end
+
     # This defines ? methods for each disability type, eg: physical?
     disability_types.each do |hud_key, disability_type|
       define_method "#{disability_type}?".to_sym do
