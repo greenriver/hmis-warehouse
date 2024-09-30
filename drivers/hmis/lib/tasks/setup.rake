@@ -27,65 +27,6 @@ task migrate_assessments: [:environment, 'log:info_to_stdout'] do
   end
 end
 
-# Seed user, org, and project to use with HMIS E2E Cypress tests
-desc 'Seed E2E HMIS test data'
-task seed_e2e: [:environment, 'log:info_to_stdout'] do
-  next if Rails.env =~ /production|staging/
-
-  # Find or create HMIS DS
-  hmis_ds = GrdaWarehouse::DataSource.source.where(hmis: ENV['HMIS_HOSTNAME']).first_or_create! do |ds|
-    ds.name = 'HMIS'
-    ds.short_name = 'HMIS'
-    ds.authoritative = true
-  end
-
-  system_user = Hmis::Hud::User.system_user(data_source_id: hmis_ds.id)
-
-  # Find or create Test Organization
-  test_org = Hmis::Hud::Organization.where(data_source: hmis_ds, organization_name: 'E2E Test Organization').
-    first_or_create!(victim_service_provider: 0, user: system_user)
-  test_org.projects.destroy_all # destroy all projects in org
-  # Create Test Project
-  Hmis::Hud::Project.create!(
-    data_source_id: hmis_ds.id,
-    organization_id: test_org.organization_id,
-    project_name: 'E2E Test Project',
-    user: system_user,
-    operating_start_date: 1.year.ago,
-    project_type: 1, # ES NBN
-    continuum_project: 0,
-  )
-
-  # Find or create Test User
-  e2e_email = 'e2e@example.com' # Do not change! frontend e2e tests rely on it
-  e2e_pw = 'e2e-test-user' # Do not change! frontend e2e tests rely on it
-  user = User.where(email: e2e_email).first_or_initialize(
-    first_name: 'E2E Test',
-    last_name: 'User',
-    password: e2e_pw,
-    confirmed_at: Time.current,
-  )
-  user.agency_id = Agency.where(name: 'Sample Agency').first_or_create!.id
-  user.save!
-
-  # Find or create Role
-  role = Hmis::Role.where(name: 'E2E Test Role').first_or_initialize
-  # Grant all permissions
-  Hmis::Role.permissions_with_descriptions.keys.each do |perm|
-    role.assign_attributes(perm => true)
-  end
-  role.save!
-
-  # Find or create Access Group (Collection) with access to test org
-  access_group = Hmis::AccessGroup.where(name: 'E2E Test Collection').first_or_create!
-  access_group.add_viewable(test_org)
-  # Find or create User Group
-  user_group = Hmis::UserGroup.where(name: 'E2E Test Users').first_or_create!
-  user_group.add(user)
-  # Find or create ACL
-  Hmis::AccessControl.where(role: role, access_group: access_group, user_group: user_group).first_or_create!
-end
-
 # rake driver:hmis:generate_custom_data_elements[ALL,true] # dry-run generate CustomDataElements for all forms (no save)
 # rake driver:hmis:generate_custom_data_elements[CUSTOM_ASSESSMENT,true]
 # rake driver:hmis:generate_custom_data_elements[ALL]      # save CustomDataElements for all forms

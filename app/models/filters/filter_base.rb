@@ -250,6 +250,8 @@ module Filters
           secondary_project_ids: secondary_project_ids,
           secondary_project_group_ids: secondary_project_group_ids,
           race_ethnicity_combinations: race_ethnicity_combinations,
+          days_since_contact_min: days_since_contact_min,
+          days_since_contact_max: days_since_contact_max,
         },
       }
     end

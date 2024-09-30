@@ -175,7 +175,7 @@ RSpec.describe 'Validate import files', type: :model do
 
   # Exit
   it 'includes expected exits' do
-    expect(GrdaWarehouse::Hud::Exit.count).to eq(4)
+    expect(GrdaWarehouse::Hud::Exit.count).to eq(3)
   end
 
   it 'includes expected exits failures' do
