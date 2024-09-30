@@ -406,26 +406,54 @@ FactoryBot.define do
                   }
                 },
                 {
-                  "text": "Do you have a developmental disability?",
-                  "type": "BOOLEAN",
-                  "link_id": "developmental_disability",
+                  "text": "Do you have a substance use disorder?",
+                  "type": "CHOICE",
+                  "link_id": "substance_use_disorder",
                   "mapping": {
-                    "field_name": "developmentalDisability",
+                    "field_name": "substanceUseDisorder",
                     "record_type": "DISABILITY_GROUP"
                   },
-                  "component": "CHECKBOX",
-                  "disabled_display": "HIDDEN"
+                  "component": "RADIO_BUTTONS",
+                  "disabled_display": "HIDDEN",
+                  "pick_list_options": [
+                    {
+                      "code": "0",
+                      "label": "No"
+                    },
+                    {
+                      "code": "1",
+                      "label": "Alcohol use disorder"
+                    },
+                    {
+                      "code": "2",
+                      "label": "Drug use disorder"
+                    },
+                    {
+                      "code": "3",
+                      "label": "Both alcohol and drug use disorders"
+                    }
+                  ]
                 },
                 {
-                  "text": "Do you have a physical disability?",
-                  "type": "BOOLEAN",
-                  "link_id": "physical_disability",
+                  "text": "Do you have an HIV related diagnosis?",
+                  "type": "CHOICE",
+                  "link_id": "hiv_aids",
                   "mapping": {
-                    "field_name": "physicalDisability",
+                    "field_name": "hivAids",
                     "record_type": "DISABILITY_GROUP"
                   },
-                  "component": "CHECKBOX",
-                  "disabled_display": "HIDDEN"
+                  "component": "RADIO_BUTTONS",
+                  "disabled_display": "HIDDEN",
+                  "pick_list_options": [
+                    {
+                      "code": "0",
+                      "label": "No"
+                    },
+                    {
+                      "code": "1",
+                      "label": "Yes"
+                    }
+                  ]
                 }
               ]
             }
