@@ -105,12 +105,8 @@ class Hmis::Hud::Processors::Base
     # Use the HUD enumeration value, or if the HUD type doesn't have a translator, fall back to the DB one
     elsif is_array
       value.map { |val| enum_type&.value_for(val) || val }
-    elsif enum_type&.values&.key?(value)
-      enum_type&.value_for(value)
-    elsif enum_type&.values&.values&.first&.value.is_a?(Integer)
-      value.to_i
     else
-      value
+      enum_type&.flexible_value_for(value) || value
     end
   end
 
