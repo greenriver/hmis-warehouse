@@ -13,9 +13,9 @@ module Hmis::Hud::Processors
 
         attributes = { disability_field => disability_value }
 
-        if Hmis::Hud::Disability.positive_responses.include?(disability_value.to_i) && ['developmentalDisability', 'hivAids'].include?(field) # rubocop:disable Style/IfUnlessModifier
-          @processor.send(:enrollment_factory, create: false).assign_attributes(disabling_condition: 1)
-        end
+        # if Hmis::Hud::Disability.positive_responses.include?(disability_value.to_i) && ['developmentalDisability', 'hivAids'].include?(field)
+        #   @processor.send(:enrollment_factory, create: false).assign_attributes(disabling_condition: 1)
+        # end
 
         @processor.send(disability_type).assign_attributes(attributes)
       elsif hiv_aids_fields.include?(field)

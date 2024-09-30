@@ -417,20 +417,20 @@ FactoryBot.define do
                   "disabled_display": "HIDDEN",
                   "pick_list_options": [
                     {
-                      "code": "0",
+                      "code": "NO",
                       "label": "No"
                     },
                     {
-                      "code": "1",
-                      "label": "Alcohol use disorder"
+                      "code": "ALCOHOL_USE_DISORDER",
+                      "label": "Yes, alcohol use"
                     },
                     {
-                      "code": "2",
-                      "label": "Drug use disorder"
+                      "code": "DRUG_USE_DISORDER",
+                      "label": "Yes, drug use"
                     },
                     {
-                      "code": "3",
-                      "label": "Both alcohol and drug use disorders"
+                      "code": "BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS",
+                      "label": "Yes, both alcohol and drug use"
                     }
                   ]
                 },
@@ -446,11 +446,11 @@ FactoryBot.define do
                   "disabled_display": "HIDDEN",
                   "pick_list_options": [
                     {
-                      "code": "0",
+                      "code": "NO",
                       "label": "No"
                     },
                     {
-                      "code": "1",
+                      "code": "YES",
                       "label": "Yes"
                     }
                   ]
