@@ -85,6 +85,7 @@ RSpec.configure do |config|
       Dir.glob('{drivers,spec}/**/fixpoints/*.sql').each do |filename|
         # The 2024 test kit is HUGE, so we'll use the preprocessed version
         # This means when the test kit changes, we need to update both the CSVs and the SQL fixpoint
+        # To rebuild, push a commit that contains `[gh:rebuild_fixpoints]` in the commit message.
         next if filename.include?('drivers/datalab_testkit/spec/fixpoints')
 
         FileUtils.rm(filename)
