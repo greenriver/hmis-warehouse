@@ -118,7 +118,7 @@ module GrdaWarehouse::Hud
       }
     end
 
-    def positive_responses
+    def self.positive_responses
       [1, 2, 3].freeze
     end
 
