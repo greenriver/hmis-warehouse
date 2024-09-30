@@ -268,7 +268,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
         let!(:submission) do
           data = {
             'Client.firstName': 'bar',
-            'Client.veteranStatus': 'foo',
+            'Client.bleepBloop': 'foo',
           }.stringify_keys
           create(:hmis_external_form_submission, raw_data: data, definition: definition)
         end
