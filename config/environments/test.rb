@@ -6,11 +6,10 @@ Rails.application.configure do
   # enable reloading if we're using spring. Note
   # note, newer versions of rails replace config.cache_classes with enable_reloading
   if ENV['DISABLE_SPRING'].present?
-    # spring enabled
-    raise 'spring should be disabled'
-    config.cache_classes = false
-  else
     config.cache_classes = true
+  else
+    # spring enabled
+    config.cache_classes = false
   end
 
   # Do not eager load code on boot. This avoids loading your whole application
