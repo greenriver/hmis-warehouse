@@ -19,7 +19,7 @@ class Users::SessionsController < Devise::SessionsController
   def begin_time_log
     # Timestamp for tracking login time to help ensure that the application response time is consistent for valid/invalid usernames.
     # This helps prevent using login method time to enumerate valid vs invalid usernames
-    @session_create_timestamp = Time.now
+    @session_create_timestamp = Time.current
   end
 
   def end_time_log
