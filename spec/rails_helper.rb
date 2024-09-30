@@ -98,9 +98,6 @@ RSpec.configure do |config|
       ::HmisUtil::JsonForms.seed_all if ENV['ENABLE_HMIS_API'] == 'true'
     end
 
-    # I'm not sure that we need these on every test run
-    # GrdaWarehouse::Utility.clear!
-    # Delayed::Job.delete_all
     AccessGroup.maintain_system_groups
   end
 end
