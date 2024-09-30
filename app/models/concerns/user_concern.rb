@@ -631,6 +631,7 @@ module UserConcern
         :organization_ids,
         :data_source_ids,
         :funder_ids,
+        :funder_others,
         :project_group_ids,
         :projects,
         :organizations,
