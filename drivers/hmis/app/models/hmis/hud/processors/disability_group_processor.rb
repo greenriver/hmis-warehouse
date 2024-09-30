@@ -10,14 +10,7 @@ module Hmis::Hud::Processors
       if field_mapping.key?(field)
         disability_type, disability_field, enum_type = field_mapping[field]
         disability_value = attribute_value_for_enum(enum_type, value)
-
-        attributes = { disability_field => disability_value }
-
-        # if Hmis::Hud::Disability.positive_responses.include?(disability_value.to_i) && ['developmentalDisability', 'hivAids'].include?(field)
-        #   @processor.send(:enrollment_factory, create: false).assign_attributes(disabling_condition: 1)
-        # end
-
-        @processor.send(disability_type).assign_attributes(attributes)
+        @processor.send(disability_type).assign_attributes(disability_field => disability_value)
       elsif hiv_aids_fields.include?(field)
         attribute_name = ar_attribute_name(field)
         attribute_value = attribute_value_for_enum(graphql_enum(field), value)

@@ -483,7 +483,6 @@ RSpec.describe 'Update External Form Submission', type: :request do
             have_attributes(disability_type: 10, disability_response: 0, data_collection_stage: 1),
             have_attributes(disability_type: 8, disability_response: 1, data_collection_stage: 1),
           )
-          # expect(submission.enrollment.disabling_condition).to be_truthy
         end
       end
     end
