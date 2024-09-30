@@ -76,6 +76,10 @@ module HmisExternalApis::ExternalForms
       raw_data.reject { |key, _| EXTRANEOUS_KEYS.include?(key) }
     end
 
+    def data_collection_stage
+      1 # use Intake for external forms
+    end
+
     # Run a FormProcessor against the values, to build related records (such as CustomDataElements, Enrollment, etc). It does not save the related records.
     # Note: project is only needed if the form creates Enrollments. If the form only generates CDEs, it doesn't need a project. (it can retrieve the data source ID from current_user)
     def run_form_processor(current_user, project: nil)
