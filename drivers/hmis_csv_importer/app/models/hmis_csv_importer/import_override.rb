@@ -136,7 +136,8 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     project_ids = associated_class.where(data_source_id: data_source_id).to_a.select do |row|
       applies?(row)
     end.map(&:ProjectID)
-    GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids).to_a
+    # Limit to 10 for performance
+    GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids.uniq.first(10)).to_a
   end
 
   def apply_to_warehouse

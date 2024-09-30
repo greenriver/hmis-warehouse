@@ -21,6 +21,7 @@ wb.add_worksheet(name: 'Clients') do |sheet|
     'Most-Recent Current Living Situation',
     'Most-Recent Bed Night',
     'Most-Recent CE Assessment',
+    'Most-Recent CE Assessor',
   ]
 
   sheet.add_row(header, style: header_style)
@@ -37,7 +38,8 @@ wb.add_worksheet(name: 'Clients') do |sheet|
     row << @report.max_entry_date(client)
     row << @report.most_recent_cls(client)
     row << @report.most_recent_bed_night(client)
-    row << @report.most_recent_ce_assessment(client)
+    row << @report.most_recent_ce_assessment(client)&.dig(:assessment_date)
+    row << @report.most_recent_ce_assessment(client)&.dig(:assessor)
 
     sheet.add_row(row)
   end

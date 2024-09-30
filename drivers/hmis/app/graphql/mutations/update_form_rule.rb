@@ -5,6 +5,7 @@
 ###
 
 module Mutations
+  # DEPRECATED, frontend only uses DeleteFormRule
   class UpdateFormRule < BaseMutation
     argument :id, ID, required: true
     argument :input, Types::Admin::FormRuleInput, required: true

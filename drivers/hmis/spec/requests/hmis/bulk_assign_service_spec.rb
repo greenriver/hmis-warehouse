@@ -30,8 +30,9 @@ RSpec.describe 'BulkAssignService', type: :request do
   let!(:c2) { create :hmis_hud_client, data_source: ds1 }
   let!(:c2_e1) { create :hmis_hud_enrollment, data_source: ds1, client: c2, project: p1, entry_date: 1.week.ago }
   let!(:c2_e1_dup) { create :hmis_hud_enrollment, data_source: ds1, client: c2, project: p1, entry_date: 6.days.ago }
+  let(:today) { Date.current }
 
-  def perform_mutation(project_id: p1.id, date_provided: Date.current, client_ids: [c1.id, c2.id], service_type_id: bednight_service_type.id, coc_code: nil)
+  def perform_mutation(project_id: p1.id, date_provided: today, client_ids: [c1.id, c2.id], service_type_id: bednight_service_type.id, coc_code: nil)
     input = {
       project_id: project_id,
       date_provided: date_provided,
@@ -69,6 +70,17 @@ RSpec.describe 'BulkAssignService', type: :request do
     expect(generated_enrollment.household_id).to be_present
     expect(generated_enrollment.services.first.record_type).to eq(200)
     expect(generated_enrollment.services.first.type_provided).to eq(200)
+  end
+
+  it 'does not create duplicate bed nights' do
+    existing_bed_night = create(:hmis_hud_service_bednight, data_source: ds1, enrollment: c2_e1, client: c2, date_provided: today)
+
+    expect do
+      response, result = perform_mutation
+      expect(response.status).to eq(200), result.inspect
+    end.to not_change(c2.services, :count).
+      and(not_change(c2_e1.services, :count)).
+      and(not_change { existing_bed_night.DateUpdated })
   end
 
   it 'assigns services and enrolls unenrolled clients (Custom Service)' do
@@ -162,7 +174,7 @@ RSpec.describe 'BulkAssignService', type: :request do
     end
 
     it 'fails if client has an overlapping enrollment' do
-      create(:hmis_hud_enrollment, data_source: ds1, client: c1, project: p1, entry_date: Date.current)
+      create(:hmis_hud_enrollment, data_source: ds1, client: c1, project: p1, entry_date: today)
 
       expect_gql_error(perform_mutation(date_provided: 6.days.ago, client_ids: [c1.id]))
     end

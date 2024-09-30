@@ -1,21 +1,21 @@
-[//]: # 'remove this if PR is for a release-* branch'
-# _Please squash merge this PR_
+## _Merging this PR_
+- use the squash-merge strategy for PRs targeting a release-X branch
+- use a merge-commit or rebase strategy for PRs targeting the stable branch
 
 ## Description
-
-Include a summary of the changes and a link to the related issue. List any dependencies that are required for this change.
+[//]: # (Summarize changes and include links related issue. List any new dependencies)
 
 ## Type of change
-[//]: # 'remove options that are not relevant'
-- [ ] Bug fix
-- [ ] New feature (adds functionality)
-- [ ] Code clean-up / housekeeping
-- [ ] Dependency update
+[//]: # (e.g., Bug fix, New feature, Code clean-up, Dependency update)
 
 ## Checklist before requesting review
+[//]: # (Remove any items that are not applicable)
 - [ ] I have performed a self-review of my code
 - [ ] I have run the code that is being changed under ideal conditions, and it doesn't fail
-- [ ] My code includes comments and/or descriptive variable names to help other engineers understand the intent (or not applicable)
-- [ ] My code follows the style guidelines of this project (rubocop)
+- [ ] If adding a new endpoint / exposing data in a new way, I have:
+  - [ ] ensured the API can't leak data from other data sources
+  - [ ] ensured this does not introduce N+1s
+  - [ ] ensured permissions and visibility checks are performed in the right places
 - [ ] I have updated the documentation (or not applicable)
-- [ ] If it's not obvious how to test this change, I have provided testing instructions in this PR or the related issue
+- [ ] I have added spec tests (or not applicable)
+- [ ] I have provided testing instructions in this PR or the related issue (or not applicable)

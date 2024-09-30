@@ -20,6 +20,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       'funderIds',
       'cocCodes',
       'calculatedProjects',
+      'missingItems',
       'submitButton',
     ]
   }
@@ -36,6 +37,46 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
   }
 
   update() {
+    let data = this.formData()
+
+    $(this.calculatedProjectsTarget).html('<p class="well rollup-container"></p>')
+    // Fetch the asynchronous nature of the query from the HTML, we'll set it to true for Development only
+    const async = $(this.projectsTarget).data('async')
+
+    $.ajax({
+      // It is not ideal to call this synchronously as it sometimes hangs the browser temporarily,
+      // but if these complete out of order, the project list gets funky.
+      async: async,
+      url: '/api/hud_filters',
+      type: 'POST',
+      data: data,
+    }).done((ret) => {
+      // console.debug('success')
+      if (ret.includes('No Projects')) {
+        this.addProjectDataWarning()
+        $(this.submitButtonTarget).attr('disabled', 'disabled');
+      }
+      else {
+        // we have some projects, so remove the warning
+        this.removeProjectDataWarning()
+        if (this.checkMissingData()) {
+          // we have some data issues
+          this.addMissingDataWarning()
+          $(this.submitButtonTarget).attr('disabled', 'disabled');
+        }
+        else {
+          // All good to proceed
+          this.removeMissingDataWarning()
+          $(this.submitButtonTarget).data('title', '').removeAttr('disabled');
+        }
+      }
+      $(this.calculatedProjectsTarget).html(ret)
+    }).fail((ret) => {
+      console.error(['Failed to fetch project list', ret])
+    })
+  }
+
+  formData() {
     let data = {
       project_ids: $(this.projectsTarget).val(),
       data_source_ids: $(this.dataSourcesTarget).val(),
@@ -59,34 +100,38 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
     if (this.hasSupportedProjectTypesValue) {
       data.supported_project_types = this.supportedProjectTypesValue
     }
+    return data
+  }
 
-    $(this.calculatedProjectsTarget).html('<p class="well rollup-container"></p>')
-    // Fetch the asynchronous nature of the query from the HTML, we'll set it to true for Development only
-    const async = $(this.projectsTarget).data('async')
+  checkMissingData() {
+    if (! this.hasMissingItemsTarget) {
+      return false
+    }
+    return $.ajax({
+      async: false, type: 'POST', url: $(this.missingItemsTarget).attr('formaction') + '.json', data: { filter: this.formData() } }).done().responseJSON
+  }
 
-    $.ajax({
-      // It is not ideal to call this synchronously as it sometimes hangs the browser temporarily,
-      // but if these complete out of order, the project list gets funky.
-      async: async,
-      url: '/api/hud_filters',
-      type: 'POST',
-      data: data,
-    }).done((ret) => {
-      // console.debug('success')
-      if (ret.includes('No Projects')) {
-        if ($('.jProjectWarning').length == 0) {
-          $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jProjectWarning">This report will not work unless you have included at least one project above.</p>')
-        }
-        $(this.submitButtonTarget).attr('disabled', 'disabled');
-      }
-      else {
-        $('.jProjectWarning').remove();
-        $(this.submitButtonTarget).data('title', '').removeAttr('disabled');
-      }
-      $(this.calculatedProjectsTarget).html(ret)
-    }).fail((ret) => {
-      console.error(['Failed to fetch project list', ret])
-    })
+  addMissingDataWarning() {
+    if (!this.hasMissingItemsTarget) {
+      return
+    }
+    if ($('.jMissingDataWarning').length == 0) {
+      $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jMissingDataWarning">This report will not work unless the required project descriptor data is present, please see "Missing Data".</p>')
+    }
+  }
+
+  removeMissingDataWarning() {
+    $('.jMissingDataWarning').remove();
+  }
+
+  addProjectDataWarning() {
+    if ($('.jProjectWarning').length == 0) {
+      $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jProjectWarning">This report will not work unless you have included at least one project above.</p>')
+    }
+  }
+
+  removeProjectDataWarning() {
+    $('.jProjectWarning').remove();
   }
 
   prepNativeEvents() {

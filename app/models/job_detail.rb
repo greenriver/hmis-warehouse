@@ -54,6 +54,7 @@ class JobDetail
 
   def report_id
     @report_id ||= arguments.try(:[], 'report_id') if arguments.is_a?(Hash)
+    @report_id ||= arguments.first if arguments.first.is_a?(String) || arguments.first.is_a?(Numeric)
     @report_id ||= arguments.first.try(:[], 'report_id')
     @report_id ||= arguments&.last if arguments&.last.is_a?(Integer)
     @report_id
@@ -71,7 +72,7 @@ class JobDetail
     elsif arguments.is_a?(Hash)
       arguments.try(:[], 'report_class')
     else
-      return arguments.first if arguments.first.is_a?(String)
+      return arguments.first.to_s if arguments.first.is_a?(String) || arguments.first.is_a?(Numeric)
 
       arguments.first.try(:[], 'report_class')
     end
