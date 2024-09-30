@@ -6,10 +6,29 @@
 
 class Users::SessionsController < Devise::SessionsController
   include AuthenticatesWithTwoFactor
+  # Start the time log before other methods are called in the authentication stack so we can get the server begin time for the login attempt
+  prepend_before_action :begin_time_log, only: :create
   prepend_before_action(
     :authenticate_with_two_factor,
     if: -> { action_name == 'create' && two_factor_enabled? },
   )
+
+  # Minimum required login processing time for ALL login attempts (seconds)
+  MIN_REQ_LOGIN_TIME = 2
+
+  def begin_time_log
+    # Timestamp for tracking login time to help ensure that the application response time is consistent for valid/invalid usernames.
+    # This helps prevent using login method time to enumerate valid vs invalid usernames
+    @session_create_timestamp = Time.now
+  end
+
+  def end_time_log
+    # Wait a semi-random length of time to return after a login attempt to prevent using login time analysis to enumerate valid usernames.
+    # We want to make sure valid and invalid username attempts all take the same minimum amount of time to process and then add a random salt.
+    elapsed = Time.now - @session_create_timestamp
+    wait_time = MIN_REQ_LOGIN_TIME - elapsed + rand(0.5..1)
+    sleep(wait_time) if elapsed < MIN_REQ_LOGIN_TIME
+  end
 
   def create
     super do |resource|
@@ -18,6 +37,10 @@ class Users::SessionsController < Devise::SessionsController
       # Note access for external reporting
       resource.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
     end
+  ensure
+    # `super` includes a redirect on failed authentication. We want to make sure this check is captured and processed
+    # from a location with access to the server's initial login timestamp.
+    end_time_log
   end
 
   def destroy
