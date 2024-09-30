@@ -76,8 +76,9 @@ module HmisExternalApis::ExternalForms
       raw_data.reject { |key, _| EXTRANEOUS_KEYS.include?(key) }
     end
 
+    # Consider external form submissions to have "Project Entry" data collection stage, because they may generate new Enrollments. This method is used by the form processor to set DataCollectionStage on related records that are produced, such as Disability records.
     def data_collection_stage
-      1 # use Intake for external forms
+      1
     end
 
     # Run a FormProcessor against the values, to build related records (such as CustomDataElements, Enrollment, etc). It does not save the related records.
