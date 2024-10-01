@@ -23,7 +23,7 @@ RSpec.describe 'BulkAssignService', type: :request do
   end
 
   let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-500' }
-  let!(:access_control) { create_access_control(hmis_user, ds1) }
+  let!(:access_control) { create_access_control(hmis_user, p1) }
   let(:bednight_service_type) { Hmis::Hud::CustomServiceType.find_by(hud_record_type: 200) }
   let!(:c1) { create :hmis_hud_client, data_source: ds1 }
 
@@ -130,6 +130,10 @@ RSpec.describe 'BulkAssignService', type: :request do
   end
 
   describe 'failure scenarios' do
+    # give user access to everything at p2. We will test removing access from p1.
+    let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1 }
+    let!(:p2_access_control) { create_access_control(hmis_user, p2) }
+
     it 'fails if user lacks can_view_project' do
       remove_permissions(access_control, :can_view_project)
       expect_access_denied perform_mutation
