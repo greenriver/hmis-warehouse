@@ -560,7 +560,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   def has_data? # rubocop:disable Naming/PredicateName
-    exports.any?
+    exports.any? || (hmis? && organizations.any?)
   end
 
   def organization_names

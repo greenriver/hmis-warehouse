@@ -453,38 +453,53 @@ module Filter::FilterScopes
     private def filter_for_days_since_contact(scope)
       return scope unless @filter.days_since_contact_min.present? || @filter.days_since_contact_max.present?
 
+      # Common Table Expressions
+      max_assessment_dates = max_date_per_warehouse_client_id_cte(join: { source: :direct_assessments }, date_column: as_t[:AssessmentDate])
+      max_service_dates = max_date_per_warehouse_client_id_cte(join: { source: :direct_services }, date_column: s_t[:DateProvided])
+      max_enrollment_dates = max_date_per_warehouse_client_id_cte(join: { source: :enrollments }, date_column: e_t[:EntryDate])
+      max_cls_dates = max_date_per_warehouse_client_id_cte(join: { source: :direct_current_living_situations }, date_column: cls_t[:InformationDate])
       range = @filter.days_since_contact_min..@filter.days_since_contact_max
       on_date = @filter.on
       # Find the IDs of the destination clients who meet the initial scope AND the filter
       inner_query = GrdaWarehouse::Hud::Client.destination.
-        left_outer_joins(:source_enrollments, :source_assessments, :source_services, :source_current_living_situations).
+        with(
+          assessment_dates: max_assessment_dates,
+          service_dates: max_service_dates,
+          enrollment_dates: max_enrollment_dates,
+          cls_dates: max_cls_dates,
+        ).
+        joins('INNER JOIN assessment_dates ON "Client"."id" = assessment_dates.destination_id').
+        joins('INNER JOIN service_dates ON "Client"."id" = service_dates.destination_id').
+        joins('INNER JOIN enrollment_dates ON "Client"."id" = enrollment_dates.destination_id').
+        joins('INNER JOIN cls_dates ON "Client"."id" = cls_dates.destination_id').
         group(:id).
         select(
           c_t[:id],
           Arel::Nodes::Subtraction.new(
             Arel::Nodes.build_quoted(on_date.to_fs(:db)),
-            nf(
-              'MAX',
-              [
-                nf(
-                  'GREATEST',
-                  [
-                    as_t[:AssessmentDate],
-                    s_t[:DateProvided],
-                    e_t[:EntryDate],
-                    cls_t[:InformationDate],
-                  ],
-                ),
-              ],
-            ),
-          ).as('days'),
+            Arel.sql('MAX(GREATEST(assessment_dates.date, service_dates.date, enrollment_dates.date, cls_dates.date)) as days'),
+          ),
         )
+
       filtered_client_ids = GrdaWarehouse::Hud::Client.unscoped.
         select(:id).
         from(inner_query, :inner_query).
         where('inner_query.days'.to_sym => range)
       # Then return the initial scope filtered down to those ids
       scope.where(client_id: filtered_client_ids)
+    end
+
+    private def max_date_per_warehouse_client_id_cte(join:, date_column:)
+      GrdaWarehouse::WarehouseClient.
+        joins(**join).
+        group(:destination_id).
+        select(
+          :destination_id,
+          nf(
+            'MAX',
+            [date_column],
+          ).as('date'),
+        )
     end
   end
 end

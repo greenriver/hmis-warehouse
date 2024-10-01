@@ -66,8 +66,13 @@ module GrdaWarehouse::Tasks
               destination_client[:SSN] = client.SSN
               should_save = true
             end
-
-            destination_client_updates << destination_client if should_save
+            if should_save
+              # set non-nullable fields, these aren't used because of the column limitation on import
+              # but Postgres complains if they aren't there
+              destination_client[:PersonalID] = client.PersonalID
+              destination_client[:data_source_id] = @dnd_warehouse_data_source.id
+              destination_client_updates << destination_client
+            end
           else
             new_created += 1
             destination_client = client.dup
@@ -263,6 +268,7 @@ module GrdaWarehouse::Tasks
       client.splits_to.where(split_into: candidate_id).exists?
     end
 
+    # Only use in development
     private def check_personal_ids(personal_id)
       return [] if personal_id.to_i.to_s == personal_id.to_s
 

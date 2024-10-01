@@ -582,6 +582,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     block.call(node)
   end
 
+  def updates_client_or_enrollment?
+    link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping&.record_type) }.present?
+  end
+
   # Find and/or initialize CustomDataElementDefinitions that are collected by this form.
   # For application forms, we now rely on PublishFormDefinition to generate CDEDs, but
   # this is still used in test fixtures and in PublishExternalFormsJob.

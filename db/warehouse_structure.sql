@@ -492,7 +492,7 @@ ALTER SEQUENCE public."CEParticipation_id_seq" OWNED BY public."CEParticipation"
 --
 
 CREATE TABLE public."Client" (
-    "PersonalID" character varying,
+    "PersonalID" character varying NOT NULL,
     "FirstName" character varying(150),
     "MiddleName" character varying(150),
     "LastName" character varying(150),
@@ -529,7 +529,7 @@ CREATE TABLE public."Client" (
     "UserID" character varying,
     "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
-    data_source_id integer,
+    data_source_id integer NOT NULL,
     id integer NOT NULL,
     disability_verified_on timestamp without time zone,
     housing_assistance_network_released_on timestamp without time zone,
@@ -1531,10 +1531,10 @@ ALTER SEQUENCE public."EmploymentEducation_id_seq" OWNED BY public."EmploymentEd
 --
 
 CREATE TABLE public."Enrollment" (
-    "EnrollmentID" character varying(50),
-    "PersonalID" character varying,
+    "EnrollmentID" character varying(50) NOT NULL,
+    "PersonalID" character varying NOT NULL,
     "ProjectID" character varying(50),
-    "EntryDate" date,
+    "EntryDate" date NOT NULL,
     "HouseholdID" character varying,
     "RelationshipToHoH" integer,
     "LivingSituation" integer,
@@ -1615,7 +1615,7 @@ CREATE TABLE public."Enrollment" (
     "UserID" character varying(100),
     "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
-    data_source_id integer,
+    data_source_id integer NOT NULL,
     id integer NOT NULL,
     "LOSUnderThreshold" integer,
     "PreviousStreetESSH" integer,
@@ -1788,10 +1788,10 @@ ALTER SEQUENCE public."Event_id_seq" OWNED BY public."Event".id;
 --
 
 CREATE TABLE public."Exit" (
-    "ExitID" character varying,
+    "ExitID" character varying NOT NULL,
     "EnrollmentID" character varying,
     "PersonalID" character varying,
-    "ExitDate" date,
+    "ExitDate" date NOT NULL,
     "Destination" integer,
     "OtherDestination" character varying,
     "AssessmentDisposition" integer,
@@ -5657,7 +5657,8 @@ CREATE TABLE public.clh_locations (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    enrollment_id bigint
+    enrollment_id bigint,
+    located_at timestamp(6) without time zone
 );
 
 
@@ -18196,7 +18197,8 @@ CREATE TABLE public.hmis_external_form_submissions (
     definition_id bigint NOT NULL,
     object_key character varying NOT NULL,
     raw_data jsonb NOT NULL,
-    notes text
+    notes text,
+    enrollment_id bigint
 );
 
 
@@ -18540,7 +18542,8 @@ CREATE TABLE public.hmis_form_processors (
     ce_event_id bigint,
     backup_values jsonb,
     owner_type character varying NOT NULL,
-    owner_id bigint NOT NULL
+    owner_id bigint NOT NULL,
+    clh_location_id bigint
 );
 
 
@@ -19209,44 +19212,6 @@ CREATE SEQUENCE public.hmis_units_id_seq
 --
 
 ALTER SEQUENCE public.hmis_units_id_seq OWNED BY public.hmis_units.id;
-
-
---
--- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_wips (
-    id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    project_id bigint,
-    enrollment_id bigint,
-    source_type character varying,
-    source_id bigint,
-    date date NOT NULL,
-    data jsonb,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: hmis_wips_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_wips_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_wips_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_wips_id_seq OWNED BY public.hmis_wips.id;
 
 
 --
@@ -30030,13 +29995,6 @@ ALTER TABLE ONLY public.hmis_units ALTER COLUMN id SET DEFAULT nextval('public.h
 
 
 --
--- Name: hmis_wips id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_wips ALTER COLUMN id SET DEFAULT nextval('public.hmis_wips_id_seq'::regclass);
-
-
---
 -- Name: homeless_summary_report_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -33667,14 +33625,6 @@ ALTER TABLE ONLY public.hmis_unit_types
 
 ALTER TABLE ONLY public.hmis_units
     ADD CONSTRAINT hmis_units_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_wips hmis_wips_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_wips
-    ADD CONSTRAINT hmis_wips_pkey PRIMARY KEY (id);
 
 
 --
@@ -54580,6 +54530,13 @@ CREATE INDEX index_hmis_external_form_submissions_on_definition_id ON public.hmi
 
 
 --
+-- Name: index_hmis_external_form_submissions_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_form_submissions_on_enrollment_id ON public.hmis_external_form_submissions USING btree (enrollment_id);
+
+
+--
 -- Name: index_hmis_external_referral_postings_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54668,6 +54625,13 @@ CREATE INDEX index_hmis_form_processors_on_ce_event_id ON public.hmis_form_proce
 --
 
 CREATE INDEX index_hmis_form_processors_on_chronic_health_condition_id ON public.hmis_form_processors USING btree (chronic_health_condition_id);
+
+
+--
+-- Name: index_hmis_form_processors_on_clh_location_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_clh_location_id ON public.hmis_form_processors USING btree (clh_location_id);
 
 
 --
@@ -54878,34 +54842,6 @@ CREATE INDEX index_hmis_unit_occupancy_on_hmis_service_id ON public.hmis_unit_oc
 --
 
 CREATE INDEX index_hmis_unit_occupancy_on_unit_id ON public.hmis_unit_occupancy USING btree (unit_id);
-
-
---
--- Name: index_hmis_wips_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_client_id ON public.hmis_wips USING btree (client_id);
-
-
---
--- Name: index_hmis_wips_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_enrollment_id ON public.hmis_wips USING btree (enrollment_id);
-
-
---
--- Name: index_hmis_wips_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_project_id ON public.hmis_wips USING btree (project_id);
-
-
---
--- Name: index_hmis_wips_on_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_source ON public.hmis_wips USING btree (source_type, source_id);
 
 
 --
@@ -63518,7 +63454,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240808042801'),
 ('20240815175202'),
 ('20240821180638'),
+('20240829152828'),
+('20240909150028'),
 ('20240912125052'),
-('20240913130213');
+('20240913130213'),
+('20240916182206'),
+('20240918170406'),
+('20240918171315'),
+('20240920203113');
 
 

@@ -45,10 +45,11 @@ module CasCeData::Synthetic
     end
 
     def self.find_enrollment(assessment)
+      date = assessment.assessment_date
       scope = assessment.client.source_enrollments.
         joins(:project).
-        merge(GrdaWarehouse::Hud::Project.coc_funded).
-        open_on_date(assessment.assessment_date).
+        merge(GrdaWarehouse::Hud::Project.coc_funded.ce_participating(date..date)).
+        open_on_date(date).
         order(EntryDate: :desc)
       if assessment.projects.exists?
         scope = scope.joins(:project).
