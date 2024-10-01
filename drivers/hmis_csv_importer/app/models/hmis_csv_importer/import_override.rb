@@ -11,7 +11,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   scope :sorted, -> do
-    order(:file_name, :matched_hud_key)
+    order(:file_name, :replaces_column, :matched_hud_key)
   end
 
   def self.file_name_keys
@@ -27,6 +27,10 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
 
   def self.available_files
     available_classes.keys
+  end
+
+  def self.available_files_for(data_source_id)
+    where(data_source_id: data_source_id).distinct.pluck(:file_name).sort
   end
 
   def self.known_columns
@@ -130,7 +134,9 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   end
 
   def project
+    # Only return projects for PDDE classes
     return [] unless associated_class.column_names.include?('ProjectID')
+    return [] if associated_class.column_names.include?('EnrollmentID')
     return [] if matched_hud_key.blank? && replaces_value.blank?
 
     project_ids = associated_class.where(data_source_id: data_source_id).to_a.select do |row|
