@@ -728,7 +728,7 @@ module Health
     end
 
     def anything_expiring?
-      release_status.present? || careplan_status.present?
+      release_status.present? || hrsn_status.present? || ca_status.present? || careplan_status.present?
     end
 
     def release_status
@@ -753,15 +753,59 @@ module Health
       @expired_release ||= release_forms.expired.during_current_enrollment.exists?
     end
 
+    def hrsn_status
+      @hrsn_status ||= if active_hrsn? && !expiring_hrsn?
+        # Valid
+      elsif expiring_hrsn?
+        "HRSN Assessment expires #{recent_hrsn_screening.expires_on}"
+      elsif expired_hrsn?
+        "HRSN Assessment expired on #{recent_hrsn_screening.expires_on}"
+      end
+    end
+
+    private def active_hrsn?
+      @active_hrsn ||= recent_hrsn_screening&.active? || false
+    end
+
+    private def expiring_hrsn?
+      @expiring_hrsn ||= recent_hrsn_screening&.expiring? || false
+    end
+
+    private def expired_hrsn?
+      @expired_hrsn ||= recent_hrsn_screening&.expired? || false
+    end
+
+    def ca_status
+      @ca_status ||= if active_ca? && !expiring_ca?
+        # Valid
+      elsif expiring_ca?
+        "Comprehensive Assessment expires #{recent_ca_assessment.expires_on}"
+      elsif expired_ca?
+        "Comprehensive Assessment expired on #{recent_ca_assessment.expires_on}"
+      end
+    end
+
+    private def active_ca?
+      @active_ca ||= recent_ca_assessment&.active? || false
+    end
+
+    private def expiring_ca?
+      @expiring_ca ||= recent_ca_assessment&.expiring? || false
+    end
+
+    private def expired_ca?
+      @expired_ca ||= recent_ca_assessment&.expired? || false
+    end
+
     def careplan_status
       @careplan_status ||= if active_careplan? && ! expiring_careplan?
         # Valid
       elsif missing_careplan?
-        'Care plan not completed by required date'
+        'Person-Centered Treatment Plan not completed by required date'
       elsif expiring_careplan?
-        "Care plan expires #{recent_pctp_careplan.expires_on}"
+        "Person-Centered Treatment Plan expires #{recent_pctp_careplan.expires_on}"
       elsif expired_careplan?
-        "Care plan expired on #{recent_pctp_careplan.expires_on}"
+        "Person-Centered Treatment Plan expired on #{recent_pctp_careplan.expires_on}"
       end
     end
 
