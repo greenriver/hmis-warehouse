@@ -5,9 +5,5 @@
       %ul
         - if @patient.release_status.present?
           %li= @patient.release_status
-        - if @patient.cha_status.present?
-          %li= @patient.cha_status
-        - if @patient.ssm_status.present?
-          %li= @patient.ssm_status
         - if @patient.careplan_status.present?
           %li= @patient.careplan_status
