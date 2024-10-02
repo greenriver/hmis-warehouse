@@ -152,14 +152,16 @@ These "HUD Keys" are used to link HMIS records together. We always use [composit
 
 #### What's the difference between `GrdaWarehouse::Hud::Enrollment` and `Hmis::Hud::Enrollment` models?
 
-Both models are backed by the same table. We have separate model classes for the Warehouse and HMIS to encapsulate different logic. Shared logic is present in concerns (`app/models/concerns/hud_concerns`).
+Both models are backed by the same table. We have separate model classes for the Warehouse and HMIS to encapsulate different logic. Shared logic is present in concerns (`app/models/concerns/hud_concerns`). 
+
+To translate between them, you can use the `as_warehouse` and `as_hmis` helper methods.
 
 #### What's the difference between the `User` and `users` tables? Whats the `UserID` column all about?
 
 | Database | Table name | Warehouse Model | HMIS Model | Usage |
 | -------- | -------- | ------- | ------- |------- |
-| `app` | `users` | `User`     | `Hmis::User` | This is the rails application user. Each record represents a user that can log into the application. These users have access controls, audit histories, and so on.
-| `warehouse` | `User`  | `GrdaWarehouse::Hud::User`    | `Hmis::Hud::User` | These records are imported from external HMIS data sources, or generated from the OP HMIS. Imported records oftentimes do NOT correspond to any "real" application user. Table structure comes from `User.csv` specification. The `UserID` column from this table is present on all the other CSV-structured tables. In HUD's words, "UserID in this file is used to associate data in other CSV files with a specific user."
+| `app` | `users` | `User`     | `Hmis::User` | This is the rails application user. Each record represents a user that can log into the application. These users have access controls, audit histories, and so on. If a user has access to multiple OP HMIS installations within one single warehouse, there will still just be one row in the `users` table for that user, and they'll use the same credentials to log in on each installation.
+| `warehouse` | `User`  | `GrdaWarehouse::Hud::User`    | `Hmis::Hud::User` | These records are imported from external HMIS data sources, or generated from the OP HMIS. Imported records oftentimes do NOT correspond to any "real" application user. Table structure comes from `User.csv` specification. The `UserID` column from this table is present on all the other CSV-structured tables. In HUD's words, "UserID in this file is used to associate data in other CSV files with a specific user." When an HMIS application user touches a record, we generate a corresponding User record if it doesn't exist already
 
 #### What's the deal with the `Custom<Something>` tables?
 
