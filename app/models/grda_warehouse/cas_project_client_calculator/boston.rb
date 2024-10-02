@@ -573,12 +573,15 @@ module GrdaWarehouse::CasProjectClientCalculator
       end&.max_by(&:InformationDate)&.InformationDate
     end
 
-    # Any open enrollments 4.11.2 DomesticViolenceVictim = 1
+    # CE enrollments 4.11.2 DomesticViolenceVictim = 1
     private def domestic_violence(client)
-      return 1 if client.source_health_and_dvs.select do |m|
-        m.DomesticViolenceVictim == 1 &&
-        [m.data_source_id, m.enrollment_id].in?(ongoing_enrollment_enrollment_ids(client))
-      end.any?
+      return 1 if client.source_health_and_dvs.
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.with_project_type(HudUtility2024.project_type_number('CE'))).
+        select do |m|
+                    m.DomesticViolenceVictim == 1 &&
+                    [m.data_source_id, m.enrollment_id].in?(ongoing_enrollment_enrollment_ids(client))
+                  end.any?
 
       # Return 0 so we don't drop into calling this on the client, which has different results
       0

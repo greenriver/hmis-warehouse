@@ -324,6 +324,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(picklist_option_codes(p1, e1.household_id)).to contain_exactly(un1.id)
     end
   end
+
+  describe 'EXTERNAL_FORM_TYPES_FOR_PROJECT' do
+    let!(:external_form) { create :hmis_form_definition, identifier: 'test-external', role: :EXTERNAL_FORM }
+
+    context 'when form rule applies to a project' do
+      let!(:rule) { create :hmis_form_instance, definition_identifier: 'test-external', entity: p1, active: true }
+
+      it 'should return the external form for the project' do
+        response, result = post_graphql(pick_list_type: 'EXTERNAL_FORM_TYPES_FOR_PROJECT', projectId: p1.id) { query }
+        expect(response.status).to eq 200
+        options = result.dig('data', 'pickList')
+        expect(options.length).to eq(1)
+        expect(options.first.dig('code')).to eq('test-external')
+      end
+    end
+  end
 end
 
 RSpec.configure do |c|

@@ -50,6 +50,9 @@ module Hmis::Hud::Processors
       when 'veteran_status'
         # Veteran status is non-nullable. It should be saved as 99 even if hidden. (It's hidden for minors)
         { attribute_name => attribute_value || 99 }
+      when 'age_range'
+        # Prioritize exact DOB if it is provided
+        process_age_range(value) unless @hud_values['Client.dob'].present?
       else
         { attribute_name => attribute_value }
       end
@@ -150,6 +153,38 @@ module Hmis::Hud::Processors
       name_attributes = construct_nested_attributes(field, values, additional_attributes: related_record_attributes)
 
       name_attributes.merge(client_attributes)
+    end
+
+    private def process_age_range(value)
+      case value
+      when *HudUtility2024.age_range.keys
+        # value matches a known age range, so process it onto dob with low DQ
+        { dob: approximate_dob(value), dob_data_quality: 2 }
+      when *HudUtility2024.dob_data_quality_options.values_at(8, 9, 99)
+        # value matches a known missing data reason, so store that. (not currently expected but future-proofing for desired pick lists)
+        { dob_data_quality: HudUtility2024.dob_data_quality(value, true, raise_on_missing: true) }
+      when /doesn't know|prefers not to answer|not collected/i
+        # value string-matches a missing data reason (PIT form is an example), so don't raise and store 99
+        { dob_data_quality: 99 }
+      else
+        # this might be an age range that we don't support processing, so raise
+        raise "Unknown value for age range: #{value}"
+      end
+    end
+
+    private def approximate_dob(value)
+      dob_range = HudUtility2024.age_range[value]
+
+      years_ago = if dob_range.end.infinite?
+        # For an infinite range like 65+, just use the beginning of the range
+        dob_range.begin
+      else
+        # Otherwise pick something in the middle of the range
+        ((dob_range.begin + dob_range.end) / 2).round
+      end
+
+      # Set to start of year so it's more obvious that the data quality is low.
+      Date.current.beginning_of_year - years_ago.years
     end
 
     # Custom handler for MCI field

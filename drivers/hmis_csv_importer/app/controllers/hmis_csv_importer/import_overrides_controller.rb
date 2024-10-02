@@ -9,7 +9,10 @@ class HmisCsvImporter::ImportOverridesController < ApplicationController
   before_action :set_data_source
 
   def index
-    @overrides = import_override_scope.sorted
+    available_files = HmisCsvImporter::ImportOverride.available_files_for(@data_source.id)
+    @selected_filename = available_files.detect { |f| f == params[:filename] } || available_files.first
+    @overrides = import_override_scope.sorted.where(file_name: @selected_filename)
+    @pagy, @overrides = pagy(@overrides, items: 25)
   end
 
   def create

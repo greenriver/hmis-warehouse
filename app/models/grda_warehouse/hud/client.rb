@@ -1146,6 +1146,12 @@ module GrdaWarehouse::Hud
       release_valid? || partial_release?
     end
 
+    def consent_view_permission
+      return unless GrdaWarehouse::Config.implied_consent?
+
+      active_consent_model.consent_view_permission
+    end
+
     def consent_form_valid?
       if release_duration.in?(['One Year', 'Two Years'])
         release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago
