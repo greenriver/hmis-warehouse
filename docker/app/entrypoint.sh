@@ -42,11 +42,6 @@ echo 'Setting Timezone'
 cp /usr/share/zoneinfo/$TIMEZONE /app/etc-localtime
 echo $TIMEZONE > /etc/timezone
 
-if [ "$CONTAINER_VARIANT" == "dj" ]; then
-  echo "Calling: $@"
-  exec bundle exec "$@"
-fi
-
 echo 'Clobbering assets...'
 T1=`date +%s`
 bundle exec rake assets:clobber && mkdir -p ./public/assets
