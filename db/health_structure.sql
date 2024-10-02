@@ -2592,7 +2592,8 @@ CREATE TABLE public.epic_housing_statuses (
     collected_on date NOT NULL,
     status character varying NOT NULL,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    data_source_id bigint
 );
 
 
@@ -4713,7 +4714,9 @@ CREATE TABLE public.qualifying_activities (
     valid_unpayable_reasons character varying[],
     deleted_at date,
     claim_metadata_type character varying,
-    claim_metadata_id bigint
+    claim_metadata_id bigint,
+    data_source_id bigint,
+    date_of_activity_changed boolean DEFAULT false
 );
 
 
@@ -5379,7 +5382,8 @@ CREATE TABLE public.thrive_assessments (
     reporter integer,
     trouble_with_adl boolean,
     help_with_adl boolean,
-    external_name character varying
+    external_name character varying,
+    data_source_id bigint
 );
 
 
@@ -8109,6 +8113,13 @@ CREATE INDEX index_epic_housing_statuses_on_collected_on ON public.epic_housing_
 
 
 --
+-- Name: index_epic_housing_statuses_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_epic_housing_statuses_on_data_source_id ON public.epic_housing_statuses USING btree (data_source_id);
+
+
+--
 -- Name: index_epic_housing_statuses_on_patient_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8578,6 +8589,13 @@ CREATE INDEX index_qualifying_activities_on_claim_metadata ON public.qualifying_
 
 
 --
+-- Name: index_qualifying_activities_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_qualifying_activities_on_data_source_id ON public.qualifying_activities USING btree (data_source_id);
+
+
+--
 -- Name: index_qualifying_activities_on_date_of_activity; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8729,6 +8747,13 @@ CREATE INDEX index_team_members_on_type ON public.team_members USING btree (type
 --
 
 CREATE INDEX index_teams_on_careplan_id ON public.teams USING btree (careplan_id);
+
+
+--
+-- Name: index_thrive_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_thrive_assessments_on_data_source_id ON public.thrive_assessments USING btree (data_source_id);
 
 
 --
@@ -9317,6 +9342,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240726193601'),
 ('20240807182354'),
 ('20240807183449'),
-('20240807185011');
+('20240807185011'),
+('20240813173532'),
+('20240813174220'),
+('20241002144000');
 
 

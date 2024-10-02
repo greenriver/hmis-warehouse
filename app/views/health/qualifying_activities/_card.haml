@@ -19,7 +19,10 @@
 - content_for :panel_collapse_heading, flush: true do
   .d-flex.align-items-center
     .d-flex.panel-title-wrapper.flex-wrap.align-items-center
-      %h4.panel-title.mr-4= "#{qa.title_for_activity} on #{qa.date_of_activity.to_date} by #{qa.user_full_name}"
+      %h4.panel-title.mr-4
+        = "#{qa.title_for_activity} on #{qa.date_of_activity.to_date} by #{qa.user_full_name}"
+        - if qa.date_of_activity_changed?
+          %i.ml-2.icon-calendar.icon-sm{data: {toggle: :tooltip, title: 'Date of activity changed based on eligibility'}}
       .mb-4.mb-sm-0
         = yield "panel_collapse_heading_content_under_title_#{panel_id}"
     .ml-auto.d-flex.align-items-center

@@ -108,7 +108,7 @@ module WarehouseReports::Health
       Health::QualifyingActivity.unsubmitted.where(id: dates.keys).find_each do |qa|
         date = dates[qa.id]
         if qa.date_of_activity != date
-          qa.date_of_activity = date
+          qa.assign_attributes(date_of_activity: date, date_of_activity_changed: true)
           qa.maintain_cached_values
         end
       end
