@@ -47,12 +47,6 @@ if [ "$CONTAINER_VARIANT" == "dj" ]; then
   exec bundle exec "$@"
 fi
 
-# echo 'Syncing the client assets from s3...'
-# T1=`date +%s`
-# ./bin/sync_app_assets.rb
-# T2=`date +%s`
-# echo "...sync_app_assets 1 took $(expr $T2 - $T1) seconds"
-
 echo 'Clobbering assets...'
 T1=`date +%s`
 bundle exec rake assets:clobber && mkdir -p ./public/assets
