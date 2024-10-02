@@ -100,6 +100,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(result.dig('data', 'user', 'staffAssignments', 'nodesCount')).to eq(1)
       expect(result.dig('data', 'user', 'staffAssignments', 'nodes', 0, 'id')).to eq(ds1_assignment.id.to_s)
     end
+
+    it 'resolves only one row per household' do
+      create :hmis_hud_enrollment, data_source: ds1, project: p1, household_id: e1.household_id
+      response, result = post_graphql(id: hmis_user.id) { query }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'user', 'staffAssignments', 'nodesCount')).to eq(1)
+    end
   end
 end
 
