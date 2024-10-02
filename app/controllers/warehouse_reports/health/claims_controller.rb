@@ -109,7 +109,7 @@ module WarehouseReports::Health
         date = dates[qa.id]
         if qa.date_of_activity != date
           qa.date_of_activity = date
-          qa.save(validate: false)
+          qa.maintain_cached_values
         end
       end
 
