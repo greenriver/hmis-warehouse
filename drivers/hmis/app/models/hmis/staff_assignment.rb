@@ -14,6 +14,6 @@ class Hmis::StaffAssignment < Hmis::HmisBase
 
   scope :viewable_by, ->(user) do
     # Special case this, rather than using EnrollmentRelated concern, because we have to join through Household
-    joins(household: :enrollments).merge(Hmis::Hud::Enrollment.viewable_by(user))
+    joins(:household).merge(Hmis::Hud::Household.viewable_by(user))
   end
 end
