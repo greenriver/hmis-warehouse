@@ -44,7 +44,7 @@ jobs:
               BUNDLER_VERSION=2.5.17
             tags: |
               type=sha,prefix=githash-
-              # type=ref,event=branch,prefix=branch-
+              type=ref,event=branch,prefix=branch-
               # type=raw,event=branch,value=branch-{{branch}}-{{sha}}
 
     steps:

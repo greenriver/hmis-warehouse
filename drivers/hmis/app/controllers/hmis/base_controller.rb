@@ -29,6 +29,8 @@ class Hmis::BaseController < ActionController::Base
   end
 
   def current_hmis_host
+    raise 'cannot determine HMIS host because origin is missing' unless request.origin.present?
+
     URI.parse(request.origin).host
   end
 
@@ -39,7 +41,7 @@ class Hmis::BaseController < ActionController::Base
     domain = ENV['HMIS_HOSTNAME'] if Rails.env.development? && domain == ENV['HOSTNAME'] && ENV['HMIS_HOSTNAME'].present?
 
     data_source_id = GrdaWarehouse::DataSource.hmis.find_by(hmis: domain)&.id
-    raise 'HMIS data source not configured' unless data_source_id.present?
+    raise "HMIS data source not configured: #{domain}" unless data_source_id.present?
 
     current_hmis_user.hmis_data_source_id = data_source_id
   end

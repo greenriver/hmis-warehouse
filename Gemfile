@@ -111,10 +111,12 @@ gem 'lograge'
 gem 'logstop'
 
 # Metrics
+gem 'prometheus-client'
 gem 'yabeda-rails'
 gem 'yabeda-prometheus'
 gem 'yabeda-puma-plugin'
 gem 'yabeda-http_requests'
+gem 'sinatra'
 
 gem 'activerecord-session_store'
 gem 'attribute_normalizer'
@@ -239,6 +241,7 @@ gem 'sentry-ruby'
 gem 'sentry-delayed_job'
 gem 'warning'
 gem 'hashdiff'
+gem 'k8s-ruby'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
@@ -251,11 +254,11 @@ group :development, :test do
   gem 'vcr'
   gem 'webmock'
   gem 'deprecation_toolkit', require: false
+  gem 'spring'
+  gem 'spring-watcher-listen'
 end
 
 group :development do
-  # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
-  gem 'spring', require: false
   gem 'html2haml', require: false
   gem 'capistrano-bundler', require: false
   gem 'capistrano-rvm', require: false
@@ -275,7 +278,6 @@ group :development do
   gem 'flamegraph', require: false
   gem 'stackprof', require: false
   gem 'active_record_query_trace', require: false
-  gem 'marginalia'
   gem 'overcommit', require: false
   gem 'rubocop', require: false
   # not used
@@ -304,6 +306,7 @@ group :test do
   gem 'db-query-matchers'
   gem 'simplecov', require: false
   # gem 'simplecov-console'
+  gem 'spring-commands-rspec'
 end
 
 group :development, :staging, :test do

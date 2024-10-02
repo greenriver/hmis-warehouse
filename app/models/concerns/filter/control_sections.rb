@@ -132,6 +132,10 @@ module
           value: @filter.funder_names,
         )
         section.add_control(
+          id: 'funding_other_sources',
+          value: @filter.funder_others,
+        )
+        section.add_control(
           id: 'data_sources',
           value: @filter.data_source_names,
         )
@@ -161,6 +165,10 @@ module
         section.add_control(
           id: 'funding_sources',
           value: @filter.funder_names,
+        )
+        section.add_control(
+          id: 'funding_other_sources',
+          value: @filter.funder_others,
         )
       end
     end
@@ -288,6 +296,16 @@ module
           id: 'secondary_cohorts',
           value: @filter.secondary_cohorts,
           label: 'Cohort Inclusion',
+        )
+      end
+    end
+
+    protected def build_days_since_contact_control_section
+      ::Filters::UiControlSection.new(id: 'days_since_contact', title: 'Contact').tap do |section|
+        section.add_control(
+          id: 'days_since_contact',
+          value: @filter.days_since_contact_words,
+          label: 'Days Since Contact',
         )
       end
     end

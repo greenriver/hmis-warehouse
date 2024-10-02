@@ -114,7 +114,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   ].freeze
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
-  validates :identifier, uniqueness: { scope: :version }
 
   ENROLLMENT_CONFIG = {
     owner_class: 'Hmis::Hud::Enrollment',
@@ -325,6 +324,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where(status: PUBLISHED)
   end
 
+  validate :validate_external_form_object_key
+  def validate_external_form_object_key
+    return unless role == 'EXTERNAL_FORM' && external_form_object_key.present?
+
+    # Ensure that external_form_object_key is not reused across forms with different identifiers
+    object_key_taken = Hmis::Form::Definition.where(external_form_object_key: external_form_object_key).
+      where.not(identifier: identifier).exists?
+    errors.add(:external_form_object_key, 'has already been taken') if object_key_taken
+  end
+
   def self.apply_filters(input)
     Hmis::Filter::FormDefinitionFilter.new(input).filter_scope(self)
   end
@@ -385,6 +394,18 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     status == DRAFT
   end
 
+  def retired?
+    status == RETIRED
+  end
+
+  def published?
+    status == PUBLISHED
+  end
+
+  def valid_status_for_submit?
+    published? || retired?
+  end
+
   def self.owner_class_for_role(role)
     return Hmis::Hud::CustomAssessment if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 
@@ -436,7 +457,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
       is_missing = value.nil? || (value.respond_to?(:empty?) && value.empty?)
       is_data_not_collected = value == 'DATA_NOT_COLLECTED'
-      field_name = item.mapping&.field_name
+      field_name = item.mapping&.field_name || item.mapping&.custom_field_key
       # Validate required status
       if item.required && is_missing
         errors.add field_name || :base, :required, **error_context
@@ -561,14 +582,17 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     block.call(node)
   end
 
+  def updates_client_or_enrollment?
+    link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping&.record_type) }.present?
+  end
+
   # Find and/or initialize CustomDataElementDefinitions that are collected by this form.
-  # This is used by PublishExternalFormsJob.
-  # This should eventually be removed as we're now moving towards relying on Publish Form to generate CDEDs.
-  def introspect_custom_data_element_definitions(set_definition_identifier: false)
+  # For application forms, we now rely on PublishFormDefinition to generate CDEDs, but
+  # this is still used in test fixtures and in PublishExternalFormsJob.
+  def introspect_custom_data_element_definitions(set_definition_identifier: false, data_source: GrdaWarehouse::DataSource.hmis.first)
     owner_type = owner_class.sti_name
     raise "unable to determine owner class for form role: #{role}" unless owner_type
 
-    data_source = GrdaWarehouse::DataSource.hmis.first # TODO: needs adjustment to support multiple data sources
     hud_user_id = Hmis::Hud::User.system_user(data_source_id: data_source.id).UserID
     cded_scope = Hmis::Hud::CustomDataElementDefinition.where(owner_type: owner_type, data_source: data_source)
     cdeds_by_key = cded_scope.index_by(&:key)

@@ -281,6 +281,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect_gql_error post_graphql(input: { input: test_input }) { mutation }, message: 'access denied'
         end
 
+        it 'should fail if form definition is draft' do
+          draft = create(:hmis_form_definition, version: definition.version + 1, status: Hmis::Form::Definition::DRAFT, identifier: definition.identifier)
+          expect_gql_error post_graphql(input: { input: test_input.merge(form_definition_id: draft.id) }) { mutation }
+        end
+
         it 'should update user correctly' do
           next if role == :REFERRAL # skip for referral, tested separately
 

@@ -23,11 +23,20 @@ if ENV['WAREHOUSE_SENTRY_DSN'].present?
     # Replacement for Raven's: `config.sanitize_fields`
     # See: https://stackoverflow.com/questions/68867756/missing-piece-in-sentry-raven-to-sentry-ruby-guide
     # And: https://github.com/getsentry/sentry-ruby/issues/1140
-    filter = ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)
+    filter = ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters - [:email])
     config.before_send = ->(event, _hint) do
       filter.filter(event.to_hash)
     end
   end
+
+  cluster_type =
+    if ENV['ECS'] == 'true' && ENV['EKS'] != 'true'
+      'ecs'
+    elsif ENV['ECS'] != 'true' && ENV['EKS'] == 'true'
+      'eks'
+    else
+      'unknown'
+    end
 
   Sentry.configure_scope do |scope|
     log_stream_url = ENV.fetch('LOG_STREAM_URL', '[LOG_STREAM_URL not found]')
@@ -38,16 +47,16 @@ if ENV['WAREHOUSE_SENTRY_DSN'].present?
         container_variant: ENV.fetch('CONTAINER_VARIANT', '[CONTAINER_VARIANT not found]'),
         target_group_name: ENV.fetch('TARGET_GROUP_NAME', '[TARGET_GROUP_NAME not found]'),
         dev_user: (ENV.fetch('SENTRY_DEV_USER', '[DEV_USER not found]') if Rails.env.development?),
+        cluster_type: cluster_type,
       }.compact,
     )
   end
 end
 
 module Sentry
-
   module_function
 
-  def capture_exception_with_info(e, msg, info = {})
+  def capture_exception_with_info(error, msg, info = {})
     return unless Sentry.initialized?
 
     Sentry.with_scope do |scope|
@@ -55,9 +64,9 @@ module Sentry
         'errorInfo',
         {
           message: msg,
-        }.merge(info || {})
+        }.merge(info || {}),
       )
-      Sentry.capture_exception(e)
+      Sentry.capture_exception(error)
     end
   end
 end

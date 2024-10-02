@@ -18,8 +18,10 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       'organizations',
       'projectGroups',
       'funderIds',
+      'funderOthers',
       'cocCodes',
       'calculatedProjects',
+      'missingItems',
       'submitButton',
     ]
   }
@@ -36,29 +38,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
   }
 
   update() {
-    let data = {
-      project_ids: $(this.projectsTarget).val(),
-      data_source_ids: $(this.dataSourcesTarget).val(),
-      project_group_ids: $(this.projectGroupsTarget).val(),
-      project_type_codes: $(this.projectTypesTarget).val(),
-    }
-    if (this.hasFunderIdsTarget) {
-      const val = $(this.funderIdsTarget).val();
-      if (val) data.funder_ids = Array.isArray(val) ? val : [val];
-    }
-    if (this.hasCocCodesTarget) {
-      const val = $(this.cocCodesTarget).val();
-      if (val) data.coc_codes = Array.isArray(val) ? val : [val];
-    }
-    if (this.hasOrganizationsTarget) {
-      const val = $(this.organizationsTarget).val();
-      if (val) data.organization_ids = Array.isArray(val) ? val : [val];
-    }
-
-    // Special parameter to limit the project list by supported project type IDs
-    if (this.hasSupportedProjectTypesValue) {
-      data.supported_project_types = this.supportedProjectTypesValue
-    }
+    let data = this.formData()
 
     $(this.calculatedProjectsTarget).html('<p class="well rollup-container"></p>')
     // Fetch the asynchronous nature of the query from the HTML, we'll set it to true for Development only
@@ -74,19 +54,89 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
     }).done((ret) => {
       // console.debug('success')
       if (ret.includes('No Projects')) {
-        if ($('.jProjectWarning').length == 0) {
-          $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jProjectWarning">This report will not work unless you have included at least one project above.</p>')
-        }
+        this.addProjectDataWarning()
         $(this.submitButtonTarget).attr('disabled', 'disabled');
       }
       else {
-        $('.jProjectWarning').remove();
-        $(this.submitButtonTarget).data('title', '').removeAttr('disabled');
+        // we have some projects, so remove the warning
+        this.removeProjectDataWarning()
+        if (this.checkMissingData()) {
+          // we have some data issues
+          this.addMissingDataWarning()
+          $(this.submitButtonTarget).attr('disabled', 'disabled');
+        }
+        else {
+          // All good to proceed
+          this.removeMissingDataWarning()
+          $(this.submitButtonTarget).data('title', '').removeAttr('disabled');
+        }
       }
       $(this.calculatedProjectsTarget).html(ret)
     }).fail((ret) => {
       console.error(['Failed to fetch project list', ret])
     })
+  }
+
+  formData() {
+    let data = {
+      project_ids: $(this.projectsTarget).val(),
+      data_source_ids: $(this.dataSourcesTarget).val(),
+      project_group_ids: $(this.projectGroupsTarget).val(),
+      project_type_codes: $(this.projectTypesTarget).val(),
+    }
+    if (this.hasFunderIdsTarget) {
+      const val = $(this.funderIdsTarget).val();
+      if (val) data.funder_ids = Array.isArray(val) ? val : [val];
+    }
+    if (this.hasFunderOthersTarget) {
+      const val = $(this.funderOthersTarget).val();
+      if (val) data.funder_others = Array.isArray(val) ? val : [val];
+    }
+    if (this.hasCocCodesTarget) {
+      const val = $(this.cocCodesTarget).val();
+      if (val) data.coc_codes = Array.isArray(val) ? val : [val];
+    }
+    if (this.hasOrganizationsTarget) {
+      const val = $(this.organizationsTarget).val();
+      if (val) data.organization_ids = Array.isArray(val) ? val : [val];
+    }
+
+    // Special parameter to limit the project list by supported project type IDs
+    if (this.hasSupportedProjectTypesValue) {
+      data.supported_project_types = this.supportedProjectTypesValue
+    }
+    return data
+  }
+
+  checkMissingData() {
+    if (! this.hasMissingItemsTarget) {
+      return false
+    }
+    return $.ajax({
+      async: false, type: 'POST', url: $(this.missingItemsTarget).attr('formaction') + '.json', data: { filter: this.formData() } }).done().responseJSON
+  }
+
+  addMissingDataWarning() {
+    if (!this.hasMissingItemsTarget) {
+      return
+    }
+    if ($('.jMissingDataWarning').length == 0) {
+      $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jMissingDataWarning">This report will not work unless the required project descriptor data is present, please see "Missing Data".</p>')
+    }
+  }
+
+  removeMissingDataWarning() {
+    $('.jMissingDataWarning').remove();
+  }
+
+  addProjectDataWarning() {
+    if ($('.jProjectWarning').length == 0) {
+      $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jProjectWarning">This report will not work unless you have included at least one project above.</p>')
+    }
+  }
+
+  removeProjectDataWarning() {
+    $('.jProjectWarning').remove();
   }
 
   prepNativeEvents() {
@@ -97,6 +147,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       this.projectGroupsTarget,
     ];
     if (this.hasFunderIdsTarget) targets.push(this.funderIdsTarget);
+    if (this.hasFunderOthersTarget) targets.push(this.funderOthersTarget);
     if (this.hasCocCodesTarget) targets.push(this.cocCodesTarget);
     if (this.hasOrganizationsTarget) targets.push(this.organizationsTarget);
 

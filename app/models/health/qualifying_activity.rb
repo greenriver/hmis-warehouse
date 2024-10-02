@@ -33,6 +33,8 @@ module Health
     phi_attr :duplicate_id, Phi::OtherIdentifier
     phi_attr :epic_source_id, Phi::OtherIdentifier
 
+    validate :patient_eligible_for_qa_on_date
+
     MODE_OF_CONTACT_OTHER = 'other'.freeze
     REACHED_CLIENT_OTHER = 'collateral'.freeze
     VERSIONS = [
@@ -189,6 +191,7 @@ module Health
 
     def contact_required?
       return false unless activity
+      return false if from_epic?
 
       !activity.to_sym.in?(qa_version.class::CONTACTLESS_ACTIVITIES)
     end
@@ -218,9 +221,9 @@ module Health
     end
 
     # These validations must come after the above methods
-    validates :mode_of_contact, inclusion: { in: ->(qa) { qa.modes_of_contact.keys.map(&:to_s) } }, allow_blank: true
-    validates :reached_client, inclusion: { in: ->(qa) { qa.client_reached.keys.map(&:to_s) } }, allow_blank: true
-    validates :activity, inclusion: { in: ->(qa) { qa.activities.keys.map(&:to_s) } }, allow_blank: true
+    validates :mode_of_contact, inclusion: { in: ->(qa) { qa.modes_of_contact.keys.map(&:to_s) } }, allow_blank: true, unless: :from_epic?
+    validates :reached_client, inclusion: { in: ->(qa) { qa.client_reached.keys.map(&:to_s) } }, allow_blank: true, unless: :from_epic?
+    validates :activity, inclusion: { in: ->(qa) { qa.activities.keys.map(&:to_s) } }, allow_blank: true, unless: :from_epic?
     validates_presence_of(
       :user,
       :user_full_name,
@@ -229,6 +232,7 @@ module Health
       :patient_id,
       :activity,
       :follow_up,
+      unless: :from_epic?,
     )
     validates_presence_of :mode_of_contact, if: :contact_required?
     validates_presence_of :reached_client, if: :contact_required?
@@ -273,7 +277,13 @@ module Health
       client_reached[key&.to_sym].try(:[], :title) || key
     end
 
+    def from_epic?
+      source_type == 'Health::EpicQualifyingActivity'
+    end
+
     def mode_of_contact_is_other?
+      return false if from_epic?
+
       mode_of_contact == MODE_OF_CONTACT_OTHER
     end
 
@@ -282,6 +292,8 @@ module Health
     end
 
     def reached_client_is_collateral_contact?
+      return false if from_epic?
+
       reached_client == REACHED_CLIENT_OTHER
     end
 
@@ -480,6 +492,8 @@ module Health
       calculate_payability!
       maintain_procedure_valid
       maintain_valid_unpayable
+
+      self
     end
 
     def maintain_valid_unpayable
@@ -685,6 +699,17 @@ module Health
 
     def place_of_service
       qa_version.place_of_service.to_s
+    end
+
+    private def patient_eligible_for_qa_on_date
+      # Don't check QAs without a date
+      return unless date_of_activity.present?
+      # Patient has an active referral on or within 90 days of the the QA date
+      return if Health::Patient.active_between(date_of_activity - 90.days, date_of_activity).where(id: patient_id).exists?
+
+      message = 'Patient was not enrolled on or within 90 days prior to the QA'
+      errors.add(:date_of_activity, :invalid, message: message)
+      Rails.logger.error("Health::QualifyingActivity for #{patient_id}: " + message + " #{activity} on #{date_of_activity}")
     end
   end
 end

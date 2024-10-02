@@ -8,9 +8,11 @@
 module HmisExternalApis::ExternalForms
   class FormGenerator
     attr_reader :context
-    def initialize(context)
+    attr_reader :form_definition
+    def initialize(context, form_definition)
       @stack = []
       @context = context
+      @form_definition = form_definition # Hmis::Form::Definition record
     end
 
     delegate :register_field,
@@ -24,6 +26,7 @@ module HmisExternalApis::ExternalForms
              :render_form_fieldset,
              :render_section,
              :render_form_checkbox,
+             :render_form_geolocation,
              :render_dependent_block,
              :name_from_label,
              to: :context
@@ -58,6 +61,8 @@ module HmisExternalApis::ExternalForms
         render_choice_node(node)
       when 'INTEGER'
         render_numeric_node(node)
+      when 'GEOLOCATION'
+        render_geolocation_node(node)
       else
         raise "node type #{node_type} not supported in #{node.inspect}"
       end
@@ -75,7 +80,7 @@ module HmisExternalApis::ExternalForms
         when 'EMAIL'
           render_form_input(label: node['text'], name: node_name(node), required: node['required'], input_type: 'email', input_invalid_feedback: 'Enter a valid email address')
         else
-          render_form_input(label: node['text'], name: node_name(node), required: node['required'], input_type: 'text')
+          render_form_input(label: node['text'], name: node_name(node), required: node['required'], input_type: 'text', input_helper: node['helper_text'])
         end
       end
     end
@@ -94,7 +99,7 @@ module HmisExternalApis::ExternalForms
 
     def render_text_node(node)
       render_form_group(node: node) do
-        render_form_textarea(label: node['text'], name: node_name(node), required: node['required'])
+        render_form_textarea(label: node['text'], name: node_name(node), required: node['required'], input_helper: node['helper_text'])
       end
     end
 
@@ -105,26 +110,41 @@ module HmisExternalApis::ExternalForms
     end
 
     def render_display_node(node)
+      classes = case node['component']
+      when 'ALERT_INFO'
+        'alert alert-info'
+      when 'ALERT_WARNING'
+        'alert alert-warning'
+      when 'ALERT_ERROR'
+        'alert alert-danger'
+      when 'ALERT_SUCCESS'
+        'alert alert-success'
+      end
+
       render_form_group(node: node) do
-        context.tag.div(node['text'].html_safe)
+        context.tag.div(node['text'].html_safe, class: classes)
       end
     end
 
     def render_choice_node(node)
-      raise "missing options in #{node.inspect} " unless node['pick_list_options']
+      options = resolve_pick_list(node)
+      raise "missing options in #{node.inspect}" unless options.present?
 
-      options = node['pick_list_options'].map do |option|
-        { label: option['label'], value: option['code'] }
-      end
       render_form_group(node: node) do
         case node['component']
-        when 'DROPDOWN'
+        when 'DROPDOWN', nil
           render_form_select(label: node['text'], name: node_name(node), options: options, required: node['required'])
         when 'RADIO_BUTTONS'
           render_form_radio_group(legend: node['text'], name: node_name(node), options: options, required: node['required'])
         else
           raise "component #{node['component']} not supported in #{node.inspect}"
         end
+      end
+    end
+
+    def render_geolocation_node(node)
+      render_form_group(node: node) do
+        render_form_geolocation(label: node['text'], required: node['required'], name: node_name(node))
       end
     end
 
@@ -154,21 +174,75 @@ module HmisExternalApis::ExternalForms
 
     def render_dependent_item_wrapper(node, &block)
       if node['enable_behavior']
-        raise 'multiple rules not supported' if node.dig('enable_when')&.many?
+        conditions = node['enable_when']&.map do |condition|
+          raise "only supports enable_when with 'question' and 'answer_code' (got: #{condition})" unless condition.key?('question') && condition.key?('answer_code')
+          raise "only supports enable_when with 'EQUAL' operator (got: #{condition['operator']})" unless condition['operator'] == 'EQUAL'
 
-        input_name = node.dig('enable_when', 0, 'question')
-        input_value = node.dig('enable_when', 0, 'answer_code')
-        return context.render_dependent_block(input_name: input_name, input_value: input_value, &block)
+          input_dependent_link_id = condition['question']
+          input_name = link_id_to_node_name[input_dependent_link_id]
+          raise "missing node name for dependency with link_id##{input_dependent_link_id}" unless input_name
+
+          input_value = condition['answer_code']
+
+          { input_name: input_name, input_value: input_value }
+        end
+
+        return context.render_dependent_block(conditions: conditions, &block)
       end
 
       return context.capture(&block)
     end
 
-    def node_name(node)
-      value = node.dig('mapping', 'custom_field_key')
-      raise "node #{node['link_id']} is missing mapping.custom_field_key" unless value
+    def self.node_name(node)
+      record_type = node.dig('mapping', 'record_type')
+      processor_name = Hmis::Form::RecordType.find(record_type).processor_name if record_type
 
-      value
+      custom_field_key = node.dig('mapping', 'custom_field_key')
+      field_name = node.dig('mapping', 'field_name')
+
+      # Join with period since that's the expected submission shape (Client.firstName)
+      # If problematic we can use another separator and process accordingly in ConsumeExternalFormSubmissionsJob
+      [processor_name, custom_field_key || field_name].compact.join('.')
+    end
+
+    def node_name(node)
+      self.class.node_name(node)
+    end
+
+    # Map { linkd_id => name to use for input field }
+    # Example: { 'client_first_name' => 'Client.firstName' }
+    # Example: { 'link_id_1' => 'custom_field_key_x' }
+    def link_id_to_node_name
+      @link_id_to_node_name ||= form_definition.link_id_item_hash.map do |link_id, node|
+        # Skip items without mapping. Note: the hash already excludes group items (see link_id_item_hash)
+        next unless node['mapping']
+
+        [link_id, node_name(node)]
+      end.compact.to_h
+    end
+
+    def resolve_pick_list(node)
+      pick_list_reference = node['pick_list_reference']
+      pick_list_options = node['pick_list_options']
+
+      if pick_list_reference
+        # Try to resolve the pick_list_reference value from a GraphQL Enum.
+        # This mirrors the logic of `localResolvePickList` on the HMIS Frontend. However, is not as comprehensive,
+        # it only tries to match against a subset of Enums which are commonly referenced (HUD enums).
+        found_enum = "Types::HmisSchema::Enums::Hud::#{pick_list_reference}".safe_constantize
+        found_enum ||= "Types::HmisSchema::Enums::#{pick_list_reference}".safe_constantize # need for Race and Gender enums
+        raise "Unable to resolve pick list reference: #{pick_list_reference}" unless found_enum
+
+        found_enum.values.map do |k, v|
+          # Use a regex to drop the id prefix if it exists: "(1) Yes" => "Yes"
+          # (Pattern is pulled from the `generateEnumDescriptions` script on the HMIS front-end.)
+          { value: k.to_s, label: v.description&.gsub(/^\([0-9A-Za-z]+\) /, '') || k.to_s }
+        end
+      elsif pick_list_options
+        pick_list_options.map do |option|
+          { value: option['code'], label: option['label'] || option['code'] }
+        end
+      end
     end
   end
 end

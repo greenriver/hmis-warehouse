@@ -25,6 +25,7 @@ module Mutations
       # Look up form definition
       definition = Hmis::Form::Definition.find_by(id: input.form_definition_id)
       raise HmisErrors::ApiError, 'Form Definition not found' unless definition.present?
+      raise HmisErrors::ApiError, 'FormDefinition status is invalid' unless definition.valid_status_for_submit?
 
       # Determine record class
       klass = definition.owner_class

@@ -79,27 +79,27 @@ module Health
     end
 
     def initial_intake_due
-      date = [@range.last, Date.current].min
+      date = [@range.last, Date.current.end_of_month].min
       @initial_intake_due ||= Health::Patient.intake_due(on: date).pluck(:id)
     end
 
     def initial_intake_overdue
-      date = [@range.last, Date.current].min
+      date = [@range.last, Date.current.end_of_month].min
       @initial_intake_overdue ||= Health::Patient.intake_overdue(on: date).pluck(:id)
     end
 
     def intake_renewal_due
-      date = [@range.last, Date.current].min
+      date = [@range.last, Date.current.end_of_month].min
       Health::Patient.where(id: Health::Patient.needs_renewal(on: date).pluck(:id) - Health::Patient.overdue_for_renewal(on: date).pluck(:id)).pluck(:id)
     end
 
     def intake_renewal_overdue
-      date = [@range.last, Date.current].min
+      date = [@range.last, Date.current.end_of_month].min
       Health::Patient.overdue_for_renewal(on: date).pluck(:id)
     end
 
     def with_required_wellcare_visit
-      anchor = [@range.last, Date.current].min
+      anchor = [@range.last, Date.current.end_of_month].min
       @with_required_wellcare_visit ||=
         begin
           set = Set.new

@@ -199,9 +199,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         question_matching_requirement('c_additional_household_members')&.AssessmentAnswer&.to_i&.positive?
       pregnant_or_parenting_pathway_response = most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_pathway_pregnant_parentingchild')&.AssessmentAnswer&.to_i&.positive?
-      household_size_pathway_response = most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_pathways_Household_size')&.AssessmentAnswer.to_i || 0
-      household_members_response || pregnant_or_parenting_pathway_response || household_size_pathway_response > 1
+      household_members_response || pregnant_or_parenting_pathway_response
     end
 
     private def child_in_household(client)
@@ -575,12 +573,15 @@ module GrdaWarehouse::CasProjectClientCalculator
       end&.max_by(&:InformationDate)&.InformationDate
     end
 
-    # Any open enrollments 4.11.2 DomesticViolenceVictim = 1
+    # CE enrollments 4.11.2 DomesticViolenceVictim = 1
     private def domestic_violence(client)
-      return 1 if client.source_health_and_dvs.select do |m|
-        m.DomesticViolenceVictim == 1 &&
-        [m.data_source_id, m.enrollment_id].in?(ongoing_enrollment_enrollment_ids(client))
-      end.any?
+      return 1 if client.source_health_and_dvs.
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.with_project_type(HudUtility2024.project_type_number('CE'))).
+        select do |m|
+                    m.DomesticViolenceVictim == 1 &&
+                    [m.data_source_id, m.enrollment_id].in?(ongoing_enrollment_enrollment_ids(client))
+                  end.any?
 
       # Return 0 so we don't drop into calling this on the client, which has different results
       0

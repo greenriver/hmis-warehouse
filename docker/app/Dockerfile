@@ -64,23 +64,23 @@ RUN addgroup -g ${GROUP_ID} app-user \
 RUN apk update \
   && apk upgrade --no-cache \
   && apk add --no-cache \
-     nodejs yarn \
-		 aws-cli \
-     tzdata \
-     git \
-     bash \
-     freetds-dev \
-     icu icu-dev \
-     curl libcurl curl-dev \
-     imagemagick \
-     libmagic file-dev file \
-     build-base libxml2-dev libxslt-dev postgresql-dev \
-     libgcc libstdc++ libx11 glib libxrender libxext libintl \
-     ttf-dejavu ttf-droid ttf-freefont ttf-liberation \
-     chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
-     lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util zip expect \
-     shared-mime-info \
-     tar p7zip vim gpg gpg-agent \
+    nodejs yarn \
+    aws-cli \
+    tzdata \
+    git \
+    bash \
+    freetds-dev \
+    icu icu-dev \
+    curl libcurl curl-dev \
+    imagemagick \
+    libmagic libheif file-dev file \
+    build-base libxml2-dev libxslt-dev postgresql-dev \
+    libgcc libstdc++ libx11 glib libxrender libxext libintl \
+    ttf-dejavu ttf-droid ttf-freefont ttf-liberation \
+    chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+    lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util zip expect \
+    shared-mime-info \
+    tar p7zip vim gpg gpg-agent \
   && rm -rf /var/cache/apk/* \
   && ln -s libproj.so.21.1.2 /usr/lib/libproj.so.20
 
@@ -88,14 +88,16 @@ WORKDIR /app
 
 RUN gem update --system \
   && gem install bundler --version=${BUNDLER_VERSION} \
-	&& bundle config set --local path /bundle \
+  && bundle config set --local path /bundle \
   && chown -R app-user:app-user /bundle \
-	&& echo 'America/New_York' > /etc/timezone \
-	&& chmod a+w /etc/timezone
+  && echo 'America/New_York' > /etc/timezone \
+  && chmod a+w /etc/timezone
 
 USER ${USER_ID}
 
 CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
+
+COPY docker/app/entrypoint.dj-metrics.sh /usr/bin/
 
 #########################################
 ## Stage/target for use in development ##
@@ -112,7 +114,7 @@ ENTRYPOINT ["/usr/bin/entrypoint.dev.sh"]
 RUN git config --global --add safe.directory /app \
   && apk update \
   && apk add --no-cache \
-    neovim less docker python3 zsh openssh \
+     neovim less docker python3 zsh openssh \
   && rm -rf /var/cache/apk/*
 
 USER ${USER_ID}

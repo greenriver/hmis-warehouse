@@ -37,7 +37,7 @@ module CohortColumns
     end
 
     def comments
-      cohort_client.cohort_client_notes.order(updated_at: :desc).map do |note|
+      cohort_client.cohort_client_notes.sort_by(&:updated_at).reverse.map do |note|
         "#{note.note} -- #{note.user&.name} on #{note.updated_at&.to_date}"
       end.join("\r\n\r\n").html_safe
     end

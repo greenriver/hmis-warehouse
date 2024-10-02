@@ -3,6 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+# frozen_string_literal: true
 
 class Hmis::Form::DefinitionValidator
   def self.perform(...)
@@ -114,7 +115,7 @@ class Hmis::Form::DefinitionValidator
   # Keys that are mutually exclusive. Exactly 1 of these keys must be present on their parent object.
   ONE_OF_BOUND_VALUES = ['value_number', 'value_date', 'value_local_constant', 'question'].freeze
   ONE_OF_ENABLE_WHEN_SOURCES = ['question', 'local_constant'].freeze
-  ONE_OF_ENABLE_WHEN_ANSWERS = ['answer_code', 'answer_codes', 'answer_group_code', 'answer_number', 'answer_boolean', 'compare_question'].freeze
+  ONE_OF_ENABLE_WHEN_ANSWERS = ['answer_code', 'answer_codes', 'answer_group_code', 'answer_number', 'answer_boolean', 'answer_date', 'compare_question'].freeze
   ONE_OF_AUTOFILL_VALUES = ['value_code', 'value_number', 'value_boolean', 'value_question', 'sum_questions', 'formula'].freeze
 
   # Ensure that mutually exclusive attributes are set correctly. These are objects where there must be exactly 1 key present, out of a set of keys.
@@ -211,27 +212,60 @@ class Hmis::Form::DefinitionValidator
     end
   end
 
+  def missing_cded_error(item, owner_type, cded_key)
+    RuntimeError.new("Item #{item['link_id']} has a custom_field_key mapping, but the CDED does not exist in the database. key = #{cded_key.inspect}, owner_type = #{owner_type.inspect}")
+  end
+
+  def data_source
+    GrdaWarehouse::DataSource.hmis.first
+  end
+
+  def get_cded(item, role)
+    @cdeds_by_owner_key ||= Hmis::Hud::CustomDataElementDefinition.order(:id).
+      where(data_source: data_source).
+      index_by { |cded| [cded.owner_type, cded.key] }
+
+    cded_key, record_type = item['mapping'].values_at('custom_field_key', 'record_type')
+    possible_owner_types = []
+    if record_type
+      possible_owner_types = [Hmis::Form::RecordType.find(record_type).owner_type]
+    else
+      case role
+      when 'SERVICE'
+        # For Service forms, the CDED owner is allowed to be Service OR CustomService
+        possible_owner_types = ['Hmis::Hud::Service', 'Hmis::Hud::CustomService']
+      when 'NEW_CLIENT_ENROLLMENT'
+        # For New Client Enrollment forms, the CDED owner is allowed to be Client OR Enrollment
+        possible_owner_types = ['Hmis::Hud::Client', 'Hmis::Hud::Enrollment']
+      else
+        possible_owner_types = [
+          Hmis::Form::Definition.owner_class_for_role(role)&.sti_name,
+        ]
+      end
+    end
+
+    possible_cdeds = possible_owner_types.map do |owner_type|
+      @cdeds_by_owner_key[[owner_type, cded_key]]
+    end
+    possible_cdeds.compact!
+    cded = possible_cdeds.first
+    raise missing_cded_error(item, possible_owner_types, cded_key) unless cded
+
+    cded
+  end
+
   def check_cdeds(document, role)
-    owner_type = Hmis::Form::Definition.owner_class_for_role(role)&.sti_name
-    # For Service forms, the CDED owner is allowed to be Service OR CustomService
-    owner_type = ['Hmis::Hud::Service', 'Hmis::Hud::CustomService'] if role.to_s == 'SERVICE'
-    # For New Client Enrollment forms, the CDED owner is allowed to be Client OR Enrollment
-    owner_type = ['Hmis::Hud::Client', 'Hmis::Hud::Enrollment'] if role.to_s == 'NEW_CLIENT_ENROLLMENT'
-    return unless owner_type
-
-    cdeds_by_owner_key = Hmis::Hud::CustomDataElementDefinition.where(owner_type: owner_type).index_by { |cded| [cded.owner_type, cded.key] }
-
     cded_check = lambda do |item|
       (item['item'] || []).each do |child_item|
         cded_check.call(child_item)
-
         link_id = child_item['link_id']
         mapping = child_item['mapping']
         next unless mapping&.key?('custom_field_key')
 
         cded_key = mapping['custom_field_key']
-        cded = Array.wrap(owner_type).map { |ot| cdeds_by_owner_key[[ot, cded_key]] }.compact.first
-        raise("Item #{link_id} has a custom_field_key mapping, but the CDED does not exist in the database. key = #{cded_key}, owner_type = #{owner_type}") unless cded
+        next unless cded_key
+
+        cded = get_cded(child_item, role)
 
         item_type = child_item['type']
         cded_type = cded.field_type

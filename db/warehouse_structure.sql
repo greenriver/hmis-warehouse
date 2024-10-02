@@ -10,13 +10,6 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
--- *not* creating schema, since initdb creates it
-
-
---
 -- Name: fuzzystrmatch; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -499,7 +492,7 @@ ALTER SEQUENCE public."CEParticipation_id_seq" OWNED BY public."CEParticipation"
 --
 
 CREATE TABLE public."Client" (
-    "PersonalID" character varying,
+    "PersonalID" character varying NOT NULL,
     "FirstName" character varying(150),
     "MiddleName" character varying(150),
     "LastName" character varying(150),
@@ -536,7 +529,7 @@ CREATE TABLE public."Client" (
     "UserID" character varying,
     "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
-    data_source_id integer,
+    data_source_id integer NOT NULL,
     id integer NOT NULL,
     disability_verified_on timestamp without time zone,
     housing_assistance_network_released_on timestamp without time zone,
@@ -803,7 +796,8 @@ CREATE TABLE public."CurrentLivingSituation" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    "CLSSubsidyType" integer
+    "CLSSubsidyType" integer,
+    verified_by_project_id bigint
 );
 
 
@@ -1537,10 +1531,10 @@ ALTER SEQUENCE public."EmploymentEducation_id_seq" OWNED BY public."EmploymentEd
 --
 
 CREATE TABLE public."Enrollment" (
-    "EnrollmentID" character varying(50),
-    "PersonalID" character varying,
+    "EnrollmentID" character varying(50) NOT NULL,
+    "PersonalID" character varying NOT NULL,
     "ProjectID" character varying(50),
-    "EntryDate" date,
+    "EntryDate" date NOT NULL,
     "HouseholdID" character varying,
     "RelationshipToHoH" integer,
     "LivingSituation" integer,
@@ -1621,7 +1615,7 @@ CREATE TABLE public."Enrollment" (
     "UserID" character varying(100),
     "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
-    data_source_id integer,
+    data_source_id integer NOT NULL,
     id integer NOT NULL,
     "LOSUnderThreshold" integer,
     "PreviousStreetESSH" integer,
@@ -1794,10 +1788,10 @@ ALTER SEQUENCE public."Event_id_seq" OWNED BY public."Event".id;
 --
 
 CREATE TABLE public."Exit" (
-    "ExitID" character varying,
+    "ExitID" character varying NOT NULL,
     "EnrollmentID" character varying,
     "PersonalID" character varying,
-    "ExitDate" date,
+    "ExitDate" date NOT NULL,
     "Destination" integer,
     "OtherDestination" character varying,
     "AssessmentDisposition" integer,
@@ -2515,26 +2509,26 @@ ALTER SEQUENCE public."Services_id_seq" OWNED BY public."Services".id;
 --
 
 CREATE VIEW public."Site" AS
- SELECT "Geography"."GeographyID",
-    "Geography"."ProjectID",
-    "Geography"."CoCCode",
-    "Geography"."PrincipalSite",
-    "Geography"."Geocode",
-    "Geography"."Address1",
-    "Geography"."City",
-    "Geography"."State",
-    "Geography"."ZIP",
-    "Geography"."DateCreated",
-    "Geography"."DateUpdated",
-    "Geography"."UserID",
-    "Geography"."DateDeleted",
-    "Geography"."ExportID",
-    "Geography".data_source_id,
-    "Geography".id,
-    "Geography"."InformationDate",
-    "Geography"."Address2",
-    "Geography"."GeographyType",
-    "Geography".source_hash
+ SELECT "GeographyID",
+    "ProjectID",
+    "CoCCode",
+    "PrincipalSite",
+    "Geocode",
+    "Address1",
+    "City",
+    "State",
+    "ZIP",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID",
+    data_source_id,
+    id,
+    "InformationDate",
+    "Address2",
+    "GeographyType",
+    source_hash
    FROM public."Geography";
 
 
@@ -3232,45 +3226,45 @@ CREATE VIEW public."bi_AssessmentResults" AS
 --
 
 CREATE VIEW public."bi_Client" AS
- SELECT "Client".id AS personalid,
+ SELECT id AS personalid,
     4 AS "HashStatus",
-    encode(sha256((public.soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."LastName")::text))))::bytea), 'hex'::text) AS "LastName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."NameSuffix")::text))))::bytea), 'hex'::text) AS "NameSuffix",
-    "Client"."NameDataQuality",
-    concat("right"(("Client"."SSN")::text, 4), encode(sha256((lpad(("Client"."SSN")::text, 9, 'x'::text))::bytea), 'hex'::text)) AS "SSN",
-    "Client"."SSNDataQuality",
-    "Client"."DOB",
-    "Client"."DOBDataQuality",
-    "Client"."AmIndAKNative",
-    "Client"."Asian",
-    "Client"."BlackAfAmerican",
-    "Client"."NativeHIOtherPacific",
-    "Client"."White",
-    "Client"."RaceNone",
-    "Client"."Ethnicity",
-    "Client"."Gender",
-    "Client"."VeteranStatus",
-    "Client"."YearEnteredService",
-    "Client"."YearSeparated",
-    "Client"."WorldWarII",
-    "Client"."KoreanWar",
-    "Client"."VietnamWar",
-    "Client"."DesertStorm",
-    "Client"."AfghanistanOEF",
-    "Client"."IraqOIF",
-    "Client"."IraqOND",
-    "Client"."OtherTheater",
-    "Client"."MilitaryBranch",
-    "Client"."DischargeStatus",
-    "Client"."DateCreated",
-    "Client"."DateUpdated",
-    "Client"."UserID",
-    "Client"."DateDeleted",
-    "Client"."ExportID"
+    encode(sha256((public.soundex(upper(btrim(("FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
+    encode(sha256((public.soundex(upper(btrim(("MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
+    encode(sha256((public.soundex(upper(btrim(("LastName")::text))))::bytea), 'hex'::text) AS "LastName",
+    encode(sha256((public.soundex(upper(btrim(("NameSuffix")::text))))::bytea), 'hex'::text) AS "NameSuffix",
+    "NameDataQuality",
+    concat("right"(("SSN")::text, 4), encode(sha256((lpad(("SSN")::text, 9, 'x'::text))::bytea), 'hex'::text)) AS "SSN",
+    "SSNDataQuality",
+    "DOB",
+    "DOBDataQuality",
+    "AmIndAKNative",
+    "Asian",
+    "BlackAfAmerican",
+    "NativeHIOtherPacific",
+    "White",
+    "RaceNone",
+    "Ethnicity",
+    "Gender",
+    "VeteranStatus",
+    "YearEnteredService",
+    "YearSeparated",
+    "WorldWarII",
+    "KoreanWar",
+    "VietnamWar",
+    "DesertStorm",
+    "AfghanistanOEF",
+    "IraqOIF",
+    "IraqOND",
+    "OtherTheater",
+    "MilitaryBranch",
+    "DischargeStatus",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID"
    FROM public."Client"
-  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id = 85));
+  WHERE (("DateDeleted" IS NULL) AND (data_source_id = 85));
 
 
 --
@@ -3632,24 +3626,24 @@ CREATE VIEW public."bi_Exit" AS
 --
 
 CREATE VIEW public."bi_Export" AS
- SELECT "Export".id AS "ExportID",
-    "Export"."SourceType",
-    "Export"."SourceID",
-    "Export"."SourceName",
-    "Export"."SourceContactFirst",
-    "Export"."SourceContactLast",
-    "Export"."SourceContactPhone",
-    "Export"."SourceContactExtension",
-    "Export"."SourceContactEmail",
-    "Export"."ExportDate",
-    "Export"."ExportStartDate",
-    "Export"."ExportEndDate",
-    "Export"."SoftwareName",
-    "Export"."SoftwareVersion",
-    "Export"."ExportPeriodType",
-    "Export"."ExportDirective",
-    "Export"."HashStatus",
-    "Export".data_source_id
+ SELECT id AS "ExportID",
+    "SourceType",
+    "SourceID",
+    "SourceName",
+    "SourceContactFirst",
+    "SourceContactLast",
+    "SourceContactPhone",
+    "SourceContactExtension",
+    "SourceContactEmail",
+    "ExportDate",
+    "ExportStartDate",
+    "ExportEndDate",
+    "SoftwareName",
+    "SoftwareVersion",
+    "ExportPeriodType",
+    "ExportDirective",
+    "HashStatus",
+    data_source_id
    FROM public."Export";
 
 
@@ -3841,18 +3835,18 @@ CREATE VIEW public."bi_Inventory" AS
 --
 
 CREATE VIEW public."bi_Organization" AS
- SELECT "Organization".id AS "OrganizationID",
-    "Organization"."OrganizationName",
-    "Organization"."VictimServicesProvider",
-    "Organization"."OrganizationCommonName",
-    "Organization"."DateCreated",
-    "Organization"."DateUpdated",
-    "Organization"."UserID",
-    "Organization"."DateDeleted",
-    "Organization"."ExportID",
-    "Organization".data_source_id
+ SELECT id AS "OrganizationID",
+    "OrganizationName",
+    "VictimServicesProvider",
+    "OrganizationCommonName",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID",
+    data_source_id
    FROM public."Organization"
-  WHERE ("Organization"."DateDeleted" IS NULL);
+  WHERE ("DateDeleted" IS NULL);
 
 
 --
@@ -3978,11 +3972,11 @@ CREATE TABLE public.data_sources (
 --
 
 CREATE VIEW public.bi_data_sources AS
- SELECT data_sources.id,
-    data_sources.name,
-    data_sources.short_name
+ SELECT id,
+    name,
+    short_name
    FROM public.data_sources
-  WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.deleted_at IS NULL));
+  WHERE ((deleted_at IS NULL) AND (deleted_at IS NULL));
 
 
 --
@@ -4001,9 +3995,9 @@ CREATE TABLE public.lookups_ethnicities (
 --
 
 CREATE VIEW public.bi_lookups_ethnicities AS
- SELECT lookups_ethnicities.id,
-    lookups_ethnicities.value,
-    lookups_ethnicities.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_ethnicities;
 
 
@@ -4023,9 +4017,9 @@ CREATE TABLE public.lookups_funding_sources (
 --
 
 CREATE VIEW public.bi_lookups_funding_sources AS
- SELECT lookups_funding_sources.id,
-    lookups_funding_sources.value,
-    lookups_funding_sources.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_funding_sources;
 
 
@@ -4045,9 +4039,9 @@ CREATE TABLE public.lookups_genders (
 --
 
 CREATE VIEW public.bi_lookups_genders AS
- SELECT lookups_genders.id,
-    lookups_genders.value,
-    lookups_genders.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_genders;
 
 
@@ -4067,9 +4061,9 @@ CREATE TABLE public.lookups_living_situations (
 --
 
 CREATE VIEW public.bi_lookups_living_situations AS
- SELECT lookups_living_situations.id,
-    lookups_living_situations.value,
-    lookups_living_situations.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_living_situations;
 
 
@@ -4089,9 +4083,9 @@ CREATE TABLE public.lookups_project_types (
 --
 
 CREATE VIEW public.bi_lookups_project_types AS
- SELECT lookups_project_types.id,
-    lookups_project_types.value,
-    lookups_project_types.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_project_types;
 
 
@@ -4111,9 +4105,9 @@ CREATE TABLE public.lookups_relationships (
 --
 
 CREATE VIEW public.bi_lookups_relationships AS
- SELECT lookups_relationships.id,
-    lookups_relationships.value,
-    lookups_relationships.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_relationships;
 
 
@@ -4133,9 +4127,9 @@ CREATE TABLE public.lookups_tracking_methods (
 --
 
 CREATE VIEW public.bi_lookups_tracking_methods AS
- SELECT lookups_tracking_methods.id,
-    lookups_tracking_methods.value,
-    lookups_tracking_methods.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_tracking_methods;
 
 
@@ -4155,9 +4149,9 @@ CREATE TABLE public.lookups_yes_no_etcs (
 --
 
 CREATE VIEW public.bi_lookups_yes_no_etcs AS
- SELECT lookups_yes_no_etcs.id,
-    lookups_yes_no_etcs.value,
-    lookups_yes_no_etcs.text
+ SELECT id,
+    value,
+    text
    FROM public.lookups_yes_no_etcs;
 
 
@@ -4194,15 +4188,15 @@ CREATE TABLE public.nightly_census_by_projects (
 --
 
 CREATE VIEW public.bi_nightly_census_by_projects AS
- SELECT nightly_census_by_projects.id,
-    nightly_census_by_projects.date,
-    nightly_census_by_projects.project_id,
-    nightly_census_by_projects.veterans,
-    nightly_census_by_projects.non_veterans,
-    nightly_census_by_projects.children,
-    nightly_census_by_projects.adults,
-    nightly_census_by_projects.all_clients,
-    nightly_census_by_projects.beds
+ SELECT id,
+    date,
+    project_id,
+    veterans,
+    non_veterans,
+    children,
+    adults,
+    all_clients,
+    beds
    FROM public.nightly_census_by_projects;
 
 
@@ -4449,7 +4443,12 @@ CREATE TABLE public.boston_project_scorecard_reports (
     increased_other_income double precision,
     invoicing_timeliness integer,
     invoicing_accuracy integer,
-    no_concern integer
+    no_concern integer,
+    materials_concern integer,
+    lms_completed boolean,
+    self_certified boolean,
+    days_to_lease_up_comparison integer,
+    comparison_apr_id bigint
 );
 
 
@@ -5658,7 +5657,8 @@ CREATE TABLE public.clh_locations (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    enrollment_id bigint
+    enrollment_id bigint,
+    located_at timestamp(6) without time zone
 );
 
 
@@ -6660,10 +6660,8 @@ CREATE TABLE public.csg_engage_program_mappings (
     updated_at timestamp(6) without time zone NOT NULL,
     project_id bigint,
     clarity_name character varying,
-    csg_engage_name character varying,
-    csg_engage_import_keyword character varying,
     include_in_export boolean DEFAULT true NOT NULL,
-    agency_id bigint
+    program_id bigint
 );
 
 
@@ -6694,7 +6692,6 @@ CREATE TABLE public.csg_engage_program_reports (
     id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    program_mapping_id bigint,
     report_id bigint,
     raw_result character varying,
     json_result jsonb,
@@ -6705,7 +6702,8 @@ CREATE TABLE public.csg_engage_program_reports (
     failed_at timestamp without time zone,
     imported_program_name character varying,
     imported_import_keyword character varying,
-    cleared_at character varying
+    cleared_at character varying,
+    program_id bigint
 );
 
 
@@ -6726,6 +6724,39 @@ CREATE SEQUENCE public.csg_engage_program_reports_id_seq
 --
 
 ALTER SEQUENCE public.csg_engage_program_reports_id_seq OWNED BY public.csg_engage_program_reports.id;
+
+
+--
+-- Name: csg_engage_programs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.csg_engage_programs (
+    id bigint NOT NULL,
+    agency_id bigint,
+    csg_engage_name character varying NOT NULL,
+    csg_engage_import_keyword character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: csg_engage_programs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.csg_engage_programs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: csg_engage_programs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.csg_engage_programs_id_seq OWNED BY public.csg_engage_programs.id;
 
 
 --
@@ -18166,7 +18197,8 @@ CREATE TABLE public.hmis_external_form_submissions (
     definition_id bigint NOT NULL,
     object_key character varying NOT NULL,
     raw_data jsonb NOT NULL,
-    notes text
+    notes text,
+    enrollment_id bigint
 );
 
 
@@ -18510,7 +18542,8 @@ CREATE TABLE public.hmis_form_processors (
     ce_event_id bigint,
     backup_values jsonb,
     owner_type character varying NOT NULL,
-    owner_id bigint NOT NULL
+    owner_id bigint NOT NULL,
+    clh_location_id bigint
 );
 
 
@@ -19179,44 +19212,6 @@ CREATE SEQUENCE public.hmis_units_id_seq
 --
 
 ALTER SEQUENCE public.hmis_units_id_seq OWNED BY public.hmis_units.id;
-
-
---
--- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_wips (
-    id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    project_id bigint,
-    enrollment_id bigint,
-    source_type character varying,
-    source_id bigint,
-    date date NOT NULL,
-    data jsonb,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: hmis_wips_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_wips_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_wips_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_wips_id_seq OWNED BY public.hmis_wips.id;
 
 
 --
@@ -25206,16 +25201,16 @@ CREATE TABLE public.service_history_services_2050 (
 --
 
 CREATE MATERIALIZED VIEW public.service_history_services_materialized AS
- SELECT service_history_services.id,
-    service_history_services.service_history_enrollment_id,
-    service_history_services.record_type,
-    service_history_services.date,
-    service_history_services.age,
-    service_history_services.service_type,
-    service_history_services.client_id,
-    service_history_services.project_type,
-    service_history_services.homeless,
-    service_history_services.literally_homeless
+ SELECT id,
+    service_history_enrollment_id,
+    record_type,
+    date,
+    age,
+    service_type,
+    client_id,
+    project_type,
+    homeless,
+    literally_homeless
    FROM public.service_history_services
   WITH NO DATA;
 
@@ -26259,27 +26254,27 @@ ALTER SEQUENCE public.themes_id_seq OWNED BY public.themes.id;
 --
 
 CREATE VIEW public.todd_stats AS
- SELECT pg_stat_all_tables.relname,
+ SELECT relname,
     round((
         CASE
-            WHEN ((pg_stat_all_tables.n_live_tup + pg_stat_all_tables.n_dead_tup) = 0) THEN (0)::double precision
-            ELSE ((pg_stat_all_tables.n_dead_tup)::double precision / ((pg_stat_all_tables.n_dead_tup + pg_stat_all_tables.n_live_tup))::double precision)
+            WHEN ((n_live_tup + n_dead_tup) = 0) THEN (0)::double precision
+            ELSE ((n_dead_tup)::double precision / ((n_dead_tup + n_live_tup))::double precision)
         END * (100.0)::double precision)) AS "Frag %",
-    pg_stat_all_tables.n_live_tup AS "Live rows",
-    pg_stat_all_tables.n_dead_tup AS "Dead rows",
-    pg_stat_all_tables.n_mod_since_analyze AS "Rows modified since analyze",
+    n_live_tup AS "Live rows",
+    n_dead_tup AS "Dead rows",
+    n_mod_since_analyze AS "Rows modified since analyze",
         CASE
-            WHEN (COALESCE(pg_stat_all_tables.last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_vacuum
-            ELSE COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
+            WHEN (COALESCE(last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_vacuum
+            ELSE COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
         END AS last_vacuum,
         CASE
-            WHEN (COALESCE(pg_stat_all_tables.last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_analyze
-            ELSE COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
+            WHEN (COALESCE(last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_analyze
+            ELSE COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
         END AS last_analyze,
-    (pg_stat_all_tables.vacuum_count + pg_stat_all_tables.autovacuum_count) AS vacuum_count,
-    (pg_stat_all_tables.analyze_count + pg_stat_all_tables.autoanalyze_count) AS analyze_count
+    (vacuum_count + autovacuum_count) AS vacuum_count,
+    (analyze_count + autoanalyze_count) AS analyze_count
    FROM pg_stat_all_tables
-  WHERE (pg_stat_all_tables.schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
+  WHERE (schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
 
 
 --
@@ -28216,6 +28211,13 @@ ALTER TABLE ONLY public.csg_engage_program_reports ALTER COLUMN id SET DEFAULT n
 
 
 --
+-- Name: csg_engage_programs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.csg_engage_programs ALTER COLUMN id SET DEFAULT nextval('public.csg_engage_programs_id_seq'::regclass);
+
+
+--
 -- Name: csg_engage_reports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -29893,13 +29895,6 @@ ALTER TABLE ONLY public.hmis_unit_types ALTER COLUMN id SET DEFAULT nextval('pub
 --
 
 ALTER TABLE ONLY public.hmis_units ALTER COLUMN id SET DEFAULT nextval('public.hmis_units_id_seq'::regclass);
-
-
---
--- Name: hmis_wips id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_wips ALTER COLUMN id SET DEFAULT nextval('public.hmis_wips_id_seq'::regclass);
 
 
 --
@@ -31591,6 +31586,14 @@ ALTER TABLE ONLY public.csg_engage_program_mappings
 
 ALTER TABLE ONLY public.csg_engage_program_reports
     ADD CONSTRAINT csg_engage_program_reports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: csg_engage_programs csg_engage_programs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.csg_engage_programs
+    ADD CONSTRAINT csg_engage_programs_pkey PRIMARY KEY (id);
 
 
 --
@@ -33511,14 +33514,6 @@ ALTER TABLE ONLY public.hmis_unit_types
 
 ALTER TABLE ONLY public.hmis_units
     ADD CONSTRAINT hmis_units_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_wips hmis_wips_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_wips
-    ADD CONSTRAINT hmis_wips_pkey PRIMARY KEY (id);
 
 
 --
@@ -51139,6 +51134,13 @@ CREATE INDEX "index_CurrentLivingSituation_on_pending_date_deleted" ON public."C
 
 
 --
+-- Name: index_CurrentLivingSituation_on_verified_by_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CurrentLivingSituation_on_verified_by_project_id" ON public."CurrentLivingSituation" USING btree (verified_by_project_id);
+
+
+--
 -- Name: index_CustomCaseNote_on_EnrollmentID; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52049,6 +52051,13 @@ CREATE INDEX index_boston_project_scorecard_reports_on_apr_id ON public.boston_p
 
 
 --
+-- Name: index_boston_project_scorecard_reports_on_comparison_apr_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_boston_project_scorecard_reports_on_comparison_apr_id ON public.boston_project_scorecard_reports USING btree (comparison_apr_id);
+
+
+--
 -- Name: index_boston_project_scorecard_reports_on_project_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52616,10 +52625,10 @@ CREATE INDEX index_contacts_on_type ON public.contacts USING btree (type);
 
 
 --
--- Name: index_csg_engage_program_mappings_on_agency_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_csg_engage_program_mappings_on_program_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_csg_engage_program_mappings_on_agency_id ON public.csg_engage_program_mappings USING btree (agency_id);
+CREATE INDEX index_csg_engage_program_mappings_on_program_id ON public.csg_engage_program_mappings USING btree (program_id);
 
 
 --
@@ -52630,10 +52639,10 @@ CREATE INDEX index_csg_engage_program_mappings_on_project_id ON public.csg_engag
 
 
 --
--- Name: index_csg_engage_program_reports_on_program_mapping_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_csg_engage_program_reports_on_program_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_csg_engage_program_reports_on_program_mapping_id ON public.csg_engage_program_reports USING btree (program_mapping_id);
+CREATE INDEX index_csg_engage_program_reports_on_program_id ON public.csg_engage_program_reports USING btree (program_id);
 
 
 --
@@ -52641,6 +52650,13 @@ CREATE INDEX index_csg_engage_program_reports_on_program_mapping_id ON public.cs
 --
 
 CREATE INDEX index_csg_engage_program_reports_on_report_id ON public.csg_engage_program_reports USING btree (report_id);
+
+
+--
+-- Name: index_csg_engage_programs_on_agency_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_csg_engage_programs_on_agency_id ON public.csg_engage_programs USING btree (agency_id);
 
 
 --
@@ -54387,6 +54403,13 @@ CREATE INDEX index_hmis_external_form_submissions_on_definition_id ON public.hmi
 
 
 --
+-- Name: index_hmis_external_form_submissions_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_form_submissions_on_enrollment_id ON public.hmis_external_form_submissions USING btree (enrollment_id);
+
+
+--
 -- Name: index_hmis_external_referral_postings_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54450,13 +54473,6 @@ CREATE INDEX index_hmis_external_unit_availability_syncs_on_user_id ON public.hm
 
 
 --
--- Name: index_hmis_form_definitions_on_external_form_object_key; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_hmis_form_definitions_on_external_form_object_key ON public.hmis_form_definitions USING btree (external_form_object_key);
-
-
---
 -- Name: index_hmis_form_instances_on_entity; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54482,6 +54498,13 @@ CREATE INDEX index_hmis_form_processors_on_ce_event_id ON public.hmis_form_proce
 --
 
 CREATE INDEX index_hmis_form_processors_on_chronic_health_condition_id ON public.hmis_form_processors USING btree (chronic_health_condition_id);
+
+
+--
+-- Name: index_hmis_form_processors_on_clh_location_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_clh_location_id ON public.hmis_form_processors USING btree (clh_location_id);
 
 
 --
@@ -54692,34 +54715,6 @@ CREATE INDEX index_hmis_unit_occupancy_on_hmis_service_id ON public.hmis_unit_oc
 --
 
 CREATE INDEX index_hmis_unit_occupancy_on_unit_id ON public.hmis_unit_occupancy USING btree (unit_id);
-
-
---
--- Name: index_hmis_wips_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_client_id ON public.hmis_wips USING btree (client_id);
-
-
---
--- Name: index_hmis_wips_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_enrollment_id ON public.hmis_wips USING btree (enrollment_id);
-
-
---
--- Name: index_hmis_wips_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_project_id ON public.hmis_wips USING btree (project_id);
-
-
---
--- Name: index_hmis_wips_on_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_wips_on_source ON public.hmis_wips USING btree (source_type, source_id);
 
 
 --
@@ -60270,7 +60265,7 @@ CREATE UNIQUE INDEX tx_id_ds_id_ft_idx ON public.financial_transactions USING bt
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
 
 
 --
@@ -62489,6 +62484,14 @@ ALTER TABLE ONLY public.service_history_services_2030
 
 
 --
+-- Name: CurrentLivingSituation fk_rails_3cd6dcf72d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CurrentLivingSituation"
+    ADD CONSTRAINT fk_rails_3cd6dcf72d FOREIGN KEY (verified_by_project_id) REFERENCES public."Project"(id);
+
+
+--
 -- Name: hmis_external_referral_postings fk_rails_41274b755e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -63277,6 +63280,17 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240729171457'),
 ('20240730140758'),
-('20240731155357');
+('20240731144633'),
+('20240731155357'),
+('20240815175202'),
+('20240821180638'),
+('20240829152828'),
+('20240909150028'),
+('20240912125052'),
+('20240913130213'),
+('20240916182206'),
+('20240918170406'),
+('20240918171315'),
+('20240920203113');
 
 

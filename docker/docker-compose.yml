@@ -1,7 +1,5 @@
-version: '3.8'
-
 x-app: &app
-  image: hmis-warehouse:4.0
+  image: hmis-warehouse:4.2
   build:
     context: .
     dockerfile: docker/app/Dockerfile
@@ -28,6 +26,8 @@ x-app: &app
     GROVER_NO_SANDBOX: 'true'
     BUNDLE_FORCE_RUBY_PLATFORM: 'true'
     CHROME_URL: http://chrome:3333
+    KUBE_CONFIG_PATH: ${KUBE_CONFIG_PATH:-/home/app-user/.kube/config}
+    K8S_API_HOST_AND_PORT: ${K8S_API_HOST_AND_PORT:-}
 
   env_file:
     - .env.development.local
@@ -100,6 +100,18 @@ services:
       redis:
         condition: service_started
       minio:
+        condition: service_started
+
+  dj-metrics:
+    <<: *backend
+    entrypoint: /usr/bin/entrypoint.dj-metrics.sh
+    ports:
+      # visit localhost:34533/metrics
+      - "${DJ_METRICS_PORT:-34533}:9292"
+    expose:
+      - "9292"
+    depends_on:
+      dj:
         condition: service_started
 
   yarn:

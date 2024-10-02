@@ -6,6 +6,8 @@
 
 module HudLsa
   class LsasController < ::HudReports::BaseController
+    include AjaxModalRails::Controller
+    include ArelHelper
     before_action :filter
     before_action :set_report, only: [:show, :destroy, :running, :download, :download_intermediate]
     before_action :set_reports, except: [:index, :running_all_questions]
@@ -21,6 +23,7 @@ module HudLsa
     def create
       if @filter.valid?
         @report = report_class.from_filter(@filter, report_name, build_for_questions: generator.questions.keys)
+
         @report.state = 'Waiting'
         @report.question_names = @report.class.questions.keys
         @report.save!
@@ -63,10 +66,29 @@ module HudLsa
     end
     helper_method :report_class
 
+    def data_missing
+      @modal_size = :xl
+      respond_to do |format|
+        format.html {}
+        format.json { render json: missing_data[:show_missing_data] }
+      end
+    end
+
     private def missing_data
-      @missing_data ||= report.missing_data(current_user)
+      @missing_data ||= report.missing_data(current_user, project_ids: project_ids_to_check || [])
     end
     helper_method :missing_data
+
+    # This mirrors /api/hud_filters
+    private def project_ids_to_check
+      filter = ::Filters::HudFilterBase.new(user_id: current_user.id)
+      filter.update(filter_params.merge(coc_codes: [filter_params[:coc_code]]))
+
+      GrdaWarehouse::Hud::Project.
+        joins(:organization).
+        where(id: filter.effective_project_ids).
+        order(o_t[:OrganizationName], p_t[:ProjectName]).pluck(:id)
+    end
 
     private def active_version
       possible_generator_classes[default_report_version]
@@ -111,6 +133,11 @@ module HudLsa
       filter_p
     end
 
+    def filtered?
+      filter_params.present?
+    end
+    helper_method :filtered?
+
     private def report_name
       active_version.title
     end
@@ -118,13 +145,14 @@ module HudLsa
     def available_report_versions
       {
         'FY 2022' => { slug: :fy2022, active: false },
-        'FY 2023' => { slug: :fy2023, active: true },
+        'FY 2023' => { slug: :fy2023, active: false },
+        'FY 2024' => { slug: :fy2024, active: true },
       }.freeze
     end
     helper_method :available_report_versions
 
     def default_report_version
-      :fy2023
+      :fy2024
     end
 
     private def filter_class
@@ -135,6 +163,7 @@ module HudLsa
       {
         fy2022: HudLsa::Generators::Fy2022::Lsa,
         fy2023: HudLsa::Generators::Fy2023::Lsa,
+        fy2024: HudLsa::Generators::Fy2024::Lsa,
       }
     end
 

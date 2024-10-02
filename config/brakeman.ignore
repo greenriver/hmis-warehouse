@@ -225,7 +225,7 @@
       "check_name": "RegexDoS",
       "message": "Model attribute used in regular expression",
       "file": "app/models/health/qualifying_activity.rb",
-      "line": 68,
+      "line": 70,
       "link": "https://brakemanscanner.org/docs/warning_types/denial_of_service/",
       "code": "/#{[Health::QualifyingActivityV1, Health::QualifyingActivityV2, Health::QualifyingActivityV3].map do\n (version::ATTRIBUTE_SUFFIX + \"$\")\n end.join(\"|\")}/",
       "render_path": null,
@@ -239,29 +239,6 @@
       "cwe_id": [
         20,
         185
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "File Access",
-      "warning_code": 16,
-      "fingerprint": "13a7f90845cffdc12900858d9d2d0e853dcd03c123ae71ebfe37e725f6d6453a",
-      "check_name": "FileAccess",
-      "message": "Parameter value used in file name",
-      "file": "drivers/client_access_control/app/controllers/client_access_control/history_controller.rb",
-      "line": 119,
-      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
-      "code": "File.open(Rails.root.join(\"tmp\", \"service_history_pdf_#{::GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i).id}.pdf\"), \"wb\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientAccessControl::HistoryController",
-        "method": "pdf"
-      },
-      "user_input": "params[:client_id]",
-      "confidence": "Weak",
-      "cwe_id": [
-        22
       ],
       "note": ""
     },
@@ -496,29 +473,6 @@
       "note": ""
     },
     {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "1f783c9de44748b596eb8eeca407735742a98d87f1c6c1c4554cc5e8eafe7c30",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "lib/rds_sql_server/lsa/fy2023/lsa_queries.rb",
-      "line": 82,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBase.connection.execute((\"-- 4.1 Get Project Records for Export\\ndelete from lsa_Project\\n\\ninsert into lsa_Project\\n  (ProjectID, OrganizationID, ProjectName\\n  , OperatingStartDate, OperatingEndDate\\n  , ContinuumProject, ProjectType, HousingType, RRHSubType\\n  , ResidentialAffiliation, TargetPopulation\\n  , HOPWAMedAssistedLivingFac\\n  , DateCreated, DateUpdated, ExportID)\\nselect distinct\\n  hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 200)\\n  , format(hp.OperatingStartDate, 'yyyy-MM-dd')\\n  , case when hp.OperatingEndDate is not null then format(hp.OperatingEndDate, 'yyyy-MM-dd') else null end\\n  , hp.ContinuumProject, hp.ProjectType\\n  , case when hp.RRHSubType = 1 then null else hp.HousingType end\\n  , case when hp.ProjectType = 13 then hp.RRHSubType else null end\\n  , case when hp.RRHSubType = 1 then hp.ResidentialAffiliation else null end\\n  , hp.TargetPopulation\\n  , hp.HOPWAMedAssistedLivingFac\\n  , format(hp.DateCreated, 'yyyy-MM-dd HH:mm:ss')\\n  , format(hp.DateUpdated, 'yyyy-MM-dd HH:mm:ss')\\n  , rpt.ReportID\\nfrom hmis_Project hp\\ninner join lsa_Report rpt on rpt.ReportEnd >= hp.OperatingStartDate\\ninner join hmis_ProjectCoC coc on coc.CoCCode = rpt.ReportCoC\\n  and coc.ProjectID = hp.ProjectID\\n  and coc.DateDeleted is null\\nwhere hp.DateDeleted is null\\n  and hp.ContinuumProject = 1\\n  and hp.ProjectType in (0,1,2,3,8,9,10,13)\\n  and (hp.OperatingEndDate is null\\n    or\\t(hp.OperatingEndDate >= rpt.LookbackDate\\n      and hp.OperatingEndDate > hp.OperatingStartDate)\\n    )\\n\" + \"and hp.ProjectID in(#{project_ids.join(\",\")})\"))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "LsaSqlServer::LSAQueries",
-        "method": "insert_projects"
-      },
-      "user_input": "project_ids.join(\",\")",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "272bd9135442f395012a87ac47a02fe2dcaa8bf8f7db7b78b079036a4279e439",
@@ -558,29 +512,6 @@
         "method": "prefix_search_term_scope"
       },
       "user_input": "csn_fn(:last_name)",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "2a95757128ca5e18259189845472a81f7b5907e6b81078b672ee369036c417f9",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "lib/rds_sql_server/lsa/fy2023/lsa_queries.rb",
-      "line": 25,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBase.connection.execute(\"#{File.read(step)}\\n\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "LsaSqlServer::LSAQueries",
-        "method": "run_query"
-      },
-      "user_input": "File.read(step)",
       "confidence": "Medium",
       "cwe_id": [
         89
@@ -663,7 +594,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "drivers/hmis/app/models/hmis/form/definition.rb",
-      "line": 331,
+      "line": 359,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`No Definition found for System form #{role}`",
       "render_path": null,
@@ -977,6 +908,51 @@
     {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
+      "fingerprint": "4f50bd02cffae24567d5d511f692ceeae1ac8183f4092cb176a63afabf3b18df",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "drivers/hmis_external_apis/app/views/hmis_external_apis/external_forms/form.haml",
+      "line": 4,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "HmisExternalApis::ExternalForms::FormGenerator.new(self, @form_definition).render_node(node)",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "hmis_external_apis/external_forms/form"
+      },
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "4fc9f21b2bb85e03dc293e0734000e9c5f28c5c40d08ee8a8c153c38e7175df7",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "lib/rds_sql_server/lsa/fy2024/lsa_queries.rb",
+      "line": 25,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "SqlServerBase.connection.execute(\"#{File.read(step)}\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "LsaSqlServer::LSAQueries",
+        "method": "run_query"
+      },
+      "user_input": "File.read(step)",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
       "fingerprint": "51ec304bfb996e9d40ff69207ead86771b77a085b4a1bee4454fa4821f70fa70",
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
@@ -1049,7 +1025,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called on model attribute",
       "file": "drivers/hmis/app/models/hmis/form/definition.rb",
-      "line": 374,
+      "line": 414,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "{ :SERVICE => ({ :owner_class => \"Hmis::Hud::HmisService\", :permission => :can_edit_enrollments }), :PROJECT => ({ :owner_class => \"Hmis::Hud::Project\", :permission => :can_edit_project_details }), :ORGANIZATION => ({ :owner_class => \"Hmis::Hud::Organization\", :permission => :can_edit_organization }), :CLIENT => ({ :owner_class => \"Hmis::Hud::Client\", :permission => :can_edit_clients }), :FUNDER => ({ :owner_class => \"Hmis::Hud::Funder\", :permission => :can_edit_project_details }), :INVENTORY => ({ :owner_class => \"Hmis::Hud::Inventory\", :permission => :can_edit_project_details }), :PROJECT_COC => ({ :owner_class => \"Hmis::Hud::ProjectCoc\", :permission => :can_edit_project_details }), :HMIS_PARTICIPATION => ({ :owner_class => \"Hmis::Hud::HmisParticipation\", :permission => :can_edit_project_details }), :CE_PARTICIPATION => ({ :owner_class => \"Hmis::Hud::CeParticipation\", :permission => :can_edit_project_details }), :CE_ASSESSMENT => ({ :owner_class => \"Hmis::Hud::Assessment\", :permission => :can_edit_enrollments }), :CE_EVENT => ({ :owner_class => \"Hmis::Hud::Event\", :permission => :can_edit_enrollments }), :CASE_NOTE => ({ :owner_class => \"Hmis::Hud::CustomCaseNote\", :permission => :can_edit_enrollments }), :FILE => ({ :owner_class => \"Hmis::File\", :permission => ([:can_manage_any_client_files, :can_manage_own_client_files]), :authorize => (lambda do\n Hmis::File.authorize_proc.call(entity_base, user)\n end) }), :REFERRAL_REQUEST => ({ :owner_class => \"HmisExternalApis::AcHmis::ReferralRequest\", :permission => :can_manage_incoming_referrals }), :REFERRAL => ({ :owner_class => \"HmisExternalApis::AcHmis::ReferralPosting\", :permission => :can_manage_outgoing_referrals }), :CURRENT_LIVING_SITUATION => ({ :owner_class => \"Hmis::Hud::CurrentLivingSituation\", :permission => :can_edit_enrollments }), :OCCURRENCE_POINT => ({ :owner_class => \"Hmis::Hud::Enrollment\", :permission => :can_edit_enrollments }), :ENROLLMENT => ({ :owner_class => \"Hmis::Hud::Enrollment\", :permission => :can_edit_enrollments }), :NEW_CLIENT_ENROLLMENT => ({ :permission => :can_edit_enrollments, :owner_class => \"Hmis::Hud::Enrollment\" }), :CLIENT_DETAIL => ({ :owner_class => \"Hmis::Hud::Client\", :permission => :can_edit_clients }), :EXTERNAL_FORM => ({ :owner_class => \"HmisExternalApis::ExternalForms::FormSubmission\", :permission => :can_manage_external_form_submissions }) }[role.to_sym][:owner_class].constantize",
       "render_path": null,
@@ -1164,7 +1140,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "lib/rds_sql_server/rds.rb",
-      "line": 251,
+      "line": 243,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBootstrapModel.connection.execute(\"if not exists(select * from sys.databases where name = '#{database}')\\n  select 0;\\nelse\\n  select 1;\\n\")",
       "render_path": null,
@@ -1637,29 +1613,6 @@
       "note": "Injection from internal sources"
     },
     {
-      "warning_type": "File Access",
-      "warning_code": 16,
-      "fingerprint": "8209c231f3717f00dfbf5f1ae66d9b27926d43b14bc03133faed58d17aa086e6",
-      "check_name": "FileAccess",
-      "message": "Parameter value used in file name",
-      "file": "drivers/client_access_control/app/controllers/client_access_control/history_controller.rb",
-      "line": 122,
-      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
-      "code": "File.open(Rails.root.join(\"tmp\", \"service_history_pdf_#{::GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i).id}.pdf\"))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientAccessControl::HistoryController",
-        "method": "pdf"
-      },
-      "user_input": "params[:client_id]",
-      "confidence": "Weak",
-      "cwe_id": [
-        22
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
       "fingerprint": "828e7cacc1cddd03e143f7ac9a7a47c0493371ca16be327d284ec5a12d64b102",
@@ -1893,6 +1846,29 @@
         "method": null
       },
       "user_input": "has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "8ee5bcf28b90010d1bb2657ca443d22c3452e42a3e9a48b189de86fe0c136121",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "lib/rds_sql_server/lsa/fy2024/lsa_queries.rb",
+      "line": 87,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "SqlServerBase.connection.execute((\"-- 4.1 Get Project Records for Export\\ndelete from lsa_Project\\n\\ninsert into lsa_Project\\n  (ProjectID, OrganizationID, ProjectName\\n  , OperatingStartDate, OperatingEndDate\\n  , ContinuumProject, ProjectType, HousingType, RRHSubType\\n  , ResidentialAffiliation, TargetPopulation\\n  , HOPWAMedAssistedLivingFac\\n  , DateCreated, DateUpdated, ExportID)\\nselect distinct\\n  hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 200)\\n  , format(hp.OperatingStartDate, 'yyyy-MM-dd')\\n  , case when hp.OperatingEndDate is not null then format(hp.OperatingEndDate, 'yyyy-MM-dd') else null end\\n  , hp.ContinuumProject, hp.ProjectType\\n  , case when hp.RRHSubType = 1 then null else hp.HousingType end\\n  , case when hp.ProjectType = 13 then hp.RRHSubType else null end\\n  , case when hp.RRHSubType = 1 then hp.ResidentialAffiliation else null end\\n  , hp.TargetPopulation\\n  , hp.HOPWAMedAssistedLivingFac\\n  , format(hp.DateCreated, 'yyyy-MM-dd HH:mm:ss')\\n  , format(hp.DateUpdated, 'yyyy-MM-dd HH:mm:ss')\\n  , rpt.ReportID\\nfrom hmis_Project hp\\ninner join hmis_ProjectCoC coc on coc.ProjectID = hp.ProjectID\\n  and coc.DateDeleted is null\\ninner join lsa_Report rpt on rpt.ReportCoC = coc.CoCCode\\n  and coc.ProjectID = hp.ProjectID\\n  and coc.DateDeleted is null\\nwhere hp.DateDeleted is null\\n  and hp.ContinuumProject = 1\\n  and hp.ProjectType in (0,1,2,3,8,9,10,13)\\n  and (hp.OperatingEndDate is null\\n    or\\t(hp.OperatingEndDate >= rpt.LookbackDate\\n      and hp.OperatingEndDate > hp.OperatingStartDate)\\n    )\\n\" + \"and hp.ProjectID in(#{project_ids.join(\",\")})\"))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "LsaSqlServer::LSAQueries",
+        "method": "insert_projects"
+      },
+      "user_input": "project_ids.join(\",\")",
       "confidence": "Medium",
       "cwe_id": [
         89
@@ -2239,7 +2215,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/performance_measurement/app/models/performance_measurement/equity_analysis/data.rb",
-      "line": 185,
+      "line": 211,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "scope.where(\"#{period}_age\" => (age_params.map do\n Filters::FilterBase.age_range(d)\n end))",
       "render_path": null,
@@ -2262,7 +2238,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb",
-      "line": 961,
+      "line": 880,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.send(variant).send(\"spm_#{field}\").average(\"spm_#{field}\")",
       "render_path": null,
@@ -2627,7 +2603,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/application_controller.rb",
-      "line": 70,
+      "line": 71,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -2753,7 +2729,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "lib/rds_sql_server/rds.rb",
-      "line": 265,
+      "line": 257,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBootstrapModel.connection.execute(\"if not exists(select * from sys.databases where name = '#{database}')\\n  create database #{database}\\n\")",
       "render_path": null,
@@ -3023,28 +2999,6 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "f32a91544ec2960cf67499214f9dd41072818f5c4c0d756d32c389c908bb7426",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "drivers/hmis_external_apis/app/views/hmis_external_apis/external_forms/form.haml",
-      "line": 4,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "HmisExternalApis::ExternalForms::FormGenerator.new(self).render_node(node)",
-      "render_path": null,
-      "location": {
-        "type": "template",
-        "template": "hmis_external_apis/external_forms/form"
-      },
-      "user_input": null,
-      "confidence": "High",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "f47f3a7065a132bc6a80a941cd002157fd72f089cf801dcd4be2d52746d410fa",
@@ -3229,6 +3183,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-07-09 10:23:50 -0400",
-  "brakeman_version": "5.4.1"
+  "updated": "2024-09-09 11:54:08 +0000",
+  "brakeman_version": "6.1.2"
 }

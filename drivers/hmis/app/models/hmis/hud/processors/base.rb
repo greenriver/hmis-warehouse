@@ -95,7 +95,7 @@ class Hmis::Hud::Processors::Base
     is_array = value.is_a? Array
 
     # The field was left empty. Save as nil or 99.
-    if value.nil?
+    if value.nil? || value == ''
       enum_type&.data_not_collected_value
     elsif is_array && value.empty?
       [enum_type&.data_not_collected_value].compact
@@ -139,10 +139,10 @@ class Hmis::Hud::Processors::Base
   # Assign custom data element values to record, if this is a custom data element field
   def process_custom_field(field, value)
     record = @processor.send(factory_name)
-    return false unless record.respond_to?(:custom_data_elements)
+    raise "Record #{record.class.name} does not support custom data elements" unless record.respond_to?(:custom_data_elements)
 
     cded = Hmis::Hud::CustomDataElementDefinition.for_type(record.class.sti_name).find_by(key: field)
-    return false unless cded.present?
+    raise 'Unknown custom data element' unless cded
 
     attrs = {
       user: @processor.hud_user,
@@ -283,8 +283,10 @@ class Hmis::Hud::Processors::Base
       case value
       when nil, ''
         nil
-      when true, false
-        value
+      when 0, '0', false
+        false
+      when 1, '1', true
+        true
       else
         raise "unexpected value \"#{value}\""
       end

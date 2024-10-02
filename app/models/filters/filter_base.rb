@@ -44,6 +44,7 @@ module Filters
     attribute :organization_ids, Array, default: []
     attribute :data_source_ids, Array, default: []
     attribute :funder_ids, Array, default: []
+    attribute :funder_others, Array, default: []
     attribute :cohort_ids, Array, default: []
     attribute :secondary_cohort_ids, Array, default: []
     attribute :cohort_column, String, default: nil
@@ -76,6 +77,8 @@ module Filters
     attribute :involves_ce, String, default: nil
     attribute :disabling_condition, Boolean, default: nil
     attribute :dates_to_compare, Symbol, default: :entry_to_exit
+    attribute :days_since_contact_min, Integer, default: nil
+    attribute :days_since_contact_max, Integer, default: nil
     attribute :required_files, Array, default: []
     attribute :optional_files, Array, default: []
     attribute :active_roi, Boolean, default: false
@@ -131,6 +134,7 @@ module Filters
       self.organization_ids = filters.dig(:organization_ids)&.reject(&:blank?)&.map(&:to_i).presence || organization_ids
       self.project_ids = filters.dig(:project_ids)&.reject(&:blank?)&.map(&:to_i).presence || project_ids
       self.funder_ids = filters.dig(:funder_ids)&.reject(&:blank?)&.map(&:to_i).presence || funder_ids
+      self.funder_others = filters.dig(:funder_others)&.reject(&:blank?)&.presence || funder_others
       self.veteran_statuses = filters.dig(:veteran_statuses)&.reject(&:blank?)&.map(&:to_i).presence || veteran_statuses
       self.age_ranges = filters.dig(:age_ranges)&.reject(&:blank?)&.map(&:to_sym).presence || age_ranges
       self.genders = filters.dig(:genders)&.reject(&:blank?)&.map(&:to_i).presence || genders
@@ -169,6 +173,8 @@ module Filters
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
       self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).blank?
       self.dates_to_compare = filters.dig(:dates_to_compare)&.to_sym || dates_to_compare
+      self.days_since_contact_min = filters.dig(:days_since_contact_min).to_i unless filters.dig(:days_since_contact_min).blank?
+      self.days_since_contact_max = filters.dig(:days_since_contact_max).to_i unless filters.dig(:days_since_contact_max).blank?
       self.mask_small_populations = filters.dig(:mask_small_populations).in?(['1', 'true', true]) unless filters.dig(:mask_small_populations).nil?
       self.required_files = filters.dig(:required_files)&.reject(&:blank?)&.map(&:to_i).presence || required_files
       self.optional_files = filters.dig(:optional_files)&.reject(&:blank?)&.map(&:to_i).presence || optional_files
@@ -200,6 +206,7 @@ module Filters
           organization_ids: organization_ids,
           project_ids: project_ids,
           funder_ids: funder_ids,
+          funder_others: funder_others,
           veteran_statuses: veteran_statuses,
           age_ranges: age_ranges,
           genders: genders,
@@ -246,6 +253,8 @@ module Filters
           secondary_project_ids: secondary_project_ids,
           secondary_project_group_ids: secondary_project_group_ids,
           race_ethnicity_combinations: race_ethnicity_combinations,
+          days_since_contact_min: days_since_contact_min,
+          days_since_contact_max: days_since_contact_max,
         },
       }
     end
@@ -287,6 +296,8 @@ module Filters
         :cohort_column_housed_date,
         :cohort_column_matched_date,
         :dates_to_compare,
+        :days_since_contact_min,
+        :days_since_contact_max,
         :active_roi,
         :mask_small_populations,
         coc_codes: [],
@@ -302,6 +313,7 @@ module Filters
         organization_ids: [],
         project_ids: [],
         funder_ids: [],
+        funder_others: [],
         project_group_ids: [],
         cohort_ids: [],
         secondary_cohort_ids: [],
@@ -342,6 +354,7 @@ module Filters
       projects: 'Projects',
       project_groups: 'Project Groups',
       funders: 'Funders',
+      funder_others: 'Other or Local Funders',
       hoh_only: 'Heads of Household only?',
       coordinated_assessment_living_situation_homeless: 'Including CE homeless at entry',
       ce_cls_as_homeless: 'Including CE Current Living Situation Homeless',
@@ -369,6 +382,8 @@ module Filters
       times_homeless_in_last_three_years: 'Times Homeless in Past 3 Years',
       require_service: 'Require Service During Range',
       dates_to_compare: 'Dates to Compare',
+      days_since_contact_min: 'Days Since Contact Min',
+      days_since_contact_max: 'Days Since Contact Max',
       required_files: 'Required Files',
       optional_files: 'Optional Files',
       active_roi: 'With Active ROI',
@@ -400,6 +415,7 @@ module Filters
         opts[label(:projects, labels)] = project_names(project_ids) if project_ids.any?
         opts[label(:project_groups, labels)] = project_groups if project_group_ids.any?
         opts[label(:funders, labels)] = funder_names if funder_ids.any?
+        opts[label(:funder_others, labels)] = funder_others if funder_others.any?
         opts[label(:hoh_only, labels)] = 'Yes' if hoh_only
         opts[label(:coordinated_assessment_living_situation_homeless, labels)] = 'Yes' if coordinated_assessment_living_situation_homeless
         opts[label(:ce_cls_as_homeless, labels)] = 'Yes' if ce_cls_as_homeless
@@ -509,6 +525,14 @@ module Filters
       "#{s.to_fs} - #{e.to_fs}"
     end
 
+    def days_since_contact_words
+      return 'Any' if days_since_contact_min.blank? && days_since_contact_max.blank?
+      return "#{days_since_contact_min} or more days" if days_since_contact_max.blank? || days_since_contact_max.zero?
+      return "#{days_since_contact_max} or fewer days" if days_since_contact_min.blank? || days_since_contact_min.zero?
+
+      "Between and #{days_since_contact_min} and #{days_since_contact_max} days"
+    end
+
     def length
       (self.end - start).to_i
     rescue StandardError
@@ -587,6 +611,7 @@ module Filters
       scope = filter_for_cohorts(scope)
       scope = filter_for_active_roi(scope)
       scope = filter_for_times_homeless(scope)
+      scope = filter_for_days_since_contact(scope)
       scope
     end
 
@@ -645,6 +670,10 @@ module Filters
 
     def funder_ids
       @funder_ids.reject(&:blank?)
+    end
+
+    def funder_others
+      @funder_others.reject(&:blank?)
     end
 
     def cohort_ids
@@ -776,6 +805,10 @@ module Filters
 
     def funder_options_for_select(user:)
       all_funders_scope.options_for_select(user: user)
+    end
+
+    def funder_other_options_for_select(user:)
+      all_funders_scope.options_for_select_other(user: user)
     end
 
     def coc_code_options_for_select(user:)
@@ -1132,6 +1165,8 @@ module Filters
         label(:project_groups, labels)
       when :funder_ids
         label(:funders, labels)
+      when :funder_others
+        label(:funder_others, labels)
       when :project_type_codes, :project_type_ids, :project_type_numbers
         label(:project_types, labels)
       when :heads_of_household, :hoh_only
@@ -1208,6 +1243,8 @@ module Filters
         chosen_project_groups
       when :funder_ids
         chosen_funding_sources
+      when :funder_others
+        chosen_funding_other_sources
       when :veteran_statuses
         chosen_veteran_statuses
       when :household_type
@@ -1368,6 +1405,12 @@ module Filters
       funder_ids.map { |code| "#{HudUtility2024.funding_source(code&.to_i)} (#{code})" }
     end
 
+    def chosen_funding_other_sources
+      return nil unless funder_others.reject(&:blank?).present?
+
+      funder_others.select(&:present?)
+    end
+
     def chosen_veteran_statuses
       veteran_statuses.map do |veteran_status|
         HudUtility2024.veteran_status(veteran_status)
@@ -1448,6 +1491,8 @@ module Filters
         'System-Wide'
       when 2
         'Project-Focused'
+      when 3
+        'HIC'
       else
         'Auto Select'
       end

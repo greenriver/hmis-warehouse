@@ -44,67 +44,59 @@ class Menu::Menu
       match_pattern: GrdaWarehouse::WarehouseReports::ReportDefinition.pluck(:url).map { |u| "^/#{u}.*" }.join('|'),
       match_pattern_terminator: '.*',
     )
-    menu.add_child(warehouse_reports_menu)
     menu.add_child(hud_reports_menu)
+    menu.add_child(warehouse_reports_menu)
+    menu.add_child(op_analytics_menu)
+    menu.add_child(favorites_menu)
     menu
   end
 
   def hud_reports_menu
-    reports = Rails.application.config.hud_reports.values.map { |report| [report[:title], context.public_send(report[:helper])] }.uniq
-    menu = Menu::Item.new(
+    Menu::Item.new(
       user: user,
-      path: reports.first.last,
+      path: hud_reports_path,
       visible: ->(user) { user.can_view_hud_reports? },
       title: Translation.translate('HUD Reports'),
       id: 'hud-reports',
     )
-    reports.each do |report_name, path|
-      item = Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_view_hud_reports? },
-        path: path,
-        title: Translation.translate(report_name),
-        id: "hud-reports-#{report_name.downcase.gsub(' ', '-')}",
-      )
-      menu.add_child(item)
-    end
-
-    menu
   end
 
   def warehouse_reports_menu
-    menu = Menu::Item.new(
+    Menu::Item.new(
       user: user,
       visible: ->(user) { user.can_view_any_reports? },
       path: warehouse_reports_path,
       title: Translation.translate('Warehouse Reports'),
       id: 'warehouse-reports',
     )
-    item = Menu::Item.new(
+  end
+
+  def op_analytics_menu
+    Menu::Item.new(
       user: user,
-      visible: ->(user) { user.can_view_any_reports? },
-      path: warehouse_reports_path,
-      title: Translation.translate('All Reports'),
-      id: 'all-warehouse-reports',
+      visible: ->(user) { RailsDrivers.loaded.include?(:superset) && Superset.available? && GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(user).where(url: 'superset/warehouse_reports/reports').exists? },
+      path: Superset.warehouse_login_url,
+      title: Translation.translate('OP Analytics'),
+      id: 'superset',
+      target: :_blank,
+      trailing_icon: 'icon-link-ext',
     )
-    menu.add_child(item)
-    if RailsDrivers.loaded.include?(:superset) && Superset.available?
-      item = Menu::Item.new(
-        user: user,
-        visible: ->(user) { GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(user).where(url: 'superset/warehouse_reports/reports').exists? },
-        path: Superset.superset_base_url,
-        title: Translation.translate('Superset Reporting'),
-        id: 'superset',
-        target: :_blank,
-        # icon: 'icon-link-ext',
-      )
-      menu.add_child(item)
-    end
+  end
+
+  def favorites_menu
+    menu = Menu::Item.new(
+      user: user,
+      visible: ->(user) { user.can_view_any_reports? && user.favorite_reports.any? },
+      path: warehouse_reports_path,
+      title: Translation.translate('Favorite Reports'),
+      id: 'warehouse-reports',
+    )
+
     user.favorite_reports.each do |report|
       item = Menu::Item.new(
         user: user,
         visible: ->(user) { GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(user).where(url: report.url).exists? },
-        path: report.url,
+        path: "/#{report.url}",
         title: report.name,
       )
       menu.add_child(item)

@@ -12,9 +12,14 @@ module Mutations
 
     def resolve(id:)
       record = HmisExternalApis::ExternalForms::FormSubmission.find(id)
-      raise 'Access denied' unless allowed?(permissions: [:can_manage_external_form_submissions])
+      project = record.parent_project
+      access_denied! unless current_permission?(permission: :can_manage_external_form_submissions, entity: project)
 
-      record.destroy!
+      record.with_lock do
+        # destroy related records on form processor (does NOT include Enrollment and Client)
+        record.form_processor&.destroy_related_records!
+        record.destroy!
+      end
 
       {
         external_form_submission: record,

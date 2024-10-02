@@ -39,6 +39,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   # Coordinated Entry (CE) Assessment that was created by the processor. The HUD model for CE Assessment is 'Assessment'
   belongs_to :ce_assessment, class_name: 'Hmis::Hud::Assessment', optional: true, autosave: true
   belongs_to :ce_event, class_name: 'Hmis::Hud::Event', optional: true, autosave: true
+  belongs_to :clh_location, class_name: 'ClientLocationHistory::Location', optional: true, autosave: true
 
   validate :hmis_records_are_valid, on: :form_submission
 
@@ -46,6 +47,14 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   def custom_assessment?
     owner_type == Hmis::Hud::CustomAssessment.sti_name
+  end
+
+  def external_form_submission?
+    owner_type == HmisExternalApis::ExternalForms::FormSubmission.sti_name
+  end
+
+  def unknown_field_error(definition)
+    RuntimeError.new("Not a submittable field for Form Definition '#{definition.title}' (ID: #{definition.id})")
   end
 
   def run!(user:)
@@ -61,14 +70,18 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     hud_values_by_container.each do |container, field_name_to_value_h|
       # Iterate through each submitted value for this container
       field_name_to_value_h.each do |field, value|
-        # Validate that the field is mapped by the FormDefinition (includes checking custom)
-        ensure_submittable_field!(container, field)
+        processor = container_processor(container)
+        raise unknown_field_error(definition) unless processor
 
-        # If this key can be identified as a CustomDataElement, set it and continue
-        next if container_processor(container)&.process_custom_field(field, value)
-
-        # Process the field value, which will assign the value to the record
-        container_processor(container)&.process(field, value)
+        if mapped_custom_form_fields[container].include?(field)
+          # If this key can be identified as a CustomDataElement, set it and continue
+          processor.process_custom_field(field, value)
+        elsif mapped_record_form_fields[container].include?(field)
+          # Process the field value, which will assign the value to the record
+          processor.process(field, value)
+        else
+          raise unknown_field_error(definition)
+        end
       rescue StandardError => e
         err_with_context = "Error processing field '#{container}.#{field}': #{e.message}"
         Sentry.capture_exception(StandardError.new(err_with_context))
@@ -88,6 +101,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         # This related record will be created or updated, so assign the metadata and information date.
         processor&.assign_metadata
         processor&.information_date(owner.assessment_date) if custom_assessment?
+        processor&.information_date(owner.submitted_at.to_date) if external_form_submission?
       end
     end
 
@@ -207,18 +221,19 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     when Hmis::Hud::CustomAssessment
       # An assessment can modify the client that it's associated with
       owner.client
+    when HmisExternalApis::ExternalForms::FormSubmission
+      # External forms can create new clients, such as PIT
+      owner.enrollment.client || owner.enrollment.build_client(personal_id: Hmis::Hud::Base.generate_uuid)
     end
   end
 
-  # Common HUD Assessment-related attributes
+  # Common HUD Assessment-related attributes. These always have enrollments so enrollment_factory *should* exist
   def common_attributes
     data_collection_stage = owner.data_collection_stage if owner.respond_to?(:data_collection_stage)
-    personal_id = owner.personal_id if owner.respond_to?(:personal_id)
-    information_date = owner.information_date if owner.respond_to?(:information_date)
+    personal_id = enrollment_factory(create: false)&.personal_id
     {
       data_collection_stage: data_collection_stage,
       personal_id: personal_id,
-      information_date: information_date,
     }
   end
 
@@ -337,6 +352,12 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       build(**common_attributes)
   end
 
+  def clh_location_factory(create: true)
+    return clh_location if clh_location.present? || !create
+
+    self.clh_location = client_factory.client_location_histories.build
+  end
+
   private def container_processor(container)
     container = container.to_sym
 
@@ -381,6 +402,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       CeAssessment: Hmis::Hud::Processors::CeAssessmentProcessor,
       Event: Hmis::Hud::Processors::CeEventProcessor,
       CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
+      # External forms
+      FormSubmission: Hmis::Hud::Processors::ExternalFormSubmissionProcessor,
+      Geolocation: Hmis::Hud::Processors::GeolocationProcessor,
     }.freeze
   end
 
@@ -538,35 +562,44 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   # @return <Hash{container_name=> Set<fields> }>
-  private def mapped_form_fields
-    @mapped_form_fields ||= {}.tap do |result|
+  private def mapped_record_form_fields
+    @mapped_record_form_fields ||= begin
+      result = Hash.new { |hash, key| hash[key] = Set.new }
       definition.link_id_item_hash.each_value do |item|
         mapping = item.mapping
-        next unless mapping
-        next unless mapping.field_name || mapping.custom_field_key
+        next unless mapping&.field_name
 
-        # convert the record_type to a "container name" that matches the form processor names
-        container_name = if mapping.record_type
-          enum = Types::Forms::Enums::RelatedRecordType.values[mapping.record_type]
-          raise "Invalid record type '#{mapping.record_type}'" unless enum
-
-          enum.description
-        else
-          owner_container_name
-        end
-
-        result[container_name] ||= Set.new
-        result[container_name].add(mapping.field_name || mapping.custom_field_key)
+        container_name = mapping_container_name(mapping)
+        result[container_name].add(mapping.field_name)
       end
+      result
     end
   end
 
-  # Ensure that a given field is valid for this FormDefinition
-  private def ensure_submittable_field!(container, field)
-    # Find the FormItem Mapping that matches this field.
-    # If it's not found, then this is not a valid submission.
-    found_mapping = mapped_form_fields[container]&.include?(field)
+  # @return <Hash{container_name=> Set<fields> }>
+  private def mapped_custom_form_fields
+    @mapped_custom_form_fields ||= begin
+      result = Hash.new { |hash, key| hash[key] = Set.new }
+      definition.link_id_item_hash.each_value do |item|
+        mapping = item.mapping
+        next unless mapping&.custom_field_key
 
-    raise "Not a submittable field for Form Definition '#{definition.title}' (ID: #{definition.id})" unless found_mapping
+        container_name = mapping_container_name(mapping)
+        result[container_name].add(mapping.custom_field_key)
+      end
+      result
+    end
+  end
+
+  # convert the record_type to a "container name" that matches the form processor names
+  private def mapping_container_name(mapping)
+    if mapping.record_type
+      record_type = Hmis::Form::RecordType.find(mapping.record_type)
+      raise "Invalid record type '#{mapping.record_type}'" unless record_type
+
+      record_type.processor_name
+    else
+      owner_container_name
+    end
   end
 end

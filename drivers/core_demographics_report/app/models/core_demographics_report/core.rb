@@ -14,6 +14,9 @@ module CoreDemographicsReport
     include CoreDemographicsReport::AgeCalculations
     include CoreDemographicsReport::GenderCalculations
     include CoreDemographicsReport::RaceCalculations
+    include CoreDemographicsReport::EthnicityCalculations
+    # RaceEthnicityCalculations relies on Race and Ethnicity Calculations, and must come after them
+    include CoreDemographicsReport::RaceEthnicityCalculations
     include CoreDemographicsReport::DisabilityCalculations
     include CoreDemographicsReport::RelationshipCalculations
     include CoreDemographicsReport::DvCalculations
@@ -45,7 +48,9 @@ module CoreDemographicsReport
         'ages',
         'genders',
         'gender_ages',
+        'races_ethnicities',
         'races',
+        'ethnicities',
         'disabilities',
         'relationships',
         'dvs',
@@ -101,7 +106,9 @@ module CoreDemographicsReport
 
           rows = report.age_data_for_export(rows)
           rows = report.gender_data_for_export(rows)
+          rows = report.race_combination_data_for_export(rows)
           rows = report.race_data_for_export(rows)
+          rows = report.ethnicity_data_for_export(rows)
           rows = report.relationship_data_for_export(rows)
           rows = report.disability_data_for_export(rows)
           rows = report.dv_status_data_for_export(rows)

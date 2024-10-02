@@ -70,6 +70,9 @@ module SystemPathways
         :organization_ids,
         :project_group_ids,
         :data_source_ids,
+        :funder_ids,
+        :funder_others,
+        :hoh_only,
       ]
       filter.describe_filter_as_html(keys, inline: inline, limited: limited)
     end
@@ -85,6 +88,8 @@ module SystemPathways
         :data_source_ids,
         :organization_ids,
         :funder_ids,
+        :funder_others,
+        :hoh_only,
         :default_project_type_codes,
       ]
     end
@@ -251,16 +256,7 @@ module SystemPathways
     end
 
     def race_col_lookup
-      {
-        'am_ind_ak_native' => 'AmIndAKNative',
-        'asian' => 'Asian',
-        'black_af_american' => 'BlackAfAmerican',
-        'native_hi_pacific' => 'NativeHIPacific',
-        'white' => 'White',
-        'hispanic_latinaeo' => 'HispanicLatinaeo',
-        'mid_east_n_african' => 'MidEastNAfrican',
-        'race_none' => 'RaceNone',
-      }
+      HudUtility2024.races.map { |k, _| [k.underscore, k] }.to_h
     end
 
     def chart_model(slug = 'pathways')

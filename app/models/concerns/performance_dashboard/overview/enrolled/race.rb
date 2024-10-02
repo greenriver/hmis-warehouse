@@ -9,19 +9,35 @@ module PerformanceDashboard::Overview::Enrolled::Race
 
   # NOTE: always count the most-recently started enrollment within the range
   def enrolled_by_race
-    @enrolled_by_race ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @enrolled_by_race ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: PerformanceDashboards::Overview::EXPIRATION_LENGTH) do
       buckets = race_buckets.map { |b| [b, []] }.to_h
       counted = {}
       enrolled.
         joins(:client).
         order(first_date_in_program: :desc).
-        pluck(:client_id, :AmIndAKNative, :Asian, :BlackAfAmerican, :NativeHIPacific, :White, :HispanicLatinaeo, :MidEastNAfrican, :RaceNone, :first_date_in_program).each do |id, am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, hispanic_latinaeo, mid_east_n_african, race_none, _|
-          counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, hispanic_latinaeo, mid_east_n_african, race_none)] ||= Set.new
-          buckets[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, hispanic_latinaeo, mid_east_n_african, race_none)] << id unless counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, hispanic_latinaeo, mid_east_n_african, race_none)].include?(id)
-          counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, hispanic_latinaeo, mid_east_n_african, race_none)] << id
+        pluck(:client_id, :first_date_in_program, *race_columns).
+        each do |id, _, *cols|
+          races = race_columns.zip(cols).to_h
+          bucket = race_bucket(races)
+          counted[bucket] ||= Set.new
+          buckets[bucket] << id unless counted[bucket].include?(id)
+          counted[bucket] << id
         end
       buckets
     end
+  end
+
+  private def race_columns
+    [
+      :AmIndAKNative,
+      :Asian,
+      :BlackAfAmerican,
+      :NativeHIPacific,
+      :White,
+      :HispanicLatinaeo,
+      :MidEastNAfrican,
+      :RaceNone,
+    ].freeze
   end
 
   def enrolled_by_race_data_for_chart
@@ -34,7 +50,7 @@ module PerformanceDashboard::Overview::Enrolled::Race
           labels: categories.map { |s| [s, HudUtility2024.race(s)] }.to_h,
           chosen: @races,
           columns: columns,
-          categories: categories,
+          categories: categories.map { |s| race_title(s) },
         },
       )
     end

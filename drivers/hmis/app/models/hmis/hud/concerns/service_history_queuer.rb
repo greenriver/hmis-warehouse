@@ -13,7 +13,7 @@ module Hmis::Hud::Concerns::ServiceHistoryQueuer
     # If job is already queued, do nothing
     # If job is currently running, queue it to run 5 minutes from now.
     # Otherwise, queue the job.
-    def queue_service_history_processing!
+    def self.queue_service_history_processing!
       handlers = ['GrdaWarehouse::Tasks::ServiceHistory::Enrollment', 'batch_process_unprocessed!']
       return if Delayed::Job.queued?(handlers)
 
@@ -21,6 +21,10 @@ module Hmis::Hud::Concerns::ServiceHistoryQueuer
       run_at = currently_running ? 5.minutes.from_now : nil
       queue = ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay(priority: 12, run_at: run_at, queue: queue).batch_process_unprocessed!
+    end
+
+    def queue_service_history_processing!
+      self.class.queue_service_history_processing!
     end
   end
 end

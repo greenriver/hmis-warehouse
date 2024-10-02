@@ -1,5 +1,27 @@
-%h1.h3.mb-4= @form_definition['name']
+%h1.h3.mb-4= @form_definition.title
+= render partial: 'hmis_external_apis/external_forms/form/household_warning'
 %form{method: 'post', autocomplete: "off",  novalidate: true }
-  - @form_definition['item']&.each do |node|
-    = HmisExternalApis::ExternalForms::FormGenerator.new(self).render_node(node).html_safe
+  - @form_definition.definition['item']&.each do |node|
+    = HmisExternalApis::ExternalForms::FormGenerator.new(self, @form_definition).render_node(node).html_safe
   = render_form_actions
+-# Expect hard-coded link_id to indicate whether this form is for an individual or a family.
+-# Expected item attributes:
+-# 
+-# { "link_id": "individual_or_family",
+-#   "type": "CHOICE",
+-#   "pick_list_options": [{"code": "Individual"}, {"code": "Family"}]
+-# }
+-#
+-# If this link_id is NOT present, none of the household-specific JS will be loaded.
+-# If this link id IS present, the form will generate `householdId` for each submission, and link future submissions to previous submissions as specified by the user.
+- individual_or_family_node = @form_definition.link_id_item_hash['individual_or_family']
+- if individual_or_family_node
+  - raise 'individual_or_family item doesnt match expectation' unless individual_or_family_node['type'] == 'CHOICE' && individual_or_family_node['pick_list_options'].find { |o| o['code'] == 'Family' }
+  - node_name = HmisExternalApis::ExternalForms::FormGenerator.node_name(individual_or_family_node)
+  - content_for :page_js do
+    :javascript
+      'use strict';
+      $(function() {
+        var target = '[name="' + #{node_name.to_json.html_safe} + '"]';
+        window.addHouseholdTypeListener(target);
+      });

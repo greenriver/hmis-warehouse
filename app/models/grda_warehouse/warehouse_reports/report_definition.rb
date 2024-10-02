@@ -1352,7 +1352,7 @@ module GrdaWarehouse::WarehouseReports
       if RailsDrivers.loaded.include?(:superset) && Superset.available?
         r_list['Performance'] << {
           url: 'superset/warehouse_reports/reports',
-          name: 'Launch Superset',
+          name: 'Launch OP Analytics (Superset)',
           description: 'An integration with the Apache Superset business intelligence tool.',
           limitable: true,
           health: false,

@@ -99,7 +99,9 @@ module Health::Tasks
 
     def import_files
       Health.models_by_health_filename.each do |file, klass|
+        Rails.logger.info "ImportEpic: start #{file}"
         import(klass: klass, file: file)
+        Rails.logger.info "ImportEpic: end #{file}"
       end
     end
 
@@ -135,7 +137,7 @@ module Health::Tasks
       Health::EpicPatient.
         where.not(housing_status: nil).where.not(housing_status_timestamp: nil).
         find_each do |patient|
-        patient&.patient&.record_housing_status(patient.housing_status, on_date: patient.housing_status_timestamp.to_date)
+        patient&.patient&.record_housing_status(patient.housing_status, on_date: patient.housing_status_timestamp.to_date, validate_qa: false)
         status_for_patient = patient.epic_housing_statuses.where(collected_on: patient.housing_status_timestamp.to_date).first_or_create do |status|
           status.status = patient.housing_status
         end
@@ -144,7 +146,7 @@ module Health::Tasks
       Health::EpicCaseNote.with_housing_status.find_each do |case_note|
         # case_note.patient is a has_many
         case_note.patient.find_each do |patient|
-          patient.record_housing_status(case_note.homeless_status, on_date: case_note.contact_date.to_date)
+          patient.record_housing_status(case_note.homeless_status, on_date: case_note.contact_date.to_date, validate_qa: false)
         end
       end
     end
@@ -164,14 +166,7 @@ module Health::Tasks
     end
 
     def fetch_files
-      sftp = Net::SFTP.start(
-        @config.host,
-        @config.username,
-        password: @config.password,
-        # verbose: :debug,
-        auth_methods: ['publickey', 'password'],
-      )
-      sftp.download!(@config.path, @config.destination, recursive: true)
+      @config.get(@config.path, @config.destination, recursive: true)
 
       notify 'Health data downloaded'
     end

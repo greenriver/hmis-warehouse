@@ -89,7 +89,7 @@ module HealthQaFactory
 
       qa.save
 
-      qa
+      qa.maintain_cached_values
     end
 
     private def gen_ca_development_qa(assessment)
@@ -108,7 +108,7 @@ module HealthQaFactory
         reached_client: :yes,
         mode_of_contact: :in_person,
         patient_id: assessment.patient_id,
-      )
+      ).maintain_cached_values
     end
 
     private def gen_ca_completed_qa(assessment)
@@ -127,7 +127,7 @@ module HealthQaFactory
         reached_client: nil,
         follow_up: 'Approve Comprehensive Assessment',
         patient_id: assessment.patient_id,
-      )
+      ).maintain_cached_values
     end
 
     private def gen_careplan_development_qa(careplan)
@@ -146,7 +146,7 @@ module HealthQaFactory
         reached_client: :yes,
         follow_up: 'This writer completed Care Plan with patient. Patient agreed to care plan.',
         patient_id: careplan.patient_id,
-      )
+      ).maintain_cached_values
     end
 
     private def gen_careplan_completed_qa(careplan)
@@ -165,7 +165,7 @@ module HealthQaFactory
         reached_client: nil,
         follow_up: 'Approve Person-Centered Treatment Plan',
         patient_id: careplan.patient_id,
-      )
+      ).maintain_cached_values
     end
   end
 end

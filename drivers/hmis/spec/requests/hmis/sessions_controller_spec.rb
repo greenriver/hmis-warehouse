@@ -49,7 +49,7 @@ RSpec.describe Hmis::SessionsController, type: :request do
       post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' })
     end
 
-    it 'denys API access' do
+    it 'denies API access' do
       expect(api_query_response.status).to eq 401
     end
 
@@ -281,7 +281,7 @@ RSpec.describe Hmis::SessionsController, type: :request do
         }
       }
     GRAPHQL
-    response, = post_graphql(input: {}) { query }
+    response, = post_graphql(input: { first_name: 'Tester' }) { query }
     response
   end
 end

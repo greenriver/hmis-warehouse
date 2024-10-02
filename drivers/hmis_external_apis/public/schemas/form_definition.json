@@ -54,7 +54,8 @@
             "ORGANIZATION",
             "CE PARTICIPATION",
             "SERVICE",
-            "YOUTH_EDUCATION_STATUS"
+            "YOUTH_EDUCATION_STATUS",
+            "GEOLOCATION"
           ]
         },
         "field_name": {
@@ -126,6 +127,9 @@
         },
         "value_number": {
           "type": "integer"
+        },
+        "value_date": {
+          "type": "string"
         },
         "offset": {
           "type": "integer"
@@ -253,6 +257,7 @@
                 "HUD: CoC",
                 "HUD: ESG",
                 "HUD: ESG RUSH",
+                "HUD: HOME",
                 "HUD: HOPWA",
                 "HUD: HUD-VASH",
                 "HUD: PFS",
@@ -444,6 +449,9 @@
           "type": "boolean"
         },
         "answer_group_code": {
+          "type": "string"
+        },
+        "answer_date": {
           "type": "string"
         }
       }
@@ -696,6 +704,21 @@
             "properties": {
               "type": {
                 "const": "TIME_OF_DAY"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/genericInputFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "GEOLOCATION"
               }
             }
           },

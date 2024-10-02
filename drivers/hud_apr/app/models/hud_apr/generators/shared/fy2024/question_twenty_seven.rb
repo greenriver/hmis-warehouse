@@ -35,8 +35,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def youth_filter
-      a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(false)).
-        and(a_t[:dob_quality].in([1, 2]))
+      a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(false))
     end
 
     private def q27a_youth_age

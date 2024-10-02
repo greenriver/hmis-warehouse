@@ -252,6 +252,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     Hmis::ProjectStaffAssignmentConfig.detect_best_config_for_project(self).present?
   end
 
+  def should_auto_enter?
+    Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(self).present?
+  end
+
   # Service types that are collected in this project. They are collected if they have an active form definition and instance.
   def available_service_types
     # Find form rules for services that are applicable to this project

@@ -16,6 +16,12 @@
           ]
         },
         {
+          "_comment": "client request (#6428)",
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: HOME"
+        },
+        {
           "_comment": "Local or N/A funder, less some projects. TODO: use a project group",
           "operator": "ALL",
           "parts": [
@@ -67,6 +73,12 @@
               "value": "HUD: ESG"
             }
           ]
+        },
+        {
+          "_comment": "client request (#6428)",
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: HOME"
         },
         {
           "_comment": "Local or N/A funder, less some projects. TODO: use a project group",

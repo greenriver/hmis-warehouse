@@ -89,7 +89,7 @@ module HudUtility2024
   def project_type_number(type)
     # attempt to lookup full name
     number = project_type(type, true) # reversed
-    return number if number.present?
+    return number if number.present? && number.is_a?(Integer)
 
     # perform an acronym lookup
     project_type_brief(type, true) # reversed
@@ -610,6 +610,10 @@ module HudUtility2024
     [21]
   end
 
+  def local_or_other_funding_source
+    46
+  end
+
   # SPM definition of CoC funded projects
   def spm_coc_funders
     [2, 3, 4, 5, 43, 44, 54, 55]
@@ -633,6 +637,7 @@ module HudUtility2024
       'HUD: Rural Special NOFO' => [55],
       'HUD: HUD-VASH' => [20],
       'HUD: PFS' => [HudUtility2024.funding_source('HUD: Pay for Success', true, raise_on_missing: true)], # Pay for Success
+      'HUD: HOME' => [50, 51],
     }
   end
 
@@ -756,5 +761,24 @@ module HudUtility2024
       5 => 'Annual Assessment',
       6 => 'Post-Exit Assessment',
     }.freeze
+  end
+
+  # Utility for defining age range logic in one place.
+  # These can overlap, not all are used in every form dropdown/filter
+  def age_range
+    {
+      'Under 5' => 0..4,
+      '5-12' => 5..12,
+      '13-17' => 13..17,
+      'Under 18' => 0..18,
+      '18-24' => 18..24,
+      '25-34' => 25..34,
+      '35-44' => 35..44,
+      '45-54' => 45..54,
+      '55-61' => 55..61,
+      '55-64' => 55..64,
+      '62+' => 62..Float::INFINITY,
+      '65+' => 65..Float::INFINITY,
+    }
   end
 end

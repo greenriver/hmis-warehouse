@@ -10,7 +10,9 @@ module PerformanceDashboard::Overview::Exiting
   include PerformanceDashboard::Overview::Exiting::Gender
   include PerformanceDashboard::Overview::Exiting::Household
   include PerformanceDashboard::Overview::Exiting::Veteran
+  include PerformanceDashboard::Overview::Exiting::RaceAndEthnicity
   include PerformanceDashboard::Overview::Exiting::Race
+  include PerformanceDashboard::Overview::Exiting::Ethnicity
   include PerformanceDashboard::Overview::Exiting::ProjectType
   include PerformanceDashboard::Overview::Exiting::Coc
   include PerformanceDashboard::Overview::Exiting::LotHomeless
@@ -20,7 +22,7 @@ module PerformanceDashboard::Overview::Exiting
   end
 
   def exiting_total_count
-    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: PerformanceDashboards::Overview::EXPIRATION_LENGTH) do
       exiting.select(:client_id).count
     end
   end
@@ -37,6 +39,10 @@ module PerformanceDashboard::Overview::Exiting
       exiting_by_veteran_details(options)
     elsif options[:race]
       exiting_by_race_details(options)
+    elsif options[:ethnicity]
+      exiting_by_ethnicity_details(options)
+    elsif options[:race_and_ethnicity]
+      exiting_by_race_and_ethnicity_details(options)
     elsif options[:project_type]
       exiting_by_project_type_details(options)
     elsif options[:coc]

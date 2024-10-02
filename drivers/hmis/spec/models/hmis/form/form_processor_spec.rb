@@ -1211,6 +1211,44 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(client.contact_points.pluck(:id)).not_to include(contact2.id)
       expect(client.contact_points.pluck(:value)).to contain_exactly('foo@bar.com', 'baz@boop.com')
     end
+
+    describe 'with unknown custom field' do
+      RSpec.shared_examples 'a processor that raises on unknown data elements' do
+        it 'throws on unknown custom data elements' do
+          expect do
+            process_record(record: c1, hud_values: hud_values, user: hmis_user, definition: definition)
+          end.to raise_error(StandardError, /Unknown custom data element/)
+        end
+      end
+
+      let(:unknown_custom_field) { 'martian_id' }
+      let(:item_mapping) do
+        { 'custom_field_key' => unknown_custom_field }
+      end
+      let(:definition) do
+        record = super()
+        doc = record.definition
+        doc['item'] << {
+          'type' => 'STRING',
+          'hidden' => true,
+          'link_id' => 'bad_cde',
+          'mapping' => item_mapping,
+        }
+        record.update!(definition: doc)
+        record
+      end
+      let(:hud_values) do
+        empty_hud_values.merge(unknown_custom_field => '')
+      end
+      it_behaves_like 'a processor that raises on unknown data elements'
+
+      describe 'with a record type' do
+        let(:item_mapping) do
+          { 'custom_field_key' => unknown_custom_field, 'record_type' => 'CLIENT' }
+        end
+        it_behaves_like 'a processor that raises on unknown data elements'
+      end
+    end
   end
 
   describe 'Form processing for New Client Enrollment' do
@@ -1664,7 +1702,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         [:date, '02/02/2023'], # invalid format
         [:float, 'nan'],
       ].each do |field_type, value|
-        it "fails when custom field type doenst match its definition (#{field_type}=>#{value})" do
+        it "fails when custom field type doesn't match its definition (#{field_type}=>#{value})" do
           record = i1
           cded.update(field_type: field_type)
           add_cde_item_to_definition

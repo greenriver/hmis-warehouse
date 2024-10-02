@@ -7,6 +7,11 @@
 module Filter::FilterScopes
   extend ActiveSupport::Concern
   included do
+    # Override as necessary
+    private def join_clients_method
+      :client
+    end
+
     private def filter_for_user_access(scope)
       scope.joins(:project).
         merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports))
@@ -97,19 +102,19 @@ module Filter::FilterScopes
       ages += Filters::FilterBase.age_range(:over_sixty_one).to_a if @filter.age_ranges.include?(:over_sixty_one)
       ages += Filters::FilterBase.age_range(:over_sixty_four).to_a if @filter.age_ranges.include?(:over_sixty_four)
 
-      scope.joins(:client).where(age_calculation.in(ages))
+      scope.joins(join_clients_method).where(age_calculation.in(ages))
     end
 
     private def filter_for_gender(scope)
       return scope unless @filter.genders.present?
 
-      scope = scope.joins(:client)
+      scope = scope.joins(join_clients_method)
       gender_scope = nil
       @filter.genders.each do |value|
         column = HudUtility2024.gender_id_to_field_name[value]
         next unless column
 
-        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(HudUtility2024.gender_comparison_value(value)))
+        gender_query = report_scope_source.joins(join_clients_method).where(c_t[column.to_sym].eq(HudUtility2024.gender_comparison_value(value)))
         gender_scope = add_alternative(gender_scope, gender_query)
       end
       scope.merge(gender_scope)
@@ -131,7 +136,7 @@ module Filter::FilterScopes
       scope.merge(race_scope)
     end
 
-    private def multi_racial_clients(include_hispanic_latinaeo: true)
+    private def multi_racial_clients(include_hispanic_latinaeo: false)
       # Looking at all races with responses of 1, where we have a sum > 1
       columns = [
         c_t[:AmIndAKNative],
@@ -143,7 +148,7 @@ module Filter::FilterScopes
       ]
       columns << c_t[:HispanicLatinaeo] if include_hispanic_latinaeo
 
-      report_scope_source.joins(:client).
+      report_scope_source.joins(join_clients_method).
         where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
     end
 
@@ -156,7 +161,7 @@ module Filter::FilterScopes
     end
 
     private def race_alternative(key)
-      report_scope_source.joins(:client).where(c_t[key].eq(1))
+      report_scope_source.joins(join_clients_method).where(c_t[key].eq(1))
     end
 
     private def filter_for_race_ethnicity_combinations(scope)
@@ -170,10 +175,10 @@ module Filter::FilterScopes
         race_ethnicity_scope = add_alternative(race_ethnicity_scope, alternative)
       end
 
-      scope.joins(:client).merge(race_ethnicity_scope)
+      scope.joins(join_clients_method).merge(race_ethnicity_scope)
     end
 
-    private def race_ethnicity_alternative(scope, key, hispanic_latinaeo = false)
+    def race_ethnicity_alternative(scope, key, hispanic_latinaeo = false)
       columns = (HudUtility2024.race_fields - [:RaceNone]).map { |k| [k, 0] }.to_h
 
       key = key.to_sym
@@ -201,7 +206,7 @@ module Filter::FilterScopes
     private def filter_for_veteran_status(scope)
       return scope unless @filter.veteran_statuses.present?
 
-      scope.joins(:client).where(c_t[:VeteranStatus].in(@filter.veteran_statuses))
+      scope.joins(join_clients_method).where(c_t[:VeteranStatus].in(@filter.veteran_statuses))
     end
 
     private def filter_for_project_type(scope, all_project_types: nil)
@@ -247,13 +252,15 @@ module Filter::FilterScopes
     end
 
     private def filter_for_funders(scope)
-      return scope if @filter.funder_ids.blank?
-      return scope unless @filter.user.report_filter_visible?(:funder_ids)
+      return scope if @filter.funder_ids.blank? && @filter.funder_others.blank?
+      return scope unless @filter.user.report_filter_visible?(:funder_ids) || @filter.user.report_filter_visible?(:funder_others)
 
-      project_ids = GrdaWarehouse::Hud::Funder.viewable_by(@filter.user, permission: :can_view_assigned_reports).
-        where(Funder: @filter.funder_ids).
-        joins(:project).
-        select(p_t[:id])
+      funder_scope = GrdaWarehouse::Hud::Funder.
+        viewable_by(@filter.user, permission: :can_view_assigned_reports).
+        joins(:project)
+      funder_scope = funder_scope.where(Funder: @filter.funder_ids) if @filter.funder_ids.any?
+      funder_scope = funder_scope.where(OtherFunder: @filter.funder_others) if @filter.funder_others.any?
+      project_ids = funder_scope.select(p_t[:id])
       scope.in_project(project_ids)
     end
 
@@ -374,7 +381,7 @@ module Filter::FilterScopes
     private def filter_for_active_roi(scope)
       return scope unless @filter.active_roi
 
-      scope.joins(:client).merge(GrdaWarehouse::Hud::Client.consent_form_valid)
+      scope.joins(join_clients_method).merge(GrdaWarehouse::Hud::Client.consent_form_valid)
     end
 
     private def filter_for_first_time_homeless_in_past_two_years(scope)
@@ -437,6 +444,64 @@ module Filter::FilterScopes
       return scope unless @filter.times_homeless_in_last_three_years.present?
 
       scope.joins(:enrollment).where(e_t[:TimesHomelessPastThreeYears].in(@filter.times_homeless_in_last_three_years))
+    end
+
+    # Filters for the given range of days since the last contact,
+    # where contact is any of:
+    # Enrollment.EntryDate
+    # Assessment.AssessmentDate
+    # Service.DateProvided
+    # CurrentLivingSituation.InformationDate
+    private def filter_for_days_since_contact(scope)
+      return scope unless @filter.days_since_contact_min.present? || @filter.days_since_contact_max.present?
+
+      # Common Table Expressions
+      max_assessment_dates = max_date_per_warehouse_client_id_cte(join: { source: :direct_assessments }, date_column: as_t[:AssessmentDate])
+      max_service_dates = max_date_per_warehouse_client_id_cte(join: { source: :direct_services }, date_column: s_t[:DateProvided])
+      max_enrollment_dates = max_date_per_warehouse_client_id_cte(join: { source: :enrollments }, date_column: e_t[:EntryDate])
+      max_cls_dates = max_date_per_warehouse_client_id_cte(join: { source: :direct_current_living_situations }, date_column: cls_t[:InformationDate])
+      range = @filter.days_since_contact_min..@filter.days_since_contact_max
+      on_date = @filter.on
+      # Find the IDs of the destination clients who meet the initial scope AND the filter
+      inner_query = GrdaWarehouse::Hud::Client.destination.
+        with(
+          assessment_dates: max_assessment_dates,
+          service_dates: max_service_dates,
+          enrollment_dates: max_enrollment_dates,
+          cls_dates: max_cls_dates,
+        ).
+        joins('INNER JOIN assessment_dates ON "Client"."id" = assessment_dates.destination_id').
+        joins('INNER JOIN service_dates ON "Client"."id" = service_dates.destination_id').
+        joins('INNER JOIN enrollment_dates ON "Client"."id" = enrollment_dates.destination_id').
+        joins('INNER JOIN cls_dates ON "Client"."id" = cls_dates.destination_id').
+        group(:id).
+        select(
+          c_t[:id],
+          Arel::Nodes::Subtraction.new(
+            Arel::Nodes.build_quoted(on_date.to_fs(:db)),
+            Arel.sql('MAX(GREATEST(assessment_dates.date, service_dates.date, enrollment_dates.date, cls_dates.date)) as days'),
+          ),
+        )
+
+      filtered_client_ids = GrdaWarehouse::Hud::Client.unscoped.
+        select(:id).
+        from(inner_query, :inner_query).
+        where('inner_query.days'.to_sym => range)
+      # Then return the initial scope filtered down to those ids
+      scope.where(client_id: filtered_client_ids)
+    end
+
+    private def max_date_per_warehouse_client_id_cte(join:, date_column:)
+      GrdaWarehouse::WarehouseClient.
+        joins(**join).
+        group(:destination_id).
+        select(
+          :destination_id,
+          nf(
+            'MAX',
+            [date_column],
+          ).as('date'),
+        )
     end
   end
 end

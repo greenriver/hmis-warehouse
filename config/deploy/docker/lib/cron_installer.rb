@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require_relative 'scheduled_task'
+require_relative 'cronjob'
 require_relative 'aws_sdk_helpers'
 require 'time'
 
@@ -9,13 +10,65 @@ require 'time'
 class CronInstaller
   include AwsSdkHelpers::Helpers
 
+  attr_accessor :cluster_type
+
   MAX_DESCRIPTION_LENGTH = 512
 
   AMOUNT_OF_JITTER_IN_MINUTES = 10
 
+  def initialize(cluster_type = nil)
+    if cluster_type.present?
+      self.cluster_type = cluster_type.to_sym
+    elsif ENV['EKS'] == 'true'
+      self.cluster_type = :eks_mode
+    else
+      self.cluster_type = :ecs_mode
+    end
+  end
+
   def run!
     Rails.logger.info "The current time is #{Time.now} and the current time in zone is #{Time.zone.now}"
+    send(cluster_type)
+  end
 
+  private
+
+  def eks_mode
+    entry_number = 0
+
+    Cronjob.clear!
+
+    each_cron_entry do |cron_expression, command|
+      description = command.join(' ').sub(/ --silent/, '').sub(/bundle exec /, '')[0, MAX_DESCRIPTION_LENGTH]
+      interruptable_type = command.pop
+      capacity_type = nil
+
+      case interruptable_type
+      when '##interruptable=true##'
+        capacity_type = 'spot'
+      when '##interruptable=false##'
+        capacity_type = 'on-demand'
+      else
+        raise "invalid interruptable type of #{interruptable_type}!"
+      end
+
+      params = {
+        schedule_expression: cron_expression,
+        description: description,
+        command: command,
+        capacity_type: capacity_type,
+      }
+
+      cronjob = Cronjob.new(**params)
+      cronjob.run!
+
+      entry_number += 1
+    end
+
+    Cronjob.clear_defunct_vpas!
+  end
+
+  def ecs_mode
     entry_number = 0
 
     ScheduledTask.clear!(target_group_name)
@@ -43,8 +96,6 @@ class CronInstaller
       entry_number += 1
     end
   end
-
-  private
 
   def target_group_name
     ENV.fetch('TARGET_GROUP_NAME')
@@ -176,7 +227,11 @@ class CronInstaller
         raise 'Implement jitter for slash-based cron entries'
       end
 
-    "cron(#{minute_with_jitter}, #{utc_hour}, #{day_of_month}, #{month}, #{day_of_week}, #{year})"
+    if cluster_type == :eks
+      "#{minute_with_jitter} #{utc_hour} #{day_of_month} #{month} #{day_of_week}".tr('?', '*')
+    else
+      "cron(#{minute_with_jitter}, #{utc_hour}, #{day_of_month}, #{month}, #{day_of_week}, #{year})"
+    end
   end
 
   def get_command(line)
