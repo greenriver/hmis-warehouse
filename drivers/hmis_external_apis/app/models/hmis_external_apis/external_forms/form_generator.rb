@@ -26,6 +26,7 @@ module HmisExternalApis::ExternalForms
              :render_form_fieldset,
              :render_section,
              :render_form_checkbox,
+             :render_form_geolocation,
              :render_dependent_block,
              :name_from_label,
              to: :context
@@ -60,6 +61,8 @@ module HmisExternalApis::ExternalForms
         render_choice_node(node)
       when 'INTEGER'
         render_numeric_node(node)
+      when 'GEOLOCATION'
+        render_geolocation_node(node)
       else
         raise "node type #{node_type} not supported in #{node.inspect}"
       end
@@ -139,6 +142,12 @@ module HmisExternalApis::ExternalForms
       end
     end
 
+    def render_geolocation_node(node)
+      render_form_group(node: node) do
+        render_form_geolocation(label: node['text'], required: node['required'], name: node_name(node))
+      end
+    end
+
     def render_group_node(node)
       contents = node['item']&.map do |child|
         render_node(child)
@@ -167,6 +176,7 @@ module HmisExternalApis::ExternalForms
       if node['enable_behavior']
         conditions = node['enable_when']&.map do |condition|
           raise "only supports enable_when with 'question' and 'answer_code' (got: #{condition})" unless condition.key?('question') && condition.key?('answer_code')
+          raise "only supports enable_when with 'EQUAL' operator (got: #{condition['operator']})" unless condition['operator'] == 'EQUAL'
 
           input_dependent_link_id = condition['question']
           input_name = link_id_to_node_name[input_dependent_link_id]
@@ -183,7 +193,7 @@ module HmisExternalApis::ExternalForms
       return context.capture(&block)
     end
 
-    def node_name(node)
+    def self.node_name(node)
       record_type = node.dig('mapping', 'record_type')
       processor_name = Hmis::Form::RecordType.find(record_type).processor_name if record_type
 
@@ -193,6 +203,10 @@ module HmisExternalApis::ExternalForms
       # Join with period since that's the expected submission shape (Client.firstName)
       # If problematic we can use another separator and process accordingly in ConsumeExternalFormSubmissionsJob
       [processor_name, custom_field_key || field_name].compact.join('.')
+    end
+
+    def node_name(node)
+      self.class.node_name(node)
     end
 
     # Map { linkd_id => name to use for input field }
