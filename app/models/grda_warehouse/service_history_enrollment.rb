@@ -8,6 +8,7 @@
 #
 # ServiceHistoryEnrollments flatten Hud Enrollments and related records to serve reporting needs. These records are
 # generated automatically. There is a 1:1 correspondence with Hud Enrollment records
+#   created by GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
 class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   include RailsDrivers::Extensions
   include ArelHelper
