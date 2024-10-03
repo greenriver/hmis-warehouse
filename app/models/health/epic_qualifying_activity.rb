@@ -84,6 +84,7 @@ module Health
     end
 
     def self.update_qualifying_activities!
+      Rails.logger.info 'EpicQualifyingActivity: start update_qualifying_activities!'
       Health::QualifyingActivity.transaction do
         # Remember previous decisions about claim reports and payableness
         @claim_report_ids = {}
@@ -108,8 +109,11 @@ module Health
           ).pluck(:epic_source_id, :data_source_id)
 
         # remove and re-create all un-submitted qualifying activities that are backed by Epic
+        Rails.logger.info 'EpicQualifyingActivity: delete unsubmitted QAs'
         Health::QualifyingActivity.unsubmitted.where(source_type: Health::EpicQualifyingActivity.name).delete_all
+        Rails.logger.info 'EpicQualifyingActivity: start create_qualifying_activities'
         unprocessed.each(&:create_qualifying_activity!)
+        Rails.logger.info 'EpicQualifyingActivity: end create_qualifying_activities'
 
         # restore previous decisions
         @force_pay_ids.each do |epic_source_id, data_source_id|
@@ -138,6 +142,7 @@ module Health
           end
         end
       end
+      Rails.logger.info 'EpicQualifyingActivity: end update_qualifying_activities!'
     end
 
     def care_hub_reached_key(qa)

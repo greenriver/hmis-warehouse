@@ -53,9 +53,11 @@ module Health
     end
 
     def self.update_thrive_assessments!
+      Rails.logger.info 'EpicThrive: start update_thrive_assessments!'
       HealthThriveAssessment::Assessment.transaction do
         unprocessed.find_each(&:update_thrive_assessment!)
       end
+      Rails.logger.info 'EpicThrive: end update_thrive_assessments!'
     end
 
     def update_thrive_assessment!
@@ -157,10 +159,17 @@ module Health
       assessment.decline_to_answer = true if !@any_answer && @any_decline
 
       assessment.save!
-      patient.hrsn_screenings.where(instrument_id: assessment.id).first_or_create(
-        instrument: assessment,
-        created_at: assessment.created_at,
-      )
+      # A thrive collected outside of the enrollment window may throw an exception if it
+      # creates an HRSN QA, which we will ignore
+      begin
+        patient.hrsn_screenings.where(instrument_id: assessment.id).first_or_create(
+          instrument: assessment,
+          created_at: assessment.created_at,
+        )
+      rescue ActiveRecord::RecordInvalid => e
+        # Ignore only validation fails because of the date of the activity
+        raise unless e.record.errors[:date_of_activity].any?
+      end
     end
 
     def yes_no(value)

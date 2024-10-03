@@ -23,8 +23,10 @@ module Superset
   # https://github.com/greenriver/superset-sync/blob/main/docker/superset/superset_config.py
   def self.available_superset_roles
     [
-      'Admin',
-      'Reports Dashboard Read',
+      'Green River Admin',
+      'Warehouse Admin',
+      'Report Creator',
+      'Report Runner',
     ].freeze
   end
 end

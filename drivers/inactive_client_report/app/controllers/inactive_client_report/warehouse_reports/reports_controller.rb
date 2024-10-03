@@ -49,6 +49,8 @@ module InactiveClientReport::WarehouseReports
           project_type_codes: ['ce'],
           end_date: Date.yesterday,
           start_date: 3.months.ago.to_date,
+          days_since_contact_min: 30,
+          days_since_contact_max: 90,
         },
       }
     end

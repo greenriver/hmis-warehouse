@@ -54,5 +54,27 @@ module Health
       where(instrument_id: ssm_ids, instrument_type: 'Health::SelfSufficiencyMatrixForm').
         or(where(instrument_id: thrive_ids, instrument_type: 'HealthThriveAssessment::Assessment'))
     end
+
+    def expires_on
+      return nil unless instrument.completed_at.present?
+
+      instrument.completed_at + 12.months
+    end
+
+    def active?
+      instrument.active?
+    end
+
+    def expiring?
+      return false unless expires_on.present?
+
+      active? && expires_on - 1.month < Date.current
+    end
+
+    def expired?
+      return false unless expires_on.present?
+
+      expires_on < Date.current
+    end
   end
 end

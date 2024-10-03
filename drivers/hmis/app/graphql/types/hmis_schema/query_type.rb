@@ -39,7 +39,11 @@ module Types
     end
 
     def client_search(input:, **args)
-      raise 'Invalid search. At least 1 search param is required.' unless input.to_h.excluding(:projects, :organizations).values.compact_blank.any?
+      # ensure that client search has sufficient search criteria, so as not to allow exposing all clients at once.
+      # caller must use some search criteria, OR a service filter by project to limit results (used in Bulk Services)
+      has_search_term = input.to_h.excluding(:projects, :organizations).values.compact_blank.any?
+      has_service_filter = args[:filters]&.service_in_range&.project_id.present?
+      raise 'Invalid search. At least 1 search param is required.' unless has_search_term || has_service_filter
 
       # if the search should also sort by rank
       sorted = args[:sort_order] == :best_match
@@ -399,13 +403,22 @@ module Types
       Hmis::Form::Definition.find(id)
     end
 
-    field :external_form_definition, Types::Forms::FormDefinition, null: true do
+    field :external_form_definition, Types::Forms::FormDefinition, null: true, deprecation_reason: 'use definition from the individual submission to display' do
       argument :identifier, String, required: true
     end
     def external_form_definition(identifier:)
       raise 'Access denied' unless current_user.can_manage_external_form_submissions?
 
       Hmis::Form::Definition.with_role(:EXTERNAL_FORM).where(identifier: identifier).order(version: :desc).first
+    end
+
+    field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true do
+      argument :id, ID, required: true
+    end
+    def external_form_submission(id:)
+      raise 'Access denied' unless current_user.can_manage_external_form_submissions?
+
+      HmisExternalApis::ExternalForms::FormSubmission.find(id)
     end
 
     field :form_identifier, Types::Forms::FormIdentifier, null: true do
