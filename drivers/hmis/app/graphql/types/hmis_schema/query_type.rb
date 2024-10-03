@@ -31,7 +31,6 @@ module Types
     organizations_field :organizations
 
     def organizations(**args)
-      # todo @martha - don't understand why this is failing the test but not manifesting in qa-hmis-2
       resolve_organizations(Hmis::Hud::Organization.all, **args)
     end
 
