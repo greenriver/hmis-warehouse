@@ -473,13 +473,13 @@ module Health
     end
 
     scope :needs_renewal, ->(on: Date.current.end_of_month) do
-      joins(:recent_pctp_careplan).
-        merge(Health::PctpCareplan.recent.sent_within(.. on - 335.days)) # 1 year - 30 days
+      joins(:pctp_careplans).
+        merge(Health::PctpCareplan.sent.recent.sent_within(.. on - 335.days)) # 1 year - 30 days
     end
 
     scope :overdue_for_renewal, ->(on: Date.current.end_of_month) do
-      joins(:recent_pctp_careplan).
-        merge(Health::PctpCareplan.recent.sent_within(.. on - 365.days)) # 1 year
+      joins(:pctp_careplans).
+        merge(Health::PctpCareplan.sent.recent.sent_within(.. on - 365.days)) # 1 year
     end
 
     # For now, all patients are visible to all health users

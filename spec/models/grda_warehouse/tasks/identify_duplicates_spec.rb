@@ -102,8 +102,36 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
     end
   end
 
+  # Exercise matching against an existing destination client
+  describe 'running identify_duplicates' do
+    before do
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.identify_duplicates
+    end
+    it 'runs without error and generates one warehouse client record' do
+      expect(GrdaWarehouse::WarehouseClient.count).to eq(1)
+    end
+    describe 'second run' do
+      let!(:new_source_client) { create :grda_warehouse_hud_client, data_source: source_data_source, SSN: '123445678' }
+      before do
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.identify_duplicates
+      end
+      it 'runs without error a second time and connects the new client to the existing destination client' do
+        expect(GrdaWarehouse::WarehouseClient.count).to eq(2)
+        expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
+        ids_from_warehouse_clients = GrdaWarehouse::WarehouseClient.pluck(:source_id, :destination_id).sort
+        ids_from_clients = [
+          [client_in_source.id, client_in_destination.id],
+          [new_source_client.id, client_in_destination.id],
+        ].sort
+        expect(ids_from_warehouse_clients).to eq(ids_from_clients)
+      end
+    end
+  end
+
   # Check for obvious match is private...
   def check_for_obvious_match(client_id)
-    GrdaWarehouse::Tasks::IdentifyDuplicates.new.send(:check_for_obvious_match, client_id)
+    inst = GrdaWarehouse::Tasks::IdentifyDuplicates.new
+    inst.send(:build_destination_lookups)
+    inst.send(:check_for_obvious_match, client_id)
   end
 end

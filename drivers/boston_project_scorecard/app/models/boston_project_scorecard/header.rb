@@ -22,7 +22,7 @@ module BostonProjectScorecard
 
       def secondary_reviewer_options
         all_data_sources = AccessGroup.find_by(name: 'All Data Sources')
-        all_data_sources.users
+        all_data_sources.users.active.not_system
       end
     end
   end

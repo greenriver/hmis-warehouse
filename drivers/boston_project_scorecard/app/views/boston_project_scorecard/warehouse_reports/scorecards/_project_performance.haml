@@ -11,7 +11,7 @@
       %th Score
   %tbody
     %tr
-      %th.bg-info.align-middle.text-center{rowspan: 8} Project Performance
+      %th.bg-info.align-middle.text-center{rowspan: 9} Project Performance
       %td 1. Exits from RRH and retention in PSH
       %td See individual calculations for 1.a. and 1.b.
       %td.bg-info
@@ -20,22 +20,23 @@
       %td.bg-info
     %tr
       %td
-        1.a.
+        1a.
         %b RRH:
-        Exits RRH to PH (benchmark 80%)
+        Exits from RRH to a Permanent Destination
       %td
         APR Table
         = link_to_apr('Q23c', 'Question 23')
-        Cell 46B
+        %hr
+        %small Q23c B43
       %td
-        12 pts: 100-75%
+        12 pts: 100 - 75%
         %br
-        6 pts: 74-55%
+        6 pts: 74 - 55%
         %br
-        4 pts: 54-25%
+        4 pts: 54 - 25%
         %br
-        0 pts: 24% - 0%
-      %th.align-middle.text-center{rowspan: 7}
+        0 pts: 24 - 0%
+      %th.align-middle.text-center{rowspan: 8}
         Weight
         %br
         #{@report.project_performance_weight}%
@@ -43,25 +44,25 @@
       %td= @report.rrh_exits_to_ph_score
     %tr
       %td
-        1.b.
+        1b.
         %b PSH:
-        = "% of clients who remained in PSH or exited to PH (benchmark 80%) (stayers & leavers)"
+        Percent of clients who remained in PSH or exited to a Permanent Destination (stayers & leavers)
       %td
-        B1 from APR Table
+        APR Table
         = link_to_apr('Q5a', 'Question 5')
         %br
-        B43, B44, B45 from APR Table
+        APR Table
         = link_to_apr('Q23c', 'Question 23')
-        %br
-        %small (B1 - B43 + B44) / (B1 - B45)
+        %hr
+        %small (Q5a B2 - Q23c B40 + Q23c B41) / (Q5a B2 - Q23c B42)
       %td
-        12 pts: 100-75%
+        12 pts: 100 - 75%
         %br
-        6 pts: 74-55%
+        6 pts: 74 - 55%
         %br
-        4 pts: 54-25%
+        4 pts: 54 - 25%
         %br
-        0 pts: 24% - 0%
+        0 pts: 24 - 0%
       %td= @report.psh_stayers_or_to_ph_value
       %td= @report.psh_stayers_or_to_ph_score
     %tr
@@ -74,23 +75,23 @@
         APR Tables
         %br
         = link_to_apr('Q19a1,', 'Question 19')
-        Cell J2 (Stayers)
         %br
         = link_to_apr('Q19a2,', 'Question 19')
-        Cell J2 (Leavers)
+        %hr
+        %small (Q19a1 I2 + Q19a2 I2) / (Q19a1 H2 + Q19a2 H2) * 100
       %td
-        12 pts: 100-75%
+        12 pts: 100 - 20%
         %br
-        6 pts: 74-55%
+        6 pts: 19 - 15%
         %br
-        4 pts: 54-25%
+        4 pts: 14 - 7%
         %br
-        0 pts: 24% - 0%
+        0 pts: 6 - 0%
       %td= @report.increased_employment_income_value
       %td= @report.increased_employment_income_score
     %tr
       %td
-        3. % of clients who increased
+        3. % of clients who maintained or increased
         %b non-earned income
         (ex. social benefits)
         %br
@@ -99,46 +100,63 @@
         APR Tables
         %br
         = link_to_apr('Q19a1,', 'Question 19')
-        Cell J4 (Stayers)
+        (Stayers)
         %br
         = link_to_apr('Q19a2,', 'Question 19')
-        Cell J4 (Leavers)
+        (Leavers)
+        %hr
+        %small ((Q19a1 D4+E4+F4)+(Q19a2 D4+E4+F4)) / (Q19a1 H4 + Q19a2 H4) *100
       %td
-        12 pts: 100-75%
+        12 pts: 100 - 50%
         %br
-        6 pts: 74-55%
+        6 pts: 49 - 37%
         %br
-        4 pts: 54-25%
+        4 pts: 36 - 17%
         %br
-        0 pts: 24% - 0%
+        0 pts: 16 - 0%
       %td= @report.increased_other_income_value
       %td= @report.increased_other_income_score
     %tr
-      %td 4. Time to Lease Up; Average days from project enrollment date to move-in date
+      %td 4. Time to Lease Up; Reduction in average days from project enrollment date to move-in date compared to prior grant year or below 90 days
       %td
         APR Table
-        = link_to_apr('Q22c:', 'Question 22')
-        Length of Time between Project Start Date and Housing Move-in Date, Row 11B: Average Length of time to Housing
+        = link_to_apr('Q22c', 'Question 22')
+        %br
+        Comparison APR Table
+        = link_to_apr('Q22c', 'Question 22', comparison: true)
+        %br
+        Length of Time between Project Start Date and Housing Move-in Date, Cell B11: Average Length of time to Housing comparison between current fiscal period and previous fiscal period.
+        %hr
+        %small ((Q22c B11 current year - Q22c B11 prior year) / Q22c B11 prior year) * 100
       %td
-        12 pts: 1-30 days
+        12 pts: Decreased by at least 5% compared to previous FY or lower than 90 days
         %br
-        6 pts: 31-60 day
+        6 pts: Decreased by at 4%-1% compared to previous FY
         %br
-        4 pts: 61-180 days
+        0 pts: No change compared to previous FY, increase, or average of less than 1 day
+      %td
+        Days to lease-up (current year):
+        = @report.days_to_lease_up_value
         %br
-        0 pts: over 180 days, or less than 1 day
-      %td= @report.days_to_lease_up_value
+        Days to lease-up (prior year):
+        = @report.days_to_lease_up_comparison
+        - if @report.days_to_lease_up_change.present?
+          %br
+          = "#{@report.days_to_lease_up_change.round}%"
+          year-over-year change
       %td= @report.days_to_lease_up_score
     %tr
       %td 5. Project utilization rate from current project operating year
       %td
         APR (quarterly average for operating year)
-        %p
-          APR Table
+        %br
+        APR Table
         = link_to_apr('Q8b', 'Question 8')
-        Average of cells B2, B3, B4, B5 / Total Number of Households Served
+        %hr
+        %small
+          Average of cells B2, B3, B4, B5 / Total Number of Households Served (#12 from the financial performance section)
       %td
-        6 pts: 85 -over 100%
+        6 pts: 85 - over 100%
         %br
         3 pt: 84 - 75%
         %br
@@ -146,16 +164,28 @@
       %td= @report.utilization_rate_value
       %td= @report.utilization_rate_score
     %tr
-      %td 6. % of "No Concern" the project received as a result of the most recent program monitoring evaluation
+      %td 6a. % of "No Concern" the project recevied as a result of the most recent program self-monitoring evaluation
       %td
-        CoC Program Monitoring Report
+        2024 Program Monitoring Development Officer Review Sheet & CoC Program Monitoring Report
       %td
-        3pts: 100-90%
+        3pts: 100 - 90%
         %br
-        2pts: 89-85%
+        2pts: 89 - 85%
         %br
-        1pt: 84-80%
+        1pt: 84 - 80%
         %br
-        0pts: 79-0%
+        0pts: 79 - 0%
       %td= f.input :no_concern, collection: @report.no_concern_options, as: :pretty_boolean_group, label: "Choose one:"
       %td= @report.no_concern_score
+    %tr
+      %td 6b. For providers that participated in the 2024 modified process, were all requested materials submitted by the MOH deadline of 6/11/24?
+      %td
+        Program Monitoring Development Officer Confirmation
+      %td
+        3pts: All materials were submitted on time
+        %br
+        1pt: Materials were submitted but deadline was missed
+        %br
+        0pts: Materials were not submitted
+      %td= f.input :materials_concern, collection: @report.materials_concern_options, as: :pretty_boolean_group, label: "Choose one:"
+      %td= @report.materials_concern_score

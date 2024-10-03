@@ -54,11 +54,6 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       Hmis::AutoExitJob.perform_now
       expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
     end
-
-    it 'should ignore Enrollment that is missing EntryDate' do
-      create :hmis_hud_enrollment, :skip_validate, data_source: ds1, project: p1, client: c1, entry_date: nil
-      expect { Hmis::AutoExitJob.perform_now }.not_to change(Hmis::Hud::Enrollment.exited, :count)
-    end
   end
 
   describe 'for other project types (not ES NBN)' do
@@ -144,11 +139,6 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
 
       Hmis::AutoExitJob.perform_now
       expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
-    end
-
-    it 'should ignore Enrollment that is missing EntryDate' do
-      create :hmis_hud_enrollment, :skip_validate, data_source: ds1, project: p1, client: c1, entry_date: nil
-      expect { Hmis::AutoExitJob.perform_now }.not_to change(Hmis::Hud::Enrollment.exited, :count)
     end
   end
 

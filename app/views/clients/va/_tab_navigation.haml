@@ -21,6 +21,10 @@
         title: 'Enrollment Details',
         permission: can_view_enrollment_details? && show_demographic && show_expanded_dashboard,
       },
+      client_history_path(@client) => {
+        title: 'History',
+        permission: show_demographic || show_expanded_dashboard
+      },
       client_releases_path(client_id: @client) => {
         title: Translation.translate('Releases of Information'),
         permission: can_use_separated_consent?,

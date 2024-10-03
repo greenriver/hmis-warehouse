@@ -23,7 +23,7 @@
           %th Last Name
           %th Email
       %tbody
-        - @users.each do |user|
+        - @users.active.each do |user|
           %tr
             %td= user.first_name
             %td= user.last_name

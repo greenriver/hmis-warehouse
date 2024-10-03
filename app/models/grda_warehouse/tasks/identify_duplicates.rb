@@ -12,9 +12,6 @@ module GrdaWarehouse::Tasks
     def initialize(run_post_processing: true)
       setup_notifier('IdentifyDuplicates')
       @run_post_processing = run_post_processing
-      super()
-      build_source_lookups
-      build_destination_lookups
     end
 
     def run!
@@ -27,6 +24,8 @@ module GrdaWarehouse::Tasks
     end
 
     def identify_duplicates
+      build_source_lookups
+      build_destination_lookups
       restore_previously_deleted_destinations
       Rails.logger.info 'Loading unprocessed clients'
       started_at = DateTime.now
@@ -67,8 +66,13 @@ module GrdaWarehouse::Tasks
               destination_client[:SSN] = client.SSN
               should_save = true
             end
-
-            destination_client_updates << destination_client if should_save
+            if should_save
+              # set non-nullable fields, these aren't used because of the column limitation on import
+              # but Postgres complains if they aren't there
+              destination_client[:PersonalID] = client.PersonalID
+              destination_client[:data_source_id] = @dnd_warehouse_data_source.id
+              destination_client_updates << destination_client
+            end
           else
             new_created += 1
             destination_client = client.dup
@@ -116,6 +120,8 @@ module GrdaWarehouse::Tasks
 
     # look at all existing records for duplicates and merge destination clients
     def match_existing!
+      build_source_lookups
+      build_destination_lookups
       @to_merge = find_merge_candidates
       user = User.setup_system_user
 
@@ -164,17 +170,17 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
     end
 
-    def find_current_id_for(id)
+    private def find_current_id_for(id)
       return merge_history.current_destination(id) unless client_destinations.where(id: id).exists?
 
       return id
     end
 
-    def merge_history
+    private def merge_history
       @merge_history ||= GrdaWarehouse::ClientMergeHistory.new
     end
 
-    def find_merge_candidates
+    private def find_merge_candidates
       to_merge = Set.new
       all_splits = GrdaWarehouse::ClientSplitHistory.pluck(:split_from, :split_into)
       splits_by_from = all_splits.group_by(&:first)
@@ -262,6 +268,7 @@ module GrdaWarehouse::Tasks
       client.splits_to.where(split_into: candidate_id).exists?
     end
 
+    # Only use in development
     private def check_personal_ids(personal_id)
       return [] if personal_id.to_i.to_s == personal_id.to_s
 
