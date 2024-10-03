@@ -18,7 +18,7 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
     raise 'Unexpectedly high number of external submissions' if s3.count > 10_000
 
     # list_objects_v2 only fetches 1000 at a time, but this uses our internal AwsS3 client, which paginates
-    s3.list_objects(max_keys: 10_000).each do |object|
+    s3.list_objects(10_000).each do |object|
       raw_data_string = s3.get_as_io(key: object.key)&.read
       raw_data = raw_data_string ? parse_json(raw_data_string) : nil
       if !raw_data
