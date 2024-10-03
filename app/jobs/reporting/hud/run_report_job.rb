@@ -39,7 +39,7 @@ module Reporting::Hud
 
       puts "Running: #{@generator.class.name} Report ID: #{report_id}"
 
-      capture_failure do
+      capture_failure(report) do
         @generator.prepare_report
         @generator.class.questions.each do |q, klass|
           klass.new(@generator, report).run! if report.build_for_questions.include?(q)
@@ -51,14 +51,14 @@ module Reporting::Hud
       report_completed
     end
 
-    protected def capture_failure
+    protected def capture_failure(report)
       yield
     rescue StandardError => e
       # for debugging sql issues in tests, raise immediately since attempting further updates will crash in failed tx
       # and we'd like to get the backtrace from the original exception
       raise if Rails.env.test? && e.is_a?(ActiveRecord::StatementInvalid)
 
-      @report.update!(state: 'Failed') unless @report.failed?
+      report.update!(state: 'Failed') unless report.failed?
       raise
     end
 
