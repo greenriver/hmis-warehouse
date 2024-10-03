@@ -8,10 +8,6 @@ module GraphqlPermissionChecker
     current_user = context[:current_user]
     return false unless current_user&.present?
 
-    if entity.respond_to?(:data_source_id)
-      return false unless current_user.hmis_data_source_id == entity.data_source_id
-    end
-
     # Just return false if we don't have this permission at all for anything
     return false unless current_user.send("#{permission}?")
 
@@ -22,7 +18,14 @@ module GraphqlPermissionChecker
         context.dataloader.with(Sources::ActiveRecordAssociation, association).load(record)
       end
     end
-    raise "Missing loader for #{entity.class.name}##{entity.id}" unless loader
+    raise "Missing loader for #{entity.class.name}##{entity.id}" unless loader && subject
+
+    data_source_id = if subject.is_a? GrdaWarehouse::DataSource
+      subject.id
+    else
+      subject.data_source_id
+    end
+    return false unless current_user.hmis_data_source_id == data_source_id
 
     context.dataloader.with(Sources::UserEntityAccessSource, loader).load([subject, permission])
   end
