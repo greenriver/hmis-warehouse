@@ -8,7 +8,7 @@ module GraphqlPermissionChecker
     current_user = context[:current_user]
     return false unless current_user&.present?
 
-    if entity.data_source_id
+    if entity.respond_to?(:data_source_id)
       return false unless current_user.hmis_data_source_id == entity.data_source_id
     end
 
