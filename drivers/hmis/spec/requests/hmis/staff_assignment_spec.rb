@@ -68,6 +68,46 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(assignment.dig('unassignedAt')).not_to be_nil
     end
   end
+
+  describe 'user staff assignment query' do
+    let(:query) do
+      <<~GRAPHQL
+        query GetUserStaffAssignments($id: ID!) {
+          user(id: $id) {
+            staffAssignments {
+              nodesCount
+              nodes {
+                id
+                staffAssignmentRelationship
+              }
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    let!(:ds1_assignment) { create :hmis_staff_assignment, staff_assignment_relationship: ar, data_source: ds1, enrollment: e1, user: hmis_user }
+
+    # Set up a second HMIS where this user also has assignees
+    let!(:ds2) { create :hmis_data_source }
+    let!(:p2) { create :hmis_hud_project, data_source: ds2 }
+    let!(:e2) { create :hmis_hud_enrollment, data_source: ds2, project: p2 }
+    let!(:ds2_assignment) { create :hmis_staff_assignment, staff_assignment_relationship: ar, data_source: ds2, enrollment: e2, user: hmis_user }
+
+    it 'resolves assignees for the user, resolving only those in the current data source' do
+      response, result = post_graphql(id: hmis_user.id) { query }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'user', 'staffAssignments', 'nodesCount')).to eq(1)
+      expect(result.dig('data', 'user', 'staffAssignments', 'nodes', 0, 'id')).to eq(ds1_assignment.id.to_s)
+    end
+
+    it 'resolves only one row per household' do
+      create :hmis_hud_enrollment, data_source: ds1, project: p1, household_id: e1.household_id
+      response, result = post_graphql(id: hmis_user.id) { query }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'user', 'staffAssignments', 'nodesCount')).to eq(1)
+    end
+  end
 end
 
 RSpec.configure do |c|
