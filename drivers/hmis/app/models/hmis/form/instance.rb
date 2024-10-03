@@ -10,7 +10,7 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   self.table_name = :hmis_form_instances
 
   belongs_to :entity, polymorphic: true, optional: true
-  belongs_to :definition, foreign_key: :definition_identifier, primary_key: :identifier, class_name: 'Hmis::Form::Definition'
+  belongs_to :definition, -> { where(status: 'published') }, foreign_key: :definition_identifier, primary_key: :identifier, class_name: 'Hmis::Form::Definition'
 
   belongs_to :custom_service_category, optional: true, class_name: 'Hmis::Hud::CustomServiceCategory'
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
