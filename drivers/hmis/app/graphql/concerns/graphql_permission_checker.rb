@@ -20,11 +20,17 @@ module GraphqlPermissionChecker
     end
     raise "Missing loader for #{entity.class.name}##{entity.id}" unless loader && subject
 
+    # subject is expected to be one of Client, Project, Organization, or Data Source.
     data_source_id = if subject.is_a? GrdaWarehouse::DataSource
       subject.id
     else
       subject.data_source_id
     end
+
+    # Return false because even if the user has permission to view this record in another hmis data source,
+    # they should not be able to resolve it in the context of the hmis they are currently using (hmis_data_source_id).
+    # The viewable_by scope is our primary defense against this; this object-level authorization is a secondary guard.
+    # But caution because it's not applied 100% consistently; for example, organizations don't have object-level authorization
     return false unless current_user.hmis_data_source_id == data_source_id
 
     context.dataloader.with(Sources::UserEntityAccessSource, loader).load([subject, permission])

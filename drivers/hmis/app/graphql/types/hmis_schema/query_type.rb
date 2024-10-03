@@ -32,7 +32,7 @@ module Types
 
     def organizations(**args)
       # todo @martha - don't understand why this is failing the test but not manifesting in qa-hmis-2
-      resolve_organizations(Hmis::Hud::Organization.viewable_by(current_user), **args)
+      resolve_organizations(Hmis::Hud::Organization.all, **args)
     end
 
     clients_field :client_search, 'Search for clients' do |field|

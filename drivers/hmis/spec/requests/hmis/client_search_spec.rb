@@ -280,8 +280,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when there are multiple hmis installations' do
-      # todo @Martha -   add tests for checking against data source and organization
-
       # Create a 2nd data source and give hmis_user permission to view clients in it
       let!(:ds2) { create :hmis_data_source }
       # Create a client in the 2nd data source

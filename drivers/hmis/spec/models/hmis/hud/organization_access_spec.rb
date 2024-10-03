@@ -76,6 +76,11 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     it 'includes only organizations associated with the data source ID of the current user' do
       viewable_orgs = Hmis::Hud::Organization.viewable_by(user_with_ds1_and_ds2_access)
       expect(viewable_orgs).to contain_exactly(o1, o2, o3)
+
+      # change hmis_data_source_id to ds2 to ensure it can access o4
+      user_with_ds1_and_ds2_access.hmis_data_source_id = ds2.id
+      viewable_orgs = Hmis::Hud::Organization.viewable_by(user_with_ds1_and_ds2_access)
+      expect(viewable_orgs).to contain_exactly(o4)
     end
   end
 end
