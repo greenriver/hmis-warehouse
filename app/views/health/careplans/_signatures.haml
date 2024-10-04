@@ -27,7 +27,7 @@
 - if careplan.cp1? && careplan.needs_rereview?
   .pctp__expiration.mt-2
     Careplan needs review
-- elsif careplan.cp1? || careplan.archived?
+- elsif careplan.cp1? || (careplan.respond_to?(:archived?) && careplan.archived?)
   .pctp__expiration.mt-2
     Archived Careplan
 - elsif careplan.completed?
