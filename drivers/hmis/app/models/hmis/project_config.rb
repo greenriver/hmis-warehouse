@@ -25,6 +25,17 @@ class Hmis::ProjectConfig < Hmis::HmisBase
 
   validate :validate_config_options_json
 
+  scope :viewable_by, ->(user) do
+    # Special case this, rather than using ProjectRelated concern, because project isn't a direct relationship.
+    # Project config can apply to a project, an organization, or a project type.
+    # Right now we have no way to gate viewability for ProjectConfigs defined by project type - TODO(#6691)
+    project_ids = Hmis::Hud::Project.viewable_by(user).pluck(:id)
+    organization_ids = Hmis::Hud::Organization.viewable_by(user).pluck(:id)
+    where(project_id: project_ids).
+      or(where(organization_id: organization_ids)).
+      or(where(project_id: nil, organization_id: nil))
+  end
+
   def validate_config_options_json
     return unless config_options
 
