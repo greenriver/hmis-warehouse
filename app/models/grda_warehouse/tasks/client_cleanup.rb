@@ -337,6 +337,49 @@ module GrdaWarehouse::Tasks
     end
 
     def choose_attributes_from_sources dest_attr, source_clients
+      # All HMIS client attributes - FY2024
+      # FirstName
+      # MiddleName
+      # LastName
+      # NameSuffix
+      # NameDataQuality
+      # SSN
+      # SSNDataQuality
+      # DOB
+      # DOBDataQuality
+      # AmIndAKNative
+      # Asian
+      # BlackAfAmerican
+      # HispanicLatinaeo
+      # MidEastNAfrican
+      # NativeHIPacific
+      # White
+      # RaceNone
+      # AdditionalRaceEthnicity
+      #
+      # Woman
+      # Man
+      # NonBinary
+      # CulturallySpecific
+      # Transgender
+      # Questioning
+      # DifferentIdentity
+      # GenderNone
+      # DifferentIdentityText
+      # VeteranStatus
+      #
+      # YearEnteredService
+      # YearSeparated
+      # WorldWarII
+      # KoreanWar
+      # VietnamWar
+      # DesertStorm
+      # AfghanistanOEF
+      # IraqOIF
+      # IraqOND
+      # OtherTheater
+      # MilitaryBranch
+      # DischargeStatus
       dest_attr = choose_best_name(dest_attr, source_clients)
       dest_attr = choose_best_pronouns(dest_attr, source_clients)
       dest_attr = choose_best_ssn(dest_attr, source_clients)
@@ -349,7 +392,7 @@ module GrdaWarehouse::Tasks
     end
 
     def choose_best_name dest_attr, source_clients
-      non_blank_names = source_clients.select { |sc| (sc[:FirstName].present? or sc[:LastName].present?) }
+      non_blank_names = source_clients.select { |sc| sc[:FirstName].present? || sc[:LastName].present? }
       if non_blank_names.any?
         # find any with NameDataQuality with 1, pick the oldest/newest from those
         # find any with NameDataQuality with 2, pick the oldest/newest from those
@@ -375,7 +418,9 @@ module GrdaWarehouse::Tasks
 
         if best.present?
           dest_attr[:FirstName] = best[:FirstName]
+          dest_attr[:MiddleName] = best[:MiddleName]
           dest_attr[:LastName] = best[:LastName]
+          dest_attr[:NameSuffix] = best[:NameSuffix]
           dest_attr[:NameDataQuality] = best[:NameDataQuality]
         end
       end
@@ -414,10 +459,43 @@ module GrdaWarehouse::Tasks
       dest_attr
     end
 
+    # Set the veteran status based on the calculation in VeteranStatusCalculator
+    # If the client is a veteran, pull veteran related columns from the most-recent veteran source client
+    # If the client isn't a veteran, blank the associated veteran columns
     def choose_best_veteran_status dest_attr, source_clients
-      dest_attr[:VeteranStatus] = calculate_best_veteran_status(dest_attr[:verified_veteran_status], dest_attr[:va_verified_veteran], source_clients)
+      # Sort in reverse chronological order (newest first)
+      sorted_source_clients = source_clients.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
+      status = calculate_best_veteran_status(dest_attr[:verified_veteran_status], dest_attr[:va_verified_veteran], sorted_source_clients)
+      dest_attr[:VeteranStatus] = status
 
+      if status == 1
+        most_recent_vet = sorted_source_clients.detect { |c| c[:VeteranStatus] == 1 }
+        veteran_related_columns.each do |col|
+          dest_attr[col] = most_recent_vet[col]
+        end
+      else
+        veteran_related_columns.each do |col|
+          dest_attr[col] = nil
+        end
+      end
       dest_attr
+    end
+
+    def veteran_related_columns
+      @veteran_related_columns ||= [
+        :YearEnteredService,
+        :YearSeparated,
+        :WorldWarII,
+        :KoreanWar,
+        :VietnamWar,
+        :DesertStorm,
+        :AfghanistanOEF,
+        :IraqOIF,
+        :IraqOND,
+        :OtherTheater,
+        :MilitaryBranch,
+        :DischargeStatus,
+      ]
     end
 
     def choose_best_dob dest_attr, source_clients
@@ -444,6 +522,7 @@ module GrdaWarehouse::Tasks
       # Most recent 0 or 1 if no 0 or 1 use the most recent value
       # Valid responses for gender categories are [0, 1, 99]
       # Valid responses for GenderNone are [8, 9, 99] -- should be null if any other gender field contains a 1
+      # Grab the newest non-null value for DifferentIdentityText
       known_values = [0, 1]
       # Sort in reverse chronological order (newest first)
       sorted_source_clients = source_clients.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
@@ -471,6 +550,14 @@ module GrdaWarehouse::Tasks
         end
       end
 
+      # Set DifferentIdentityText
+      additional = sorted_source_clients.map { |m| m[:DifferentIdentityText] }.compact
+      dest_attr[:DifferentIdentityText] = if additional.empty?
+        nil
+      else
+        additional.first
+      end
+
       # if we have any yes responses, set this to nil, otherwise use the most-recent GenderNone response
       if dest_attr.values_at(*gender_columns).any?(1)
         dest_attr[:GenderNone] = nil
@@ -488,6 +575,7 @@ module GrdaWarehouse::Tasks
       # Most recent 0 or 1 if no 0 or 1 use the most recent value
       # Valid responses for race categories are [0, 1, 99]
       # Valid responses for RaceNone are [8, 9, 99] -- should be null if all other fields are 0 or 99
+      # Grab the newest non-null value for AdditionalRaceEthnicity
       known_values = [0, 1]
       # Sort in reverse chronological order (newest first)
       sorted_source_clients = source_clients.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
@@ -512,6 +600,14 @@ module GrdaWarehouse::Tasks
           # the destination client response
           break if known_values.include?(value)
         end
+      end
+
+      # Set AdditionalRaceEthnicity
+      additional = sorted_source_clients.map { |m| m[:AdditionalRaceEthnicity] }.compact
+      dest_attr[:AdditionalRaceEthnicity] = if additional.empty?
+        nil
+      else
+        additional.first
       end
 
       # if we have any yes responses, set this to nil, otherwise use the most-recent RaceNone response
@@ -630,7 +726,7 @@ module GrdaWarehouse::Tasks
     private def update_destination_clients(batch)
       return unless batch.present?
 
-      GrdaWarehouse::Hud::Client.import(
+      GrdaWarehouse::Hud::Client.import!(
         batch,
         on_duplicate_key_update: {
           conflict_target: [:id],
@@ -642,7 +738,7 @@ module GrdaWarehouse::Tasks
     private def update_source_hashes(batch)
       source_client_ids = GrdaWarehouse::Hud::Client.where(id: batch).joins(:warehouse_client_destination).pluck(wc_t[:source_id])
       updates = GrdaWarehouse::Hud::Client.where(id: source_client_ids).joins(:warehouse_client_source).pluck(wc_t[:id], wc_t[:id_in_source], :source_hash)
-      GrdaWarehouse::WarehouseClient.import(
+      GrdaWarehouse::WarehouseClient.import!(
         [:id, :id_in_source, :source_hash],
         updates,
         on_duplicate_key_update: {
@@ -652,36 +748,53 @@ module GrdaWarehouse::Tasks
       )
     end
 
+    # Note, even though we don't use the values in this file, they are in use elsewhere.
     def client_columns
       @client_columns ||= {
         FirstName: c_t[:FirstName].to_sql,
+        MiddleName: c_t[:MiddleName].to_sql,
         LastName: c_t[:LastName].to_sql,
-        SSN: c_t[:SSN].to_sql,
-        DOB: c_t[:DOB].to_sql,
-        Woman: c_t[:Woman].to_sql,
-        Man: c_t[:Man].to_sql,
-        CulturallySpecific: c_t[:CulturallySpecific].to_sql,
-        DifferentIdentity: c_t[:DifferentIdentity].to_sql,
-        NonBinary: c_t[:NonBinary].to_sql,
-        Transgender: c_t[:Transgender].to_sql,
-        Questioning: c_t[:Questioning].to_sql,
-        GenderNone: c_t[:GenderNone].to_sql,
-        VeteranStatus: c_t[:VeteranStatus].to_sql,
-        verified_veteran_status: c_t[:verified_veteran_status].to_sql,
-        va_verified_veteran: c_t[:va_verified_veteran].to_sql,
+        NameSuffix: c_t[:NameSuffix].to_sql,
         NameDataQuality: cl(c_t[:NameDataQuality], 99).as('NameDataQuality').to_sql,
+        SSN: c_t[:SSN].to_sql,
         SSNDataQuality: cl(c_t[:SSNDataQuality], 99).as('SSNDataQuality').to_sql,
+        DOB: c_t[:DOB].to_sql,
         DOBDataQuality: cl(c_t[:DOBDataQuality], 99).as('DOBDataQuality').to_sql,
-        DateCreated: cl(c_t[:DateCreated], 10.years.ago.to_date).as('DateCreated').to_sql,
-        DateUpdated: cl(c_t[:DateUpdated], 10.years.ago.to_date).as('DateUpdated').to_sql,
         AmIndAKNative: cl(c_t[:AmIndAKNative], 99).as('AmIndAKNative').to_sql,
         Asian: cl(c_t[:Asian], 99).as('Asian').to_sql,
         BlackAfAmerican: cl(c_t[:BlackAfAmerican], 99).as('BlackAfAmerican').to_sql,
-        NativeHIPacific: cl(c_t[:NativeHIPacific], 99).as('NativeHIPacific').to_sql,
-        White: cl(c_t[:White], 99).as('White').to_sql,
         HispanicLatinaeo: cl(c_t[:HispanicLatinaeo], 99).as('White').to_sql,
         MidEastNAfrican: cl(c_t[:MidEastNAfrican], 99).as('White').to_sql,
+        NativeHIPacific: cl(c_t[:NativeHIPacific], 99).as('NativeHIPacific').to_sql,
+        White: cl(c_t[:White], 99).as('White').to_sql,
         RaceNone: cl(c_t[:RaceNone], 99).as('RaceNone').to_sql,
+        AdditionalRaceEthnicity: c_t[:AdditionalRaceEthnicity].to_sql,
+        Woman: c_t[:Woman].to_sql,
+        Man: c_t[:Man].to_sql,
+        NonBinary: c_t[:NonBinary].to_sql,
+        CulturallySpecific: c_t[:CulturallySpecific].to_sql,
+        Transgender: c_t[:Transgender].to_sql,
+        Questioning: c_t[:Questioning].to_sql,
+        DifferentIdentity: c_t[:DifferentIdentity].to_sql,
+        GenderNone: c_t[:GenderNone].to_sql,
+        DifferentIdentityText: c_t[:DifferentIdentityText].to_sql,
+        VeteranStatus: c_t[:VeteranStatus].to_sql,
+        YearEnteredService: c_t[:YearEnteredService].to_sql,
+        YearSeparated: c_t[:YearSeparated].to_sql,
+        WorldWarII: c_t[:WorldWarII].to_sql,
+        KoreanWar: c_t[:KoreanWar].to_sql,
+        VietnamWar: c_t[:VietnamWar].to_sql,
+        DesertStorm: c_t[:DesertStorm].to_sql,
+        AfghanistanOEF: c_t[:AfghanistanOEF].to_sql,
+        IraqOIF: c_t[:IraqOIF].to_sql,
+        IraqOND: c_t[:IraqOND].to_sql,
+        OtherTheater: c_t[:OtherTheater].to_sql,
+        MilitaryBranch: c_t[:MilitaryBranch].to_sql,
+        DischargeStatus: c_t[:DischargeStatus].to_sql,
+        verified_veteran_status: c_t[:verified_veteran_status].to_sql,
+        va_verified_veteran: c_t[:va_verified_veteran].to_sql,
+        DateCreated: cl(c_t[:DateCreated], 10.years.ago.to_date).as('DateCreated').to_sql,
+        DateUpdated: cl(c_t[:DateUpdated], 10.years.ago.to_date).as('DateUpdated').to_sql,
       }
     end
 
