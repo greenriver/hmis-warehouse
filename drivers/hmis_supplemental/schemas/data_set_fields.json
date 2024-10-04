@@ -1,0 +1,27 @@
+
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "key": {
+        "type": "string",
+        "pattern": "^[a-zA-Z_$][a-zA-Z0-9_$]*$"
+      },
+      "label": {
+        "type": "label"
+      },
+      "type": {
+        "type": "string",
+        "enum": ["string", "integer", "float", "boolean", "date"]
+      },
+      "multiValued": {
+        "type": "boolean"
+      }
+    },
+    "required": ["key", "type", "label"],
+    "additionalProperties": false
+  },
+  "minItems": 1
+}

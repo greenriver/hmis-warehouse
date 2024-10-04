@@ -50,6 +50,18 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
     end
   end
 
+  def for_supplemental_data_set(data_set_or_id)
+    policy = if user.using_acls?
+      data_set_id = id_from_arg(data_set_or_id, HmisSupplemental::DataSet)
+      for_supplemental_data_set_using_acls(data_set_id)
+    else
+      # TODO: START_ACL remove after ACL migration is complete
+      legacy_user_role_policy
+      # END_ACL
+    end
+    ::GrdaWarehouse::AuthPolicies::SupplementalDataSetPolicy.new(policy)
+  end
+
   protected
 
   # Policy determined by the intersection of the user's collections and project's collections
@@ -61,6 +73,11 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
   # Policy determined by the intersection of the user's collections and client's collections
   memoize def for_client_using_acls(client_id)
     collection_ids = all_collection_ids_for_client(client_id: client_id)
+    GrdaWarehouse::AuthPolicies::CollectionPolicy.new(user: user, collection_ids: collection_ids)
+  end
+
+  memoize def for_supplemental_data_set_using_acls(data_set_id)
+    collection_ids = all_collection_ids_for_data_set(data_set_id: data_set_id)
     GrdaWarehouse::AuthPolicies::CollectionPolicy.new(user: user, collection_ids: collection_ids)
   end
 
@@ -136,6 +153,14 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
       where(c_t[:id].eq(client_id)).
       pluck(gve_t[:collection_id])
 
+    collection_ids += system_collection_ids(:data_sources)
+    collection_ids.uniq.sort
+  end
+
+  def all_collection_ids_for_data_set(data_set_id:)
+    collection_ids = GrdaWarehouse::GroupViewableEntity.
+      where(entity_type: HmisSupplemental::DataSet.sti_name, entity_id: data_set_id).
+      distinct.pluck(:collection_id)
     collection_ids += system_collection_ids(:data_sources)
     collection_ids.uniq.sort
   end

@@ -19115,6 +19115,75 @@ ALTER SEQUENCE public.hmis_staff_x_clients_id_seq OWNED BY public.hmis_staff_x_c
 
 
 --
+-- Name: hmis_supplemental_data_sets; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_supplemental_data_sets (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    data_source_id bigint NOT NULL,
+    remote_credential_id bigint,
+    owner_type character varying NOT NULL,
+    slug character varying NOT NULL,
+    name character varying NOT NULL,
+    field_configs jsonb NOT NULL
+);
+
+
+--
+-- Name: hmis_supplemental_data_sets_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_supplemental_data_sets_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_supplemental_data_sets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_supplemental_data_sets_id_seq OWNED BY public.hmis_supplemental_data_sets.id;
+
+
+--
+-- Name: hmis_supplemental_field_values; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_supplemental_field_values (
+    id bigint NOT NULL,
+    data_set_id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    field_key character varying NOT NULL,
+    owner_key character varying NOT NULL,
+    data jsonb NOT NULL
+);
+
+
+--
+-- Name: hmis_supplemental_field_values_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_supplemental_field_values_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_supplemental_field_values_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_supplemental_field_values_id_seq OWNED BY public.hmis_supplemental_field_values.id;
+
+
+--
 -- Name: hmis_unit_occupancy; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -29877,6 +29946,20 @@ ALTER TABLE ONLY public.hmis_staff_x_clients ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hmis_supplemental_data_sets id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_supplemental_data_sets ALTER COLUMN id SET DEFAULT nextval('public.hmis_supplemental_data_sets_id_seq'::regclass);
+
+
+--
+-- Name: hmis_supplemental_field_values id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_supplemental_field_values ALTER COLUMN id SET DEFAULT nextval('public.hmis_supplemental_field_values_id_seq'::regclass);
+
+
+--
 -- Name: hmis_unit_occupancy id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -33490,6 +33573,22 @@ ALTER TABLE ONLY public.hmis_staff
 
 ALTER TABLE ONLY public.hmis_staff_x_clients
     ADD CONSTRAINT hmis_staff_x_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_supplemental_data_sets hmis_supplemental_data_sets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_supplemental_data_sets
+    ADD CONSTRAINT hmis_supplemental_data_sets_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_supplemental_field_values hmis_supplemental_field_values_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_supplemental_field_values
+    ADD CONSTRAINT hmis_supplemental_field_values_pkey PRIMARY KEY (id);
 
 
 --
@@ -54697,6 +54796,34 @@ CREATE INDEX index_hmis_staff_assignments_on_user_id ON public.hmis_staff_assign
 
 
 --
+-- Name: index_hmis_supplemental_data_sets_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_supplemental_data_sets_on_data_source_id ON public.hmis_supplemental_data_sets USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_supplemental_data_sets_on_remote_credential_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_supplemental_data_sets_on_remote_credential_id ON public.hmis_supplemental_data_sets USING btree (remote_credential_id);
+
+
+--
+-- Name: index_hmis_supplemental_data_sets_on_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_supplemental_data_sets_on_slug ON public.hmis_supplemental_data_sets USING btree (slug);
+
+
+--
+-- Name: index_hmis_supplemental_field_values_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_supplemental_field_values_on_data_source_id ON public.hmis_supplemental_field_values USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_unit_occupancy_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63284,6 +63411,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240731155357'),
 ('20240815175202'),
 ('20240821180638'),
+('20240829142856'),
 ('20240829152828'),
 ('20240909150028'),
 ('20240912125052'),

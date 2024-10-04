@@ -1,0 +1,23 @@
+= simple_form_for data_set, as: :data_set do |f|
+  - if data_set.errors.any?
+    .alert.alert-danger{style: 'display: block;'}
+      %p Failed to save
+      %ul.error_list
+        - data_set.errors.full_messages.uniq.each do |msg|
+          %li= msg
+
+  .form-inputs
+    = f.input :name, required: true
+    = f.input :slug, required: true
+    = f.input :owner_type, collection: ['enrollment', 'client'], required: true
+    = f.input :data_source_id, collection: data_sources.order(:name).map {|d| [d.name, d.id]}, required:true
+    = f.input :fields_configs_string, as: :text, label: 'Field Configuration JSON', hint: 'example: `[{"key":"widget","type":"float","label":"The Widget","multiValued":false}]`', input_html: {rows: data_set.fields_configs_string.count("\n") + 2}
+    = f.fields_for(:remote_credential) do |sf|
+      %fieldset
+        %legend S3 Configuration
+        = sf.input :bucket, as: :string, label: 'S3 bucket'
+        = sf.input :s3_prefix, as: :string
+        = sf.input :s3_access_key_id, as: :string, hint: 'leave blank if using roles'
+        = sf.input :s3_secret_access_key, as: :string, hint: 'leave blank if using roles'
+  .form_actions
+    = f.button :submit

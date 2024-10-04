@@ -1,0 +1,11 @@
+.o-page
+  .o-page__title
+    - content_for :title, "HMIS Supplemental Data Sets"
+    %h1= content_for :title
+
+  .d-flex.mb-4
+    .ml-auto.text-right
+      = link_to url_for(action: :new), class: 'btn btn-primary mb-2' do
+        %span.icon-plus
+        Add Data Set
+  = render_paginated_list(scope: @data_sets, item_name: 'data set', list_partial: 'list')

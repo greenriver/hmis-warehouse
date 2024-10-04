@@ -1,0 +1,12 @@
+.dropdown.ml-auto
+  %button.btn.btn-sm.btn-outline-secondary.dropdown-toggle{ type: :button, data: { toggle: :dropdown}, aria: { expanded: false }}
+    Actions
+    %i.ml-2.icon-angle-down
+  .dropdown-menu.options(aria-label="Actions")
+    %ul.list-unstyled.m-0
+      %li
+        = link_to 'Edit', url_for(action: :edit, id: data_set.id), class: 'dropdown-item'
+      %li
+        = link_to 'Authorization', edit_hmis_supplemental_data_set_data_sets_authorizations(id: data_set.id), class: 'dropdown-item'
+      %li
+        = link_to 'Delete', url_for(action: :destroy, id: data_set.id), method: :delete, data: {confirm: "Would you really like to delete the data set #{data_set.name}?"}, class: 'dropdown-item'
