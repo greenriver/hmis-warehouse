@@ -35,6 +35,8 @@ module Types
     def self.authorized?(object, ctx)
       return false unless super
 
+      # current_permission_for_context? checks to prevent data source leakage, but it is a secondary guard;
+      # the viewable_by scope is our primary defense against this.
       return true if GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_limited_enrollment_details, entity: object)
 
       return false unless GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_enrollment_details, entity: object)
