@@ -10,7 +10,9 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   self.table_name = :hmis_form_instances
 
   belongs_to :entity, polymorphic: true, optional: true
-  belongs_to :definition, -> { where(status: 'published') }, foreign_key: :definition_identifier, primary_key: :identifier, class_name: 'Hmis::Form::Definition'
+  belongs_to :definition,
+             -> { order(Arel.sql("CASE WHEN status = 'published' THEN 0 WHEN status = 'draft' THEN 1 ELSE 2 END")) },
+             foreign_key: :definition_identifier, primary_key: :identifier, class_name: 'Hmis::Form::Definition'
 
   belongs_to :custom_service_category, optional: true, class_name: 'Hmis::Hud::CustomServiceCategory'
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
@@ -39,7 +41,7 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
                      )
                    end
 
-  scope :with_role, ->(role) { joins(:definition).where(fd_t[:role].in(role)) }
+  scope :with_role, ->(role) { joins(:definition).where(fd_t[:role].in(role).and(fd_t[:status].eq(:published))) }
 
   # Find instances that are for a specific Project
   scope :for_project, ->(project_id) { for_projects.where(entity_id: project_id) }
