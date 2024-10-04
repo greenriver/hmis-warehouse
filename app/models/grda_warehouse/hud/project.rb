@@ -292,7 +292,8 @@ module GrdaWarehouse::Hud
     #   within the context of reporting confidential_scope_limiter is almost always non_confidential
     #   within the client dashboard context, confidential_scope_limiter is :all, which includes confidential projects
     #   names of confidential projects are obfuscated unless the user can_view_confidential_project_names
-    # @param permission [Symbol] a permission to determine the scope for which the projects are viewable
+    # @param permission [Symbol] a permission to determine the scope for which the projects are viewable.
+    #   Caution, this permission is NOT checked if the user is using legacy permissions (not on ACLs).
     scope :viewable_by, ->(user, confidential_scope_limiter: :non_confidential, permission: :can_view_projects) do
       query = viewable_by_entity(user, permission: permission)
       # If a user can't report on confidential projects, exclude them entirely
@@ -327,10 +328,6 @@ module GrdaWarehouse::Hud
         )
       end
       # END_ACL
-    end
-
-    def can?(user, permission: :can_view_projects)
-      self.class.viewable_by(user, permission: permission).where(id: id).exists?
     end
 
     scope :editable_by, ->(user) do
