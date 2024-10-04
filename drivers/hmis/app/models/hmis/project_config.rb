@@ -28,7 +28,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   scope :viewable_by, ->(user) do
     # Special case this, rather than using ProjectRelated concern, because project isn't a direct relationship.
     # Project config can apply to a project, an organization, or a project type.
-    # Right now we have no way to gate viewability for ProjectConfigs defined by project type - TODO(#6691)
+    # Right now we have no way to gate viewability by data source for ProjectConfigs defined by project type - TODO(#6691)
     project_ids = Hmis::Hud::Project.viewable_by(user).pluck(:id)
     organization_ids = Hmis::Hud::Organization.viewable_by(user).pluck(:id)
     where(project_id: project_ids).
