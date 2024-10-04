@@ -16,6 +16,7 @@ RSpec.describe Hmis::Hud::Project, type: :model do
   end
 
   let!(:ds1) { create :hmis_data_source }
+  let!(:ds2) { create :hmis_data_source }
   let!(:o1) { create :hmis_hud_organization, data_source: ds1 }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1 }
 
@@ -23,6 +24,9 @@ RSpec.describe Hmis::Hud::Project, type: :model do
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o2 }
 
   let!(:o3) { create :hmis_hud_organization, data_source: ds1 }
+
+  let!(:o4) { create :hmis_hud_organization, data_source: ds2 }
+  let!(:p4) { create :hmis_hud_project, data_source: ds2, organization: o4 }
 
   let!(:user_with_no_access) { create(:hmis_user, data_source: ds1) }
 
@@ -46,6 +50,13 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     hmis_user
   end
 
+  let!(:user_with_ds1_and_ds2_access) do
+    hmis_user = create(:hmis_user, data_source: ds1)
+    create_access_control(hmis_user, ds1)
+    create_access_control(hmis_user, ds2)
+    hmis_user
+  end
+
   describe 'viewable_by scope' do
     it 'includes organizations where use has can_view_project (data source)' do
       viewable_orgs = Hmis::Hud::Organization.viewable_by(user_with_ds1_access)
@@ -60,6 +71,16 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     it 'includes organizations where use has can_view_project (project-level)' do
       viewable_orgs = Hmis::Hud::Organization.viewable_by(user_with_p2_access)
       expect(viewable_orgs).to contain_exactly(o2)
+    end
+
+    it 'includes only organizations associated with the data source ID of the current user' do
+      viewable_orgs = Hmis::Hud::Organization.viewable_by(user_with_ds1_and_ds2_access)
+      expect(viewable_orgs).to contain_exactly(o1, o2, o3)
+
+      # change hmis_data_source_id to ds2 to ensure it can access o4
+      user_with_ds1_and_ds2_access.hmis_data_source_id = ds2.id
+      viewable_orgs = Hmis::Hud::Organization.viewable_by(user_with_ds1_and_ds2_access)
+      expect(viewable_orgs).to contain_exactly(o4)
     end
   end
 end
