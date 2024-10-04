@@ -501,7 +501,7 @@ module Types
     field :client_detail_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)'
     def client_detail_forms
       # No authorization required, this just resolving application configuration
-      Hmis::Form::Instance.active.with_role(:CLIENT_DETAIL).sort_by_option(:form_title)
+      Hmis::Form::Instance.active.with_role(:CLIENT_DETAIL).published.sort_by_option(:form_title)
     end
   end
 end

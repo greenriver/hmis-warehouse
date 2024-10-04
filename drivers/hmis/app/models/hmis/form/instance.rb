@@ -41,7 +41,9 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
                      )
                    end
 
-  scope :with_role, ->(role) { joins(:definition).where(fd_t[:role].in(role).and(fd_t[:status].eq(:published))) }
+  scope :with_role, ->(role) { joins(:definition).where(fd_t[:role].in(role)) }
+
+  scope :published, -> { joins(:definition).merge(Hmis::Form::Definition.published) }
 
   # Find instances that are for a specific Project
   scope :for_project, ->(project_id) { for_projects.where(entity_id: project_id) }
