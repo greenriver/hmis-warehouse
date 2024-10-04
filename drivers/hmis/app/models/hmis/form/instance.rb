@@ -10,6 +10,10 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   self.table_name = :hmis_form_instances
 
   belongs_to :entity, polymorphic: true, optional: true
+
+  # This relationship could be clearer as a has_many relationship, since the instance may have many definition records.
+  # However, there are many usages of this relation from before we implemented form versioning,
+  # so to reduce impact, for now we have just modified the scope to prioritize a published definition if it exists.
   belongs_to :definition,
              -> { order(Arel.sql("CASE WHEN status = 'published' THEN 0 WHEN status = 'draft' THEN 1 ELSE 2 END")) },
              foreign_key: :definition_identifier, primary_key: :identifier, class_name: 'Hmis::Form::Definition'
