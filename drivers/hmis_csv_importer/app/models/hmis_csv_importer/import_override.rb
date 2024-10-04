@@ -10,6 +10,10 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   acts_as_paranoid
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
+  validates :data_source, presence: true
+  validates :replacement_value, presence: true
+  validates :replaces_column, presence: true
+
   scope :sorted, -> do
     order(:file_name, :replaces_column, :matched_hud_key)
   end
@@ -40,6 +44,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
       :replaces_column,
       :replaces_value,
       :replacement_value,
+      :description,
     ]
   end
 
@@ -123,6 +128,10 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     return "#{associated_class.hud_key} is #{matched_hud_key}" if matched_hud_key.present?
 
     "#{replaces_column} is #{replaces_value}" if replaces_value.present?
+  end
+
+  def describe_why
+    description == ':NULL:' ? nil : description
   end
 
   def associated_class

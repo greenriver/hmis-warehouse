@@ -10,6 +10,7 @@
       .well
         .form-inputs
           = f.input :file_name, collection: HmisCsvImporter::ImportOverride.available_classes, label: 'File', as: :select_two, include_blank: false
+          = f.input :description, label: 'Description', hint: 'Why is this override being created?', required: false
           = f.input :matched_hud_key, label: 'Matched HMIS ID', hint: 'Given the chosen table, should we only replace data in rows with this matching ID? If blank, all rows will be replaced.  For example if you would like all enrollments to have the same EnrollmentCoC, leave this blank.  If you would like to change the type of a single project, enter the value of the ProjectID for that project here.', required: false
           = f.input :replaces_column, label: 'Column to replace', as: :select_two, include_blank: true, hint: 'EnrollmentCoC or ProjectID in the above examples.'
           = f.input :replaces_value, label: 'Value to replace', hint: 'Leave this blank to replace the column on all matching rows.  If you only want to replace one value, for example to change all 99s in ContinuumProject to 0, since 99 is not allowed, enter 99 here.', required: false
