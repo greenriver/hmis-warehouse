@@ -258,7 +258,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -19546,6 +19546,103 @@ ALTER SEQUENCE public.homeless_summary_report_results_id_seq OWNED BY public.hom
 
 
 --
+-- Name: hopwa_caper_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hopwa_caper_enrollments (
+    id bigint NOT NULL,
+    report_instance_id bigint NOT NULL,
+    destination_client_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    report_household_id character varying NOT NULL,
+    first_name character varying,
+    last_name character varying,
+    age integer,
+    dob date,
+    dob_quality integer,
+    genders integer[],
+    races integer[],
+    veteran boolean DEFAULT false NOT NULL,
+    entry_date date,
+    exit_date date,
+    relationship_to_hoh integer NOT NULL,
+    project_funders integer[],
+    project_type character varying,
+    personal_id character varying NOT NULL,
+    income_benefit_source_types character varying[],
+    medical_insurance_types character varying[],
+    hiv_positive boolean DEFAULT false NOT NULL,
+    hopwa_eligible boolean DEFAULT false NOT NULL,
+    chronically_homeless boolean DEFAULT false NOT NULL,
+    prior_living_situation integer,
+    rental_subsidy_type integer,
+    exit_destination integer,
+    housing_assessment_at_exit integer,
+    subsidy_information integer,
+    ever_prescribed_anti_retroviral_therapy boolean DEFAULT false NOT NULL,
+    viral_load_suppression boolean DEFAULT false NOT NULL,
+    percent_ami numeric
+);
+
+
+--
+-- Name: hopwa_caper_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hopwa_caper_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hopwa_caper_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hopwa_caper_enrollments_id_seq OWNED BY public.hopwa_caper_enrollments.id;
+
+
+--
+-- Name: hopwa_caper_services; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hopwa_caper_services (
+    id bigint NOT NULL,
+    report_instance_id bigint NOT NULL,
+    destination_client_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    service_id bigint NOT NULL,
+    report_household_id character varying NOT NULL,
+    personal_id character varying NOT NULL,
+    date_provided date,
+    record_type integer,
+    type_provided integer,
+    fa_amount numeric
+);
+
+
+--
+-- Name: hopwa_caper_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hopwa_caper_services_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hopwa_caper_services_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hopwa_caper_services_id_seq OWNED BY public.hopwa_caper_services.id;
+
+
+--
 -- Name: housing_resolution_plans; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -29912,6 +30009,20 @@ ALTER TABLE ONLY public.homeless_summary_report_results ALTER COLUMN id SET DEFA
 
 
 --
+-- Name: hopwa_caper_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hopwa_caper_enrollments ALTER COLUMN id SET DEFAULT nextval('public.hopwa_caper_enrollments_id_seq'::regclass);
+
+
+--
+-- Name: hopwa_caper_services id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hopwa_caper_services ALTER COLUMN id SET DEFAULT nextval('public.hopwa_caper_services_id_seq'::regclass);
+
+
+--
 -- Name: housing_resolution_plans id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -33530,6 +33641,22 @@ ALTER TABLE ONLY public.homeless_summary_report_clients
 
 ALTER TABLE ONLY public.homeless_summary_report_results
     ADD CONSTRAINT homeless_summary_report_results_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hopwa_caper_enrollments hopwa_caper_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hopwa_caper_enrollments
+    ADD CONSTRAINT hopwa_caper_enrollments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hopwa_caper_services hopwa_caper_services_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hopwa_caper_services
+    ADD CONSTRAINT hopwa_caper_services_pkey PRIMARY KEY (id);
 
 
 --
@@ -54760,6 +54887,34 @@ CREATE INDEX index_homeless_summary_report_results_on_report_id ON public.homele
 
 
 --
+-- Name: index_hopwa_caper_enrollments_on_report_household_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hopwa_caper_enrollments_on_report_household_id ON public.hopwa_caper_enrollments USING btree (report_household_id);
+
+
+--
+-- Name: index_hopwa_caper_enrollments_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hopwa_caper_enrollments_on_report_instance_id ON public.hopwa_caper_enrollments USING btree (report_instance_id);
+
+
+--
+-- Name: index_hopwa_caper_services_on_report_household_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hopwa_caper_services_on_report_household_id ON public.hopwa_caper_services USING btree (report_household_id);
+
+
+--
+-- Name: index_hopwa_caper_services_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hopwa_caper_services_on_report_instance_id ON public.hopwa_caper_services USING btree (report_instance_id);
+
+
+--
 -- Name: index_housing_resolution_plans_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60353,6 +60508,20 @@ CREATE UNIQUE INDEX uidx_hmis_staff_assignments ON public.hmis_staff_assignments
 
 
 --
+-- Name: uidx_hopwa_caper_enrollments; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hopwa_caper_enrollments ON public.hopwa_caper_enrollments USING btree (report_instance_id, enrollment_id);
+
+
+--
+-- Name: uidx_hopwa_caper_services; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hopwa_caper_services ON public.hopwa_caper_services USING btree (report_instance_id, service_id);
+
+
+--
 -- Name: uidx_import_overrides_rules; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63282,6 +63451,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240730140758'),
 ('20240731144633'),
 ('20240731155357'),
+('20240808042801'),
 ('20240815175202'),
 ('20240821180638'),
 ('20240829152828'),

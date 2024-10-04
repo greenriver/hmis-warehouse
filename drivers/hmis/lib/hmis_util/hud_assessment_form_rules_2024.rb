@@ -958,6 +958,12 @@ module HmisUtil
                            { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
                          ] },
                      ] },
+          {
+            '_comment' => 'Percent AMI is part of the HOPWA CAPER report, so it is asked for HOPWA-funded programs',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HOPWA',
+          },
         ] } },
       V6: { stages: ['INTAKE'],
             data_collected_about: 'HOH',
