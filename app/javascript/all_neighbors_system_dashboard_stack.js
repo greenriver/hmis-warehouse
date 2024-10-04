@@ -426,7 +426,6 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
       tooltip: {
         contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
           const index = d[0].index
-          // console.log(this.series, this.series[index])
           let householdCounts = this.series[index].series.filter((n) => this.inDateRange(n.date, this.state.dateRange))
             .map((n) => { return n.households_count })
           const householdTotal = d3.sum(householdCounts)
