@@ -18,6 +18,10 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
              -> { order(Arel.sql("CASE WHEN status = 'published' THEN 0 WHEN status = 'draft' THEN 1 ELSE 2 END")) },
              foreign_key: :definition_identifier, primary_key: :identifier, class_name: 'Hmis::Form::Definition'
 
+  # Use published_definition when we want to filter out Instances on all non-published forms
+  belongs_to :published_definition, -> { published },
+             foreign_key: :definition_identifier, primary_key: :identifier, class_name: 'Hmis::Form::Definition'
+
   belongs_to :custom_service_category, optional: true, class_name: 'Hmis::Hud::CustomServiceCategory'
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
 
