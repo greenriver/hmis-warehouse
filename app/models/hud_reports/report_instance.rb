@@ -108,26 +108,25 @@ module HudReports
     # FIXME: maybe a single question column on report_instance to track if this is a single
     # question run or all questions.... Need better start/complete logic
     def start(question, tables)
-      universe(question).update(status: 'Started', metadata: { tables: Array(tables) })
-      start_report if build_for_questions.count == remaining_questions.count
+      universe(question).update!(status: 'Started', metadata: { tables: Array(tables) })
     end
 
     def start_report
-      update(state: 'Started', started_at: Time.current)
+      update!(state: 'Started', started_at: Time.current)
     end
 
     # Mark a question as completed
     #
     # @param question [String] the question name (e.g., 'Question 1')
     def complete(question)
-      universe(question).update(status: 'Completed')
+      universe(question).update!(status: 'Completed')
       complete_report if remaining_questions.empty?
     end
 
     def complete_report
       return if @failed
 
-      update(state: 'Completed', completed_at: Time.current)
+      update!(state: 'Completed', completed_at: Time.current)
     end
 
     def completed_questions
@@ -172,7 +171,11 @@ module HudReports
         first_or_create
     end
 
-    # The universe of clients for a question
+    # The universe of members (such as clients) for a question
+    #
+    # The per-question universe allows us to explain why a given member was not included in a cell; the inverse of
+    # explaining why member was included in a cell using the cell members. As of this writing this universe is not
+    # exposed in the UI
     #
     # @param question [String] the question name (e.g., 'Q1')
     # @return [ReportCell] the universe cell

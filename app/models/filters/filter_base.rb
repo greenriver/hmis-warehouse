@@ -544,16 +544,18 @@ module Filters
     end
 
     def effective_project_ids
-      @effective_project_ids = effective_project_ids_from_projects
-      @effective_project_ids += effective_project_ids_from_project_groups
-      @effective_project_ids += effective_project_ids_from_organizations
-      @effective_project_ids += effective_project_ids_from_data_sources
-      @effective_project_ids += effective_project_ids_from_coc_codes
+      @effective_project_ids ||= begin
+        project_ids = effective_project_ids_from_projects
+        project_ids += effective_project_ids_from_project_groups
+        project_ids += effective_project_ids_from_organizations
+        project_ids += effective_project_ids_from_data_sources
+        project_ids += effective_project_ids_from_coc_codes
 
-      # Add an invalid id if there are none
-      @effective_project_ids = [0] if @effective_project_ids.empty?
+        # Add an invalid id if there are none
+        project_ids = [0] if project_ids.empty?
 
-      @effective_project_ids.uniq.reject(&:blank?)
+        project_ids.uniq.reject(&:blank?)
+      end
     end
 
     def any_effective_project_ids?
@@ -561,14 +563,16 @@ module Filters
     end
 
     def anded_effective_project_ids
-      ids = []
-      ids << effective_project_ids_from_projects
-      ids << effective_project_ids_from_project_groups
-      ids << effective_project_ids_from_organizations
-      ids << effective_project_ids_from_data_sources
-      ids << effective_project_ids_from_coc_codes
-      ids << effective_project_ids_from_project_types
-      ids.reject(&:empty?).reduce(&:&)
+      @anded_effective_project_ids ||= begin
+        ids = []
+        ids << effective_project_ids_from_projects
+        ids << effective_project_ids_from_project_groups
+        ids << effective_project_ids_from_organizations
+        ids << effective_project_ids_from_data_sources
+        ids << effective_project_ids_from_coc_codes
+        ids << effective_project_ids_from_project_types
+        ids.reject(&:empty?).reduce(&:&)
+      end
     end
 
     # Apply all known scopes

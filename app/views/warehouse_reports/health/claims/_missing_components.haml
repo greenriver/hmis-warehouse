@@ -14,6 +14,7 @@
                 %th CA Development
                 %th CA Completed
                 %th Careplan Development
+                %th Careplan Completed
             %tbody
               - qas.each do |qa|
                 - factory = qa.claim_metadata
@@ -24,3 +25,4 @@
                   %td= checkmark_or_x(factory.ca_development_qa.present?)
                   %td= checkmark_or_x(factory.ca_completed_qa.present?)
                   %td= checkmark_or_x(factory.careplan_development_qa.present?)
+                  %td= checkmark_or_x(factory.careplan_completed_qa.present?)
