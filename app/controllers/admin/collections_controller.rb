@@ -69,6 +69,8 @@ module Admin
         @reports
       when :cohorts
         @cohorts
+      when :supplemental_data_sets
+        @supplemental_data_sets
       when :project_groups
         @project_groups
       end
@@ -122,6 +124,7 @@ module Admin
         project_access_groups: [],
         reports: [],
         cohorts: [],
+        supplemental_data_sets: [],
         project_groups: [],
       )
     end
@@ -135,6 +138,7 @@ module Admin
         project_access_groups: {},
         reports: {},
         cohorts: {},
+        supplemental_data_sets: {},
         project_groups: {},
       )
     end
@@ -260,14 +264,24 @@ module Admin
 
       @cohorts = {
         selected: @collection&.cohorts&.map(&:id) || [],
-        collection: GrdaWarehouse::Cohort.
-          active.
-          order(:name),
+        collection: GrdaWarehouse::Cohort.order(:name, :id),
         placeholder: 'Cohort',
         multiple: true,
         input_html: {
           class: 'jUserViewable jCohorts',
           name: 'collection[cohorts][]',
+        },
+      }
+
+      @supplemental_data_sets = {
+        selected: @collection&.supplemental_data_sets&.map(&:id) || [],
+        collection: HmisSupplemental::DataSet.order(:name, :id),
+        placeholder: 'Supplemental Data Set',
+        multiple: true,
+        input_html: {
+          class: 'jUserViewable jSupplementalDataSets',
+          name: 'collection[supplemental_data_sets][]',
+
         },
       }
     end

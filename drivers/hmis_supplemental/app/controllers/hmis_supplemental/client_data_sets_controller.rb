@@ -13,7 +13,7 @@ module HmisSupplemental
     before_action :require_can_view_clients!
     before_action :set_client
 
-    def edit
+    def show
       @data_set = load_authorized_data_set
       @groups = []
       case @data_set.owner_type
@@ -72,7 +72,7 @@ module HmisSupplemental
     end
 
     def data_set_scope
-      HmisSupplemental::DataSet.visible_by(current_user)
+      HmisSupplemental::DataSet.viewable_by(current_user)
     end
 
     def client_scope(id: nil)

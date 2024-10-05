@@ -11,7 +11,7 @@
     = f.input :slug, required: true
     = f.input :owner_type, collection: ['enrollment', 'client'], required: true
     = f.input :data_source_id, collection: data_sources.order(:name).map {|d| [d.name, d.id]}, required:true
-    = f.input :fields_configs_string, as: :text, label: 'Field Configuration JSON', hint: 'example: `[{"key":"widget","type":"float","label":"The Widget","multiValued":false}]`', input_html: {rows: data_set.fields_configs_string.count("\n") + 2}
+    = f.input :field_configs_string, as: :text, label: 'Field Configuration JSON', hint: 'example: `[{"key":"widget","type":"float","label":"The Widget","multiValued":false}]`', input_html: {rows: data_set.field_configs_string.count("\n") + 2}
     = f.fields_for(:remote_credential) do |sf|
       %fieldset
         %legend S3 Configuration

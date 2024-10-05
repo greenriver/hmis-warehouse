@@ -21,7 +21,7 @@ module HmisSupplemental
     validates :name, presence: true
     validates :slug, uniqueness: true, presence: true
 
-    scope :visible_by, ->(_user) do
+    scope :viewable_by, ->(user) do
       # FIXME
       current_scope
     end
@@ -32,10 +32,10 @@ module HmisSupplemental
     def field_configs_validation
       schema_path = Rails.root.join('drivers/hmis_supplemental/schemas/data_set_fields.json')
       HmisExternalApis::JsonValidator.perform(field_configs, schema_path).each do |error|
-        errors.add(:fields_configs_string, error)
+        errors.add(:field_configs_string, error)
       end
       dupes = field_configs.group_by { |f| f['key'] }.filter { |_, v| v.many? }.keys
-      errors.add(:fields_configs_string, "Field keys must be unique. Duplicates: #{dupes.inspect}") if dupes.any?
+      errors.add(:field_configs_string, "Field keys must be unique. Duplicates: #{dupes.inspect}") if dupes.any?
     end
 
     def fields
@@ -47,15 +47,15 @@ module HmisSupplemental
     end
 
     # accessor for form input
-    def fields_configs_string
+    def field_configs_string
       JSON.pretty_generate(field_configs || []).html_safe
     end
 
     # accessor for form input
-    def fields_configs_string=(value)
+    def field_configs_string=(value)
       self.field_configs = JSON.parse(value)
     rescue JSON::ParserError => e
-      errors.add(:fields_configs_string, e.message)
+      errors.add(:field_configs_string, e.message)
     end
 
     def object_key

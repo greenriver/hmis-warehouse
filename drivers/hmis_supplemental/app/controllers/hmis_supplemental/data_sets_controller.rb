@@ -69,7 +69,7 @@ module HmisSupplemental
         :slug,
         :data_source_id,
         :owner_type,
-        :fields_configs_string,
+        :field_configs_string,
         remote_credential_attributes: [
           :bucket,
           :s3_access_key_id,
