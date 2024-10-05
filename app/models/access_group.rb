@@ -69,6 +69,12 @@ class AccessGroup < ApplicationRecord
     )
   end
 
+  # all access groups that include any coc_codes
+  scope :for_coc_codes, ->(coc_codes) do
+    q_codes = coc_codes.map { |code| connection.quote(code) }
+    where("#{quoted_table_name}.coc_codes ?| array[#{q_codes.join(',')}]")
+  end
+
   def name
     if user_id.blank?
       super
