@@ -7,6 +7,4 @@
       %li
         = link_to 'Edit', url_for(action: :edit, id: data_set.id), class: 'dropdown-item'
       %li
-        = link_to 'Authorization', edit_hmis_supplemental_data_set_data_sets_authorizations(id: data_set.id), class: 'dropdown-item'
-      %li
         = link_to 'Delete', url_for(action: :destroy, id: data_set.id), method: :delete, data: {confirm: "Would you really like to delete the data set #{data_set.name}?"}, class: 'dropdown-item'
