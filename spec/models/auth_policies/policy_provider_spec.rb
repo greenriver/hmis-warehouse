@@ -41,16 +41,16 @@ RSpec.describe 'GrdaWarehouse::AuthPolicies::PolicyProvider', type: :model do
 
   # TODO: START_ACL remove after ACL migration is complete
   describe 'with legacy user permissions' do
+    let(:access_group) { create(:access_group) }
     let(:user) do
       user = create :user
       role.add(user)
+      access_group.add(user)
       user
     end
 
     context 'with access to a project' do
       before(:each) do
-        access_group = create(:access_group)
-        access_group.add(user)
         access_group.add_viewable(authorized_project)
       end
       it 'allows access to authorized project' do
@@ -61,7 +61,7 @@ RSpec.describe 'GrdaWarehouse::AuthPolicies::PolicyProvider', type: :model do
       end
     end
 
-    context 'with access to a project' do
+    context 'without access to a project' do
       it 'denies access to restricted project' do
         check_permissions(policy: user.policies.for_project(authorized_project), role: nil)
       end
