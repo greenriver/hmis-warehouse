@@ -4,9 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Admin data sets
 module HmisSupplemental
   class DataSetsController < ApplicationController
-    # FIXME: maybe additional permission needed?
+    # I guess this is our stand-in perm for "current user is admin"
     before_action :require_can_edit_users!
 
     def index
@@ -60,7 +61,7 @@ module HmisSupplemental
     end
 
     def data_set_scope
-      HmisSupplemental::DataSet.viewable_by(current_user).order(:id)
+      HmisSupplemental::DataSet.order(:id)
     end
 
     def data_set_params

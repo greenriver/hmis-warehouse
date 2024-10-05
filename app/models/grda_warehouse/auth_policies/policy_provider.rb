@@ -56,13 +56,18 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
       for_supplemental_data_set_using_acls(data_set_id)
     else
       # TODO: START_ACL remove after ACL migration is complete
-      legacy_user_role_policy
+      # choosing not to support role-based access for this feature
+      deny_policy
       # END_ACL
     end
     ::GrdaWarehouse::AuthPolicies::SupplementalDataSetPolicy.new(policy)
   end
 
   protected
+
+  def deny_policy
+    GrdaWarehouse::AuthPolicies::DenyPolicy.instance
+  end
 
   # Policy determined by the intersection of the user's collections and project's collections
   memoize def for_project_using_acls(project_id)

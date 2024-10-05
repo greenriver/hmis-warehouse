@@ -22,8 +22,24 @@ module HmisSupplemental
     validates :slug, uniqueness: true, presence: true
 
     scope :viewable_by, ->(user) do
-      # FIXME
-      current_scope
+      # not supporting legacy role base permissions
+      return none unless user.using_acls?
+
+      # first ask the WH db for all collections containing this resource type
+      gve_scope = GrdaWarehouse::GroupViewableEntity.where(entity_type: sti_name)
+      collection_ids = gve_scope.distinct.pluck(:collection_id)
+
+      # include global system collection
+      collection_ids += [Collection.system_collection(:data_sources)&.id].compact
+
+      # go to the App db to filter the collections to just those the user can access with a give permission
+      permission = :can_view_supplemental_client_data
+      permitted_collection_ids = user.access_controls.joins(:role).where(collection_id: collection_ids).
+        merge(Role.where(permission => true)).
+        pluck(:collection_id)
+
+      # now go back to the WH db and get the resources that belong to the filtered collections
+      where(id: gve_scope.where(collection_id: permitted_collection_ids).select(:entity_id) )
     end
 
     serialize :fields, type: Array
