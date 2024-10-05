@@ -71,8 +71,8 @@ class AccessGroup < ApplicationRecord
 
   # all access groups that include any coc_codes
   scope :for_coc_codes, ->(coc_codes) do
-    q_codes = coc_codes.map { |code| connection.quote(code) }
-    where("#{quoted_table_name}.coc_codes ?| array[#{q_codes.join(',')}]")
+    quoted = SqlHelper.quote_sql_array(coc_codes, type: :varchar)
+    where("#{quoted_table_name}.coc_codes = #{quoted}")
   end
 
   def name
