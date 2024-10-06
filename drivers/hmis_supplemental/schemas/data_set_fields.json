@@ -7,14 +7,14 @@
     "properties": {
       "key": {
         "type": "string",
-        "pattern": "^[a-zA-Z_$][a-zA-Z0-9_$]*$"
+        "pattern": "^[a-z_$][a-z0-9_$]*$"
       },
       "label": {
         "type": "label"
       },
       "type": {
         "type": "string",
-        "enum": ["string", "integer", "float", "boolean", "date"]
+        "enum": ["string", "int", "float", "boolean", "date"]
       },
       "multiValued": {
         "type": "boolean"

@@ -19,7 +19,11 @@ module HmisSupplemental
              foreign_key: 'data_set_id',
              dependent: :restrict_with_exception
     validates :name, presence: true
-    validates :slug, uniqueness: true, presence: true
+    validates :object_key, presence: true
+    has_many :group_viewable_entities,
+             class_name: 'GrdaWarehouse::GroupViewableEntity',
+             as: :entity,
+             dependent: :destroy
 
     scope :viewable_by, ->(user) do
       # not supporting legacy role base permissions
@@ -39,43 +43,39 @@ module HmisSupplemental
         pluck(:collection_id)
 
       # now go back to the WH db and get the resources that belong to the filtered collections
-      where(id: gve_scope.where(collection_id: permitted_collection_ids).select(:entity_id) )
+      where(id: gve_scope.where(collection_id: permitted_collection_ids).select(:entity_id))
     end
 
     serialize :fields, type: Array
 
-    validate :field_configs_validation
-    def field_configs_validation
-      schema_path = Rails.root.join('drivers/hmis_supplemental/schemas/data_set_fields.json')
-      HmisExternalApis::JsonValidator.perform(field_configs, schema_path).each do |error|
-        errors.add(:field_configs_string, error)
+    validate :field_config_validation
+    def field_config_validation
+      object = nil
+      begin
+        object = JSON.parse(field_config)
+      rescue JSON::ParserError => e
+        errors.add(:field_config, e.message)
+        return
       end
-      dupes = field_configs.group_by { |f| f['key'] }.filter { |_, v| v.many? }.keys
-      errors.add(:field_configs_string, "Field keys must be unique. Duplicates: #{dupes.inspect}") if dupes.any?
+
+      schema_path = Rails.root.join('drivers/hmis_supplemental/schemas/data_set_fields.json')
+      HmisExternalApis::JsonValidator.perform(object, schema_path).each do |error|
+        errors.add(:field_config, error)
+      end
+      dupes = object.group_by { |f| f['key'] }.filter { |_, v| v.many? }.keys
+      errors.add(:field_config, "Field keys must be unique. Duplicates: #{dupes.inspect}") if dupes.any?
     end
 
     def fields
-      field_configs.map do |config|
+      JSON.parse(field_config).map do |config|
         config = config.transform_keys(&:underscore)
         config[:data_set] = self
         Field.new(**config)
       end
     end
 
-    # accessor for form input
-    def field_configs_string
-      JSON.pretty_generate(field_configs || []).html_safe
-    end
-
-    # accessor for form input
-    def field_configs_string=(value)
-      self.field_configs = JSON.parse(value)
-    rescue JSON::ParserError => e
-      errors.add(:field_configs_string, e.message)
-    end
-
-    def object_key
-      [remote_credential.s3_prefix, "#{slug}.csv"].compact.join('/')
+    def full_object_key
+      [remote_credential.s3_prefix, object_key].compact.join('/')
     end
   end
 end

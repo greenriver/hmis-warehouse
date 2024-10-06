@@ -78,7 +78,7 @@ module HmisSupplemental
       return if value.nil?
 
       if multi_valued
-        value.to_s.split(DELIMITER).map { |part| cast_value(part) }.presence
+        value.to_s.split(DELIMITER).compact_blank.map { |part| cast_value(part) }.presence
       else
         cast_value(value)
       end
@@ -94,6 +94,8 @@ module HmisSupplemental
         value.to_f
       when BOOLEAN_TYPE
         cast_to_boolean(value)
+      when DATE_TYPE
+        parse_date(value)&.to_fs(:db)
       else
         raise "#{type} not supported"
       end

@@ -21,7 +21,9 @@ module HmisSupplemental
       when GrdaWarehouse::Hud::Enrollment
         owner_key = "enrollment/#{entity.enrollment_id}"
       end
-      where(data_source_id: entity.data_source_id, owner_key: owner_key)
+      joins(:data_set).
+        merge(HmisSupplemental::DataSet.where(data_source_id: entity.data_source_id)).
+        where(owner_key: owner_key)
     end
   end
 end

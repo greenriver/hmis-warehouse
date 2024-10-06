@@ -29,12 +29,12 @@ class HmisSupplemental::ImportJob
   protected
 
   def object_key
-    data_set.object_key
+    data_set.full_object_key
   end
 
   def read_csv_rows
     s3 = data_set.remote_credential.s3
-    csv_string = s3.get_as_io(key: object_key)
+    csv_string = s3.get_as_io(key: object_key).read
     rows = nil
     begin
       rows = parse_csv_string(csv_string)
@@ -72,7 +72,6 @@ class HmisSupplemental::ImportJob
         field_key: field.key,
         data: data,
         data_set_id: data_set.id,
-        data_source_id: data_set.data_source_id,
       }
     end
   end

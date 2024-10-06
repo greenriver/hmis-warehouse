@@ -15,7 +15,7 @@ module HmisSupplemental
     end
 
     def new
-      @data_set = data_set_scope.new
+      @data_set = data_set_scope.new(field_config: '[]')
       @data_set.build_remote_credential
     end
 
@@ -67,10 +67,10 @@ module HmisSupplemental
     def data_set_params
       params.require(:data_set).permit(
         :name,
-        :slug,
+        :object_key,
         :data_source_id,
         :owner_type,
-        :field_configs_string,
+        :field_config,
         remote_credential_attributes: [
           :bucket,
           :s3_access_key_id,

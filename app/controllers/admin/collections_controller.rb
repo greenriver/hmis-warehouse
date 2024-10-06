@@ -264,7 +264,9 @@ module Admin
 
       @cohorts = {
         selected: @collection&.cohorts&.map(&:id) || [],
-        collection: GrdaWarehouse::Cohort.order(:name, :id),
+        collection: GrdaWarehouse::Cohort.
+          active.
+          order(:name),
         placeholder: 'Cohort',
         multiple: true,
         input_html: {
@@ -281,7 +283,6 @@ module Admin
         input_html: {
           class: 'jUserViewable jSupplementalDataSets',
           name: 'collection[supplemental_data_sets][]',
-
         },
       }
     end

@@ -111,8 +111,7 @@
       hmis.merge!({
         key => {
           title: data_set.name,
-          # FIXME: need per data set permission
-          permission: can_view_enrollment_details?,
+          permission: :can_view_supplemental_client_data?,
         }
       })
     end

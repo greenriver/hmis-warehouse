@@ -5,15 +5,13 @@ class ConfigurableClientRecordPage < ActiveRecord::Migration[7.0]
       t.references :data_source, null: false
       t.references :remote_credential
       t.string :owner_type, null: false
-      t.string :slug, null: false
+      t.string :object_key, null: false
       t.string :name, null: false
-      t.jsonb :field_configs, null: false
-      t.index [:slug], unique: true
+      t.string :field_config, null: false
     end
 
     create_table(:hmis_supplemental_field_values) do |t|
       t.references :data_set, null: false, index: false
-      t.references :data_source, null: false
       t.string :field_key, null: false
       t.string :owner_key, null: false
       t.jsonb :data, null: false

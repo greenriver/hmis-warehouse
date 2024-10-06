@@ -13,7 +13,6 @@ module GrdaWarehouse
     alias_attribute :s3_prefix, :path
 
     validates :bucket, presence: true
-    validates :s3_prefix, presence: true
 
     def s3
       @s3 ||= if s3_secret_access_key.present? && s3_secret_access_key != 'unknown'

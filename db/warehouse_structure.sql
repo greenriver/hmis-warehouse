@@ -19125,9 +19125,9 @@ CREATE TABLE public.hmis_supplemental_data_sets (
     data_source_id bigint NOT NULL,
     remote_credential_id bigint,
     owner_type character varying NOT NULL,
-    slug character varying NOT NULL,
+    object_key character varying NOT NULL,
     name character varying NOT NULL,
-    field_configs jsonb NOT NULL
+    field_config character varying NOT NULL
 );
 
 
@@ -19157,7 +19157,6 @@ ALTER SEQUENCE public.hmis_supplemental_data_sets_id_seq OWNED BY public.hmis_su
 CREATE TABLE public.hmis_supplemental_field_values (
     id bigint NOT NULL,
     data_set_id bigint NOT NULL,
-    data_source_id bigint NOT NULL,
     field_key character varying NOT NULL,
     owner_key character varying NOT NULL,
     data jsonb NOT NULL
@@ -54923,31 +54922,10 @@ CREATE INDEX index_hmis_staff_assignments_on_user_id ON public.hmis_staff_assign
 
 
 --
--- Name: index_hmis_supplemental_data_sets_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_supplemental_data_sets_on_data_source_id ON public.hmis_supplemental_data_sets USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_supplemental_data_sets_on_remote_credential_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_supplemental_data_sets_on_remote_credential_id ON public.hmis_supplemental_data_sets USING btree (remote_credential_id);
-
-
---
--- Name: index_hmis_supplemental_data_sets_on_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_hmis_supplemental_data_sets_on_slug ON public.hmis_supplemental_data_sets USING btree (slug);
-
-
---
--- Name: index_hmis_supplemental_field_values_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_supplemental_field_values_on_data_source_id ON public.hmis_supplemental_field_values USING btree (data_source_id);
 
 
 --
@@ -63590,5 +63568,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240918170406'),
 ('20240918171315'),
 ('20240920203113');
-
-

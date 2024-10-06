@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# a "tab" on the client dashboard for viewing a data set.
+# This controller is for both client and enrollment-based data sets
 module HmisSupplemental
   class ClientDataSetsController < ApplicationController
     include ClientController
@@ -52,10 +54,7 @@ module HmisSupplemental
     end
 
     def load_authorized_data_set
-      data_set_scope.find(params[:data_set_id]).tap do |data_set|
-        policy = current_user.policies.for_supplemental_data_set(data_set)
-        not_authorized! unless policy.show?
-      end
+      data_set_scope.find(params[:data_set_id])
     end
 
     def client_groups
