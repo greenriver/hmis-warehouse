@@ -465,7 +465,7 @@ module Types
     def project_configs
       raise 'not allowed' unless current_user.can_configure_data_collection?
 
-      Hmis::ProjectConfig.all
+      Hmis::ProjectConfig.viewable_by(current_user)
     end
 
     field :project_can_accept_referral, Boolean, 'Whether the destination project is able to accept a referral for the client(s) belonging to the source enrollment', null: false do
