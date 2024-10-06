@@ -11,16 +11,14 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
 
   belongs_to :entity, polymorphic: true, optional: true
 
-  # This relationship could be clearer as a has_many relationship, since the instance may have many definition records.
-  # However, there are many usages of this relation from before we implemented form versioning,
-  # so to reduce impact, for now we have just modified the scope to prioritize a published definition if it exists.
+  # This belongs_to relationship is a bit confusing since now form identifiers can have multiple versions.
+  # We should aim to gradually replace usages of :definition with the has_many :definitions relationship below,
+  # so that we're explicit about which statuses of definition (draft, published, retired) we accept in a given situation.
   belongs_to :definition,
              -> { order(Arel.sql("CASE WHEN status = 'published' THEN 0 WHEN status = 'draft' THEN 1 ELSE 2 END")) },
              foreign_key: :definition_identifier, primary_key: :identifier, class_name: 'Hmis::Form::Definition'
 
-  # Use published_definition when we want to filter out Instances on all non-published forms
-  belongs_to :published_definition, -> { published },
-             foreign_key: :definition_identifier, primary_key: :identifier, class_name: 'Hmis::Form::Definition'
+  has_many :definitions, primary_key: :definition_identifier, foreign_key: :identifier, class_name: 'Hmis::Form::Definition'
 
   belongs_to :custom_service_category, optional: true, class_name: 'Hmis::Hud::CustomServiceCategory'
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
