@@ -14,7 +14,7 @@ class Hmis::Hud::CustomServiceCategory < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true
   has_many :service_types, class_name: 'Hmis::Hud::CustomServiceType'
   has_many :form_instances, class_name: 'Hmis::Form::Instance'
-  has_many :definitions, through: :form_instances
+  has_many :definitions, through: :form_instances, source: :definition # todo @martha - `definitions` is probably clearer, but `definition` would be the one that doesn't change behavior
 
   validates_presence_of :name, allow_blank: false
 
