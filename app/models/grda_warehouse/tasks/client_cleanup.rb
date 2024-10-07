@@ -551,12 +551,8 @@ module GrdaWarehouse::Tasks
       end
 
       # Set DifferentIdentityText
-      additional = sorted_source_clients.map { |m| m[:DifferentIdentityText] }.compact
-      dest_attr[:DifferentIdentityText] = if additional.empty?
-        nil
-      else
-        additional.first
-      end
+      additional = sorted_source_clients.map { |m| m[:DifferentIdentityText] }.compact_blank
+      dest_attr[:DifferentIdentityText] = additional.presence&.first
 
       # if we have any yes responses, set this to nil, otherwise use the most-recent GenderNone response
       if dest_attr.values_at(*gender_columns).any?(1)
@@ -603,12 +599,8 @@ module GrdaWarehouse::Tasks
       end
 
       # Set AdditionalRaceEthnicity
-      additional = sorted_source_clients.map { |m| m[:AdditionalRaceEthnicity] }.compact
-      dest_attr[:AdditionalRaceEthnicity] = if additional.empty?
-        nil
-      else
-        additional.first
-      end
+      additional = sorted_source_clients.map { |m| m[:AdditionalRaceEthnicity] }.compact_blank
+      dest_attr[:AdditionalRaceEthnicity] = additional.presence&.first
 
       # if we have any yes responses, set this to nil, otherwise use the most-recent RaceNone response
       if dest_attr.values_at(*race_columns).any?(1)
