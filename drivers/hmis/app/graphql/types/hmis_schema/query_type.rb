@@ -180,13 +180,19 @@ module Types
     field :record_form_definition, Types::Forms::FormDefinition, 'Get the most relevant Form Definition to use for record viewing/editing', null: true do
       argument :role, Types::Forms::Enums::RecordFormRole, required: true
       argument :project_id, ID, required: false, description: 'Optional Project to select the relevant form, and to apply rule filtering (e.g. show/hide questions based on Project applicability)'
+      argument :id, ID, required: false, description: 'Form Definition ID, if known'
     end
-    def record_form_definition(role:, project_id: nil)
+    def record_form_definition(role:, project_id: nil, id: nil)
       raise 'Not supported, use serviceFormDefinition to look up service forms' if role == 'SERVICE'
       raise 'unexpected role' unless Hmis::Form::Definition::FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
-      record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      record = if id
+        Hmis::Form::Definition.find(id)
+      else
+        Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      end
+
       record&.filter_context = { project: project } # Apply project-specific filtering rules. Only relevant for some form types.
       record
     end
@@ -495,7 +501,7 @@ module Types
     field :client_detail_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)'
     def client_detail_forms
       # No authorization required, this just resolving application configuration
-      Hmis::Form::Instance.active.with_role(:CLIENT_DETAIL).sort_by_option(:form_title)
+      Hmis::Form::Instance.active.with_role(:CLIENT_DETAIL).published.sort_by_option(:form_title)
     end
   end
 end
