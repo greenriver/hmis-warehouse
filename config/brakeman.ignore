@@ -156,7 +156,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 314,
+      "line": 322,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -364,7 +364,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/collection.rb",
-      "line": 90,
+      "line": 91,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{quoted_table_name}.coc_codes ?| array[#{coc_codes.map do\n connection.quote(code)\n end.join(\",\")}]\")",
       "render_path": null,
@@ -912,7 +912,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "drivers/hmis_external_apis/app/views/hmis_external_apis/external_forms/form.haml",
-      "line": 4,
+      "line": 5,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "HmisExternalApis::ExternalForms::FormGenerator.new(self, @form_definition).render_node(node)",
       "render_path": null,
@@ -1619,7 +1619,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/common/_pagination_bottom.haml",
-      "line": 3,
+      "line": 4,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "pagy_info(@pagy, :item_name => Translation.translate((local_assigns[:item_name] or \"item\")).pluralize(@pagy.count))",
       "render_path": [
@@ -2238,7 +2238,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb",
-      "line": 880,
+      "line": 881,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.send(variant).send(\"spm_#{field}\").average(\"spm_#{field}\")",
       "render_path": null,
@@ -2307,7 +2307,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/common/_pagination_top.haml",
-      "line": 3,
+      "line": 4,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "pagy_info(@pagy, :item_name => Translation.translate((local_assigns[:item_name] or \"item\")).pluralize(@pagy.count))",
       "render_path": [
@@ -2742,6 +2742,121 @@
       "confidence": "Medium",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "dc5ddd9d543f6383162fa63510eda75c65548eab1ea8b4757f4fe93ce39bedfe",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "drivers/hmis_supplemental/app/controllers/hmis_supplemental/client_data_sets_controller.rb",
+      "line": 43,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisSupplemental::ClientDataSetsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "dc5ddd9d543f6383162fa63510eda75c65548eab1ea8b4757f4fe93ce39bedfe",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "drivers/hmis_supplemental/app/controllers/hmis_supplemental/client_data_sets_controller.rb",
+      "line": 48,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisSupplemental::ClientDataSetsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "dc5ddd9d543f6383162fa63510eda75c65548eab1ea8b4757f4fe93ce39bedfe",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "drivers/hmis_supplemental/app/controllers/hmis_supplemental/client_data_sets_controller.rb",
+      "line": 63,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisSupplemental::ClientDataSetsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "dc5ddd9d543f6383162fa63510eda75c65548eab1ea8b4757f4fe93ce39bedfe",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "drivers/hmis_supplemental/app/controllers/hmis_supplemental/client_data_sets_controller.rb",
+      "line": 69,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisSupplemental::ClientDataSetsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "dc5ddd9d543f6383162fa63510eda75c65548eab1ea8b4757f4fe93ce39bedfe",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "drivers/hmis_supplemental/app/controllers/hmis_supplemental/client_data_sets_controller.rb",
+      "line": 73,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisSupplemental::ClientDataSetsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "cwe_id": [
+        77
       ],
       "note": ""
     },
@@ -3183,6 +3298,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-09-09 11:54:08 +0000",
+  "updated": "2024-10-07 05:14:53 +0000",
   "brakeman_version": "6.1.2"
 }

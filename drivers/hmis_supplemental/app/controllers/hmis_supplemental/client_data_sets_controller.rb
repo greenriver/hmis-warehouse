@@ -23,7 +23,7 @@ module HmisSupplemental
         @groups = source_clients.map do |client|
           {
             title: client.data_source.name,
-            values: @data_set.field_values.for_owner(@client).index_by(&:field_key),
+            values: @data_set.field_values.for_owner(client).index_by(&:field_key),
           }
         end
       when 'enrollment'

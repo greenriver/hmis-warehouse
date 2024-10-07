@@ -282,6 +282,13 @@ namespace :grda_warehouse do
   desc 'Full import routine'
   task daily: [:environment, 'log:info_to_stdout'] do
     Importing::RunDailyImportsJob.new.perform
+
+    HmisSupplemental::DataSet.order(:id).each do |data_set|
+      HmisSupplemental::ImportJob.new.perform(data_set_id: data_set.id)
+    rescue StandardError => e
+      puts e.message
+      Sentry.capture_exception(e)
+    end
   end
 
   desc 'Hourly tasks'

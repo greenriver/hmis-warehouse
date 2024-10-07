@@ -7,11 +7,18 @@
 class HmisSupplemental::ImportJob
   attr_reader :data_set
 
-  def perform(data_set:)
-    @data_set = data_set
+  # csv_string is mostly for QA
+  def perform(data_set_id:, csv_string: nil)
+    @data_set = HmisSupplemental::DataSet.where(id: data_set_id).first
+    return unless @data_set
+
+    csv_string ||= read_csv_from_s3
 
     with_lock do
-      values = read_csv_rows.flat_map { |row| process_row(row) }.compact
+      values = read_csv_rows(csv_string).
+        flat_map { |row| process_row(row) }.
+        compact
+
       if values.empty?
         log('Could not map custom data elements from CSV')
         return
@@ -20,7 +27,7 @@ class HmisSupplemental::ImportJob
       values = deduplicate_rows(values)
       data_set.transaction do
         # Delete and recreate. This could be an upsert
-        data_set.field_values.delete_all
+        data_set.field_values.delete_all(:delete_all)
         HmisSupplemental::FieldValue.import!(values, validate: false)
       end
     end
@@ -32,9 +39,12 @@ class HmisSupplemental::ImportJob
     data_set.full_object_key
   end
 
-  def read_csv_rows
+  def read_csv_from_s3
     s3 = data_set.remote_credential.s3
-    csv_string = s3.get_as_io(key: object_key).read
+    s3.get_as_io(key: object_key).read
+  end
+
+  def read_csv_rows(csv_string)
     rows = nil
     begin
       rows = parse_csv_string(csv_string)

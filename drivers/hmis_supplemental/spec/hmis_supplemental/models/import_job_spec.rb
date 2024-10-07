@@ -21,7 +21,7 @@ RSpec.describe HmisSupplemental::ImportJob, type: :model do
   def run_job(data_set, content)
     allow(s3_client_double).to receive(:get_as_io).and_return(StringIO.new(content))
     allow_any_instance_of(GrdaWarehouse::RemoteCredentials::S3).to receive(:s3).and_return(s3_client_double)
-    HmisSupplemental::ImportJob.new.perform(data_set: data_set)
+    HmisSupplemental::ImportJob.new.perform(data_set_id: data_set.id)
   end
 
   def csv_string(rows)
