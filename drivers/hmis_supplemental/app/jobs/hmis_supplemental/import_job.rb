@@ -49,10 +49,27 @@ class HmisSupplemental::ImportJob
     rows || []
   end
 
-  # consolidate multi-valued rows; otherwise take the last value
+  # consolidate multi-valued rows; otherwise use the first value
   def deduplicate_rows(rows)
-    # TBD
-    rows
+    results = {}
+
+    fields = data_set.fields.index_by(&:key)
+    rows.each do |row|
+      field_key = row.fetch(:field_key)
+      field = fields.fetch(field_key)
+      row_key = "#{field_key}|#{row.fetch(:owner_key)}"
+
+      result = results[row_key]
+      if result
+        next unless field.multi_valued
+
+        result[:data] = Array(result[:data]) + Array(row[:data])
+      else
+        results[row_key] = row
+      end
+    end
+
+    results.values
   end
 
   def process_row(row)
