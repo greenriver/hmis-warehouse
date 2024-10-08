@@ -282,13 +282,6 @@ namespace :grda_warehouse do
   desc 'Full import routine'
   task daily: [:environment, 'log:info_to_stdout'] do
     Importing::RunDailyImportsJob.new.perform
-
-    HmisSupplemental::DataSet.order(:id).each do |data_set|
-      HmisSupplemental::ImportJob.new.perform(data_set_id: data_set.id)
-    rescue StandardError => e
-      puts e.message
-      Sentry.capture_exception(e)
-    end
   end
 
   desc 'Hourly tasks'
@@ -330,6 +323,12 @@ namespace :grda_warehouse do
     if DateTime.current.hour == 20 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
       # Run AC Data Warehouse exports to SFTP server at 8pm
       Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
+    end
+
+    if DateTime.current.hour == 4 && RailsDrivers.loaded.include?(:hmis_supplemental)
+      HmisSupplemental::DataSet.order(:id).each do |data_set|
+        HmisSupplemental::ImportJob.perform_later(data_set_id: data_set.id)
+      end
     end
 
     begin

@@ -8,12 +8,13 @@
 
   .form-inputs
     = f.input :name, required: true
-    = f.input :owner_type, collection: ['enrollment', 'client'], required: true
-    = f.input :data_source_id, collection: data_sources.order(:name).map {|d| [d.name, d.id]}, required:true
+    = f.input :owner_type, collection: ['enrollment', 'client'], required: true, as: :radio_buttons
+    = f.input :data_source_id, collection: data_sources.order(:name).map {|d| [d.name, d.id]}, required: true, as: :select_two
     = f.input :field_config, as: :text, label: 'Field Configuration JSON', hint: 'example: `[{"key":"widget","type":"float","label":"The Widget","multiValued":false}]`', input_html: {rows: 10}
     = f.fields_for(:remote_credential) do |sf|
       %fieldset
         %legend S3 Configuration
+        = sf.input :region, as: :string, label: 'S3 region'
         = sf.input :bucket, as: :string, label: 'S3 bucket'
         = f.input :object_key, label: 's3 object key', required: true, hint: 'what is the file name to import from, for example "/data/my-data-set.csv"'
         = sf.input :s3_access_key_id, as: :string, hint: 'leave blank if using roles'

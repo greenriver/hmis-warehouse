@@ -12,6 +12,7 @@ module GrdaWarehouse
     alias_attribute :s3_secret_access_key, :password
     alias_attribute :s3_prefix, :path
 
+    validates :region, presence: true
     validates :bucket, presence: true
 
     def s3

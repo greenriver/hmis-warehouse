@@ -17,7 +17,7 @@ module HmisSupplemental
     has_many :field_values,
              class_name: 'HmisSupplemental::FieldValue',
              foreign_key: 'data_set_id',
-             dependent: :restrict_with_exception
+             dependent: :delete_all
     validates :name, presence: true
     validates :object_key, presence: true
     has_many :group_viewable_entities,
@@ -34,7 +34,7 @@ module HmisSupplemental
       collection_ids = gve_scope.distinct.pluck(:collection_id)
 
       # include global system collection
-      collection_ids += [Collection.system_collection(:data_sources)&.id].compact
+      collection_ids += [Collection.system_collection(:supplemental_data_sets)&.id].compact
 
       # go to the App db to filter the collections to just those the user can access with a give permission
       permission = :can_view_supplemental_client_data

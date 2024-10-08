@@ -561,7 +561,7 @@ class Role < ApplicationRecord
         sub_category: 'Privacy',
       },
       can_view_supplemental_client_data: {
-        description: 'Access to external supplemental client data',
+        description: 'Access to assigned external supplemental client data',
         administrative: false,
         category: 'Client Extras',
         sub_category: 'General Client Access',

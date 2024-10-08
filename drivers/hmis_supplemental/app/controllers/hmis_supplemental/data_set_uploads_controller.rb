@@ -4,10 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Admin data sets
+# Test / QA for data set imports
 module HmisSupplemental
   class DataSetUploadsController < ApplicationController
-    before_action :require_can_edit_users!
+    before_action :require_can_manage_config!
 
     def new
       @data_set = load_data_set

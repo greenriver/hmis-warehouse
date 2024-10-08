@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class HmisSupplemental::ImportJob
+class HmisSupplemental::ImportJob < BaseJob
   attr_reader :data_set
 
   # csv_string is mostly for QA
@@ -16,7 +16,7 @@ class HmisSupplemental::ImportJob
 
     with_lock do
       values = read_csv_rows(csv_string).
-        flat_map { |row| process_row(row) }.
+        flat_map { |row| row_values(row) }.
         compact
 
       if values.empty?
@@ -82,7 +82,7 @@ class HmisSupplemental::ImportJob
     results.values
   end
 
-  def process_row(row)
+  def row_values(row)
     data_set.fields.map do |field|
       data = field.row_value_data(row)
       next if data.nil?
@@ -90,7 +90,7 @@ class HmisSupplemental::ImportJob
       owner_key = field.row_owner_key(row)
 
       if owner_key.nil?
-        log("could not find owner for in CSV, line #{row[:row_number]}")
+        log("could not find owner in CSV, line #{row[:row_number]}")
         next
       end
 

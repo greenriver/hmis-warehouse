@@ -4,11 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Admin data sets
+# Manage data sets
 module HmisSupplemental
   class DataSetsController < ApplicationController
-    # I guess this is our stand-in perm for "current user is admin"
-    before_action :require_can_edit_users!
+    before_action :require_can_manage_config!
 
     def index
       @data_sets = data_set_scope
@@ -72,6 +71,7 @@ module HmisSupplemental
         :owner_type,
         :field_config,
         remote_credential_attributes: [
+          :region,
           :bucket,
           :s3_access_key_id,
           :s3_secret_access_key,

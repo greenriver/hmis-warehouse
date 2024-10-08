@@ -154,7 +154,7 @@ class Collection < ApplicationRecord
       projects: 'Projects',
       reports: 'Reports',
       cohorts: 'Cohorts',
-      supplemental_data_sets: 'Supplemental Data Sources',
+      supplemental_data_sets: 'Supplemental Data Sets',
       project_groups: 'Project Groups', # access to project groups
     }.freeze
   end
