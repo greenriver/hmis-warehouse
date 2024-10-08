@@ -8,6 +8,11 @@
 module HmisSupplemental
   class DataSetUploadsController < ApplicationController
     before_action :require_can_manage_config!
+    before_action :require_can_edit_data_sources!
+    before_action :load_authorized_data_source
+    def load_authorized_data_source
+      @data_source = ::GrdaWarehouse::DataSource.viewable_by(current_user).find(params[:data_source_id])
+    end
 
     def new
       @data_set = load_data_set
@@ -35,7 +40,7 @@ module HmisSupplemental
     end
 
     def data_set_scope
-      HmisSupplemental::DataSet.order(:id)
+      HmisSupplemental::DataSet.where(data_source: @data_source).order(:id)
     end
   end
 end

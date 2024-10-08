@@ -477,14 +477,6 @@ class Menu::Menu
         title: 'Oauth',
       ),
     )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_manage_config? },
-        path: hmis_supplemental_data_sets_path,
-        title: 'Supplemental Data',
-      ),
-    )
     menu
   end
 

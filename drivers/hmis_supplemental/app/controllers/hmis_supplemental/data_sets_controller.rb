@@ -8,6 +8,8 @@
 module HmisSupplemental
   class DataSetsController < ApplicationController
     before_action :require_can_manage_config!
+    before_action :require_can_edit_data_sources!
+    before_action :load_authorized_data_source
 
     def index
       @data_sets = data_set_scope
@@ -55,19 +57,22 @@ module HmisSupplemental
 
     protected
 
+    def load_authorized_data_source
+      @data_source = GrdaWarehouse::DataSource.viewable_by(current_user).find(params[:data_source_id])
+    end
+
     def load_data_set
       data_set_scope.find(params[:id])
     end
 
     def data_set_scope
-      HmisSupplemental::DataSet.order(:id)
+      HmisSupplemental::DataSet.where(data_source: @data_source).order(:id)
     end
 
     def data_set_params
       params.require(:data_set).permit(
         :name,
         :object_key,
-        :data_source_id,
         :owner_type,
         :field_config,
         remote_credential_attributes: [
@@ -78,10 +83,6 @@ module HmisSupplemental
           :s3_prefix,
         ],
       )
-    end
-
-    helper_method def data_sources
-      ::GrdaWarehouse::DataSource.viewable_by(current_user)
     end
   end
 end
