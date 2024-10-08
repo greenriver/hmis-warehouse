@@ -19,7 +19,7 @@ class ClientHistory
     @years = years
 
     @client = ::GrdaWarehouse::Hud::Client.destination.find(client_id.to_i)
-    @dates = set_pdf_dates(client: @client, requesting_user: @requesting_user)
+    @dates = set_pdf_dates(client: @client, requesting_user: @requesting_user, years: years)
   end
 
   # Limit to Residential Homeless programs
