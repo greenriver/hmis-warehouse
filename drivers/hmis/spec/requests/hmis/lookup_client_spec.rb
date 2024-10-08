@@ -42,6 +42,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ssn
           dob
           age
+          hudChronic
           user {
             id
             name
@@ -173,6 +174,55 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       'emailAddresses' => [{ 'value' => 'email@e.mail', 'use' => 'home', 'system' => 'email' }],
     )
     expect(result.dig('data', 'client', 'image')).not_to be_nil
+  end
+
+  context 'with a client who is chronically homeless per HUD definition' do
+    let!(:warehouse_ds) { create :destination_data_source }
+    let!(:client) { create :grda_warehouse_hud_client, data_source_id: warehouse_ds.id }
+    let!(:project) do
+      create(
+        :grda_warehouse_hud_project,
+        project_id: 50000,
+        ProjectType: 1,
+        data_source_id: ds1.id,
+      )
+    end
+    let!(:source_client) do
+      create(
+        :grda_warehouse_hud_client,
+        data_source_id: ds1.id,
+        PersonalID: client.PersonalID,
+      )
+    end
+    let!(:warehouse_client) do
+      create(
+        :warehouse_client,
+        destination: client,
+        source: source_client,
+        data_source_id: source_client.data_source_id,
+      )
+    end
+    let!(:source_enrollment) do
+      create(
+        :hud_enrollment,
+        EnrollmentID: 'a',
+        ProjectID: project.ProjectID,
+        EntryDate: Date.new(2014, 4, 1),
+        DisablingCondition: 1,
+        data_source_id: source_client.data_source_id,
+        PersonalID: source_client.PersonalID,
+      )
+    end
+
+    before(:each) do
+      Rails.cache.delete('chronically_disabled_clients')
+    end
+
+    it 'should return chronic status correctly' do
+      response, result = post_graphql(id: c1.id) { query }
+      expect(response.status).to eq 200
+      expect(result.dig('data', 'client', 'hudChronic')).to eq(true)
+    end
   end
 
   it 'should return client if can view clients and client is unenrolled' do

@@ -339,9 +339,9 @@ module Types
     def hud_chronic
       return unless current_permission?(permission: :can_view_hud_chronic_status, entity: object)
 
-      # client.hud_chronic causes n+1 queries
-      enrollments = object.enrollments.hmis
-      !!object.hud_chronic?(scope: enrollments)
+      # causes n+1 queries
+      enrollments = object.enrollments.where(data_source_id: current_user.hmis_data_source_id)
+      !!object.destination_client&.as_warehouse&.hud_chronic?(scope: enrollments)
     end
 
     def audit_history(filters: nil)
