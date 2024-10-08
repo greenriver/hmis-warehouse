@@ -33,9 +33,6 @@ module HmisSupplemental
       gve_scope = GrdaWarehouse::GroupViewableEntity.where(entity_type: sti_name)
       collection_ids = gve_scope.distinct.pluck(:collection_id)
 
-      # include global system collection
-      collection_ids += [Collection.system_collection(:supplemental_data_sets)&.id].compact
-
       # go to the App db to filter the collections to just those the user can access with a give permission
       permission = :can_view_supplemental_client_data
       permitted_collection_ids = user.access_controls.joins(:role).where(collection_id: collection_ids).

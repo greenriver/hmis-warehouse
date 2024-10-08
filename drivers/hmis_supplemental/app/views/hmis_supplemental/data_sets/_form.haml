@@ -16,7 +16,7 @@
       %fieldset
         %legend S3 Configuration
         = sf.input :region, as: :string, label: 'S3 region'
-        = sf.input :bucket, as: :string, label: 'S3 bucket'
+        = sf.input :region, label: 'S3 region', collection: GrdaWarehouse::RecurringHmisExport.available_s3_regions, as: :select_tw
         = f.input :object_key, label: 's3 object key', required: true, hint: 'what is the file name to import from, for example "/data/my-data-set.csv"'
         = sf.input :s3_access_key_id, as: :string, hint: 'leave blank if using roles'
         = sf.input :s3_secret_access_key, as: :string, hint: 'leave blank if using roles'
