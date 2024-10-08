@@ -588,6 +588,29 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "305c59766f1c42789716d8f3e4c9e8a357b2aed60990c0b5bb7fb13ecfec8325",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hmis_external_apis/app/models/hmis_external_apis/tc_hmis/importers/importer.rb",
+      "line": 105,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Hmis::Hud::Base.connection.exec_query(\"ANALYZE #{table_names.uniq.map do\n Hmis::Hud::Base.connection.quote_table_name(n)\n end.join(\",\")};\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisExternalApis::TcHmis::Importers::Importer",
+        "method": "analyze_tables"
+      },
+      "user_input": "Hmis::Hud::Base.connection.quote_table_name(n)",
+      "confidence": "High",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "342d35ee429ab461a9054be831be9ebc311521f286eba079af4e89e55a6221ef",
@@ -1207,7 +1230,7 @@
       "warning_code": 2,
       "fingerprint": "70b70b984f26e96e4c136d1371587575175b3f7e6e7cb0c597f1a73c7cd9f781",
       "check_name": "CrossSiteScripting",
-      "message": "Unescaped parameter value",
+      "message": "Unescaped model attribute",
       "file": "app/views/warehouse_reports/chronic_housed/index.haml",
       "line": 40,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
@@ -1229,7 +1252,7 @@
         "type": "template",
         "template": "warehouse_reports/chronic_housed/index"
       },
-      "user_input": "params.permit(:range => ([:start, :end]))[:range]",
+      "user_input": "::Filters::DateRange.new((params.permit(:range => ([:start, :end]))[:range] or { :start => 3.month.ago.to_date, :end => 1.months.ago.to_date })).range",
       "confidence": "Weak",
       "cwe_id": [
         79
@@ -1734,6 +1757,28 @@
       "confidence": "Medium",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Format Validation",
+      "warning_code": 30,
+      "fingerprint": "8a5e425c96fc24a9ce888fdbeb5dd37f9d6966ec68e39ec3a740096874ca00b6",
+      "check_name": "ValidationRegex",
+      "message": "Insufficient validation for `postal_code` using `/\\A\\d{5}/`. Use `\\A` and `\\z` as anchors",
+      "file": "drivers/hmis/app/models/hmis/hud/custom_client_address.rb",
+      "line": 108,
+      "link": "https://brakemanscanner.org/docs/warning_types/format_validation/",
+      "code": null,
+      "render_path": null,
+      "location": {
+        "type": "model",
+        "model": "Hmis::Hud::CustomClientAddress"
+      },
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        777
       ],
       "note": ""
     },
@@ -2815,6 +2860,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-10-07 17:20:53 +0000",
-  "brakeman_version": "6.1.2"
+  "updated": "2024-10-08 21:18:41 +0000",
+  "brakeman_version": "6.2.1"
 }

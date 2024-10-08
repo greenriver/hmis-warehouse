@@ -42,8 +42,8 @@ module Types
     def form_definitions
       raise 'unauthorized' unless current_user.can_configure_data_collection?
 
-      definitions_for_type = load_ar_association(object, :definitions)
-      definitions_for_category = load_ar_association(category_record, :definitions)
+      definitions_for_type = load_ar_association(object, :definitions).select(&:published?)
+      definitions_for_category = load_ar_association(category_record, :definitions).select(&:published?)
       (definitions_for_type + definitions_for_category).uniq.sort_by(&:id)
     end
 

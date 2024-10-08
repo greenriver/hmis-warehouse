@@ -17,9 +17,6 @@ RSpec.shared_context 'datalab organization m rrh caper', shared_context: :metada
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q4a',
-        skip: [
-          'L2', # Is the generator name, so not expected to match
-        ],
       )
     end
 
@@ -121,11 +118,14 @@ RSpec.shared_context 'datalab organization m rrh caper', shared_context: :metada
       )
     end
 
-    # Almost matches (off by a few)
-    xit 'Q10d' do
+    it 'Q10d' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q10d',
+        skip: [
+          'E2', # expected '31.0000' (31), got '32.0000' (32)
+          'E33', # expected '66.0000' (66), got '67.0000' (67)
+        ],
       )
     end
 
@@ -255,11 +255,25 @@ RSpec.shared_context 'datalab organization m rrh caper', shared_context: :metada
       )
     end
 
-    # TODO: Off by a bit - looks like issue identifying between persons moved into housing and persons who were exited without move-in
-    xit 'Q22g' do
+    it 'Q22g' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
+        skip: [
+          'D2', # expected '10.0000' (10), got '22.0000' (22)
+          'H2', # expected '26.0000' (26), got '49.0000' (49)
+          'I2', # expected '7.0000' (7), got '9.0000' (9)
+          'J2', # expected '11.0000' (11), got '17.0000' (17)
+          'D3', # expected '0.0000' (0), got '3.0000' (3)
+          'H3', # expected '0.0000' (0), got '6.0000' (6)
+          'I3', # expected '0.0000' (0), got '3.0000' (3)
+          'J3', # expected '0.0000' (0), got '1.0000' (1)
+          'D4', # expected '238.7000' (238.7000), got '391.7700' (391.7727)
+          'H4', # expected '243.5800' (243.5769), got '199.8200' (199.8163)
+          'I4', # expected '83.1400' (83.1429), got '182.5600' (182.5556)
+          'J4', # expected '183.5500' (183.5455), got '186.6500' (186.6471)
+          'H5', # expected '151.5000' (151.5000), got '93.0000' (93.0)
+        ],
       )
     end
 
