@@ -1,15 +1,16 @@
-%table.table.table-striped
-  %thead
-    %tr
-      %th Name
-      %th Data Source
-      %th S3 Location
-      %th
-  %tbody
-    - list.preload(:data_source, :remote_credential).each do |data_set|
+.card.overflow-visible
+  %table.table.table-striped
+    %thead
       %tr
-        %td= link_to data_set.name, url_for(action: :edit, id: data_set.id)
-        %td= data_set.data_source.name
-        %td
-          = [data_set.remote_credential.bucket, data_set.full_object_key].join('/')
-        %td= render 'actions', data_set: data_set
+        %th Name
+        %th Data Source
+        %th S3 Location
+        %th
+    %tbody
+      - list.preload(:data_source, :remote_credential).each do |data_set|
+        %tr
+          %td= link_to data_set.name, url_for(action: :edit, id: data_set.id)
+          %td= data_set.data_source.name
+          %td
+            = [data_set.remote_credential.bucket, data_set.full_object_key].join('/')
+          %td= render 'actions', data_set: data_set
