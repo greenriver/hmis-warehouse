@@ -11,7 +11,7 @@ class ClientHistory
     user_id:,
     years:
   )
-
+    years = 3 unless years.present? # default to 3 years if none are provided
     @user = User.system_user
 
     # The user that requested the PDF generation. If job was kicked off from CAS, this is nil.
