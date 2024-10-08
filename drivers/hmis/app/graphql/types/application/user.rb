@@ -104,7 +104,10 @@ module Types
 
     def staff_assignments
       # n+1, not performant for queries on collections
-      object.staff_assignments.viewable_by(current_user).active.order(created_at: :desc, id: :desc)
+      object.staff_assignments.
+        viewable_by(current_user).
+        open_on_date. # This will include households that exited today
+        order(created_at: :desc, id: :desc)
     end
   end
 end

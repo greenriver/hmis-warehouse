@@ -17,7 +17,7 @@ class Hmis::StaffAssignment < Hmis::HmisBase
     joins(:household).merge(Hmis::Hud::Household.viewable_by(user))
   end
 
-  scope :active, -> do
-    joins(:household).merge(Hmis::Hud::Household.active)
+  scope :open_on_date, ->(date = Date.current) do
+    joins(:household).merge(Hmis::Hud::Household.open_on_date(date))
   end
 end
