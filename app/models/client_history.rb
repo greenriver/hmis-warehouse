@@ -34,16 +34,20 @@ class ClientHistory
     dates.keys.sort
   end
 
+  def lookback_date
+    @lookback_date ||= Date.current - years.years
+  end
+
   def chronic
     ::GrdaWarehouse::Config.get(:chronic_definition).to_sym == :chronics ? client.potentially_chronic?(on_date: Date.current) : client.hud_chronic?(on_date: Date.current)
   end
 
   def organization_counts
-    dates.values.flatten.group_by { |en| HudUtility2024.project_type en[:organization_name] }.transform_values(&:count)
+    dates.select { |d| d > lookback_date }.values.flatten.group_by { |en| HudUtility2024.project_type en[:organization_name] }.transform_values(&:count)
   end
 
   def project_type_counts
-    dates.values.flatten.group_by { |en| HudUtility2024.project_type en[:project_type] }.transform_values(&:count)
+    dates.select { |d| d > lookback_date }.values.flatten.group_by { |en| HudUtility2024.project_type en[:project_type] }.transform_values(&:count)
   end
 
   def generate_service_history_pdf
