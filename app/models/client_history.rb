@@ -6,12 +6,7 @@
 
 class ClientHistory
   attr_reader :client, :user, :requesting_user, :years
-  def initialize(
-    client_id:,
-    user_id:,
-    years:
-  )
-
+  def initialize(client_id:, user_id:, years: 3)
     @user = User.system_user
 
     # The user that requested the PDF generation. If job was kicked off from CAS, this is nil.
@@ -35,7 +30,7 @@ class ClientHistory
   end
 
   def lookback_date
-    @lookback_date ||= Date.current - years.years
+    @lookback_date ||= Date.current - years
   end
 
   def chronic
@@ -100,12 +95,7 @@ class ClientHistory
     end
   end
 
-  def set_pdf_dates(
-    client:,
-    requesting_user:,
-    dates: {},
-    years: 3
-  )
+  def set_pdf_dates(client:, requesting_user:, dates: {}, years: 3)
     client.enrollments_for_verified_homeless_history(user: requesting_user).
       homeless.
       enrollment_open_in_prior_years(years: years).
