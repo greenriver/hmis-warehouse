@@ -59,7 +59,7 @@ class DjMetrics
   def refresh_queue_sizes!
     others = @queues.dup
 
-    Delayed::Job.where('failed_at IS NULL').where('locked_by IS NULL').group(:queue).count.each do |queue, size|
+    Delayed::Job.where(failed_at: nil, locked_by: nil).group(:queue).count.each do |queue, size|
       @queues << queue
       others.delete(queue)
       # Rails.logger.info "Setting #{queue} to size #{size}"
