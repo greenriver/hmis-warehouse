@@ -17,7 +17,7 @@ module HmisSupplemental
     ].freeze
     CLIENT_OWNER = 'client'.freeze
     CLIENT_ID_FIELD = 'personal_id'.freeze
-    ENROLLMENT_OWNER = 'owner'.freeze
+    ENROLLMENT_OWNER = 'enrollment'.freeze
     ENROLLMENT_ID_FIELD = 'enrollment_id'.freeze
 
     def format_value(field_value)
