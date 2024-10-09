@@ -185,8 +185,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
              project: p1,
              client: c1,
              DisablingCondition: 1,
-             MonthsHomelessThisTime: 13,
-             DateToStreetESSH: 13.months.ago
+             MonthsHomelessPastThreeYears: 112, # see MonthsHomelessPastThreeYears enum
+             TimesHomelessPastThreeYears: 4
     end
     let!(:disability) { create :hmis_disability, client: c1, enrollment: e1 }
 
