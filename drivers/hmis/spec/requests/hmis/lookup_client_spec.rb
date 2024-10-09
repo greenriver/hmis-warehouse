@@ -177,46 +177,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   context 'with a client who is chronically homeless per HUD definition' do
-    let!(:warehouse_ds) { create :destination_data_source }
-    let!(:client) { create :grda_warehouse_hud_client, data_source_id: warehouse_ds.id }
-    let!(:project) do
-      create(
-        :grda_warehouse_hud_project,
-        project_id: 50000,
-        ProjectType: 1,
-        data_source_id: ds1.id,
-      )
-    end
-    let!(:source_client) do
-      create(
-        :grda_warehouse_hud_client,
-        data_source_id: ds1.id,
-        PersonalID: client.PersonalID,
-      )
-    end
-    let!(:warehouse_client) do
-      create(
-        :warehouse_client,
-        destination: client,
-        source: source_client,
-        data_source_id: source_client.data_source_id,
-      )
-    end
-    let!(:source_enrollment) do
-      create(
-        :hud_enrollment,
-        EnrollmentID: 'a',
-        ProjectID: project.ProjectID,
-        EntryDate: Date.new(2014, 4, 1),
-        DisablingCondition: 1,
-        data_source_id: source_client.data_source_id,
-        PersonalID: source_client.PersonalID,
-      )
-    end
-
-    before(:each) do
-      Rails.cache.delete('chronically_disabled_clients')
-    end
+    let!(:client) { create :hmis_hud_client_with_warehouse_client, data_source: ds1 }
+    let!(:enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, DisablingCondition: 1, MonthsHomelessThisTime: 13 }
 
     it 'should return chronic status correctly' do
       response, result = post_graphql(id: c1.id) { query }
