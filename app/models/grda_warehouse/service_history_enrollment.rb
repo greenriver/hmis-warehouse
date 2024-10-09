@@ -192,7 +192,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   }
 
   scope :enrollment_open_in_prior_years, ->(years: 3) do
-    lookback_date = DateTime.current - years
+    lookback_date = DateTime.current - years.years
     where(
       arel_table[:last_date_in_program].eq(nil).
       or(arel_table[:first_date_in_program].gt(lookback_date)).

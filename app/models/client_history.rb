@@ -30,7 +30,7 @@ class ClientHistory
   end
 
   def lookback_date
-    @lookback_date ||= Date.current - years
+    @lookback_date ||= Date.current - years.years
   end
 
   def chronic
