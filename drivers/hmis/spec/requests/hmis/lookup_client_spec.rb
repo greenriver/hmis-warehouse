@@ -177,8 +177,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   context 'with a client who is chronically homeless per HUD definition' do
-    let!(:client) { create :hmis_hud_client_with_warehouse_client, data_source: ds1 }
-    let!(:enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, DisablingCondition: 1, MonthsHomelessThisTime: 13 }
+    let!(:c1) { create :hmis_hud_client_with_warehouse_client, data_source: ds1 }
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, DisablingCondition: 1, MonthsHomelessThisTime: 13 }
 
     it 'should return chronic status correctly' do
       response, result = post_graphql(id: c1.id) { query }
