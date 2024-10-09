@@ -79,6 +79,9 @@ module Filters
     attribute :dates_to_compare, Symbol, default: :entry_to_exit
     attribute :days_since_contact_min, Integer, default: nil
     attribute :days_since_contact_max, Integer, default: nil
+    # personal_ids_for_days_since_contact_calculations is used to increase performance
+    # of the CTEs used to filter for days since contact.  Set this directly if necessary
+    attribute :personal_ids_for_days_since_contact_calculations, Array, default: []
     attribute :required_files, Array, default: []
     attribute :optional_files, Array, default: []
     attribute :active_roi, Boolean, default: false
