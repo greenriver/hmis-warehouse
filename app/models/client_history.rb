@@ -6,12 +6,7 @@
 
 class ClientHistory
   attr_reader :client, :user, :requesting_user, :years
-  def initialize(
-    client_id:,
-    user_id:,
-    years:
-  )
-
+  def initialize(client_id:, user_id:, years: 3)
     @user = User.system_user
 
     # The user that requested the PDF generation. If job was kicked off from CAS, this is nil.
@@ -34,16 +29,20 @@ class ClientHistory
     dates.keys.sort
   end
 
+  def lookback_date
+    @lookback_date ||= Date.current - years.years
+  end
+
   def chronic
     ::GrdaWarehouse::Config.get(:chronic_definition).to_sym == :chronics ? client.potentially_chronic?(on_date: Date.current) : client.hud_chronic?(on_date: Date.current)
   end
 
   def organization_counts
-    dates.values.flatten.group_by { |en| HudUtility2024.project_type en[:organization_name] }.transform_values(&:count)
+    dates.select { |d| d > lookback_date }.values.flatten.group_by { |en| HudUtility2024.project_type en[:organization_name] }.transform_values(&:count)
   end
 
   def project_type_counts
-    dates.values.flatten.group_by { |en| HudUtility2024.project_type en[:project_type] }.transform_values(&:count)
+    dates.select { |d| d > lookback_date }.values.flatten.group_by { |en| HudUtility2024.project_type en[:project_type] }.transform_values(&:count)
   end
 
   def generate_service_history_pdf
@@ -96,12 +95,7 @@ class ClientHistory
     end
   end
 
-  def set_pdf_dates(
-    client:,
-    requesting_user:,
-    dates: {},
-    years: 3
-  )
+  def set_pdf_dates(client:, requesting_user:, dates: {}, years: 3)
     client.enrollments_for_verified_homeless_history(user: requesting_user).
       homeless.
       enrollment_open_in_prior_years(years: years).
