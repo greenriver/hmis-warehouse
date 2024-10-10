@@ -40,20 +40,18 @@ class IdentifyExternalClientsJob < BaseJob
         data_string = s3.get_as_io(key: input_key)&.read
 
         content_type = FileMagic.new(FileMagic::MAGIC_MIME_TYPE).buffer(data_string)
-        if content_type != 'text/csv'
+        if ! content_type.in?(['text/csv', 'text/plain'])
           log("invalid content type #{content_type}", object_key: input_key)
           next
         end
 
         input_rows = data_string ? parse_csv_string(data_string, key: input_key) : nil
         if input_rows.blank?
-          log('invalid CSV content', object_key: input_key, crash: true)
+          log('invalid CSV content', object_key: input_key)
           next
         end
 
         output_rows = input_rows.map { |row| process_row(row, external_id_field) }.compact
-        log('no matching rows found', object_key: input_key) if output_rows.empty?
-
         log("matched #{output_rows.size} of #{input_rows.size} rows", type: :info, object_key: input_key)
 
         # s3.store raises on failure
@@ -159,9 +157,9 @@ class IdentifyExternalClientsJob < BaseJob
     end
   end
 
-  def log(message, object_key:, type: :error, crash: false)
+  def log(message, object_key:, type: :error)
     Rails.logger.send(type, "#{self.class.name} s3:#{object_key}: #{message}")
-    return unless crash
+    return unless type == :error
 
     Sentry.capture_exception_with_info(
       StandardError.new(message),
