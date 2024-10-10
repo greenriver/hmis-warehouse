@@ -134,7 +134,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   scope :receiving_referrals, -> do
     # Find all active instances that enable the Referral functionality
-    instance_scope = Hmis::Form::Instance.active.with_role(:REFERRAL)
+    instance_scope = Hmis::Form::Instance.active.with_role(:REFERRAL).published
     # Find open projects that have an instance that match the criteria, which indicates that the
     # project accepts referrals.
 
@@ -180,7 +180,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   def receives_referrals?
-    Hmis::Form::Instance.active.with_role(:REFERRAL).any? { |instance| instance.project_match(self) }
+    Hmis::Form::Instance.active.published.with_role(:REFERRAL).any? { |instance| instance.project_match(self) }
   end
 
   def active
@@ -221,7 +221,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def data_collection_features
     # Create OpenStruct for each enabled feature
     Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.map do |role|
-      base_scope = Hmis::Form::Instance.with_role(role)
+      # To discuss: We don't currently support retiring forms, but if we do, this would break in a way that we might not catch right away.
+      # What's the most graceful way to future proof this? e.g. published_or_retired scope; reuse valid_status_for_submit?
+      base_scope = Hmis::Form::Instance.with_role(role).published
       # Service instances must specify a service type or category.
       base_scope = base_scope.for_services if role == :SERVICE
 
@@ -275,7 +277,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   # Occurrence Point Form Instances that are enabled for this project (e.g. Move In Date form)
   def occurrence_point_form_instances
     # All instances for Occurrence Point forms
-    base_scope = Hmis::Form::Instance.with_role(:OCCURRENCE_POINT).active
+    base_scope = Hmis::Form::Instance.with_role(:OCCURRENCE_POINT).active.published
 
     # All possible form identifiers used for Occurrence Point collection
     occurrence_point_identifiers = base_scope.pluck(:definition_identifier).uniq
