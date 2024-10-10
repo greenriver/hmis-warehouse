@@ -456,10 +456,26 @@ module Filter::FilterScopes
       return scope unless @filter.days_since_contact_min.present? || @filter.days_since_contact_max.present?
 
       # Common Table Expressions
-      max_assessment_dates = max_date_per_warehouse_client_id_cte(join: { source: :direct_assessments }, date_column: as_t[:AssessmentDate])
-      max_service_dates = max_date_per_warehouse_client_id_cte(join: { source: :direct_services }, date_column: s_t[:DateProvided])
-      max_enrollment_dates = max_date_per_warehouse_client_id_cte(join: { source: :enrollments }, date_column: e_t[:EntryDate])
-      max_cls_dates = max_date_per_warehouse_client_id_cte(join: { source: :direct_current_living_situations }, date_column: cls_t[:InformationDate])
+      max_assessment_dates = max_date_per_warehouse_client_id_cte(
+        join: { source: :direct_assessments },
+        date_column: as_t[:AssessmentDate],
+        merge_class: GrdaWarehouse::Hud::Assessment,
+      )
+      max_service_dates = max_date_per_warehouse_client_id_cte(
+        join: { source: :direct_services },
+        date_column: s_t[:DateProvided],
+        merge_class: GrdaWarehouse::Hud::Service,
+      )
+      max_enrollment_dates = max_date_per_warehouse_client_id_cte(
+        join: { source: :enrollments },
+        date_column: e_t[:EntryDate],
+        merge_class: GrdaWarehouse::Hud::Enrollment,
+      )
+      max_cls_dates = max_date_per_warehouse_client_id_cte(
+        join: { source: :direct_current_living_situations },
+        date_column: cls_t[:InformationDate],
+        merge_class: GrdaWarehouse::Hud::CurrentLivingSituation,
+      )
       range = @filter.days_since_contact_min..@filter.days_since_contact_max
       on_date = @filter.on
       # Find the IDs of the destination clients who meet the initial scope AND the filter
@@ -491,10 +507,12 @@ module Filter::FilterScopes
       scope.where(client_id: filtered_client_ids)
     end
 
-    private def max_date_per_warehouse_client_id_cte(join:, date_column:)
-      GrdaWarehouse::WarehouseClient.
-        joins(**join).
-        group(:destination_id).
+    private def max_date_per_warehouse_client_id_cte(join:, date_column:, merge_class:)
+      p_ids = @filter.personal_ids_for_days_since_contact_calculations
+      query = GrdaWarehouse::WarehouseClient.
+        joins(**join)
+      query = query.merge(merge_class.where(PersonalID: p_ids)) if p_ids.any?
+      query.group(:destination_id).
         select(
           :destination_id,
           nf(
