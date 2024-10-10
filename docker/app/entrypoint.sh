@@ -43,21 +43,12 @@ cp /usr/share/zoneinfo/$TIMEZONE /app/etc-localtime
 echo $TIMEZONE > /etc/timezone
 
 if [ "$CONTAINER_VARIANT" == "dj" ]; then
-  if [[ "${ENABLE_DJ_METRICS}" == "true" ]] ; then
+  if [[ "${ENABLE_DJ_METRICS}" == "true" ]]; then
     echo "Starting metrics server"
-    # not cluster mode with 5 threads
+    # Not in cluster mode but with 5 threads
     bundle exec puma --no-config -w 0 -t 1:5 /app/dj-metrics/config.ru &
   fi
-
-  echo "Calling: $@"
-  exec bundle exec "$@"
 fi
-
-# echo 'Syncing the client assets from s3...'
-# T1=`date +%s`
-# ./bin/sync_app_assets.rb
-# T2=`date +%s`
-# echo "...sync_app_assets 1 took $(expr $T2 - $T1) seconds"
 
 echo 'Clobbering assets...'
 T1=`date +%s`

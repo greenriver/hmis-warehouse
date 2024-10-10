@@ -44,7 +44,7 @@ class IdentifyExternalClientsJob < BaseJob
         #   next
         # end
 
-        data_string = s3.get_as_io(key: input_key)
+        data_string = s3.get_as_io(key: input_key)&.read
 
         input_rows = data_string ? parse_csv_string(data_string, key: input_key) : nil
         if input_rows.blank?

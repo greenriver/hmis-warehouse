@@ -132,7 +132,7 @@ module Types
       when 'CLIENT_AUDIT_EVENT_RECORD_TYPES'
         client_audit_event_record_type_picklist
       when 'PROJECTS_RECEIVING_REFERRALS'
-        projects_receiving_referrals
+        projects_receiving_referrals(user.hmis_data_source_id)
       when 'FORM_TYPES'
         # Used in the dropdown of form roles when creating/editing a form. We need a permission check here because
         # not all users can access all form types:
@@ -526,8 +526,8 @@ module Types
       Hmis::StaffAssignmentRelationship.all.map(&:to_pick_list_option)
     end
 
-    def self.projects_receiving_referrals
-      Hmis::Hud::Project.where(data_source_id: current_user.hmis_data_source_id).
+    def self.projects_receiving_referrals(data_source_id)
+      Hmis::Hud::Project.where(data_source_id: data_source_id).
         receiving_referrals.
         joins(:organization).preload(:organization).
         sort_by_option(:organization_and_name).

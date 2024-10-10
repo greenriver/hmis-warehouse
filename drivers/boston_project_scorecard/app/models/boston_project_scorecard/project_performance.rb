@@ -86,7 +86,7 @@ module BostonProjectScorecard
         return 0 unless increased_employment_income
 
         return 12 if increased_employment_income.round >= 20
-        return 6 if increased_employment_income.round >= 19
+        return 6 if increased_employment_income.round >= 15
         return 4 if increased_employment_income.round >= 7
 
         0
