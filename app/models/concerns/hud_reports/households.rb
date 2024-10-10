@@ -117,7 +117,7 @@ module HudReports::Households
     private def calculate_move_in_date(hh_id, she)
       move_in_date = she.move_in_date
       # If the move-in-date is valid, just use it
-      return move_in_date if move_in_date.present? && move_in_date >= she.first_date_in_program
+      return move_in_date if move_in_date.present? && move_in_date >= she.entry_date
 
       # Get HoH for further calculations
       household_members = households[hh_id]
@@ -134,12 +134,12 @@ module HudReports::Households
       # start date] <= head of household’s [housing move-in date]), the head of household’s [housing move-in date]
       # should be used as the individual’s [housing move-in date]. If the household member exited before the
       # household moved into housing, they do not inherit this [housing move-in date].
-      return hoh[:move_in_date] if (she.first_date_in_program..she.exit_date).include?(hoh[:move_in_date])
+      return hoh[:move_in_date] if (she.entry_date..she.exit_date).include?(hoh[:move_in_date])
 
       # When a household member joins the household after they are already housed (individual’s [project start
       # date] > head of household’s [housing move-in date]), the individual’s [project start date] should be used as
       # the individual’s [housing move-in date].
-      return she.first_date_in_program if she.first_date_in_program > hoh[:move_in_date]
+      return she.entry_date if she.entry_date > hoh[:move_in_date]
 
       # Otherwise this move-in is completely invalid
       nil
