@@ -38,11 +38,11 @@ class ClientHistory
   end
 
   def organization_counts
-    dates.select { |d| d > lookback_date }.values.flatten.group_by { |en| HudUtility2024.project_type en[:organization_name] }.transform_values(&:count)
+    dates.values.flatten.group_by { |en| HudUtility2024.project_type en[:organization_name] }.transform_values(&:count)
   end
 
   def project_type_counts
-    dates.select { |d| d > lookback_date }.values.flatten.group_by { |en| HudUtility2024.project_type en[:project_type] }.transform_values(&:count)
+    dates.values.flatten.group_by { |en| HudUtility2024.project_type en[:project_type] }.transform_values(&:count)
   end
 
   def generate_service_history_pdf
@@ -104,23 +104,32 @@ class ClientHistory
       each do |enrollment|
         project_type = enrollment.send(enrollment.class.project_type_column)
         project_name = enrollment.project&.name(requesting_user)
-        dates[enrollment.date] ||= []
-        record = {
-          record_type: enrollment.record_type,
-          project_type: project_type,
-          project_name: project_name,
-          organization_name: nil,
-          entry_date: enrollment.first_date_in_program,
-          exit_date: enrollment.last_date_in_program,
-        }
-        if project_name == ::GrdaWarehouse::Hud::Project.confidential_project_name
-          record[:organization_name] = 'Confidential'
-        else
-          record[:organization_name] = enrollment.organization.OrganizationName
+
+        # Only include data from the lookback date forward
+        if enrollment.date >= lookback_date
+          dates[enrollment.date] ||= []
+          record = {
+            record_type: enrollment.record_type,
+            project_type: project_type,
+            project_name: project_name,
+            organization_name: nil,
+            entry_date: enrollment.first_date_in_program,
+            exit_date: enrollment.last_date_in_program,
+          }
+          if project_name == ::GrdaWarehouse::Hud::Project.confidential_project_name
+            record[:organization_name] = 'Confidential'
+          else
+            record[:organization_name] = enrollment.organization.OrganizationName
+          end
+          dates[enrollment.date] << record
         end
-        dates[enrollment.date] << record
-        enrollment.service_history_services.service_in_prior_years(years: years).
+
+        enrollment.
+          service_history_services.service_in_prior_years(years: years).
           each do |service|
+          # Only include data from the lookback date forward
+          next if service.date < lookback_date
+
           dates[service.date] ||= []
           record = {
             record_type: service.record_type,
