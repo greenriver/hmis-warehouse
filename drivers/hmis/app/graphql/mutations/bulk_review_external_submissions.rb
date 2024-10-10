@@ -43,14 +43,14 @@ module Mutations
 
         record.form_processor.save!
         record.save!
-      rescue StandardError => e # does it make sense to rescue all StandardError here or be specific?
+      rescue StandardError => e
         failed_to_review[record.id] = e.message
       end
 
       if failed_to_review.any?
         base_message = "Bulk review failed on #{failed_to_review.size} of #{submissions.size} records."
         error_message = base_message + "\n" + failed_to_review.map { |id, message| "\tSubmission #{id}: #{message}" }.join("\n")
-        display_message = base_message + ' This may indicate that the following submissions are spam: ' + failed_to_review.keys.join(', ')
+        display_message = base_message + ' This may indicate that the following submissions are spam, or have already been reviewed: ' + failed_to_review.keys.join(', ')
         raise HmisErrors::ApiError.new(error_message, display_message: display_message)
       end
 
