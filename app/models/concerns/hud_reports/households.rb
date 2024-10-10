@@ -119,12 +119,27 @@ module HudReports::Households
       # If the move-in-date is valid, just use it
       return move_in_date if move_in_date.present? && move_in_date >= she.first_date_in_program
 
-      # If the client moved in before the entry date, and the HoH was present on the move-in date, use the
-      # entry date as the move-in date.
+      # Get HoH for further calculations
       household_members = households[hh_id]
       hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
-      return nil unless hoh.present?
-      return she.first_date_in_program if hoh[:move_in_date].present? && hoh[:entry_date] <= (move_in_date || hoh[:move_in_date])
+      # HoH does not exist - cannot do further calculations
+      return nil unless hoh.present? && hoh[:move_in_date].present?
+
+      # [Handling Housing Move-In Dates] - https://files.hudexchange.info/resources/documents/HMIS-Standard-Reporting-Terminology-Glossary-2024.pdf
+
+      # Heads of household with [housing move-in dates] prior to their [project start dates] should have the [housing move-in dates] disregarded entirely.
+      return nil unless hoh[:entry_date] <= hoh[:move_in_date]
+
+      # When a household member was already in the household when they became housed (individual’s [project
+      # start date] <= head of household’s [housing move-in date]), the head of household’s [housing move-in date]
+      # should be used as the individual’s [housing move-in date]. If the household member exited before the
+      # household moved into housing, they do not inherit this [housing move-in date].
+      return hoh[:move_in_date] if she.first_date_in_program <= hoh[:move_in_date]
+
+      # When a household member joins the household after they are already housed (individual’s [project start
+      # date] > head of household’s [housing move-in date]), the individual’s [project start date] should be used as
+      # the individual’s [housing move-in date].
+      return she.first_date_in_program if she.first_date_in_program > hoh[:move_in_date]
 
       # Otherwise this move-in is completely invalid
       nil

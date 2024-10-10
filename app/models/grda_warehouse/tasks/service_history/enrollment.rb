@@ -60,6 +60,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def invalidate_source_data!
+      # Invalidate all enrollments for this household if this enrollment is being invalidated
       if self.HouseholdID.present?
         self.class.where(data_source_id: data_source_id, HouseholdID: self.HouseholdID).update_all(processed_as: nil)
       else
