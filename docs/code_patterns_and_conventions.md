@@ -4,6 +4,8 @@ This document outlines the preferred patterns and conventions for code contribut
 
 This is a living document, please add or update patterns as appropriate. When adding new patterns, please include relevant details / rationale to help others understand how and why to use this pattern.
 
+Note that this document may include code that is only in use in a handful of locations.  We recognize change can take time.  Sometimes patterns are added here after only being added to one of many locations in the codebase. Please follow these conventions and patterns if there is a relevent pattern listed.
+
 ## Table of Contents
 
 - [Server-side views](#server-side-views)
@@ -29,7 +31,7 @@ Avoid defining global view helpers on ApplicationHelper unless the helper is tru
 
 ### View Asset Management
 
-When creating new assets, use esbuild in `app/javascripts` rather than asset pipeline.
+When creating new JavaScript assets, use esbuild in `app/javascripts` rather than asset pipeline.
 
 ## Authorization
 
@@ -44,7 +46,7 @@ not_authorized! unless policy.show?
 
 ### Authorization on a scope
 
-We should use `ArModel.viewable_by(user)`. Not there are variations of this scope in the code base but we should prefer `viewable_by` over visible_by or other variations.
+We should use `ArModel.viewable_by(user)`. Note there are variations of this scope in the code base but we should prefer `viewable_by` over visible_by or other variations.
 
 ### Storing credentials
 
@@ -58,6 +60,19 @@ Use the database to store application-specific configuration if possible. Avoid 
 
 For complex active record queries, prefer to use Arel over plain text or hash syntax. Using arel keeps our code more database agnostic. Also the nested hash syntax has had some incompatibilities with case-sensitive fields and table names in our the HUD tables.
 
+Where possible prefer ActiveRecord `merge` over Arel.
+
+**Good**
+```
+GrdaWarehouse::Hud::Enrollment.joins(:client).merge(GrdaWarehouse::Hud::Client.veteran)
+```
+**Less Good**
+```
+GrdaWarehouse::Hud::Enrollment.joins(:client).where(c_t[:VeteranStatus].eq(1))
+```
+
+Rely on ActiveRecord relationships over manual table joins.
+
 ## Background Async Jobs
 
 All jobs should inherit from BaseJob
@@ -68,4 +83,4 @@ Avoid using errors for control-flow. When jumping out of deeply nested methods, 
 
 ## Testing
 
-User factories if possible to create test objects rather than the active record classes themselves. This reduces boilerplate code in our tests.
+Use factories if possible to create test objects rather than the active record classes themselves. This reduces boilerplate code in our tests.
