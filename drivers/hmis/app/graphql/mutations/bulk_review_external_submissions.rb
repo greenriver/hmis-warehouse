@@ -22,36 +22,39 @@ module Mutations
       access_denied! unless current_permission?(permission: :can_manage_external_form_submissions, entity: project)
       access_denied! if definitions.any?(&:updates_client_or_enrollment?) && !current_permission?(permission: :can_edit_enrollments, entity: project)
 
-      already_reviewed = submissions.filter { |s| s.enrollment_id.present? || s.status == 'reviewed' }
-      error_out('Submissions are already processed: ' + already_reviewed.pluck(:id).inspect) if already_reviewed.any?
-
       should_auto_enter = project.should_auto_enter?
 
-      HmisExternalApis::ExternalForms::FormSubmission.transaction do
-        submissions.each do |record|
-          record.status = 'reviewed'
-          record.run_form_processor(current_user, project: project)
+      # maps record IDs to error messages
+      failed_to_review = {}
 
-          if record.enrollment&.new_record?
-            error_out(record.enrollment.client.errors.full_messages) unless record.enrollment.client.valid?
-            error_out(record.enrollment.errors.full_messages) unless record.enrollment.valid?
+      submissions.each do |record|
+        raise ArgumentError, 'Already reviewed' if record.enrollment_id.present? || record.status == 'reviewed'
 
-            record.enrollment.client.save!
-            should_auto_enter ? record.enrollment.save_and_auto_enter! : record.enrollment.save_in_progress!
-          end
+        record.status = 'reviewed'
+        record.run_form_processor(current_user, project: project)
 
-          record.form_processor.save!
-          record.save!
+        if record.enrollment&.new_record?
+          raise ArgumentError, record.enrollment.client.errors.full_messages unless record.enrollment.client.valid?
+          raise ArgumentError, record.enrollment.errors.full_messages unless record.enrollment.valid?
+
+          record.enrollment.client.save!
+          should_auto_enter ? record.enrollment.save_and_auto_enter! : record.enrollment.save_in_progress!
         end
+
+        record.form_processor.save!
+        record.save!
+      rescue StandardError => e # does it make sense to rescue all StandardError here or be specific?
+        failed_to_review[record.id] = e.message
+      end
+
+      if failed_to_review.any?
+        base_message = "Bulk review failed on #{failed_to_review.size} of #{submissions.size} records."
+        error_message = base_message + "\n" + failed_to_review.map { |id, message| "\tSubmission #{id}: #{message}" }.join("\n")
+        display_message = base_message + ' This may indicate that the following submissions are spam: ' + failed_to_review.keys.join(', ')
+        raise HmisErrors::ApiError.new(error_message, display_message: display_message)
       end
 
       { success: true }
-    end
-
-    protected
-
-    def error_out(msg)
-      raise HmisErrors::ApiError.new(msg, display_message: 'Unable to process bulk review action. Contact your administrator if the problem persists.')
     end
   end
 end

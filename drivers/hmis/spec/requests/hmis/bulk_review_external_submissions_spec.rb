@@ -66,6 +66,24 @@ RSpec.describe 'Bulk Review External Submission', type: :request do
     expect_gql_error perform_mutation(ids: [s1.id, s2.id, other_submission.id])
   end
 
+  context 'when some submissions fail but others are fine' do
+    let!(:s3) { create(:hmis_external_form_submission, status: 'reviewed', definition: definition, raw_data: { 'your_name' => 'Barry' }) }
+    let!(:s4) { create(:hmis_external_form_submission, definition: definition, raw_data: { 'some_invalid_key' => 'Bad data!' }) }
+
+    it 'succeeds with the non-problematic submissions' do
+      expect do
+        expect_gql_error perform_mutation(ids: [s1.id, s2.id, s3.id, s4.id]), message: /Bulk review failed on 2 of 4 records./
+        s1.reload
+        s2.reload
+        s3.reload
+        s4.reload
+      end.to change(s1, :status).from('new').to('reviewed').
+        and change(s2, :status).from('new').to('reviewed').
+        and not_change(s3, :status).
+        and not_change(s4, :status)
+    end
+  end
+
   context 'when the user does not have permission on the right project' do
     let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1 }
     let!(:ac2) do
@@ -78,6 +96,8 @@ RSpec.describe 'Bulk Review External Submission', type: :request do
         response, result = perform_mutation
         expect(response.status).to eq(500), result.inspect
         expect(result.dig('errors', 0, 'message')).to eq('access denied')
+        s1.reload
+        s2.reload
       end.to not_change(s1, :status).
         and not_change(s2, :status).
         and not_change(Hmis::Hud::CustomDataElement, :count)
@@ -117,6 +137,7 @@ RSpec.describe 'Bulk Review External Submission', type: :request do
         expect do
           response, result = perform_mutation(ids: [s3.id])
           expect(response.status).to eq(500), result.inspect
+          s3.reload
         end.to not_change(s3, :status).
           and not_change(Hmis::Hud::Client, :count).
           and not_change(Hmis::Hud::Enrollment, :count)
