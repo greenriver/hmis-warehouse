@@ -108,13 +108,27 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
     return data
   }
 
+  rawFormFiltersInput() {
+    const inputs = {}
+    $(this.element).find(':input').each((i, el) => {
+      // Hack to convert nasty rails param format into a functional JSON object
+      if(el.name.startsWith('filter[')) {
+        let name = el.name.replace('filter[', '').replace('][]', '').replace(/\]$/, '')
+        let val = $(el).val();
+        inputs[name] = val;
+      }
+    })
+    return { filter: inputs }
+  }
+
   checkMissingData() {
     if (! this.hasMissingItemsTarget) {
       return false
     }
+    const form_data = this.rawFormFiltersInput()
     return $.ajax({
-      async: false, type: 'POST', url: $(this.missingItemsTarget).attr('formaction') + '.json', data: { filter: this.formData() } }).done().responseJSON
-  }
+      async: false, type: 'POST', url: $(this.missingItemsTarget).attr('formaction') + '.json', data: JSON.stringify(form_data), contentType: "application/json" }).done().responseJSON
+    }
 
   addMissingDataWarning() {
     if (!this.hasMissingItemsTarget) {

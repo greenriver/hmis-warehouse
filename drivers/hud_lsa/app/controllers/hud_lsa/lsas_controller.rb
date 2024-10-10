@@ -79,15 +79,12 @@ module HudLsa
     end
     helper_method :missing_data
 
-    # This mirrors /api/hud_filters
+    # This mirrors /api/hud_filters, but limited to the projects and project types in the HIC/LSA
     private def project_ids_to_check
-      filter = ::Filters::HudFilterBase.new(user_id: current_user.id)
+      filter = filter_class.new(user_id: current_user.id)
       filter.update(filter_params.merge(coc_codes: [filter_params[:coc_code]]))
-
-      GrdaWarehouse::Hud::Project.
-        joins(:organization).
-        where(id: filter.effective_project_ids).
-        order(o_t[:OrganizationName], p_t[:ProjectName]).pluck(:id)
+      report = report_class.from_filter(filter, report_name, build_for_questions: [])
+      filter.effective_project_ids_during_range(report.export_date_range)
     end
 
     private def active_version
