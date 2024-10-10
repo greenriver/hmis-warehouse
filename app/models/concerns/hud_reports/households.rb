@@ -122,7 +122,7 @@ module HudReports::Households
       # Get HoH for further calculations
       household_members = households[hh_id]
       hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
-      # HoH does not exist - cannot do further calculations
+      # HoH does not exist or does not have a move-in date - cannot do further calculations
       return nil unless hoh.present? && hoh[:move_in_date].present?
 
       # [Handling Housing Move-In Dates] - https://files.hudexchange.info/resources/documents/HMIS-Standard-Reporting-Terminology-Glossary-2024.pdf
@@ -134,7 +134,7 @@ module HudReports::Households
       # start date] <= head of household’s [housing move-in date]), the head of household’s [housing move-in date]
       # should be used as the individual’s [housing move-in date]. If the household member exited before the
       # household moved into housing, they do not inherit this [housing move-in date].
-      return hoh[:move_in_date] if she.first_date_in_program <= hoh[:move_in_date]
+      return hoh[:move_in_date] if (she.first_date_in_program..she.exit_date).include?(hoh[:move_in_date])
 
       # When a household member joins the household after they are already housed (individual’s [project start
       # date] > head of household’s [housing move-in date]), the individual’s [project start date] should be used as
