@@ -47,7 +47,7 @@ class IdentifyExternalClientsJob < BaseJob
 
         input_rows = data_string ? parse_csv_string(data_string, key: input_key) : nil
         if input_rows.blank?
-          log('invalid CSV content', object_key: input_key, raise: true)
+          log('invalid CSV content', object_key: input_key, crash: true)
           next
         end
 
