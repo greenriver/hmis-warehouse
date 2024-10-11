@@ -28,14 +28,14 @@ module Mutations
       failed_to_review = {}
 
       submissions.each do |record|
-        raise ArgumentError, 'Already reviewed' if record.enrollment_id.present? || record.status == 'reviewed'
+        next if record.enrollment_id.present? || record.status == 'reviewed'
 
         record.status = 'reviewed'
         record.run_form_processor(current_user, project: project)
 
         if record.enrollment&.new_record?
-          raise ArgumentError, record.enrollment.client.errors.full_messages unless record.enrollment.client.valid?
-          raise ArgumentError, record.enrollment.errors.full_messages unless record.enrollment.valid?
+          raise record.enrollment.client.errors.full_messages unless record.enrollment.client.valid?
+          raise record.enrollment.errors.full_messages unless record.enrollment.valid?
 
           record.enrollment.client.save!
           should_auto_enter ? record.enrollment.save_and_auto_enter! : record.enrollment.save_in_progress!
@@ -43,14 +43,14 @@ module Mutations
 
         record.form_processor.save!
         record.save!
-      rescue StandardError => e
+      rescue RuntimeError => e
         failed_to_review[record.id] = e.message
       end
 
       if failed_to_review.any?
         base_message = "Bulk review failed on #{failed_to_review.size} of #{submissions.size} records."
         error_message = base_message + "\n" + failed_to_review.map { |id, message| "\tSubmission #{id}: #{message}" }.join("\n")
-        display_message = base_message + ' This may indicate that the following submissions are spam, or have already been reviewed: ' + failed_to_review.keys.join(', ')
+        display_message = base_message + ' This may indicate that the following submissions are spam: ' + failed_to_review.keys.join(', ')
         raise HmisErrors::ApiError.new(error_message, display_message: display_message)
       end
 
