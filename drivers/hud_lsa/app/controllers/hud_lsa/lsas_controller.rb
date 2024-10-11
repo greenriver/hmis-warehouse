@@ -75,7 +75,19 @@ module HudLsa
     end
 
     private def missing_data
-      @missing_data ||= report.missing_data(current_user, project_ids: project_ids_to_check || [])
+      @missing_data ||= begin
+        # If we have chosen any options, only show projects that contain enrollments in
+        # the matching universe.  If no projects qualify, pass a 0 so we don't get an
+        # indication of missing data.
+        # If we haven't chosen any projects, show the overall status of projects we have
+        # access to.
+        default_ids = if filter_params.present?
+          [0]
+        else
+          []
+        end
+        report.missing_data(current_user, project_ids: project_ids_to_check.presence || default_ids)
+      end
     end
     helper_method :missing_data
 
