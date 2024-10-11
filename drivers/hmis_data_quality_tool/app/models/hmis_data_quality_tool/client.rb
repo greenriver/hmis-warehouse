@@ -44,9 +44,13 @@ module HmisDataQualityTool
         ssn: { title: 'SSN', translator: ->(v) { masked_ssn(v) } },
         ssn_data_quality: { title: 'SSN Data Quality', translator: ->(v) { "#{HudUtility2024.ssn_data_quality(v)} (#{v})" } },
         overlapping_entry_exit: { title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH' },
+        overlapping_entry_exit_details: { title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH Details' },
         overlapping_nbn: { title: 'Overlapping Night-by-Night ES enrollments with other ES, SH, and TH' },
+        overlapping_nbn_details: { title: 'Overlapping Night-by-Night ES enrollments with other ES, SH, and TH details' },
         overlapping_pre_move_in: { title: 'Overlapping Homeless Service After Move-in in PH' },
+        overlapping_pre_move_in_details: { title: 'Overlapping Homeless Service After Move-in in PH details' },
         overlapping_post_move_in: { title: 'Overlapping Moved-in PH' },
+        overlapping_post_move_in_details: { title: 'Overlapping Moved-in PH details' },
         ch_at_most_recent_entry: { title: 'Chronically Homeless at Most-Recent Entry' },
         ch_at_any_entry: { title: 'Chronically Homeless at Any Entry' },
       }.freeze
@@ -194,11 +198,15 @@ module HmisDataQualityTool
         # sometimes this loads source enrollments that are missing a project
         en.open_during_range?(report.filter.range) && en.project&.id&.in?(report.filter.effective_project_ids)
       end.uniq
-      report_item.overlapping_entry_exit = overlapping_entry_exit(enrollments: report_item.enrollments, report: report)
+      overlaps = overlapping_entry_exit(enrollments: report_item.enrollments, report: report)
+      report_item.overlapping_entry_exit = overlaps.count
+      report_item.overlapping_entry_exit_details = overlaps.uniq
       report_item.overlapping_nbn = overlapping_nbn(enrollments: report_item.enrollments, report: report)
       # NOTE: this is incorrectly named, this is homeless overlapping PH post move-in
       report_item.overlapping_pre_move_in = overlapping_homeless_post_move_in(enrollments: report_item.enrollments, report: report)
-      report_item.overlapping_post_move_in = overlapping_post_move_in(enrollments: report_item.enrollments, report: report)
+      overlaps = overlapping_post_move_in(enrollments: report_item.enrollments, report: report)
+      report_item.overlapping_post_move_in = overlaps.count
+      report_item.overlapping_post_move_in_details = overlaps.uniq
       report_item.ch_at_most_recent_entry = report_item.enrollments&.max_by(&:EntryDate)&.chronically_homeless_at_start?
       report_item.ch_at_any_entry = report_item.enrollments.map(&:chronically_homeless_at_start?)&.any?
       report_item
@@ -210,9 +218,9 @@ module HmisDataQualityTool
         en.project&.es_entry_exit? || en.project&.sh? || en.project&.th?
       end
 
-      return 0 if involved_enrollments.blank? || involved_enrollments.count == 1
+      return [] if involved_enrollments.blank? || involved_enrollments.count == 1
 
-      ranges_overlap(enrollments: involved_enrollments, report: report).count
+      ranges_overlap(enrollments: involved_enrollments, report: report)
     end
 
     # check for overlapping PH post-move-in
@@ -221,9 +229,9 @@ module HmisDataQualityTool
         en.project&.ph?
       end
 
-      return 0 if involved_enrollments.blank? || involved_enrollments.count == 1
+      return [] if involved_enrollments.blank? || involved_enrollments.count == 1
 
-      ranges_overlap(enrollments: involved_enrollments, report: report, start_date_method: :MoveInDate).count
+      ranges_overlap(enrollments: involved_enrollments, report: report, start_date_method: :MoveInDate)
     end
 
     def self.overlapping_nbn(enrollments:, report:)
@@ -303,12 +311,22 @@ module HmisDataQualityTool
             next unless start_date2.present?
 
             end_date2 = en2.exit&.ExitDate || report.filter.end
-            # three dots because starting on the end date is allowed
-            overlaps << [en.id, en2.id].sort if (start_date...end_date).overlaps?((start_date2...end_date2))
+            # three dots because starting on the end date is allowed, sorted by id so we can distinct later
+            overlaps << [simple_enrollment(en), simple_enrollment(en2)].sort_by(&:id) if (start_date...end_date).overlaps?((start_date2...end_date2))
           end
         end
       end
       overlaps
+    end
+
+    def self.simple_enrollment(enrollment)
+      {
+        id: enrollment.id,
+        entry_date: enrollment.entry_date,
+        move_in_date: enrollment.move_in_date,
+        exit_date: enrollment.exit&.exit_date,
+        project: enrollment.project.name, # always confidentialized
+      }
     end
 
     def self.sections(_)
@@ -513,6 +531,7 @@ module HmisDataQualityTool
             :last_name,
             :reporting_age,
             :overlapping_entry_exit,
+            :overlapping_entry_exit_details,
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
@@ -531,6 +550,7 @@ module HmisDataQualityTool
             :last_name,
             :reporting_age,
             :overlapping_nbn,
+            :overlapping_nbn_details,
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
@@ -550,6 +570,7 @@ module HmisDataQualityTool
             :last_name,
             :reporting_age,
             :overlapping_pre_move_in,
+            :overlapping_pre_move_in_details,
           ],
           denominator: ->(item) { item.reporting_age.present? && item.reporting_age > 18 },
           limiter: ->(item) {
@@ -570,6 +591,7 @@ module HmisDataQualityTool
             :last_name,
             :reporting_age,
             :overlapping_post_move_in,
+            :overlapping_post_move_in_details,
           ],
           denominator: ->(item) { item.reporting_age.present? && item.reporting_age > 18 },
           limiter: ->(item) {
