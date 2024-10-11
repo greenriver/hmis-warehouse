@@ -122,6 +122,7 @@ module HudReports::Households
       # Get HoH for further calculations
       household_members = households[hh_id]
       hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
+
       # HoH does not exist or does not have a move-in date - cannot do further calculations
       return nil unless hoh.present? && hoh[:move_in_date].present?
 
