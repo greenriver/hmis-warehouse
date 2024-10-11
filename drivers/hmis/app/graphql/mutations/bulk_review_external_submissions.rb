@@ -30,21 +30,34 @@ module Mutations
       submissions.each do |record|
         next if record.enrollment_id.present? || record.status == 'reviewed'
 
-        record.status = 'reviewed'
-        record.run_form_processor(current_user, project: project)
+        begin
+          record.run_form_processor(current_user, project: project)
+        rescue RuntimeError => e
+          # if there was an unexpected error running the form processor, it could mean the form response was malformed.
+          # catch this error so that it doesn't cause the whole bulk batch to fail.
+          failed_to_review[record.id] = e.message
+          next
+        end
 
         if record.enrollment&.new_record?
-          raise record.enrollment.client.errors.full_messages unless record.enrollment.client.valid?
-          raise record.enrollment.errors.full_messages unless record.enrollment.valid?
+          unless record.enrollment.client.valid?
+            failed_to_review[record.id] = record.enrollment.client.errors.full_messages
+            next
+          end
+
+          unless record.enrollment.valid?
+            failed_to_review[record.id] = record.enrollment.errors.full_messages
+            next
+          end
 
           record.enrollment.client.save!
           should_auto_enter ? record.enrollment.save_and_auto_enter! : record.enrollment.save_in_progress!
         end
 
         record.form_processor.save!
+
+        record.status = 'reviewed'
         record.save!
-      rescue RuntimeError => e
-        failed_to_review[record.id] = e.message
       end
 
       if failed_to_review.any?
