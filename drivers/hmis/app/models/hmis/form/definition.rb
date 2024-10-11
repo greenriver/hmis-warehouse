@@ -324,6 +324,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where(status: PUBLISHED)
   end
 
+  scope :published_or_retired, -> do
+    where(status: [PUBLISHED, RETIRED])
+  end
+
   validate :validate_external_form_object_key
   def validate_external_form_object_key
     return unless role == 'EXTERNAL_FORM' && external_form_object_key.present?

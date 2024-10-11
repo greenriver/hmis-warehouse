@@ -82,6 +82,13 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       expect(selected_instances.size).to eq(0)
     end
 
+    it 'returns the instance if form is retired' do
+      create(:hmis_form_definition, role: role, identifier: 'fully-retired-form', status: :retired)
+      inst_for_retired = create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'fully-retired-form')
+
+      expect(selected_instances).to contain_exactly(inst_for_retired)
+    end
+
     it 'chooses default instance, prefers active > inactive' do
       default_inst = create(:hmis_form_instance, role: role, entity: nil)
       create(:hmis_form_instance, role: role, entity: nil, active: false) # not chosen

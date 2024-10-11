@@ -223,7 +223,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.map do |role|
       # To discuss: We don't currently support retiring forms, but if we do, this would break in a way that we might not catch right away.
       # What's the most graceful way to future proof this? e.g. published_or_retired scope; reuse valid_status_for_submit?
-      base_scope = Hmis::Form::Instance.with_role(role).published
+      base_scope = Hmis::Form::Instance.with_role(role).published_or_retired
       # Service instances must specify a service type or category.
       base_scope = base_scope.for_services if role == :SERVICE
 
