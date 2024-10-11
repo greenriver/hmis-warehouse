@@ -64,6 +64,12 @@ module Mutations
         base_message = "Bulk review failed on #{failed_to_review.size} of #{submissions.size} records."
         error_message = base_message + "\n" + failed_to_review.map { |id, message| "\tSubmission #{id}: #{message}" }.join("\n")
         display_message = base_message + ' This may indicate that the following submissions are spam: ' + failed_to_review.keys.join(', ')
+
+        # Raise, instead of returning a ValidationError, so we will get notified in Sentry, since either a bug with
+        # our implementation or an influx of spam would be interesting for us to get notified about.
+        # If this gets extremely noisy due to spam, we might be tempted to turn off the Sentry error and return a
+        # ValidationError instead. If we do that, we should take care to *keep* Sentry errors on for invalid
+        # client/enrollment errors (that would indicate an implementation problem and not bad/spammy data).
         raise HmisErrors::ApiError.new(error_message, display_message: display_message)
       end
 
