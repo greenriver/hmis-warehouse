@@ -221,8 +221,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def data_collection_features
     # Create OpenStruct for each enabled feature
     Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.map do |role|
-      # To discuss: We don't currently support retiring forms, but if we do, this would break in a way that we might not catch right away.
-      # What's the most graceful way to future proof this? e.g. published_or_retired scope; reuse valid_status_for_submit?
+      # We don't currently support fully retiring forms (form definition gets retired with no newer published version).
+      # But if we do in the future, this should return instances for retired forms, same as it returns inactive instances.
+      # In https://github.com/open-path/Green-River/issues/6159 we outline switching this to always show a feature if
+      # there is any data for it, in addition to checking the form rules.
       base_scope = Hmis::Form::Instance.with_role(role).published_or_retired
       # Service instances must specify a service type or category.
       base_scope = base_scope.for_services if role == :SERVICE
