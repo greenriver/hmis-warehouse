@@ -41,52 +41,33 @@ RSpec.describe 'GrdaWarehouse::AuthPolicies::PolicyProvider', type: :model do
 
   # TODO: START_ACL remove after ACL migration is complete
   describe 'with legacy user permissions' do
+    let(:access_group) { create(:access_group) }
     let(:user) do
       user = create :user
+      role.add(user)
+      access_group.add(user)
       user
     end
 
-    def legacy_create_authorized_collection(user:, project:, role:)
-      access_group = create(:access_group)
-      access_group.add(user)
-      access_group.add_viewable(project)
-      role.add(user)
-    end
-
-    context 'with implicit authorization' do
+    context 'with access to a project' do
       before(:each) do
-        user.policies.legacy_implicitly_assume_authorized_access = true
+        access_group.add_viewable(authorized_project)
       end
-
-      context 'with access to a project' do
-        before(:each) do
-          legacy_create_authorized_collection(user: user, project: authorized_project, role: role)
-        end
-        it 'has expected project policy' do
-          check_permissions(policy: user.policies.for_project(authorized_project), role: role)
-        end
-        it 'has expected client policy' do
-          check_permissions(policy: user.policies.for_client(authorized_client), role: role)
-        end
+      it 'allows access to authorized project' do
+        check_permissions(policy: user.policies.for_project(authorized_project), role: role)
       end
-
-      context 'with access to a project' do
-        it 'has expected project policy' do
-          check_permissions(policy: user.policies.for_project(authorized_project), role: nil)
-        end
-        it 'has expected client policy' do
-          check_permissions(policy: user.policies.for_client(authorized_client), role: nil)
-        end
+      it 'allows access to authorized client' do
+        check_permissions(policy: user.policies.for_client(authorized_client), role: role)
       end
     end
 
-    it 'raises on attempt to use global policy' do
-      expect do
+    context 'without access to a project' do
+      it 'denies access to restricted project' do
         check_permissions(policy: user.policies.for_project(authorized_project), role: nil)
-      end.to raise_error(StandardError, /legacy authorization not performed/)
-      expect do
+      end
+      it 'denies access to restricted client' do
         check_permissions(policy: user.policies.for_client(authorized_client), role: nil)
-      end.to raise_error(StandardError, /legacy authorization not performed/)
+      end
     end
   end
   # END_ACL
@@ -112,10 +93,10 @@ RSpec.describe 'GrdaWarehouse::AuthPolicies::PolicyProvider', type: :model do
     end
 
     shared_examples 'expect restricted access' do
-      it 'denys access to restricted project' do
+      it 'denies access to restricted project' do
         check_permissions(policy: user.policies.for_project(restricted_project), role: nil)
       end
-      it 'denys access to restricted client' do
+      it 'denies access to restricted client' do
         check_permissions(policy: user.policies.for_client(restricted_client), role: nil)
       end
     end
@@ -191,7 +172,7 @@ RSpec.describe 'GrdaWarehouse::AuthPolicies::PolicyProvider', type: :model do
       end
     end
 
-    it 'denys access' do
+    it 'denies access' do
       check_permissions(policy: user.policies.for_project(authorized_project), role: nil)
       check_permissions(policy: user.policies.for_client(authorized_client), role: nil)
     end

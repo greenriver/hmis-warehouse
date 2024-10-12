@@ -69,6 +69,12 @@ class AccessGroup < ApplicationRecord
     )
   end
 
+  # all access groups that include any coc_codes
+  scope :for_coc_codes, ->(coc_codes) do
+    quoted = SqlHelper.quote_sql_array(coc_codes, type: :varchar)
+    where("#{quoted_table_name}.coc_codes = #{quoted}")
+  end
+
   def name
     if user_id.blank?
       super
