@@ -108,18 +108,34 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
     return data
   }
 
+/**
+ * Transform rails-formatted input field names into a deeply nested object for submission
+ * 
+ * Example inputs:
+ * <input name="filter[project_ids][]" value="123">
+ * <input name="filter[data_source_ids][]" value>
+ * <input name="filter[widget]" value="100">
+ * 
+ * Example output:
+ * {
+ *   filter: {
+ *     project_ids: ["123"],
+ *     data_source_ids: [], // empty arrays get lost with unless we submit as JSON
+ *     widgets: "100"
+ *   }
+ * }
+ */
   rawFormFiltersInput() {
-    let inputs = {}
+    let inputs = {};
     $(this.element).find(':input').each((i, el) => {
-      // Hack to convert nasty rails param format into a functional JSON object
       if(el.name.startsWith('filter[')) {
         // remove any trailing arrays, this is a rails-ism and generates weird empty hashes
-        let name_parts = el.name.replaceAll('][]', '').replaceAll("]", "").split("[")
-        const input = name_parts.reduceRight((nestedObj, key) => ({ [key]: nestedObj }), $(el).val());
-        inputs = $.extend(true, {}, inputs, input);
+        const nameParts = el.name.replaceAll('][]', '').replaceAll("]", "").split("[");
+        const input = nameParts.reduceRight((nestedObj, key) => ({ [key]: nestedObj }), $(el).val());
+        inputs = $.extend(true, {}, inputs, input); // use jquery for deep merge
       }
     })
-    return inputs
+    return inputs;
   }
 
   checkMissingData() {
