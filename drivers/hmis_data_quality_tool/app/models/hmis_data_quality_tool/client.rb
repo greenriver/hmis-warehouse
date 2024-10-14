@@ -201,9 +201,13 @@ module HmisDataQualityTool
       overlaps = overlapping_entry_exit(enrollments: report_item.enrollments, report: report)
       report_item.overlapping_entry_exit = overlaps.count
       report_item.overlapping_entry_exit_details = overlaps.uniq
-      report_item.overlapping_nbn = overlapping_nbn(enrollments: report_item.enrollments, report: report)
+      overlaps = overlapping_nbn(enrollments: report_item.enrollments, report: report)
+      report_item.overlapping_nbn = overlaps.count
+      report_item.overlapping_nbn_details = overlaps
       # NOTE: this is incorrectly named, this is homeless overlapping PH post move-in
-      report_item.overlapping_pre_move_in = overlapping_homeless_post_move_in(enrollments: report_item.enrollments, report: report)
+      overlaps = overlapping_homeless_post_move_in(enrollments: report_item.enrollments, report: report)
+      report_item.overlapping_pre_move_in = overlaps.count
+      report_item.overlapping_pre_move_in_details = overlaps
       overlaps = overlapping_post_move_in(enrollments: report_item.enrollments, report: report)
       report_item.overlapping_post_move_in = overlaps.count
       report_item.overlapping_post_move_in_details = overlaps.uniq
@@ -234,16 +238,18 @@ module HmisDataQualityTool
       ranges_overlap(enrollments: involved_enrollments, report: report, start_date_method: :MoveInDate)
     end
 
+    # Unique set of enrollments that overlap based on service records
+    # FIXME: why don't we know the name of the projects for these enrollments?
     def self.overlapping_nbn(enrollments:, report:)
       nbn_enrollments = enrollments.select do |en|
         en.project&.es_nbn?
       end
-      return 0 if nbn_enrollments.blank?
+      return [] if nbn_enrollments.blank?
 
       involved_enrollments = enrollments.select do |en|
         en.project&.es? || en.project&.sh? || en.project&.th?
       end
-      return 0 if involved_enrollments.blank?
+      return [] if involved_enrollments.blank?
 
       overlaps = Set.new
       # see if there are any dates of service within the other homeless enrollments
@@ -252,45 +258,39 @@ module HmisDataQualityTool
           next if nbn_en.id == en.id
 
           end_date = en.exit&.ExitDate || report.filter.end
-          overlaps += nbn_en.services.where(RecordType: 200, DateProvided: [en.EntryDate, end_date]).pluck(:DateProvided)
-          # nbn_en.services.each do |service|
-          #   overlaps << service.DateProvided if service.DateProvided.between?(en.EntryDate, end_date) && service.bed_night?
-          # end
+          services_in_range = nbn_en.services.where(RecordType: 200, DateProvided: [en.EntryDate, end_date]).pluck(:DateProvided)
+          overlaps << [simple_enrollment(nbn_en), simple_enrollment(en)].sort_by { |m| m[:id] } if services_in_range.any?
         end
       end
-      overlaps.count
+      overlaps
     end
 
     def self.overlapping_homeless_post_move_in(enrollments:, report:)
       homeless_enrollments = enrollments.select do |en|
         en.project&.es? || en.project&.sh? || en.project&.th?
       end
-      return 0 if homeless_enrollments.blank?
+      return [] if homeless_enrollments.blank?
 
+      # moved-in PH enrollments
       involved_enrollments = enrollments.select do |en|
-        en.project&.ph?
+        en.project&.ph? && en.MoveInDate.present?
       end
-      return 0 if involved_enrollments.blank?
+      return [] if involved_enrollments.blank?
 
-      homeless_dates = homeless_enrollments.map do |h_en|
-        homeless_end_date = h_en.exit&.ExitDate || report.filter.end
-        if h_en.project&.es? && h_en.project&.bed_night_tracking?
+      overlaps = Set.new
+      homeless_enrollments.each do |h_en|
+        homeless_end_date = [h_en.exit&.ExitDate, report.filter.end].compact.min
+        homeless_dates = if h_en.project&.es? && h_en.project&.bed_night_tracking?
           h_en.services.where(RecordType: 200, DateProvided: [h_en.EntryDate, homeless_end_date]).pluck(:DateProvided)
         else
           h_en.EntryDate...homeless_end_date
         end
-      end.map(&:to_a).flatten.uniq
-
-      housed_dates = involved_enrollments.map do |en|
-        # we're only looking for overlaps with housing
-        next nil unless en.MoveInDate.present?
-
-        end_date = en.exit&.ExitDate || report.filter.end
-        en.MoveInDate...end_date
-      end.compact.map(&:to_a).flatten.uniq
-
-      # Return the count of dates that exist in both homeless history and housed history
-      (homeless_dates & housed_dates).count
+        involved_enrollments.each do |en|
+          housed_dates = en.EntryDate..[en.exit&.ExitDate, report.filter.end].compact.min
+          overlaps << [simple_enrollment(h_en), simple_enrollment(en)].sort_by { |m| m[:id] } if (homeless_dates.to_a & housed_dates.to_a).any?
+        end
+      end
+      overlaps
     end
 
     # compare each enrollment to every other one and see if there are overlaps
@@ -312,20 +312,28 @@ module HmisDataQualityTool
 
             end_date2 = en2.exit&.ExitDate || report.filter.end
             # three dots because starting on the end date is allowed, sorted by id so we can distinct later
-            overlaps << [simple_enrollment(en), simple_enrollment(en2)].sort_by(&:id) if (start_date...end_date).overlaps?((start_date2...end_date2))
+            overlaps << [simple_enrollment(en), simple_enrollment(en2)].sort_by { |m| m[:id] } if (start_date...end_date).overlaps?((start_date2...end_date2))
           end
         end
       end
       overlaps
     end
 
+    # FIXME: why don't we know the name of the projects for these enrollments?
     def self.simple_enrollment(enrollment)
+      # Using hash access to accommodate both objects and hashes
+      project = enrollment[:project]
+      project_name = if project.is_a?(String)
+        project
+      else
+        project&.name || 'Unknown' # always confidentialized
+      end
       {
-        id: enrollment.id,
-        entry_date: enrollment.entry_date,
-        move_in_date: enrollment.move_in_date,
-        exit_date: enrollment.exit&.exit_date,
-        project: enrollment.project.name, # always confidentialized
+        id: enrollment[:id],
+        entry_date: enrollment[:entry_date],
+        move_in_date: enrollment[:move_in_date],
+        exit_date: enrollment.try(:[], :exit_date) || enrollment.exit&.exit_date,
+        project: project_name,
       }
     end
 
