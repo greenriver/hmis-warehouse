@@ -37,7 +37,6 @@ RSpec.feature 'Assessment definition selection', type: :system do
     before(:each) do
       create(:hmis_form_instance, definition: definition, entity: p1) # enable the form in p1
       sign_in(hmis_user)
-      disable_transitions
 
       visit "/client/#{c1.id}/enrollments/#{e1.id}/assessments"
     end
@@ -169,7 +168,6 @@ RSpec.feature 'Assessment definition selection', type: :system do
     before(:each) do
       create(:hmis_form_instance, definition: definition, entity: p1) # enable the form in p1
       sign_in(hmis_user)
-      disable_transitions
 
       visit "/client/#{c1.id}/enrollments/#{e1.id}/assessments"
       click_link 'Intake'
@@ -181,17 +179,17 @@ RSpec.feature 'Assessment definition selection', type: :system do
     end
 
     def unlock_household_assessment
-      find('button', text: 'Unlock Assessment').trigger('click')
+      click_button 'Unlock Assessment'
       assert_text 'Save & Submit' # Unlock succeeded
     end
 
     def submit_household_assessment
-      find('button', text: 'Save & Submit').trigger('click') # note: using click_button fails on CI (#6619)
+      click_button 'Save & Submit'
       assert_text 'This assessment has been submitted' # Submit succeeded
     end
 
     def save_household_assessment
-      find('button', text: 'Save Assessment').trigger('click')
+      click_button 'Save Assessment'
       assert_text(/Last saved [0-9] seconds? ago/) # Save succeeded
     end
 
