@@ -183,7 +183,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 1 }
     let!(:a2) { create :hmis_custom_assessment, data_source: ds1, enrollment: e2, data_collection_stage: 1 }
     let!(:a3) { create :hmis_custom_assessment, data_source: ds1, enrollment: e3, data_collection_stage: 1 }
-    let(:definition) { Hmis::Form::Definition.find_by(role: :INTAKE) }
+    let!(:definition) { create :hmis_intake_assessment_definition }
     let(:input) do
       {
         submissions: submission_input(a1, a2, a3),
