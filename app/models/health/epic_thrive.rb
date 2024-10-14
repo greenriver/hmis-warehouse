@@ -9,9 +9,15 @@
 # Control: PHI attributes to be documented
 module Health
   class EpicThrive < EpicBase
-    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_ssms, optional: true
+    belongs_to :epic_patient, **epic_assoc(
+      model: :epic_patient,
+      primary_key: :id_in_source,
+      foreign_key: :patient_id,
+    ), inverse_of: :epic_ssms, optional: true
     has_one :patient, through: :epic_patient
-    has_one :thrive_assessment, class_name: 'HealthThriveAssessment::Assessment', primary_key: :id_in_source, foreign_key: :epic_source_id
+    has_one :thrive_assessment, class_name: 'HealthThriveAssessment::Assessment',
+      primary_key: [:data_source_id, :id_in_source],
+      foreign_key: [:data_source_id, :epic_source_id]
 
     self.source_key = :row_id
 

@@ -33,5 +33,21 @@ module Health
       where(data_source_id: values.first[:data_source_id]).delete_all # Rather than merge, discard old data
       import(values)
     end
+
+    def self.epic_assoc(model:, primary_key:, foreign_key: nil)
+      foreign_key ||= primary_key
+      {
+        primary_key: [
+          :data_source_id,
+          primary_key,
+        ],
+        foreign_key: [
+          :data_source_id,
+          foreign_key,
+        ],
+        class_name: "Health::#{model.to_s.camelize}",
+        autosave: false,
+      }
+    end
   end
 end

@@ -33,9 +33,14 @@ module Health
     phi_attr :part_12, Phi::FreeText
     phi_attr :part_13, Phi::FreeText
     phi_attr :part_14, Phi::FreeText
-    phi_attr :part_15, Phi::FreeText\
+    phi_attr :part_15, Phi::FreeText
+    phi_attr :data_source_id, Phi::SmallPopulation, "Source of data (may identify provider)"
 
-    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_ssms, optional: true
+    belongs_to :epic_patient, **epic_assoc(
+      model: :epic_patient,
+      primary_key: :id_in_source,
+      foreign_key: :patient_id,
+    ), inverse_of: :epic_ssms, optional: true
     has_one :patient, through: :epic_patient
 
     self.source_key = :NOTE_ID

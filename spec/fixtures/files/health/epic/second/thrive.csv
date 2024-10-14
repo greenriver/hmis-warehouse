@@ -1,0 +1,11 @@
+"PAT_ID","row_id","RECORDED_TIME","ENTRY_USER","I am a:","What is your living situation today?","Within the past 12 months; the food you bought just didn't last and you didn't have money to get more.","Within the past 12 months; you worried that your food would run out before you got money to buy more.","Do you have trouble paying for medicines?","Do you have trouble getting transportation to medical appointments?","Do you have trouble paying your heating; water or electricity bill?","Do you have trouble taking care of a child; family member or friend?","Do you have trouble with day-to-day activities such as bathing; preparing meals; shopping; managing finances; etc.?","Are you currently unemployed and looking for a job?","Are you interested in more education?","Please check the resources you want help with:","Number of positive responses to food security questions","Number of positive responses to housing questions","row_created","row_updated"
+A1234624,123_0,2023-06-27 08:42:00.000,USER,Patient,0,1,2,0,1,,,,,,Housing/Shelter;Food;Transportation to medical appointments;Job Search/Training;Education,,,2023-06-27 08:42:00.000,2023-06-27 08:42:00.000
+A1234595,123_1,2023-06-27 08:42:00.000,USER,Patient/Caregiver,0,1,2,0,1,,,,,,,,,2023-06-27 08:42:00.000,2023-06-27 08:42:00.000
+A1234578,123_2,2023-06-27 08:42:00.000,USER,,0,1,2,0,1,,,,,,,,,2023-06-27 08:42:00.000,2023-06-27 08:42:00.000
+A1234608,123_3,2023-06-27 08:42:00.000,USER,,0,1,2,0,1,,,,,,,,,2023-06-27 08:42:00.000,2023-06-27 08:42:00.000
+A1234577,123_4,2023-06-27 08:42:00.000,USER,,0,1,2,0,1,,,,,,,,,2023-06-27 08:42:00.000,2023-06-27 08:42:00.000
+A1234600,123_5,2023-06-27 08:42:00.000,USER,,0,1,2,0,1,,,,,,,,,2023-06-27 08:42:00.000,2023-06-27 08:42:00.000
+A1234586,123_6,2023-06-27 08:42:00.000,USER,,0,1,2,0,1,,,,,,,,,2023-06-27 08:42:00.000,2023-06-27 08:42:00.000
+A1234624,123_7,2023-06-27 08:42:00.000,USER,,0,1,2,0,1,,,,,,,,,2023-06-27 08:42:00.000,2023-06-27 08:42:00.000
+A1234595,123_8,2023-06-27 08:42:00.000,USER,,0,1,2,0,1,,,,,,,,,2023-06-27 08:42:00.000,2023-06-27 08:42:00.000
+A1234578,123_9,2023-06-27 08:42:00.000,USER,,0,1,2,0,1,,,,,,,,,2023-06-27 08:42:00.000,2023-06-27 08:42:00.000

@@ -17,8 +17,13 @@ module Health
     phi_attr :comment, Phi::FreeText
     phi_attr :icd10_list, Phi::SmallPopulation
     phi_attr :id_in_source, Phi::OtherIdentifier
+    phi_attr :data_source_id, Phi::SmallPopulation, "Source of data (may identify provider)"
 
-    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :problems, optional: true
+    belongs_to :patient, **epic_assoc(
+      model: :patient,
+      primary_key: :id_in_source,
+      foreign_key: :patient_id,
+    ), inverse_of: :problems, optional: true
 
     self.source_key = :PL_ID
 
