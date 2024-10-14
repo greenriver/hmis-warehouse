@@ -63,7 +63,11 @@ RSpec.shared_context 'SystemSpecHelper' do
     scroll_to(field, align: :center)
     field.click
     # This key sequence is a bit silly, but Capybara's field.set and field.fill_in don't work for MUI datepicker
-    field.native.send_keys(:left, :left, :backspace, date.strftime('%m/%d/%Y'))
+    if date.present?
+      field.native.send_keys(:left, :left, :backspace, date.strftime('%m/%d/%Y'), :tab) # tab to trigger blur
+    else
+      field.native.send_keys(:backspace, :left, :backspace, :left, :backspace, :tab)
+    end
   end
 
   def with_hidden

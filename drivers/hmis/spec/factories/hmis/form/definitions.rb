@@ -238,6 +238,93 @@ FactoryBot.define do
     end
   end
 
+  factory :custom_assessment_with_bounds, parent: :custom_assessment_with_custom_fields do
+    definition do
+      {
+        'item': [
+          {
+            'type': 'GROUP',
+            'text': 'Test Custom Assessment',
+            'link_id': 'section_1',
+            'item': [
+              {
+                'type': 'DATE',
+                'required': true,
+                'link_id': 'assessment_date',
+                'text': 'Assessment Date',
+                'assessment_date': true,
+                'mapping': {
+                  'field_name': 'assessmentDate',
+                },
+              },
+              {
+                'type': 'DATE',
+                'assessmentDate': true,
+                'link_id': 'date_with_bounds',
+                'text': 'Date with Bounds',
+                'bounds': [
+                  {
+                    id: 'date_max',
+                    severity: 'error',
+                    type: 'MAX',
+                    value_date: Date.current + 2.days,
+                  },
+                  {
+                    id: 'date_min',
+                    severity: 'warning',
+                    type: 'MIN',
+                    value_date: Date.current - 2.days,
+                  },
+                ],
+                'mapping': { 'custom_field_key': 'dateWithBounds' },
+              },
+              {
+                'text': 'How many?',
+                'type': 'INTEGER',
+                'bounds': [
+                  {
+                    'id': 'how_many_max',
+                    'type': 'MAX',
+                    'severity': 'error',
+                    'value_number': 10,
+                  },
+                  {
+                    'id': 'how_many_min',
+                    'type': 'MIN',
+                    'severity': 'error',
+                    'value_number': 3,
+                  },
+                ],
+                'link_id': 'how_many',
+                'mapping': { 'custom_field_key': 'howMany' },
+              },
+              {
+                'text': 'Why?',
+                'type': 'TEXT',
+                'bounds': [
+                  {
+                    'id': 'why_max',
+                    'type': 'MAX',
+                    'severity': 'error',
+                    'value_number': 10,
+                  },
+                  {
+                    'id': 'why_min',
+                    'type': 'MIN',
+                    'severity': 'error',
+                    'value_number': 3,
+                  },
+                ],
+                'link_id': 'why',
+                'mapping': { 'custom_field_key': 'why' },
+              },
+            ],
+          },
+        ],
+      }.deep_stringify_keys
+    end
+  end
+
   # Custom Assessment that has advanced features that aren't available to all users
   factory :custom_assessment_with_field_rules_and_autofill, parent: :hmis_form_definition do
     role { :CUSTOM_ASSESSMENT }
@@ -295,6 +382,175 @@ FactoryBot.define do
                   'operator': 'NOT_EQUAL',
                   'value': 'some-particular-project-id',
                 },
+              },
+              {
+                'text': 'Value 1',
+                'type': 'INTEGER',
+                'link_id': 'value_1',
+                'mapping': {
+                  'custom_field_key': 'value_1',
+                },
+              },
+              {
+                'text': 'Value 2',
+                'type': 'INTEGER',
+                'link_id': 'value_2',
+                'mapping': {
+                  'custom_field_key': 'value_2',
+                },
+              },
+              {
+                'text': 'Autofilled formula',
+                'type': 'INTEGER',
+                'link_id': 'autofilled_formula',
+                'mapping': {
+                  'custom_field_key': 'autofilled_formula',
+                },
+                'autofill_values': [
+                  {
+                    'formula': 'value_1 * 3 + value_2 * 2',
+                    'autofill_when': [
+                      {
+                        'operator': 'EXISTS',
+                        'question': 'value_1',
+                        'answer_boolean': true,
+                      },
+                      {
+                        'operator': 'EXISTS',
+                        'question': 'value_2',
+                        'answer_boolean': true,
+                      },
+                    ],
+                    'autofill_behavior': 'ALL',
+                    'autofill_readonly': false,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }.deep_stringify_keys
+    end
+  end
+
+  factory :custom_assessment_with_conditionals, parent: :hmis_form_definition do
+    role { :CUSTOM_ASSESSMENT }
+    title { 'Conditionals Assessment' }
+    sequence(:identifier) { |n| "custom_assessment_#{n}" }
+    definition do
+      {
+        'item': [
+          {
+            'type': 'GROUP',
+            'text': 'Test Custom Assessment',
+            'link_id': 'section_1',
+            'item': [
+              {
+                'type': 'DATE',
+                'required': true,
+                'link_id': 'assessment_date',
+                'text': 'Assessment Date',
+                'assessment_date': true,
+                'mapping': {
+                  'field_name': 'assessmentDate',
+                },
+              },
+              {
+                'text': 'Yes or no?',
+                'type': 'BOOLEAN',
+                'link_id': 'yes_or_no',
+                'mapping': {
+                  'custom_field_key': 'yes_or_no',
+                },
+              },
+              {
+                'text': 'Conditionally hidden/shown',
+                'type': 'TEXT',
+                'link_id': 'maybe',
+                'mapping': {
+                  'custom_field_key': 'maybe',
+                },
+                'enable_when': [
+                  {
+                    "question": 'yes_or_no',
+                    "operator": 'EQUAL',
+                    "answer_boolean": true,
+                  },
+                ],
+                'enable_behavior': 'ANY',
+              },
+            ],
+          },
+        ],
+      }.deep_stringify_keys
+    end
+  end
+
+  factory :custom_assessment_with_initial_values, parent: :hmis_form_definition do
+    role { :CUSTOM_ASSESSMENT }
+    title { 'Initial Values Assessment' }
+    sequence(:identifier) { |n| "custom_assessment_#{n}" }
+    definition do
+      {
+        'item': [
+          {
+            'type': 'GROUP',
+            'text': 'Test Custom Assessment',
+            'link_id': 'section_1',
+            'item': [
+              {
+                'type': 'DATE',
+                'required': true,
+                'link_id': 'assessment_date',
+                'text': 'Assessment Date',
+                'assessment_date': true,
+                'mapping': {
+                  'field_name': 'assessmentDate',
+                },
+              },
+              {
+                'type': 'DATE',
+                'required': true,
+                'link_id': 'date_with_initial_value',
+                'text': 'Date with initial value',
+                'assessment_date': true,
+                'mapping': {
+                  'custom_field_key': 'date_with_initial_value',
+                },
+                'initial': [
+                  {
+                    'initial_behavior': 'IF_EMPTY',
+                    'value_local_constant': 'today',
+                  },
+                ],
+              },
+              {
+                'text': 'How many?',
+                'type': 'INTEGER',
+                'link_id': 'how_many',
+                'mapping': {
+                  'custom_field_key': 'how_many',
+                },
+                'initial': [
+                  {
+                    'value_number': 22,
+                    'initial_behavior': 'OVERWRITE',
+                  },
+                ],
+              },
+              {
+                'text': 'How much?',
+                'type': 'INTEGER',
+                'link_id': 'how_much',
+                'mapping': {
+                  'custom_field_key': 'how_much',
+                },
+                'initial': [
+                  {
+                    'value_number': 33,
+                    'initial_behavior': 'IF_EMPTY',
+                  },
+                ],
               },
             ],
           },
