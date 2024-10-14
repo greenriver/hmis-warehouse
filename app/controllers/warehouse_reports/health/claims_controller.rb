@@ -100,6 +100,36 @@ module WarehouseReports::Health
       redirect_to action: :index
     end
 
+    def qualifying_activity_dates
+      dates = {}
+      params[:date].each do |qa_id, date|
+        dates[qa_id.to_i] = date.to_date
+      end
+      Health::QualifyingActivity.unsubmitted.where(id: dates.keys).find_each do |qa|
+        date = dates[qa.id]
+        if qa.date_of_activity != date
+          qa.assign_attributes(date_of_activity: date, date_of_activity_changed: true)
+          qa.maintain_cached_values
+        end
+      end
+
+      ignore_list = []
+      no_ignore_list = []
+      params[:ignored].each do |qa_id, ignore|
+        if ignore == 'true'
+          ignore_list << qa_id.to_i
+        else
+          no_ignore_list << qa_id.to_i
+        end
+      end
+      Health::QualifyingActivity.unsubmitted.where(id: ignore_list).
+        update_all(ignored: true)
+      Health::QualifyingActivity.unsubmitted.where(id: no_ignore_list).
+        update_all(ignored: false)
+
+      redirect_to action: :index, tab: 'valid-ineligible'
+    end
+
     def precalculate
       @report = Health::Claim.new(report_params.merge(user_id: current_user.id))
       begin
@@ -202,6 +232,7 @@ module WarehouseReports::Health
       @payable = {}
       @unpayable = {}
       @duplicate = {}
+      @valid_ineligible = {}
       @valid_unpayable = {}
       @missing_components = {}
       return unless @report
@@ -214,6 +245,9 @@ module WarehouseReports::Health
         if qa.duplicate? && qa.naturally_payable?
           @duplicate[qa.patient_id] ||= []
           @duplicate[qa.patient_id] << qa
+        elsif qa.naturally_payable? && qa.valid_unpayable_reasons.include?('outside_enrollment')
+          @valid_ineligible[qa.patient_id] ||= []
+          @valid_ineligible[qa.patient_id] << qa
         elsif qa.naturally_payable? && qa.valid_unpayable?
           @valid_unpayable[qa.patient_id] ||= []
           @valid_unpayable[qa.patient_id] << qa

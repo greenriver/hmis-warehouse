@@ -1,22 +1,26 @@
+- tab = params[:tab] || 'unpayable'
 %ul.nav.nav-tabs
   %li.nav-item
-    %a.nav-link.active{href: '#unpayable', role: "presentation", data: {toggle: :tab}}
+    %a.nav-link{href: '#unpayable', role: "presentation", class: ('active' if tab == 'unpayable'), data: {toggle: :tab}}
       Invalid QA
   %li.nav-item
     %a.nav-link{href: '#duplicate', role: "presentation", data: {toggle: :tab}}
       Duplicate
+  %li.nav-item.payable
+    %a.nav-link{href: '#valid-ineligible', role: "presentation", class: ('active' if tab == 'valid-ineligible'), data: {toggle: :tab}}
+      Valid QA, Ineligible
   %li.nav-item.payable
     %a.nav-link{href: '#valid-unpayable', role: "presentation", data: {toggle: :tab}}
       Valid QA, Unpayable
   %li.nav-item.payable
     %a.nav-link{href: '#payable', role: "presentation", data: {toggle: :tab}}
       Valid QA, Payable
-  %li.nav-item.payable
+  %li.nav-item
     %a.nav-link{href: '#missing-components', role: "presentation", data: {toggle: :tab}}
       Missing Components
 
 .tab-content
-  .tab-pane.active#unpayable
+  .tab-pane#unpayable{ class: ('active' if tab == 'unpayable') }
     %p
       The following qualifying activities are invalid and therefore un-payable per the
       %strong #{@sender.receiver_name} Community Partners Manual: Qualifying Activity Reporting.
@@ -33,12 +37,26 @@
       .d-flex
         .form-actions.ml-auto
           = f.submit 'Update Qualifying Activities', class: "btn btn-primary"
+
   .tab-pane#duplicate
     %p
       The following qualifying activities are payable once per day, the procedure codes are valid, but the qualifying activities have occurred more than once per day per patient.  One of each of the qualifying activities below has either been submitted to #{@sender.receiver_name} or will be included in this claims file.
     .duplicate-wrapper
       %p Found #{pluralize(@duplicate.count, 'client')} with #{pluralize(@duplicate.values.flatten.count, 'duplicate qualifying activity')}.
       = render 'payable', qa_group: @duplicate
+
+  .tab-pane#valid-ineligible{ class: ('active' if tab == 'valid-ineligible') }
+    %p
+      The following activities took place outside of an active enrollment. The procedure codes are valid, but will
+      be rejected based on the date of the activity.
+    = simple_form_for :adjust_date, url: qualifying_activity_dates_warehouse_reports_health_claims_path do |f|
+      .ineligible-wrapper
+        %p Found #{pluralize(@valid_ineligible.count, 'client')} with one or more activities outside of an enrollment.
+        = render 'ineligible', qa_group: @valid_ineligible, f: f
+      .d-flex
+        .form-actions.ml-auto
+          = f.submit 'Update Qualifying Activities', class: "btn btn-primary"
+
   .tab-pane#valid-unpayable
     %p
       The following qualifying activities will be included in this claims file for submission to #{@sender.receiver_name} even though it is fairly certain the claim will be denied.
@@ -56,6 +74,7 @@
     .payable-wrapper
       %p Found #{pluralize(@payable.count, 'client')} with #{pluralize(@payable.values.flatten.count, 'payable qualifying activity')}.
       = render 'payable', qa_group: @payable
+
   .tab-pane#missing-components
     %p
       Missing components do not affect the validity of the careplan completed qualifying activity.

@@ -55,7 +55,7 @@
     %p.text-center Loading claims...
 = content_for :page_js do
   :javascript
-    $.get('#{precalculated_warehouse_reports_health_claims_path}', function(data){
+    $.get('#{precalculated_warehouse_reports_health_claims_path(tab: params[:tab])}', function(data){
       $('#jPrecalculated').append(data);
       $('#jPrecalculated').find('.jLoading').remove();
     });

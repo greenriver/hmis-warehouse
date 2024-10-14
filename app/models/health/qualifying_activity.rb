@@ -474,7 +474,7 @@ module Health
       )
     end
 
-    def calculate_payability!
+    def calculate_payability!(save: true)
       # Meets general restrictions
       # 10/31/2018 removed meets_date_restrictions? check.  QA that are valid but unpayable
       # will still be submitted
@@ -485,26 +485,26 @@ module Health
       else
         self.duplicate_id = nil
       end
-      save(validate: false) if changed?
+      save(validate: false) if save && changed?
     end
 
     def maintain_cached_values
-      calculate_payability!
-      maintain_procedure_valid
+      calculate_payability!(save: false)
+      maintain_procedure_valid(save: false)
       maintain_valid_unpayable
 
       self
     end
 
-    def maintain_valid_unpayable
+    def maintain_valid_unpayable(save: true)
       self.valid_unpayable_reasons = compute_valid_unpayable
       self.valid_unpayable = compute_valid_unpayable?
-      save(validate: false)
+      save(validate: false) if save && changed?
     end
 
-    def maintain_procedure_valid
+    def maintain_procedure_valid(save: true)
       self.procedure_valid = compute_procedure_valid?
-      save(validate: false)
+      save(validate: false) if save && changed?
     end
 
     def compute_valid_unpayable?

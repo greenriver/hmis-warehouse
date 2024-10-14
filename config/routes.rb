@@ -380,6 +380,7 @@ Rails.application.routes.draw do
           get :running
           post :precalculate
           post :qualifying_activities
+          post :qualifying_activity_dates
           get :precalculated
           get :patients
         end
