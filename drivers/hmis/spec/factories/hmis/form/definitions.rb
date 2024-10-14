@@ -114,6 +114,14 @@ FactoryBot.define do
               field_name: 'exitDate',
             },
           },
+          {
+            type: 'CHOICE',
+            link_id: 'exit_destination',
+            mapping: {
+              record_type: 'EXIT',
+              field_name: 'destination',
+            },
+          },
         ],
       }
     end
