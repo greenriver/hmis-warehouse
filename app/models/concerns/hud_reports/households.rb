@@ -135,7 +135,7 @@ module HudReports::Households
       # start date] <= head of household’s [housing move-in date]), the head of household’s [housing move-in date]
       # should be used as the individual’s [housing move-in date]. If the household member exited before the
       # household moved into housing, they do not inherit this [housing move-in date].
-      return hoh[:move_in_date] if (she.entry_date..she.exit_date).include?(hoh[:move_in_date])
+      return hoh[:move_in_date] if (she.entry_date..she.exit_date).cover?(hoh[:move_in_date])
 
       # When a household member joins the household after they are already housed (individual’s [project start
       # date] > head of household’s [housing move-in date]), the individual’s [project start date] should be used as
