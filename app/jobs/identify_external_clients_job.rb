@@ -38,8 +38,10 @@ class IdentifyExternalClientsJob < BaseJob
         input_key = input_object.key
 
         data_string = s3.get_as_io(key: input_key)&.read
-
         content_type = FileMagic.new(FileMagic::MAGIC_MIME_TYPE).buffer(data_string)
+        # If we didn't find a file (or are looking at a directory), just skip
+        next if content_type == 'application/x-empty'
+
         if ! content_type.in?(['text/csv', 'text/plain'])
           log("invalid content type #{content_type}", object_key: input_key)
           next
