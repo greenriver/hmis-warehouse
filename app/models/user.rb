@@ -12,6 +12,8 @@ class User < ApplicationRecord
   include UserConcern
   include RailsDrivers::Extensions
 
+  validates :talent_lms_email, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: -> { talent_lms_email.blank? }
+
   USER_PERMISSION_PREFIX = 'user_permissions'
   USER_PROJECT_ID_PREFIX = "#{USER_PERMISSION_PREFIX}_project_ids".freeze
   EXPIRY_MINUTES = 5

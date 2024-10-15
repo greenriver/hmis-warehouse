@@ -10,18 +10,89 @@ module Talentlms
       @api = Config.first
     end
 
+    def talentlms_user_record_by_id(id)
+      result = @api.post('users', { id: id })
+      result
+    rescue RuntimeError => e
+      raise e unless e.message.include?('The requested user does not exist')
+    end
+
+    def talentlms_user_record_by_email(email)
+      result = @api.post('users', { email: email })
+      result
+    rescue RuntimeError => e
+      raise e unless e.message.include?('The requested user does not exist')
+    end
+
+    def talentlms_user_record_by_username(username)
+      result = @api.post('users', { username: username })
+      result
+    rescue RuntimeError => e
+      raise e unless e.message.include?('The requested user does not exist')
+    end
+
+    def lms_username(user)
+      "#{ENV['RAILS_ENV']}_#{user.id + Integer(ENV.fetch('DEV_OFFSET', 0))}"
+    end
+
+    def lms_email(user)
+      email_address = "#{lms_username(user)}@#{ENV['FQDN']}"
+      email_address = user.talent_lms_email if user.talent_lms_email.present?
+      email_address
+    end
+
     # Login user to TalentLMS
     #
     # @@param user [User] the user
     # @return [String] URL to redirect user to
     def login(user)
       login = Login.find_by(user: user)
-      if login.nil?
-        result = create_account(user)
-      else
-        result = @api.post('userlogin', { login: login.login, password: login.password })
-      end
+
+      # We may have a local talent record for this user, but we need to run it
+      # through the sync process to ensure that the email address that we have
+      # on record matches the email address that TalentLMS has for this user.
+      result = sync_lms_account(user, login)
       result['login_key']
+    end
+
+    def sync_lms_account(user, login)
+      username = lms_username(user)
+      email_address = lms_email(user)
+
+      # If we have a local login record, we have a talent account id. Check here first for the talent record
+      result ||= talentlms_user_record_by_id(login.lms_user_id) if login.present?
+      # The local login record does not exist OR Talent does not have an account for this id.
+      # Check for a Talent account with the assocaited email address
+      result ||= talentlms_user_record_by_email(email_address)
+      # Talent does not have a record associated with this email address, check the default username. If we generated an
+      # account for this user prior to allowing emails to be set, we should be able to find it this way.
+      result ||= talentlms_user_record_by_username(username)
+      # Talent does not have a record associated with this user, create an account for them.
+      result ||= create_account(user)
+
+      # Update the talent_lms_email on the local user if it differs from the email address in TalentLMS
+      if result.present? && result['email'] != user.talent_lms_email
+        user.talent_lms_email = result['email']
+        user.save!
+      end
+
+      # If we want to update the email in Talent to match the local account instead of updating the local email
+      # address to match what we are seeing in Talent. The line below will update the account in TalentLMS.
+      # Leaving this here in case we want to use this behavior.
+      ## result = @api.post('edituser', { user_id: result['id'], email: email_address }) if result.present? && result['email'] != email_address
+
+      # Make sure the local login record matches what we have identified in the Talent account.
+      # With this saved, out local data will be synced with that in Talent for this user.
+      create_or_update_local_login(user, result) if result.present?
+
+      result
+    end
+
+    def create_or_update_local_login(user, lms_account_data)
+      login = Login.where(user: user).first_or_initialize
+      login.login = lms_account_data['login']
+      login.lms_user_id = lms_account_data['id']
+      login.save! if login.changed?
     end
 
     # Create an account in TalentLMS for a user
@@ -31,21 +102,19 @@ module Talentlms
     # @param user [User] the user
     # @return [String] URL to redirect the user to to login
     def create_account(user)
-      login = "#{ENV['RAILS_ENV']}_#{user.id + Integer(ENV.fetch('DEV_OFFSET', 0))}"
-      password = random_password
-      server_domain = ENV['FQDN']
+      username = lms_username(user)
+      email_address = lms_email(user)
+
       account = {
         first_name: user.first_name,
         last_name: user.last_name,
-        email: "#{login}@#{server_domain}",
-        login: login,
-        password: password,
+        email: email_address,
+        login: username,
+        password: random_password,
         restrict_email: 'on',
       }
       result = @api.post('usersignup', account)
-      Login.create(user: user, login: login, password: password, lms_user_id: result['id'])
-
-      result['login_key']
+      result
     end
 
     # Enroll a user in a course in TalentLMS
