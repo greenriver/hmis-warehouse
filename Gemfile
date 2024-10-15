@@ -254,11 +254,11 @@ group :development, :test do
   gem 'vcr'
   gem 'webmock'
   gem 'deprecation_toolkit', require: false
+  gem 'spring'
+  gem 'spring-watcher-listen'
 end
 
 group :development do
-  # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
-  gem 'spring', require: false
   gem 'html2haml', require: false
   gem 'capistrano-bundler', require: false
   gem 'capistrano-rvm', require: false
@@ -306,6 +306,7 @@ group :test do
   gem 'db-query-matchers'
   gem 'simplecov', require: false
   # gem 'simplecov-console'
+  gem 'spring-commands-rspec'
 end
 
 group :development, :staging, :test do

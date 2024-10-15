@@ -90,6 +90,19 @@ module GrdaWarehouse::Hud
         end
     end
 
+    def self.options_for_select_other(user:)
+      viewable_by(user).
+        distinct.
+        order(OtherFunder: :asc).
+        pluck(:OtherFunder).
+        map do |funder_other|
+          [
+            funder_other,
+            funder_other,
+          ]
+        end
+    end
+
     def self.related_item_keys
       [:ProjectID]
     end

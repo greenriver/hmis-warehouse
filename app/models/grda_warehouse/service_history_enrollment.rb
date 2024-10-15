@@ -192,11 +192,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   }
 
   scope :enrollment_open_in_prior_years, ->(years: 3) do
-    t = DateTime.current - years.years
-    at = arel_table
-    where(
-      at[:last_date_in_program].eq(nil).or(at[:first_date_in_program].gt(t)).or(at[:last_date_in_program].gt(t)),
-    )
+    lookback_date = DateTime.current - years.years
+    open_between(start_date: lookback_date, end_date: Date.current)
   end
 
   scope :started_between, ->(start_date:, end_date:) do
