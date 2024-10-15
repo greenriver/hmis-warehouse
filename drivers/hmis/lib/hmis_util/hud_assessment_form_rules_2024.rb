@@ -136,8 +136,8 @@ module HmisUtil
       destination: { stages: ['EXIT'], data_collected_about: 'ALL_CLIENTS', rule: nil },
       # 3.08 disabling condition
       disability: { stages: ['INTAKE'], data_collected_about: 'ALL_CLIENTS', rule: nil },
-      # 4.08 hiv aids
-      disability_table_r4: { stages: ['INTAKE', 'UPDATE', 'EXIT'],
+      # 4.08 hiv aids (note: requiring at annual even though HUD doesn't because of hopwa_disability questions)
+      disability_table_r4: { stages: ['INTAKE', 'UPDATE', 'EXIT', 'ANNUAL'],
                              data_collected_about: 'ALL_CLIENTS',
                              rule: { 'operator' => 'ANY',
                                      'parts' =>
@@ -212,7 +212,8 @@ module HmisUtil
           { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: CRS Contract Residential Services' },
           { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
         ] } },
-      disability_table: { stages: ['INTAKE', 'UPDATE', 'EXIT'],
+      # disability table (note: requiring at annual even though HUD doesn't because of hopwa_disability questions)
+      disability_table: { stages: ['INTAKE', 'UPDATE', 'EXIT', 'ANNUAL'],
                           data_collected_about: 'ALL_CLIENTS',
                           rule: { 'operator' => 'ANY',
                                   'parts' =>
