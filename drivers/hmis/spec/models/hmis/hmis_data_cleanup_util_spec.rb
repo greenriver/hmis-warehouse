@@ -437,4 +437,8 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       end
     end
   end
+
+  context 'with Move-in Dates on non-HoH members' do
+    # TODO
+  end
 end
