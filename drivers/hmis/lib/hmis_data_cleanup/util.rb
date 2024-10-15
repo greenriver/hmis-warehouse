@@ -667,12 +667,13 @@ module HmisDataCleanup
         ]
         Rails.logger.info "Clearing #{enrollments_to_update.count} Move-in Dates. #{msgs.join(', ')}"
 
-        Hmis::Hud::Enrollment.import(
+        result = Hmis::Hud::Enrollment.import(
           enrollments_to_update,
           on_duplicate_key_update: { conflict_target: [:id], columns: [:MoveInDate] },
           validate: false,
           timestamps: false,
         )
+        raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
       end
     end
   end
