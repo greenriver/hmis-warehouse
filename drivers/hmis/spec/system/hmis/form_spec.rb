@@ -57,10 +57,10 @@ RSpec.feature 'Hmis Form behavior', type: :system do
       mui_date_select 'Date with Bounds', date: (today + 3.days).to_date
       assert_text 'Must be in range'
       click_button 'Submit'
-      # assert_text 'Please fix outstanding errors' # TODO - bound is 'error' level, but it doesn't actually enforce
+      # TODO(#6713) - bound is not enforced, add assert here when we have client-side validation
+      # assert_text 'Please fix outstanding errors'
     end
 
-    # TODO - confirm: This is not the same 'warning' dialog as warn_if_empty
     it 'warns about warning-level date bound' do
       mui_date_select 'Date with Bounds', date: (today - 3.days).to_date
       assert_text 'Must be in range'
@@ -73,9 +73,8 @@ RSpec.feature 'Hmis Form behavior', type: :system do
       find('#how_many').native.send_keys(:tab) # tab to blur
       assert_text 'Must be less than or equal to 10'
       click_button 'Submit'
-      # TODO - fix: these don't prevent submit
+      # TODO(#6713) - bound is not enforced
       # assert_text 'Please fix outstanding errors'
-      # assert_text 'How many? cannot be greater than 10'
     end
 
     it 'enforces number min bound' do
@@ -83,9 +82,8 @@ RSpec.feature 'Hmis Form behavior', type: :system do
       find('#how_many').native.send_keys(:tab) # tab to blur
       assert_text 'Must be greater than or equal to 3'
       click_button 'Submit'
-      # TODO - fix: these don't prevent submit
+      # TODO(#6713) - bound is not enforced
       # assert_text 'Please fix outstanding errors'
-      # assert_text 'How many? cannot be less than 3'
     end
 
     it 'enforces string max bound (field character count)' do
@@ -98,33 +96,92 @@ RSpec.feature 'Hmis Form behavior', type: :system do
     # it 'enforces string min bound (field character count)' do
     #   fill_in 'Why?', with: 'a'
     #   find('#why').native.send_keys(:tab) # tab to blur
-    #   debug
     #   click_button 'Submit'
+    #   assert_text 'Please fix outstanding errors'
     # end
   end
 
   describe 'behavior of conditionals (enable_when)' do
     let!(:definition) { create :custom_assessment_with_conditionals, data_source: ds1 }
 
-    it 'hides when condition is not met, and shows when met' do
-      assert_no_text 'Conditionally hidden/shown'
+    it 'hides when boolean condition is not met, and shows when met' do
+      assert_no_text 'Conditional on boolean'
       find('[data-testid="option-false"]').click
-      assert_no_text 'Conditionally hidden/shown'
+      assert_no_text 'Conditional on boolean'
       find('[data-testid="option-true"]').click
-      assert_text 'Conditionally hidden/shown'
-      fill_in 'Conditionally hidden/shown', with: 'This can only be filled under some conditions'
+      assert_text 'Conditional on boolean'
+      fill_in 'Conditional on boolean', with: 'This can only be filled when true'
       click_button 'Submit'
       assert_text "#{c1.full_name} Assessments"
-      cded = Hmis::Hud::CustomDataElementDefinition.where(key: 'maybe').sole
-      expect(Hmis::Hud::CustomDataElement.of_type(cded).sole.value).to eq('This can only be filled under some conditions')
+      cded = Hmis::Hud::CustomDataElementDefinition.where(key: 'conditional_boolean').sole
+      expect(Hmis::Hud::CustomDataElement.of_type(cded).sole.value).to eq('This can only be filled when true')
     end
 
-    # TODO - add tests for other conditional behavior, like
-    # - answerDate
-    # - answerCode, answerCodes, answerGroupCodes
-    # - different operators (geq, leq)
-    # - localConstant
-    # - question and compareQuestion
+    it 'hides when date comparison condition is not met, and shows when met' do
+      # 3-in-1 test - tests answerDate, greater-than operator, and compareQuestion
+      assert_no_text 'Conditional on date'
+      mui_date_select 'Date to compare', date: (today - 2.days).to_date
+      assert_no_text 'Conditional on date'
+      mui_date_select 'Date to compare', date: (today + 2.days).to_date
+      assert_text 'Conditional on date'
+      fill_in 'Conditional on date', with: 'compare date is greater than assessment date!'
+    end
+
+    it 'hides when multi-part condition is not fully met, and shows when met' do
+      assert_no_text 'Conditional on date AND boolean'
+      mui_date_select 'Date to compare', date: (today - 2.days).to_date
+      assert_no_text 'Conditional on date AND boolean'
+      find('[data-testid="option-false"]').click
+      assert_text 'Conditional on date AND boolean'
+      fill_in 'Conditional on date AND boolean', with: 'compare date and yes/no answers both exist'
+    end
+
+    it 'hides when local constant condition is not met, and shows when met' do
+      assert_no_text 'Conditional on local constant'
+
+      ex = e1.build_exit
+      ex.exit_date = today
+      ex.user = Hmis::Hud::User.from_user(hmis_user)
+      ex.destination = 99
+      ex.save!
+
+      refresh
+      assert_text 'Conditional on local constant'
+      fill_in 'Conditional on local constant', with: 'client has an exit date'
+    end
+
+    it 'hides when answer code condition is not met, and shows when met' do
+      assert_no_text 'Conditional on answer code'
+      mui_select 'Rental by client, no ongoing housing subsidy', from: 'Prior Living Situation'
+      assert_no_text 'Conditional on answer code'
+      mui_select 'Rental by client, with ongoing housing subsidy', from: 'Prior Living Situation'
+      assert_text 'Conditional on answer code'
+      fill_in 'Conditional on answer code', with: 'answer code matches condition'
+    end
+
+    it 'hides when answer codes condition is not met, and shows when met' do
+      assert_no_text 'Conditional on multiple answer codes'
+      mui_select 'Rental by client, with ongoing housing subsidy', from: 'Prior Living Situation'
+      assert_no_text 'Conditional on multiple answer codes'
+      mui_select 'Safe Haven', from: 'Prior Living Situation'
+      assert_text 'Conditional on multiple answer codes'
+      fill_in 'Conditional on multiple answer codes', with: 'any answer code matches condition'
+      mui_select 'Staying or living in a family member’s room, apartment, or house', from: 'Prior Living Situation'
+      assert_text 'Conditional on multiple answer codes'
+      expect(find('#conditional_answer_codes').value).to eq('any answer code matches condition')
+    end
+
+    it 'hides when answer group code condition is not met, and shows when met' do
+      assert_no_text 'Conditional on answer group code'
+      mui_select 'Rental by client, with ongoing housing subsidy', from: 'Prior Living Situation'
+      assert_no_text 'Conditional on answer group code'
+      mui_select 'Jail, prison or juvenile detention facility', from: 'Prior Living Situation'
+      assert_text 'Conditional on answer group code'
+      fill_in 'Conditional on answer group code', with: 'answer group code matches condition'
+      mui_select 'Long-term care facility or nursing home', from: 'Prior Living Situation'
+      assert_text 'Conditional on answer group code'
+      expect(find('#conditional_answer_group_code').value).to eq('answer group code matches condition')
+    end
   end
 
   describe 'autofill' do

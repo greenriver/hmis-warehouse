@@ -47,7 +47,7 @@ RSpec.shared_context 'SystemSpecHelper' do
     # we seem to have invalid ids such as "3.917A.1"
     # find("##{id}").click
     find("[id='#{id}']").click
-    find('li[role=option]', text: choice).click
+    find('li[role=option]', text: choice).trigger(:click)
   end
 
   def mui_table_select(choice, row:, column:)
