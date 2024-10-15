@@ -472,20 +472,142 @@ FactoryBot.define do
                 },
               },
               {
-                'text': 'Conditionally hidden/shown',
+                'text': 'Conditional on boolean',
                 'type': 'TEXT',
-                'link_id': 'maybe',
+                'link_id': 'conditional_boolean',
                 'mapping': {
-                  'custom_field_key': 'maybe',
+                  'custom_field_key': 'conditional_boolean',
                 },
                 'enable_when': [
                   {
-                    "question": 'yes_or_no',
-                    "operator": 'EQUAL',
-                    "answer_boolean": true,
+                    'question': 'yes_or_no',
+                    'operator': 'EQUAL',
+                    'answer_boolean': true,
                   },
                 ],
                 'enable_behavior': 'ANY',
+              },
+              {
+                'type': 'DATE',
+                'link_id': 'compare_date',
+                'text': 'Date to compare',
+                'mapping': {
+                  'custom_field_key': 'compare_date',
+                },
+              },
+              {
+                'text': 'Conditional on date',
+                'type': 'TEXT',
+                'link_id': 'conditional_date',
+                'mapping': {
+                  'custom_field_key': 'conditional_date',
+                },
+                'enable_when': [
+                  {
+                    'operator': 'GREATER_THAN',
+                    'question': 'compare_date',
+                    'compare_question': 'assessment_date',
+                  },
+                ],
+                'enable_behavior': 'ALL',
+              },
+              {
+                'text': 'Conditional on date AND boolean',
+                'type': 'TEXT',
+                'link_id': 'conditional_date_and_boolean',
+                'mapping': {
+                  'custom_field_key': 'conditional_date_and_boolean',
+                },
+                'enable_when': [
+                  {
+                    'question': 'compare_date',
+                    'operator': 'EXISTS',
+                    'answer_boolean': true,
+                  },
+                  {
+                    'question': 'yes_or_no',
+                    'operator': 'EXISTS',
+                    'answer_boolean': true,
+                  },
+                ],
+                'enable_behavior': 'ALL',
+              },
+              {
+                'text': 'Conditional on local constant',
+                'type': 'TEXT',
+                'link_id': 'conditional_local_constant',
+                'mapping': {
+                  'custom_field_key': 'conditional_local_constant',
+                },
+                'enable_when': [
+                  {
+                    'local_constant': '$exitDate',
+                    'operator': 'EXISTS',
+                    'answer_boolean': true,
+                  },
+                ],
+                'enable_behavior': 'ALL',
+              },
+              {
+                'type': 'CHOICE',
+                'link_id': 'prior_living_situation',
+                'text': 'Prior Living Situation',
+                'pick_list_reference': 'PRIOR_LIVING_SITUATION',
+                'mapping': {
+                  'record_type': 'ENROLLMENT',
+                  'field_name': 'livingSituation',
+                },
+              },
+              {
+                'text': 'Conditional on answer code',
+                'type': 'TEXT',
+                'link_id': 'conditional_answer_code',
+                'mapping': {
+                  'custom_field_key': 'conditional_answer_code',
+                },
+                'enable_when': [
+                  {
+                    'question': 'prior_living_situation',
+                    'operator': 'EQUAL',
+                    'answer_code': 'RENTAL_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY',
+                  },
+                ],
+                'enable_behavior': 'ALL',
+              },
+              {
+                'text': 'Conditional on answer group code',
+                'type': 'TEXT',
+                'link_id': 'conditional_answer_group_code',
+                'mapping': {
+                  'custom_field_key': 'conditional_answer_group_code',
+                },
+                'enable_when': [
+                  {
+                    'question': 'prior_living_situation',
+                    'operator': 'EQUAL',
+                    'answer_group_code': 'INSTITUTIONAL',
+                  },
+                ],
+                'enable_behavior': 'ALL',
+              },
+              {
+                'text': 'Conditional on multiple answer codes',
+                'type': 'TEXT',
+                'link_id': 'conditional_answer_codes',
+                'mapping': {
+                  'custom_field_key': 'conditional_answer_codes',
+                },
+                'enable_when': [
+                  {
+                    'question': 'prior_living_situation',
+                    'operator': 'IN',
+                    'answer_codes': [
+                      'SAFE_HAVEN',
+                      'STAYING_OR_LIVING_IN_A_FAMILY_MEMBER_S_ROOM_APARTMENT_OR_HOUSE',
+                    ],
+                  },
+                ],
+                'enable_behavior': 'ALL',
               },
             ],
           },
