@@ -1962,7 +1962,7 @@ type CustomCaseNote {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
-  formDefinitionId: ID!
+  formDefinitionId: ID
   id: ID!
   informationDate: ISO8601Date
   user: ApplicationUser

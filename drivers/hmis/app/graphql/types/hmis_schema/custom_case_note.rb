@@ -17,7 +17,7 @@ module Types
     field :client, HmisSchema::Client, null: false
     field :content, String, null: false
     field :information_date, GraphQL::Types::ISO8601Date, null: true
-    field :form_definition_id, ID, null: false
+    field :form_definition_id, ID, null: true
     custom_data_elements_field
 
     def enrollment
