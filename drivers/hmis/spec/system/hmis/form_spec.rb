@@ -57,10 +57,10 @@ RSpec.feature 'Hmis Form behavior', type: :system do
       mui_date_select 'Date with Bounds', date: (today + 3.days).to_date
       assert_text 'Must be in range'
       click_button 'Submit'
-      # assert_text 'Please fix outstanding errors' # TODO - bound is 'error' level, but it doesn't actually enforce
+      # TODO(#6713) - bound is not enforced, add assert here when we have client-side validation
+      # assert_text 'Please fix outstanding errors'
     end
 
-    # TODO - confirm: This is not the same 'warning' dialog as warn_if_empty
     it 'warns about warning-level date bound' do
       mui_date_select 'Date with Bounds', date: (today - 3.days).to_date
       assert_text 'Must be in range'
@@ -73,9 +73,8 @@ RSpec.feature 'Hmis Form behavior', type: :system do
       find('#how_many').native.send_keys(:tab) # tab to blur
       assert_text 'Must be less than or equal to 10'
       click_button 'Submit'
-      # TODO - fix: these don't prevent submit
+      # TODO(#6713) - bound is not enforced
       # assert_text 'Please fix outstanding errors'
-      # assert_text 'How many? cannot be greater than 10'
     end
 
     it 'enforces number min bound' do
@@ -83,9 +82,8 @@ RSpec.feature 'Hmis Form behavior', type: :system do
       find('#how_many').native.send_keys(:tab) # tab to blur
       assert_text 'Must be greater than or equal to 3'
       click_button 'Submit'
-      # TODO - fix: these don't prevent submit
+      # TODO(#6713) - bound is not enforced
       # assert_text 'Please fix outstanding errors'
-      # assert_text 'How many? cannot be less than 3'
     end
 
     it 'enforces string max bound (field character count)' do
@@ -98,8 +96,8 @@ RSpec.feature 'Hmis Form behavior', type: :system do
     # it 'enforces string min bound (field character count)' do
     #   fill_in 'Why?', with: 'a'
     #   find('#why').native.send_keys(:tab) # tab to blur
-    #   debug
     #   click_button 'Submit'
+    #   assert_text 'Please fix outstanding errors'
     # end
   end
 
@@ -119,7 +117,7 @@ RSpec.feature 'Hmis Form behavior', type: :system do
       expect(Hmis::Hud::CustomDataElement.of_type(cded).sole.value).to eq('This can only be filled under some conditions')
     end
 
-    # TODO - add tests for other conditional behavior, like
+    # TODO @martha - add tests for other conditional behavior, like
     # - answerDate
     # - answerCode, answerCodes, answerGroupCodes
     # - different operators (geq, leq)
