@@ -239,7 +239,6 @@ module HmisDataQualityTool
     end
 
     # Unique set of enrollments that overlap based on service records
-    # FIXME: why don't we know the name of the projects for these enrollments?
     def self.overlapping_nbn(enrollments:, report:)
       nbn_enrollments = enrollments.select do |en|
         en.project&.es_nbn?
@@ -319,15 +318,14 @@ module HmisDataQualityTool
       overlaps
     end
 
-    # FIXME: why don't we know the name of the projects for these enrollments?
     def self.simple_enrollment(enrollment)
       # Using hash access to accommodate both objects and hashes
-      project = enrollment[:project]
-      project_name = if project.is_a?(String)
-        project
+      project_name = if enrollment.is_a?(GrdaWarehouse::Hud::Enrollment)
+        enrollment.project&.name # always confidentialized
       else
-        project&.name || 'Unknown' # always confidentialized
+        enrollment[:project]
       end
+
       {
         id: enrollment[:id],
         entry_date: enrollment[:entry_date],
