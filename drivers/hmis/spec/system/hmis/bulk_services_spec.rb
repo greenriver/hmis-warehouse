@@ -29,14 +29,14 @@ RSpec.feature 'Hmis Form behavior', type: :system do
     sign_in(hmis_user)
     visit "/projects/#{p1.id}"
     click_link 'Bed Nights'
+
+    find('[name="search client"]').fill_in(with: 'Jos')
+    find_button('Search').trigger(:click)
+    expect(all('tbody tr').count).to eq(3) # all 3 clients returned because their names match the pattern
   end
 
   describe 'bed nights' do
     it 'correctly searches, enrolls, and assigns service to clients' do
-      find('[name="search client"]').fill_in(with: 'Jos')
-      find_button('Search').trigger(:click)
-      expect(all('tbody tr').count).to eq(3) # all 3 clients returned because their names match the pattern
-
       find('input[type="checkbox"][aria-label="select all"]', visible: :all).trigger(:click)
       click_button 'Enroll (3) + Assign (3)'
       assert_text 'Assigned' # wait for it to process
@@ -69,13 +69,6 @@ RSpec.feature 'Hmis Form behavior', type: :system do
 
     context 'when a client has an alert' do
       let!(:alert) { create :hmis_client_alert, client: c1, note: 'Important note!', created_by: hmis_user }
-
-      before(:each) do
-        find('[name="search client"]').fill_in(with: 'Jos')
-        find_button('Search').trigger(:click)
-        rows = all('tbody tr')
-        expect(rows.count).to eq(3)
-      end
 
       it 'correctly displays alert for client when you enroll individually' do
         # Find the row where "First name" is "Josiah"
