@@ -337,9 +337,13 @@ module GrdaWarehouse::CasProjectClientCalculator
       days
     end
 
+    # Cap total homeless unsheltered nights at 1096, incorporate clamp on self-report
     private def total_homeless_nights_unsheltered(client)
-      most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_pathways_nights_unsheltered_warehouse_added_total')&.AssessmentAnswer.to_i || 0
+      # Leaving this until this decision is finalized, the following just pulls the value from the assessment
+      # most_recent_pathways_or_transfer(client).
+      #   question_matching_requirement('c_pathways_nights_unsheltered_warehouse_added_total')&.AssessmentAnswer.to_i || 0
+
+      (calculated_homeless_nights_unsheltered(client) + additional_homeless_nights_unsheltered(client)).clamp(0, 1_096)
     end
 
     private def max_extra_homeless_days(client)

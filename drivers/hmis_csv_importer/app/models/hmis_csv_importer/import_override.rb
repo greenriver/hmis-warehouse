@@ -65,7 +65,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     # We either have the right HUD Key, or the right source value, or both
     # or we weren't looking for anything specific
     # Just replace the data
-    row[replaces_column] = replacement_value == ':NULL:' ? nil : replacement_value
+    row[replaces_column] = normalized_replacement_value
 
     row
   end
@@ -82,6 +82,8 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     return false unless row.key?(replaces_column)
     # We were expecting a specific HUD key, and this is not it
     return false if matched_hud_key.presence&.!= row[hud_key]
+    # We were expecting a null or blank value, and the value IS null or blank
+    return true if replaces_value == ':NULL:' && row[replaces_column].blank?
     # We were expecting a specific value, and this is not it
     return false if replaces_value.presence&.!= row[replaces_column]
 
@@ -118,15 +120,33 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   end
 
   def describe_when
-    return 'always' if matched_hud_key.blank? && replaces_value.blank?
-    return "#{associated_class.hud_key} is #{matched_hud_key} and #{replaces_column} is #{replaces_value}" if matched_hud_key.present? && replaces_value.present?
+    return 'always' if matched_hud_key.blank? && replaces_value_language.blank?
+    return "#{associated_class.hud_key} is #{matched_hud_key} and #{replaces_column} is #{replaces_value_language}" if matched_hud_key.present? && replaces_value_language.present?
     return "#{associated_class.hud_key} is #{matched_hud_key}" if matched_hud_key.present?
 
-    "#{replaces_column} is #{replaces_value}" if replaces_value.present?
+    "#{replaces_column} is #{replaces_value_language}" if replaces_value_language.present?
   end
 
   def associated_class
     self.class.available_classes.dig(file_name, :model)
+  end
+
+  def normalized_replaces_value
+    return [nil, ''] if replaces_value == ':NULL:'
+
+    replaces_value
+  end
+
+  def normalized_replacement_value
+    return nil if replacement_value == ':NULL:'
+
+    replacement_value
+  end
+
+  def replaces_value_language
+    return 'blank or NULL' if replaces_value == ':NULL:'
+
+    replaces_value
   end
 
   def hud_key
@@ -149,7 +169,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   def apply_to_warehouse
     scope = associated_class.where(data_source_id: data_source_id)
     scope = scope.where(associated_class.hud_key => matched_hud_key) if matched_hud_key.present?
-    scope = scope.where(replaces_column => replaces_value) if replaces_value.present?
-    scope.update_all(replaces_column => replacement_value)
+    scope = scope.where(replaces_column => normalized_replaces_value) if replaces_value.present?
+    scope.update_all(replaces_column => normalized_replacement_value)
   end
 end
