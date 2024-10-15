@@ -1962,6 +1962,7 @@ type CustomCaseNote {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
+  formDefinitionId: ID
   id: ID!
   informationDate: ISO8601Date
   user: ApplicationUser
@@ -8924,7 +8925,6 @@ type Query {
   """
   enrollment(id: ID!): Enrollment
   esgFundingReport(clientIds: [ID!]!): [EsgFundingService!]!
-  externalFormDefinition(identifier: String!): FormDefinition @deprecated(reason: "use definition from the individual submission to display")
   externalFormSubmission(id: ID!): ExternalFormSubmission
   file(id: ID!): File
   formDefinition(id: ID!): FormDefinition
@@ -8988,6 +8988,11 @@ type Query {
   Get the most relevant Form Definition to use for record viewing/editing
   """
   recordFormDefinition(
+    """
+    Form Definition ID, if known
+    """
+    id: ID
+
     """
     Optional Project to select the relevant form, and to apply rule filtering
     (e.g. show/hide questions based on Project applicability)

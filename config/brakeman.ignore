@@ -156,7 +156,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 314,
+      "line": 322,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -364,7 +364,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/collection.rb",
-      "line": 90,
+      "line": 91,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{quoted_table_name}.coc_codes ?| array[#{coc_codes.map do\n connection.quote(code)\n end.join(\",\")}]\")",
       "render_path": null,
@@ -584,6 +584,29 @@
       "confidence": "Medium",
       "cwe_id": [
         77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "305c59766f1c42789716d8f3e4c9e8a357b2aed60990c0b5bb7fb13ecfec8325",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hmis_external_apis/app/models/hmis_external_apis/tc_hmis/importers/importer.rb",
+      "line": 105,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Hmis::Hud::Base.connection.exec_query(\"ANALYZE #{table_names.uniq.map do\n Hmis::Hud::Base.connection.quote_table_name(n)\n end.join(\",\")};\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisExternalApis::TcHmis::Importers::Importer",
+        "method": "analyze_tables"
+      },
+      "user_input": "Hmis::Hud::Base.connection.quote_table_name(n)",
+      "confidence": "High",
+      "cwe_id": [
+        89
       ],
       "note": ""
     },
@@ -912,7 +935,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "drivers/hmis_external_apis/app/views/hmis_external_apis/external_forms/form.haml",
-      "line": 4,
+      "line": 5,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "HmisExternalApis::ExternalForms::FormGenerator.new(self, @form_definition).render_node(node)",
       "render_path": null,
@@ -1207,7 +1230,7 @@
       "warning_code": 2,
       "fingerprint": "70b70b984f26e96e4c136d1371587575175b3f7e6e7cb0c597f1a73c7cd9f781",
       "check_name": "CrossSiteScripting",
-      "message": "Unescaped parameter value",
+      "message": "Unescaped model attribute",
       "file": "app/views/warehouse_reports/chronic_housed/index.haml",
       "line": 40,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
@@ -1229,7 +1252,7 @@
         "type": "template",
         "template": "warehouse_reports/chronic_housed/index"
       },
-      "user_input": "params.permit(:range => ([:start, :end]))[:range]",
+      "user_input": "::Filters::DateRange.new((params.permit(:range => ([:start, :end]))[:range] or { :start => 3.month.ago.to_date, :end => 1.months.ago.to_date })).range",
       "confidence": "Weak",
       "cwe_id": [
         79
@@ -1619,7 +1642,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/common/_pagination_bottom.haml",
-      "line": 3,
+      "line": 4,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "pagy_info(@pagy, :item_name => Translation.translate((local_assigns[:item_name] or \"item\")).pluralize(@pagy.count))",
       "render_path": [
@@ -1692,121 +1715,6 @@
       "note": ""
     },
     {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "8580f942d43b807a8fe09fbd4c5e9ab5db0028e8c4d4288fd2657ade3cace20e",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/client_location_history/app/controllers/client_location_history/clients_controller.rb",
-      "line": 43,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientLocationHistory::ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "8580f942d43b807a8fe09fbd4c5e9ab5db0028e8c4d4288fd2657ade3cace20e",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/client_location_history/app/controllers/client_location_history/clients_controller.rb",
-      "line": 48,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientLocationHistory::ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "8580f942d43b807a8fe09fbd4c5e9ab5db0028e8c4d4288fd2657ade3cace20e",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/client_location_history/app/controllers/client_location_history/clients_controller.rb",
-      "line": 63,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientLocationHistory::ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "8580f942d43b807a8fe09fbd4c5e9ab5db0028e8c4d4288fd2657ade3cace20e",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/client_location_history/app/controllers/client_location_history/clients_controller.rb",
-      "line": 69,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientLocationHistory::ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "8580f942d43b807a8fe09fbd4c5e9ab5db0028e8c4d4288fd2657ade3cace20e",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/client_location_history/app/controllers/client_location_history/clients_controller.rb",
-      "line": 73,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientLocationHistory::ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "85e335c4575b12b61263ca6d933cb810fe5f86ad44c5f53e83e8558af7897a58",
@@ -1849,6 +1757,28 @@
       "confidence": "Medium",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Format Validation",
+      "warning_code": 30,
+      "fingerprint": "8a5e425c96fc24a9ce888fdbeb5dd37f9d6966ec68e39ec3a740096874ca00b6",
+      "check_name": "ValidationRegex",
+      "message": "Insufficient validation for `postal_code` using `/\\A\\d{5}/`. Use `\\A` and `\\z` as anchors",
+      "file": "drivers/hmis/app/models/hmis/hud/custom_client_address.rb",
+      "line": 108,
+      "link": "https://brakemanscanner.org/docs/warning_types/format_validation/",
+      "code": null,
+      "render_path": null,
+      "location": {
+        "type": "model",
+        "model": "Hmis::Hud::CustomClientAddress"
+      },
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        777
       ],
       "note": ""
     },
@@ -1922,121 +1852,6 @@
       "note": ""
     },
     {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "9692613627d688f403a35e4849b3124d0777a54374a6433aeeddc593711e2e19",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/service_scanning/app/controllers/service_scanning/scanner_ids_controller.rb",
-      "line": 43,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ServiceScanning::ScannerIdsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "9692613627d688f403a35e4849b3124d0777a54374a6433aeeddc593711e2e19",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/service_scanning/app/controllers/service_scanning/scanner_ids_controller.rb",
-      "line": 48,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ServiceScanning::ScannerIdsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "9692613627d688f403a35e4849b3124d0777a54374a6433aeeddc593711e2e19",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/service_scanning/app/controllers/service_scanning/scanner_ids_controller.rb",
-      "line": 63,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ServiceScanning::ScannerIdsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "9692613627d688f403a35e4849b3124d0777a54374a6433aeeddc593711e2e19",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/service_scanning/app/controllers/service_scanning/scanner_ids_controller.rb",
-      "line": 69,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ServiceScanning::ScannerIdsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "9692613627d688f403a35e4849b3124d0777a54374a6433aeeddc593711e2e19",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/service_scanning/app/controllers/service_scanning/scanner_ids_controller.rb",
-      "line": 73,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ServiceScanning::ScannerIdsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Remote Code Execution",
       "warning_code": 24,
       "fingerprint": "a018a2a65716f162e78639cf9ecc84440e48c1b4001c80db96d96f5ca82c11ab",
@@ -2056,29 +1871,6 @@
       "confidence": "Medium",
       "cwe_id": [
         470
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "a08d95befc1580f092ce13081130707a8ba4077b7241edd87ff59371477ed76c",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "app/controllers/concerns/client_controller.rb",
-      "line": 43,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
       ],
       "note": ""
     },
@@ -2238,7 +2030,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb",
-      "line": 880,
+      "line": 881,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.send(variant).send(\"spm_#{field}\").average(\"spm_#{field}\")",
       "render_path": null,
@@ -2307,7 +2099,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/common/_pagination_top.haml",
-      "line": 3,
+      "line": 4,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "pagy_info(@pagy, :item_name => Translation.translate((local_assigns[:item_name] or \"item\")).pluralize(@pagy.count))",
       "render_path": [
@@ -3045,121 +2837,6 @@
       "note": ""
     },
     {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "f63dfcbd913306fda069c922d30497437e5ca09abe7fe150d49dcfa3c33afdff",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/service_scanning/app/controllers/service_scanning/services_controller.rb",
-      "line": 43,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ServiceScanning::ServicesController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "f63dfcbd913306fda069c922d30497437e5ca09abe7fe150d49dcfa3c33afdff",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/service_scanning/app/controllers/service_scanning/services_controller.rb",
-      "line": 48,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ServiceScanning::ServicesController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "f63dfcbd913306fda069c922d30497437e5ca09abe7fe150d49dcfa3c33afdff",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/service_scanning/app/controllers/service_scanning/services_controller.rb",
-      "line": 63,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ServiceScanning::ServicesController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "f63dfcbd913306fda069c922d30497437e5ca09abe7fe150d49dcfa3c33afdff",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/service_scanning/app/controllers/service_scanning/services_controller.rb",
-      "line": 69,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ServiceScanning::ServicesController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "f63dfcbd913306fda069c922d30497437e5ca09abe7fe150d49dcfa3c33afdff",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/service_scanning/app/controllers/service_scanning/services_controller.rb",
-      "line": 73,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ServiceScanning::ServicesController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "fe7de455d82a4e3fef770c1272e861fb8f1d73042b2f82f1b417753f2d17bec7",
@@ -3183,6 +2860,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-09-09 11:54:08 +0000",
-  "brakeman_version": "6.1.2"
+  "updated": "2024-10-08 21:18:41 +0000",
+  "brakeman_version": "6.2.1"
 }
