@@ -24,11 +24,17 @@ RSpec.feature 'Hmis Form behavior', type: :system do
   let!(:c3) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Josephine' }
 
   let(:today) { Date.current }
+  let(:bed_night_date) { today - 2.days }
 
   before(:each) do
     sign_in(hmis_user)
     visit "/projects/#{p1.id}"
     click_link 'Bed Nights'
+
+    # Confirm current date is auto-selected
+    expect(find('[aria-label="Bed Night Date"]').value).to eq(today.strftime('%m/%d/%Y'))
+    # Select a different date for bulk service
+    mui_date_select 'Bed Night Date', date: bed_night_date
 
     find('[name="search client"]').fill_in(with: 'Jos')
     find_button('Search').trigger(:click)
@@ -38,13 +44,16 @@ RSpec.feature 'Hmis Form behavior', type: :system do
   describe 'bed nights' do
     it 'correctly searches, enrolls, and assigns service to clients' do
       find('input[type="checkbox"][aria-label="select all"]', visible: :all).trigger(:click)
-      click_button 'Enroll (3) + Assign (3)'
-      assert_text 'Assigned' # wait for it to process
+
+      expect do
+        click_button 'Enroll (3) + Assign (3)'
+        assert_text 'Assigned' # wait for it to process
+      end.to change(Hmis::Hud::Service, :count).by(3)
 
       # Find the indices of the two columns we want to check
       header_cells = all('thead th')
       last_bed_night_date_index = header_cells.find_index { |cell| cell.text == 'Last Bed Night Date' }
-      assign_bed_night_index = header_cells.find_index { |cell| cell.text == "Assign Bed Night for #{today.strftime('%m/%d/%Y')}" }
+      assign_bed_night_index = header_cells.find_index { |cell| cell.text == "Assign Bed Night for #{bed_night_date.strftime('%m/%d/%Y')}" }
       expect(last_bed_night_date_index).not_to be_nil
       expect(assign_bed_night_index).not_to be_nil
 
@@ -52,25 +61,27 @@ RSpec.feature 'Hmis Form behavior', type: :system do
       all('tbody tr').each do |row|
         # Check the "Last Bed Night Date" column
         last_bed_night_date = row.all('td')[last_bed_night_date_index].text
-        expect(last_bed_night_date).to eq("Today (#{today.strftime('%m/%d/%Y')})")
+        expect(last_bed_night_date).to match(/#{bed_night_date.strftime('%m/%d/%Y')}/)
 
         # Check the "Assign Bed Night for mm/dd/yyyy" column
         assign_button = row.all('td')[assign_bed_night_index].find('button')
         expect(assign_button.text).to eq('Assigned')
       end
 
-      services = Hmis::Hud::Service.joins(enrollment: [:project, :client]).all
+      services = p1.services
       expect(services.count).to eq(3)
       expect(services.pluck(:project_pk).uniq.sole).to eq(p1.id)
       expect(services.pluck(:personal_id).to_set).to eq([c1.personal_id, c2.personal_id, c3.personal_id].to_set)
-      expect(services.pluck(:date_provided).uniq.sole).to eq(today)
+      expect(services.pluck(:date_provided).uniq.sole).to eq(bed_night_date)
       expect(services.pluck(:type_provided).uniq.sole).to eq(bednight_service_type.hud_type_provided)
     end
 
     context 'when a client has an alert' do
-      let!(:alert) { create :hmis_client_alert, client: c1, note: 'Important note!', created_by: hmis_user }
+      let!(:alert) { create :hmis_client_alert, client: c1, note: 'Important note!', created_by: hmis_user, created_at: Time.current - 4.days }
 
       it 'correctly displays alert for client when you enroll individually' do
+        refresh # refresh the page so the alert appears
+
         # Find the row where "First name" is "Josiah"
         target_row = all('tbody tr').find do |row|
           row.find('td', text: 'Josiah', match: :prefer_exact)
@@ -88,19 +99,23 @@ RSpec.feature 'Hmis Form behavior', type: :system do
         assert_text 'Important note'
 
         # But you can still click to continue and add the service
-        click_button 'Add Bed Night'
-        expect(target_row.find('button', text: 'Assigned')).not_to be_nil
-        c1.reload
+        expect do
+          click_button 'Add Bed Night'
+          expect(target_row.find('button', text: 'Assigned')).not_to be_nil
+          c1.reload
+        end.to change(c1.services, :count).from(0).to(1)
+
         expect(c1.services.sole.type_provided).to eq(bednight_service_type.hud_type_provided)
         expect(c1.services.sole.project).to eq(p1)
       end
 
       it 'does not block you from enrolling in bulk' do
-        # TODO - maybe this was what was causing confusion?
+        # TODO(#6796) - this test will need to be updated when the behavior is updated
         find('input[type="checkbox"][aria-label="select all"]', visible: :all).trigger(:click)
-        click_button 'Enroll (3) + Assign (3)' # Does not pop up the alert when processing in bulk
-        assert_text 'Assigned' # wait for it to process
-        expect(Hmis::Hud::Service.count).to eq(3)
+        expect do
+          click_button 'Enroll (3) + Assign (3)' # Does not pop up the alert when processing in bulk
+          assert_text 'Assigned' # wait for it to process
+        end.to change(Hmis::Hud::Service, :count).by(3)
       end
     end
   end
