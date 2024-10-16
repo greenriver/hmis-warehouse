@@ -258,7 +258,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -17769,7 +17769,11 @@ CREATE TABLE public.hmis_dqt_clients (
     spm_only_children__mid_east_n_african integer,
     spm_without_children__mid_east_n_african integer,
     spm_adults_with_children_where_parenting_adult_18_to_24__mid_ea integer,
-    spm_without_children_and_fifty_five_plus__mid_east_n_african integer
+    spm_without_children_and_fifty_five_plus__mid_east_n_african integer,
+    overlapping_entry_exit_details jsonb,
+    overlapping_nbn_details jsonb,
+    overlapping_pre_move_in_details jsonb,
+    overlapping_post_move_in_details jsonb
 );
 
 
@@ -19625,6 +19629,7 @@ CREATE TABLE public.hopwa_caper_enrollments (
     report_household_id character varying NOT NULL,
     first_name character varying,
     last_name character varying,
+    personal_id character varying NOT NULL,
     age integer,
     dob date,
     dob_quality integer,
@@ -19636,7 +19641,6 @@ CREATE TABLE public.hopwa_caper_enrollments (
     relationship_to_hoh integer NOT NULL,
     project_funders integer[],
     project_type character varying,
-    personal_id character varying NOT NULL,
     income_benefit_source_types character varying[],
     medical_insurance_types character varying[],
     hiv_positive boolean DEFAULT false NOT NULL,
@@ -54922,6 +54926,13 @@ CREATE INDEX index_hmis_staff_assignments_on_user_id ON public.hmis_staff_assign
 
 
 --
+-- Name: index_hmis_supplemental_data_sets_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_supplemental_data_sets_on_data_source_id ON public.hmis_supplemental_data_sets USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_supplemental_data_sets_on_remote_credential_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54992,6 +55003,13 @@ CREATE INDEX index_homeless_summary_report_results_on_report_id ON public.homele
 
 
 --
+-- Name: index_hopwa_caper_enrollments_on_destination_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hopwa_caper_enrollments_on_destination_client_id ON public.hopwa_caper_enrollments USING btree (destination_client_id);
+
+
+--
 -- Name: index_hopwa_caper_enrollments_on_report_household_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -55003,6 +55021,13 @@ CREATE INDEX index_hopwa_caper_enrollments_on_report_household_id ON public.hopw
 --
 
 CREATE INDEX index_hopwa_caper_enrollments_on_report_instance_id ON public.hopwa_caper_enrollments USING btree (report_instance_id);
+
+
+--
+-- Name: index_hopwa_caper_services_on_destination_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hopwa_caper_services_on_destination_client_id ON public.hopwa_caper_services USING btree (destination_client_id);
 
 
 --
@@ -60613,6 +60638,13 @@ CREATE UNIQUE INDEX uidx_hmis_staff_assignments ON public.hmis_staff_assignments
 
 
 --
+-- Name: uidx_hmis_supplemental_field_values_on_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_supplemental_field_values_on_key ON public.hmis_supplemental_field_values USING btree (data_set_id, owner_key, field_key);
+
+
+--
 -- Name: uidx_hopwa_caper_enrollments; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63567,4 +63599,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240916182206'),
 ('20240918170406'),
 ('20240918171315'),
-('20240920203113');
+('20240920203113'),
+('20241010005805'),
+('20241011182445');
+
+

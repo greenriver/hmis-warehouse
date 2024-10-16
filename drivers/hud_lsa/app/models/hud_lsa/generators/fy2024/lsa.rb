@@ -172,7 +172,7 @@ module HudLsa::Generators::Fy2024
       create_summary_result(summary: summary.fetch_summary)
     end
 
-    private def export_date_range
+    def export_date_range
       # Special case for HIC.  This will generally be a 1 day run,
       # but check for a slightly larger range since the LSA will almost always be a year.
       # When running the HIC, we don't want the full look-back because it will include

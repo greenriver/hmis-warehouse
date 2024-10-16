@@ -54,16 +54,34 @@ RSpec.describe 'Bulk Review External Submission', type: :request do
       and not_change(Hmis::Hud::Enrollment, :count)
   end
 
-  it 'throws an error on already-reviewed submissions' do
+  it 'ignores already-reviewed submissions' do
     s1.status = 'reviewed'
     s1.save!
-    expect_gql_error perform_mutation
+    expect do
+      response, result = perform_mutation
+      expect(response.status).to eq(200), result.inspect
+      s1.reload
+    end.to not_change(s1, :status).
+      and not_change(s1, :updated_at)
   end
 
   it 'throws an error when submissions are from different forms' do
     other_definition = create(:hmis_external_form_definition)
     other_submission = create(:hmis_external_form_submission, definition: other_definition)
     expect_gql_error perform_mutation(ids: [s1.id, s2.id, other_submission.id])
+  end
+
+  context 'when some submissions are invalid but others are fine' do
+    let!(:s3) { create(:hmis_external_form_submission, definition: definition, raw_data: { 'some_invalid_key' => 'Bad data!' }) }
+
+    it 'succeeds with the non-problematic submissions' do
+      expect do
+        expect_gql_error perform_mutation(ids: [s1.id, s2.id, s3.id]), message: /Bulk review failed on 1 of 3 records./
+        [s1, s2, s3].map(&:reload)
+      end.to change(s1, :status).from('new').to('reviewed').
+        and change(s2, :status).from('new').to('reviewed').
+        and not_change(s3, :status)
+    end
   end
 
   context 'when the user does not have permission on the right project' do
@@ -78,6 +96,8 @@ RSpec.describe 'Bulk Review External Submission', type: :request do
         response, result = perform_mutation
         expect(response.status).to eq(500), result.inspect
         expect(result.dig('errors', 0, 'message')).to eq('access denied')
+        s1.reload
+        s2.reload
       end.to not_change(s1, :status).
         and not_change(s2, :status).
         and not_change(Hmis::Hud::CustomDataElement, :count)
@@ -108,6 +128,19 @@ RSpec.describe 'Bulk Review External Submission', type: :request do
       expect(s2.enrollment.client.first_name).to eq('Apples')
     end
 
+    context 'when some submissions are invalid but others are fine' do
+      let!(:s3) { create(:hmis_external_form_submission, definition: definition, raw_data: { 'Client.veteranStatus' => 'foobar' }) }
+
+      it 'succeeds with the non-problematic submissions' do
+        expect do
+          expect_gql_error perform_mutation(ids: [s1.id, s2.id, s3.id]), message: /Bulk review failed on 1 of 3 records./
+          [s1, s2, s3].map(&:reload)
+        end.to change(s1, :status).from('new').to('reviewed').
+          and change(s2, :status).from('new').to('reviewed').
+          and not_change(s3, :status)
+      end
+    end
+
     context 'when a submission in the list already has an enrollment' do
       let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Apples' }
       let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
@@ -116,7 +149,8 @@ RSpec.describe 'Bulk Review External Submission', type: :request do
       it 'throws an error and does not process' do
         expect do
           response, result = perform_mutation(ids: [s3.id])
-          expect(response.status).to eq(500), result.inspect
+          expect(response.status).to eq(200), result.inspect
+          s3.reload
         end.to not_change(s3, :status).
           and not_change(Hmis::Hud::Client, :count).
           and not_change(Hmis::Hud::Enrollment, :count)
