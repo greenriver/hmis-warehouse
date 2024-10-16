@@ -40,7 +40,7 @@ module Talentlms
     def lms_username(user)
       username = "#{ENV['RAILS_ENV']}_#{user.id}"
       return username unless Rails.env.development?
-      
+
       "#{username}_#{ENV.fetch('DEV_OFFSET', 0)}"
     end
 
