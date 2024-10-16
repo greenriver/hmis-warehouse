@@ -8,7 +8,6 @@
 require 'csv'
 module Dba
   class UnusedWarehouseIndexMigrationHelper
-
     # filter the index definitions file to only those that are unused per the app stats
     # the results are intended to be included in a migration to drop the indexes
     # expects stats_directory_path to contain index stats from app monitor CSVs
@@ -23,21 +22,18 @@ module Dba
       end
     end
 
-    protected
-
     # Given pg index stats from the AppInspector, find the set of indexes that are unused
     # An index is considered unused if it's unused in all CSVs where it appears
     def self.find_unused_indexes_from_stats(directory_path)
       csv_files = Dir.glob(File.join(directory_path, '*.csv'))
       csv_sets = csv_files.map { |file| process_csv(file) }
 
-      all_indexes = csv_sets.reduce({}) do |acc, csv_set|
+      all_indexes = csv_sets.each_with_object({}) do |csv_set, acc|
         csv_set.each do |index_name, is_unused|
           acc[index_name] ||= { unused_count: 0, total_count: 0 }
           acc[index_name][:unused_count] += 1 if is_unused
           acc[index_name][:total_count] += 1
         end
-        acc
       end
 
       all_indexes.select { |_, stats| stats[:unused_count] == stats[:total_count] }.keys.to_set

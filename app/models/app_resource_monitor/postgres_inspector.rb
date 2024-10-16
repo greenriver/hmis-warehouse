@@ -145,5 +145,5 @@ class AppResourceMonitor::PostgresInspector
         AND c.relkind = 'r'  -- Only include tables, not views or other relations
       ORDER BY
         c.relname, ipg.relname;
-    SQL
+  SQL
 end

@@ -82,7 +82,7 @@ class PruneWarehouseIndexesPhase1 < ActiveRecord::Migration[7.0]
   #             con.conindid = s.indexrelid
   #         );
   #  2) using our custom app inspector data, restrict the above set to only those that are reported as unused across a
-  #     a reasonable sample of our installations.
+  #     a reasonable sample of our installations. See Dba::UnusedWarehouseIndexMigrationHelper
   INDEX_TEXT = <<~TXT.freeze
     CREATE INDEX "hmis_2022_affiliations-48bf" ON public.hmis_2022_affiliations USING btree (source_type, source_id)
     CREATE INDEX "hmis_2022_affiliations-6457" ON public.hmis_2022_affiliations USING btree ("AffiliationID", data_source_id)
