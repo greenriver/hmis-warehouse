@@ -130,10 +130,6 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     "#{replaces_column} is #{replaces_value}" if replaces_value.present?
   end
 
-  def describe_why
-    description == ':NULL:' ? nil : description
-  end
-
   def associated_class
     self.class.available_classes.dig(file_name, :model)
   end
