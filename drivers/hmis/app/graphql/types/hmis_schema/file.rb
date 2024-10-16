@@ -51,7 +51,7 @@ module Types
       unless_redacted do
         return unless object.client_file.attached?
         # Use service url in dev to avoid CORS issues
-        return object.client_file.blob.service_url if Rails.env.development?
+        return object.client_file.blob.url if Rails.env.development?
 
         Rails.application.routes.url_helpers.rails_blob_url(object.client_file, only_path: true)
       end
