@@ -17769,7 +17769,11 @@ CREATE TABLE public.hmis_dqt_clients (
     spm_only_children__mid_east_n_african integer,
     spm_without_children__mid_east_n_african integer,
     spm_adults_with_children_where_parenting_adult_18_to_24__mid_ea integer,
-    spm_without_children_and_fifty_five_plus__mid_east_n_african integer
+    spm_without_children_and_fifty_five_plus__mid_east_n_african integer,
+    overlapping_entry_exit_details jsonb,
+    overlapping_nbn_details jsonb,
+    overlapping_pre_move_in_details jsonb,
+    overlapping_post_move_in_details jsonb
 );
 
 
@@ -19115,6 +19119,74 @@ ALTER SEQUENCE public.hmis_staff_x_clients_id_seq OWNED BY public.hmis_staff_x_c
 
 
 --
+-- Name: hmis_supplemental_data_sets; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_supplemental_data_sets (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    data_source_id bigint NOT NULL,
+    remote_credential_id bigint,
+    owner_type character varying NOT NULL,
+    object_key character varying NOT NULL,
+    name character varying NOT NULL,
+    field_config character varying NOT NULL
+);
+
+
+--
+-- Name: hmis_supplemental_data_sets_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_supplemental_data_sets_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_supplemental_data_sets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_supplemental_data_sets_id_seq OWNED BY public.hmis_supplemental_data_sets.id;
+
+
+--
+-- Name: hmis_supplemental_field_values; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_supplemental_field_values (
+    id bigint NOT NULL,
+    data_set_id bigint NOT NULL,
+    field_key character varying NOT NULL,
+    owner_key character varying NOT NULL,
+    data jsonb NOT NULL
+);
+
+
+--
+-- Name: hmis_supplemental_field_values_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_supplemental_field_values_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_supplemental_field_values_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_supplemental_field_values_id_seq OWNED BY public.hmis_supplemental_field_values.id;
+
+
+--
 -- Name: hmis_unit_occupancy; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -19543,6 +19615,103 @@ CREATE SEQUENCE public.homeless_summary_report_results_id_seq
 --
 
 ALTER SEQUENCE public.homeless_summary_report_results_id_seq OWNED BY public.homeless_summary_report_results.id;
+
+
+--
+-- Name: hopwa_caper_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hopwa_caper_enrollments (
+    id bigint NOT NULL,
+    report_instance_id bigint NOT NULL,
+    destination_client_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    report_household_id character varying NOT NULL,
+    first_name character varying,
+    last_name character varying,
+    personal_id character varying NOT NULL,
+    age integer,
+    dob date,
+    dob_quality integer,
+    genders integer[],
+    races integer[],
+    veteran boolean DEFAULT false NOT NULL,
+    entry_date date,
+    exit_date date,
+    relationship_to_hoh integer NOT NULL,
+    project_funders integer[],
+    project_type character varying,
+    income_benefit_source_types character varying[],
+    medical_insurance_types character varying[],
+    hiv_positive boolean DEFAULT false NOT NULL,
+    hopwa_eligible boolean DEFAULT false NOT NULL,
+    chronically_homeless boolean DEFAULT false NOT NULL,
+    prior_living_situation integer,
+    rental_subsidy_type integer,
+    exit_destination integer,
+    housing_assessment_at_exit integer,
+    subsidy_information integer,
+    ever_prescribed_anti_retroviral_therapy boolean DEFAULT false NOT NULL,
+    viral_load_suppression boolean DEFAULT false NOT NULL,
+    percent_ami numeric
+);
+
+
+--
+-- Name: hopwa_caper_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hopwa_caper_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hopwa_caper_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hopwa_caper_enrollments_id_seq OWNED BY public.hopwa_caper_enrollments.id;
+
+
+--
+-- Name: hopwa_caper_services; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hopwa_caper_services (
+    id bigint NOT NULL,
+    report_instance_id bigint NOT NULL,
+    destination_client_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    service_id bigint NOT NULL,
+    report_household_id character varying NOT NULL,
+    personal_id character varying NOT NULL,
+    date_provided date,
+    record_type integer,
+    type_provided integer,
+    fa_amount numeric
+);
+
+
+--
+-- Name: hopwa_caper_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hopwa_caper_services_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hopwa_caper_services_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hopwa_caper_services_id_seq OWNED BY public.hopwa_caper_services.id;
 
 
 --
@@ -29877,6 +30046,20 @@ ALTER TABLE ONLY public.hmis_staff_x_clients ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hmis_supplemental_data_sets id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_supplemental_data_sets ALTER COLUMN id SET DEFAULT nextval('public.hmis_supplemental_data_sets_id_seq'::regclass);
+
+
+--
+-- Name: hmis_supplemental_field_values id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_supplemental_field_values ALTER COLUMN id SET DEFAULT nextval('public.hmis_supplemental_field_values_id_seq'::regclass);
+
+
+--
 -- Name: hmis_unit_occupancy id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -29909,6 +30092,20 @@ ALTER TABLE ONLY public.homeless_summary_report_clients ALTER COLUMN id SET DEFA
 --
 
 ALTER TABLE ONLY public.homeless_summary_report_results ALTER COLUMN id SET DEFAULT nextval('public.homeless_summary_report_results_id_seq'::regclass);
+
+
+--
+-- Name: hopwa_caper_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hopwa_caper_enrollments ALTER COLUMN id SET DEFAULT nextval('public.hopwa_caper_enrollments_id_seq'::regclass);
+
+
+--
+-- Name: hopwa_caper_services id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hopwa_caper_services ALTER COLUMN id SET DEFAULT nextval('public.hopwa_caper_services_id_seq'::regclass);
 
 
 --
@@ -33493,6 +33690,22 @@ ALTER TABLE ONLY public.hmis_staff_x_clients
 
 
 --
+-- Name: hmis_supplemental_data_sets hmis_supplemental_data_sets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_supplemental_data_sets
+    ADD CONSTRAINT hmis_supplemental_data_sets_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_supplemental_field_values hmis_supplemental_field_values_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_supplemental_field_values
+    ADD CONSTRAINT hmis_supplemental_field_values_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_unit_occupancy hmis_unit_occupancy_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -33530,6 +33743,22 @@ ALTER TABLE ONLY public.homeless_summary_report_clients
 
 ALTER TABLE ONLY public.homeless_summary_report_results
     ADD CONSTRAINT homeless_summary_report_results_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hopwa_caper_enrollments hopwa_caper_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hopwa_caper_enrollments
+    ADD CONSTRAINT hopwa_caper_enrollments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hopwa_caper_services hopwa_caper_services_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hopwa_caper_services
+    ADD CONSTRAINT hopwa_caper_services_pkey PRIMARY KEY (id);
 
 
 --
@@ -54697,6 +54926,20 @@ CREATE INDEX index_hmis_staff_assignments_on_user_id ON public.hmis_staff_assign
 
 
 --
+-- Name: index_hmis_supplemental_data_sets_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_supplemental_data_sets_on_data_source_id ON public.hmis_supplemental_data_sets USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_supplemental_data_sets_on_remote_credential_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_supplemental_data_sets_on_remote_credential_id ON public.hmis_supplemental_data_sets USING btree (remote_credential_id);
+
+
+--
 -- Name: index_hmis_unit_occupancy_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54757,6 +55000,48 @@ CREATE INDEX index_homeless_summary_report_clients_on_updated_at ON public.homel
 --
 
 CREATE INDEX index_homeless_summary_report_results_on_report_id ON public.homeless_summary_report_results USING btree (report_id);
+
+
+--
+-- Name: index_hopwa_caper_enrollments_on_destination_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hopwa_caper_enrollments_on_destination_client_id ON public.hopwa_caper_enrollments USING btree (destination_client_id);
+
+
+--
+-- Name: index_hopwa_caper_enrollments_on_report_household_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hopwa_caper_enrollments_on_report_household_id ON public.hopwa_caper_enrollments USING btree (report_household_id);
+
+
+--
+-- Name: index_hopwa_caper_enrollments_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hopwa_caper_enrollments_on_report_instance_id ON public.hopwa_caper_enrollments USING btree (report_instance_id);
+
+
+--
+-- Name: index_hopwa_caper_services_on_destination_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hopwa_caper_services_on_destination_client_id ON public.hopwa_caper_services USING btree (destination_client_id);
+
+
+--
+-- Name: index_hopwa_caper_services_on_report_household_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hopwa_caper_services_on_report_household_id ON public.hopwa_caper_services USING btree (report_household_id);
+
+
+--
+-- Name: index_hopwa_caper_services_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hopwa_caper_services_on_report_instance_id ON public.hopwa_caper_services USING btree (report_instance_id);
 
 
 --
@@ -60353,6 +60638,27 @@ CREATE UNIQUE INDEX uidx_hmis_staff_assignments ON public.hmis_staff_assignments
 
 
 --
+-- Name: uidx_hmis_supplemental_field_values_on_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_supplemental_field_values_on_key ON public.hmis_supplemental_field_values USING btree (data_set_id, owner_key, field_key);
+
+
+--
+-- Name: uidx_hopwa_caper_enrollments; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hopwa_caper_enrollments ON public.hopwa_caper_enrollments USING btree (report_instance_id, enrollment_id);
+
+
+--
+-- Name: uidx_hopwa_caper_services; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hopwa_caper_services ON public.hopwa_caper_services USING btree (report_instance_id, service_id);
+
+
+--
 -- Name: uidx_import_overrides_rules; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63282,8 +63588,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240730140758'),
 ('20240731144633'),
 ('20240731155357'),
+('20240808042801'),
 ('20240815175202'),
 ('20240821180638'),
+('20240829142856'),
 ('20240829152828'),
 ('20240909150028'),
 ('20240912125052'),
@@ -63291,6 +63599,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240916182206'),
 ('20240918170406'),
 ('20240918171315'),
-('20240920203113');
+('20240920203113'),
+('20241011182445');
 
 

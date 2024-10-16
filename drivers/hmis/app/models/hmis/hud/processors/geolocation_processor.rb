@@ -56,5 +56,8 @@ module Hmis::Hud::Processors
         processed_at: Time.current,
       )
     end
+
+    def information_date(_)
+    end
   end
 end

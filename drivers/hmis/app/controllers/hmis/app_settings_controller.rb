@@ -17,14 +17,18 @@ class Hmis::AppSettingsController < Hmis::BaseController
     end
 
     hostname = ENV['FQDN']
-    theme = GrdaWarehouse::Theme.hmis_theme_for_origin(current_hmis_host)
+
+    # Note: the commented-out theme call doesn't work yet because request.origin is nil for this request.
+    # So for now, multi-HMIS theming is not yet supported. Issue #6774
+    # theme = GrdaWarehouse::Theme.hmis_theme_for_origin(current_hmis_host)
+    theme = GrdaWarehouse::Theme.where(client: ENV['CLIENT']&.to_sym).filter(&:hmis_theme?).first
 
     render json: {
       oktaPath: okta_enabled ? '/hmis/users/auth/okta' : nil,
       logoPath: logo_path.present? ? ActionController::Base.helpers.asset_path(logo_path) : nil,
       warehouseUrl: "https://#{hostname}",
       warehouseName: Translation.translate('Boston DND Warehouse'),
-      appName: Translation.translate('Open Path HMIS'),
+      appName: Translation.translate('Open Path HMIS'), # TODO: app name should be configurable per data source
       resetPasswordUrl: "https://#{hostname}/users/password/new",
       unlockAccountUrl: "https://#{hostname}/users/unlock/new",
       manageAccountUrl: "https://#{hostname}/account/edit",
