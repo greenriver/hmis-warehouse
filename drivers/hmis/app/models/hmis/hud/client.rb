@@ -48,7 +48,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :youth_education_statuses, through: :enrollments
   has_many :employment_educations, through: :enrollments
   has_many :households, through: :enrollments
-  has_many :client_files, class_name: 'GrdaWarehouse::ClientFile', primary_key: :id, foreign_key: :client_id
+  has_many :client_files, class_name: 'GrdaWarehouse::ClientFile', primary_key: :id, foreign_key: :client_id, inverse_of: :client
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
@@ -80,30 +80,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
-  attr_accessor :image_blob_id
   # Order is: before_save => save => after_create|after_update > after_save
   after_create :warehouse_identify_duplicate_clients
   after_update :warehouse_match_existing_clients
   before_save :set_source_hash
-  after_save :save_image_blob_as_client_headshot!
-
-  # The client creation form sets image_blob_id
-  # This is also called directly by UpdateClientImage operation
-  def save_image_blob_as_client_headshot!
-    current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
-    self.image_blob_id = nil
-    return unless current_image_blob
-
-    file = GrdaWarehouse::ClientFile.new(
-      client_id: id,
-      user_id: user.id,
-      name: 'Client Headshot',
-      visible_in_window: false,
-    )
-    file.tag_list.add('Client Headshot')
-    file.client_file.attach(current_image_blob)
-    file.save!
-  end
 
   # Includes clients where..
   #  1. The Client has enrollment(s) at any Project where the User has this specified Permissions(s)
@@ -367,6 +347,23 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def full_name
     [first_name, middle_name, last_name, name_suffix].compact.join(' ')
+  end
+
+  def build_client_headshot_file(image_blob_id, current_user)
+    current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
+    return unless current_image_blob
+
+    # Note: this builds a GrdaWarehouse::ClientFile where the associated client is a Hmis::Hud::Client,
+    # (not a GrdaWarehouse::Hud::Client), which may lead to unexpected behavior. Skip callbacks to avoid issues.
+    file = client_files.build(
+      user_id: current_user.id,
+      name: 'Client Headshot',
+      visible_in_window: false,
+    )
+    file.callbacks_skipped = true
+    file.tag_list.add('Client Headshot') # Special string in ClientFileBase, don't change
+    file.client_file.attach(current_image_blob)
+    file
   end
 
   # Run if we changed name/DOB/SSN
