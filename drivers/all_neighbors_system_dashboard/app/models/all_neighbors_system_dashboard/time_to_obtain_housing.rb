@@ -168,6 +168,8 @@ module AllNeighborsSystemDashboard
             household_scope = moved_in_scope.select(:destination_client_id).distinct
             household_scope = filter_for_type(household_scope, bar)
             household_scope = filter_for_date(household_scope, date)
+            household_scope = filter_for_type(household_scope, project_type)
+            household_scope = filter_for_type(household_scope, options[:household_type])
             averages = options[:types].map do |category|
               scope = moved_in_scope
               # Filter for high level type

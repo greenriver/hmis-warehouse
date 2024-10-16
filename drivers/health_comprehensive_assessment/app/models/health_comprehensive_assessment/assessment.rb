@@ -52,6 +52,16 @@ module HealthComprehensiveAssessment
       completed_on.present?
     end
 
+    # A QualifyingActivity that is the same or newer than the date created of this CA
+    def ca_completed_qa?
+      return false unless completed_on.present?
+
+      qa = patient.current_qa_factory&.ca_completed_qa
+      return false unless qa.present? && qa.date_of_activity.present?
+
+      qa.date_of_activity >= completed_on
+    end
+
     def active?
       completed_on && completed_on >= 1.years.ago
     end

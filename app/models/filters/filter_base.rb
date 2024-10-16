@@ -79,6 +79,9 @@ module Filters
     attribute :dates_to_compare, Symbol, default: :entry_to_exit
     attribute :days_since_contact_min, Integer, default: nil
     attribute :days_since_contact_max, Integer, default: nil
+    # personal_ids_for_days_since_contact_calculations is used to increase performance
+    # of the CTEs used to filter for days since contact.  Set this directly if necessary
+    attribute :personal_ids_for_days_since_contact_calculations, Array, default: []
     attribute :required_files, Array, default: []
     attribute :optional_files, Array, default: []
     attribute :active_roi, Boolean, default: false
@@ -544,16 +547,18 @@ module Filters
     end
 
     def effective_project_ids
-      @effective_project_ids = effective_project_ids_from_projects
-      @effective_project_ids += effective_project_ids_from_project_groups
-      @effective_project_ids += effective_project_ids_from_organizations
-      @effective_project_ids += effective_project_ids_from_data_sources
-      @effective_project_ids += effective_project_ids_from_coc_codes
+      @effective_project_ids ||= begin
+        project_ids = effective_project_ids_from_projects
+        project_ids += effective_project_ids_from_project_groups
+        project_ids += effective_project_ids_from_organizations
+        project_ids += effective_project_ids_from_data_sources
+        project_ids += effective_project_ids_from_coc_codes
 
-      # Add an invalid id if there are none
-      @effective_project_ids = [0] if @effective_project_ids.empty?
+        # Add an invalid id if there are none
+        project_ids = [0] if project_ids.empty?
 
-      @effective_project_ids.uniq.reject(&:blank?)
+        project_ids.uniq.reject(&:blank?)
+      end
     end
 
     def any_effective_project_ids?
@@ -561,14 +566,16 @@ module Filters
     end
 
     def anded_effective_project_ids
-      ids = []
-      ids << effective_project_ids_from_projects
-      ids << effective_project_ids_from_project_groups
-      ids << effective_project_ids_from_organizations
-      ids << effective_project_ids_from_data_sources
-      ids << effective_project_ids_from_coc_codes
-      ids << effective_project_ids_from_project_types
-      ids.reject(&:empty?).reduce(&:&)
+      @anded_effective_project_ids ||= begin
+        ids = []
+        ids << effective_project_ids_from_projects
+        ids << effective_project_ids_from_project_groups
+        ids << effective_project_ids_from_organizations
+        ids << effective_project_ids_from_data_sources
+        ids << effective_project_ids_from_coc_codes
+        ids << effective_project_ids_from_project_types
+        ids.reject(&:empty?).reduce(&:&)
+      end
     end
 
     # Apply all known scopes
