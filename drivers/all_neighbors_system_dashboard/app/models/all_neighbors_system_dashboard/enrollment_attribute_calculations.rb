@@ -109,15 +109,15 @@ module AllNeighborsSystemDashboard
 
       def hoh(enrollment)
         # Look for an HoH
-        hoh = household(enrollment).detect { |m| m[:relationship_to_hoh] == 1 }
+        hoh = household(enrollment)&.detect { |m| m[:relationship_to_hoh] == 1 }
         return hoh if hoh.present?
 
         # if we don't have one, return the record for this enrollment
-        household(enrollment).detect { |m| m[:enrollment_id] == enrollment.id }
+        household(enrollment)&.detect { |m| m[:enrollment_id] == enrollment.id }
       end
 
       def household_ages(enrollment)
-        household(enrollment).map { |m| m[:age] }
+        household(enrollment)&.map { |m| m[:age] } || []
       end
 
       def household_type(enrollment)
