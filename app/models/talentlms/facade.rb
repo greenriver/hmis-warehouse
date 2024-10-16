@@ -81,10 +81,7 @@ module Talentlms
       result ||= create_account(user)
 
       # Update the talent_lms_email on the local user if it differs from the email address in TalentLMS
-      if result.present? && result['email'] != user.talent_lms_email
-        user.talent_lms_email = result['email']
-        user.save!
-      end
+      user.update!(talent_lms_email: result['email']) if result.try(:[], 'email') != user.talent_lms_email
 
       # If we want to update the email in Talent to match the local account instead of updating the local email
       # address to match what we are seeing in Talent. The line below will update the account in TalentLMS.
