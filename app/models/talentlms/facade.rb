@@ -38,7 +38,10 @@ module Talentlms
     # @@param user [User] the user
     # @return [String] username to be used for generated users in TalentLMS
     def lms_username(user)
-      "#{ENV['RAILS_ENV']}_#{user.id + Integer(ENV.fetch('DEV_OFFSET', 0))}"
+      username = "#{ENV['RAILS_ENV']}_#{user.id}"
+      return username unless Rails.env.development?
+      
+      "#{username}_#{ENV.fetch('DEV_OFFSET', 0)}"
     end
 
     # email address user in TalentLMS
