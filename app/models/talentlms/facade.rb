@@ -10,21 +10,21 @@ module Talentlms
       @api = Config.first
     end
 
-    def talentlms_user_record_by_id(id)
+    private def lms_find_user_by_id(id)
       result = @api.post('users', { id: id })
       result
     rescue RuntimeError => e
       raise e unless e.message.include?('The requested user does not exist')
     end
 
-    def talentlms_user_record_by_email(email)
+    private def lms_find_user_by_email(email)
       result = @api.post('users', { email: email })
       result
     rescue RuntimeError => e
       raise e unless e.message.include?('The requested user does not exist')
     end
 
-    def talentlms_user_record_by_username(username)
+    private def lms_find_user_by_username(username)
       result = @api.post('users', { username: username })
       result
     rescue RuntimeError => e
@@ -70,13 +70,13 @@ module Talentlms
       email_address = lms_email(user)
 
       # If we have a local login record, we have a talent account id. Check here first for the talent record
-      result = talentlms_user_record_by_id(login.lms_user_id) if login.present?
+      result = lms_find_user_by_id(login.lms_user_id) if login.present?
       # The local login record does not exist OR Talent does not have an account for this id.
       # Check for a Talent account with the assocaited email address
-      result ||= talentlms_user_record_by_email(email_address)
+      result ||= lms_find_user_by_email(email_address)
       # Talent does not have a record associated with this email address, check the default username. If we generated an
       # account for this user prior to allowing emails to be set, we should be able to find it this way.
-      result ||= talentlms_user_record_by_username(username)
+      result ||= lms_find_user_by_username(username)
       # Talent does not have a record associated with this user, create an account for them.
       result ||= create_account(user)
 
