@@ -36,9 +36,9 @@ module Talentlms
     end
 
     def lms_email(user)
-      email_address = "#{lms_username(user)}@#{ENV['FQDN']}"
-      email_address = user.talent_lms_email if user.talent_lms_email.present?
-      email_address
+      return user.talent_lms_email if user.talent_lms_email.present?
+      
+      "#{lms_username(user)}@#{ENV['FQDN']}"
     end
 
     # Login user to TalentLMS
