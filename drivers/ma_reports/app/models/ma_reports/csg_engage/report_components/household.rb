@@ -6,10 +6,11 @@
 
 module MaReports::CsgEngage::ReportComponents
   class Household < Base
-    attr_accessor :hoh_enrollment
+    attr_accessor :hoh_enrollment, :enrollments
 
-    def initialize(hoh_enrollment)
+    def initialize(hoh_enrollment, enrollments)
       @hoh_enrollment = hoh_enrollment
+      @enrollments = enrollments
     end
 
     field('Household Identifier') do
@@ -46,7 +47,7 @@ module MaReports::CsgEngage::ReportComponents
       field('Extra-Sensitive')
       field('Farmer')
       field('FoodStamps') do
-        boolean_string(@enrollments_scope.any? { |enrollment| enrollment.income_benefits.max_by(&:information_date)&.SNAP == 1 })
+        boolean_string(enrollments.any? { |enrollment| enrollment.income_benefits.max_by(&:information_date)&.SNAP == 1 })
       end
       field('Household Type')
       field('Housing Subsidy Type') do
@@ -70,7 +71,7 @@ module MaReports::CsgEngage::ReportComponents
       field('Housing Type')
       field('HousingType', method: :housing_type_2)
       field('MigrantFarmer')
-      field('Number in House') { enrollments_scope.count.to_s }
+      field('Number in House') { enrollments.size.to_s }
       field('SeasonalFarmer')
     end
 
@@ -95,7 +96,7 @@ module MaReports::CsgEngage::ReportComponents
     field('Household Members') do
       result = []
       number = 1
-      enrollments_scope.order(:personal_id).find_each do |enrollment|
+      enrollments.each do |enrollment|
         result << MaReports::CsgEngage::ReportComponents::HouseholdMember.new(enrollment, number)
         number += 1
       end
@@ -104,12 +105,12 @@ module MaReports::CsgEngage::ReportComponents
 
     private
 
-    def enrollments_scope
-      @enrollments_scope ||= GrdaWarehouse::Hud::Enrollment.where(
-        project_id: hoh_enrollment.project_id,
-        household_id: hoh_enrollment.household_id,
-      ).preload(:income_benefits, :services)
-    end
+    # def enrollments_scope
+    #   @enrollments_scope ||= GrdaWarehouse::Hud::Enrollment.where(
+    #     project_id: hoh_enrollment.project_id,
+    #     household_id: hoh_enrollment.household_id,
+    #   ).preload(:income_benefits, :services)
+    # end
 
     def coc
       @coc ||= hoh_enrollment.project.project_cocs.first
