@@ -100,6 +100,8 @@ module Types
       can :delete_enrollments
       can :delete_assessments
       can :manage_inventory
+      can :manage_units
+      can :view_units
       can :manage_incoming_referrals
       can :manage_outgoing_referrals
       can :manage_denied_referrals
@@ -162,6 +164,8 @@ module Types
 
     # Build OpenStructs to resolve as UnitTypeCapacity
     def unit_types
+      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_view_units)
+
       project_units = object.units
       capacity = project_units.group(:unit_type_id).count
       unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
@@ -178,6 +182,8 @@ module Types
 
     # TODO use dataloader
     def units(**args)
+      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_view_units)
+
       resolve_units(**args)
     end
 

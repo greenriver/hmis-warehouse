@@ -8603,10 +8603,12 @@ type ProjectAccess {
   canManageIncomingReferrals: Boolean!
   canManageInventory: Boolean!
   canManageOutgoingReferrals: Boolean!
+  canManageUnits: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
+  canViewUnits: Boolean!
   id: ID!
 }
 
@@ -9055,6 +9057,7 @@ type QueryAccess {
   canManageOutgoingReferrals: Boolean!
   canManageOwnClientFiles: Boolean!
   canManageScanCards: Boolean!
+  canManageUnits: Boolean!
   canMergeClients: Boolean!
   canSplitHouseholds: Boolean!
   canTransferEnrollments: Boolean!
@@ -9074,6 +9077,7 @@ type QueryAccess {
   canViewOpenEnrollmentSummary: Boolean!
   canViewPartialSsn: Boolean!
   canViewProject: Boolean!
+  canViewUnits: Boolean!
   id: ID!
 }
 
