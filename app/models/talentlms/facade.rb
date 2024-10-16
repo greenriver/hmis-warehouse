@@ -60,7 +60,7 @@ module Talentlms
       email_address = lms_email(user)
 
       # If we have a local login record, we have a talent account id. Check here first for the talent record
-      result ||= talentlms_user_record_by_id(login.lms_user_id) if login.present?
+      result = talentlms_user_record_by_id(login.lms_user_id) if login.present?
       # The local login record does not exist OR Talent does not have an account for this id.
       # Check for a Talent account with the assocaited email address
       result ||= talentlms_user_record_by_email(email_address)
