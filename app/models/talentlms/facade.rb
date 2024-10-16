@@ -31,13 +31,23 @@ module Talentlms
       raise e unless e.message.include?('The requested user does not exist')
     end
 
+    # Login username to TalentLMS
+    #
+    # ENV['DEV_OFFSET'] can be set to an integer to prevent username collisions between development environments
+    #
+    # @@param user [User] the user
+    # @return [String] username to be used for generated users in TalentLMS
     def lms_username(user)
       "#{ENV['RAILS_ENV']}_#{user.id + Integer(ENV.fetch('DEV_OFFSET', 0))}"
     end
 
+    # email address user in TalentLMS
+    #
+    # @@param user [User] the user
+    # @return [String] email address to be used for generated users in TalentLMS
     def lms_email(user)
       return user.talent_lms_email if user.talent_lms_email.present?
-      
+
       "#{lms_username(user)}@#{ENV['FQDN']}"
     end
 
@@ -96,8 +106,6 @@ module Talentlms
     end
 
     # Create an account in TalentLMS for a user
-    #
-    # ENV['DEV_OFFSET'] can be set to an integer to prevent username collisions between development environments
     #
     # @param user [User] the user
     # @return [String] URL to redirect the user to to login
