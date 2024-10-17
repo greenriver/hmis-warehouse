@@ -164,7 +164,7 @@ module Types
 
     # Build OpenStructs to resolve as UnitTypeCapacity
     def unit_types
-      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_view_units)
+      return {} unless current_permission?(entity: object, permission: :can_view_units)
 
       project_units = object.units
       capacity = project_units.group(:unit_type_id).count
@@ -182,7 +182,7 @@ module Types
 
     # TODO use dataloader
     def units(**args)
-      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_view_units)
+      return Hmis::Unit.none unless current_permission?(entity: object, permission: :can_view_units)
 
       resolve_units(**args)
     end
