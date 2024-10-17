@@ -175,7 +175,7 @@ class User < ApplicationRecord
   def as_hmis_user
     return unless HmisEnforcement.hmis_enabled?
 
-    # cache so we can make use of memoizations on Hmis::User (@ids_for_relations)
+    # memoize so we can make use of memoizations on Hmis::User (@ids_for_relations)
     @hmis_user ||= Hmis::User.find(id)
     @hmis_user
   end
