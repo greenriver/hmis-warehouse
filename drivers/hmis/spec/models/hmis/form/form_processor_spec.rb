@@ -1240,6 +1240,22 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(client.contact_points.pluck(:value)).to contain_exactly('foo@bar.com', 'baz@boop.com')
     end
 
+    describe 'with imageBlobId' do
+      let!(:file) { File.open('drivers/hmis/spec/fixtures/files/client_photo_00001.jpg') }
+      let(:blob) { ActiveStorage::Blob.create_and_upload!(io: file, filename: 'client_photo_00001.jpg', content_type: 'image/jpeg') }
+      let(:hud_values) { complete_hud_values.merge('imageBlobId' => blob.id.to_s) }
+
+      it 'creates a ClientFile tagged as a client headshot' do
+        client = Hmis::Hud::Client.new(data_source: ds1, user: u1)
+        process_record(record: client, hud_values: hud_values, user: hmis_user, definition: definition)
+
+        file = client.client_files.first
+        expect(file.name).to eq(GrdaWarehouse::ClientFile.headshot_tag_name)
+        expect(file.visible_in_window).to be false
+        expect(GrdaWarehouse::ClientFile.client_photos).to include(file) # ensures correct tagging
+      end
+    end
+
     describe 'with unknown custom field' do
       RSpec.shared_examples 'a processor that raises on unknown data elements' do
         it 'throws on unknown custom data elements' do
