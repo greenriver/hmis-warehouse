@@ -337,9 +337,13 @@ module GrdaWarehouse::CasProjectClientCalculator
       days
     end
 
+    # Cap total homeless unsheltered nights at 1096, incorporate clamp on self-report
     private def total_homeless_nights_unsheltered(client)
-      most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_pathways_nights_unsheltered_warehouse_added_total')&.AssessmentAnswer.to_i || 0
+      # Leaving this until this decision is finalized, the following just pulls the value from the assessment
+      # most_recent_pathways_or_transfer(client).
+      #   question_matching_requirement('c_pathways_nights_unsheltered_warehouse_added_total')&.AssessmentAnswer.to_i || 0
+
+      (calculated_homeless_nights_unsheltered(client) + additional_homeless_nights_unsheltered(client)).clamp(0, 1_096)
     end
 
     private def max_extra_homeless_days(client)
@@ -573,12 +577,15 @@ module GrdaWarehouse::CasProjectClientCalculator
       end&.max_by(&:InformationDate)&.InformationDate
     end
 
-    # Any open enrollments 4.11.2 DomesticViolenceVictim = 1
+    # CE enrollments 4.11.2 DomesticViolenceSurvivor = 1
     private def domestic_violence(client)
-      return 1 if client.source_health_and_dvs.select do |m|
-        m.DomesticViolenceVictim == 1 &&
-        [m.data_source_id, m.enrollment_id].in?(ongoing_enrollment_enrollment_ids(client))
-      end.any?
+      return 1 if client.source_health_and_dvs.
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.with_project_type(HudUtility2024.project_type_number('CE'))).
+        select do |m|
+                    m.DomesticViolenceSurvivor == 1 &&
+                    [m.data_source_id, m.enrollment_id].in?(ongoing_enrollment_enrollment_ids(client))
+                  end.any?
 
       # Return 0 so we don't drop into calling this on the client, which has different results
       0

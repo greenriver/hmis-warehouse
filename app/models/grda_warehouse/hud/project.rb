@@ -12,7 +12,6 @@ module GrdaWarehouse::Hud
     include ProjectReport
     include ::HmisStructure::Project
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
 
     attr_accessor :source_id
 
@@ -73,6 +72,9 @@ module GrdaWarehouse::Hud
     # Setup an association to project_cocs that allows us to pull the records even if the
     # project_coc has been deleted
     belongs_to :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], optional: true
+
+    # Needs to come after has_many :enrollments, bc one extension uses a has_many through: :enrollments relation
+    include RailsDrivers::Extensions
 
     scope :residential, -> do
       where(ProjectType: HudUtility2024.residential_project_type_ids)
@@ -186,6 +188,11 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :ce_participating, ->(range) do
+      joins(:ce_participations).
+        merge(GrdaWarehouse::Hud::CeParticipation.ce_participating.within_range(range))
+    end
+
     def coc_funded?
       return self.ContinuumProject == 1 if hud_continuum_funded.nil?
 
@@ -285,7 +292,8 @@ module GrdaWarehouse::Hud
     #   within the context of reporting confidential_scope_limiter is almost always non_confidential
     #   within the client dashboard context, confidential_scope_limiter is :all, which includes confidential projects
     #   names of confidential projects are obfuscated unless the user can_view_confidential_project_names
-    # @param permission [Symbol] a permission to determine the scope for which the projects are viewable
+    # @param permission [Symbol] a permission to determine the scope for which the projects are viewable.
+    #   Caution, this permission is NOT checked if the user is using legacy permissions (not on ACLs).
     scope :viewable_by, ->(user, confidential_scope_limiter: :non_confidential, permission: :can_view_projects) do
       query = viewable_by_entity(user, permission: permission)
       # If a user can't report on confidential projects, exclude them entirely

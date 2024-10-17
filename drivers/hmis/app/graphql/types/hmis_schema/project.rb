@@ -31,6 +31,8 @@ module Types
 
     # check for the most minimal permission needed to resolve this object
     def self.authorized?(object, ctx)
+      # current_permission_for_context? checks to prevent data source leakage, but it is a secondary guard;
+      # the viewable_by scope is our primary defense against this.
       permission = :can_view_project
       super && GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: permission, entity: object)
     end
@@ -229,10 +231,15 @@ module Types
     end
 
     def external_form_submissions(**args)
-      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).active.where(entity: object)
+      # Find form instances for this project. Only include active instances. (Unlike other form types, we do not support
+      # viewing "legacy" form submissions from inactive instances, to simplify implementation.)
+      # Use for_project instead of for_project_through_entities because external forms are limited to project-level instances.
+      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).for_project(object).active
+      identifiers = instances.select(:definition_identifier)
+
       scope = HmisExternalApis::ExternalForms::FormSubmission.
         joins(:definition).
-        where(definition: { identifier: instances.select(:definition_identifier) })
+        where(definition: { identifier: identifiers })
 
       form_definition_identifier = args.delete(:form_definition_identifier)
       scope = scope.where(definition: { identifier: form_definition_identifier }) if form_definition_identifier

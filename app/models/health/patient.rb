@@ -473,13 +473,13 @@ module Health
     end
 
     scope :needs_renewal, ->(on: Date.current.end_of_month) do
-      joins(:recent_pctp_careplan).
-        merge(Health::PctpCareplan.recent.sent_within(.. on - 335.days)) # 1 year - 30 days
+      joins(:pctp_careplans).
+        merge(Health::PctpCareplan.sent.recent.sent_within(.. on - 335.days)) # 1 year - 30 days
     end
 
     scope :overdue_for_renewal, ->(on: Date.current.end_of_month) do
-      joins(:recent_pctp_careplan).
-        merge(Health::PctpCareplan.recent.sent_within(.. on - 365.days)) # 1 year
+      joins(:pctp_careplans).
+        merge(Health::PctpCareplan.sent.recent.sent_within(.. on - 365.days)) # 1 year
     end
 
     # For now, all patients are visible to all health users
@@ -728,29 +728,7 @@ module Health
     end
 
     def anything_expiring?
-      release_status.present? || cha_status.present? || ssm_status.present? || careplan_status.present?
-    end
-
-    def participation_form_status
-      @participation_form_status ||= if active_participation_form? && ! expiring_participation_form?
-        # Valid
-      elsif expiring_participation_form?
-        "Participation form expires #{participation_forms.recent.expiring_soon.during_current_enrollment.last.expires_on}"
-      elsif expired_participation_form?
-        "Participation expired on #{participation_forms.recent.expired.during_current_enrollment.last.expires_on}"
-      end
-    end
-
-    private def active_participation_form?
-      @active_participation_form ||= participation_forms.active.during_current_enrollment.exists?
-    end
-
-    private def expiring_participation_form?
-      @expiring_participation_form ||= participation_forms.expiring_soon.during_current_enrollment.exists?
-    end
-
-    private def expired_participation_form?
-      @expired_participation_form ||= participation_forms.expired.during_current_enrollment.exists?
+      release_status.present? || hrsn_status.present? || ca_status.present? || careplan_status.present?
     end
 
     def release_status
@@ -775,59 +753,59 @@ module Health
       @expired_release ||= release_forms.expired.during_current_enrollment.exists?
     end
 
-    def cha_status
-      @cha_status ||= if active_cha? && ! expiring_cha?
+    def hrsn_status
+      @hrsn_status ||= if active_hrsn? && !expiring_hrsn?
         # Valid
-      elsif expiring_cha?
-        "Comprehensive Health Assessment expires #{comprehensive_health_assessments.recent.expiring_soon.during_current_enrollment.last.expires_on}"
-      elsif expired_cha?
-        "Comprehensive Health Assessment expired on #{comprehensive_health_assessments.recent.expired.during_current_enrollment.last.expires_on}"
+      elsif expiring_hrsn?
+        "HRSN Assessment expires #{recent_hrsn_screening.expires_on}"
+      elsif expired_hrsn?
+        "HRSN Assessment expired on #{recent_hrsn_screening.expires_on}"
       end
     end
 
-    private def active_cha?
-      @active_cha ||= comprehensive_health_assessments.active.during_current_enrollment.exists?
+    private def active_hrsn?
+      @active_hrsn ||= recent_hrsn_screening&.active? || false
     end
 
-    private def expiring_cha?
-      @expiring_cha ||= comprehensive_health_assessments.recent.expiring_soon.during_current_enrollment.exists?
+    private def expiring_hrsn?
+      @expiring_hrsn ||= recent_hrsn_screening&.expiring? || false
     end
 
-    private def expired_cha?
-      @expired_cha ||= comprehensive_health_assessments.recent.expired.during_current_enrollment.exists?
+    private def expired_hrsn?
+      @expired_hrsn ||= recent_hrsn_screening&.expired? || false
     end
 
-    def ssm_status
-      @ssm_status ||= if active_ssm? && ! expiring_ssm?
+    def ca_status
+      @ca_status ||= if active_ca? && !expiring_ca?
         # Valid
-      elsif expiring_ssm?
-        "Self-Sufficiency Matrix Form expires #{self_sufficiency_matrix_forms.completed.during_current_enrollment.last.expires_on}"
-      elsif expired_ssm?
-        "Self-Sufficiency Matrix Form expired on #{self_sufficiency_matrix_forms.completed.during_current_enrollment.last.expires_on}"
+      elsif expiring_ca?
+        "Comprehensive Assessment expires #{recent_ca_assessment.expires_on}"
+      elsif expired_ca?
+        "Comprehensive Assessment expired on #{recent_ca_assessment.expires_on}"
       end
     end
 
-    private def active_ssm?
-      @active_ssm ||= self_sufficiency_matrix_forms.completed.active.during_current_enrollment.exists?
+    private def active_ca?
+      @active_ca ||= recent_ca_assessment&.active? || false
     end
 
-    private def expiring_ssm?
-      @expiring_ssm ||= self_sufficiency_matrix_forms.completed.expiring_soon.during_current_enrollment.exists?
+    private def expiring_ca?
+      @expiring_ca ||= recent_ca_assessment&.expiring? || false
     end
 
-    private def expired_ssm?
-      @expired_ssm ||= self_sufficiency_matrix_forms.completed.expired.during_current_enrollment.exists?
+    private def expired_ca?
+      @expired_ca ||= recent_ca_assessment&.expired? || false
     end
 
     def careplan_status
       @careplan_status ||= if active_careplan? && ! expiring_careplan?
         # Valid
       elsif missing_careplan?
-        'Care plan not completed by required date'
+        'Person-Centered Treatment Plan not completed by required date'
       elsif expiring_careplan?
-        "Care plan expires #{recent_pctp_careplan.expires_on}"
+        "Person-Centered Treatment Plan expires #{recent_pctp_careplan.expires_on}"
       elsif expired_careplan?
-        "Care plan expired on #{recent_pctp_careplan.expires_on}"
+        "Person-Centered Treatment Plan expired on #{recent_pctp_careplan.expires_on}"
       end
     end
 

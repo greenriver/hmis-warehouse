@@ -12,6 +12,8 @@ class User < ApplicationRecord
   include UserConcern
   include RailsDrivers::Extensions
 
+  validates :talent_lms_email, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: -> { talent_lms_email.blank? }
+
   USER_PERMISSION_PREFIX = 'user_permissions'
   USER_PROJECT_ID_PREFIX = "#{USER_PERMISSION_PREFIX}_project_ids".freeze
   EXPIRY_MINUTES = 5
@@ -73,8 +75,10 @@ class User < ApplicationRecord
     # Provide a scope for each permission to get any user who qualifies
     # e.g. User.can_administer_health
     scope permission, -> do
-      joins(:legacy_roles).
-        merge(Role.where(permission => true))
+      roles = Role.where(permission => true)
+      legacy = User.joins(:legacy_roles).merge(roles)
+      acl = User.joins(:roles).merge(roles)
+      where(id: legacy.select(:id)).or(where(id: acl.select(:id)))
     end
   end
 

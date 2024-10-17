@@ -2494,7 +2494,9 @@ CREATE TABLE public.roles (
     deleted_at timestamp without time zone,
     can_edit_own_client_notes boolean DEFAULT false,
     can_view_client_name boolean DEFAULT false,
-    can_view_client_photo boolean DEFAULT false
+    can_view_client_photo boolean DEFAULT false,
+    can_view_project_locations boolean DEFAULT false,
+    can_view_supplemental_client_data boolean DEFAULT false
 );
 
 
@@ -3231,7 +3233,8 @@ CREATE TABLE public.users (
     credentials character varying,
     hmis_unique_session_id character varying,
     permission_context character varying DEFAULT 'role_based'::character varying,
-    superset_roles jsonb DEFAULT '[]'::jsonb
+    superset_roles jsonb DEFAULT '[]'::jsonb,
+    talent_lms_email character varying
 );
 
 
@@ -5323,6 +5326,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240611142154'),
 ('20240617132532'),
 ('20240710124743'),
-('20240911201727');
+('20240829152856'),
+('20240911201727'),
+('20240911204731'),
+('20241011125827');
 
 

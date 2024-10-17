@@ -114,6 +114,14 @@ FactoryBot.define do
               field_name: 'exitDate',
             },
           },
+          {
+            type: 'CHOICE',
+            link_id: 'exit_destination',
+            mapping: {
+              record_type: 'EXIT',
+              field_name: 'destination',
+            },
+          },
         ],
       }
     end
@@ -300,6 +308,166 @@ FactoryBot.define do
           },
         ],
       }.deep_stringify_keys
+    end
+  end
+
+  factory :hmis_external_form_definition, parent: :hmis_form_definition do
+    sequence(:external_form_object_key) do |n|
+      "sample_external_form_#{n}"
+    end
+    role { 'EXTERNAL_FORM' }
+    definition do
+      JSON.parse(<<~JSON)
+        {
+          "name": "Test form",
+          "item": [
+            {
+              "type": "GROUP",
+              "link_id": "group_1",
+              "text": "Test group",
+              "item": [
+                {
+                  "link_id": "your_name",
+                  "required": true,
+                  "type": "STRING",
+                  "text": "Your Name",
+                  "mapping": {"custom_field_key": "your_name"}
+                }
+              ]
+            }
+          ]
+        }
+      JSON
+    end
+  end
+
+  factory :hmis_external_form_definition_updates_client, parent: :hmis_external_form_definition do
+    definition do
+      JSON.parse(<<~JSON)
+        {
+          "name": "Test form",
+          "item": [
+            {
+              "type": "GROUP",
+              "link_id": "group_1",
+              "text": "Test group",
+              "item": [
+                {
+                  "type": "STRING",
+                  "link_id": "first_name",
+                  "mapping": {
+                    "field_name": "firstName",
+                    "record_type": "CLIENT"
+                  },
+                  "text": "First name"
+                },
+                {
+                  "type": "CHOICE",
+                  "pick_list_reference": "RelationshipToHoH",
+                  "link_id": "relationship_to_hoh",
+                  "mapping": {
+                    "field_name": "relationshipToHoH",
+                    "record_type": "ENROLLMENT"
+                  },
+                  "text": "Relationship to HoH"
+                },
+                {
+                  "type": "STRING",
+                  "link_id": "household_id",
+                  "mapping": {
+                    "field_name": "householdId",
+                    "record_type": "ENROLLMENT"
+                  }
+                },
+                {
+                  "type": "STRING",
+                  "link_id": "veteran_status",
+                  "mapping": {
+                    "field_name": "veteranStatus",
+                    "record_type": "CLIENT"
+                  }
+                },
+                {
+                  "type": "GEOLOCATION",
+                  "link_id": "geolocation",
+                  "mapping": {
+                    "field_name": "coordinates",
+                    "record_type": "GEOLOCATION"
+                  }
+                },
+                {
+                  "type": "CHOICE",
+                  "pick_list_reference": "ClientAgeGroup",
+                  "link_id": "how_old_are_you",
+                  "mapping": {
+                    "field_name": "ageRange",
+                    "record_type": "CLIENT"
+                  }
+                },
+                {
+                  "text": "What is your Date of Birth?",
+                  "type": "DATE",
+                  "link_id": "client_dob",
+                  "mapping": {
+                    "field_name": "dob",
+                    "record_type": "CLIENT"
+                  }
+                },
+                {
+                  "text": "Do you have a substance use disorder?",
+                  "type": "CHOICE",
+                  "link_id": "substance_use_disorder",
+                  "mapping": {
+                    "field_name": "substanceUseDisorder",
+                    "record_type": "DISABILITY_GROUP"
+                  },
+                  "component": "RADIO_BUTTONS",
+                  "disabled_display": "HIDDEN",
+                  "pick_list_options": [
+                    {
+                      "code": "NO",
+                      "label": "No"
+                    },
+                    {
+                      "code": "ALCOHOL_USE_DISORDER",
+                      "label": "Yes, alcohol use"
+                    },
+                    {
+                      "code": "DRUG_USE_DISORDER",
+                      "label": "Yes, drug use"
+                    },
+                    {
+                      "code": "BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS",
+                      "label": "Yes, both alcohol and drug use"
+                    }
+                  ]
+                },
+                {
+                  "text": "Do you have an HIV related diagnosis?",
+                  "type": "CHOICE",
+                  "link_id": "hiv_aids",
+                  "mapping": {
+                    "field_name": "hivAids",
+                    "record_type": "DISABILITY_GROUP"
+                  },
+                  "component": "RADIO_BUTTONS",
+                  "disabled_display": "HIDDEN",
+                  "pick_list_options": [
+                    {
+                      "code": "NO",
+                      "label": "No"
+                    },
+                    {
+                      "code": "YES",
+                      "label": "Yes"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      JSON
     end
   end
 end

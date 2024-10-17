@@ -106,6 +106,7 @@ module IncomeBenefitsReport
         :organization_ids,
         :project_ids,
         :funder_ids,
+        :funder_others,
         :project_group_ids,
         :cohort_ids,
         :disabilities,

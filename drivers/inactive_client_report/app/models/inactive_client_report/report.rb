@@ -117,50 +117,88 @@ module InactiveClientReport
       }
     end
 
+    # Clients the user can see an enrollment for who are also in the report scope
+    # This ignores report scope to look for contacts at any project viewable by the user
     def client_scope
-      scope = GrdaWarehouse::Hud::Client.
-        joins(service_history_entries: :project).
-        merge(GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: report_scope.select(:client_id))).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(filter.user))
-      scope = scope.where(id: client_ids) if client_ids.present?
-      scope
+      c_ids = client_ids.presence || report_scope.select(:client_id)
+      GrdaWarehouse::Hud::Client.
+        where(id: c_ids).
+        joins(service_history_entries: :enrollment).
+        merge(GrdaWarehouse::Hud::Enrollment.visible_to(filter.user))
+    end
+
+    # For performance, we'll need to fetch max IDs in batches.
+    # We want a client's dates to be fetched in a single batch, and dates
+    # are tied to enrollments, so we'll generate a hash in the format { client_id => [enrollment_ids] }
+    # that can be used to batch fetch all enrollments for a batch of clients
+    private def client_enrollment_ids
+      @client_enrollment_ids ||= client_scope.pluck(:id, e_t[:id]).
+        group_by(&:shift).
+        transform_values(&:flatten)
+    end
+
+    # For performance, we need to hint some subqueries, so we'll limit queries to the relevant personal IDs
+    private def personal_ids
+      # Pulling personal IDs from the Enrollment table since the clients are destination clients
+      @personal_ids ||= client_scope.distinct.pluck(e_t[:PersonalID])
+    end
+
+    private def batch_fetch_items(join:, column:, merge:)
+      {}.tap do |items|
+        client_enrollment_ids.each_slice(500) do |slice|
+          items.merge!(GrdaWarehouse::Hud::Client.destination.
+            joins(**join).
+            where(e_t[:id].in(slice.flat_map(&:last))).
+            merge(merge).
+            group(c_t[:id]).
+            maximum(column))
+        end
+      end
     end
 
     def max_current_living_situation_by_client_id
-      client_scope.
-        joins(:source_current_living_situations).
-        group(c_t[:id]).
-        maximum(cls_t[:InformationDate])
+      @max_current_living_situation_by_client_id ||= batch_fetch_items(
+        join: { source_enrollments: :current_living_situations },
+        column: cls_t[:InformationDate],
+        merge: GrdaWarehouse::Hud::CurrentLivingSituation.where(PersonalID: personal_ids),
+      )
     end
 
     def max_bed_night_by_client_id
-      client_scope.
-        joins(:source_services).
-        merge(GrdaWarehouse::Hud::Service.bed_night).
-        group(c_t[:id]).
-        maximum(s_t[:DateProvided])
+      @max_bed_night_by_client_id ||= batch_fetch_items(
+        join: { source_enrollments: :services },
+        column: s_t[:DateProvided],
+        merge: GrdaWarehouse::Hud::Service.where(PersonalID: personal_ids),
+      )
     end
 
     def max_assessment_by_client_id
-      u_t = GrdaWarehouse::Hud::User.arel_table
-      client_scope.
-        joins(source_assessments: :user).
-        pluck(c_t[:id], u_t[:UserFirstName], u_t[:UserLastName], as_t[:AssessmentDate]).
-        uniq.
-        map { |id, first_name, last_name, date| [id, "#{last_name}, #{first_name}", date] }.
-        group_by(&:shift).
-        map do |id, values|
-          latest_assessment = values.max_by(&:last)
-          { id => {
-            assessor: latest_assessment.first,
-            assessment_date: latest_assessment.last,
-          } }
-        end.
-        reduce :merge
+      @max_assessment_by_client_id ||= {}.tap do |items|
+        u_t = GrdaWarehouse::Hud::User.arel_table
+        client_enrollment_ids.each_slice(500) do |slice|
+          items.merge!(
+            GrdaWarehouse::Hud::Client.destination.
+              where(e_t[:id].in(slice.flat_map(&:last))).
+              joins(source_enrollments: [assessments: :user]).
+              pluck(c_t[:id], u_t[:UserFirstName], u_t[:UserLastName], as_t[:AssessmentDate]).
+              uniq.
+              map { |id, first_name, last_name, date| [id, "#{last_name}, #{first_name}", date] }.
+              group_by(&:shift).
+              map do |id, values|
+                latest_assessment = values.max_by(&:last)
+                { id => {
+                  assessor: latest_assessment.first,
+                  assessment_date: latest_assessment.last,
+                } }
+              end.
+              reduce(:merge),
+          )
+        end
+      end
     end
 
     private def max_entries_by_client_id
-      scope = report_scope
+      scope = report_scope(limited: true)
       scope = scope.where(client_id: client_ids) if client_ids.present?
       scope.
         order(entry_date: :asc).
@@ -168,7 +206,8 @@ module InactiveClientReport
         to_h # Keeps the last instance for each client_id
     end
 
-    def report_scope
+    def report_scope(limited: false)
+      filter.personal_ids_for_days_since_contact_calculations = personal_ids if limited
       scope = filter.apply(report_scope_base, report_scope_base, include_date_range: false)
       # Apply a single date filter
       scope.ongoing(on_date: filter.on)

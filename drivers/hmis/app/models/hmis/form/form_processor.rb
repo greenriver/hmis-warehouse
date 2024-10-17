@@ -39,6 +39,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   # Coordinated Entry (CE) Assessment that was created by the processor. The HUD model for CE Assessment is 'Assessment'
   belongs_to :ce_assessment, class_name: 'Hmis::Hud::Assessment', optional: true, autosave: true
   belongs_to :ce_event, class_name: 'Hmis::Hud::Event', optional: true, autosave: true
+  belongs_to :clh_location, class_name: 'ClientLocationHistory::Location', optional: true, autosave: true
 
   validate :hmis_records_are_valid, on: :form_submission
 
@@ -46,6 +47,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   def custom_assessment?
     owner_type == Hmis::Hud::CustomAssessment.sti_name
+  end
+
+  def external_form_submission?
+    owner_type == HmisExternalApis::ExternalForms::FormSubmission.sti_name
   end
 
   def unknown_field_error(definition)
@@ -96,6 +101,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         # This related record will be created or updated, so assign the metadata and information date.
         processor&.assign_metadata
         processor&.information_date(owner.assessment_date) if custom_assessment?
+        processor&.information_date(owner.submitted_at.to_date) if external_form_submission?
       end
     end
 
@@ -215,18 +221,19 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     when Hmis::Hud::CustomAssessment
       # An assessment can modify the client that it's associated with
       owner.client
+    when HmisExternalApis::ExternalForms::FormSubmission
+      # External forms can create new clients, such as PIT
+      owner.enrollment.client || owner.enrollment.build_client(personal_id: Hmis::Hud::Base.generate_uuid)
     end
   end
 
-  # Common HUD Assessment-related attributes
+  # Common HUD Assessment-related attributes. These always have enrollments so enrollment_factory *should* exist
   def common_attributes
     data_collection_stage = owner.data_collection_stage if owner.respond_to?(:data_collection_stage)
-    personal_id = owner.personal_id if owner.respond_to?(:personal_id)
-    information_date = owner.information_date if owner.respond_to?(:information_date)
+    personal_id = enrollment_factory(create: false)&.personal_id
     {
       data_collection_stage: data_collection_stage,
       personal_id: personal_id,
-      information_date: information_date,
     }
   end
 
@@ -345,6 +352,12 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       build(**common_attributes)
   end
 
+  def clh_location_factory(create: true)
+    return clh_location if clh_location.present? || !create
+
+    self.clh_location = client_factory.client_location_histories.build
+  end
+
   private def container_processor(container)
     container = container.to_sym
 
@@ -389,6 +402,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       CeAssessment: Hmis::Hud::Processors::CeAssessmentProcessor,
       Event: Hmis::Hud::Processors::CeEventProcessor,
       CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
+      # External forms
+      FormSubmission: Hmis::Hud::Processors::ExternalFormSubmissionProcessor,
+      Geolocation: Hmis::Hud::Processors::GeolocationProcessor,
     }.freeze
   end
 

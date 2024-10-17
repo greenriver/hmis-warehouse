@@ -27,7 +27,6 @@ RSpec.describe IdentifyExternalClientsJob, type: :job do
 
     before do
       allow(s3).to receive(:list_objects).and_return([double(key: 'test.csv')])
-      allow(s3).to receive(:get_file_type).and_return('text/csv')
       allow(s3).to receive(:get_as_io).and_return(StringIO.new(csv_content))
       allow(s3).to receive(:store)
       allow(s3).to receive(:delete)
@@ -80,8 +79,8 @@ RSpec.describe IdentifyExternalClientsJob, type: :job do
           end
         else
           it 'should not match the client to the CSV' do
-            expect(s3).not_to receive(:store)
-            expect(s3).not_to receive(:delete)
+            expect(s3).to receive(:store)
+            expect(s3).to receive(:delete)
 
             described_class.perform_now(s3: s3, inbox_path: inbox_path, outbox_path: outbox_path, external_id_field: external_id_field)
           end
@@ -94,7 +93,6 @@ RSpec.describe IdentifyExternalClientsJob, type: :job do
     it 'logs an error for malformed CSV files' do
       malformed_csv_content = "first_name,last_name,ssn4,dob,#{external_id_field}\nJohn,Doe,\"1234,1990-01-01,1" # Unclosed quoted field
       allow(s3).to receive(:list_objects).and_return([double(key: 'test.csv')])
-      allow(s3).to receive(:get_file_type).and_return('text/csv')
       allow(s3).to receive(:get_as_io).and_return(StringIO.new(malformed_csv_content))
       allow(Rails.logger).to receive(:error)
 

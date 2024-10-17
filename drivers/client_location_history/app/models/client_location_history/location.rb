@@ -10,38 +10,49 @@ module ClientLocationHistory
     belongs_to :source, polymorphic: true, optional: true
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :place, class_name: 'GrdaWarehouse::Place', primary_key: [:lat, :lon], foreign_key: [:lat, :lon], optional: true
-    belongs_to :enrollment, class_name: 'GrdaWarehouse::Enrollment', optional: true
+    # this relation isn't used; use polymorphic `source` above
+    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
+    before_create :ensure_grda_warehouse_source
+
+    MARKER_COLOR = '#72A0C1'.freeze
+
+    private def ensure_grda_warehouse_source
+      # This somewhat hacky solution gets around the fact that during HMIS Form Processing, we haven't yet saved the
+      # Enrollment being generated, so we don't yet have an ID with which to get the Warehouse enrollment.
+      return unless source_type&.starts_with? 'Hmis::Hud::'
+
+      self.source_type = source_type.sub('Hmis::Hud::', 'GrdaWarehouse::Hud::')
+    end
 
     def as_point
       [lat, lon]
     end
 
-    def label
-      [
-        "Seen on: #{located_on}",
-        "by #{collected_by}",
-      ]
-    end
-
-    def as_marker
+    def as_marker(user = nil, label_attributes = [:seen_on, :collected_by])
       {
         lat_lon: as_point,
-        label: label,
+        label: label(user, label_attributes),
         date: located_on,
         highlight: false,
       }
     end
 
-    def as_marker_with_name(user)
-      name = if user.can_view_clients?
+    private def label(user, label_attributes)
+      raise ArgumentError if label_attributes.include?(:name) && !user
+
+      [
+        label_attributes.include?(:name) ? name_for_label(user) : nil,
+        label_attributes.include?(:seen_on) ? "Seen on: #{located_at || located_on}" : nil,
+        label_attributes.include?(:collected_by) ? "by #{collected_by}" : nil,
+      ].compact
+    end
+
+    private def name_for_label(user)
+      if user.can_view_clients?
         link_for(client_path(client), client.name)
       else
         client.name
       end
-      as_marker.merge(
-        client_id: client.id,
-        label: [name] + label,
-      )
     end
 
     private def link_for(path, text)

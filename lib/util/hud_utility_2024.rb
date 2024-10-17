@@ -581,7 +581,7 @@ module HudUtility2024
         'XX-500' => 'Test CoC',
         'XX-501' => '2nd Test CoC',
         'XX-502' => '3rd Test CoC', # testkit
-        'XX-518' => '4th Test CoC', # testkit
+        # 'XX-518' => '4th Test CoC', # testkit, removed for CoC APR Organization J HP (TODO: do we need this for the LSA?)
       },
     ).freeze
   end
@@ -761,5 +761,24 @@ module HudUtility2024
       5 => 'Annual Assessment',
       6 => 'Post-Exit Assessment',
     }.freeze
+  end
+
+  # Utility for defining age range logic in one place.
+  # These can overlap, not all are used in every form dropdown/filter
+  def age_range
+    {
+      'Under 5' => 0..4,
+      '5-12' => 5..12,
+      '13-17' => 13..17,
+      'Under 18' => 0..18,
+      '18-24' => 18..24,
+      '25-34' => 25..34,
+      '35-44' => 35..44,
+      '45-54' => 45..54,
+      '55-61' => 55..61,
+      '55-64' => 55..64,
+      '62+' => 62..Float::INFINITY,
+      '65+' => 65..Float::INFINITY,
+    }
   end
 end

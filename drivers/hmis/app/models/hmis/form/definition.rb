@@ -40,6 +40,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # convenience attr for passing graphql args
   attr_accessor :filter_context
 
+  validates :identifier, format: { with: /\A[a-zA-Z][a-zA-Z0-9_-]*\z/, message: 'must contain only alphanumeric characters, underscores, and dashes, and must start with a letter' }
+
   # --- Relations by id ----
   has_many :form_processors, dependent: :restrict_with_exception
   has_many :external_form_submissions, class_name: 'HmisExternalApis::ExternalForms::FormSubmission', dependent: :restrict_with_exception
@@ -324,6 +326,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where(status: PUBLISHED)
   end
 
+  scope :published_or_retired, -> do
+    where(status: [PUBLISHED, RETIRED])
+  end
+
   validate :validate_external_form_object_key
   def validate_external_form_object_key
     return unless role == 'EXTERNAL_FORM' && external_form_object_key.present?
@@ -580,6 +586,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     # if item has children, recur into them first
     node['item']&.each { |child| walk_definition_node_as_hash(child, &block) }
     block.call(node)
+  end
+
+  def updates_client_or_enrollment?
+    link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping&.record_type) }.present?
   end
 
   # Find and/or initialize CustomDataElementDefinitions that are collected by this form.

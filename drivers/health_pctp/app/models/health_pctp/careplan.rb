@@ -95,6 +95,13 @@ module HealthPctp
       true
     end
 
+    def archived?
+      return false if active?
+      return false if patient.recent_pctp_careplan.instrument.id == id
+
+      true
+    end
+
     def edit_path(anchor: nil)
       edit_client_health_pctp_careplan_path(patient.client, id, anchor: anchor)
     end

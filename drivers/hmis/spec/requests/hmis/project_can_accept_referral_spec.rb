@@ -40,6 +40,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect_access_denied post_graphql(destination_project_id: source_project.id, source_enrollment_id: source_enrollment.id) { project_can_accept_referral_query }
     end
 
+    it 'raises an error when the referral form instance exists, but definition is a draft' do
+      create(:hmis_form_definition, role: :REFERRAL, identifier: 'bad-referral-form', status: :draft)
+      create(:hmis_form_instance, role: :REFERRAL, entity: source_project, definition_identifier: 'bad-referral-form')
+
+      expect_access_denied post_graphql(destination_project_id: source_project.id, source_enrollment_id: source_enrollment.id) { project_can_accept_referral_query }
+    end
+
     it 'raises an error when the user does not have can_manage_outgoing_referrals permission for the source project' do
       remove_permissions(access_control, :can_manage_outgoing_referrals)
       create_access_control(hmis_user, p1) # even when they have permissions at some other project
