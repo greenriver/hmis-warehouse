@@ -67,4 +67,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(result.status).to eq(200)
     expect(response.dig('data', 'createFormDefinition', 'errors', 0, 'fullMessage')).to eq('Role must exist')
   end
+
+  it 'should fail to create a new form with an invalid identifier' do
+    input = {
+      definition: '',
+      role: 'CUSTOM_ASSESSMENT',
+      title: 'A new custom assessment',
+      identifier: '123_invalid!', # Invalid identifier
+    }
+    response, result = post_graphql(input: input) { mutation }
+    expect(response.status).to eq(200), result.inspect
+    expect(result.dig('data', 'createFormDefinition', 'errors')).not_to be_empty
+    error_message = result.dig('data', 'createFormDefinition', 'errors', 0, 'message')
+    expect(error_message).to match(/must contain only alphanumeric characters, underscores, and dashes/i)
+  end
 end

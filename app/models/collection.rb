@@ -38,6 +38,7 @@ class Collection < ApplicationRecord
   has_many :reports, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition'
   has_many :project_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectGroup'
   has_many :cohorts, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Cohort'
+  has_many :supplemental_data_sets, through: :group_viewable_entities, source: :entity, source_type: 'HmisSupplemental::DataSet'
 
   belongs_to :user, optional: true
 
@@ -128,6 +129,7 @@ class Collection < ApplicationRecord
       'Project Groups',
       'Reports',
       'Cohorts',
+      'Supplemental Data Sets',
     ].freeze
   end
 
@@ -152,6 +154,7 @@ class Collection < ApplicationRecord
       projects: 'Projects',
       reports: 'Reports',
       cohorts: 'Cohorts',
+      supplemental_data_sets: 'Supplemental Data Sets',
       project_groups: 'Project Groups', # access to project groups
     }.freeze
   end
@@ -180,7 +183,12 @@ class Collection < ApplicationRecord
       [
         :cohorts,
       ]
+    when 'Supplemental Data Sets'
+      [
+        :supplemental_data_sets,
+      ]
     end
+
     entity_types.slice(*relevant_types)
   end
 
@@ -194,6 +202,8 @@ class Collection < ApplicationRecord
       'Reports'
     when :cohorts
       'Cohorts'
+    when :supplemental_data_sets
+      'Supplemental Data Sets'
     end
   end
 
@@ -307,6 +317,10 @@ class Collection < ApplicationRecord
         g.system = ['Entities']
         g.collection_type = 'Cohorts'
       end,
+      supplemental_data_sets: Collection.where(name: 'All Supplemental Data Sets', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Supplemental Data Sets'
+      end,
       project_groups: Collection.where(name: 'All Project Groups', must_exist: true).first_or_create do |g|
         g.system = ['Entities']
         g.collection_type = 'Project Groups'
@@ -371,6 +385,14 @@ class Collection < ApplicationRecord
       system_user_access_group.set_viewables({ cohorts: ids })
     end
 
+    if group.blank? || group == :supplemental_data_sets
+      # Supplemental Data Sets
+      all_data_sets = system_collection(:supplemental_data_sets)
+      ids = HmisSupplemental::DataSet.pluck(:id)
+      all_data_sets.set_viewables({ supplemental_data_sets: ids })
+      system_user_access_group.set_viewables({ supplemental_data_sets: ids })
+    end
+
     if group.blank? || group == :project_groups
       # Project Groups
       all_project_groups = system_collection(:project_groups)
@@ -408,6 +430,7 @@ class Collection < ApplicationRecord
         :project_access_groups,
         :reports,
         :cohorts,
+        :supplemental_data_sets,
         :project_groups,
       ].each do |type|
         ids = (viewables[type] || []).map(&:to_i)
@@ -509,6 +532,7 @@ class Collection < ApplicationRecord
       'Organizations' => organizations.map(&:OrganizationName),
       'Projects' => projects.map(&:ProjectName),
       'Cohorts' => cohorts.map(&:name),
+      'Supplemental Data Sets' => supplemental_data_sets.map(&:name),
       'Reports' => reports.map(&:name),
     }
   end
@@ -530,6 +554,7 @@ class Collection < ApplicationRecord
       reports: 'GrdaWarehouse::WarehouseReports::ReportDefinition',
       project_groups: 'GrdaWarehouse::ProjectGroup',
       cohorts: 'GrdaWarehouse::Cohort',
+      supplemental_data_sets: 'HmisSupplemental::DataSet',
     }.freeze
   end
 end

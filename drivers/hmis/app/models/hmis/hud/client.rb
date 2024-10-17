@@ -10,7 +10,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::FormSubmittable
   include ::HudConcerns::Client
-  include ::HudChronicDefinition
   include ClientSearch
 
   has_paper_trail(meta: { client_id: :id })

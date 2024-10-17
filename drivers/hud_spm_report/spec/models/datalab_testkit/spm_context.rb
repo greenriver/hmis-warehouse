@@ -10,7 +10,7 @@ RSpec.shared_context 'datalab spm context', shared_context: :metadata do
       start: Date.parse('2021-10-01'),
       end: Date.parse('2022-09-30'),
       user_id: User.setup_system_user.id,
-      coc_codes: ['XX-501'],
+      coc_codes: ['XX-501', 'XX-518'],
     }.freeze
   end
 

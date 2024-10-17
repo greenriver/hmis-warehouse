@@ -52,7 +52,7 @@ module HudApr::Generators::Shared::Fy2024
             end
           end
 
-          (ids, amounts) = ids_and_amounts(
+          (ids, amounts, adult_ids) = ids_and_amounts(
             adults,
             column: column[:column],
             income_category: income_category,
@@ -61,10 +61,9 @@ module HudApr::Generators::Shared::Fy2024
 
           members = adults.where(id: ids)
           answer.add_members(members)
-
           if column[:column] == 'J'
             percent = 0
-            percent = (members.count.to_f / adults.count) if ids.any?
+            percent = (members.count.to_f / adult_ids.count) if ids.any?
             answer.update(summary: percentage(percent))
             next
           end
@@ -241,6 +240,7 @@ module HudApr::Generators::Shared::Fy2024
 
     private def ids_and_amounts(adults, column:, income_category:, suffix:)
       ids = Set.new
+      adult_ids = Set.new
       amounts = [] # this can't be a set, we need all amounts even duplicates
       adults.preload(:universe_membership).find_each do |member|
         apr_client = member.universe_membership
@@ -254,6 +254,7 @@ module HudApr::Generators::Shared::Fy2024
         # If we can't determine the overall income, we don't know any details either, skip
         next if missing_income?(apr_client, suffix)
 
+        adult_ids << member.id
         case column
         when 'B'
           if income_for_category?(
@@ -374,7 +375,7 @@ module HudApr::Generators::Shared::Fy2024
           )
         end
       end
-      [ids, amounts]
+      [ids, amounts, adult_ids]
     end
 
     private def income_stati_stayers

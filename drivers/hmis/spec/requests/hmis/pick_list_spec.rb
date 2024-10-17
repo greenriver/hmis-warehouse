@@ -338,6 +338,34 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(options.length).to eq(1)
         expect(options.first.dig('code')).to eq('test-external')
       end
+
+      context 'but form is in draft' do
+        let!(:external_form) { create :hmis_form_definition, identifier: 'test-external', role: :EXTERNAL_FORM, status: :draft }
+
+        it 'should not return the draft form' do
+          response, result = post_graphql(pick_list_type: 'EXTERNAL_FORM_TYPES_FOR_PROJECT', projectId: p1.id) { query }
+          expect(response.status).to eq 200
+          options = result.dig('data', 'pickList')
+          expect(options.length).to eq(0)
+        end
+      end
+    end
+  end
+
+  describe 'PROJECTS_RECEIVING_REFERRALS' do
+    let!(:referral_dest_project) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+    let!(:referral_instance) { create :hmis_form_instance, role: :REFERRAL, entity: referral_dest_project }
+
+    let!(:non_dest_project) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+    let!(:draft_referral_form) { create(:hmis_form_definition, role: :REFERRAL, identifier: 'bad-referral-form', status: :draft) }
+    let!(:draft_referral_instance) { create :hmis_form_instance, role: :REFERRAL, definition_identifier: 'bad-referral-form', entity: non_dest_project }
+
+    it 'should only return the project that has an active, non-draft instance' do
+      response, result = post_graphql(pick_list_type: 'PROJECTS_RECEIVING_REFERRALS') { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options.size).to eq(1)
+      expect(options.first['code']).to eq(referral_dest_project.id.to_s)
     end
   end
 end

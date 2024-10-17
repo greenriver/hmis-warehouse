@@ -325,6 +325,12 @@ namespace :grda_warehouse do
       Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
     end
 
+    if DateTime.current.hour == 4 && RailsDrivers.loaded.include?(:hmis_supplemental)
+      HmisSupplemental::DataSet.order(:id).each do |data_set|
+        HmisSupplemental::ImportJob.perform_later(data_set_id: data_set.id)
+      end
+    end
+
     begin
       HmisExternalApis::ConsumeExternalFormSubmissionsJob.new.perform if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
     rescue StandardError => e

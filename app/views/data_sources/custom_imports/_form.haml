@@ -4,6 +4,6 @@
 
 = f.input :s3_access_key_id, as: :password, label: 'S3 Access Key', input_html: { value: @config&.s3_access_key_id}
 = f.input :s3_secret_access_key, as: :password, label: 'S3 Secret Key', input_html: { value: @config&.s3_secret_access_key}
-= f.input :s3_region, collection: GrdaWarehouse::RecurringHmisExport.available_s3_regions, label: 'Region', input_html: { style: 'width: 200px;' }, as: :select_two
+= f.input :s3_region, collection: AwsS3.available_s3_regions, label: 'Region', input_html: { style: 'width: 200px;' }, as: :select_two
 = f.input :s3_bucket, label: 'Bucket'
 = f.input :s3_prefix, label: 'Optional prefix', hint: 'If provided, only files that start with this prefix will be imported.'

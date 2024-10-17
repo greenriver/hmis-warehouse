@@ -1811,7 +1811,8 @@ CREATE TABLE public.roles (
     can_edit_own_client_notes boolean DEFAULT false,
     can_view_client_name boolean DEFAULT false,
     can_view_client_photo boolean DEFAULT false,
-    can_view_project_locations boolean DEFAULT false
+    can_view_project_locations boolean DEFAULT false,
+    can_view_supplemental_client_data boolean DEFAULT false
 );
 
 
@@ -4454,7 +4455,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240611142154'),
 ('20240617132532'),
 ('20240710124743'),
+('20240829152856'),
 ('20240911201727'),
 ('20240911204731');
-
-

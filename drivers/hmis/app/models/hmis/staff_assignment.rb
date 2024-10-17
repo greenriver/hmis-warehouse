@@ -16,4 +16,8 @@ class Hmis::StaffAssignment < Hmis::HmisBase
     # Special case this, rather than using EnrollmentRelated concern, because we have to join through Household
     joins(:household).merge(Hmis::Hud::Household.viewable_by(user))
   end
+
+  scope :open_on_date, ->(date = Date.current) do
+    joins(:household).merge(Hmis::Hud::Household.open_on_date(date))
+  end
 end

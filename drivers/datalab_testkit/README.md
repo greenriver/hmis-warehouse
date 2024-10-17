@@ -19,3 +19,4 @@ source_dirs = Dir.glob('var/csvs/*')
 destination_dir = 'drivers/datalab_testkit/spec/fixtures/inputs/merged/source'
 DatalabTestkit::TestkitCsvMerge.new(source_dirs, destination_dir).merge_dirs
 </pre>
+

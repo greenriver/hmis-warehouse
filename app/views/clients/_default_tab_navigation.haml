@@ -104,6 +104,20 @@
         permission: can_use_service_register?,
       },
     }) if RailsDrivers.loaded.include?(:service_scanning) && GrdaWarehouse::Config.get(:service_register_visible)
+
+    if RailsDrivers.loaded.include?(:hmis_supplemental)
+      supplemental_data_sets = HmisSupplemental::DataSet.viewable_by(current_user).where(data_source_id: @client.source_clients.select(:data_source_id))
+      supplemental_data_sets.each do |data_set|
+        key = hmis_supplemental_data_set_client_data_set_path(id: @client.id, data_set_id: data_set.id)
+        hmis.merge!({
+          key => {
+            title: data_set.name,
+            permission: :can_view_supplemental_client_data?,
+          }
+        })
+      end
+    end
+
     health = {
       # BH CP Pages
       polymorphic_path(health_path_generator + [:patient, :index], client_id: @client) => {

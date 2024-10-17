@@ -310,8 +310,7 @@
       ],
       "item": [
         {
-          "fragment": "#hopwa_disability",
-          "_comment": "The hopwa_disability fragment has a rule in HudAssessmentFormRules2024 ensuring that it is only included for HOPWA-funded projects. For non-HOPWA programs, this whole hopwa_section group is excluded (because groups are excluded if all children are excluded)."
+          "fragment": "#hopwa_disability"
         }
       ]
     }

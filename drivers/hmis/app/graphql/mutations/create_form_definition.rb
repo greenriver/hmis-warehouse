@@ -32,7 +32,10 @@ module Mutations
         **attrs,
       )
 
-      raise "Definition invalid: #{definition.errors.full_messages}" unless definition.valid?
+      unless definition.valid?
+        errors.add_ar_errors(definition.errors&.errors)
+        return { errors: errors }
+      end
 
       # validate without `role` to skip HUD requirement validation, since form has no content yet
       validation_errors = Hmis::Form::DefinitionValidator.perform(definition.definition, skip_cded_validation: true)
