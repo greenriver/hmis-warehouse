@@ -409,15 +409,6 @@ module Types
       Hmis::Form::Definition.find(id)
     end
 
-    field :external_form_definition, Types::Forms::FormDefinition, null: true, deprecation_reason: 'use definition from the individual submission to display' do
-      argument :identifier, String, required: true
-    end
-    def external_form_definition(identifier:)
-      raise 'Access denied' unless current_user.can_manage_external_form_submissions?
-
-      Hmis::Form::Definition.with_role(:EXTERNAL_FORM).where(identifier: identifier).order(version: :desc).first
-    end
-
     field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true do
       argument :id, ID, required: true
     end
