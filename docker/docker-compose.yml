@@ -164,11 +164,12 @@ services:
       yarn:
         condition: service_started
 
-  # To transition from a previous major version to pg13, run ./docker/pg13/upgrade.db
+  # To transition from a previous major version to pg16, run ./docker/pg16/upgrade.sh
   db_previous:
     build:
-      context: docker/pg12
+      context: docker/pg13
     container_name: db_previous
+    image: warehousepg:13
     profiles:
       - manual
     environment:
@@ -183,37 +184,37 @@ services:
       timeout: 3s
       retries: 3
     volumes:
-      - dbdata:/var/lib/postgresql/data
+      - ${DB_DATA_VOLUME_PREVIOUS:-dbdata_pg13}:/var/lib/postgresql/data
     ports:
       - 5432
     expose:
       - 5432
 
-  # This should no longer need to be overridden for ARM
-  # processors
+  # This should no longer need to be overridden for ARM processors
   db:
     build:
-      context: docker/pg13
+      context: docker/pg16
       shm_size: 1g
     container_name: hmis-warehouse-db
+    image: warehousepg:16
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
       PGPASSWORD: postgres
       PGUSER: postgres
-      # You may want to store your db data locally rather than in a docker volume
-      # to do that, set:
-      # DB_DATA_VOLUME=./dev/db_data
-      DB_DATA_VOLUME: ${DB_DATA_VOLUME:-dbdata_pg13}
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -d postgres'"]
       interval: 10s
       timeout: 3s
       retries: 3
     volumes:
-      # Name each new postgres major version explicitly (dbdata_pg14 when we get to that)
-      - ${DB_DATA_VOLUME:-dbdata_pg13}:/var/lib/postgresql/data
+      # Name each new postgres major version explicitly (dbdata_pg17 when we get to that)
+      # You may want to store your db data locally rather than in a docker volume
+      # to do that, set DB_DATA_VOLUME in your env or use a docker override file
+      # For example:
+      #   DB_DATA_VOLUME=./dev/db_data
+      - ${DB_DATA_VOLUME:-dbdata_pg16}:/var/lib/postgresql/data
       - ./tmp/dumps:/tmp/dumps
     ports:
       - 5432
@@ -288,6 +289,7 @@ volumes:
   rails_cache_alpine:
   dbdata:
   dbdata_pg13:
+  dbdata_pg16:
   redis:
   ngrok:
 
