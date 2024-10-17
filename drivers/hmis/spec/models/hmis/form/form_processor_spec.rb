@@ -409,6 +409,34 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(disabilities.find_by(disability_type: 8).t_cell_count_available).to eq(1)
     end
 
+    it 'processes HOPWA fields (regression #6864)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'DisabilityGroup.hivAids' => 'YES',
+        'DisabilityGroup.tCellCountAvailable' => 'YES',
+        'DisabilityGroup.tCellCount' => '222',
+        'DisabilityGroup.tCellSource' => 'MEDICAL_REPORT',
+        'DisabilityGroup.viralLoadAvailable' => 'AVAILABLE',
+        'DisabilityGroup.viralLoad' => '333',
+        'DisabilityGroup.viralLoadSource' => 'CLIENT_REPORT',
+        'Enrollment.disablingCondition' => 'YES',
+      }
+
+      assessment.form_processor.run!(user: hmis_user)
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.disabilities.count).to eq(1)
+      expect(assessment.enrollment.disabling_condition).to eq(1)
+      disability = assessment.enrollment.disabilities.sole
+      expect(disability.disability_type).to eq(8) # hiv/aids
+      expect(disability.t_cell_count_available).to eq(1)
+      expect(disability.t_cell_count).to eq(222)
+      expect(disability.t_cell_source).to eq(1) # medical report
+      expect(disability.viral_load_available).to eq(1)
+      expect(disability.viral_load).to eq(333)
+      expect(disability.viral_load_source).to eq(2) # client report
+    end
+
     it 'can process nil and _HIDDEN DisabilityGroup fields' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
