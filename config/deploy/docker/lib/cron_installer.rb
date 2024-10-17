@@ -227,7 +227,7 @@ class CronInstaller
         raise 'Implement jitter for slash-based cron entries'
       end
 
-    if cluster_type == :eks
+    if cluster_type == :eks_mode
       "#{minute_with_jitter} #{utc_hour} #{day_of_month} #{month} #{day_of_week}".tr('?', '*')
     else
       "cron(#{minute_with_jitter}, #{utc_hour}, #{day_of_month}, #{month}, #{day_of_week}, #{year})"
