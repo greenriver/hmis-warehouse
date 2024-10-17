@@ -1222,7 +1222,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         process_record(record: client, hud_values: hud_values, user: hmis_user, definition: definition)
 
         file = client.client_files.first
-        expect(file.name).to eq('Client Headshot')
+        expect(file.name).to eq(GrdaWarehouse::ClientFile.headshot_tag_name)
         expect(file.visible_in_window).to be false
         expect(GrdaWarehouse::ClientFile.client_photos).to include(file) # ensures correct tagging
       end

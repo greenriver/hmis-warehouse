@@ -357,11 +357,11 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     # (not a GrdaWarehouse::Hud::Client), which may lead to unexpected behavior. Skip callbacks to avoid issues.
     file = client_files.build(
       user_id: current_user.id,
-      name: 'Client Headshot',
+      name: GrdaWarehouse::ClientFile.headshot_tag_name,
       visible_in_window: false,
     )
     file.callbacks_skipped = true
-    file.tag_list.add('Client Headshot') # Special string in ClientFileBase, don't change
+    file.tag_list.add(GrdaWarehouse::ClientFile.headshot_tag_name)
     file.client_file.attach(current_image_blob)
     file
   end
