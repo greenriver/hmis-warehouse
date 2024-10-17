@@ -97,8 +97,6 @@ USER ${USER_ID}
 
 CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
 
-COPY docker/app/entrypoint.dj-metrics.sh /usr/bin/
-
 #########################################
 ## Stage/target for use in development ##
 #########################################
@@ -109,6 +107,7 @@ USER root
 
 COPY docker/app/entrypoint.dev.sh /usr/bin/
 COPY docker/app/entrypoint.spec.sh /usr/bin/
+COPY docker/app/entrypoint.dj-eks-test.sh /usr/bin/
 ENTRYPOINT ["/usr/bin/entrypoint.dev.sh"]
 
 RUN git config --global --add safe.directory /app \

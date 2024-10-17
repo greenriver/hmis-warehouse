@@ -16,6 +16,7 @@ module HudApr::Generators::Shared::Fy2024
         'Question 23' => '',
         'Q23c' => 'Exit Destination',
         'Q23d' => 'Exit Destination – Subsidy Type of Persons Exiting to Rental by Client With An Ongoing Subsidy',
+        'Q23e' => 'Exit Destination Type by Race and Ethnicity',
       }.freeze
     end
 

@@ -2971,6 +2971,7 @@ type DisabilityGroup {
   user: ApplicationUser
   viralLoad: Int
   viralLoadAvailable: ViralLoadAvailable
+  viralLoadSource: TCellSourceViralLoadSource
 }
 
 """

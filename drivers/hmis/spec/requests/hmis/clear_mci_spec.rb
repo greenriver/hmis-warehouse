@@ -71,25 +71,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should transform MciClearanceInput into Client with correct values' do
-    client = to_gql_input_object({ **input, gender: [0, 1] }, Types::AcHmis::MciClearanceInput, current_user: hmis_user).to_client
+    attrs = { **input, gender: [0, 1] }
+    client = Types::AcHmis::MciClearanceInput.to_client(attrs, hmis_user)
 
     expect(client.persisted?).to eq(false)
     expect(client.first_name).to eq(input[:first_name])
     expect(client.middle_name).to eq(input[:middle_name])
     expect(client.last_name).to eq(input[:last_name])
+    expect(client.name_data_quality).to eq(1)
     expect(client.ssn).to eq(input[:ssn])
+    expect(client.ssn_data_quality).to eq(1)
     expect(client.dob).to eq(Date.parse(input[:dob]))
+    expect(client.dob_data_quality).to eq(1)
     expect(client.gender_multi).to eq([0, 1])
   end
 
   it 'should transform MciClearanceInput into Client with minimal values' do
-    client = to_gql_input_object({ **input.except(:middle_name, :ssn, :gender) }, Types::AcHmis::MciClearanceInput, current_user: hmis_user).to_client
+    attrs = input.except(:middle_name, :ssn, :gender)
+    client = Types::AcHmis::MciClearanceInput.to_client(attrs, hmis_user)
 
     expect(client.persisted?).to eq(false)
     expect(client.first_name).to eq(input[:first_name])
     expect(client.middle_name).to be nil
     expect(client.last_name).to eq(input[:last_name])
     expect(client.ssn).to be nil
+    expect(client.ssn_data_quality).to eq(99)
     expect(client.dob).to eq(Date.parse(input[:dob]))
     expect(client.gender_multi).to eq([99])
   end
