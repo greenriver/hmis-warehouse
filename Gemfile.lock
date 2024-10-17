@@ -716,6 +716,8 @@ GEM
       ast (~> 2.4.1)
       racc
     pg (1.5.6)
+    pghero (3.6.1)
+      activerecord (>= 6.1)
     popper_js (1.16.1)
     premailer (1.23.0)
       addressable
@@ -1220,6 +1222,7 @@ DEPENDENCIES
   paranoia (~> 2.0)
   pg
   pg_fixtures!
+  pghero
   premailer
   pretender
   progress_bar
