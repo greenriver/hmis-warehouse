@@ -1233,7 +1233,9 @@ CREATE TABLE public.hmis_roles (
     can_view_client_contact_info boolean DEFAULT false,
     can_view_client_photo boolean DEFAULT false,
     can_manage_forms boolean DEFAULT false,
-    can_administrate_config boolean DEFAULT false
+    can_administrate_config boolean DEFAULT false,
+    can_view_units boolean DEFAULT false,
+    can_manage_units boolean DEFAULT false
 );
 
 
@@ -5329,6 +5331,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240829152856'),
 ('20240911201727'),
 ('20240911204731'),
-('20241011125827');
-
-
+('20241011125827'),
+('20241016202657');
