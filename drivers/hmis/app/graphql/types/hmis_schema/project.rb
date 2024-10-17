@@ -164,7 +164,7 @@ module Types
 
     # Build OpenStructs to resolve as UnitTypeCapacity
     def unit_types
-      return {} unless current_permission?(entity: object, permission: :can_view_units)
+      return [] unless current_permission?(entity: object, permission: :can_view_units)
 
       project_units = object.units
       capacity = project_units.group(:unit_type_id).count
