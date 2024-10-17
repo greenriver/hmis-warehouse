@@ -8601,7 +8601,6 @@ type ProjectAccess {
   canManageDeniedReferrals: Boolean!
   canManageExternalFormSubmissions: Boolean!
   canManageIncomingReferrals: Boolean!
-  canManageInventory: Boolean!
   canManageOutgoingReferrals: Boolean!
   canManageUnits: Boolean!
   canViewDob: Boolean!
