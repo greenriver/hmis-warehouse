@@ -168,16 +168,16 @@ class User < ApplicationRecord
   #   Controls.where(id: acs.pluck(:access_group_id), entity_type: entity_type)
   # end
 
+  def related_hmis_user(data_source)
+    as_hmis_user&.tap { |u| u.update(hmis_data_source_id: data_source.id) }
+  end
+
   def as_hmis_user
     return unless HmisEnforcement.hmis_enabled?
 
     # cache so we can make use of memoizations on Hmis::User (@ids_for_relations)
     @hmis_user ||= Hmis::User.find(id)
     @hmis_user
-  end
-
-  def related_hmis_user(data_source)
-    as_hmis_user&.tap { |u| u.update(hmis_data_source_id: data_source.id) }
   end
 
   def can_access_hmis_data_source?(data_source_id)
