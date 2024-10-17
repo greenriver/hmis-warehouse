@@ -620,12 +620,12 @@ class Menu::Menu
   def hmis_menu
     hmis_data_sources = GrdaWarehouse::DataSource.hmis
     hmis_data_sources.map do |hmis_ds|
-      title = hmis_data_sources.size == 1 ? Translation.translate('Open HMIS') : "Open #{hmis_ds.short_name}"
+      default_link_text = hmis_data_sources.size == 1 ? 'Open HMIS' : "Open #{hmis_ds.short_name}"
       Menu::Item.new(
         user: user,
         visible: ->(user) { user.can_access_hmis_data_source?(hmis_ds.id) },
         path: "//#{hmis_ds.hmis}",
-        title: title,
+        title: Translation.translate(default_link_text),
         icon: 'icon-link-ext',
         target: :_blank,
       )
