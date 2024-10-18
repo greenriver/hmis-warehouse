@@ -17,19 +17,22 @@ if sentry_dsn
       base_trace_rate = base_trace_rate.to_f
 
       if base_trace_rate.positive?
+        # custom tx sampling rate
         config.traces_sampler = lambda do |sampling_context|
           # if this is the continuation of a trace, just use that decision (rate controlled by the caller)
           next sampling_context[:parent_sampled] if sampling_context[:parent_sampled].present?
 
+          # adjust the base rate so high-traffic endpoints are skipped on sampled less often
           transaction_context = sampling_context[:transaction_context]
           trace_weight = case transaction_context[:op]
           when /http/
             # for Rails applications, transaction_name would be the request's path (env["PATH_INFO"]) instead of "Controller#action"
             case transaction_context[:name]
             when /\A\/system_status/
+              # skip logging health checks
               0.0
             when /\A\/messages\/poll/, '/'
-              # reduce rate some endpoints
+              # reduce rate for some endpoints
               0.1
             else
               1.0
