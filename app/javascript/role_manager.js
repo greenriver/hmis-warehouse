@@ -31,7 +31,6 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
     this.columnStateKey = 'roleManagerState'
     this.enabledColumns = []
     this.enabledColumns = this.setInitialColumns()
-    console.log(this.enabledColumns);
 
     this.setInitialState()
   }
@@ -60,6 +59,7 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
 
     // toggle the visibility of the associated roleColumn
     if($(input).val() == 'show') {
+      // add this role to the visible columns
       this.enabledColumns.push(target_role)
       this.roleColumnTargets.forEach((column) => {
         if (target_role == $(column).data('roleManagerRoleValue')) {
@@ -69,8 +69,8 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
         this.showSearchPermissions(search_string, false)
       });
     } else {
-      //FIXME: this isn't correctly removing the target role
-      this.enabledColumns = this.enabledColumns.splice(this.enabledColumns.indexOf(target_role), 1)
+      // remove this role from the visible columns
+      this.enabledColumns = this.enabledColumns.filter(element => element !== target_role)
       this.roleColumnTargets.forEach((column) => {
         if (target_role == $(column).data('roleManagerRoleValue')) {
           $(column).addClass('hide')
@@ -82,6 +82,10 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
 
   storeColumnState() {
     window.localStorage.setItem(this.columnStateKey, JSON.stringify(this.enabledColumns));
+  }
+
+  fetchColumnState() {
+    return JSON.parse(window.localStorage.getItem(this.columnStateKey))
   }
 
   toggleAdmin(e) {
@@ -151,13 +155,18 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
 
   // enable columns that were previously enabled
   setInitialColumns() {
-    let visibleColumns = JSON.parse(window.localStorage.getItem(this.columnStateKey)) || $(this.roleToggleTargets).map((i) => {
+    let visibleColumns = this.fetchColumnState() || $(this.roleToggleTargets).map((i) => {
+      // by default, show the first 3 roles
+      // this is slightly awkward because we only work on the "show" input, and calculate the
+      // state for the "hide" input, so we ignore odd values
       if(i > 5 || i % 2 == 1) {
         return
       }
       return this.valueForTarget(this.roleToggleTargets[i])
     }).get()
     $(this.roleToggleTargets).each((i) => {
+      // this is slightly awkward because we only work on the "show" input, and calculate the
+      // state for the "hide" input, so we ignore odd values
       if (i % 2 == 1) {
         return
       }
@@ -177,7 +186,6 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
     const inputs = $(this.roleColumnTargets).find('input')
     $(inputs).each((i) => {
       const input = inputs[i]
-      // console.log(inputs[i])
       if ($(input).is(':checked')) {
         variable[$(input).attr('name')] = '1'
       } else {
@@ -213,14 +221,14 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
       }
     })
     if (changed == 0) {
-      $(this.changeCountTarget).text('')
-      $(this.changeButtonTarget).addClass('hide')
+      $(this.changeCountTargets).text('')
+      $(this.changeButtonTargets).addClass('hide')
     } else if (changed == 1) {
-      $(this.changeCountTarget).text(`${changed} change pending`)
-      $(this.changeButtonTarget).removeClass('hide')
+      $(this.changeCountTargets).text(`${changed} change pending`)
+      $(this.changeButtonTargets).removeClass('hide')
     } else {
-      $(this.changeCountTarget).text(`${changed} changes pending`)
-      $(this.changeButtonTarget).removeClass('hide')
+      $(this.changeCountTargets).text(`${changed} changes pending`)
+      $(this.changeButtonTargets).removeClass('hide')
     }
   }
 });

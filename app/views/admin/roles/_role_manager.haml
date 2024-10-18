@@ -55,3 +55,6 @@
               .role-name-header.role-column.d-flex{class: [show_class, role_color_class], data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
                 %h3= role.name
               = render 'admin/roles/role_column', role: role, permissions: permissions
+    .d-flex.w-100.p-2
+      .form-change-count.mr-4.my-auto.ml-auto{ data: { 'role-manager' => { target: 'changeCount' }}}
+      .mr-2.my-auto.hide{ data: { 'role-manager' => { target: 'changeButton' }}}= f.submit 'Save Changes', class: 'btn btn-sm'
