@@ -343,7 +343,7 @@ namespace :grda_warehouse do
 
     BuildTranslationCacheJob.perform_later
 
-    PgheroCollectStatsJob.perform_later(clean: DateTime.current.hour == 5) if PgHero.query_stats_enabled?
+    PgheroCollectStatsJob.perform_later(clean: DateTime.current.hour == 5) if !Rails.env.production? && PgHero.query_stats_enabled?
   end
 
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'
