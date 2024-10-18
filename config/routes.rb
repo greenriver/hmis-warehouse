@@ -900,9 +900,7 @@ Rails.application.routes.draw do
     end
     authenticate :user, lambda(&:can_manage_config?) do
       # not quite sure why but we get double-prefixed routes in this engine
-      get '/pghero/pghero(/:path)', to: redirect { |params, _|
-        "/pghero/#{params[:path]}"
-      }
+      get '/pghero/pghero(/*path)', to: redirect { |params, _| "/pghero/#{params[:path]}" }
       mount PgHero::Engine, at: '/pghero'
     end
   end
