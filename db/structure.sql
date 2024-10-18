@@ -2024,6 +2024,118 @@ ALTER SEQUENCE public.old_passwords_id_seq OWNED BY public.old_passwords.id;
 
 
 --
+-- Name: pghero_query_stats; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pghero_query_stats (
+    id bigint NOT NULL,
+    database text,
+    "user" text,
+    query text,
+    query_hash bigint,
+    total_time double precision,
+    calls bigint,
+    captured_at timestamp without time zone
+);
+
+
+--
+-- Name: pghero_query_stats_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pghero_query_stats_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pghero_query_stats_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pghero_query_stats_id_seq OWNED BY public.pghero_query_stats.id;
+
+
+--
+-- Name: pghero_space_stats; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pghero_space_stats (
+    id bigint NOT NULL,
+    database text,
+    schema text,
+    relation text,
+    size bigint,
+    captured_at timestamp without time zone
+);
+
+
+--
+-- Name: pghero_space_stats_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pghero_space_stats_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pghero_space_stats_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pghero_space_stats_id_seq OWNED BY public.pghero_space_stats.id;
+
+
+--
+-- Name: pghero_query_stats id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pghero_query_stats ALTER COLUMN id SET DEFAULT nextval('public.pghero_query_stats_id_seq'::regclass);
+
+
+--
+-- Name: pghero_space_stats id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pghero_space_stats ALTER COLUMN id SET DEFAULT nextval('public.pghero_space_stats_id_seq'::regclass);
+
+
+--
+-- Name: pghero_query_stats pghero_query_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pghero_query_stats
+    ADD CONSTRAINT pghero_query_stats_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pghero_space_stats pghero_space_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pghero_space_stats
+    ADD CONSTRAINT pghero_space_stats_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: index_pghero_query_stats_on_database_and_captured_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pghero_query_stats_on_database_and_captured_at ON public.pghero_query_stats USING btree (database, captured_at);
+
+
+--
+-- Name: index_pghero_space_stats_on_database_and_captured_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pghero_space_stats_on_database_and_captured_at ON public.pghero_space_stats USING btree (database, captured_at);
+
+
+--
 -- Name: opportunities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -5329,6 +5441,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240829152856'),
 ('20240911201727'),
 ('20240911204731'),
-('20241011125827');
-
-
+('20241011125827'),
+('20241018034506'),
+('20241018140929');
