@@ -34,7 +34,7 @@
         .row.mb-1.pr-2
           .col-sm-8
             - value = f.object.answers.try(:[], 'A').try(:[], 'answers').try(:[], 'a_q6').try(:[], 'answer')
-            = cha_string f, :a_q6, input_html: { value: value || ENV['AGENCY_PROVIDER_NUMBER'] }
+            = cha_string f, :a_q6, input_html: { value: value }
         = cha_radios     f, :a_q7
         .row.mb-1.pr-2
           .col-md-8.col-lg-4

@@ -45,11 +45,6 @@ module Bo
       end
     end
 
-    # def api_config_from_site_identifier(site_identifier)
-    #   key = ENV.fetch("ETO_API_SITE#{site_identifier}")
-    #   EtoApi::Base.api_configs[key]
-    # end
-
     def api_config_from_data_source_id(data_source_id)
       EtoApi::Base.api_config_for_data_source_id(data_source_id)
     end
