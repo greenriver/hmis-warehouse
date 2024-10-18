@@ -32,15 +32,9 @@
           - @roles.each.with_index do |role, i|
             - role_color_class = "role-color-#{i+1 % 50}"
             - show = nil
-            - hide = nil
             - show_class = nil
-            - hide_class = nil
-            - if i < 3
-              - show = :checked
-              - show_class = :active
-            - else
-              - hide = :checked
-              - hide_class = :active
+            - hide = :checked
+            - hide_class = :active
             %li.list-group-item.d-flex{ class: role_color_class }
               .btn-group.btn-group-toggle{data: {toggle: :buttons}, aria: {label: "Toggle #{role.name} visibility"}}
                 %label.btn.btn-secondary.btn-xs{class: show_class, data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}
@@ -56,7 +50,7 @@
         .d-flex
           - @roles.each.with_index do |role, i|
             - role_color_class = "role-color-#{i+1 % 50}"
-            - show_class = if i < 3 then nil else :hide end
+            - show_class = :hide
             .role-column{class: show_class, data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
               .role-name-header.role-column.d-flex{class: [show_class, role_color_class], data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
                 %h3= role.name
