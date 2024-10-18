@@ -6,7 +6,7 @@
 
 module HudApr::Generators::Apr::Fy2024
   class QuestionTwentyThree < HudApr::Generators::Shared::Fy2024::QuestionTwentyThree
-    QUESTION_TABLE_NUMBERS = ['Q23c', 'Q23e', 'Q23d'].freeze
+    QUESTION_TABLE_NUMBERS = ['Q23c', 'Q23d', 'Q23e'].freeze
 
     def run_question!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)

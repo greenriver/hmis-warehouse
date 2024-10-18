@@ -53,6 +53,10 @@ module Hmis::Hud::Processors
       when 'age_range'
         # Prioritize exact DOB if it is provided
         process_age_range(value) unless @hud_values['Client.dob'].present?
+      when 'image_blob_id'
+        # This will build a new file on the client, which will save when `client.save!` is called
+        client.build_client_headshot_file(attribute_value, @processor.current_user)
+        {} # No attribute to assign
       else
         { attribute_name => attribute_value }
       end

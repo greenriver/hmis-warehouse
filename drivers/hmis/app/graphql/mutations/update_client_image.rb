@@ -17,8 +17,8 @@ module Mutations
       raise HmisErrors::ApiError, 'Record not found' unless client.present?
       raise HmisErrors::ApiError, 'Access denied' unless current_user.permissions_for?(client, :can_edit_clients)
 
-      client.image_blob_id = image_blob_id
-      client.save_image_blob_as_client_headshot!
+      client.build_client_headshot_file(image_blob_id, current_user)
+      client.save!
 
       {
         client: client,

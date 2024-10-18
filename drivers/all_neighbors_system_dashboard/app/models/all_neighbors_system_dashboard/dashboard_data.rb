@@ -299,7 +299,7 @@ module AllNeighborsSystemDashboard
       when 'Unknown Gender'
         scope.where.not(gender: HudUtility2024.gender_known_values)
       when *HudUtility2024.races(multi_racial: false).values
-        scope.where(Enrollment.arel_table[:race_list].matches("%#{type}"))
+        scope.where(Enrollment.arel_table[:race_list].matches("%#{type}%"))
       else
         raise "Unknown type: #{type}"
       end
