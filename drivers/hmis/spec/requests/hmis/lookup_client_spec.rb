@@ -30,7 +30,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:f1) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag] }
   let!(:f2) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag], confidential: true }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-  let!(:photo_tag) { create :available_file_tag, consent_form: false, name: 'Client Headshot' }
+  let!(:photo_tag) { create :available_file_tag, consent_form: false, name: GrdaWarehouse::ClientFile.headshot_tag_name }
   let!(:photo) { create :client_file, client: c1.as_warehouse, name: 'Client Headshot Cache', tags: [photo_tag] }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
