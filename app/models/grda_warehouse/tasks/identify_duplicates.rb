@@ -182,6 +182,9 @@ module GrdaWarehouse::Tasks
 
     private def find_merge_candidates
       to_merge = Set.new
+      # Never return obvious matches if auto deduplication is disabled
+      return to_merge unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
+
       all_splits = GrdaWarehouse::ClientSplitHistory.pluck(:split_from, :split_into)
       splits_by_from = all_splits.group_by(&:first)
       splits_by_into = all_splits.group_by(&:last)
@@ -248,6 +251,9 @@ module GrdaWarehouse::Tasks
     #   2. birthdate matches
     #   3. perfect name matches
     private def check_for_obvious_match(client)
+      # Never return obvious matches if auto deduplication is disabled
+      return nil unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
+
       ssn_matches = @dest_ssn_lookup.get_ids(ssn: client.SSN)
       birthdate_matches = @dest_dob_lookup.get_ids(dob: client.DOB)
       name_matches = @dest_name_lookup.get_ids(first_name: client.first_name, last_name: client.last_name)
