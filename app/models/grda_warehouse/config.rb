@@ -314,6 +314,7 @@ module GrdaWarehouse
         :include_pii_in_detail_downloads,
         :self_report_start_date,
         :chronic_adult_only_cohort,
+        :enable_auto_deduplication,
         client_details: [],
       ]
     end
