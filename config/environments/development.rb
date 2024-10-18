@@ -16,8 +16,7 @@ Rails.application.configure do
   config.hosts = [/.*/]
 
   # Do not eager load code on boot.
-  # config.eager_load = ENV.fetch('EAGER_LOAD', 'false') == 'true'
-  config.eager_load = ENV.fetch('EAGER_LOAD', 'true') == 'true'
+  config.eager_load = ENV.fetch('EAGER_LOAD', 'false') == 'true'
 
   # Show full error reports.
   config.consider_all_requests_local = true
