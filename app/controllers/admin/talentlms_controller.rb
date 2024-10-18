@@ -7,42 +7,51 @@
 module Admin
   class TalentlmsController < ApplicationController
     before_action :require_can_manage_config!
+    before_action :set_config, only: [:update, :edit, :destroy]
 
     def index
-      @config = config_scope.first_or_initialize
-      redirect_to new_admin_talentlm_path if @config.new_record?
-      redirect_to edit_admin_talentlm_path(@config) unless @config.new_record?
+      @configs = config_scope.order(default: :desc, configuration_name: :asc, subdomain: :asc, courseid: :asc)
+      @pagy, @configs = pagy(@configs)
     end
 
     def new
-      @config = config_scope.first_or_initialize
+      @config = config_scope.new
     end
 
     def create
       @config = config_scope.create(config_params)
-      respond_with(@config, location: admin_talentlms_path(@config))
+      respond_with(@config, location: admin_talentlms_path)
     end
 
     def edit
-      @config = config_scope.first_or_initialize
     end
 
     def update
-      @config = config_scope.first_or_initialize
       @config.update(config_params)
-      respond_with(@config, location: edit_admin_talentlm_path(@config))
+      respond_with(@config, location: admin_talentlms_path)
+    end
+
+    def destroy
+      @config.destroy
+      respond_with(@config, location: admin_talentlms_path)
     end
 
     private def config_scope
       Talentlms::Config
     end
 
+    private def set_config
+      @config = config_scope.find(params[:id].to_i)
+    end
+
     def config_params
       params.require(:talentlms_config).permit(
+        :configuration_name,
         :subdomain,
         :api_key,
         :courseid,
         :months_to_expiration,
+        :default,
       )
     end
   end

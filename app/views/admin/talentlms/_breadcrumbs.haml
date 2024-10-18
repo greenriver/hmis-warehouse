@@ -1,3 +1,6 @@
 = content_for :crumbs do
   = link_to admin_configs_path do
     &laquo; Site Configuration
+  - if defined? @config
+    = link_to admin_talentlms_path do
+      &laquo; TalentLMS Configurations 

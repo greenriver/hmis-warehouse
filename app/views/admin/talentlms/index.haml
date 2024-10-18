@@ -1,0 +1,43 @@
+- title = 'TalentLMS Configurations'
+- content_for :title, title
+- length_of_time = if Rails.env.production? then 'Months' else 'Days' end
+
+= render 'breadcrumbs'
+.row
+  .col-sm-4
+    %h1= content_for :title
+
+.row.mb-4
+  .col-12.text-right
+    = link_to new_admin_talentlm_path, class: 'btn btn-primary mb-2' do
+      %span.icon-plus
+      Add a Configuration
+
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'config'
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Name
+          %th Subdomain
+          %th Course ID
+          %th #{length_of_time} Until Required Recertification
+          %th Default
+          %th
+      %tbody
+        - @configs.each do |config|
+          %tr
+            %td= link_to config.configuration_name, edit_admin_talentlm_path(config)
+            %td= config.subdomain
+            %td= config.courseid
+            %td= config.months_to_expiration
+            %td
+              - if config.default 
+                %i.icon-checkmark
+            %td 
+              = link_to admin_talentlm_path(config), method: :delete, data: {confirm: 'Are you sure you want to delete this configuration? It will no longer be usable.'}, class: 'btn btn-danger btn-sm btn-icon-only' do
+                %i.icon-cross
+  = render 'common/pagination_bottom', item_name: 'config'
+- else
+  .none-found No configurations found.
