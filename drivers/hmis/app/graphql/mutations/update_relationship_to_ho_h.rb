@@ -35,6 +35,10 @@ module Mutations
       end
     end
 
+    def self.move_in_date_change_msg(old_hoh_move_in_date, new_hoh_move_in_date)
+      "Move-in Date will change from #{old_hoh_move_in_date.strftime('%m/%d/%Y')} to #{new_hoh_move_in_date.strftime('%m/%d/%Y')}, because the new Head of Household entered after the household moved in."
+    end
+
     def resolve(enrollment_id:, enrollment_lock_version: nil, relationship_to_ho_h:, confirmed: false)
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)
       raise 'Not found' unless enrollment.present?
@@ -46,11 +50,19 @@ module Mutations
       is_hoh_change = relationship_to_ho_h == 1
       if is_hoh_change
         household_enrollments = enrollment.household_members.preload(:client)
+
+        # Determine the Move-in Date for the new HoH. If the new HoH entered AFTER the household moved in,
+        # then their move-in date should be their Entry Date.
+        old_hoh_move_in_date = household_enrollments.filter(&:head_of_household?).map(&:move_in_date).compact.first
+        new_hoh_move_in_date = [old_hoh_move_in_date, enrollment.entry_date].max if old_hoh_move_in_date
+
         # Give an informational warning about the HoH change.
         unless confirmed
           old_hoh = household_enrollments.where(relationship_to_ho_h: 1).first&.client
           full_message = self.class.change_hoh_message(old_hoh, enrollment.client)
           errors.add :enrollment, :informational, severity: :warning, full_message: full_message
+          # Add message about Move-in Date only if the household Move-in Date is changing (which would occur if the new HoH entered after move-in)
+          errors.add :enrollment, :informational, severity: :warning, full_message: self.class.move_in_date_change_msg(old_hoh_move_in_date, new_hoh_move_in_date) if new_hoh_move_in_date && new_hoh_move_in_date != old_hoh_move_in_date
         end
 
         # HoH shouldn't be WIP, unless all members are WIP
@@ -69,6 +81,9 @@ module Mutations
       enrollment.relationship_to_ho_h = relationship_to_ho_h
       # Set user HUD that most recently touched the record
       enrollment.user_id = hmis_user.user_id
+      # Set Move-in Date on new HoH, if any
+      # FIXME: MOVE-IN ADDRESS NEEDS TO MOVE TOO. pull to a new function handle_hoh_change(old_hohs,new_hoh,other_members)
+      enrollment.move_in_date = new_hoh_move_in_date if new_hoh_move_in_date
 
       # Return if there are any AR errors (not expected)
       unless enrollment.valid?
@@ -76,16 +91,25 @@ module Mutations
         return { errors: errors }
       end
 
-      # Save changes in a transaction.
-      # If this is a HoH change, give old HoH(s) a 99 relationship value.
       Hmis::Hud::Enrollment.transaction do
+        # If this is a HoH change, we need to:
+        # 1) Un-set previous HoH's by setting their RelationshipToHoH to 99
+        # 2) Clear move-in dates on non-Hoh members
+        # 3) If applicable, transfer Move-in Date from old HoH to new HoH
         if is_hoh_change
-          household_enrollments.filter(&:head_of_household?).each do |old_hoh_enrollment|
-            next if old_hoh_enrollment.id == enrollment.id
+          household_enrollments.each do |hhm|
+            next if hhm.id == enrollment.id # skip new hoh
 
-            old_hoh_enrollment.relationship_to_ho_h = 99
-            old_hoh_enrollment.user_id = hmis_user.user_id
-            old_hoh_enrollment.save!
+            # Clear RelationshipToHoH on previous HoH
+            hhm.relationship_to_ho_h = 99 if hhm.relationship_to_ho_h == 1
+
+            # Clear Move-in Date on non-HoH members
+            hhm.move_in_date = nil
+
+            if hhm.changed?
+              hhm.user_id = hmis_user.user_id # set user who lasted touched the record
+              hhm.save!
+            end
           end
         end
 

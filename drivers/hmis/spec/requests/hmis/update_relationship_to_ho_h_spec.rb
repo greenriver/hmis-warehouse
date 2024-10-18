@@ -64,6 +64,97 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  context 'with Move-in Dates' do
+    let(:hoh_move_in_date) { 2.weeks.ago.to_date }
+    let!(:hoh) { create :hmis_hud_enrollment, entry_date: 1.month.ago, move_in_date: hoh_move_in_date, relationship_to_ho_h: 1, data_source: ds1, project: p1 }
+    let!(:hhm) { create :hmis_hud_enrollment, entry_date: 1.month.ago, relationship_to_ho_h: 2, household_id: hoh.household_id, data_source: ds1, project: p1 }
+    let!(:hhm2) { create :hmis_hud_enrollment, entry_date: 1.month.ago, relationship_to_ho_h: 2, household_id: hoh.household_id, data_source: ds1, project: p1 }
+
+    let(:input) do
+      {
+        enrollment_id: hhm.id,
+        relationship_to_ho_h: Types::HmisSchema::Enums::Hud::RelationshipToHoH.enum_member_for_value(1).first,
+        confirmed: true,
+      }
+    end
+
+    def perform_mutation
+      response, result = post_graphql(input: input) { mutation }
+      expect(response.status).to eq(200), result.inspect
+      [hoh, hhm, hhm2].map(&:reload)
+    end
+
+    context 'when new hoh enetered before move-in' do
+      it 'should transfer move-in date to new HoH' do
+        perform_mutation
+
+        # old hoh is cleared
+        expect(hoh.relationship_to_ho_h).to eq(99)
+        expect(hoh.move_in_date).to be_nil
+        # new hoh inherited move-in date
+        expect(hhm.relationship_to_ho_h).to eq(1)
+        expect(hhm.move_in_date).to eq(hoh_move_in_date)
+      end
+    end
+
+    context 'when new hoh entered after move-in' do
+      before(:each) { hhm.update!(entry_date: hoh_move_in_date + 2.days) }
+
+      it 'should transfer move-in date to new HoH' do
+        perform_mutation
+
+        # old hoh is cleared
+        expect(hoh.relationship_to_ho_h).to eq(99)
+        expect(hoh.move_in_date).to be_nil
+        # new hoh inherited Entry Date as move-in date
+        expect(hhm.relationship_to_ho_h).to eq(1)
+        expect(hhm.move_in_date).to eq(hhm.entry_date)
+      end
+    end
+
+    context 'when non-hoh members have move-in date values' do
+      before(:each) do
+        hhm.update!(move_in_date: hoh_move_in_date + 2.days)
+        hhm2.update!(move_in_date: hoh_move_in_date + 2.days)
+      end
+
+      it 'should transfer move-in date to new HoH' do
+        perform_mutation
+
+        # old hoh is cleared
+        expect(hoh.relationship_to_ho_h).to eq(99)
+        expect(hoh.move_in_date).to be_nil
+        # new hoh
+        expect(hhm.relationship_to_ho_h).to eq(1)
+        expect(hhm.move_in_date).to eq(hoh_move_in_date) # overrides previous MID
+        # other member
+        expect(hhm2.move_in_date).to be_nil # clears MID
+      end
+    end
+
+    it 'should transfer move-in date to new HoH' do
+      perform_mutation
+
+      # old hoh is cleared
+      expect(hoh.relationship_to_ho_h).to eq(99)
+      expect(hoh.move_in_date).to be_nil
+      # new hoh inherited move-in date
+      expect(hhm.relationship_to_ho_h).to eq(1)
+      expect(hhm.move_in_date).to eq(hoh_move_in_date)
+    end
+
+    it 'should clear move-in date on other members' do
+      perform_mutation
+
+      # old hoh is cleared
+      expect(hoh.relationship_to_ho_h).to eq(99)
+      expect(hoh.move_in_date).to be_nil
+      # new hoh inherited move-in date
+      expect(hhm.relationship_to_ho_h).to eq(1)
+      expect(hhm.move_in_date).to eq(hoh_move_in_date)
+    end
+  end
+
   it 'should support fixing multiple-HoH household' do
     # e1 and e3 are both HoH
     e3.update(relationship_to_hoh: 1)
