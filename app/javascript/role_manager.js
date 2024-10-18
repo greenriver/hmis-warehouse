@@ -157,17 +157,18 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
     let changed = 0
     $.each(this.currentState, (key, value) => {
       const input = $(`input[name="${key}"]`)
-      const input_wrapper = input.closest('.form-check')
+      const input_status = input.closest('.form-check').find('.input-status')
+      const dirty_note = '<div class="dirty-note d-flex"><div class="ml-auto"><i>change pending</i></div></div>';
       if (this.initialState[key] != value) {
         changed += 1
         input.addClass('dirty')
         // ensure we only get the pending note once
-        input_wrapper.find('.dirty-note').remove()
-        input_wrapper.append('<div class="dirty-note d-flex"><div class="ml-auto"><i>change pending</i></div></div>')
+        input_status.find('.dirty-note').remove()
+        input_status.append(dirty_note)
       }
       else {
         input.removeClass('dirty')
-        input_wrapper.find('.dirty-note').remove()
+        input_status.find('.dirty-note').remove()
       }
     })
     if (changed == 0) {

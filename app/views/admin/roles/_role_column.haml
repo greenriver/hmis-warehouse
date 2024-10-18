@@ -31,6 +31,7 @@
             - if permission[:description]
               .ml-6
                 %small.form-text= permission[:description]
+            .input-status{ style: 'height: 2em' }
 
       -# = f.input key, label: label, hint: permission.try(:[], :description)
   = render 'common/panel_collapse', id: category_slug, title: category, content: "_#{category_slug}", wrapper_class: '', arrow_icon: 'icon-angle', heading_data: { action: 'role-manager#toggleSection', 'role-manager' => { target: 'permissionCategory', 'category-value' => category_value }}
