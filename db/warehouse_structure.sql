@@ -22719,6 +22719,27 @@ CREATE TABLE public.project_project_groups (
 
 
 --
+-- Name: project_access_group_members; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.project_access_group_members AS
+ SELECT targets.project_id,
+    group_viewable_entities.access_group_id
+   FROM (public.group_viewable_entities
+     JOIN ( SELECT "Project".data_source_id,
+            "Project".id AS project_id,
+            "Organization".id AS organization_id,
+            project_groups.id AS project_group_id
+           FROM (((public."Project"
+             LEFT JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
+             LEFT JOIN public.project_project_groups ON ((project_project_groups.project_id = "Project".id)))
+             LEFT JOIN public.project_groups ON (((project_groups.deleted_at IS NULL) AND (project_groups.id = project_project_groups.project_group_id))))
+          WHERE ("Project"."DateDeleted" IS NULL)) targets ON (((group_viewable_entities.deleted_at IS NULL) AND ((((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (group_viewable_entities.entity_id = targets.data_source_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Project'::text) AND (group_viewable_entities.entity_id = targets.project_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Organization'::text) AND (group_viewable_entities.entity_id = targets.organization_id)) OR ((((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::ProjectAccessGroup'::text) OR ((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::ProjectGroup'::text)) AND (group_viewable_entities.entity_id = targets.project_group_id))))))
+  WHERE ((group_viewable_entities.deleted_at IS NULL) AND (group_viewable_entities.collection_id IS NULL))
+  GROUP BY targets.project_id, group_viewable_entities.access_group_id;
+
+
+--
 -- Name: project_collection_members; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -63461,6 +63482,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240916182206'),
 ('20240918170406'),
 ('20240918171315'),
-('20240920203113');
+('20240920203113'),
+('20241005004713');
 
 
