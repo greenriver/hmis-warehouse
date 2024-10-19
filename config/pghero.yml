@@ -1,7 +1,6 @@
 <% require File.expand_path('../lib/util/rails_db_uri_extractor', __FILE__) %>
 databases:
   warehouse:
-    # try an extract the uri from the rails db config
     url: <%= RailsDbUriExtractor.extract_uri(env: Rails.env, name: 'warehouse') %>
 
 # Minimum time for long running queries
