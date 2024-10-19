@@ -76,4 +76,4 @@ The Open Path Warehouse integrates with a variety of third-party applications an
 - Talent LMS - Open Path can be configured to require training before granting access to any data within the application via a native integration with Talent LMS. [https://www.talentlms.com/terms]
 
 ## Developer Documentation
-Anyone is welcome to contribute to the suite of Open Path software by opening an issue or a pull request.  In addition, we love hearing that communities have started using Open Path to help coordinate their efforts to end homelessness.  If you would like to get started with Open Path, check out [the developer setup guide](docs/developer_setup.md).s
+Anyone is welcome to contribute to the suite of Open Path software by opening an issue or a pull request.  In addition, we love hearing that communities have started using Open Path to help coordinate their efforts to end homelessness.  If you would like to get started with Open Path, check out [the developer setup guide](docs/developer_setup.md).
