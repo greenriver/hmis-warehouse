@@ -258,7 +258,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -21230,7 +21230,8 @@ CREATE TABLE public.import_overrides (
     data_source_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    description character varying
 );
 
 
@@ -63601,6 +63602,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240918171315'),
 ('20240920203113'),
 ('20241010005805'),
+('20241003194213'),
 ('20241011182445');
-
-
