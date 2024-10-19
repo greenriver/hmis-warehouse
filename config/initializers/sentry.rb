@@ -22,7 +22,7 @@ if sentry_dsn
           # if this is the continuation of a trace, just use that decision (rate controlled by the caller)
           next sampling_context[:parent_sampled] if sampling_context[:parent_sampled].present?
 
-          # adjust the base rate so high-traffic endpoints are skipped on sampled less often
+          # adjust the base rate so high-traffic endpoints are skipped or sampled less often
           transaction_context = sampling_context[:transaction_context]
           trace_weight = case transaction_context[:op]
           when /http/
@@ -33,7 +33,7 @@ if sentry_dsn
               0.0
             when /\A\/messages\/poll/, '/'
               # reduce rate for some endpoints
-              0.1
+              0.01
             else
               1.0
             end
