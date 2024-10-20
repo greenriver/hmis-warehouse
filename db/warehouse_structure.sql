@@ -6559,7 +6559,8 @@ CREATE TABLE public.configs (
     filter_date_span_years integer DEFAULT 1 NOT NULL,
     include_pii_in_detail_downloads boolean DEFAULT true,
     self_report_start_date date,
-    chronic_adult_only_cohort boolean DEFAULT false
+    chronic_adult_only_cohort boolean DEFAULT false,
+    enable_auto_deduplication boolean DEFAULT true
 );
 
 
@@ -26069,7 +26070,8 @@ CREATE TABLE public.system_pathways_enrollments (
     move_in_date date,
     days_to_move_in integer,
     chronic_at_entry boolean,
-    disabling_condition integer
+    disabling_condition integer,
+    days_to_exit_after_move_in integer
 );
 
 
@@ -63602,6 +63604,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240918171315'),
 ('20240920203113'),
 ('20241003194213'),
-('20241011182445');
+('20241011182445'),
+('20241018220220');
 
 
