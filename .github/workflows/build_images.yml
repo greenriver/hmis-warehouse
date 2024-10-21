@@ -161,7 +161,7 @@ jobs:
       # https://github.com/aquasecurity/trivy-action
       - name: Run vulnerability scan
         id: vuln_scan
-        uses: aquasecurity/trivy-action@0.14.0
+        uses: aquasecurity/trivy-action@0.28.0
         env:
           TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db:2"
         with:
