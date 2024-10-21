@@ -168,28 +168,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(hhm2.move_in_date).to be_nil # clears MID
       end
     end
-
-    it 'should transfer move-in date to new HoH' do
-      perform_mutation
-
-      # old HoH is cleared
-      expect(hoh.relationship_to_ho_h).to eq(99)
-      expect(hoh.move_in_date).to be_nil
-      # new HoH inherited move-in date
-      expect(hhm.relationship_to_ho_h).to eq(1)
-      expect(hhm.move_in_date).to eq(hoh_move_in_date)
-    end
-
-    it 'should clear move-in date on other members' do
-      perform_mutation
-
-      # old HoH is cleared
-      expect(hoh.relationship_to_ho_h).to eq(99)
-      expect(hoh.move_in_date).to be_nil
-      # new HoH inherited move-in date
-      expect(hhm.relationship_to_ho_h).to eq(1)
-      expect(hhm.move_in_date).to eq(hoh_move_in_date)
-    end
   end
 
   it 'should support fixing multiple-HoH household' do
