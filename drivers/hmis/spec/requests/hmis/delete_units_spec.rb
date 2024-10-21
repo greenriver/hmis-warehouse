@@ -22,7 +22,7 @@ RSpec.describe 'Delete units mutation', type: :request do
     GRAPHQL
   end
 
-  let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_project, :can_manage_inventory]) }
+  let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_project, :can_manage_units, :can_view_units]) }
   let(:unit) { create(:hmis_unit, project: p1) }
 
   before(:each) do
