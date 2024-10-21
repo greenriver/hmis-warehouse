@@ -10,8 +10,7 @@ module Admin
     before_action :set_config, only: [:update, :edit, :destroy]
 
     def index
-      @configs = config_scope.order(default: :desc, configuration_name: :asc, subdomain: :asc, courseid: :asc)
-      @pagy, @configs = pagy(@configs)
+      @configs = config_scope.order(:subdomain)
     end
 
     def new
@@ -32,6 +31,7 @@ module Admin
     end
 
     def destroy
+      @config.courses.each(&:destroy)
       @config.destroy
       respond_with(@config, location: admin_talentlms_path)
     end
@@ -46,12 +46,8 @@ module Admin
 
     def config_params
       params.require(:talentlms_config).permit(
-        :configuration_name,
         :subdomain,
         :api_key,
-        :courseid,
-        :months_to_expiration,
-        :default,
       )
     end
   end

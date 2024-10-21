@@ -852,6 +852,7 @@ Rails.application.routes.draw do
     resources :warehouse_alerts
     resources :public_files, only: [:index, :create, :destroy]
     resources :talentlms, only: [:index, :new, :create, :destroy, :edit, :update]
+    resources :talentlms_courses, only: [:new, :create, :destroy, :edit, :update]
 
     resources :delayed_jobs, only: [:index, :update, :destroy]
   end

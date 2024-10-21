@@ -1,4 +1,4 @@
-- title = 'TalentLMS Configurations'
+- title = 'TalentLMS'
 - content_for :title, title
 - length_of_time = if Rails.env.production? then 'Months' else 'Days' end
 
@@ -7,37 +7,57 @@
   .col-sm-4
     %h1= content_for :title
 
-.row.mb-4
+.row
   .col-12.text-right
     = link_to new_admin_talentlm_path, class: 'btn btn-primary mb-2' do
       %span.icon-plus
-      Add a Configuration
-
-- if @pagy.count.positive?
-  = render 'common/pagination_top', item_name: 'config'
-  .table-responsive
-    %table.table.table-striped
-      %thead
-        %tr
-          %th Name
-          %th Subdomain
-          %th Course ID
-          %th #{length_of_time} Until Required Recertification
-          %th Default
-          %th
-      %tbody
-        - @configs.each do |config|
+      Add a Subdomain
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Subdomain
+        %th Course Name 
+        %th Course ID
+        %th= "#{length_of_time} to Expiration"
+        %th Default
+        %th
+    %tbody
+      - @configs.each do |config|
+        - if config.courses.count > 0
+          - config.courses.each_with_index do |course, index|
+            %tr
+              - if index == 0
+                %td{:rowspan => config.courses.count}
+                  = link_to config.subdomain, edit_admin_talentlm_path(config)
+                  %p
+                    = link_to new_admin_talentlms_course_path(:config => config), class: 'btn btn-sm btn-primary mb-2' do
+                      %i.icon-plus
+                      Add a Course
+              %td= link_to course.name.html_safe, edit_admin_talentlms_course_path(course)
+              %td= course.courseid
+              %td= course.months_to_expiration
+              %td
+                - if course.default 
+                  %i.icon-checkmark
+              %td
+                = link_to admin_talentlms_course_path(course), method: :delete, data: {confirm: "Are you sure you want to delete the #{course.name} course?" }, class: 'btn btn-danger btn-sm' do
+                  %i.icon-cross
+                  Remove Course
+        - else
           %tr
-            %td= link_to config.configuration_name, edit_admin_talentlm_path(config)
-            %td= config.subdomain
-            %td= config.courseid
-            %td= config.months_to_expiration
             %td
-              - if config.default 
-                %i.icon-checkmark
-            %td 
-              = link_to admin_talentlm_path(config), method: :delete, data: {confirm: 'Are you sure you want to delete this configuration? It will no longer be usable.'}, class: 'btn btn-danger btn-sm btn-icon-only' do
-                %i.icon-cross
-  = render 'common/pagination_bottom', item_name: 'config'
-- else
-  .none-found No configurations found.
+              = link_to config.subdomain, edit_admin_talentlm_path(config)
+              %p
+                = link_to new_admin_talentlms_course_path(:config => config), class: 'btn btn-sm btn-primary' do
+                  %i.icon-plus
+                  Add a Course
+              %p
+                = link_to admin_talentlm_path(config), method: :delete, data: {confirm: "Are you sure you want to delete the #{config.subdomain} subdomain?" }, class: 'btn btn-sm btn-danger' do
+                  %i.icon-cross
+                  Remove Subdomain
+            %td
+            %td
+            %td
+            %td
+            %td

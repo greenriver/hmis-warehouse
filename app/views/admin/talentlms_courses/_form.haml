@@ -1,0 +1,6 @@
+= f.input :config_id, as: :select_two, label: 'Subdomain', collection: Talentlms::Config.all.pluck(:subdomain, :id), selected: @course&.config&.id
+= f.input :name
+= f.input :courseid, label: 'Course ID'
+- label = if Rails.env.production? then 'Months' else 'Days' end
+= f.input :months_to_expiration, label: "#{label} Until Required Recertification", hint: 'Leave blank if recertification is not required'
+= f.input :default
