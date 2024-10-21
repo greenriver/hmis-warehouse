@@ -85,7 +85,11 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
   }
 
   fetchColumnState() {
-    return JSON.parse(window.localStorage.getItem(this.columnStateKey))
+    try {
+      return JSON.parse(window.localStorage.getItem(this.columnStateKey));
+    } catch (error) {
+      console.error('Error parsing localStorage item:', error);
+    }
   }
 
   toggleAdmin(e) {
