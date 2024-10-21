@@ -35,6 +35,7 @@ module Types
     field :t_cell_source, HmisSchema::Enums::Hud::TCellSourceViralLoadSource, null: true
     field :viral_load_available, HmisSchema::Enums::Hud::ViralLoadAvailable, null: true
     field :viral_load, Integer, null: true
+    field :viral_load_source, HmisSchema::Enums::Hud::TCellSourceViralLoadSource, null: true
     field :anti_retroviral, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
 
     # Disability Type 9
@@ -113,6 +114,7 @@ module Types
       :t_cell_source,
       :viral_load_available,
       :viral_load,
+      :viral_load_source,
       :anti_retroviral,
     ].each do |field|
       define_method(field) do

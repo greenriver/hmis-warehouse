@@ -611,5 +611,70 @@ module HmisDataCleanup
       #   delete_dangling_records: false,
       # )
     end
+
+    # This method removes Move-in Dates for non-HoH Enrollments. (Except in cases where the household has no HoH).
+    # ***This is a destructive operation.***
+    # It is recommended to first generate and download a report from OP Analytics that contains all the Move-in Dates
+    # where (move_in_date IS NOT NULL) AND (is_head_of_household = FALSE) and provide it to the client so they
+    # have the historical record of Move-in Dates on household members.
+    #
+    # Per HUD standards, Move-in Date is only collected for HoH. This is for cleaning up migrated-in data so we don't
+    # have incorrect Move-in Dates floating around for non-HoH members, which affects reporting (specifically APR timeliness).
+    # Non-HoH Member Move-in Dates are also visible in the Warehouse Enrollment dashboard.
+    # Note: Even if all HHMs have the same MoveInDate, we still clear it out here because the
+    # HMIS system does NOT propagate Move-in Date changes to other members when the MID value is changed on the HoH.
+    def self.clear_household_move_in_dates!(data_source_id = GrdaWarehouse::DataSource.hmis.sole.id)
+      # Non-HoH Enrollments that have a Move-in Date
+      Hmis::Hud::Enrollment.where(data_source_id: data_source_id).
+        where.not(RelationshipToHoH: 1).where.not(MoveInDate: nil).
+        in_batches do |enrollments|
+        # Find the HoH Move-in Dates for the households we are cleaning up
+        # Array<[HouseholdID, HoH's MoveInDate]>
+        hohs = Hmis::Hud::Enrollment.where(data_source_id: data_source_id).
+          heads_of_households.
+          where(household_id: enrollments.pluck(:HouseholdID)).
+          pluck(:household_id, :move_in_date).to_h
+
+        enrollments_to_update = []
+        hoh_mid_missing = 0
+        hoh_mid_differs = 0
+        hoh_mid_same = 0
+
+        enrollments.each do |enrollment|
+          # This household doesn't have a HoH designated, so we should skip it because we don't know what the "real" Move-in Date is
+          next unless hohs.key?(enrollment.household_id)
+
+          old_move_in_date = enrollment.move_in_date
+          # Move-in Date should be cleared on this Enrollment, because they are not a HoH.
+          enrollment.move_in_date = nil
+          enrollments_to_update << enrollment
+
+          # Just for logging purposes:
+          hoh_mid = hohs[enrollment.household_id]
+          if !hoh_mid.present?
+            hoh_mid_missing += 1 # HoH doesn't have a Move-in Date
+          elsif hoh_mid != old_move_in_date
+            hoh_mid_differs += 1 # HoH and Member have different Move-in Dates
+          else
+            hoh_mid_same += 1 # HoH and Member have same Move-in Dates
+          end
+        end
+
+        msgs = [
+          "HoH has no Move-in Date: #{hoh_mid_missing}",
+          "HoH has different Move-in Date: #{hoh_mid_differs}",
+          "HoH has same Move-in Date: #{hoh_mid_same}",
+        ]
+        Rails.logger.info "Clearing #{enrollments_to_update.count} Move-in Dates. #{msgs.join(', ')}"
+
+        result = Hmis::Hud::Enrollment.import(
+          enrollments_to_update,
+          on_duplicate_key_update: { conflict_target: [:id], columns: [:MoveInDate] },
+          validate: false,
+          timestamps: false,
+        )
+        raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
+      end
+    end
   end
 end
