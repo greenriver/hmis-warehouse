@@ -1,7 +1,7 @@
 # Developer Setup for Superset
-This may be completely unneccesary in an amd64 architecture, but the following was helpful getting superset up and running on arm64 (Apple M1).
+Superset has become an external dependency for Open Path rather than integrated in the application's docker compose.  The following instructions may help get it running, but are no longer fully accurate, but left here temporarily until updated documentation can be developed.
 
-Run the following in your `hmis-warehouse` directory.  This will install an abstraction layer that will allow the amd64 version of superset to run on arm64.
+If you are running on Apple M1 architecture, this may help get superset up and running. Run the following in your `hmis-warehouse` directory.  This will install an abstraction layer that will allow the amd64 version of superset to run on arm64.
 ```bash
 docker run --privileged --rm tonistiigi/binfmt --install amd64
 ```
