@@ -99,6 +99,7 @@ module Types
       can :edit_enrollments
       can :delete_enrollments
       can :delete_assessments
+      can :manage_inventory
       can :manage_units
       can :view_units
       can :manage_incoming_referrals
