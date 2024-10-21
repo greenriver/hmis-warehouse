@@ -18,6 +18,10 @@ module Talentlms
 
     attr_encrypted :api_key, key: ENV['ENCRYPTION_KEY'][0..31]
 
+    scope :default, -> do
+      where(default: true)
+    end
+
     # Submit a 'get' request to TalentLMS
     #
     # @param action [String] the REST endpoint name
@@ -57,6 +61,12 @@ module Talentlms
       "Cannot contact server #{course.subdomain}.talentlms.com"
     rescue RuntimeError => e
       e.message
+    end
+
+    def self.remove_course(course_id)
+      course = Talentlms::Course.find(course_id)
+      course.completed_trainings.delete_all
+      course.delete
     end
   end
 end
