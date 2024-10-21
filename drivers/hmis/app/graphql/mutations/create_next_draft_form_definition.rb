@@ -19,6 +19,7 @@ module Mutations
         where(identifier: identifier)
 
       raise 'not found' if definitions.empty?
+      raise 'cannot create draft for form that is managed in version control' if definitions.any?(&:managed_in_version_control?)
 
       access_denied! unless current_user.can_manage_forms_for_role?(definitions.first.role)
 

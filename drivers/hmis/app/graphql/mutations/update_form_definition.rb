@@ -14,6 +14,7 @@ module Mutations
     def resolve(id:, input:)
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
+      raise 'not allowed' if definition.managed_in_version_control?
 
       # The UI currently does allow changing the form role, so we make this permission check twice:
       # - to confirm the user has permission to manage the role from the input (in case it's changing)

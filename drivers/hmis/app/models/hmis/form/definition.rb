@@ -412,6 +412,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     published? || retired?
   end
 
+  def managed_in_version_control?
+    managed_in_version_control
+  end
+
   def self.owner_class_for_role(role)
     return Hmis::Hud::CustomAssessment if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 

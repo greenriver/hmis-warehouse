@@ -257,6 +257,7 @@ module HmisUtil
         role: role,
         version: 0,
       ).first_or_initialize(title: title || role.to_s.humanize)
+      record.managed_in_version_control = true
       record.definition = form_definition
       record.title = title if title.present?
       record.status = Hmis::Form::Definition::PUBLISHED
@@ -359,6 +360,9 @@ module HmisUtil
         end
       end
       ensure_system_instances_exist!
+      # tbh this hsould have more coverage to include:
+      # - move-in date, DOE, Post-Exit assessment, etc.
+
       # puts "Saved definitions with identifiers: #{record_forms.keys.join(', ')}"
     end
 
@@ -392,7 +396,7 @@ module HmisUtil
 
         # Make this form the default instance for this role
         default_instance = Hmis::Form::Instance.defaults.where(definition_identifier: identifier).first_or_create!
-        default_instance.update(system: true, active: true)
+        default_instance.update!(system: true, active: true)
         default_instance.touch
       end
       # puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
