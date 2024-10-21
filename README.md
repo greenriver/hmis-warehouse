@@ -36,6 +36,8 @@ The City of Boston made a conscientious choice to release this project into the 
 
 Looking ahead, we see the Warehouse codebase serving as a foundation for all communities that report to the department of Housing and Urban Development, or have a need to aggregate and de-duplicate homeless client data from across various systems.
 
+To learn more, please visit [[https://greenriver.com/openpath]](https://greenriver.com/openpath/)
+
 ## Application Design
 
 The application is designed around the [HUD Data Standards](https://www.hudexchange.info/programs/hmis/hmis-data-and-technical-standards/) and the data structure is based on the [HMIS Logical Model](https://github.com/hmis-interop/logical-model)
