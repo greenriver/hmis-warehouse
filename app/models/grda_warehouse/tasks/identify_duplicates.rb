@@ -90,7 +90,7 @@ module GrdaWarehouse::Tasks
           )
         end
         GrdaWarehouse::Hud::Client.import(
-          destination_client_updates,
+          destination_client_updates.index_by { |m| m[:id] }.values, # index to ensure no duplicate rows
           on_duplicate_key_update: {
             conflict_target: [:id],
             columns: [:SSN, :DOB],
