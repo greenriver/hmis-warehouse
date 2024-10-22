@@ -63,10 +63,18 @@ module Talentlms
       e.message
     end
 
+    def name_with_subdomain
+      @name_with_subdomain ||= "#{name} - #{config.unique_name}"
+    end
+
     def self.remove_course(course_id)
       course = Talentlms::Course.find(course_id)
       course.completed_trainings.delete_all
       course.delete
+    end
+
+    def self.collection_for_form
+      Talentlms::Course.all.map { |c| [c.name_with_subdomain, c.id] }
     end
   end
 end
