@@ -84,16 +84,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       [hoh, hhm, hhm2].map(&:reload)
     end
 
-    context 'when new HoH enetered before move-in' do
+    context 'when new HoH entered before move-in' do
       it 'should transfer move-in date to new HoH' do
-        perform_mutation
-
-        # old HoH is cleared
-        expect(hoh.relationship_to_ho_h).to eq(99)
-        expect(hoh.move_in_date).to be_nil
-        # new HoH inherited move-in date
-        expect(hhm.relationship_to_ho_h).to eq(1)
-        expect(hhm.move_in_date).to eq(hoh_move_in_date)
+        expect { perform_mutation }.to change { hoh.relationship_to_ho_h }.from(1).to(99).
+          and change { hoh.move_in_date }.from(hoh_move_in_date).to(nil).
+          and change { hhm.relationship_to_ho_h }.from(2).to(1).
+          and change { hhm.move_in_date }.from(nil).to(hoh_move_in_date)
       end
     end
 
@@ -101,14 +97,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       before(:each) { hhm.update!(entry_date: hoh_move_in_date + 2.days) }
 
       it 'should transfer move-in date to new HoH' do
-        perform_mutation
-
-        # old HoH is cleared
-        expect(hoh.relationship_to_ho_h).to eq(99)
-        expect(hoh.move_in_date).to be_nil
-        # new HoH inherited Entry Date as move-in date
-        expect(hhm.relationship_to_ho_h).to eq(1)
-        expect(hhm.move_in_date).to eq(hhm.entry_date)
+        expect { perform_mutation }.to change { hoh.relationship_to_ho_h }.from(1).to(99).
+          and change { hoh.move_in_date }.from(hoh_move_in_date).to(nil).
+          and change { hhm.relationship_to_ho_h }.from(2).to(1).
+          and change { hhm.move_in_date }.from(nil).to(hhm.entry_date)
       end
     end
 
@@ -116,17 +108,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:move_in_address) { create :hmis_move_in_address, enrollment: hoh, data_source: ds1 }
 
       it 'should transfer Move-in Date and Move-in Address to new HoH' do
-        perform_mutation
-
-        # old HoH is cleared
-        expect(hoh.relationship_to_ho_h).to eq(99)
-        expect(hoh.move_in_date).to be_nil
-        expect(hoh.move_in_addresses).to be_empty
-        # new HoH inherited Entry Date as move-in date
-        expect(hhm.relationship_to_ho_h).to eq(1)
-        expect(hhm.move_in_date).to eq(hoh_move_in_date)
-        expect(hhm.move_in_addresses.count).to eq(1)
-        expect(move_in_address.reload.enrollment).to eq(hhm)
+        expect { perform_mutation }.to change { hoh.relationship_to_ho_h }.from(1).to(99).
+          and change { hoh.move_in_date }.from(hoh_move_in_date).to(nil).
+          and change { hhm.relationship_to_ho_h }.from(2).to(1).
+          and change { hhm.reload.move_in_date }.from(nil).to(hoh_move_in_date).
+          and change(hoh.move_in_addresses, :count).by(-1).
+          and change(hhm.move_in_addresses, :count).by(1).
+          and change { move_in_address.reload.enrollment }.from(hoh).to(hhm)
       end
     end
 
@@ -135,17 +123,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:hoh2) { create :hmis_hud_enrollment, entry_date: 1.month.ago, move_in_date: hoh2_move_in_date, relationship_to_ho_h: 1, data_source: ds1, project: p1, household_id: hoh.household_id, DateCreated: 1.month.ago }
 
       it 'should choose Move-in Date from prev HoH with earliest creation date' do
-        perform_mutation
-        hoh2.reload
-
-        # old HoH is cleared
-        expect(hoh.relationship_to_ho_h).to eq(99)
-        expect(hoh2.relationship_to_ho_h).to eq(99)
-        expect(hoh.move_in_date).to be_nil
-        expect(hoh2.move_in_date).to be_nil
-        # new HoH inherited move-in date from hoh2
-        expect(hhm.relationship_to_ho_h).to eq(1)
-        expect(hhm.move_in_date).to eq(hoh2_move_in_date)
+        expect do
+          perform_mutation
+          hoh2.reload
+        end.to change { hoh.relationship_to_ho_h }.from(1).to(99).
+          and change { hoh2.relationship_to_ho_h }.from(1).to(99).
+          and change { hoh.move_in_date }.from(hoh_move_in_date).to(nil).
+          and change { hoh2.move_in_date }.from(hoh2_move_in_date).to(nil).
+          and change { hhm.relationship_to_ho_h }.from(2).to(1).
+          and change { hhm.move_in_date }.from(nil).to(hoh2_move_in_date)
       end
     end
 
@@ -156,16 +142,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'should clear move-in date values' do
-        perform_mutation
-
-        # old HoH is cleared
-        expect(hoh.relationship_to_ho_h).to eq(99)
-        expect(hoh.move_in_date).to be_nil
-        # new hoh
-        expect(hhm.relationship_to_ho_h).to eq(1)
-        expect(hhm.move_in_date).to eq(hoh_move_in_date) # overrides previous MID
-        # other member
-        expect(hhm2.move_in_date).to be_nil # clears MID
+        expect { perform_mutation }.to change { hoh.relationship_to_ho_h }.from(1).to(99).
+          and change { hoh.move_in_date }.from(hoh_move_in_date).to(nil).
+          and change { hhm.relationship_to_ho_h }.from(2).to(1).
+          and change { hhm.move_in_date }.to(hoh_move_in_date).
+          and change { hhm2.move_in_date }.to(nil)
       end
     end
   end
