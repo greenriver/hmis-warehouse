@@ -19,7 +19,9 @@ module Hmis
       # All Enrollments in the household (including new and old HoHs)
       self.household_enrollments = new_hoh_enrollment.household_members.preload(:client)
       # Previous HoHs (should only be one, but we handle multiple for data cleanup)
-      self.old_hoh_enrollments = household_enrollments.sort_by(&:DateCreated).select(&:head_of_household?)
+      self.old_hoh_enrollments = household_enrollments.
+        filter(&:head_of_household?).
+        sort_by { |en| [en.DateCreated, en.id] }
 
       self.old_hoh_move_in_date = old_hoh_enrollments.map(&:move_in_date).compact.first
       self.new_hoh_move_in_date = [old_hoh_move_in_date, new_hoh_enrollment.entry_date].max if old_hoh_move_in_date
@@ -66,7 +68,7 @@ module Hmis
           hhm.move_in_date = nil
 
           if hhm.changed?
-            hhm.user_id = hud_user_id # set user who lasted touched the record
+            hhm.user_id = hud_user_id # set user who last touched the record
             hhm.save!
           end
         end

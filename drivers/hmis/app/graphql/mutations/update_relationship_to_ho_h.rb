@@ -15,8 +15,7 @@ module Mutations
 
     def resolve(enrollment_id:, enrollment_lock_version: nil, relationship_to_ho_h:, confirmed: false)
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)
-      access_denied! unless enrollment.present?
-      access_denied! unless current_user.permissions_for?(enrollment, :can_edit_enrollments)
+      access_denied! unless enrollment && current_user.permissions_for?(enrollment, :can_edit_enrollments)
 
       enrollment.lock_version = enrollment_lock_version if enrollment_lock_version
 
