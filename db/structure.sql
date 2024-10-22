@@ -3234,7 +3234,8 @@ CREATE TABLE public.users (
     hmis_unique_session_id character varying,
     permission_context character varying DEFAULT 'role_based'::character varying,
     superset_roles jsonb DEFAULT '[]'::jsonb,
-    talent_lms_email character varying
+    talent_lms_email character varying,
+    training_courses jsonb
 );
 
 
@@ -5329,6 +5330,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240829152856'),
 ('20240911201727'),
 ('20240911204731'),
-('20241011125827');
+('20241011125827'),
+('20241021194355');
 
 

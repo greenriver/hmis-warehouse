@@ -99,5 +99,18 @@ module Talentlms
       end
       url
     end
+
+    def self.collection_for_form
+      Talentlms::Config.all.order(:subdomain, :id).map { |c| [c.unique_name, c.id] }
+    end
+
+    def unique_name
+      @unique_name ||= begin
+        configs = Config.where(subdomain: subdomain).order(:id)
+        return subdomain if configs.count == 1
+
+        "#{subdomain} (#{configs.find_index(self) + 1})"
+      end
+    end
   end
 end

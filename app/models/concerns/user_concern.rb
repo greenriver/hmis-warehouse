@@ -226,8 +226,11 @@ module UserConcern
       end
     end
 
-    def training_courses
-      Talentlms::Course.default
+    def required_training_courses
+      return Talentlms::Course.where(id: training_courses&.compact_blank) if training_courses&.compact_blank&.present?
+      return Talentlms::Course.default if training_required?
+
+      []
     end
 
     # def role_keys

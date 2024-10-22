@@ -7,7 +7,7 @@
 class UserTrainingController < ApplicationController
   def index
     lms = Talentlms::Facade.new(current_user)
-    courses = Talentlms::Course.default
+    courses = current_user.required_training_courses
     configs = [].tap do |result|
       courses.each { |course| result << course.config }
     end.uniq

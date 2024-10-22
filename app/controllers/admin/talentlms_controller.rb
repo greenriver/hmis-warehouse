@@ -10,7 +10,7 @@ module Admin
     before_action :set_config, only: [:update, :edit, :destroy]
 
     def index
-      @configs = config_scope.order(:subdomain)
+      @configs = config_scope.order(:subdomain, :id)
     end
 
     def new

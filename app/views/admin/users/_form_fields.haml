@@ -75,12 +75,16 @@
       .form--user-training
         %h3 User Training
         .well
+          = f.input :training_courses, as: :select_two, label: 'Required Courses', hint: "The default courses (#{Talentlms::Course.default.map(&:name).join(', ')}) will be required if no course is selected.", collection: Talentlms::Course.all.order(default: :desc, name: :asc), input_html: { multiple: true }
           %p Course Progress:
-          -@user.training_courses.each do |course|
-            %p
-              = "#{course.name}: #{@user.training_status(course)}"
-            - unless @user.last_training_completed.present?
-              = f.input :training_completed, label: 'Check to OVERRIDE course completion requirement'
+          -@user.required_training_courses.each do |course|
+            .row
+              .col-sm-3= course.name
+              .col-sm-3= @user.training_status(course)
+          .row
+            .col-sm-2
+              - unless @user.last_training_completed.present?
+                = f.input :training_completed, label: 'Check to OVERRIDE course completion requirement'
     - if RailsDrivers.loaded.include?(:superset) && Superset.available?
       .form-access-control
         %h3 OP Analytics Superset Configuration

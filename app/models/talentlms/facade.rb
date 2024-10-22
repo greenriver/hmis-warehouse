@@ -8,7 +8,7 @@ module Talentlms
   class Facade
     def initialize(user)
       @user = user
-      @courses = Talentlms::Course.where(default: true)
+      @courses = user.required_training_courses
     end
 
     private def lms_find_user_by_id(api, id)
