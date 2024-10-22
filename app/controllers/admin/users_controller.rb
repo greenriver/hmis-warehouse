@@ -221,7 +221,6 @@ module Admin
         :permission_context,
         user_group_ids: [],
         superset_roles: [],
-        training_courses: [],
         # TODO: START_ACL remove when ACL transition complete
         legacy_role_ids: [],
         access_group_ids: [],

@@ -785,6 +785,7 @@ Rails.application.routes.draw do
     resources :user_groups do
       resources :users, only: [:create, :destroy], controller: 'user_groups/users'
     end
+    resources :user_trainings, only: [:edit, :update]
     resources :agencies
     resource :theme, only: [:edit, :update]
     resource :color, only: [:edit, :update]
