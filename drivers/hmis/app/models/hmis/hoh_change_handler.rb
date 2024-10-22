@@ -51,33 +51,32 @@ module Hmis
       validation_errors
     end
 
+    # Caller should run this is in a transaction, as it changes multiple records
     def apply_changes!
-      Hmis::Hud::Enrollment.transaction do
-        # Apply changes to household members first, then the HoH
-        household_enrollments.each do |hhm|
-          next if hhm.id == new_hoh_enrollment.id
+      # Apply changes to household members first, then the HoH
+      household_enrollments.each do |hhm|
+        next if hhm.id == new_hoh_enrollment.id
 
-          # Clear RelationshipToHoH on previous HoH
-          if hhm.relationship_to_ho_h == 1
-            hhm.relationship_to_ho_h = 99
-            # Move-in Address(es) from old HoH should transfer to new HoH. We only expect 1, but it's OK if there are more.
-            hhm.move_in_addresses.each { |addr| addr.update!(enrollment: new_hoh_enrollment) }
-          end
-
-          # Clear Move-in Date on non-HoH members
-          hhm.move_in_date = nil
-
-          if hhm.changed?
-            hhm.user_id = hud_user_id # set user who last touched the record
-            hhm.save!
-          end
+        # Clear RelationshipToHoH on previous HoH
+        if hhm.relationship_to_ho_h == 1
+          hhm.relationship_to_ho_h = 99
+          # Move-in Address(es) from old HoH should transfer to new HoH. We only expect 1, but it's OK if there are more.
+          hhm.move_in_addresses.each { |addr| addr.update!(enrollment: new_hoh_enrollment) }
         end
 
-        new_hoh_enrollment.relationship_to_ho_h = 1
-        new_hoh_enrollment.move_in_date = new_hoh_move_in_date if new_hoh_move_in_date
-        new_hoh_enrollment.user_id = hud_user_id
-        new_hoh_enrollment.save!
+        # Clear Move-in Date on non-HoH members
+        hhm.move_in_date = nil
+
+        if hhm.changed?
+          hhm.user_id = hud_user_id # set user who last touched the record
+          hhm.save!
+        end
       end
+
+      new_hoh_enrollment.relationship_to_ho_h = 1
+      new_hoh_enrollment.move_in_date = new_hoh_move_in_date if new_hoh_move_in_date
+      new_hoh_enrollment.user_id = hud_user_id
+      new_hoh_enrollment.save!
     end
 
     def self.incomplete_hoh_message

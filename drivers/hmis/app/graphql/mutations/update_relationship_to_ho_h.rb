@@ -20,11 +20,16 @@ module Mutations
       enrollment.lock_version = enrollment_lock_version if enrollment_lock_version
 
       if relationship_to_ho_h == 1
-        hoh_changer = Hmis::HohChangeHandler.new(new_hoh_enrollment: enrollment, hud_user_id: hmis_user.user_id)
-        validations = hoh_changer.validate(include_warnings: !confirmed)
-        return { errors: validations } if validations.any?
+        Hmis::Hud::Enrollment.transaction do
+          # Lock to avoid duplicate request collisions
+          enrollment.household_members.lock!
 
-        hoh_changer.apply_changes!
+          hoh_changer = Hmis::HohChangeHandler.new(new_hoh_enrollment: enrollment, hud_user_id: hmis_user.user_id)
+          validations = hoh_changer.validate(include_warnings: !confirmed)
+          return { errors: validations } if validations.any?
+
+          hoh_changer.apply_changes!
+        end
       else
         # Set new relationship value
         enrollment.relationship_to_ho_h = relationship_to_ho_h
