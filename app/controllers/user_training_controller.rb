@@ -8,9 +8,7 @@ class UserTrainingController < ApplicationController
   def index
     lms = Talentlms::Facade.new(current_user)
     courses = current_user.required_training_courses
-    configs = [].tap do |result|
-      courses.each { |course| result << course.config }
-    end.uniq
+    configs = courses.flat_map(&:config).uniq
 
     # Verifying with local data before hitting the API. This prevents unneeded API calls
     # and ensures local data is updated when new trainings have been completed.
