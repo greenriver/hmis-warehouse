@@ -6212,7 +6212,7 @@ type Mutation {
     """
     input: UpdateRelationshipToHoHInput!
   ): UpdateRelationshipToHoHPayload
-  updateServiceType(id: ID!, name: String!, supportsBulkAssignment: Boolean!): UpdateServiceTypePayload
+  updateServiceType(id: ID!, input: ServiceTypeInput, name: String @deprecated(reason: "Deprecated in favor of input object"), supportsBulkAssignment: Boolean @deprecated(reason: "Deprecated in favor of input object")): UpdateServiceTypePayload
   updateUnits(
     """
     Parameters for UpdateUnits
@@ -10471,7 +10471,7 @@ input ServiceTypeFilterOptions {
 Create service type input
 """
 input ServiceTypeInput {
-  name: String!
+  name: String
   serviceCategoryId: ID
   serviceCategoryName: String
   supportsBulkAssignment: Boolean

@@ -16,23 +16,11 @@ module Mutations
       access_denied! unless current_user.can_configure_data_collection?
       errors = HmisErrors::Errors.new
 
-      if !input.service_category_id && !input.service_category_name
+      service_category = input.get_or_create_service_category(hmis_user.user_id, current_user.hmis_data_source_id)
+      unless service_category.present?
         errors.add :service_category, :required
         return { errors: errors }
       end
-
-      service_category = if input.service_category_id
-        Hmis::Hud::CustomServiceCategory.find(input.service_category_id)
-      else
-        Hmis::Hud::CustomServiceCategory.new(
-          name: input.service_category_name,
-          user_id: hmis_user.user_id,
-          data_source_id: current_user.hmis_data_source_id,
-        )
-      end
-
-      # Can't add a custom service to a HUD service category
-      access_denied! if service_category.service_types.any?(&:hud_service?)
 
       service_type = Hmis::Hud::CustomServiceType.new(
         **input.to_params,
