@@ -31,10 +31,8 @@ module Mutations
         )
       end
 
-      category = Hmis::Hud::CustomServiceCategory.find(input.service_category_id)
-
       # Can't add a custom service to a HUD service category
-      access_denied! if category.service_types.any?(&:hud_service?)
+      access_denied! if service_category.service_types.any?(&:hud_service?)
 
       service_type = Hmis::Hud::CustomServiceType.new(
         **input.to_params,
