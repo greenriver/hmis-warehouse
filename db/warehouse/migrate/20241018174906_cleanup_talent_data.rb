@@ -1,7 +1,7 @@
 class CleanupTalentData < ActiveRecord::Migration[7.0]
   def up
     Talentlms::Config.all.each do |c|
-      Talentlms::Course.create!( {
+      Talentlms::Course.create!({
         config: c,
         courseid: c.courseid,
         months_to_expiration: c.months_to_expiration,
@@ -14,6 +14,7 @@ class CleanupTalentData < ActiveRecord::Migration[7.0]
     Talentlms::Login.update_all(config_id: config&.id)
     Talentlms::CompletedTraining.update_all(course_id: config&.courses&.first&.id)
   end
+
   def down
     Talentlms::CompletedTraining.all.each do |t|
       t.course_id_old = t.course.courseid
