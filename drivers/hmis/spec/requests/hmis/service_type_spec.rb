@@ -80,6 +80,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(service_type.name).to eq('A new type')
     end
 
+    it 'should successfully create a service type with a new category' do
+      mutation_input = { serviceCategoryName: 'A brand new category', name: 'A new type with a new category' }
+      response, result = post_graphql(input: mutation_input) { create_service_type }
+      expect(response.status).to eq(200), result.inspect
+      created_id = result.dig('data', 'createServiceType', 'serviceType', 'id')
+      service_type = Hmis::Hud::CustomServiceType.find(created_id)
+      expect(service_type.name).to eq('A new type with a new category')
+      expect(service_type.custom_service_category.name).to eq('A brand new category')
+    end
+
+    it 'should return a validation error when neither service category ID nor name is provided' do
+      mutation_input = { name: 'This is not allowed' }
+      response, result = post_graphql(input: mutation_input) { create_service_type }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'createServiceType', 'errors', 0, 'fullMessage')).to eq('Service category must exist')
+    end
+
     it 'should successfully update a service type' do
       expect(t1.name).to eq('An old type')
       expect(t1.supports_bulk_assignment).to eq(false)

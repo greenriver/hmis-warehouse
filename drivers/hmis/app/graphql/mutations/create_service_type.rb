@@ -14,6 +14,22 @@ module Mutations
 
     def resolve(input:)
       access_denied! unless current_user.can_configure_data_collection?
+      errors = HmisErrors::Errors.new
+
+      if !input.service_category_id && !input.service_category_name
+        errors.add :service_category, :required
+        return { errors: errors }
+      end
+
+      service_category = if input.service_category_id
+        Hmis::Hud::CustomServiceCategory.find(input.service_category_id)
+      else
+        Hmis::Hud::CustomServiceCategory.new(
+          name: input.service_category_name,
+          user_id: hmis_user.user_id,
+          data_source_id: current_user.hmis_data_source_id,
+        )
+      end
 
       category = Hmis::Hud::CustomServiceCategory.find(input.service_category_id)
 
@@ -24,13 +40,13 @@ module Mutations
         **input.to_params,
         user_id: hmis_user.user_id,
         data_source_id: current_user.hmis_data_source_id,
+        custom_service_category: service_category,
       )
 
       if service_type.valid?
         service_type.save!
         { service_type: service_type }
       else
-        errors = HmisErrors::Errors.new
         errors.add_ar_errors(service_type.errors&.errors)
         { errors: errors }
       end

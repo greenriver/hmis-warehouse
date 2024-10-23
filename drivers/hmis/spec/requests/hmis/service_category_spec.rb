@@ -7,6 +7,7 @@ require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
+# TODO(#5737) - deprecated, to remove
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
     cleanup_test_environment

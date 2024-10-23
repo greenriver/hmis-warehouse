@@ -4,6 +4,7 @@
 #
 
 module Mutations
+  # TODO(#5737) - deprecated, to remove
   class RenameServiceCategory < CleanBaseMutation
     argument :id, ID, required: true
     argument :name, String, required: true

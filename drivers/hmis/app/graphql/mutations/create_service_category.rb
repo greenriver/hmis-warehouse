@@ -4,6 +4,7 @@
 #
 
 module Mutations
+  # TODO(#5737) - deprecated, to remove
   class CreateServiceCategory < CleanBaseMutation
     argument :name, String, required: true
 

@@ -10499,7 +10499,8 @@ Create service type input
 """
 input ServiceTypeInput {
   name: String!
-  serviceCategoryId: ID!
+  serviceCategoryId: ID
+  serviceCategoryName: String
   supportsBulkAssignment: Boolean
 }
 
