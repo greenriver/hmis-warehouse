@@ -213,8 +213,8 @@ class ApplicationController < ActionController::Base
 
     # Verifying with local data before hitting the API. This prevents unneeded API calls
     # and ensures local data is updated when new trainings have been completed.
-    lms = Talentlms::Facade.new
-    return unless lms.training_required?(current_user)
+    lms = Talentlms::Facade.new(current_user)
+    return unless lms.any_training_required?
 
     redirect_to user_training_path
   end

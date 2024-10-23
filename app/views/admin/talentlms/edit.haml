@@ -1,4 +1,4 @@
-- title = 'Update TalentLMS Configuration'
+- title = 'Update TalentLMS Subdomain'
 - content_for :title, title
 
 = render 'breadcrumbs'
@@ -10,4 +10,5 @@
   = f.error_notification
   = render 'form', f: f
   .form_actions.mt-4
-    = f.submit 'Save Configuration'
+    = f.submit 'Save Subdomain'
+    =# link_to 'Delete Subdomain', admin_talentlm_path(config), method: :delete, data: {confirm: 'Are you sure you want to delete this configuration? It will no longer be usable.'}, class: 'btn btn-danger'

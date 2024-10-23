@@ -1,0 +1,64 @@
+- title = 'TalentLMS'
+- content_for :title, title
+- length_of_time = if Rails.env.production? then 'Months' else 'Days' end
+
+= render 'breadcrumbs'
+.row
+  .col-sm-4
+    %h1= content_for :title
+
+.row
+  .col-12.text-right
+    = link_to new_admin_talentlm_path, class: 'btn btn-primary mb-2' do
+      %span.icon-plus
+      Add a Subdomain
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Subdomain
+        %th 
+    %tbody
+      - @configs.each do |config|
+        %tr
+          %td
+            = link_to config.unique_name, edit_admin_talentlm_path(config)
+          %td
+            - if config.courses.count == 0 
+              .float-right
+                = link_to admin_talentlm_path(config), method: :delete, data: {confirm: "Are you sure you want to delete the #{config.unique_name} subdomain?"}, class: 'btn btn-sm btn-danger' do
+                  %i.icon-cross
+                  Remove Subdomain
+%br
+%br
+.row
+  .col-12.text-right
+    = link_to new_admin_talentlms_course_path, class: 'btn btn-primary mb-2' do
+      %span.icon-plus
+      Add a Course
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Subdomain
+        %th Course Name 
+        %th Course ID
+        %th= "#{length_of_time} to Expiration"
+        %th Default
+        %th
+    %tbody
+      - @configs.each do |config|
+        - config.courses.each do |course|
+          %tr
+            %td= config.unique_name
+            %td= link_to course.name.html_safe, edit_admin_talentlms_course_path(course)
+            %td= course.courseid
+            %td= course.months_to_expiration
+            %td
+              - if course.default 
+                %i.icon-checkmark
+            %td
+              .float-right
+                = link_to admin_talentlms_course_path(course), method: :delete, data: {confirm: "Are you sure you want to delete the #{course.name} course?" }, class: 'btn btn-danger btn-sm' do
+                  %i.icon-cross
+                  Remove Course

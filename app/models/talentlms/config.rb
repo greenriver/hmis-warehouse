@@ -10,11 +10,11 @@ module Talentlms
   class Config < GrdaWarehouseBase
     self.table_name = :talentlms_configs
 
-    has_many :completed_trainings, class_name: 'Talentlms::CompletedTraining'
+    has_many :logins, class_name: 'Talentlms::Login'
+    has_many :courses, class_name: 'Talentlms::Course'
 
     validates :subdomain, presence: true
     validates :api_key, presence: true
-    validates :courseid, presence: true
     validate :check_configuration_is_valid
 
     attr_encrypted :api_key, key: ENV['ENCRYPTION_KEY'][0..31]
@@ -69,7 +69,6 @@ module Talentlms
       error = ": #{error}"
       errors.add(:subdomain, error) if error.include?('server')
       errors.add(:api_key, error) if error.include?('API Key')
-      errors.add(:courseid, error) if error.include?('course')
     end
 
     # Get configuration error messages from TalentLMS
@@ -77,7 +76,7 @@ module Talentlms
     # @param course_id [Integer] the id of the course
     # @return [String] validation error if the configuration is invalid
     private def configuration_error_message
-      get('courses', { id: courseid })
+      get('courses')
       nil
     rescue JSON::ParserError
       "Cannot contact server #{subdomain}.talentlms.com"
@@ -99,6 +98,19 @@ module Talentlms
         url = "#{url}/#{arguments}"
       end
       url
+    end
+
+    def self.collection_for_form
+      Talentlms::Config.all.order(:subdomain, :id).map { |c| [c.unique_name, c.id] }
+    end
+
+    def unique_name
+      @unique_name ||= begin
+        configs = Config.where(subdomain: subdomain).order(:id)
+        return subdomain if configs.count == 1
+
+        "#{subdomain} (#{configs.find_index(self) + 1})"
+      end
     end
   end
 end

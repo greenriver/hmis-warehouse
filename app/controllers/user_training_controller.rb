@@ -6,39 +6,59 @@
 
 class UserTrainingController < ApplicationController
   def index
-    config = Talentlms::Config.first
-    lms = Talentlms::Facade.new
+    lms = Talentlms::Facade.new(current_user)
+    courses = current_user.required_training_courses
+    configs = [].tap do |result|
+      courses.each { |course| result << course.config }
+    end.uniq
 
     # Verifying with local data before hitting the API. This prevents unneeded API calls
     # and ensures local data is updated when new trainings have been completed.
-    if config.nil? || !lms.training_required?(current_user)
+    if !lms.any_training_required?
       redirect_to after_sign_in_path_for(current_user)
     else
 
       begin
-        lms.login(current_user)
-        # Ensure the user is enrolled in the course
-        lms.enroll(current_user, config.courseid)
+        course_redirects = []
+        # Make sure the user has a login setup for each config
+        # Pulling this out here to prevent duplicate API calls for courses that share a configuration
+        configs.each do |config|
+          lms.login(config)
+        end
+        # Check each course traininig for progress/expiration
+        courses.each do |course|
+          config = course.config
+          course_id = course.courseid
 
-        # reset progress if course is expired (check against API competion date)
-        lms.reset_user_progress(current_user) if lms.training_expired?(current_user)
+          # Ensure the user is enrolled in the course
+          lms.enroll(config, course_id)
 
-        completed_on = lms.complete?(current_user, config.courseid)
-        if completed_on.present?
+          # reset progress if course is expired (check against API competion date)
+          lms.reset_user_progress(config, course_id) if lms.training_expired?(config, course_id)
 
-          lms.log_course_completion(current_user, completed_on) if current_user.last_training_completed != completed_on.to_date
-          current_user.update(training_completed: true, last_training_completed: completed_on.to_date)
-          redirect_to after_sign_in_path_for(current_user)
-        else
-          # Construct TalentLMS Course URL
-          redirect_url = if current_user.can_search_own_clients?
-            clients_url
+          completed_on = lms.complete?(config, course_id)
+          if completed_on.present?
+            lms.log_course_completion(config, course_id, completed_on) # if current_user.last_training_completed != completed_on.to_date
+            current_user.update(training_completed: true, last_training_completed: completed_on.to_date)
           else
-            root_url
-          end
-          course_url = lms.course_url(current_user, config.courseid, redirect_url, logout_talentlms_url)
+            # Construct TalentLMS Course URL
+            redirect_url = if current_user.can_search_own_clients?
+              clients_url
+            else
+              root_url
+            end
+            course_url = lms.course_url(config, course_id, redirect_url, logout_talentlms_url)
 
-          redirect_to course_url, allow_other_host: true
+            course_redirects << course_url
+          end
+        end
+
+        if course_redirects.present?
+          # redirect to the course training
+          redirect_to course_redirects.first, allow_other_host: true
+        else
+          # All trainings are completed
+          redirect_to after_sign_in_path_for(current_user)
         end
       rescue RuntimeError => e
         @message = e.message
