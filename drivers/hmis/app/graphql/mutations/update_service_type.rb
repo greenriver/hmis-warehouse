@@ -38,6 +38,7 @@ module Mutations
         service_type.save!
         { service_type: service_type }
       else
+        errors = HmisErrors::Errors.new
         errors.add_ar_errors(service_type.errors&.errors)
         { errors: errors }
       end
