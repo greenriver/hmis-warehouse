@@ -2,12 +2,12 @@ class CleanupTalentData < ActiveRecord::Migration[7.0]
   def up
     Talentlms::Config.all.each do |c|
       Talentlms::Course.create!({
-        config: c,
-        courseid: c.courseid,
-        months_to_expiration: c.months_to_expiration,
-        name: c.configuration_name,
-        default: c.default,
-      })
+                                  config: c,
+                                  courseid: c.courseid,
+                                  months_to_expiration: c.months_to_expiration,
+                                  name: c.configuration_name,
+                                  default: c.default,
+                                })
     end
 
     config = Talentlms::Config.first
