@@ -19132,7 +19132,8 @@ CREATE TABLE public.hmis_supplemental_data_sets (
     owner_type character varying NOT NULL,
     object_key character varying NOT NULL,
     name character varying NOT NULL,
-    field_config character varying NOT NULL
+    field_config character varying NOT NULL,
+    sync_enabled boolean DEFAULT false
 );
 
 
@@ -63605,6 +63606,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240920203113'),
 ('20241003194213'),
 ('20241011182445'),
-('20241018220220');
+('20241018220220'),
+('20241023021050');
 
 
