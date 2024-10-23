@@ -32,9 +32,21 @@ module ControllerAuthorization
     return false
   end
 
-  def not_authorized!
-    your_root_path = root_path
-    your_root_path = current_user.my_root_path if current_user
-    redirect_to(your_root_path, alert: 'Sorry you are not authorized to do that.')
+  protected def not_authorized!(message = nil)
+    raise NotAuthorizedError, message
+  end
+
+  included do
+    rescue_from 'NotAuthorizedError', with: :handle_unauthorized_error
+  end
+
+  protected def handle_unauthorized_error(error)
+    respond_to do |format|
+      format.html do
+        location = current_user&.my_root_path || root_path
+        redirect_to(location, alert: error.message)
+      end
+      format.any { head :forbidden }
+    end
   end
 end
