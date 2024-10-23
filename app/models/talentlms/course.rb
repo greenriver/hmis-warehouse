@@ -18,27 +18,11 @@ module Talentlms
 
     attr_encrypted :api_key, key: ENV['ENCRYPTION_KEY'][0..31]
 
+    delegate :get, to: :config
+    delegate :post, to: :config
+
     scope :default, -> do
       where(default: true)
-    end
-
-    # Submit a 'get' request to TalentLMS
-    #
-    # @param action [String] the REST endpoint name
-    # @param args [Hash<String, String>] arguments to be added to the end of the URL
-    # @return [JSON] results
-    def get(action, args = nil)
-      config.get(action, args)
-    end
-
-    # Submit a 'post' request to TalentLMS
-    #
-    # @param action [String] the REST endpoint name
-    # @param data [Hash] the post data
-    # @param args [Hash<String, String>] arguments to be added to the end of the URL
-    # @return [JSON] results
-    def post(action, data, args = nil)
-      config.post(action, data, args)
     end
 
     # Validator to check this configuration is valid.
