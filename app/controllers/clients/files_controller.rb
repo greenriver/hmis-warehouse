@@ -11,6 +11,7 @@ module Clients
     include ClientDependentControllers
 
     before_action :require_window_file_access!
+    before_action :set_user
     before_action :set_client
     before_action :set_files, only: [:index]
     before_action :set_window
@@ -18,6 +19,8 @@ module Clients
 
     # before_action :require_can_manage_client_files!, only: [:update]
     after_action :log_client
+
+    attr_accessor :user
 
     def index
       @consent_editable = consent_editable?
@@ -247,6 +250,11 @@ module Clients
 
     def batch_params
       params.require(:batch_download).permit(:file_ids)
+    end
+
+    def set_user
+      # binding.pry
+      @user = current_user
     end
 
     def set_client

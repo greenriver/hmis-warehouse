@@ -21,6 +21,7 @@ module GrdaWarehouse
     belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base', optional: true
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
+    belongs_to :consent_revoked_by_user, class_name: 'User', optional: true
     validates_inclusion_of :visible_in_window, in: [true, false]
     validates_presence_of :expiration_date, on: :requires_expiration_date, message: 'Expiration date is required'
     validates_presence_of :effective_date, on: :requires_effective_date, message: 'Effective date is required'
@@ -233,13 +234,19 @@ module GrdaWarehouse
     ####################
     # Callbacks
     ####################
-    after_create_commit :notify_users, if: ->(m) { m.should_run_callbacks? }
-    before_save :adjust_consent_date, if: ->(m) { m.should_run_callbacks? }
-    after_save :note_changes_in_consent, if: ->(m) { m.should_run_callbacks? }
-    after_commit :set_client_consent, on: [:create, :update], if: ->(m) { m.should_run_callbacks? }
+    after_create_commit :notify_users, if: ->(m) { m.should_run_callbacks? } # rubocop:disable Style/SymbolProc
+    before_update :adjust_revoked_by, if: ->(m) { m.should_run_callbacks? && consent_revoked_at_changed? }
+    before_save :adjust_consent_date, if: ->(m) { m.should_run_callbacks? } # rubocop:disable Style/SymbolProc
+    after_save :note_changes_in_consent, if: ->(m) { m.should_run_callbacks? } # rubocop:disable Style/SymbolProc
+    after_commit :set_client_consent, on: [:create, :update], if: ->(m) { m.should_run_callbacks? } # rubocop:disable Style/SymbolProc
 
     def should_run_callbacks?
       callbacks_skipped.nil? || ! callbacks_skipped
+    end
+
+    def adjust_revoked_by
+      revoked_by_id = user&.id if consent_revoked_at.present?
+      self.consent_revoked_by_user_id = revoked_by_id
     end
 
     ####################
