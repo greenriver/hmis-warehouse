@@ -15,6 +15,11 @@ module Mutations
     def resolve(input:)
       access_denied! unless current_user.can_configure_data_collection?
 
+      category = Hmis::Hud::CustomServiceCategory.find(input.service_category_id)
+
+      # Can't add a custom service to a HUD service category
+      access_denied! if category.service_types.any?(&:hud_service?)
+
       service_type = Hmis::Hud::CustomServiceType.new(
         **input.to_params,
         user_id: hmis_user.user_id,

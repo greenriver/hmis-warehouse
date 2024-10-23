@@ -17,6 +17,11 @@ module Mutations
       access_denied! unless current_user.can_configure_data_collection?
 
       service_type = Hmis::Hud::CustomServiceType.find(id)
+
+      # Can't update HUD services. This prevents users from unknowingly renaming/reusing services for another purpose
+      # while the service continues to collect HUD records for the original type
+      access_denied! if service_type.hud_service?
+
       service_type.name = name
       service_type.supports_bulk_assignment = supports_bulk_assignment
       service_type.save!

@@ -100,6 +100,8 @@ module Types
         service_types_picklist
       when 'ALL_SERVICE_CATEGORIES'
         service_categories_picklist
+      when 'CUSTOM_SERVICE_CATEGORIES'
+        service_categories_picklist(custom_only: true)
       when 'SUB_TYPE_PROVIDED_3'
         sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
       when 'SUB_TYPE_PROVIDED_4'
@@ -309,9 +311,10 @@ module Types
       options
     end
 
-    def self.service_categories_picklist
-      options = Hmis::Hud::CustomServiceCategory.all.
-        to_a.
+    def self.service_categories_picklist(custom_only: false)
+      scope = custom_only ? Hmis::Hud::CustomServiceCategory.non_hud : Hmis::Hud::CustomServiceCategory.all
+
+      options = scope.to_a.
         map(&:to_pick_list_option).
         sort_by { |obj| obj[:label] }
 

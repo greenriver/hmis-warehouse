@@ -15,8 +15,15 @@ module Mutations
 
       service_type = Hmis::Hud::CustomServiceType.find(id)
 
-      # TODO: Eventually this should be a user-facing ValidationError returned in the {errors:} object
-      raise 'Cannot delete a service type that has services' if service_type.custom_services.exists?
+      # Can't delete HUD service type
+      access_denied! if service_type.hud_service?
+
+      # Can't delete service type that already has services
+      if service_type.custom_services.exists?
+        errors = HmisErrors::Errors.new
+        errors.add :base, :invalid, full_message: 'Cannot delete a service type that has services'
+        return { errors: errors }
+      end
 
       default_delete_record(
         record: service_type,

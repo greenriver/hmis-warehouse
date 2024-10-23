@@ -18,6 +18,15 @@ class Hmis::Hud::CustomServiceCategory < Hmis::Hud::Base
 
   validates_presence_of :name, allow_blank: false
 
+  scope :non_hud, -> do
+    hud_service_category_ids = Hmis::Hud::CustomServiceCategory.
+      left_joins(:service_types).
+      where.not(service_types: { hud_record_type: nil }).
+      distinct
+
+    where.not(id: hud_service_category_ids)
+  end
+
   def to_pick_list_option
     {
       code: id.to_s,
