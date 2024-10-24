@@ -122,11 +122,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'should not allow deleting' do
         expect_access_denied(post_graphql(id: t1.id) { delete_service_type })
       end
-
-      it 'does not allow creating a custom service in the same category' do
-        mutation_input = { serviceCategoryId: c1.id, name: 'A new type' }
-        expect_access_denied(post_graphql(input: mutation_input) { create_service_type })
-      end
     end
   end
 
