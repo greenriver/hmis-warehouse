@@ -10214,7 +10214,7 @@ type ServiceCategory {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
-  hud: Boolean!
+  hud: Boolean! @deprecated(reason: "No longer used")
   id: ID!
   name: String!
   serviceTypes(limit: Int, offset: Int): ServiceTypesPaginated!
