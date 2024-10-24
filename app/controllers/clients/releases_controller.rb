@@ -12,6 +12,7 @@ module Clients
 
     skip_before_action :require_window_file_access!
     before_action :require_can_use_separated_consent!
+    before_action :set_user
 
     after_action :log_client
 
@@ -213,6 +214,10 @@ module Clients
 
     def set_window
       @window = true
+    end
+
+    def set_user
+      @user = current_user
     end
 
     def editable_scope
