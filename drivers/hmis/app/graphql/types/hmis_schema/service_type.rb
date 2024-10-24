@@ -25,10 +25,12 @@ module Types
     field :hud_record_type, HmisSchema::Enums::Hud::RecordType, null: true
     field :hud_type_provided, HmisSchema::Enums::ServiceTypeProvided, null: true
     field :category, String, null: false
+    field :category_record, HmisSchema::ServiceCategory, null: false
     field :form_definitions, [Forms::FormDefinition], null: false, description: 'Definitions that are specified for this service type'
 
     # object is a Hmis::Hud::CustomServiceType
 
+    # TODO(#5737) - remove this in favor of category_record, then rename category_record to category ?
     def category
       category_record.name
     end
@@ -47,7 +49,7 @@ module Types
       (definitions_for_type + definitions_for_category).uniq.sort_by(&:id)
     end
 
-    protected def category_record
+    def category_record
       load_ar_association(object, :custom_service_category)
     end
   end

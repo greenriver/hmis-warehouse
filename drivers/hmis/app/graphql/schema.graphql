@@ -10444,6 +10444,7 @@ enum ServiceSubTypeProvided {
 
 type ServiceType {
   category: String!
+  categoryRecord: ServiceCategory!
   createdBy: ApplicationUser
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
