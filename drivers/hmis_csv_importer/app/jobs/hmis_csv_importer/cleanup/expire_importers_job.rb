@@ -16,12 +16,11 @@ module HmisCsvImporter::Cleanup
       ::HmisCsvImporter::Importer::ImporterLog
     end
 
+    # Depending on your installation cleanup needs, you may also want to expire older versions
+    # ::HmisCsvTwentyTwentyTwo.expiring_importer_classes
+    # ::HmisCsvTwentyTwenty.expiring_importer_classes
     def models
-      (
-        ::HmisCsvTwentyTwentyFour.expiring_importer_classes +
-        ::HmisCsvTwentyTwentyTwo.expiring_importer_classes +
-        ::HmisCsvTwentyTwenty.expiring_importer_classes
-      )
+      (::HmisCsvTwentyTwentyFour.expiring_importer_classes + [])
     end
   end
 end

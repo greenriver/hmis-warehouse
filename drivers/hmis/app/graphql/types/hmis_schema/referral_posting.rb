@@ -106,7 +106,7 @@ module Types
       return unless current_permission?(permission: :can_view_hud_chronic_status, entity: project)
 
       # client.hud_chronic causes n+1 queries, only use when resolving 1 posting
-      !!referred_hoh_client.hud_chronic?(scope: referred_hoh_client.enrollments)
+      !!referred_hoh_client.destination_client&.as_warehouse&.hud_chronic?(scope: referred_hoh_client.enrollments)
     end
 
     def referred_from

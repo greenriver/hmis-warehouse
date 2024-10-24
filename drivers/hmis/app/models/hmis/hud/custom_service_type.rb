@@ -15,7 +15,7 @@ class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
   belongs_to :custom_service_category
   has_many :custom_services
   has_many :form_instances, class_name: 'Hmis::Form::Instance'
-  has_many :definitions, through: :form_instances
+  has_many :definitions, through: :form_instances, source: :definitions
 
   alias_attribute :category, :custom_service_category
 
