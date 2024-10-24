@@ -28,7 +28,7 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
     this.element['roleManager'] = this // allow access to this controller from other controllers
     // console.log('role manager connected', this.roleToggleTargets)
     this.path = $(this.inputWrapperTarget).data('roleManagerFormValue')
-    this.columnStateKey = 'roleManagerState'
+    this.columnStateKey = 'roleManagerState' + this.path
     this.enabledColumns = []
     this.enabledColumns = this.setInitialColumns()
 

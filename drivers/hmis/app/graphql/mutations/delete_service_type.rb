@@ -14,9 +14,7 @@ module Mutations
       access_denied! unless current_user.can_configure_data_collection?
 
       service_type = Hmis::Hud::CustomServiceType.find(id)
-
-      # Can't delete HUD service type
-      access_denied! if service_type.hud_service?
+      raise "Can't delete HUD service type: #{service_type.id} #{service_type.name}" if service_type.hud_service?
 
       # Can't delete service type that already has services
       if service_type.custom_services.exists?

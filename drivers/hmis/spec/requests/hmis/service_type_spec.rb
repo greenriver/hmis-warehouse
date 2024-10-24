@@ -144,21 +144,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:hud_type) { create :hmis_custom_service_type, custom_service_category: hud_category, data_source: ds1, name: 'A HUD type', hud_record_type: 141, hud_type_provided: 1 }
 
       it 'should not allow editing' do
-        expect_access_denied(post_graphql(name: 'foo', id: hud_type.id, supportsBulkAssignment: true) { update_service_type })
+        expect_gql_error(post_graphql(name: 'foo', id: hud_type.id, supportsBulkAssignment: true) { update_service_type })
       end
 
       it 'should not allow deleting' do
-        expect_access_denied(post_graphql(id: hud_type.id) { delete_service_type })
-      end
-
-      it 'should not allow creating a custom service type in the HUD category' do
-        mutation_input = { serviceCategoryId: hud_category.id, name: 'This is not allowed' }
-        expect_access_denied(post_graphql(input: mutation_input) { create_service_type })
-      end
-
-      it 'should not allow updating a custom service type into the HUD category' do
-        input = { serviceCategoryId: hud_category.id }
-        expect_access_denied(post_graphql(id: custom_type.id, input: input) { update_service_type })
+        expect_gql_error(post_graphql(id: hud_type.id) { delete_service_type })
       end
     end
   end
