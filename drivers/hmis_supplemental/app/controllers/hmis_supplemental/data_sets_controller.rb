@@ -75,6 +75,7 @@ module HmisSupplemental
         :object_key,
         :owner_type,
         :field_config,
+        :sync_enabled,
         remote_credential_attributes: [
           :region,
           :bucket,
