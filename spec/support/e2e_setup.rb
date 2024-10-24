@@ -40,6 +40,14 @@ RSpec.shared_context 'SystemSpecHelper' do
     end
   end
 
+  def mui_radio_value_for(radio_label)
+    # This is a custom helper for getting the currently checked value from a MUI radio group.
+    # It's painfully slow, but correctly returns nil, when the group doesn't have a value selected.
+    # It should only be used for radio buttons since it doesn't correctly handle multi-select (checkboxes).
+    # `visible: :any` works around MUI applying opacity 0 to the actual radio input.
+    find("[aria-label='#{radio_label}']").all('label span[data-checked="true"] input[type="radio"]', visible: :any).first&.value
+  end
+
   def mui_select(choice, from:)
     label = find('label', text: from)
     scroll_to(label, align: :center)
@@ -50,12 +58,24 @@ RSpec.shared_context 'SystemSpecHelper' do
     find('li[role=option]', text: choice).trigger(:click)
   end
 
+  def mui_select_value_for(select_label)
+    label = find('label', text: select_label)
+    id = label['for']
+    find("[id='#{id}']").value
+  end
+
   def mui_table_select(choice, row:, column:)
     row_label = find('td', text: row)
     scroll_to(row_label, align: :center)
     column_label = find('th', text: column)
     find("[aria-labelledby='#{row_label['id']} #{column_label['id']}']").click
     find('li[role=option]', text: choice).click
+  end
+
+  def mui_table_value_for(row:, column:)
+    row_label = find('td', text: row)
+    column_label = find('th', text: column)
+    find("[aria-labelledby='#{row_label['id']} #{column_label['id']}']").value
   end
 
   def mui_date_select(label, date:)
