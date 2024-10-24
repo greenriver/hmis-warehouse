@@ -18,9 +18,9 @@ module Mutations
 
       service_type = Hmis::Hud::CustomServiceType.find(id)
 
-      # Can't update HUD services. This prevents users from unknowingly renaming/reusing services for another purpose
-      # while the service continues to collect HUD records for the original type
-      access_denied! if service_type.hud_service?
+      # Prevent users from unknowingly renaming/reusing HUD services for another purpose
+      # while the service continues to collect HUD records for the original type.
+      raise "Can't update HUD service type: #{service_type.id} #{service_type.name}" if service_type.hud_service?
 
       service_type.name = name
       service_type.supports_bulk_assignment = supports_bulk_assignment
