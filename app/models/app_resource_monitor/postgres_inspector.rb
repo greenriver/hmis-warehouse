@@ -116,23 +116,34 @@ class AppResourceMonitor::PostgresInspector
   INDEX_STATS_SQL = <<~SQL.freeze
     SELECT
       %{db_name} AS database,
-      t.tablename,
+      c.relname AS tablename,
       ipg.relname AS index_name,
-      idx_scan::text AS number_of_scans,
-      idx_tup_read::text AS tuples_read,
-      idx_tup_fetch::text AS tuples_fetched,
-      pg_relation_size(ipg.oid)::text AS index_size
-    FROM
-      pg_tables t
-    JOIN
-      pg_index x ON x.indrelid = (SELECT oid FROM pg_class WHERE relname = t.tablename)
-    JOIN
-      pg_class ipg ON ipg.oid = x.indexrelid
-    JOIN
-      pg_stat_all_indexes psai ON x.indexrelid = psai.indexrelid
-    WHERE
-      t.schemaname = %{schema}
-    ORDER BY
-      t.tablename, ipg.relname;
+      psai.idx_scan::text AS number_of_scans,
+      psai.idx_tup_read::text AS tuples_read,
+      psai.idx_tup_fetch::text AS tuples_fetched,
+      pg_relation_size(ipg.oid)::text AS index_size,
+      pg_get_indexdef(x.indexrelid) AS index_definition,
+      0 <> ALL (x.indkey) AS has_expression_index_column,
+      x.indisunique AS is_unique_index,
+      EXISTS (
+        SELECT 1
+        FROM pg_catalog.pg_constraint con
+        WHERE con.conindid = x.indexrelid
+      ) AS enforces_constraint
+      FROM
+        pg_class c
+      JOIN
+        pg_index x ON x.indrelid = c.oid
+      JOIN
+        pg_class ipg ON ipg.oid = x.indexrelid
+      JOIN
+        pg_stat_user_indexes psai ON x.indexrelid = psai.indexrelid
+      JOIN
+        pg_namespace n ON n.oid = c.relnamespace
+      WHERE
+        n.nspname = %{schema}
+        AND c.relkind = 'r'  -- Only include tables, not views or other relations
+      ORDER BY
+        c.relname, ipg.relname;
   SQL
 end
