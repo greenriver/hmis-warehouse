@@ -68,6 +68,74 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         end
       end
     end
+
+    describe 'restores previously deleted destination client if the source client returns' do
+      let!(:deleted_in_source) { create :grda_warehouse_hud_client, data_source: source_data_source, DateDeleted: Time.current }
+      let!(:deleted_in_destination) { create :grda_warehouse_hud_client, data_source: destination_data_source, DateDeleted: Time.current }
+      let!(:warehouse_client_for_deleted_pair) { create :warehouse_client, source_id: deleted_in_source.id, destination_id: deleted_in_destination.id }
+
+      let!(:first_warehouse_client) { create :warehouse_client, source_id: client_in_source.id, destination_id: client_in_destination.id }
+
+      let!(:second_deleted_in_source) { create :grda_warehouse_hud_client, data_source: source_data_source, DateDeleted: Time.current }
+      let!(:second_deleted_in_destination) { create :grda_warehouse_hud_client, data_source: destination_data_source, DateDeleted: Time.current }
+      let!(:warehouse_client_for_second_deleted_pair) { create :warehouse_client, source_id: second_deleted_in_source.id, destination_id: second_deleted_in_destination.id }
+
+      it 'only has one Destination and source client' do
+        expect(GrdaWarehouse::Hud::Client.source.count).to eq(1)
+        expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
+      end
+      describe 'after running restore_previously_deleted_destinations' do
+        before do
+          GrdaWarehouse::Tasks::IdentifyDuplicates.new.send(:restore_previously_deleted_destinations)
+        end
+        it 'only has one Destination and source client' do
+          expect(GrdaWarehouse::Hud::Client.source.count).to eq(1)
+          expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
+        end
+      end
+      describe 'after restoring the source client and then running restore_previously_deleted_destinations' do
+        before do
+          deleted_in_source.update(DateDeleted: nil)
+          GrdaWarehouse::Tasks::IdentifyDuplicates.new.send(:restore_previously_deleted_destinations)
+        end
+        it 'only has one Destination and source client' do
+          expect(GrdaWarehouse::Hud::Client.source.count).to eq(2)
+          expect(GrdaWarehouse::Hud::Client.destination.count).to eq(2)
+        end
+        it 'does not restore still deleted pair' do
+          expect(GrdaWarehouse::Hud::Client.source.only_deleted.count).to eq(1)
+          expect(GrdaWarehouse::Hud::Client.source.only_deleted.pluck(:id)).to eq([second_deleted_in_source.id])
+          expect(GrdaWarehouse::Hud::Client.destination.only_deleted.count).to eq(1)
+          expect(GrdaWarehouse::Hud::Client.destination.only_deleted.pluck(:id)).to eq([second_deleted_in_destination.id])
+        end
+      end
+    end
+
+    # Exercise matching against an existing destination client
+    describe 'running identify_duplicates' do
+      before do
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.identify_duplicates
+      end
+      it 'runs without error and generates one warehouse client record' do
+        expect(GrdaWarehouse::WarehouseClient.count).to eq(1)
+      end
+      describe 'second run' do
+        let!(:new_source_client) { create :grda_warehouse_hud_client, data_source: source_data_source, SSN: '123445678' }
+        before do
+          GrdaWarehouse::Tasks::IdentifyDuplicates.new.identify_duplicates
+        end
+        it 'runs without error a second time and connects the new client to the existing destination client' do
+          expect(GrdaWarehouse::WarehouseClient.count).to eq(2)
+          expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
+          ids_from_warehouse_clients = GrdaWarehouse::WarehouseClient.pluck(:source_id, :destination_id).sort
+          ids_from_clients = [
+            [client_in_source.id, client_in_destination.id],
+            [new_source_client.id, client_in_destination.id],
+          ].sort
+          expect(ids_from_warehouse_clients).to eq(ids_from_clients)
+        end
+      end
+    end
   end
 
   describe 'When matching is disabled' do
@@ -79,8 +147,8 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
       @config.update(enable_auto_deduplication: false)
     end
 
-    it 'recognizes an obvious match' do
-      expect(check_for_obvious_match(client_in_source)).to be client_in_destination.id
+    it 'does not recognize an obvious match' do
+      expect(check_for_obvious_match(client_in_source)).to be_nil
     end
 
     describe 'obvious match processing with a split' do
@@ -101,9 +169,9 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         processor.match_existing!
       end
 
-      it 'merged client and client 2 into a single destination client' do
-        expect(client_in_source.destination_client.id).to eq(client_two_in_source.destination_client.id)
-        expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
+      it 'does not merge client and client 2 into a single destination client' do
+        expect(client_in_source.destination_client.id).to_not eq(client_two_in_source.destination_client.id)
+        expect(GrdaWarehouse::Hud::Client.destination.count).to eq(3)
       end
 
       describe 'merge processing after a split' do
@@ -120,83 +188,15 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
           )
         end
 
-        it 'sees two destination clients after split' do
-          expect(GrdaWarehouse::Hud::Client.destination.count).to eq(2)
+        it 'sees four destination clients after split' do
+          expect(GrdaWarehouse::Hud::Client.destination.count).to eq(4)
         end
 
         it 'does not re-merge the split clients' do
           GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false).match_existing!
 
-          expect(GrdaWarehouse::Hud::Client.destination.count).to eq(2)
+          expect(GrdaWarehouse::Hud::Client.destination.count).to eq(4)
         end
-      end
-    end
-  end
-
-  describe 'restores previously deleted destination client if the source client returns' do
-    let!(:deleted_in_source) { create :grda_warehouse_hud_client, data_source: source_data_source, DateDeleted: Time.current }
-    let!(:deleted_in_destination) { create :grda_warehouse_hud_client, data_source: destination_data_source, DateDeleted: Time.current }
-    let!(:warehouse_client_for_deleted_pair) { create :warehouse_client, source_id: deleted_in_source.id, destination_id: deleted_in_destination.id }
-
-    let!(:first_warehouse_client) { create :warehouse_client, source_id: client_in_source.id, destination_id: client_in_destination.id }
-
-    let!(:second_deleted_in_source) { create :grda_warehouse_hud_client, data_source: source_data_source, DateDeleted: Time.current }
-    let!(:second_deleted_in_destination) { create :grda_warehouse_hud_client, data_source: destination_data_source, DateDeleted: Time.current }
-    let!(:warehouse_client_for_second_deleted_pair) { create :warehouse_client, source_id: second_deleted_in_source.id, destination_id: second_deleted_in_destination.id }
-
-    it 'only has one Destination and source client' do
-      expect(GrdaWarehouse::Hud::Client.source.count).to eq(1)
-      expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
-    end
-    describe 'after running restore_previously_deleted_destinations' do
-      before do
-        GrdaWarehouse::Tasks::IdentifyDuplicates.new.send(:restore_previously_deleted_destinations)
-      end
-      it 'only has one Destination and source client' do
-        expect(GrdaWarehouse::Hud::Client.source.count).to eq(1)
-        expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
-      end
-    end
-    describe 'after restoring the source client and then running restore_previously_deleted_destinations' do
-      before do
-        deleted_in_source.update(DateDeleted: nil)
-        GrdaWarehouse::Tasks::IdentifyDuplicates.new.send(:restore_previously_deleted_destinations)
-      end
-      it 'only has one Destination and source client' do
-        expect(GrdaWarehouse::Hud::Client.source.count).to eq(2)
-        expect(GrdaWarehouse::Hud::Client.destination.count).to eq(2)
-      end
-      it 'does not restore still deleted pair' do
-        expect(GrdaWarehouse::Hud::Client.source.only_deleted.count).to eq(1)
-        expect(GrdaWarehouse::Hud::Client.source.only_deleted.pluck(:id)).to eq([second_deleted_in_source.id])
-        expect(GrdaWarehouse::Hud::Client.destination.only_deleted.count).to eq(1)
-        expect(GrdaWarehouse::Hud::Client.destination.only_deleted.pluck(:id)).to eq([second_deleted_in_destination.id])
-      end
-    end
-  end
-
-  # Exercise matching against an existing destination client
-  describe 'running identify_duplicates' do
-    before do
-      GrdaWarehouse::Tasks::IdentifyDuplicates.new.identify_duplicates
-    end
-    it 'runs without error and generates one warehouse client record' do
-      expect(GrdaWarehouse::WarehouseClient.count).to eq(1)
-    end
-    describe 'second run' do
-      let!(:new_source_client) { create :grda_warehouse_hud_client, data_source: source_data_source, SSN: '123445678' }
-      before do
-        GrdaWarehouse::Tasks::IdentifyDuplicates.new.identify_duplicates
-      end
-      it 'runs without error a second time and connects the new client to the existing destination client' do
-        expect(GrdaWarehouse::WarehouseClient.count).to eq(2)
-        expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
-        ids_from_warehouse_clients = GrdaWarehouse::WarehouseClient.pluck(:source_id, :destination_id).sort
-        ids_from_clients = [
-          [client_in_source.id, client_in_destination.id],
-          [new_source_client.id, client_in_destination.id],
-        ].sort
-        expect(ids_from_warehouse_clients).to eq(ids_from_clients)
       end
     end
   end
