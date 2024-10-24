@@ -47,7 +47,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  it 'should change hoh correctly' do
+  it 'should change HoH correctly' do
     response, result = post_graphql(input: test_input) { mutation }
 
     aggregate_failures 'checking response' do
@@ -61,6 +61,93 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         have_attributes(personal_id: c2.personal_id, relationship_to_ho_h: 2),
         have_attributes(personal_id: c3.personal_id, relationship_to_ho_h: 1),
       )
+    end
+  end
+
+  context 'with Move-in Dates and Move-in Addresses' do
+    let(:hoh_move_in_date) { 2.weeks.ago.to_date }
+    let!(:hoh) { create :hmis_hud_enrollment, entry_date: 1.month.ago, move_in_date: hoh_move_in_date, relationship_to_ho_h: 1, data_source: ds1, project: p1 }
+    let!(:hhm) { create :hmis_hud_enrollment, entry_date: 1.month.ago, relationship_to_ho_h: 2, household_id: hoh.household_id, data_source: ds1, project: p1 }
+    let!(:hhm2) { create :hmis_hud_enrollment, entry_date: 1.month.ago, relationship_to_ho_h: 2, household_id: hoh.household_id, data_source: ds1, project: p1 }
+
+    let(:input) do
+      {
+        enrollment_id: hhm.id,
+        relationship_to_ho_h: Types::HmisSchema::Enums::Hud::RelationshipToHoH.enum_member_for_value(1).first,
+        confirmed: true,
+      }
+    end
+
+    def perform_mutation
+      response, result = post_graphql(input: input) { mutation }
+      expect(response.status).to eq(200), result.inspect
+      [hoh, hhm, hhm2].map(&:reload)
+    end
+
+    context 'when new HoH entered before move-in' do
+      it 'should transfer move-in date to new HoH' do
+        expect { perform_mutation }.to change { hoh.relationship_to_ho_h }.from(1).to(99).
+          and change { hoh.move_in_date }.from(hoh_move_in_date).to(nil).
+          and change { hhm.relationship_to_ho_h }.from(2).to(1).
+          and change { hhm.move_in_date }.from(nil).to(hoh_move_in_date)
+      end
+    end
+
+    context 'when new HoH entered after move-in' do
+      before(:each) { hhm.update!(entry_date: hoh_move_in_date + 2.days) }
+
+      it 'should transfer move-in date to new HoH' do
+        expect { perform_mutation }.to change { hoh.relationship_to_ho_h }.from(1).to(99).
+          and change { hoh.move_in_date }.from(hoh_move_in_date).to(nil).
+          and change { hhm.relationship_to_ho_h }.from(2).to(1).
+          and change { hhm.move_in_date }.from(nil).to(hhm.entry_date)
+      end
+    end
+
+    context 'when old HoH has Move-in Address' do
+      let!(:move_in_address) { create :hmis_move_in_address, enrollment: hoh, data_source: ds1 }
+
+      it 'should transfer Move-in Date and Move-in Address to new HoH' do
+        expect { perform_mutation }.to change { hoh.relationship_to_ho_h }.from(1).to(99).
+          and change { hoh.move_in_date }.from(hoh_move_in_date).to(nil).
+          and change { hhm.relationship_to_ho_h }.from(2).to(1).
+          and change { hhm.reload.move_in_date }.from(nil).to(hoh_move_in_date).
+          and change(hoh.move_in_addresses, :count).by(-1).
+          and change(hhm.move_in_addresses, :count).by(1).
+          and change { move_in_address.reload.enrollment }.from(hoh).to(hhm)
+      end
+    end
+
+    context 'when there were multiple previous HoHs with Move-in Dates' do
+      let(:hoh2_move_in_date) { hoh_move_in_date - 2.days }
+      let!(:hoh2) { create :hmis_hud_enrollment, entry_date: 1.month.ago, move_in_date: hoh2_move_in_date, relationship_to_ho_h: 1, data_source: ds1, project: p1, household_id: hoh.household_id, DateCreated: 1.month.ago }
+
+      it 'should choose Move-in Date from prev HoH with earliest creation date' do
+        expect do
+          perform_mutation
+          hoh2.reload
+        end.to change { hoh.relationship_to_ho_h }.from(1).to(99).
+          and change { hoh2.relationship_to_ho_h }.from(1).to(99).
+          and change { hoh.move_in_date }.from(hoh_move_in_date).to(nil).
+          and change { hoh2.move_in_date }.from(hoh2_move_in_date).to(nil).
+          and change { hhm.relationship_to_ho_h }.from(2).to(1).
+          and change { hhm.move_in_date }.from(nil).to(hoh2_move_in_date)
+      end
+    end
+
+    context 'when non-hoh members have move-in date values' do
+      before(:each) do
+        hhm.update!(move_in_date: hoh_move_in_date + 2.days)
+        hhm2.update!(move_in_date: hoh_move_in_date + 2.days)
+      end
+
+      it 'should clear move-in date values' do
+        expect { perform_mutation }.to change { hoh.relationship_to_ho_h }.from(1).to(99).
+          and change { hoh.move_in_date }.from(hoh_move_in_date).to(nil).
+          and change { hhm.relationship_to_ho_h }.from(2).to(1).
+          and change { hhm.move_in_date }.to(hoh_move_in_date).
+          and change { hhm2.move_in_date }.to(nil)
+      end
     end
   end
 
@@ -125,14 +212,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
       expect(enrollment).to be nil
       expect(errors).to match([
-                                a_hash_including('severity' => 'warning', 'fullMessage' => Mutations::UpdateRelationshipToHoH.change_hoh_message(c1, c3)),
+                                a_hash_including('severity' => 'warning', 'fullMessage' => Hmis::HohChangeHandler.change_hoh_message(c1, c3)),
                               ])
       e3.reload
       expect(e3.relationship_to_ho_h).not_to eq(1)
     end
   end
 
-  it 'should warn if hoh is a child' do
+  it 'should warn if HoH is a child' do
     c3.update(dob: 13.years.ago)
     response, result = post_graphql(input: test_input.merge(confirmed: false)) { mutation }
 
@@ -142,8 +229,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
       expect(enrollment).to be nil
       expect(errors).to match([
-                                a_hash_including('severity' => 'warning', 'fullMessage' => Mutations::UpdateRelationshipToHoH.change_hoh_message(c1, c3)),
-                                a_hash_including('severity' => 'warning', 'fullMessage' => Mutations::UpdateRelationshipToHoH.child_hoh_message),
+                                a_hash_including('severity' => 'warning', 'fullMessage' => Hmis::HohChangeHandler.change_hoh_message(c1, c3)),
+                                a_hash_including('severity' => 'warning', 'fullMessage' => Hmis::HohChangeHandler.child_hoh_message),
                               ])
       e3.reload
       expect(e3.relationship_to_ho_h).not_to eq(1)
@@ -160,8 +247,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
       expect(enrollment).to be nil
       expect(errors).to match([
-                                a_hash_including('severity' => 'warning', 'fullMessage' => Mutations::UpdateRelationshipToHoH.change_hoh_message(c1, c3)),
-                                a_hash_including('severity' => 'warning', 'fullMessage' => Mutations::UpdateRelationshipToHoH.incomplete_hoh_message),
+                                a_hash_including('severity' => 'warning', 'fullMessage' => Hmis::HohChangeHandler.change_hoh_message(c1, c3)),
+                                a_hash_including('severity' => 'warning', 'fullMessage' => Hmis::HohChangeHandler.incomplete_hoh_message),
                               ])
       e3.reload
       expect(e3.relationship_to_ho_h).not_to eq(1)
@@ -178,8 +265,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
       expect(enrollment).to be nil
       expect(errors).to match([
-                                a_hash_including('severity' => 'warning', 'fullMessage' => Mutations::UpdateRelationshipToHoH.change_hoh_message(c1, c3)),
-                                a_hash_including('severity' => 'warning', 'fullMessage' => Mutations::UpdateRelationshipToHoH.exited_hoh_message),
+                                a_hash_including('severity' => 'warning', 'fullMessage' => Hmis::HohChangeHandler.change_hoh_message(c1, c3)),
+                                a_hash_including('severity' => 'warning', 'fullMessage' => Hmis::HohChangeHandler.exited_hoh_message),
                               ])
       e3.reload
       expect(e3.relationship_to_ho_h).not_to eq(1)
@@ -188,17 +275,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'should error if unauthorized' do
     remove_permissions(access_control, :can_edit_enrollments)
-    expect_gql_error post_graphql(input: test_input) { mutation }, message: 'Access denied'
+    expect_gql_error post_graphql(input: test_input) { mutation }, message: 'access denied'
   end
 
   it 'should error if user does not have access to enrollment' do
     remove_permissions(access_control, :can_view_enrollment_details)
     remove_permissions(access_control, :can_edit_enrollments)
-    expect_gql_error post_graphql(input: test_input) { mutation }, message: 'Not found'
+    expect_gql_error post_graphql(input: test_input) { mutation }, message: 'access denied'
   end
 
   it 'should error if enrollment does not exist' do
-    expect_gql_error post_graphql(input: test_input.merge(enrollment_id: '0')) { mutation }, message: 'Not found'
+    expect_gql_error post_graphql(input: test_input.merge(enrollment_id: '0')) { mutation }, message: 'access denied'
   end
 end
 
