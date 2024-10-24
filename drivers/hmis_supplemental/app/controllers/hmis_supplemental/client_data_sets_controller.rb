@@ -47,8 +47,8 @@ module HmisSupplemental
 
     def source_enrollments
       @client.source_enrollments.
-        where(data_source_id: @data_set.data_source_id).
         visible_to(current_user).
+        where(data_source_id: @data_set.data_source_id).
         order(entry_date: :desc, id: :desc).
         preload(:project)
     end
@@ -58,9 +58,10 @@ module HmisSupplemental
     end
 
     def client_groups
+      # note: order is important here, source_visible_to appears to clobber the data source condition
       clients = @client.source_clients.
-        where(data_source_id: @data_set.data_source_id).
         source_visible_to(current_user).
+        where(data_source_id: @data_set.data_source_id).
         order(:id)
       clients.map do |client|
         {

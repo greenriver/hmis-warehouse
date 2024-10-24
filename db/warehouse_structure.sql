@@ -258,7 +258,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -6559,7 +6559,8 @@ CREATE TABLE public.configs (
     filter_date_span_years integer DEFAULT 1 NOT NULL,
     include_pii_in_detail_downloads boolean DEFAULT true,
     self_report_start_date date,
-    chronic_adult_only_cohort boolean DEFAULT false
+    chronic_adult_only_cohort boolean DEFAULT false,
+    enable_auto_deduplication boolean DEFAULT true
 );
 
 
@@ -19131,7 +19132,8 @@ CREATE TABLE public.hmis_supplemental_data_sets (
     owner_type character varying NOT NULL,
     object_key character varying NOT NULL,
     name character varying NOT NULL,
-    field_config character varying NOT NULL
+    field_config character varying NOT NULL,
+    sync_enabled boolean DEFAULT false
 );
 
 
@@ -26069,7 +26071,8 @@ CREATE TABLE public.system_pathways_enrollments (
     move_in_date date,
     days_to_move_in integer,
     chronic_at_entry boolean,
-    disabling_condition integer
+    disabling_condition integer,
+    days_to_exit_after_move_in integer
 );
 
 
@@ -35733,6 +35736,13 @@ CREATE UNIQUE INDEX en_en_id_p_id_ds_id ON public."Enrollment" USING btree ("Enr
 
 
 --
+-- Name: en_tt; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX en_tt ON public.hmis_2022_enrollments USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
+
+
+--
 -- Name: enrollment_coc_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -40717,10 +40727,31 @@ CREATE INDEX hmis2024enrollments_4337 ON public.hmis_2024_enrollments USING btre
 
 
 --
+-- Name: hmis2024enrollments_44c4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2024enrollments_44c4 ON public.hmis_2024_enrollments USING btree ("MonthsHomelessPastThreeYears") INCLUDE ("EnrollmentID", "LivingSituation", "PreviousStreetESSH");
+
+
+--
+-- Name: hmis2024enrollments_4685; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2024enrollments_4685 ON public.hmis_2024_enrollments USING btree ("LengthOfStay") INCLUDE ("EnrollmentID");
+
+
+--
 -- Name: hmis2024enrollments_5328; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2024enrollments_5328 ON public.hmis_2024_enrollments USING btree ("HouseholdID");
+
+
+--
+-- Name: hmis2024enrollments_5d40; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2024enrollments_5d40 ON public.hmis_2024_enrollments USING btree ("HouseholdID", "DateDeleted", "EntryDate", "RelationshipToHoH") INCLUDE ("EnrollmentID", "PersonalID", "DisablingCondition");
 
 
 --
@@ -40731,6 +40762,34 @@ CREATE INDEX hmis2024enrollments_603f ON public.hmis_2024_enrollments USING btre
 
 
 --
+-- Name: hmis2024enrollments_6191; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2024enrollments_6191 ON public.hmis_2024_enrollments USING btree ("EntryDate") INCLUDE ("EnrollmentID", "ProjectID", "HouseholdID", "RelationshipToHoH", "DateDeleted");
+
+
+--
+-- Name: hmis2024enrollments_821a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2024enrollments_821a ON public.hmis_2024_enrollments USING btree ("LivingSituation") INCLUDE ("EnrollmentID");
+
+
+--
+-- Name: hmis2024enrollments_89e7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2024enrollments_89e7 ON public.hmis_2024_enrollments USING btree ("HouseholdID", "DateDeleted", "RelationshipToHoH") INCLUDE ("EnrollmentID", "PersonalID", "EntryDate", "DisablingCondition");
+
+
+--
+-- Name: hmis2024enrollments_8d5c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2024enrollments_8d5c ON public.hmis_2024_enrollments USING btree ("DateDeleted", "RelationshipToHoH") INCLUDE ("EnrollmentID", "PersonalID", "EntryDate", "HouseholdID", "DisablingCondition");
+
+
+--
 -- Name: hmis2024enrollments_9005; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -40738,10 +40797,31 @@ CREATE INDEX hmis2024enrollments_9005 ON public.hmis_2024_enrollments USING btre
 
 
 --
+-- Name: hmis2024enrollments_c321; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2024enrollments_c321 ON public.hmis_2024_enrollments USING btree ("TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears") INCLUDE ("EnrollmentID");
+
+
+--
+-- Name: hmis2024enrollments_c3b4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2024enrollments_c3b4 ON public.hmis_2024_enrollments USING btree ("RelationshipToHoH", "DateDeleted") INCLUDE ("EnrollmentID", "PersonalID", "ProjectID", "EntryDate", "HouseholdID", "MoveInDate", "DisablingCondition");
+
+
+--
 -- Name: hmis2024enrollments_c548; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2024enrollments_c548 ON public.hmis_2024_enrollments USING btree ("EnrollmentID", "PersonalID");
+
+
+--
+-- Name: hmis2024enrollments_c830; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2024enrollments_c830 ON public.hmis_2024_enrollments USING btree ("DateDeleted", "EntryDate") INCLUDE ("EnrollmentID", "HouseholdID", "ProjectID", "RelationshipToHoH");
 
 
 --
@@ -40756,6 +40836,13 @@ CREATE INDEX hmis2024enrollments_ea7f ON public.hmis_2024_enrollments USING btre
 --
 
 CREATE INDEX hmis2024enrollments_f3a2 ON public.hmis_2024_enrollments USING btree ("DateDeleted");
+
+
+--
+-- Name: hmis2024enrollments_fbbd; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2024enrollments_fbbd ON public.hmis_2024_enrollments USING btree ("MoveInDate") INCLUDE ("EnrollmentID");
 
 
 --
@@ -40777,6 +40864,13 @@ CREATE INDEX hmis2024events_634d ON public.hmis_2024_events USING btree ("Export
 --
 
 CREATE INDEX hmis2024events_ab19 ON public.hmis_2024_events USING btree ("EventDate");
+
+
+--
+-- Name: hmis2024exits_13dc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2024exits_13dc ON public.hmis_2024_exits USING btree ("ExitDate", "Destination") INCLUDE ("EnrollmentID");
 
 
 --
@@ -40805,6 +40899,13 @@ CREATE INDEX hmis2024exits_603f ON public.hmis_2024_exits USING btree ("Personal
 --
 
 CREATE INDEX hmis2024exits_6f2b ON public.hmis_2024_exits USING btree ("ExitID");
+
+
+--
+-- Name: hmis2024exits_f3a2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2024exits_f3a2 ON public.hmis_2024_exits USING btree ("DateDeleted") INCLUDE ("EnrollmentID", "ExitDate");
 
 
 --
@@ -41008,6 +41109,13 @@ CREATE INDEX hmis2024services_4337 ON public.hmis_2024_services USING btree ("En
 --
 
 CREATE INDEX hmis2024services_6415 ON public.hmis_2024_services USING btree ("ServicesID");
+
+
+--
+-- Name: hmis2024services_8dbb; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2024services_8dbb ON public.hmis_2024_services USING btree ("RecordType", "DateDeleted", "DateProvided") INCLUDE ("EnrollmentID");
 
 
 --
@@ -48816,6 +48924,34 @@ CREATE INDEX hmiscsv2024enrollments_4337 ON public.hmis_csv_2024_enrollments USI
 
 
 --
+-- Name: hmiscsv2024enrollments_44c4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024enrollments_44c4 ON public.hmis_csv_2024_enrollments USING btree ("MonthsHomelessPastThreeYears") INCLUDE ("EnrollmentID", "LivingSituation", "PreviousStreetESSH");
+
+
+--
+-- Name: hmiscsv2024enrollments_4685; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024enrollments_4685 ON public.hmis_csv_2024_enrollments USING btree ("LengthOfStay") INCLUDE ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2024enrollments_5d40; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024enrollments_5d40 ON public.hmis_csv_2024_enrollments USING btree ("HouseholdID", "DateDeleted", "EntryDate", "RelationshipToHoH") INCLUDE ("EnrollmentID", "PersonalID", "DisablingCondition");
+
+
+--
+-- Name: hmiscsv2024enrollments_6191; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024enrollments_6191 ON public.hmis_csv_2024_enrollments USING btree ("EntryDate") INCLUDE ("EnrollmentID", "ProjectID", "HouseholdID", "RelationshipToHoH", "DateDeleted");
+
+
+--
 -- Name: hmiscsv2024enrollments_634d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48823,10 +48959,73 @@ CREATE INDEX hmiscsv2024enrollments_634d ON public.hmis_csv_2024_enrollments USI
 
 
 --
+-- Name: hmiscsv2024enrollments_821a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024enrollments_821a ON public.hmis_csv_2024_enrollments USING btree ("LivingSituation") INCLUDE ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2024enrollments_89e7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024enrollments_89e7 ON public.hmis_csv_2024_enrollments USING btree ("HouseholdID", "DateDeleted", "RelationshipToHoH") INCLUDE ("EnrollmentID", "PersonalID", "EntryDate", "DisablingCondition");
+
+
+--
+-- Name: hmiscsv2024enrollments_8d5c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024enrollments_8d5c ON public.hmis_csv_2024_enrollments USING btree ("DateDeleted", "RelationshipToHoH") INCLUDE ("EnrollmentID", "PersonalID", "EntryDate", "HouseholdID", "DisablingCondition");
+
+
+--
+-- Name: hmiscsv2024enrollments_9005; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024enrollments_9005 ON public.hmis_csv_2024_enrollments USING btree ("ProjectID", "RelationshipToHoH", "DateDeleted") INCLUDE ("EnrollmentID", "PersonalID", "EntryDate", "HouseholdID", "MoveInDate");
+
+
+--
+-- Name: hmiscsv2024enrollments_c321; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024enrollments_c321 ON public.hmis_csv_2024_enrollments USING btree ("TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears") INCLUDE ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2024enrollments_c3b4; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024enrollments_c3b4 ON public.hmis_csv_2024_enrollments USING btree ("RelationshipToHoH", "DateDeleted") INCLUDE ("EnrollmentID", "PersonalID", "ProjectID", "EntryDate", "HouseholdID", "MoveInDate", "DisablingCondition");
+
+
+--
+-- Name: hmiscsv2024enrollments_c830; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024enrollments_c830 ON public.hmis_csv_2024_enrollments USING btree ("DateDeleted", "EntryDate") INCLUDE ("EnrollmentID", "HouseholdID", "ProjectID", "RelationshipToHoH");
+
+
+--
+-- Name: hmiscsv2024enrollments_ea7f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024enrollments_ea7f ON public.hmis_csv_2024_enrollments USING btree ("HouseholdID", "RelationshipToHoH", "DateDeleted") INCLUDE ("EnrollmentID");
+
+
+--
 -- Name: hmiscsv2024enrollments_f3a2; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2024enrollments_f3a2 ON public.hmis_csv_2024_enrollments USING btree ("DateDeleted");
+
+
+--
+-- Name: hmiscsv2024enrollments_fbbd; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024enrollments_fbbd ON public.hmis_csv_2024_enrollments USING btree ("MoveInDate") INCLUDE ("EnrollmentID");
 
 
 --
@@ -48844,6 +49043,13 @@ CREATE INDEX hmiscsv2024events_634d ON public.hmis_csv_2024_events USING btree (
 
 
 --
+-- Name: hmiscsv2024exits_13dc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024exits_13dc ON public.hmis_csv_2024_exits USING btree ("ExitDate", "Destination") INCLUDE ("EnrollmentID");
+
+
+--
 -- Name: hmiscsv2024exits_634d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48855,6 +49061,13 @@ CREATE INDEX hmiscsv2024exits_634d ON public.hmis_csv_2024_exits USING btree ("E
 --
 
 CREATE INDEX hmiscsv2024exits_6f2b ON public.hmis_csv_2024_exits USING btree ("ExitID");
+
+
+--
+-- Name: hmiscsv2024exits_f3a2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024exits_f3a2 ON public.hmis_csv_2024_exits USING btree ("DateDeleted") INCLUDE ("EnrollmentID", "ExitDate");
 
 
 --
@@ -48960,6 +49173,20 @@ CREATE INDEX hmiscsv2024services_634d ON public.hmis_csv_2024_services USING btr
 --
 
 CREATE INDEX hmiscsv2024services_6415 ON public.hmis_csv_2024_services USING btree ("ServicesID");
+
+
+--
+-- Name: hmiscsv2024services_8dbb; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024services_8dbb ON public.hmis_csv_2024_services USING btree ("RecordType", "DateDeleted", "DateProvided") INCLUDE ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2024services_9c1a; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024services_9c1a ON public.hmis_csv_2024_services USING btree ("EnrollmentID", "RecordType", "DateDeleted") INCLUDE ("DateProvided");
 
 
 --
@@ -61704,6 +61931,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240918170406'),
 ('20240918171315'),
 ('20240920203113'),
-('20241010005805'),
 ('20241003194213'),
-('20241011182445');
+('20241010005805'),
+('20241011182445'),
+('20241018220220'),
+('20241023021050');
+
+
