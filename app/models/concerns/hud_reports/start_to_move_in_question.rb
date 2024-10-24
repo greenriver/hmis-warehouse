@@ -36,7 +36,8 @@ module HudReports::StartToMoveInQuestion
             when :average
               value = 0
               scope = relevant_members.where(col_cond).where(a_t[:move_in_date].between(@report.start_date..@report.end_date))
-              stay_lengths = scope.pluck(a_t[:time_to_move_in]).compact
+              # treat null values as having 0 time in this case
+              stay_lengths = scope.pluck(a_t[:time_to_move_in]).map { |len| len || 0 }
               value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any? # using round since this is an average number of days
               row.append_cell_value(value: value)
             else
