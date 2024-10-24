@@ -16,6 +16,10 @@
       .row
         .col-sm-8
           = f.input :email, as: :email, required: true
+      - if Talentlms::Config.any?
+        .row
+          .col-sm-8
+            = f.input :talent_lms_email, as: :email
       .row
         .col-sm-4
           = f.input :phone
