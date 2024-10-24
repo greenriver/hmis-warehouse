@@ -112,8 +112,4 @@ RSpec.describe IdentifyExternalClientsJob, type: :job do
     #   expect(Rails.logger).to have_received(:error).with(/invalid content type/).once
     # end
   end
-
-  # TODO/FIXME
-  # We need to add some tests for incoming data and exiting matches when
-  # GrdaWarehouse::Config.get(:enable_auto_deduplication) is false
 end
