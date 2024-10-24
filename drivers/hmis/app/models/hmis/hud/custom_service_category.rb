@@ -18,6 +18,12 @@ class Hmis::Hud::CustomServiceCategory < Hmis::Hud::Base
 
   validates_presence_of :name, allow_blank: false
 
+  scope :non_hud, -> do
+    # Returns categories that are empty or have any service type with a null hud_record_type.
+    # Excludes "stock" categories that are seeded initially, which only contain HUD service types.
+    left_joins(:service_types).where(service_types: { hud_record_type: nil }).distinct
+  end
+
   def to_pick_list_option
     {
       code: id.to_s,
