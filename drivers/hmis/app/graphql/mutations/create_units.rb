@@ -14,7 +14,7 @@ module Mutations
       project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)
 
       raise 'Not found' unless project.present?
-      raise 'Access denied' if project.present? && !current_user.permissions_for?(project, :can_manage_inventory)
+      raise 'Access denied' if project.present? && !current_user.permissions_for?(project, :can_manage_units)
 
       unit_type = Hmis::UnitType.find_by(id: input.unit_type_id)
       raise 'Invalid unit type' if input.unit_type_id.present? && !unit_type.present?
