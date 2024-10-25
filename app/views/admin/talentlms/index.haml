@@ -1,6 +1,6 @@
 - title = 'TalentLMS'
 - content_for :title, title
-- length_of_time = if Rails.env.production? then 'Months' else 'Days' end
+- length_of_time = Talentlms::Facade.expiration_duration_label
 
 = render 'breadcrumbs'
 .row

@@ -217,8 +217,7 @@ module Talentlms
       completed_on = verify_with_api ? complete?(api, course.courseid) : completed_training&.completion_date
       return false if completed_on.blank?
 
-      time_distance = if Rails.env.production? then :months else :days end
-      (completed_on.to_date + course.months_to_expiration.send(time_distance)).past?
+      (completed_on.to_date + course.months_to_expiration.send(self.class.expiration_duration_period)).past?
     end
 
     # Checks if the user requires training
@@ -284,12 +283,25 @@ module Talentlms
       "#{p}#{lower_letter}#{upper_letter}#{number}#{special}".chars.shuffle.join
     end
 
+    # Check if the user requires training in any of thier required_training_courses
+    #
+    # @return [Boolean] True it the user has any course in that requires them to complete training
     def any_training_required?
       training_required = []
       @courses.each do |course|
         training_required << training_required?(course.config, course.courseid)
       end
       training_required.any?(true)
+    end
+
+    def self.expiration_duration_period
+      return :months if Rails.env.production?
+
+      :days
+    end
+
+    def self.expiration_duration_label
+      expiration_duration_period.to_s.capitalize
     end
   end
 end
