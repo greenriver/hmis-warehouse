@@ -53,6 +53,16 @@ module Talentlms
       "#{lms_username}@#{ENV['FQDN']}"
     end
 
+    def local_login(api)
+      login = Login.find_by(config: api, user: @user)
+      if login.nil?
+        # If the login record does not exist, we need to create it - call the sync method then pull the information.
+        sync_lms_account(api, nil)
+        login = Login.find_by(config: api, user: @user)
+      end
+      login
+    end
+
     # Login user to TalentLMS
     #
     # @param api [Integer] Config ID for the record that contains information about the subdomain where the user will be logged in
@@ -93,7 +103,7 @@ module Talentlms
       # If we want to update the email in Talent to match the local account instead of updating the local email
       # address to match what we are seeing in Talent. The line below will update the account in TalentLMS.
       # Leaving this here in case we want to use this behavior.
-      ## result = @api.post('edituser', { user_id: result['id'], email: email_address }) if result.present? && result['email'] != email_address
+      ## result = api.post('edituser', { user_id: result['id'], email: email_address }) if result.present? && result['email'] != email_address
 
       # Make sure the local login record matches what we have identified in the Talent account.
       # With this saved, out local data will be synced with that in Talent for this user.
@@ -138,7 +148,7 @@ module Talentlms
     # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
     # @param course_id [Integer] the id of the course
     def enroll(api, course_id)
-      login = Login.find_by(config: api, user: @user)
+      login = local_login(api)
       return false if login.nil?
 
       course = Course.find_by(config: api, courseid: course_id)
@@ -154,13 +164,13 @@ module Talentlms
     # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
     # @param course_id [Integer] the id of the course
     def reset_user_progress(api, course_id)
-      login = Login.find_by(config: api, user: @user)
+      login = local_login(api)
       return false if login.nil?
 
       course = Course.find_by(config: api, courseid: course_id)
       return false if course.nil?
 
-      @api.post('resetuserprogress', { course_id: course.courseid, user_id: login.lms_user_id })
+      api.post('resetuserprogress', { course_id: course.courseid, user_id: login.lms_user_id })
     end
 
     # Log a completed training with the current TalentLMS course
@@ -170,7 +180,7 @@ module Talentlms
     # @param course_id [Integer] the id of the course
     # @return [CompletedTraining] the completed training data
     def log_course_completion(api, course_id, completion_date)
-      login = Login.find_by(config: api, user: @user)
+      login = local_login(api)
       return nil if login.nil?
 
       course = Course.find_by(config: api, courseid: course_id)
@@ -185,7 +195,7 @@ module Talentlms
     # @param course_id [Integer] the id of the course
     # @return [Boolean] complete if the user has completed the course
     def complete?(api, course_id)
-      login = Login.find_by(config: api, user: @user)
+      login = local_login(api)
       return nil if login.nil?
 
       course = Course.find_by(config: api, courseid: course_id)
@@ -203,7 +213,7 @@ module Talentlms
     # @param verify_with_api [Boolean] call the API for the last completed date or use local data
     # @return [Boolean] true if the user's training has expired
     def training_expired?(api, course_id, verify_with_api = true)
-      login = Login.find_by(config: api, user: @user)
+      login = local_login(api)
       return false if login.nil?
 
       course = Course.find_by(config: api, courseid: course_id)
@@ -225,7 +235,7 @@ module Talentlms
     # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
     # @return true if the user requires training
     def training_required?(api, course_id)
-      login = Login.find_by(config: api, user: @user)
+      login = local_login(api)
       return false if login.nil?
 
       course = Course.find_by(config: api, courseid: course_id)
@@ -247,7 +257,7 @@ module Talentlms
     # @param logout_url [String] where to send the user after logout
     # @return [String] URL to redirect user to
     def course_url(api, course_id, redirect_url, logout_url)
-      login = Login.find_by(config: api, user: @user)
+      login = local_login(api)
       return nil if login.nil?
 
       course = Course.find_by(config: api, courseid: course_id)
