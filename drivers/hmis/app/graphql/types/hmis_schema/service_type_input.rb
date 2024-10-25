@@ -18,7 +18,8 @@ module Types
     end
 
     def get_or_create_service_category(user_id, data_source_id)
-      service_category = if service_category_id.present?
+      # will be nil if neither is provided; that's fine for update (but not for create, which validates presence)
+      if service_category_id.present?
         Hmis::Hud::CustomServiceCategory.find(service_category_id)
       elsif service_category_name.present?
         Hmis::Hud::CustomServiceCategory.new(
@@ -27,12 +28,6 @@ module Types
           data_source_id: data_source_id,
         )
       end
-      # will be nil if neither is provided; that's fine for update (but not for create, which validates presence)
-
-      # Can't add a custom service to a HUD service category
-      raise 'access denied' if service_category&.service_types&.any?(&:hud_service?)
-
-      service_category
     end
   end
 end
