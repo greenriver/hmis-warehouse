@@ -104,8 +104,7 @@ module Clients
         attrs[:consent_form_confirmed] = true if GrdaWarehouse::Config.get(:auto_confirm_consent)
       end
       @file.assign_attributes(attrs)
-      revoked_by_id = current_user.id if @file.consent_revoked_at.present?
-      @file.consent_revoked_by_user_id = revoked_by_id if @file.consent_revoked_at_changed?
+      @file.sync_revokation_info(current_user)
       @file.save
     end
 
@@ -121,7 +120,6 @@ module Clients
           :effective_date,
           :expiration_date,
           :consent_revoked_at,
-          :consent_revoked_by_id,
           coc_codes: [],
           tag_list: [],
         )

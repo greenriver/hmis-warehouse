@@ -411,6 +411,16 @@ module GrdaWarehouse
         end
     end
 
+    def sync_revokation_info(current_user)
+      return unless consent_revoked_at_changed?
+
+      self.consent_revoked_by_user_id = if consent_revoked_at.present?
+        current_user.id
+      else # rubocop:disable Style/EmptyElse
+        nil
+      end
+    end
+
     def copy_to_s3!
       return unless content.present?
       return if client_file.attached? # don't re-process
