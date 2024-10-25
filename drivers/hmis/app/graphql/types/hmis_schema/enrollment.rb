@@ -220,6 +220,7 @@ module Types
     field :move_in_addresses, [HmisSchema::ClientAddress], null: false
 
     field :source_referral_posting, HmisSchema::ReferralPosting, null: true, description: 'Present if this household was enrolled as the result of a referral from another project.'
+    field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false, description: 'Data collection features that are enabled for this Enrollment (e.g. Current Living Situations, Events)'
 
     audit_history_field(
       :audit_history,

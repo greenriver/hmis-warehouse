@@ -79,7 +79,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # are primarily for Enrollment-level data collection.
   #
   # Each one is considered a feature that can be "toggled on" for a given project by enabling
-  # a Form Instance for it.
+  # a Form Instance for it. # todo @martha - is my understanding right - this comment doesn't really apply to Referral, which can't be toggled on for a given project ?
   # These are submitted using SubmitForm mutation.
   DATA_COLLECTION_FEATURE_ROLES = [
     :CURRENT_LIVING_SITUATION,
