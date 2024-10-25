@@ -11,7 +11,7 @@ module Talentlms
     self.table_name = :talentlms_configs
 
     has_many :logins, class_name: 'Talentlms::Login'
-    has_many :courses, class_name: 'Talentlms::Course'
+    has_many :courses, class_name: 'Talentlms::Course', dependent: :destroy
 
     validates :subdomain, presence: true
     validates :api_key, presence: true

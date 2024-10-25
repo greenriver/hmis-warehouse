@@ -31,7 +31,6 @@ module Admin
     end
 
     def destroy
-      @config.courses.each(&:destroy)
       @config.destroy
       respond_with(@config, location: admin_talentlms_path)
     end
