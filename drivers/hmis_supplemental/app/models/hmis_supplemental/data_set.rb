@@ -40,7 +40,12 @@ module HmisSupplemental
         pluck(:collection_id)
 
       # now go back to the WH db and get the resources that belong to the filtered collections
-      where(id: gve_scope.where(collection_id: permitted_collection_ids).select(:entity_id))
+      scope = where(id: gve_scope.where(collection_id: permitted_collection_ids).select(:entity_id))
+
+      # also restrict by data source
+      visible_data_sources_ids = GrdaWarehouse::DataSource.
+        viewable_by(user, permission: :can_view_supplemental_client_data).pluck(:id)
+      scope.where(data_source: visible_data_sources_ids)
     end
 
     serialize :fields, type: Array
