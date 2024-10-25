@@ -12,6 +12,7 @@
     = f.input :name, required: true
     = f.input :owner_type, collection: ['enrollment', 'client'], required: true, as: :radio_buttons
     = f.input :field_config, as: :text, label: 'Field Configuration JSON', hint: 'example: `[{"key":"widget","type":"float","label":"The Widget","multiValued":false}]`', input_html: {rows: 10}
+    = f.input :sync_enabled, label: 'Enable nightly syncs from S3'
     = f.fields_for(:remote_credential) do |sf|
       %fieldset
         %legend S3 Configuration
