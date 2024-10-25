@@ -61,14 +61,14 @@ RSpec.describe 'ServiceHistory processing', type: :model do
     end
 
     context 'for WIP Enrollment' do
-      let!(:enrollment) { create(:hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: client, processed_hash: 'abcde', processed_as: 'fghijk') }
+      let!(:enrollment) { create(:hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: client) }
 
       it 'saving as non-WIP triggers service history processing' do
         expect do
           enrollment.save_not_in_progress!
           enrollment.reload
-        end.to change { enrollment.processed_as }.to(nil).
-          and change { enrollment.processed_hash }.to(nil).
+        end.to change { enrollment.processed_as }.from('PROCESSED').to(nil).
+          and change { enrollment.processed_hash }.from('PROCESSED').to(nil).
           and change(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::ServiceHistory::Enrollment'), :count).by(1)
       end
     end
