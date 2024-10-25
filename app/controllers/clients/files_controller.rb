@@ -11,7 +11,6 @@ module Clients
     include ClientDependentControllers
 
     before_action :require_window_file_access!
-    before_action :set_user
     before_action :set_client
     before_action :set_files, only: [:index]
     before_action :set_window
@@ -19,8 +18,6 @@ module Clients
 
     # before_action :require_can_manage_client_files!, only: [:update]
     after_action :log_client
-
-    attr_accessor :user
 
     def index
       @consent_editable = consent_editable?
@@ -110,7 +107,10 @@ module Clients
         attrs[:effective_date] = attrs[:consent_form_signed_on]
         attrs[:consent_form_confirmed] = true if GrdaWarehouse::Config.get(:auto_confirm_consent)
       end
-      @file.update(attrs)
+      @file.assign_attributes(attrs)
+      revoked_by_id = current_user.id if @file.consent_revoked_at.present?
+      @file.consent_revoked_by_user_id = revoked_by_id if @file.consent_revoked_at_changed?
+      @file.save
     end
 
     def show_delete_modal
@@ -233,6 +233,7 @@ module Clients
           :effective_date,
           :expiration_date,
           :consent_revoked_at,
+          :consent_revoked_by_id,
           :confidential,
           :enrollment_id,
           :data_source_id,
@@ -250,11 +251,6 @@ module Clients
 
     def batch_params
       params.require(:batch_download).permit(:file_ids)
-    end
-
-    def set_user
-      # binding.pry
-      @user = current_user
     end
 
     def set_client

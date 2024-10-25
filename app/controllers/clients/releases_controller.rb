@@ -12,7 +12,6 @@ module Clients
 
     skip_before_action :require_window_file_access!
     before_action :require_can_use_separated_consent!
-    before_action :set_user
 
     after_action :log_client
 
@@ -104,7 +103,10 @@ module Clients
         attrs[:effective_date] = attrs[:consent_form_signed_on]
         attrs[:consent_form_confirmed] = true if GrdaWarehouse::Config.get(:auto_confirm_consent)
       end
-      @file.update(attrs)
+      @file.assign_attributes(attrs)
+      revoked_by_id = current_user.id if @file.consent_revoked_at.present?
+      @file.consent_revoked_by_user_id = revoked_by_id if @file.consent_revoked_at_changed?
+      @file.save
     end
 
     def file_params
@@ -119,6 +121,7 @@ module Clients
           :effective_date,
           :expiration_date,
           :consent_revoked_at,
+          :consent_revoked_by_id,
           coc_codes: [],
           tag_list: [],
         )
@@ -214,10 +217,6 @@ module Clients
 
     def set_window
       @window = true
-    end
-
-    def set_user
-      @user = current_user
     end
 
     def editable_scope
