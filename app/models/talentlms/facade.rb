@@ -53,6 +53,10 @@ module Talentlms
       "#{lms_username}@#{ENV['FQDN']}"
     end
 
+    # The Local login record for the user. If no record exists, one will by created/syncronized from the api.
+    #
+    # @param api [Integer] Config ID for the record that contains information about the subdomain.
+    # @return [Login] Local login record for the user
     def local_login(api)
       login = Login.find_by(config: api, user: @user)
       if login.nil?
