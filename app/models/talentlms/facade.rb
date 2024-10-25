@@ -36,7 +36,6 @@ module Talentlms
     #
     # ENV['DEV_OFFSET'] can be set to an integer to prevent username collisions between development environments
     #
-    # @@param user [User] the user
     # @return [String] username to be used for generated users in TalentLMS
     def lms_username
       username = "#{ENV['RAILS_ENV']}_#{@user.id}"
@@ -47,7 +46,6 @@ module Talentlms
 
     # email address user in TalentLMS
     #
-    # @@param user [User] the user
     # @return [String] email address to be used for generated users in TalentLMS
     def lms_email
       return @user.talent_lms_email if @user.talent_lms_email.present?
@@ -57,7 +55,7 @@ module Talentlms
 
     # Login user to TalentLMS
     #
-    # @@param user [User] the user
+    # @param api [Integer] Config ID for the record that contains information about the subdomain where the user will be logged in
     # @return [String] URL to redirect user to
     def login(api)
       login = Login.find_by(config: api, user: @user)
@@ -69,6 +67,11 @@ module Talentlms
       result['login_key']
     end
 
+    # Syncronize the user's local data with taht found in the config (subdomain)
+    #
+    # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account will be synced with the local data
+    # @param login [Integer] Nullable ID for the Login record that contains local information about the user we are syncronizing.
+    # @return [String] URL to redirect user to
     def sync_lms_account(api, login)
       username = lms_username
       email_address = lms_email
@@ -99,6 +102,10 @@ module Talentlms
       result
     end
 
+    # Set the locally stored data for an lmls account
+    #
+    # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
+    # @param lms_account_data Data from the lms API return that contains the user information
     def create_or_update_local_login(api, lms_account_data)
       login = Login.where(config: api, user: @user).first_or_initialize
       login.login = lms_account_data['login']
@@ -108,7 +115,7 @@ module Talentlms
 
     # Create an account in TalentLMS for a user
     #
-    # @param user [User] the user
+    # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account will exist
     # @return [String] URL to redirect the user to to login
     def create_account(api)
       username = lms_username
@@ -128,7 +135,7 @@ module Talentlms
 
     # Enroll a user in a course in TalentLMS
     #
-    # @param user [User] the user
+    # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
     # @param course_id [Integer] the id of the course
     def enroll(api, course_id)
       login = Login.find_by(config: api, user: @user)
@@ -144,7 +151,7 @@ module Talentlms
 
     # Reset progress for a user in a course in TalentLMS
     #
-    # @param user [User] the user
+    # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
     # @param course_id [Integer] the id of the course
     def reset_user_progress(api, course_id)
       login = Login.find_by(config: api, user: @user)
@@ -158,7 +165,7 @@ module Talentlms
 
     # Log a completed training with the current TalentLMS course
     #
-    # @param user [User] the user
+    # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
     # @param completion_date [Date] the date which the training was completed
     # @param course_id [Integer] the id of the course
     # @return [CompletedTraining] the completed training data
@@ -174,7 +181,7 @@ module Talentlms
 
     # Get course completion status in TalentLMS
     #
-    # @param user [User] the user
+    # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
     # @param course_id [Integer] the id of the course
     # @return [Boolean] complete if the user has completed the course
     def complete?(api, course_id)
@@ -192,7 +199,7 @@ module Talentlms
 
     # Checks if the user's training has expired
     #
-    # @param user [User] the user
+    # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
     # @param verify_with_api [Boolean] call the API for the last completed date or use local data
     # @return [Boolean] true if the user's training has expired
     def training_expired?(api, course_id, verify_with_api = true)
@@ -216,7 +223,7 @@ module Talentlms
 
     # Checks if the user requires training
     #
-    # @param user [User] the user
+    # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
     # @return true if the user requires training
     def training_required?(api, course_id)
       login = Login.find_by(config: api, user: @user)
@@ -235,7 +242,7 @@ module Talentlms
 
     # Get the URL to send the user to for a course
     #
-    # @param user [User] the user
+    # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
     # @param course_id [Integer] the id of the course
     # @param redirect_url [String] where to send the user after course completion
     # @param logout_url [String] where to send the user after logout
