@@ -10,8 +10,7 @@ module Admin
     before_action :set_course, only: [:update, :edit, :destroy]
 
     def new
-      config = Talentlms::Config.find(params['config']) if params['config']
-      @course = course_scope.new(config: config)
+      @course = course_scope.new
     end
 
     def create
