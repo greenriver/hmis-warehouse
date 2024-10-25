@@ -9,7 +9,8 @@ wb = xlsx_package.workbook
     sheet.add_row(row, style: title)
     validations.each do |error|
       source = error.source
-      row = [error.status] + source.hmis_data.values
+      row = [error.status]
+      row += source.hmis_data.values if source
       sheet.add_row(row)
     end
   end
