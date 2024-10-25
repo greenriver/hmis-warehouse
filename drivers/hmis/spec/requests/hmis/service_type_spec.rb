@@ -83,12 +83,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should successfully create a service type with a new category' do
       mutation_input = { serviceCategoryName: 'A brand new category', name: 'A new type with a new category' }
-      response, result = post_graphql(input: mutation_input) { create_service_type }
-      expect(response.status).to eq(200), result.inspect
-      created_id = result.dig('data', 'createServiceType', 'serviceType', 'id')
-      service_type = Hmis::Hud::CustomServiceType.find(created_id)
-      expect(service_type.name).to eq('A new type with a new category')
-      expect(service_type.custom_service_category.name).to eq('A brand new category')
+      expect do
+        response, result = post_graphql(input: mutation_input) { create_service_type }
+        expect(response.status).to eq(200), result.inspect
+        created_id = result.dig('data', 'createServiceType', 'serviceType', 'id')
+        service_type = Hmis::Hud::CustomServiceType.find(created_id)
+        expect(service_type.name).to eq('A new type with a new category')
+        expect(service_type.custom_service_category.name).to eq('A brand new category')
+      end.to change(Hmis::Hud::CustomServiceType, :count).by(1).
+        and change(Hmis::Hud::CustomServiceCategory, :count).by(1)
+    end
+
+    it 'should successfully create a service type onto the same category when duplicate name is provided' do
+      mutation_input = { serviceCategoryName: 'A category', name: 'A new type with a new category' }
+      expect do
+        response, result = post_graphql(input: mutation_input) { create_service_type }
+        expect(response.status).to eq(200), result.inspect
+        created_id = result.dig('data', 'createServiceType', 'serviceType', 'id')
+        service_type = Hmis::Hud::CustomServiceType.find(created_id)
+        expect(service_type.name).to eq('A new type with a new category')
+        expect(service_type.custom_service_category).to eq(custom_category)
+      end.to change(Hmis::Hud::CustomServiceType, :count).by(1).
+        and not_change(Hmis::Hud::CustomServiceCategory, :count)
     end
 
     it 'should return a validation error when neither service category ID nor name is provided' do

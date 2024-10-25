@@ -16,7 +16,7 @@ module Mutations
       access_denied! unless current_user.can_configure_data_collection?
       errors = HmisErrors::Errors.new
 
-      service_category = input.get_or_create_service_category(hmis_user.user_id, current_user.hmis_data_source_id)
+      service_category = input.find_or_initialize_service_category(hmis_user.user_id, current_user.hmis_data_source_id)
       unless service_category.present?
         errors.add :service_category, :required
         return { errors: errors }

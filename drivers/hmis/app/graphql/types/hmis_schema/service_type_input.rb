@@ -17,16 +17,15 @@ module Types
       to_h.except(:service_category_id, :service_category_name)
     end
 
-    def get_or_create_service_category(user_id, data_source_id)
+    def find_or_initialize_service_category(user_id, data_source_id)
       # will be nil if neither is provided; that's fine for update (but not for create, which validates presence)
       if service_category_id.present?
         Hmis::Hud::CustomServiceCategory.find(service_category_id)
       elsif service_category_name.present?
-        Hmis::Hud::CustomServiceCategory.new(
-          name: service_category_name,
-          user_id: user_id,
+        Hmis::Hud::CustomServiceCategory.where(
           data_source_id: data_source_id,
-        )
+          name: service_category_name,
+        ).first_or_initialize(user_id: user_id)
       end
     end
   end
