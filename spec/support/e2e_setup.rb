@@ -68,14 +68,18 @@ RSpec.shared_context 'SystemSpecHelper' do
     row_label = find('td', text: row)
     scroll_to(row_label, align: :center)
     column_label = find('th', text: column)
-    find("[aria-labelledby='#{row_label['id']} #{column_label['id']}']").click
-    find('li[role=option]', text: choice).click
+    if choice.present?
+      find("[aria-labelledby='#{row_label['id']} #{column_label['id']}']").click
+      find('li[role=option]', text: choice).click
+    else
+      find('button[aria-label="Clear"]').click
+    end
   end
 
-  def mui_table_value_for(row:, column:)
+  def mui_table_element_for(row:, column:)
     row_label = find('td', text: row)
     column_label = find('th', text: column)
-    find("[aria-labelledby='#{row_label['id']} #{column_label['id']}']").value
+    find("[aria-labelledby='#{row_label['id']} #{column_label['id']}']")
   end
 
   def mui_date_select(label, date:)

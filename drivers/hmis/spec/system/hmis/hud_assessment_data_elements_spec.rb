@@ -246,7 +246,8 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
 
       it 'renders limited disability component, only collecting overall disabling condition' do
         assert_text 'Disabling Condition'
-        assert_no_text 'The following questions help determine if there are additional housing services or benefits available for the client.'
+        assert_no_text 'HIV/AIDS'
+        assert_no_text 'Physical Disability'
         expect(mui_select_value_for('Disabling Condition')).to eq('Data not collected')
       end
 
@@ -268,18 +269,67 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
     end
 
     context 'with project that collects granular disability info' do
-      it 'renders full disability component' do
+      it 'renders full disability component and processes all rows' do
         assert_text 'Overall Disabling Condition'
-        assert_text 'The following questions help determine if there are additional housing services or benefits available for the client.'
+        assert_text 'HIV/AIDS'
         assert_text 'Physical Disability' # etc.
         click_link 'Disability' # scrolls Disability into view
-        expect(mui_table_value_for(row: 'Overall Disabling Condition', column: 'Status')).to eq('Data not collected')
+        overall_element = mui_table_element_for(row: 'Overall Disabling Condition', column: 'Status')
+        expect(overall_element.value).to eq('Data not collected')
+
+        mui_table_select('No', row: 'Physical Disability', column: 'Status')
+        expect(mui_table_element_for(row: 'Physical Disability', column: 'Disabling Condition').disabled?).to be_truthy
+
+        mui_table_select("Client doesn't know", row: 'Developmental Disability', column: 'Status')
+
+        expect(mui_table_element_for(row: 'Chronic Health Condition', column: 'Disabling Condition').disabled?).to be_truthy
+        mui_table_select('Yes', row: 'Chronic Health Condition', column: 'Status')
+        expect(mui_table_element_for(row: 'Chronic Health Condition', column: 'Disabling Condition').disabled?).to be_falsy
+        mui_table_select('No', row: 'Chronic Health Condition', column: 'Disabling Condition')
+
+        mui_table_select('Yes', row: 'HIV/AIDS', column: 'Status')
+
+        mui_table_select('Yes', row: 'Mental Health Disorder', column: 'Status')
+        mui_table_select('Yes', row: 'Mental Health Disorder', column: 'Disabling Condition')
+
+        mui_table_select('Both alcohol and drug use disorders', row: 'Substance Use Disorder', column: 'Status')
+        mui_table_select('Yes', row: 'Substance Use Disorder', column: 'Disabling Condition')
+
+        expect(overall_element.value).to eq('Yes')
+        expect(overall_element.disabled?).to be_truthy
+
+        expect do
+          save_ignoring_warnings
+        end.to change(e1, :disabling_condition).to(1).
+          and change(e1.disabilities, :count).by(6)
+
+        physical_disability = e1.disabilities.where(disability_type: 5).sole
+        expect(physical_disability.disability_response).to eq(0)
+        developmental_disability = e1.disabilities.where(disability_type: 6).sole
+        expect(developmental_disability.disability_response).to eq(8) # Doesn't know
+        chronic_health_condition = e1.disabilities.where(disability_type: 7).sole
+        expect(chronic_health_condition.disability_response).to eq(1)
+        expect(chronic_health_condition.indefinite_and_impairs).to eq(0)
+        hiv_aids = e1.disabilities.where(disability_type: 8).sole
+        expect(hiv_aids.disability_response).to eq(1)
+        mental_health_disorder = e1.disabilities.where(disability_type: 9).sole
+        expect(mental_health_disorder.disability_response).to eq(1)
+        expect(mental_health_disorder.indefinite_and_impairs).to eq(1)
+        substance_use_disorder = e1.disabilities.where(disability_type: 10).sole
+        expect(substance_use_disorder.disability_response).to eq(3)
+        expect(substance_use_disorder.indefinite_and_impairs).to eq(1)
       end
 
       it 'updates overall Disabling Condition when you select Yes' do
         mui_table_select('Yes', row: 'Physical Disability', column: 'Status')
+
+        overall_element = mui_table_element_for(row: 'Overall Disabling Condition', column: 'Status')
+        expect(overall_element.disabled?).to be_falsy
+        mui_table_select('No', row: 'Overall Disabling Condition', column: 'Status')
+
         mui_table_select('Yes', row: 'Physical Disability', column: 'Disabling Condition')
-        expect(mui_table_value_for(row: 'Overall Disabling Condition', column: 'Status')).to eq('Yes')
+        expect(overall_element.value).to eq('Yes')
+        expect(overall_element.disabled?).to be_truthy
 
         expect do
           save_ignoring_warnings
@@ -288,12 +338,43 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
       end
 
       it 'updates overall Disabling Condition when you select an always-disabling condition' do
+        overall_element = mui_table_element_for(row: 'Overall Disabling Condition', column: 'Status')
+        expect(overall_element.disabled?).to be_falsy # Field is interactable
+
         mui_table_select('Yes', row: 'Developmental Disability', column: 'Status')
-        expect(mui_table_value_for(row: 'Overall Disabling Condition', column: 'Status')).to eq('Yes')
+
+        # When an always-disabling condition is selected, the user can't override it to No
+        expect(overall_element.value).to eq('Yes')
+        expect(overall_element.disabled?).to be_truthy
+
+        # When you clear or change the always-disabling condition, the field is interactable again
+        mui_table_select(nil, row: 'Developmental Disability', column: 'Status')
+        expect(overall_element.disabled?).to be_falsy
+
+        mui_table_select('Yes', row: 'Developmental Disability', column: 'Status')
 
         expect do
           save_ignoring_warnings
         end.to change(e1, :disabling_condition).to(1)
+      end
+
+      context 'when opening an assessment on an enrollment that already has a value for Enrollment.DisablingCondition' do
+        let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, disabling_condition: 9 }
+
+        it 'pre-fills the field, but still allows interaction' do
+          overall_element = mui_table_element_for(row: 'Overall Disabling Condition', column: 'Status')
+          expect(overall_element.value).to eq('Client prefers not to answer')
+          expect(overall_element.disabled?).to be_falsy # Field is interactable
+
+          mui_table_select('Yes', row: 'Developmental Disability', column: 'Status')
+
+          expect(overall_element.value).to eq('Yes')
+          expect(overall_element.disabled?).to be_truthy
+
+          expect do
+            save_ignoring_warnings
+          end.to change(e1, :disabling_condition).to(1)
+        end
       end
     end
 
