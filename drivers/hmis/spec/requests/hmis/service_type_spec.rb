@@ -66,6 +66,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:c1) { create :hmis_custom_service_category, data_source: ds1, name: 'A category' }
   let!(:t1) { create :hmis_custom_service_type, custom_service_category: c1, data_source: ds1, name: 'An old type' }
+
   describe 'when the user has access' do
     let!(:access_control) { create_access_control(hmis_user, p1) }
 
@@ -105,9 +106,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:s1) { create :hmis_custom_service, custom_service_type: t1, data_source: ds1 }
       it 'should fail to delete' do
         response, result = post_graphql(id: t1.id) { delete_service_type }
-        expect(response.status).to eq(500), result.inspect
-        msg = result.dig('errors').first.dig('message')
+        expect(response.status).to eq(200), result.inspect
+        msg = result.dig('data', 'deleteServiceType', 'errors', 0, 'fullMessage')
         expect(msg).to eq('Cannot delete a service type that has services')
+      end
+    end
+
+    describe 'when the service type is a HUD service type' do
+      let!(:t1) { create :hmis_custom_service_type, custom_service_category: c1, data_source: ds1, name: 'PATH', hud_record_type: 141, hud_type_provided: 1 }
+
+      it 'should not allow editing' do
+        expect_gql_error(post_graphql(name: 'foo', id: t1.id, supportsBulkAssignment: true) { update_service_type })
+      end
+
+      it 'should not allow deleting' do
+        expect_gql_error(post_graphql(id: t1.id) { delete_service_type })
       end
     end
   end
