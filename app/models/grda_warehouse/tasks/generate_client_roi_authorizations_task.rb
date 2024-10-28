@@ -44,7 +44,7 @@ module GrdaWarehouse::Tasks
     # we only consider building ROI authorizations for destination clients, excluding data sources that do not obey consent
     def destination_client_scope
       GrdaWarehouse::Hud::Client.destination.
-        joins(data_source).
+        joins(:data_source).
         merge(GrdaWarehouse::DataSource.obeys_consent)
     end
 
@@ -53,19 +53,18 @@ module GrdaWarehouse::Tasks
 
       return nil unless status
 
-
       {
         status: status,
         destination_client_id: destination_client.id,
         coc_codes: roi_coc_codes(destination_client),
-        starts_at: roi.consent_form_signed_on,
+        starts_at: destination_client.consent_form_signed_on,
         expires_at: roi_expiry_date(destination_client),
-        # file...
+        # maybe add file, other fields
       }
     end
 
     def roi_expiry_date(client)
-      duration =  GrdaWarehouse::Hud::Client.release_duration
+      duration = GrdaWarehouse::Hud::Client.release_duration
       case GrdaWarehouse::Hud::Client.release_duration
       when 'One Year', 'Two Years'
         return nil unless client.consent_form_signed_on
@@ -81,7 +80,7 @@ module GrdaWarehouse::Tasks
     end
 
     def roi_coc_codes(client)
-      client.consented_coc_codes&.uniq&.sort
+      client.consented_coc_codes&.uniq&.sort&.presence
     end
 
     def roi_status(client)

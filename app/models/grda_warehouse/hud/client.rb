@@ -204,9 +204,9 @@ module GrdaWarehouse::Hud
 
     has_many :chronics, class_name: 'GrdaWarehouse::Chronic', inverse_of: :client
     has_many :roi_authorizations,
-      foreign_key: 'destination_client_id',
-      class_name: 'GrdaWarehouse::ClientRoiAuthorization',
-      dependent: :delete_all
+             foreign_key: 'destination_client_id',
+             class_name: 'GrdaWarehouse::ClientRoiAuthorization',
+             dependent: :delete_all
 
     has_many :chronics_in_range, ->(range) do
       where(date: range)

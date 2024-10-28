@@ -25,7 +25,7 @@ module GrdaWarehouse
 
     def date_in_valid_range?(date)
       if expires_at && starts_at
-        date.between?(expires_at && starts_at)
+        date.between?(starts_at, expires_at)
       elsif expires_at
         date <= expires_at
       elsif starts_at
@@ -36,7 +36,7 @@ module GrdaWarehouse
     end
 
     def matches_coc_codes?(any_coc_codes)
-      # if there are no codes, assume global visibility
+      # if there are no codes, assume visibility not limited by COC
       return true if coc_codes.blank?
 
       (any_coc_codes & coc_codes).present?

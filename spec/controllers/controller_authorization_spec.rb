@@ -52,6 +52,10 @@ RSpec.describe 'Controller Authorization', type: :controller do
     expect(response).to have_http_status(:success)
   end
 
+  it 'raises when authorization is not performed' do
+    expect { get :unauthorized_action }.to raise_error(AuthorizationNotPerformedError)
+  end
+
   it 'does not have access to legacy authorization methods' do
     expect(@controller.respond_to?(:require_can_view_projects)).to be false
   end

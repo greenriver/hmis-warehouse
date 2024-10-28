@@ -78,25 +78,11 @@ class GrdaWarehouse::AuthPolicies::ClientPolicy < GrdaWarehouse::AuthPolicies::B
   #   - if the user has `can_view_client_enrollments_with_roi`, we grant `can_view_clients`
   # - ROI does not confer additional permissions. Additional permissions are identical to clients without an ROI, such as via direct assignment
   def permission_granted_through_roi?(permission)
-    if roi_authorizations.any? && permission_granted_by_role?(:can_view_client_enrollments_with_roi)
+    if roi_authorizations.any? && permission_granted_by_role?(permission)
       return true if roi_authorizations.any? { |a| a.matches_coc_codes?(user.coc_codes) }
     end
     false
   end
-
-  #   case permission
-  #   when :can_search_own_clients, :can_search_all_clients
-  #     return false if roi_authorizations.empty?
-  #     return false unless permission_granted_by_role?(:can_search_clients_with_roi)
-  #   when :can_view_clients
-  #     return false if roi_authorizations.empty?
-  #     return false unless permission_granted_by_role?(:can_view_client_enrollments_with_roi)
-  #   else
-  #     return false
-  #   end
-
-  #   return roi_authorizations.any? { |a| a.matches_coc_codes?(user.coc_codes) }
-  # end
 
   memoize def client_collection_ids
     c_t = GrdaWarehouse::Hud::Client.arel_table

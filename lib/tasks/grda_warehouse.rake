@@ -340,7 +340,7 @@ namespace :grda_warehouse do
 
     if DateTime.current.hour == 20
       begin
-        GrdaWarehouse::Tasks::ClientRoiAuthorizationTask.perform
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.perform
       rescue StandardError => e
         Sentry.capture_exception(e)
         Rails.logger.error(e.message)

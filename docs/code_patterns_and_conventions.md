@@ -41,10 +41,10 @@ When authorizing an action on an individual record, for example a Client, use a 
 
 ```ruby
 policy = user.policy_for(client, type: client)
-not_authorized! unless policy.can_show?
+not_authorized! unless policy.can_view?
 ```
 
-### Authorization on a controller
+### Authorization on a controller action
 
 Keep authorizations at the top of the controller. Use the `authorize_with()` helper, preferably with a policy class.
 

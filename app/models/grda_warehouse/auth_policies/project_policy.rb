@@ -37,7 +37,7 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
     return false unless permission_granted_by_role?(:can_view_projects)
 
     if project.confidential?
-      permission_granted_by_role?(:can_view_confidential_project_names)
+      permission_granted_by_role?(:can_edit_projects) || permission_granted_by_role?(:can_view_confidential_project_names)
     else
       true
     end
