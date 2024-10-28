@@ -326,6 +326,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
       next unless best_instance || has_any_data
 
+      next if best_instance.present? && !best_instance.project_and_enrollment_match(project: project, enrollment: self)
+
       OpenStruct.new(
         role: role.to_s,
         id: [id, role, best_instance&.id].join(':'), # Unique ID for Apollo caching
