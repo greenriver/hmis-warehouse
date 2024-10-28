@@ -432,20 +432,20 @@ where core.LSAProjectType <> 1 or core.LastBedNight is not null
 	--NOTE:  The logic for HIV/SMI/SUD columns is described in specs section 5.4; this is occurring in the code here 
 	--       because it made a massive difference in the speed with which the code in section 5.4 runs.
 	update n
-	set n.HIV = 1, n.Step = '3.4.5'
+	set n.HIV = 1, n.Step = '3.5.6'
 	from tlsa_Enrollment n
 	inner join hmis_Disabilities d on d.EnrollmentID = n.EnrollmentID and d.DisabilityType = 8 and d.DisabilityResponse = 1
 	where n.ActiveAge between 18 and 65 and d.InformationDate <= (select ReportEnd from lsa_Report) 
 
 	update n
-	set n.SMI = 1, n.Step = '3.4.6'
+	set n.SMI = 1, n.Step = '3.5.7'
 	from tlsa_Enrollment n
 	inner join hmis_Disabilities d on d.EnrollmentID = n.EnrollmentID and d.DisabilityType = 9 and d.DisabilityResponse = 1
 		and d.IndefiniteAndImpairs = 1
 	where n.ActiveAge between 18 and 65 and d.InformationDate <= (select ReportEnd from lsa_Report) 
 
 	update n
-	set n.SUD = 1, n.Step = '3.4.7'
+	set n.SUD = 1, n.Step = '3.5.8'
 	from tlsa_Enrollment n
 	inner join hmis_Disabilities d on d.EnrollmentID = n.EnrollmentID and d.DisabilityType = 10 and d.DisabilityResponse in (1,2,3)
 		and d.IndefiniteAndImpairs = 1
@@ -465,7 +465,7 @@ set hhid.EntryHHType = case when hh.hh = 100 then 1
 		when hh.hh in (110, 111) then 2
 		when hh.hh = 10 then 3
 		else 99 end
-	, hhid.Step = '3.6.3'
+	, hhid.Step = '3.6.1'
 from tlsa_HHID hhid 
 inner join (select HouseholdID
 	, sum(distinct case when n.EntryAge between 18 and 65 then 100 
@@ -485,7 +485,7 @@ set hhid.ActiveHHType = case when hhid.ExitDate < cd.CohortStart
 	, hhid.Step = '3.6.2'
 from tlsa_HHID hhid 
 inner join tlsa_CohortDates cd on cd.Cohort = 1
-inner join (select HouseholdID
+left outer join (select HouseholdID
 	, sum(distinct case when n.ActiveAge between 18 and 65 then 100 
 		when n.ActiveAge < 18 then 10 
 		else 1 end) as hh
@@ -501,16 +501,16 @@ set hhid.Exit1HHType = case when hhid.ExitDate < cd.CohortStart
 		when hh.hh in (110, 111) then 2
 		when hh.hh = 10 then 3
 		else 99 end
-	, hhid.Step = '3.6.4'
+	, hhid.Step = '3.6.3'
 from tlsa_HHID hhid 
 inner join tlsa_CohortDates cd on cd.Cohort = -1
-inner join (select HouseholdID
+left outer join (select HouseholdID
 	, sum(distinct case when n.Exit1Age between 18 and 65 then 100 
 		when n.Exit1Age < 18 then 10 
 		else 1 end) as hh
 		from tlsa_Enrollment n
 		inner join tlsa_CohortDates cd on cd.Cohort = -1
-			and (n.ExitDate is null or n.ExitDate > cd.CohortStart)
+		where n.ExitDate is null or n.ExitDate >= cd.CohortStart
 		group by HouseholdID) hh on hh.HouseholdID = hhid.HouseholdID
 
 update hhid
@@ -523,12 +523,11 @@ set hhid.Exit2HHType = case when hhid.ExitDate < cd.CohortStart
 	, hhid.Step = '3.6.4'
 from tlsa_HHID hhid 
 inner join tlsa_CohortDates cd on cd.Cohort = -2
-inner join (select HouseholdID
+left outer join (select HouseholdID
 	, sum(distinct case when n.Exit2Age between 18 and 65 then 100 
 		when n.Exit2Age < 18 then 10 
 		else 1 end) as hh
 		from tlsa_Enrollment n
 		inner join tlsa_CohortDates cd on cd.Cohort = -2
-			and (n.ExitDate is null or n.ExitDate > cd.CohortStart)
+		where n.ExitDate is null or n.ExitDate >= cd.CohortStart
 		group by HouseholdID) hh on hh.HouseholdID = hhid.HouseholdID
-

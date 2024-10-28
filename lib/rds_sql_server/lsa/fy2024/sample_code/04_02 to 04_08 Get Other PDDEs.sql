@@ -90,7 +90,7 @@ FY2024 Changes
 		Inventory.csv must have at least one record for each ProjectID 
 			in Project.csv where OperatingEndDate is NULL or > ReportStart			
 			and the CoCCode must match ReportCoC.
-		Note that BedInventory is set up for lsa_Inventory in '2 Create Output Tables.sql' as a computed column --
+		Note that BedInventory is set up for lsa_Inventory in '02 LSA Output Tables.sql' as a computed column --
 		    the value MUST equal the sum of the other xBedInventory columns -- so this code 
 			does not select it into lsa_Inventory.
 */
