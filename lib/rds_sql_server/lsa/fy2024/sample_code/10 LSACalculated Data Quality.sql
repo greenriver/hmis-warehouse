@@ -112,7 +112,7 @@ FY2024 Changes
 		and part.HMISParticipationType = 1
 		and part.HMISParticipationStatusStartDate <= n.EntryDate
 		and (part.HMISParticipationStatusEndDate is null
-			or part.HMISParticipationStatusEndDate > x.ExitDate
+			or part.HMISParticipationStatusEndDate >= x.ExitDate
 			or (x.ExitDate is null and part.HMISParticipationStatusEndDate > rpt.ReportEnd))
 	where hoh.RelationshipToHoH = 1 and hoh.EnrollmentCoC = rpt.ReportCoC and part.ProjectID is null
 		and (x.ExitDate is null or x.ExitDate >= ReportStart)
