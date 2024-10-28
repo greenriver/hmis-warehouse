@@ -90,7 +90,7 @@ FY2024 Changes
 		Inventory.csv must have at least one record for each ProjectID 
 			in Project.csv where OperatingEndDate is NULL or > ReportStart			
 			and the CoCCode must match ReportCoC.
-		Note that BedInventory is set up for lsa_Inventory in '2 Create Output Tables.sql' as a computed column --
+		Note that BedInventory is set up for lsa_Inventory in '02 LSA Output Tables.sql' as a computed column --
 		    the value MUST equal the sum of the other xBedInventory columns -- so this code 
 			does not select it into lsa_Inventory.
 */
@@ -157,7 +157,7 @@ FY2024 Changes
 	from hmis_HMISParticipation hp
 	inner join lsa_Project lp on lp.ProjectID = hp.ProjectID
 	where hp.DateDeleted is null 
-		and (lp.OperatingEndDate is null or lp.OperatingEndDate >= (select ReportStart from lsa_Report))
+		and (lp.OperatingEndDate is null or lp.OperatingEndDate > (select ReportStart from lsa_Report))
 
 	
 /*
@@ -183,4 +183,4 @@ FY2024 Changes
 	inner join lsa_Project lp on lp.ProjectID = a.ProjectID
 	where a.DateDeleted is null
 		and lp.ProjectType = 13 and lp.RRHSubType = 1 and lp.ResidentialAffiliation = 1
-		and (lp.OperatingEndDate is null or lp.OperatingEndDate >= (select ReportStart from lsa_Report))
+		and (lp.OperatingEndDate is null or lp.OperatingEndDate > (select ReportStart from lsa_Report))

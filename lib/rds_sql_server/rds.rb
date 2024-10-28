@@ -154,7 +154,7 @@ class Rds
       timezone: 'US Eastern Standard Time',
       copy_tags_to_snapshot: true,
       multi_az: false,
-      engine_version: '14.00.3460.9.v1',
+      engine_version: '16.00.4140.3.v1',
       tags: [
         { key: 'Rails Environment', value: Rails.env },
       ],
@@ -169,8 +169,8 @@ class Rds
       publicly_accessible: true,
       vpc_security_group_ids: SECURITY_GROUP_IDS,
       db_subnet_group_name: DB_SUBNET_GROUP,
-      db_parameter_group_name: 'sqlserver-web-14-tls',
-      option_group_name: 'default:sqlserver-web-14-00',
+      db_parameter_group_name: 'sqlserver-web-16-custom-parameter-group-lsa',
+      option_group_name: 'default:sqlserver-web-16-00',
       port: 1433,
     )
   end
@@ -239,6 +239,7 @@ class Rds
   end
 
   def db_exists?
+    load 'lib/rds_sql_server/sql_server_bootstrap_model.rb'
     db_exists = SqlServerBootstrapModel.connection.execute(<<~SQL)
       if not exists(select * from sys.databases where name = '#{database}')
         select 0;
