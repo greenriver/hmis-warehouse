@@ -326,7 +326,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
       next unless best_instance || has_any_data
 
-      next if best_instance.present? && !best_instance.project_and_enrollment_match(project: project, enrollment: self)
+      # If the best instance doesn't match this enrollment, return, UNLESS there is existing data.
+      # (Example: data is only collected for HoH, but HoH of changes; you should still be able to see past data)
+      next if !has_any_data && best_instance.present? && !best_instance.project_and_enrollment_match(project: project, enrollment: self)
 
       OpenStruct.new(
         role: role.to_s,
