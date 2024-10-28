@@ -3304,7 +3304,7 @@ type Enrollment {
   customDataElements: [CustomDataElement!]!
 
   """
-  Data collection features that are enabled for this Project (e.g. Current Living Situations, Events)
+  Data collection features that are enabled for this Enrollment (e.g. Current Living Situations, Events)
   """
   dataCollectionFeatures: [DataCollectionFeature!]!
   dateCreated: ISO8601DateTime

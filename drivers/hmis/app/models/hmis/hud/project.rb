@@ -219,7 +219,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   #   when creating a new record – and return the data_collected_about on it.
   #
   # Returns an OpenStruct that is resolved by the DataCollectionFeature GQL type.
-  # todo @martha - apply to occurrence point forms
   def data_collection_features
     # Create OpenStruct for each enabled feature
     Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.map do |role|
@@ -242,9 +241,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
         false # Only resolved on enrollments. Would need to update this logic if we resolve CE assessments on projects
       when :CASE_NOTE
         false # Only resolved on enrollments. Would need to update this logic if we resolve case notes on projects
-      when :REFERRAL # todo @Martha
+      when :REFERRAL # todo @Martha - test this out in allegheny frontend
         external_referral_postings.exists?
-      when :REFERRAL_REQUEST # todo @Martha
+      when :REFERRAL_REQUEST
         external_referral_requests.exists?
       when :EXTERNAL_FORM
         false # Relies on instances only; see comment in HmisSchema::Project.external_form_submissions
