@@ -11,6 +11,10 @@ require 'nokogiri'
 RSpec.describe ClientAccessControl::ClientsController, type: :request do
   include_context 'visibility test context'
 
+  def doc_has_client?(doc, warehouse_client)
+    doc.css("[data-test-client-id='#{warehouse_client.source_id}']").any?
+  end
+
   context 'when config b is in effect' do
     before do
       GrdaWarehouse::Config.delete_all
@@ -97,10 +101,11 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         expect(response).to have_http_status(200)
       end
       it 'can see window source client, but not non-window source client' do
-        get client_path(both_destination_client)
+        get rollup_client_path(both_destination_client, partial: :demographics)
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Bob')
-        expect(doc.text).to_not include('Michele')
+
+        expect(doc_has_client?(doc, window_warehouse_client_2)).to be true
+        expect(doc_has_client?(doc, non_window_warehouse_client_2)).to be false
       end
       it 'user can not see non-window client even with release' do
         past_date = 5.days.ago
@@ -110,11 +115,12 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
-        get client_path(both_destination_client)
+        get rollup_client_path(both_destination_client, partial: :demographics)
         doc = Nokogiri::HTML(response.body)
         expect(response).to have_http_status(200)
-        expect(doc.text).to include('Bob')
-        expect(doc.text).to_not include('Michele')
+
+        expect(doc_has_client?(doc, window_warehouse_client_2)).to be true
+        expect(doc_has_client?(doc, non_window_warehouse_client_2)).to be false
       end
       describe 'and the user is assigned a data source' do
         before do
@@ -127,10 +133,10 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           expect(response).to have_http_status(200)
         end
         it 'can see window source client, but not non-window source client' do
-          get client_path(both_destination_client)
+          get rollup_client_path(both_destination_client, partial: :demographics)
           doc = Nokogiri::HTML(response.body)
-          expect(doc.text).to include('Bob')
-          expect(doc.text).to include('Michele')
+          expect(doc_has_client?(doc, window_warehouse_client_2)).to be true
+          expect(doc_has_client?(doc, non_window_warehouse_client_2)).to be true
         end
       end
     end
@@ -199,11 +205,12 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
-        get client_path(both_destination_client)
-        doc = Nokogiri::HTML(response.body)
+        get rollup_client_path(both_destination_client, partial: :demographics)
         expect(response).to have_http_status(200)
-        expect(doc.text).to include('Bob')
-        expect(doc.text).to include('Michele')
+        doc = Nokogiri::HTML(response.body)
+
+        expect(doc_has_client?(doc, window_warehouse_client_2)).to be true
+        expect(doc_has_client?(doc, non_window_warehouse_client_2)).to be true
       end
       it 'user cannot see client dashboard for non-window client' do
         get client_path(non_window_destination_client)

@@ -15,10 +15,18 @@ class ApplicationController < ActionController::Base
   # moved to top for dockerization
   prepend_before_action :check_all_db_migrations
 
-  include ControllerAuthorization
   include ActivityLogger
   include LogRagePayloadBehavior
   include Pagy::Backend
+
+  # conditional includes support the migration away from deprecated authorization methods.
+  # New controllers should inherit from ApplicationControllerV2 which replaces older auth
+  # methods with authorize_with()
+  def self.inherited(subclass)
+    super
+    subclass.include(LegacyControllerAuthorization) unless ApplicationControllerV2.in?(subclass.ancestors)
+  end
+
   protect_from_forgery with: :exception
 
   before_action :authenticate_user!
@@ -40,6 +48,18 @@ class ApplicationController < ActionController::Base
   before_action :prepare_exception_notifier
 
   prepend_before_action :skip_timeout
+
+  # raise NotAuthorizedError which we can rescue from. This stops flow on a failed authorization check
+  protected def not_authorized!(message = nil)
+    raise NotAuthorizedError, message
+  end
+
+  # override the handler in the subclass, such as to return JSON in API requests
+  rescue_from 'NotAuthorizedError', with: :handle_unauthorized_error
+  protected def handle_unauthorized_error(error)
+    location = current_user&.my_root_path || root_path
+    redirect_to(location, alert: error.message)
+  end
 
   private def resource_name
     :user
@@ -285,13 +305,4 @@ class ApplicationController < ActionController::Base
   def set_app_user_header
     response.headers['X-app-user-id'] = current_user&.id
   end
-
-  # TODO: START_ACL remove when ACL transition complete
-  def set_legacy_implicitly_assume_authorized_access
-    return unless current_user.present?
-    return if current_user.using_acls?
-
-    current_user.policies.legacy_implicitly_assume_authorized_access = true
-  end
-  # END ACL
 end

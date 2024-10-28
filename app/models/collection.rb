@@ -87,8 +87,9 @@ class Collection < ApplicationRecord
 
   # all collections that include any coc_codes
   scope :for_coc_codes, ->(coc_codes) do
-    q_codes = coc_codes.map { |code| connection.quote(code) }
-    where("#{quoted_table_name}.coc_codes ?| array[#{q_codes.join(',')}]")
+    quoted = SqlHelper.quote_sql_array(coc_codes, type: :varchar)
+    # use `?|` since coc codes is json
+    where("#{quoted_table_name}.coc_codes ?| #{quoted}")
   end
 
   def self.text_search(text)

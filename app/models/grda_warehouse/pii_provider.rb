@@ -12,7 +12,7 @@ class GrdaWarehouse::PiiProvider
   REDACTED = 'Redacted'.freeze
 
   def self.viewable_name(value, policy:, replacement: REDACTED)
-    return replacement unless policy.can_view_client_name?
+    return replacement unless policy.can_view_name?
 
     value.presence
   end
@@ -47,31 +47,31 @@ class GrdaWarehouse::PiiProvider
   end
 
   def first_name
-    return name_redacted unless policy.can_view_client_name?
+    return name_redacted unless policy.can_view_name?
 
     record.first_name.presence
   end
 
   def last_name
-    return name_redacted unless policy.can_view_client_name?
+    return name_redacted unless policy.can_view_name?
 
     record.last_name.presence
   end
 
   def middle_name
-    return name_redacted unless policy.can_view_client_name?
+    return name_redacted unless policy.can_view_name?
 
     record.middle_name.presence
   end
 
   def full_name
-    return name_redacted unless policy.can_view_client_name?
+    return name_redacted unless policy.can_view_name?
 
     [record.first_name, record.middle_name, record.last_name].compact.join(' ').presence
   end
 
   def brief_name
-    return name_redacted unless policy.can_view_client_name?
+    return name_redacted unless policy.can_view_name?
 
     [record.first_name, record.last_name].compact.join(' ').presence
   end
@@ -123,7 +123,7 @@ class GrdaWarehouse::PiiProvider
   protected
 
   def image_content
-    @image_content ||= if policy.can_view_client_photo?
+    @image_content ||= if policy.can_view_photo?
       record.image
     else
       ''

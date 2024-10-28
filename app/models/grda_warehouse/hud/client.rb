@@ -203,6 +203,10 @@ module GrdaWarehouse::Hud
     has_many :cas_reports, class_name: 'GrdaWarehouse::CasReport', inverse_of: :client
 
     has_many :chronics, class_name: 'GrdaWarehouse::Chronic', inverse_of: :client
+    has_many :roi_authorizations,
+      foreign_key: 'destination_client_id',
+      class_name: 'GrdaWarehouse::ClientRoiAuthorization',
+      dependent: :delete_all
 
     has_many :chronics_in_range, ->(range) do
       where(date: range)
@@ -1440,7 +1444,7 @@ module GrdaWarehouse::Hud
     end
 
     memoize def pii_provider(user:)
-      GrdaWarehouse::PiiProvider.new(self, policy: user.policies.for_client(self))
+      GrdaWarehouse::PiiProvider.new(self, policy: user.policy_for(self, type: :client))
     end
 
     def name

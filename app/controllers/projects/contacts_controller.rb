@@ -19,6 +19,7 @@ module Projects
 
     def set_entity
       @entity = project_source.find(params[:project_id].to_i)
+      not_authorized! unless current_user.policy_for(@entity, type: :project).can_view_clients?
     end
   end
 end

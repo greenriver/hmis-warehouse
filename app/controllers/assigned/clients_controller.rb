@@ -11,10 +11,6 @@ module Assigned
     before_action :require_can_view_clients!
     before_action :set_user
 
-    # TODO: START_ACL remove when ACL transition complete
-    before_action :set_legacy_implicitly_assume_authorized_access
-    # # END ACL
-
     def index
       @user_clients = @user.user_clients.
         joins(:client).
