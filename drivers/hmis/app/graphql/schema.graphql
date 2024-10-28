@@ -9036,7 +9036,6 @@ type QueryAccess {
   canManageExternalFormSubmissions: Boolean!
   canManageForms: Boolean!
   canManageIncomingReferrals: Boolean!
-  canManageInventory: Boolean!
   canManageOutgoingReferrals: Boolean!
   canManageOwnClientFiles: Boolean!
   canManageScanCards: Boolean!
