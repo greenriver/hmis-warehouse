@@ -1,4 +1,4 @@
-- title = 'Create TalentLMS Subdomain'
+- title = 'Create TalentLMS Course'
 - content_for :title, title
 
 = render 'breadcrumbs'
@@ -6,8 +6,8 @@
   .col-sm-4
     %h1= content_for :title
 
-= simple_form_for @config, url: admin_talentlms_path do |f|
+= simple_form_for @course, url: admin_talentlms_courses_path do |f|
   = f.error_notification
   = render 'form', f: f
   .form_actions.mt-4
-    = f.submit 'Save Configuration'
+    = f.submit 'Save Course'
