@@ -11,11 +11,42 @@ if sentry_dsn
     config.dsn = sentry_dsn
     config.breadcrumbs_logger = [:active_support_logger, :http_logger]
 
-    trace_rate = ENV['SENTRY_PERFORMANCE_TRACE_RATE'].presence
-    # enable performance monitoring on QA
-    trace_rate ||= '1.0' if Rails.env.staging? && ENV['CLIENT'] == 'qa_hmis'
-    trace_rate = trace_rate.to_f
-    config.traces_sample_rate = trace_rate if trace_rate.positive?
+    ENV['SENTRY_PERFORMANCE_TRACE_RATE'].presence.yield_self do |base_trace_rate|
+      # enable performance monitoring on QA
+      base_trace_rate ||= 1.0 if Rails.env.staging? && ENV['CLIENT'] == 'qa_hmis'
+      base_trace_rate = base_trace_rate.to_f
+
+      if base_trace_rate.positive?
+        # custom tx sampling rate
+        config.traces_sampler = lambda do |sampling_context|
+          # if this is the continuation of a trace, just use that decision (rate controlled by the caller)
+          next sampling_context[:parent_sampled] if sampling_context[:parent_sampled].present?
+
+          # adjust the base rate so high-traffic endpoints are skipped or sampled less often
+          transaction_context = sampling_context[:transaction_context]
+          trace_weight = case transaction_context[:op]
+          when /http/
+            # for Rails applications, transaction_name would be the request's path (env["PATH_INFO"]) instead of "Controller#action"
+            case transaction_context[:name]
+            when /\A\/system_status/
+              # skip logging health checks
+              0.0
+            when /\A\/messages\/poll/, '/'
+              # reduce rate for some endpoints
+              0.01
+            else
+              1.0
+            end
+          when /delayed_job/
+            # delayed job
+            1.0
+          else
+            0.0 # ignore all other transactions
+          end
+          trace_weight * base_trace_rate
+        end
+      end
+    end
 
     config.enabled_environments = ['production', 'staging', 'development']
     config.environment = Rails.env

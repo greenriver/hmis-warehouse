@@ -1,0 +1,5 @@
+= f.input :config_id, as: :select_two, label: 'Subdomain', collection: Talentlms::Config.collection_for_form, selected: @course&.config&.id
+= f.input :name
+= f.input :courseid, label: 'Course ID'
+= f.input :months_to_expiration, label: "#{Talentlms::Facade.expiration_duration_label} Until Required Recertification", hint: 'Leave blank if recertification is not required'
+= f.input :default

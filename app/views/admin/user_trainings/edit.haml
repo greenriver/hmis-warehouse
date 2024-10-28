@@ -1,0 +1,29 @@
+- title = 'Update User Training Courses'
+- content_for :title, title
+
+= render 'breadcrumbs'
+.row
+  .col-sm-4
+    %h1= content_for :title
+
+= simple_form_for [:admin, @user], url: admin_user_training_path(@user.id) , method: :patch do |f|
+  .form--user-training
+    %h2 User Training
+    .well
+      = f.input :training_courses, as: :select_two, label: 'Required Courses', hint: "The default courses (#{Talentlms::Course.default.map(&:name).join(', ')}) will be required if no course is selected.", collection: Talentlms::Course.collection_for_form, input_html: { multiple: true }
+      .form-actions.mt-4
+        = f.submit 'Update Required Courses'
+
+%h2 Course Progress
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Course
+        %th Progress
+    %tbody
+      - @user.required_training_courses.each do |course|
+        %tr
+          %td= course.name_with_subdomain
+          %td= @user.training_status(course)
+    
