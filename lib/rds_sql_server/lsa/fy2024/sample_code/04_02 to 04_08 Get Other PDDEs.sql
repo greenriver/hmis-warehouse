@@ -157,7 +157,7 @@ FY2024 Changes
 	from hmis_HMISParticipation hp
 	inner join lsa_Project lp on lp.ProjectID = hp.ProjectID
 	where hp.DateDeleted is null 
-		and (lp.OperatingEndDate is null or lp.OperatingEndDate >= (select ReportStart from lsa_Report))
+		and (lp.OperatingEndDate is null or lp.OperatingEndDate > (select ReportStart from lsa_Report))
 
 	
 /*
@@ -183,4 +183,4 @@ FY2024 Changes
 	inner join lsa_Project lp on lp.ProjectID = a.ProjectID
 	where a.DateDeleted is null
 		and lp.ProjectType = 13 and lp.RRHSubType = 1 and lp.ResidentialAffiliation = 1
-		and (lp.OperatingEndDate is null or lp.OperatingEndDate >= (select ReportStart from lsa_Report))
+		and (lp.OperatingEndDate is null or lp.OperatingEndDate > (select ReportStart from lsa_Report))

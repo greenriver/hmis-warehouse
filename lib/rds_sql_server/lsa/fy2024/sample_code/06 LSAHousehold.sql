@@ -11,8 +11,7 @@ FY2024 Changes
 	6.1 Get Unique Households and Population Identifiers for tlsa_Household
 */
 
-if (select LSAScope from lsa_Report) <> 3
-begin
+
 
 	truncate table tlsa_Household
 
@@ -229,50 +228,64 @@ begin
 	-- Enrollment with latest active date in report period for project group
 */
 
-	update hh
-	set hh.ESTGeography = case when hh.ESTStatus = 0 then -1 
-			else coalesce(
-				(select top 1 coc.GeographyType
-				from tlsa_HHID hhid
-				inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
-				inner join lsa_ProjectCoC coc on coc.ProjectID = hhid.ProjectID 
-				where hhid.Active = 1 and hhid.LSAProjectType in (0,1,2,8) 
-					and hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
-				order by case when hhid.ExitDate is null then rpt.ReportEnd else hhid.ExitDate end desc
-					, hhid.EntryDate desc)
-				, 99) end
-		, hh.Step = '6.5.1'
-	from tlsa_Household hh 
 
-	update hh
-	set hh.RRHGeography = case when hh.RRHStatus = 0 then -1 
-			else coalesce(
-				(select top 1 coc.GeographyType
-				from tlsa_HHID hhid
-				inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
-				inner join lsa_ProjectCoC coc on coc.ProjectID = hhid.ProjectID 
-				where hhid.Active = 1 and hhid.LSAProjectType = 13 
-					and hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
-				order by case when hhid.ExitDate is null then rpt.ReportEnd else hhid.ExitDate end desc
-					, hhid.EntryDate desc)
-				, 99) end
-		, hh.Step = '6.5.2'
-	from tlsa_Household hh 
+update hh
+set ESTGeography = coc.GeographyType
+	, Step = '6.5.1'
+from tlsa_Household hh
+inner join (select hh.HoHID, hh.HHType
+	, MostRecent = (select top 1 ProjectID  
+		from tlsa_HHID 
+		where LSAProjectType in (0,1,2,8)
+			and HoHID = hh.HoHID and ActiveHHType = hh.HHType
+		order by coalesce(ExitDate, '9999-9-9') desc, EntryDate desc)
+	from tlsa_Household hh
+	where hh.ESTStatus > 2) p on p.HoHID = hh.HoHID and p.HHType = hh.HHType
+inner join lsa_ProjectCoC coc on coc.ProjectID = p.MostRecent
+inner join lsa_Report rpt on rpt.ReportCoC = coc.CoCCode
 
-	update hh
-	set hh.PSHGeography = case when hh.PSHStatus = 0 then -1 
-			else coalesce(
-				(select top 1 coc.GeographyType
-				from tlsa_HHID hhid
-				inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
-				inner join lsa_ProjectCoC coc on coc.ProjectID = hhid.ProjectID 
-				where hhid.Active = 1 and hhid.LSAProjectType = 3 
-					and hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
-				order by case when hhid.ExitDate is null then rpt.ReportEnd else hhid.ExitDate end desc
-					, hhid.EntryDate desc)
-				, 99) end
-		, hh.Step = '6.5.3'
-	from tlsa_Household hh 
+update hh
+set RRHGeography = coc.GeographyType
+	, Step = '6.5.2'
+from tlsa_Household hh
+inner join (select hh.HoHID, hh.HHType
+	, MostRecent = (select top 1 ProjectID  
+		from tlsa_HHID 
+		where LSAProjectType = 13
+			and HoHID = hh.HoHID and ActiveHHType = hh.HHType
+		order by coalesce(ExitDate, '9999-9-9') desc, EntryDate desc)
+	from tlsa_Household hh
+	where hh.RRHStatus > 2) p on p.HoHID = hh.HoHID and p.HHType = hh.HHType
+inner join lsa_ProjectCoC coc on coc.ProjectID = p.MostRecent
+inner join lsa_Report rpt on rpt.ReportCoC = coc.CoCCode
+
+update hh
+set PSHGeography = coc.GeographyType
+	, Step = '6.5.3'
+from tlsa_Household hh
+inner join (select hh.HoHID, hh.HHType
+	, MostRecent = (select top 1 ProjectID  
+		from tlsa_HHID 
+		where LSAProjectType = 3
+			and HoHID = hh.HoHID and ActiveHHType = hh.HHType
+		order by coalesce(ExitDate, '9999-9-9') desc, EntryDate desc)
+	from tlsa_Household hh
+	where hh.PSHStatus > 2) p on p.HoHID = hh.HoHID and p.HHType = hh.HHType
+inner join lsa_ProjectCoC coc on coc.ProjectID = p.MostRecent
+inner join lsa_Report rpt on rpt.ReportCoC = coc.CoCCode
+
+update hh
+set hh.ESTGeography = case when hh.ESTGeography is not null then hh.ESTGeography
+		when hh.ESTStatus > 2 then 99
+		else -1 end 
+	, hh.RRHGeography = case when hh.RRHGeography is not null then hh.RRHGeography	
+		when hh.RRHStatus > 2 then 99
+		else -1 end
+	, hh.PSHGeography = case when PSHGeography is not null then PSHGeography	
+		when PSHStatus > 2 then 99
+		else -1 end
+	, Step = '6.5.4'
+from tlsa_Household hh
 
 /*
 	6.6 Set tlsa_Household Living Situation for Each Project Group 
@@ -1275,9 +1288,4 @@ group by Stat
 		when TotalHomelessDays > 1094 then 1095
 		else TotalHomelessDays end 
 	, SystemPath, ESTAHAR, RRHAHAR, PSHAHAR, RRHSOStatus, RRHSOMoveIn, ReportID 
-
-end --END IF LSAScope <> HIC
-/*
-	End LSAHousehold
-*/
 

@@ -47,6 +47,7 @@ module HudLsa::Generators::Fy2024::RdsConcern
 
   def remove_temporary_rds
     return unless destroy_rds?
+    return unless @rds&.exists?
 
     # If we didn't specify a specific host, turn off RDS
     # Otherwise, just drop the database
