@@ -46,6 +46,6 @@ FY2024 Changes
 		and hp.ContinuumProject = 1 
 		and hp.ProjectType in (0,1,2,3,8,9,10,13)
 		and (hp.OperatingEndDate is null 
-			 or	(hp.OperatingEndDate >= rpt.LookbackDate
+			 or	(hp.OperatingEndDate > rpt.LookbackDate
 				 and hp.OperatingEndDate > hp.OperatingStartDate)
 			)  
