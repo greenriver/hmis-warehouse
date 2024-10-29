@@ -96,11 +96,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     context 'when new HoH entered after move-in' do
       before(:each) { hhm.update!(entry_date: hoh_move_in_date + 2.days) }
 
+      # TODO(#6857) update pending HUD guidance
+      it 'should not transfer move-in date to new HoH' do
+        expect { perform_mutation }.to change { hoh.relationship_to_ho_h }.from(1).to(99).
+          and(not_change { hoh.move_in_date }). # old HoH still has old move-in date
+          and(change { hhm.relationship_to_ho_h }.from(2).to(1)).
+          and(not_change { hhm.move_in_date }) # still nil
+      end
+    end
+
+    context 'when new HoH entered after old HoH but before move-in' do
+      before(:each) { hhm.update!(entry_date: hoh_move_in_date - 2.days) }
+
       it 'should transfer move-in date to new HoH' do
         expect { perform_mutation }.to change { hoh.relationship_to_ho_h }.from(1).to(99).
           and change { hoh.move_in_date }.from(hoh_move_in_date).to(nil).
           and change { hhm.relationship_to_ho_h }.from(2).to(1).
-          and change { hhm.move_in_date }.from(nil).to(hhm.entry_date)
+          and change { hhm.move_in_date }.from(nil).to(hoh_move_in_date)
       end
     end
 

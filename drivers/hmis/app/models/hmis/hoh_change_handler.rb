@@ -24,7 +24,10 @@ module Hmis
         sort_by { |en| [en.DateCreated, en.id] }
 
       self.old_hoh_move_in_date = old_hoh_enrollments.map(&:move_in_date).compact.first
-      self.new_hoh_move_in_date = [old_hoh_move_in_date, new_hoh_enrollment.entry_date].max if old_hoh_move_in_date
+      # Determine Move-in Date to transfer to new HoH, if applicable
+      # TODO(#6857) For now, we don't transfer it if transferring it would lead it to being invalid. We plan to adjust this pending guidance from HUD.
+      self.new_hoh_move_in_date = old_hoh_move_in_date if old_hoh_move_in_date && old_hoh_move_in_date >= new_hoh_enrollment.entry_date
+      # self.new_hoh_move_in_date = [old_hoh_move_in_date, new_hoh_enrollment.entry_date].max if old_hoh_move_in_date
       self.validation_errors = HmisErrors::Errors.new
     end
 
@@ -35,8 +38,11 @@ module Hmis
       # Add generic message indicating that HoH will change from X to Y
       add_warning(self.class.change_hoh_message(old_hoh, new_hoh_enrollment.client))
 
-      # Add message about Move-in Date, only if the household Move-in Date is changing (which would occur if the new HoH entered after move-in)
-      add_warning(self.class.move_in_date_change_msg(old_hoh_move_in_date, new_hoh_move_in_date)) if new_hoh_move_in_date && new_hoh_move_in_date != old_hoh_move_in_date
+      # Add informational message about Move-in Date transferring from old HoH to new HoH
+      add_warning(self.class.move_in_date_transfer_msg(new_hoh_move_in_date)) if new_hoh_move_in_date
+
+      # Add warning if Move-in Date won't transfer because new HoH entered after move-in
+      add_warning(self.class.move_in_date_not_transfered_msg(old_hoh_move_in_date)) if old_hoh_move_in_date && !new_hoh_move_in_date
 
       # HoH shouldn't be WIP, unless all members are WIP
       add_warning(self.class.incomplete_hoh_message) if new_hoh_enrollment.in_progress? && household_enrollments.not_in_progress.exists?
@@ -57,15 +63,16 @@ module Hmis
       household_enrollments.each do |hhm|
         next if hhm.id == new_hoh_enrollment.id
 
+        # Clear Move-in Date on non-HoH members.
+        # TODO(#6857) For now, we leave the old MID as-is IF we were unable to transfer it because the new HoH entered after move-in. We plan to adjust this pending guidance from HUD.
+        hhm.move_in_date = nil unless hhm.head_of_household? && hhm.move_in_date && !new_hoh_move_in_date
+
         # Clear RelationshipToHoH on previous HoH
-        if hhm.relationship_to_ho_h == 1
+        if hhm.head_of_household?
           hhm.relationship_to_ho_h = 99
           # Move-in Address(es) from old HoH should transfer to new HoH. We only expect 1, but it's OK if there are more.
           hhm.move_in_addresses.each { |addr| addr.update!(enrollment: new_hoh_enrollment) }
         end
-
-        # Clear Move-in Date on non-HoH members
-        hhm.move_in_date = nil
 
         if hhm.changed?
           hhm.user_id = hud_user_id # set user who last touched the record
@@ -101,8 +108,13 @@ module Hmis
       end
     end
 
-    def self.move_in_date_change_msg(old_hoh_move_in_date, new_hoh_move_in_date)
-      "Move-in Date will change from #{old_hoh_move_in_date.strftime('%m/%d/%Y')} to #{new_hoh_move_in_date.strftime('%m/%d/%Y')}, because the new Head of Household entered after the household moved in."
+    def self.move_in_date_transfer_msg(move_in_date)
+      "Move-in Date #{move_in_date.strftime('%m/%d/%Y')} will be transferred to the new HoH."
+    end
+
+    def self.move_in_date_not_transfered_msg(move_in_date)
+      # TODO(#6857) When we adjust the behavior, we should change this message to communicate how/why the Move-in date was changed.
+      "Move-in Date #{move_in_date.strftime('%m/%d/%Y')} will not be transferred to the new HoH, because they entered after Move-in. Please adjust the Move-in Date on the new HoH as needed."
     end
 
     private
