@@ -25,7 +25,8 @@ FY2024 Changes
 	left outer join hmis_Exit hx on hx.EnrollmentID = n.EnrollmentID 
 		and hx.DateDeleted is null
 	inner join hmis_Project p on p.ProjectID = n.ProjectID 
-	inner join tlsa_CohortDates cd on cd.Cohort = 1 and p.OperatingEndDate between cd.CohortStart and cd.CohortEnd
+	inner join tlsa_CohortDates cd on cd.Cohort = 1 
+		and p.OperatingEndDate between dateadd(dd, 1, cd.CohortStart) and cd.CohortEnd
 	where (hx.ExitDate is null or hx.ExitDate > p.OperatingEndDate)
 	group by case when hx.ExitDate is null then 901
 			else 902 end 
@@ -51,7 +52,7 @@ FY2024 Changes
 	left outer join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID 
 		and hx.DateDeleted is NULL
 	inner join hmis_Project p on p.ProjectID = hn.ProjectID and p.ProjectType = 1 and p.ContinuumProject = 1
-	left outer join (select distinct svc.EnrollmentID, max(svc.DateProvided) as LastBednight
+	left outer join (select svc.EnrollmentID, max(svc.DateProvided) as LastBednight
 		from hmis_Services svc
 		inner join hmis_Enrollment nbn on nbn.EnrollmentID = svc.EnrollmentID
 		inner join hmis_Project p on p.ProjectID = nbn.ProjectID 
@@ -103,14 +104,19 @@ FY2024 Changes
 	select count (distinct n.EnrollmentID), 1, 10, 0, 0, -1, 906, n.ProjectID, rpt.ReportID, '10.5'
 	from lsa_Report rpt
 	inner join hmis_Enrollment n on n.EntryDate <= rpt.ReportEnd
-	left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
+	inner join hmis_Enrollment hoh on hoh.HouseholdID = n.HouseholdID 
+	inner join lsa_Project p on p.ProjectID = n.ProjectID
+	left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID and x.DateDeleted is null
+		and x.ExitDate <= rpt.ReportEnd
 	left outer join lsa_HMISParticipation part on part.ProjectID = n.ProjectID
-		and part.DateDeleted is null
 		and part.HMISParticipationType = 1
 		and part.HMISParticipationStatusStartDate <= n.EntryDate
 		and (part.HMISParticipationStatusEndDate is null
-			or part.HMISParticipationStatusEndDate >= coalesce(x.ExitDate, rpt.ReportEnd))
-	where part.ProjectID is null
+			or part.HMISParticipationStatusEndDate >= x.ExitDate
+			or (x.ExitDate is null and part.HMISParticipationStatusEndDate > rpt.ReportEnd))
+	where hoh.RelationshipToHoH = 1 and hoh.EnrollmentCoC = rpt.ReportCoC and part.ProjectID is null
+		and (x.ExitDate is null or x.ExitDate >= ReportStart)
+		and n.DateDeleted is null and hoh.DateDeleted is null
 	group by n.ProjectID, rpt.ReportID
 /*
 	10.6	DQ – Enrollments without exactly one HoH
