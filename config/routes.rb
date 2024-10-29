@@ -785,6 +785,7 @@ Rails.application.routes.draw do
     resources :user_groups do
       resources :users, only: [:create, :destroy], controller: 'user_groups/users'
     end
+    resources :user_trainings, only: [:edit, :update]
     resources :agencies
     resource :theme, only: [:edit, :update]
     resource :color, only: [:edit, :update]
@@ -851,7 +852,8 @@ Rails.application.routes.draw do
     resources :administrative_events, only: [:index, :new, :create, :edit, :update, :destroy]
     resources :warehouse_alerts
     resources :public_files, only: [:index, :create, :destroy]
-    resources :talentlms
+    resources :talentlms, only: [:index, :new, :create, :destroy, :edit, :update]
+    resources :talentlms_courses, only: [:new, :create, :destroy, :edit, :update]
 
     resources :delayed_jobs, only: [:index, :update, :destroy]
   end

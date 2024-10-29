@@ -1,0 +1,13 @@
+- title = 'Update TalentLMS Course'
+- content_for :title, title
+
+= render 'breadcrumbs'
+.row
+  .col-sm-4
+    %h1= content_for :title
+
+= simple_form_for @course, url: admin_talentlms_course_path(@course.id) do |f|
+  = f.error_notification
+  = render 'form', f: f
+  .form_actions.mt-4
+    = f.submit 'Save Course'

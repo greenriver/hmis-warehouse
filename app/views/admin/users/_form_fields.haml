@@ -70,16 +70,6 @@
       %h3 Permission Scheme
       .well
         = f.input :permission_context, as: :select_two, label: 'Permission Version', hint: 'Unless you know what you are doing, you should leave this as "Role-Based Access" for the time-being.', collection: User.available_permission_contexts.invert, include_blank: false
-
-    - if @user.training_required?
-      .form--user-training
-        %h3 User Training
-        .well
-          %p
-            Course Progress:
-            %i #{@user.training_status}
-          - unless @user.last_training_completed.present?
-            = f.input :training_completed, label: 'Check to OVERRIDE course completion requirement'
     - if RailsDrivers.loaded.include?(:superset) && Superset.available?
       .form-access-control
         %h3 OP Analytics Superset Configuration
