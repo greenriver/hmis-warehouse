@@ -15,6 +15,7 @@ class PurgeSoftDeletedRecordsJob < BaseJob
       @total_deleted = 0
       @max_deleted = max_deleted
       @retain_at = retain_at
+      @dry_run = dry_run
       catch(:halt) do
         data_sources.order(:id).each do |data_source|
           models.each do |model|
@@ -94,11 +95,11 @@ class PurgeSoftDeletedRecordsJob < BaseJob
         dependents(model).each do |dependent_scope|
           dependent_scope = dependent_scope.merge(rel)
           check_max_deleted(dependent_scope.size)
-          dependent_scope.delete_all
+          dependent_scope.delete_all unless @dry_run
         end
 
         check_max_deleted(rel.size)
-        rel.delete_all
+        rel.delete_all unless @dry_run
       end
     end
   end
