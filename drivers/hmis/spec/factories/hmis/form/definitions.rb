@@ -114,6 +114,14 @@ FactoryBot.define do
               field_name: 'exitDate',
             },
           },
+          {
+            type: 'CHOICE',
+            link_id: 'exit_destination',
+            mapping: {
+              record_type: 'EXIT',
+              field_name: 'destination',
+            },
+          },
         ],
       }
     end
@@ -404,6 +412,56 @@ FactoryBot.define do
                     "field_name": "dob",
                     "record_type": "CLIENT"
                   }
+                },
+                {
+                  "text": "Do you have a substance use disorder?",
+                  "type": "CHOICE",
+                  "link_id": "substance_use_disorder",
+                  "mapping": {
+                    "field_name": "substanceUseDisorder",
+                    "record_type": "DISABILITY_GROUP"
+                  },
+                  "component": "RADIO_BUTTONS",
+                  "disabled_display": "HIDDEN",
+                  "pick_list_options": [
+                    {
+                      "code": "NO",
+                      "label": "No"
+                    },
+                    {
+                      "code": "ALCOHOL_USE_DISORDER",
+                      "label": "Yes, alcohol use"
+                    },
+                    {
+                      "code": "DRUG_USE_DISORDER",
+                      "label": "Yes, drug use"
+                    },
+                    {
+                      "code": "BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS",
+                      "label": "Yes, both alcohol and drug use"
+                    }
+                  ]
+                },
+                {
+                  "text": "Do you have an HIV related diagnosis?",
+                  "type": "CHOICE",
+                  "link_id": "hiv_aids",
+                  "mapping": {
+                    "field_name": "hivAids",
+                    "record_type": "DISABILITY_GROUP"
+                  },
+                  "component": "RADIO_BUTTONS",
+                  "disabled_display": "HIDDEN",
+                  "pick_list_options": [
+                    {
+                      "code": "NO",
+                      "label": "No"
+                    },
+                    {
+                      "code": "YES",
+                      "label": "Yes"
+                    }
+                  ]
                 }
               ]
             }

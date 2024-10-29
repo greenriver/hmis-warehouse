@@ -29,6 +29,8 @@ class Hmis::BaseController < ActionController::Base
   end
 
   def current_hmis_host
+    raise 'cannot determine HMIS host because origin is missing' unless request.origin.present?
+
     URI.parse(request.origin).host
   end
 

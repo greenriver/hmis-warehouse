@@ -6,12 +6,7 @@
 
 class ClientHistory
   attr_reader :client, :user, :requesting_user, :years
-  def initialize(
-    client_id:,
-    user_id:,
-    years:
-  )
-
+  def initialize(client_id:, user_id:, years: 3)
     @user = User.system_user
 
     # The user that requested the PDF generation. If job was kicked off from CAS, this is nil.
@@ -19,7 +14,7 @@ class ClientHistory
     @years = years
 
     @client = ::GrdaWarehouse::Hud::Client.destination.find(client_id.to_i)
-    @dates = set_pdf_dates(client: @client, requesting_user: @requesting_user)
+    @dates = set_pdf_dates(client: @client, requesting_user: @requesting_user, years: years)
   end
 
   # Limit to Residential Homeless programs
@@ -32,6 +27,10 @@ class ClientHistory
 
   def ordered_dates
     dates.keys.sort
+  end
+
+  def lookback_date
+    @lookback_date ||= Date.current - years.years
   end
 
   def chronic
@@ -96,12 +95,7 @@ class ClientHistory
     end
   end
 
-  def set_pdf_dates(
-    client:,
-    requesting_user:,
-    dates: {},
-    years: 3
-  )
+  def set_pdf_dates(client:, requesting_user:, dates: {}, years: 3)
     client.enrollments_for_verified_homeless_history(user: requesting_user).
       homeless.
       enrollment_open_in_prior_years(years: years).
@@ -110,23 +104,32 @@ class ClientHistory
       each do |enrollment|
         project_type = enrollment.send(enrollment.class.project_type_column)
         project_name = enrollment.project&.name(requesting_user)
-        dates[enrollment.date] ||= []
-        record = {
-          record_type: enrollment.record_type,
-          project_type: project_type,
-          project_name: project_name,
-          organization_name: nil,
-          entry_date: enrollment.first_date_in_program,
-          exit_date: enrollment.last_date_in_program,
-        }
-        if project_name == ::GrdaWarehouse::Hud::Project.confidential_project_name
-          record[:organization_name] = 'Confidential'
-        else
-          record[:organization_name] = enrollment.organization.OrganizationName
+
+        # Only include data from the lookback date forward
+        if enrollment.date >= lookback_date
+          dates[enrollment.date] ||= []
+          record = {
+            record_type: enrollment.record_type,
+            project_type: project_type,
+            project_name: project_name,
+            organization_name: nil,
+            entry_date: enrollment.first_date_in_program,
+            exit_date: enrollment.last_date_in_program,
+          }
+          if project_name == ::GrdaWarehouse::Hud::Project.confidential_project_name
+            record[:organization_name] = 'Confidential'
+          else
+            record[:organization_name] = enrollment.organization.OrganizationName
+          end
+          dates[enrollment.date] << record
         end
-        dates[enrollment.date] << record
-        enrollment.service_history_services.service_in_prior_years(years: years).
+
+        enrollment.
+          service_history_services.service_in_prior_years(years: years).
           each do |service|
+          # Only include data from the lookback date forward
+          next if service.date < lookback_date
+
           dates[service.date] ||= []
           record = {
             record_type: service.record_type,

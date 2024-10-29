@@ -37,14 +37,15 @@ class IdentifyExternalClientsJob < BaseJob
       s3.list_objects(prefix: inbox_path).each do |input_object|
         input_key = input_object.key
 
-        # Disabling content check, file is a CSV but coming back as a bytestream
-        # content_type = s3.get_file_type(key: input_key)
-        # if content_type.present? && content_type != 'text/csv'
-        #   log("invalid content type #{content_type}", object_key: input_key)
-        #   next
-        # end
-
         data_string = s3.get_as_io(key: input_key)&.read
+        content_type = FileMagic.new(FileMagic::MAGIC_MIME_TYPE).buffer(data_string)
+        # If we didn't find a file (or are looking at a directory), just skip
+        next if content_type == 'application/x-empty'
+
+        if ! content_type.in?(['text/csv', 'text/plain'])
+          log("invalid content type #{content_type}", object_key: input_key)
+          next
+        end
 
         input_rows = data_string ? parse_csv_string(data_string, key: input_key) : nil
         if input_rows.blank?
@@ -53,16 +54,11 @@ class IdentifyExternalClientsJob < BaseJob
         end
 
         output_rows = input_rows.map { |row| process_row(row, external_id_field) }.compact
-        if output_rows.empty?
-          log('skipping empty output', object_key: input_key)
-          next
-        end
-
         log("matched #{output_rows.size} of #{input_rows.size} rows", type: :info, object_key: input_key)
 
         # s3.store raises on failure
         s3.store(
-          content: format_as_csv(output_rows.compact),
+          content: format_as_csv(output_rows.compact, external_id_field),
           name: upload_name(input_key, prefix: outbox_path),
           content_type: 'text/csv; charset=utf-8',
         )
@@ -153,13 +149,11 @@ class IdentifyExternalClientsJob < BaseJob
     best_match
   end
 
-  def format_as_csv(rows)
-    return if rows.empty?
-
-    headers = rows.first.keys
+  def format_as_csv(rows, external_id_field)
+    headers = rows&.first&.keys || [external_id_field, 'Client ID']
     CSV.generate do |csv|
       csv << headers
-      rows.each do |row|
+      rows&.each do |row|
         csv << headers.map { |header| row[header] }
       end
     end
@@ -167,5 +161,11 @@ class IdentifyExternalClientsJob < BaseJob
 
   def log(message, object_key:, type: :error)
     Rails.logger.send(type, "#{self.class.name} s3:#{object_key}: #{message}")
+    return unless type == :error
+
+    Sentry.capture_exception_with_info(
+      StandardError.new(message),
+      info: { object_key: object_key },
+    )
   end
 end

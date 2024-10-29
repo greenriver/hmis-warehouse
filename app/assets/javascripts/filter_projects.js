@@ -18,6 +18,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       'organizations',
       'projectGroups',
       'funderIds',
+      'funderOthers',
       'cocCodes',
       'calculatedProjects',
       'missingItems',
@@ -87,6 +88,10 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       const val = $(this.funderIdsTarget).val();
       if (val) data.funder_ids = Array.isArray(val) ? val : [val];
     }
+    if (this.hasFunderOthersTarget) {
+      const val = $(this.funderOthersTarget).val();
+      if (val) data.funder_others = Array.isArray(val) ? val : [val];
+    }
     if (this.hasCocCodesTarget) {
       const val = $(this.cocCodesTarget).val();
       if (val) data.coc_codes = Array.isArray(val) ? val : [val];
@@ -142,6 +147,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       this.projectGroupsTarget,
     ];
     if (this.hasFunderIdsTarget) targets.push(this.funderIdsTarget);
+    if (this.hasFunderOthersTarget) targets.push(this.funderOthersTarget);
     if (this.hasCocCodesTarget) targets.push(this.cocCodesTarget);
     if (this.hasOrganizationsTarget) targets.push(this.organizationsTarget);
 

@@ -252,13 +252,15 @@ module Filter::FilterScopes
     end
 
     private def filter_for_funders(scope)
-      return scope if @filter.funder_ids.blank?
-      return scope unless @filter.user.report_filter_visible?(:funder_ids)
+      return scope if @filter.funder_ids.blank? && @filter.funder_others.blank?
+      return scope unless @filter.user.report_filter_visible?(:funder_ids) || @filter.user.report_filter_visible?(:funder_others)
 
-      project_ids = GrdaWarehouse::Hud::Funder.viewable_by(@filter.user, permission: :can_view_assigned_reports).
-        where(Funder: @filter.funder_ids).
-        joins(:project).
-        select(p_t[:id])
+      funder_scope = GrdaWarehouse::Hud::Funder.
+        viewable_by(@filter.user, permission: :can_view_assigned_reports).
+        joins(:project)
+      funder_scope = funder_scope.where(Funder: @filter.funder_ids) if @filter.funder_ids.any?
+      funder_scope = funder_scope.where(OtherFunder: @filter.funder_others) if @filter.funder_others.any?
+      project_ids = funder_scope.select(p_t[:id])
       scope.in_project(project_ids)
     end
 

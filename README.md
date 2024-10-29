@@ -152,19 +152,27 @@ These "HUD Keys" are used to link HMIS records together. We always use [composit
 
 #### What's the difference between `GrdaWarehouse::Hud::Enrollment` and `Hmis::Hud::Enrollment` models?
 
-Both models are backed by the same table. We have separate model classes for the Warehouse and HMIS to encapsulate different logic. Shared logic is present in concerns (`app/models/concerns/hud_concerns`).
+Both models are backed by the same table. We have separate model classes for the Warehouse and HMIS to encapsulate different logic. Shared logic is present in concerns (`app/models/concerns/hud_concerns`). 
+
+To translate between them, you can use the `as_warehouse` and `as_hmis` helper methods.
 
 #### What's the difference between the `User` and `users` tables? Whats the `UserID` column all about?
 
 | Database | Table name | Warehouse Model | HMIS Model | Usage |
 | -------- | -------- | ------- | ------- |------- |
-| `app` | `users` | `User`     | `Hmis::User` | This is the rails application user. Each record represents a user that can log into the application. These users have access controls, audit histories, and so on.
-| `warehouse` | `User`  | `GrdaWarehouse::Hud::User`    | `Hmis::Hud::User` | These records are imported from external HMIS data sources, or generated from the OP HMIS. Imported records oftentimes do NOT correspond to any "real" application user. Table structure comes from `User.csv` specification. The `UserID` column from this table is present on all the other CSV-structured tables. In HUD's words, "UserID in this file is used to associate data in other CSV files with a specific user."
+| `app` | `users` | `User`     | `Hmis::User` | This is the rails application user. Each record represents a user that can log into the application. These users have access controls, audit histories, and so on. If a user has access to multiple OP HMIS installations within one single warehouse, there will still just be one row in the `users` table for that user, and they'll use the same credentials to log in on each installation.
+| `warehouse` | `User`  | `GrdaWarehouse::Hud::User`    | `Hmis::Hud::User` | These records are imported from external HMIS data sources, or generated from the OP HMIS. Imported records oftentimes do NOT correspond to any "real" application user. Table structure comes from `User.csv` specification. The `UserID` column from this table is present on all the other CSV-structured tables. In HUD's words, "UserID in this file is used to associate data in other CSV files with a specific user." When an HMIS application user touches a record, we generate a corresponding User record if it doesn't exist already
 
 #### What's the deal with the `Custom<Something>` tables?
 
 There are some tables used by OP HMIS that _look_ like CSV-structured tables, but they're not defined by the HUD spec. For example: `CustomAssessments`, `CustomClientAddress`, `CustomClientName`, etc.
 The CSV specs have a "Custom file transfer template" indicating that HMIS systems can export custom data in files `Custom*.csv` as long as they follow the basic HUD-style format (using EnrollmentID, DateUpdated, DateCreated, etc.). Because of that, we decided to implement some of the custom HMIS data tables using this pseudo-HMIS-CSV structure.
+
+#### How are permissions checked on GraphQL queries and mutations?
+
+- Most HMIS records have a scope called `viewable_by`. Always use this scope when looking up a record. Most HMIS records' `viewable_by` scopes also perform a filter on `current_user.hmis_data_source_id`, ensuring that objects from other HMIS data sources are not included.
+- When checking permissions, 90% of the time we want to check against a specific entity. (E.g. "can the user edit THIS enrollment?", not just "can the user edit any enrollments?"). The preferred way to do this is using `current_permission?(permission:, entity:)` because it uses the Graphql data loader and also ensures that the entity belongs to the correct data source.
+- For nodes that are resolved from lots of places in the graph (and have PII), add object-level authorization to the object type (`def self.authorized?`). These are a secondary check to ensure the presence of the minimal permissions needed to resolve the object.
 
 # How to Create a New Report
 

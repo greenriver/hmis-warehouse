@@ -96,6 +96,7 @@ module LongitudinalSpm
           :project_group_ids,
           :data_source_ids,
           :funder_ids,
+          :funder_others,
           :hoh_only,
         ],
       )

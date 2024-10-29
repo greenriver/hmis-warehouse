@@ -132,6 +132,10 @@ module
           value: @filter.funder_names,
         )
         section.add_control(
+          id: 'funding_other_sources',
+          value: @filter.funder_others,
+        )
+        section.add_control(
           id: 'data_sources',
           value: @filter.data_source_names,
         )
@@ -161,6 +165,10 @@ module
         section.add_control(
           id: 'funding_sources',
           value: @filter.funder_names,
+        )
+        section.add_control(
+          id: 'funding_other_sources',
+          value: @filter.funder_others,
         )
       end
     end

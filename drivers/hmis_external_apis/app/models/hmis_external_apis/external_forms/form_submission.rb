@@ -76,6 +76,11 @@ module HmisExternalApis::ExternalForms
       raw_data.reject { |key, _| EXTRANEOUS_KEYS.include?(key) }
     end
 
+    # Consider external form submissions to have "Project Entry" data collection stage, because they may generate new Enrollments. This method is used by the form processor to set DataCollectionStage on related records that are produced, such as Disability records.
+    def data_collection_stage
+      1
+    end
+
     # Run a FormProcessor against the values, to build related records (such as CustomDataElements, Enrollment, etc). It does not save the related records.
     # Note: project is only needed if the form creates Enrollments. If the form only generates CDEs, it doesn't need a project. (it can retrieve the data source ID from current_user)
     def run_form_processor(current_user, project: nil)
@@ -113,6 +118,7 @@ module HmisExternalApis::ExternalForms
         values_to_process.delete('Enrollment.relationshipToHoH')
 
         build_enrollment(
+          enrollment_id: Hmis::Hud::Base.generate_uuid,
           project: project,
           data_source: project.data_source,
           entry_date: created_at,

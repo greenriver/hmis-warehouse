@@ -54,7 +54,13 @@ module ClientAccessControl
     end
 
     def pdf
-      @client_history = ClientHistory.new(client_id: params[:client_id].to_i, user_id: params[:user_id].to_i, years: params[:years]&.to_i)
+      options = {
+        client_id: params[:client_id].to_i,
+        user_id: params[:user_id].to_i,
+      }
+      options[:years] = params[:years].to_i if params[:years].present?
+
+      @client_history = ClientHistory.new(**options)
       # set @client for when this method is called outside of the controller context.
       @client ||= @client_history.client
 

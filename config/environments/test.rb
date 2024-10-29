@@ -3,14 +3,22 @@ require 'active_support/core_ext/integer/time'
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
-  config.cache_classes = true
-  config.action_view.cache_template_loading = true
+  # enable reloading if we're using spring. Note
+  # note, newer versions of rails replace config.cache_classes with enable_reloading
+  if ENV['DISABLE_SPRING'].present?
+    config.cache_classes = true
+  else
+    # spring enabled
+    config.cache_classes = false
+  end
 
-  config.cache_store = :null_store
   # Do not eager load code on boot. This avoids loading your whole application
   # just for the purpose of running a single test. If you are using a tool that
   # preloads Rails for running tests, you may have to set it to true.
   config.eager_load = false
+
+  config.action_view.cache_template_loading = true
+  config.cache_store = :null_store
 
   # Configure public file server for tests with Cache-Control for performance.
   config.public_file_server.enabled = true

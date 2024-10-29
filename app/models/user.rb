@@ -73,8 +73,10 @@ class User < ApplicationRecord
     # Provide a scope for each permission to get any user who qualifies
     # e.g. User.can_administer_health
     scope permission, -> do
-      joins(:legacy_roles).
-        merge(Role.where(permission => true))
+      roles = Role.where(permission => true)
+      legacy = User.joins(:legacy_roles).merge(roles)
+      acl = User.joins(:roles).merge(roles)
+      where(id: legacy.select(:id)).or(where(id: acl.select(:id)))
     end
   end
 

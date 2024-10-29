@@ -102,6 +102,7 @@ jobs:
       DATABASE_USER: postgres
       DATABASE_WAREHOUSE_DB_TEST: warehouse_test
       DEFAULT_FROM: greenriver.testing@mailinator.com
+      DISABLE_SPRING: 1
       ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
       FQDN: openpath.host
       HEALTH_DATABASE_ADAPTER: postgresql

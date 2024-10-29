@@ -82,6 +82,12 @@ class AwsS3
     end
   end
 
+  def count(prefix: '')
+    # Note that this DOES still call list_objects_v2 internally, but ignores the 1000 key limit.
+    # See https://stackoverflow.com/questions/2862617/how-can-i-tell-how-many-objects-ive-stored-in-an-s3-bucket
+    @bucket.objects(prefix: prefix).count
+  end
+
   # Return oldest first
   def fetch_key_list(prefix: '')
     @bucket.objects(prefix: prefix).sort_by(&:last_modified).map(&:key)
