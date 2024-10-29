@@ -20,7 +20,7 @@ module Mutations
 
       project = Hmis::Hud::Project.find_by(id: projects&.first)
       raise 'Not found' unless project.present?
-      raise 'Access denied' unless current_user.permissions_for?(project, :can_manage_inventory)
+      raise 'Access denied' unless current_user.permissions_for?(project, :can_manage_units)
 
       units = Hmis::Unit.where(id: unit_ids).preload(:unit_type)
       unit_types = units.map(&:unit_type).uniq.compact

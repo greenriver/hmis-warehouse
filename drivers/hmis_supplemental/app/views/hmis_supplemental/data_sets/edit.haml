@@ -1,0 +1,7 @@
+= render partial: 'breadcrumbs'
+
+.o-page
+  .o-page__title
+    - content_for :title, "Edit HMIS Supplemental Data Set"
+    %h1= content_for :title
+  = render 'form', data_set: @data_set

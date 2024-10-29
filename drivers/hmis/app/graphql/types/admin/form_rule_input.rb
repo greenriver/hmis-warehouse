@@ -26,9 +26,9 @@ module Types
         custom_service_type_id: service_type_id,
         custom_service_category_id: service_category_id,
       }
-      attrs[:entity] = if project_id
+      attrs[:entity] = if project_id.present?
         Hmis::Hud::Project.viewable_by(current_user).find(project_id)
-      elsif organization_id
+      elsif organization_id.present?
         Hmis::Hud::Organization.viewable_by(current_user).find(organization_id)
       end
       attrs

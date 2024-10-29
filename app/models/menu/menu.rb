@@ -75,7 +75,7 @@ class Menu::Menu
     Menu::Item.new(
       user: user,
       visible: ->(user) { RailsDrivers.loaded.include?(:superset) && Superset.available? && GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(user).where(url: 'superset/warehouse_reports/reports').exists? },
-      path: Superset.superset_base_url,
+      path: Superset.warehouse_login_url,
       title: Translation.translate('OP Analytics'),
       id: 'superset',
       target: :_blank,
@@ -618,13 +618,14 @@ class Menu::Menu
   end
 
   def hmis_menu
-    # NOTE: eventually we should use the data source name here, maybe concatenated with HMIS, but currently that would be HMIS HMIS
-    GrdaWarehouse::DataSource.hmis.distinct.map do |hmis_ds|
+    hmis_data_sources = GrdaWarehouse::DataSource.hmis
+    hmis_data_sources.map do |hmis_ds|
+      default_link_text = hmis_data_sources.size == 1 ? 'Open HMIS' : "Open #{hmis_ds.short_name}"
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.any_hmis_access? },
+        visible: ->(user) { user.can_access_hmis_data_source?(hmis_ds.id) },
         path: "//#{hmis_ds.hmis}",
-        title: Translation.translate('Open HMIS'),
+        title: Translation.translate(default_link_text),
         icon: 'icon-link-ext',
         target: :_blank,
       )

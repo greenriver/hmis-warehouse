@@ -88,10 +88,10 @@ WORKDIR /app
 
 RUN gem update --system \
   && gem install bundler --version=${BUNDLER_VERSION} \
-	&& bundle config set --local path /bundle \
+  && bundle config set --local path /bundle \
   && chown -R app-user:app-user /bundle \
-	&& echo 'America/New_York' > /etc/timezone \
-	&& chmod a+w /etc/timezone
+  && echo 'America/New_York' > /etc/timezone \
+  && chmod a+w /etc/timezone
 
 USER ${USER_ID}
 
@@ -107,12 +107,13 @@ USER root
 
 COPY docker/app/entrypoint.dev.sh /usr/bin/
 COPY docker/app/entrypoint.spec.sh /usr/bin/
+COPY docker/app/entrypoint.dj-eks-test.sh /usr/bin/
 ENTRYPOINT ["/usr/bin/entrypoint.dev.sh"]
 
 RUN git config --global --add safe.directory /app \
   && apk update \
   && apk add --no-cache \
-    neovim less docker python3 zsh openssh \
+     neovim less docker python3 zsh openssh \
   && rm -rf /var/cache/apk/*
 
 USER ${USER_ID}

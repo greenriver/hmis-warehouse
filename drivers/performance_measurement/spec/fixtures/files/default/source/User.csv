@@ -1,0 +1,2 @@
+UserID,UserFirstName,UserLastName,UserPhone,UserExtension,UserEmail,DateCreated,DateUpdated,DateDeleted,ExportID
+user,First,,,,,2022-01-01 00:00:00,2022-01-01 00:00:00,,EXPORT

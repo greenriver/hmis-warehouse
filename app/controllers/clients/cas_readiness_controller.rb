@@ -15,7 +15,6 @@ module Clients
     after_action :log_client
 
     def edit
-      @neighborhoods = CasAccess::Neighborhood.order(:name).pluck(:id, :name) if CasBase.db_exists? && RailsDrivers.loaded.include?(:cas_access)
     end
 
     background_render_action(:render_content, ::BackgroundRender::CasReadinessJob) do
@@ -25,12 +24,6 @@ module Clients
         token: form_authenticity_token,
       }
     end
-
-    # used to background load the content for edit so we don't get 504s
-    # def render_content
-    #   @neighborhoods = CasAccess::Neighborhood.order(:name).pluck(:id, :name) if CasBase.db_exists? && RailsDrivers.loaded.include?(:cas_access)
-    #   render(layout: false) if request.post?
-    # end
 
     def update
       update_params = cas_readiness_params

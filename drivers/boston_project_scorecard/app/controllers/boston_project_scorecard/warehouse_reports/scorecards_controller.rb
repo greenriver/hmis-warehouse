@@ -96,8 +96,9 @@ module BostonProjectScorecard::WarehouseReports
     end
     helper_method :workflow_action
 
-    def link_to_apr(text, question)
-      helpers.link_to_if(current_user.can_view_hud_reports && @report.apr_id.present?, text, result_hud_reports_apr_question_path(@report.apr_id || 0, question), target: :blank)
+    def link_to_apr(text, question, comparison: false)
+      apr_id = comparison ? @report.comparison_apr_id : @report.apr_id
+      helpers.link_to_if(current_user.can_view_hud_reports && apr_id.present?, text, result_hud_reports_apr_question_path(apr_id || 0, question), target: :blank)
     end
     helper_method :link_to_apr
 

@@ -7,7 +7,7 @@
 # This information is available from the Shape::State model too
 module GrdaWarehouse
   module UsCensusApi
-    class StateFips < Struct.new(:state_code)
+    class StateFips < Struct.new(:state_code) # rubocop:disable Style/StructInheritance
       def code
         result = {
           'AL' => '01', # Alabama
@@ -18,6 +18,7 @@ module GrdaWarehouse
           'CO' => '08', # Colorado
           'CT' => '09', # Connecticut
           'DE' => '10', # Delaware
+          'DC' => '11', # Washington DC
           'FL' => '12', # Florida
           'GA' => '13', # Georgia
           'HI' => '15', # Hawaii
@@ -67,13 +68,10 @@ module GrdaWarehouse
           'VI' => '78', # Virgin Islands
         }[state_code]
 
-        if result
-          result
-        else
-          raise "#{state_code} is not a valid code"
-        end
+        raise "#{state_code} is not a valid code" unless result
+
+        result
       end
     end
   end
-
 end

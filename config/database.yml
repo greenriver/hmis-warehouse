@@ -4,7 +4,24 @@
 # https://github.com/rails/rails/issues/38924#issuecomment-612881746
 # i have to unroll some parts so that it's simple enough for rails to figure out that I want to use multi-db
 
+global_pg_db_config: &global_pg_db_config
+  variables:
+    # random_page_cost: Cost of a non-sequentially fetched disk page
+    # Set to 1.1 because our databases use SSDs, making random access almost as efficient as sequential.
+    # This setting helps the query planner make more accurate decisions about index usage.
+    random_page_cost: 1.1
+    # seq_page_cost: Cost of a sequentially fetched disk page
+    # Set to 1 (default value) to maintain consistency with our adjusted random_page_cost.
+    # This ensures a balanced cost model for the query planner when comparing sequential vs. index scans.
+    seq_page_cost: 1
+    # work_mem: Memory used for sort operations and hash tables per operation
+    # Increased to 8MB to potentially improve performance for queries involving large sorts or hash operations.
+    # Be cautious: setting this too high can lead to excessive memory usage, especially on busy systems with many concurrent operations.
+    # Monitor memory usage and adjust as needed based on your workload and available resources.
+    work_mem: 8MB
+
 default_app_db: &default_app_db
+  <<: *global_pg_db_config
   adapter: <%= ENV['DATABASE_ADAPTER'] %>
   pool: 5
   timeout: 5000
@@ -22,6 +39,7 @@ default_app_db: &default_app_db
   <% end %>
 
 default_warehouse_db: &default_warehouse_db
+  <<: *global_pg_db_config
   adapter: <%= ENV['WAREHOUSE_DATABASE_ADAPTER'] %>
   pool: 5
   timeout: 5000
@@ -39,6 +57,7 @@ default_warehouse_db: &default_warehouse_db
   <% end %>
 
 default_health_db: &default_health_db
+  <<: *global_pg_db_config
   adapter: <%= ENV['HEALTH_DATABASE_ADAPTER'] %>
   pool: 5
   timeout: 5000
@@ -56,6 +75,7 @@ default_health_db: &default_health_db
   <% end %>
 
 default_reporting_db: &default_reporting_db
+  <<: *global_pg_db_config
   adapter: <%= ENV['REPORTING_DATABASE_ADAPTER'] %>
   pool: 5
   timeout: 5000
@@ -73,6 +93,7 @@ default_reporting_db: &default_reporting_db
   <% end %>
 
 default_cas_db: &default_cas_db
+  <<: *global_pg_db_config
   adapter: <%= ENV['CAS_DATABASE_ADAPTER'] %>
   pool: 5
   timeout: 5000

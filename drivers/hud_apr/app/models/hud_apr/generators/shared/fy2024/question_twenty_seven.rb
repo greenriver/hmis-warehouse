@@ -35,8 +35,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def youth_filter
-      a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(false)).
-        and(a_t[:dob_quality].in([1, 2]))
+      a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(false))
     end
 
     private def q27a_youth_age
@@ -455,12 +454,12 @@ module HudApr::Generators::Shared::Fy2024
           value = 0
           case method
           when :average
-            value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any?
+            value = (stay_lengths.sum(0.0) / stay_lengths.count).round(2) if stay_lengths.any?
           when :median
             if stay_lengths.any?
               sorted = stay_lengths.sort
               length = stay_lengths.count
-              value = ((sorted[(length - 1) / 2] + sorted[length / 2]) / 2.0).round
+              value = ((sorted[(length - 1) / 2] + sorted[length / 2]) / 2.0).round(2)
             end
           end
 

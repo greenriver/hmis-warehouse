@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 7.0.8.1'
+gem 'rails', '~> 7.0.8.5'
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
 # gem 'rails_drivers', path: '/usr/local/bundle/tmp/rails_drivers'
 gem 'rack', '>= 2.2.8.1'
@@ -20,6 +20,7 @@ gem 'pg'
 gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
 gem 'order_as_specified'
+gem 'pghero'
 
 gem 'activerecord', '>= 6.1.7.3' # for CVE-2023-22796
 gem 'active_record_extended'
@@ -111,10 +112,12 @@ gem 'lograge'
 gem 'logstop'
 
 # Metrics
+gem 'prometheus-client'
 gem 'yabeda-rails'
 gem 'yabeda-prometheus'
 gem 'yabeda-puma-plugin'
 gem 'yabeda-http_requests'
+gem 'sinatra'
 
 gem 'activerecord-session_store'
 gem 'attribute_normalizer'
@@ -239,6 +242,7 @@ gem 'sentry-ruby'
 gem 'sentry-delayed_job'
 gem 'warning'
 gem 'hashdiff'
+gem 'k8s-ruby'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
@@ -251,11 +255,11 @@ group :development, :test do
   gem 'vcr'
   gem 'webmock'
   gem 'deprecation_toolkit', require: false
+  gem 'spring'
+  gem 'spring-watcher-listen'
 end
 
 group :development do
-  # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
-  gem 'spring', require: false
   gem 'html2haml', require: false
   gem 'capistrano-bundler', require: false
   gem 'capistrano-rvm', require: false
@@ -303,6 +307,7 @@ group :test do
   gem 'db-query-matchers'
   gem 'simplecov', require: false
   # gem 'simplecov-console'
+  gem 'spring-commands-rspec'
 end
 
 group :development, :staging, :test do

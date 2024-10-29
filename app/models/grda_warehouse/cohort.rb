@@ -15,6 +15,8 @@ module GrdaWarehouse
     include Rails.application.routes.url_helpers
 
     acts_as_paranoid
+    has_paper_trail
+
     validates_presence_of :name
     validates :days_of_inactivity, numericality: { only_integer: true, allow_nil: true }
     validates :static_column_count, numericality: { only_integer: true }
@@ -725,6 +727,23 @@ module GrdaWarehouse
 
     def auto_maintained?
       project_group.present?
+    end
+
+    def selected_project_group_viewable_by(user)
+      return true if project_group.blank?
+
+      GrdaWarehouse::ProjectGroup.viewable_by(user).exists?(project_group.id)
+    end
+
+    def project_group_options_for_select(user)
+      options = GrdaWarehouse::ProjectGroup.options_for_select(user: user)
+      # Add the current selected option to the selectable list so it doesn't get overwritten
+      # if the user has the ability to edit the cohort but can't view the selected project group
+      if project_group.present? && !selected_project_group_viewable_by(user)
+        current_selected_data = [[project_group.name, project_group.id]]
+        options |= current_selected_data
+      end
+      options.sort
     end
 
     def maintain

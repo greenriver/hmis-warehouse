@@ -13,7 +13,7 @@
     .mb-2
       %dt.inline Case Worker:
       %dd.inline= @assessment.user&.name
-  - if @client.patient.current_qa_factory.ca_completed_qa.present?
+  - if @assessment.ca_completed_qa?
     .col.pull-right
       CA Approved
       .mt-4

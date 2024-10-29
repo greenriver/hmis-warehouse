@@ -579,7 +579,7 @@ module GrdaWarehouse::Hud
     scope :race_none, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:RaceNone].eq(1)).
+          where(c_t[:RaceNone].in([8, 9, 99])).
           select(:destination_id),
       )
     end
@@ -1144,6 +1144,12 @@ module GrdaWarehouse::Hud
 
     def full_or_partial_release?
       release_valid? || partial_release?
+    end
+
+    def consent_view_permission
+      return unless GrdaWarehouse::Config.implied_consent?
+
+      active_consent_model.consent_view_permission
     end
 
     def consent_form_valid?

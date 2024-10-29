@@ -42,18 +42,20 @@
       %td= @report.invoicing_accuracy_score
     %tr
       %td
-        12. Is the project efficient with funds? Does the cost per person served in each project (include HUD funds and match total and compare standard practice: $19,968 per person for PSH projects, $13,566 for RRH projects.)
+        12. Is the project efficient with funds? Is the cost per household served in the project (using the total grant award) aligned with the average cost per household across the CoC portfolio? ($19,497 per household for PSH and $14,022 per household for RRH)
       %td
-        Project Application Budget
-        %p
-        Most Recently Completed Grant Year Spend divided by Total Number of Persons Served
-      %td
-        6 pts: if standard is met and funding is equal to or less than per person ratio
+        Project APR
         %br
-        0 pts: if not met and more funds per person
+        Q07a: Number of Households Served
+        %br
+        Q28 Financial Information: Total Expenditures
+      %td
+        6 pts: if standard is met and funding is equal to or less than per household ratio
+        %br
+        0 pts: if not met and more funds per household
       %td
         = f.input :amount_agency_spent, label: 'Most Recently Completed Grant Year Spend ($)'
-        = f.input :actual_households_served, label: 'Actual persons served during the grant year'
+        = f.input :actual_households_served, label: 'Actual households served during the grant year'
         %p
         - if @report.cost_efficiency_value.present?
           = "$#{@report.cost_efficiency_value} / Household Served"

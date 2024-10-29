@@ -39,13 +39,14 @@
           }
         },
         {
-          "type": "STRING",
+          "type": "OPEN_CHOICE",
           "required": true,
           "link_id": "other",
           "text": "Other Funder",
           "mapping": {
             "field_name": "otherFunder"
           },
+          "pick_list_reference": "OTHER_FUNDERS",
           "enable_behavior": "ALL",
           "enable_when": [
             {

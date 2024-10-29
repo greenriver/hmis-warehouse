@@ -29,6 +29,9 @@ module HmisCsvTwentyTwentyFour::Importer
 
     def self.hmis_validations
       {
+        PersonalID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
         NameDataQuality: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,

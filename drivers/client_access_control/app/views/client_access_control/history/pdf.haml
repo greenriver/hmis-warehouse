@@ -20,13 +20,13 @@
       %li= "Does not include any possible current Rapid Re-Housing enrollment"
     .history__counts
       .history__counts-by-org
-        %strong Total number of Bed Nights across all Residential Programs at each organization
+        %strong Total number of Bed Nights across all Residential Programs at each organization since #{@client_history.lookback_date}
         %ul
           - @client_history.organization_counts.each do |org_name, count|
             %li
               #{org_name}: #{pluralize count, 'days'}
       .history__counts-by-type
-        %strong Total number of Bed Nights across all Residential Programs in each project type
+        %strong Total number of Bed Nights across all Residential Programs in each project type since #{@client_history.lookback_date}
         %ul
           - @client_history.project_type_counts.each do |type, count|
             %li

@@ -40,6 +40,7 @@ class Hmis::Hud::Exit < Hmis::Hud::Base
   end
 
   private def warehouse_columns_changed?
-    (saved_changes.keys & ['ExitDate', 'DateDeleted']).any?
+    # Re-process when there are changes to any fields used in GrdaWarehouse::Tasks::ServiceHistory rebuild_service_history
+    (saved_changes.keys & ['ExitDate', 'Destination', 'HousingAssessment', 'DateDeleted']).any?
   end
 end

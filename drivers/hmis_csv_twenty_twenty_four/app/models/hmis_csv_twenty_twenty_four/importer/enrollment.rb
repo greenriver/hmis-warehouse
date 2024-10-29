@@ -62,6 +62,9 @@ module HmisCsvTwentyTwentyFour::Importer
 
     def self.hmis_validations
       {
+        EnrollmentID: [
+          class: HmisCsvImporter::HmisCsvValidation::NonBlank,
+        ],
         PersonalID: [
           class: HmisCsvImporter::HmisCsvValidation::NonBlank,
         ],

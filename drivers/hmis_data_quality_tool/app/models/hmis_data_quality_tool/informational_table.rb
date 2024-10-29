@@ -37,6 +37,12 @@ module HmisDataQualityTool
         xlsx_styles: { format_code: '0%' },
       },
       {
+        title: 'Percent of Exits to Permanent Destinations',
+        description: 'The percentage of everyone with an exit date that was to a permanent destination.',
+        value_meth: :destination_permanent,
+        xlsx_styles: { format_code: '0%' },
+      },
+      {
         title: 'Percent of Exits to Other Destinations',
         description: 'The percentage of everyone with an exit date that was to a destination in the category other.',
         value_meth: :destination_other,
@@ -76,6 +82,11 @@ module HmisDataQualityTool
 
     def destination_temporary
       v = @report.destination_percent('destination_temporary')
+      @format == :xlsx ? v / 100.0 : "#{number_with_delimiter(v)}%"
+    end
+
+    def destination_permanent
+      v = @report.destination_percent('destination_permanent')
       @format == :xlsx ? v / 100.0 : "#{number_with_delimiter(v)}%"
     end
 

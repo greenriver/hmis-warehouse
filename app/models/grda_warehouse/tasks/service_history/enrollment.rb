@@ -60,7 +60,12 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def invalidate_source_data!
-      update(processed_as: nil)
+      # Invalidate all enrollments for this household if this enrollment is being invalidated
+      if self.HouseholdID.present?
+        self.class.where(data_source_id: data_source_id, HouseholdID: self.HouseholdID).update_all(processed_as: nil)
+      else
+        update(processed_as: nil)
+      end
     end
 
     def service_history_valid?
@@ -613,7 +618,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def service_type_from_project_type(project_type)
       # ProjectType
-      # 1 Emergency Shelter
+      # 0 Emergency Shelter - Entry Exit
+      # 1 Emergency Shelter - Night-by-Night
       # 2 Transitional Housing
       # 3 PH - Permanent Supportive Housing
       # 4 Street Outreach
@@ -640,7 +646,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # 200 Bed night   (none)
 
       # We will infer a bed night if the project type is housing related, everything else is nil for now
-      housing_related = [1, 2, 3, 4, 8, 9, 10, 13]
+      housing_related = [0, 1, 2, 3, 4, 8, 9, 10, 13]
       return 200 if housing_related.include?(project_type)
 
       nil
@@ -690,7 +696,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def head_of_household?
-      @head_of_household ||= (self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1) # 1 = Self
+      @head_of_household ||= self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1 # 1 = Self
     end
 
     def nbn_tracking?

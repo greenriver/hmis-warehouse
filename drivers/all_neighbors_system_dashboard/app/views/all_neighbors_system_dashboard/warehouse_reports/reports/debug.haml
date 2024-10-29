@@ -18,7 +18,7 @@
       = f.input :date, collection: months, include_blank: false, selected: start_date, label: false
     .col-sm-3
       = f.submit 'Update'
-%h2 Placments between #{start_date} & #{end_date}
+%h2 Placements between #{start_date} & #{end_date}
 - if enrollments.present?
   - headers = enrollments.first.debug_column_names.values
   .d-flex.mb-4

@@ -79,7 +79,7 @@ module Health
         pluck(:careplan_completed_qa_id, :id).
         to_h
       qualifying_activities.each do |qa|
-        next unless qa.activity.to_sym == :pctp_signed # Only associate careplan completed QAs
+        next unless qa.activity&.to_sym == :pctp_signed # Only associate careplan completed QAs
 
         qa.update(claim_metadata_type: HealthQaFactory::Factory.name, claim_metadata_id: factories[qa.id])
       end

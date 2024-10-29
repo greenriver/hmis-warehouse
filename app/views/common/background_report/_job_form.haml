@@ -17,10 +17,9 @@
         .col-md-6
           - sections.compact.each do |section|
             - next unless section
-            - data = {'funding_sources': {'filter-projects-target' => 'funderIds', 'action': 'change->filter-projects#update'}}
+            - data = {'funding_sources': {'filter-projects-target' => 'funderIds', 'action': 'change->filter-projects#update'}, 'funding_other_sources': {'filter-projects-target' => 'funderOthers', 'action': 'change->filter-projects#update'}}
             .form-filters-section-prs1
-              = render 'filters/filter_controls/section_form_fields',
-                section: section, f: f, data: data
+              = render 'filters/filter_controls/section_form_fields', section: section, f: f, data: data
   - content_for :filter_actions do
     = f.submit 'Queue Report', class: ['btn', 'btn-primary'], data: { 'filter-projects-target' => 'submitButton' }
 

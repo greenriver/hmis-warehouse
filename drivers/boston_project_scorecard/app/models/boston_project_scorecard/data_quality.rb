@@ -21,7 +21,7 @@ module BostonProjectScorecard
       end
 
       def dq_score(value)
-        return 5 if value <= 20
+        return 5 if value.round <= 20
 
         0
       end

@@ -17,17 +17,18 @@ RSpec.shared_context 'datalab organization s es caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q4a',
-        skip: [
-          'L2', # Is the generator name, so not expected to match
-        ],
       )
     end
 
     # Almost matches (off by a few)
-    xit 'Q5a' do
+    it 'Q5a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q5a',
+        skip: [
+          'B12', # expected '9.0000' (9), got '8.0000' (8)
+          'C12', # expected '9.0000' (9), got '8.0000' (8)
+        ],
       )
     end
 
@@ -255,11 +256,29 @@ RSpec.shared_context 'datalab organization s es caper', shared_context: :metadat
       )
     end
 
-    # TODO: Still off by a bit - looks like issue identifying between persons moved into housing and persons who were exited without move-in
-    xit 'Q22g' do
+    it 'Q22g' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
+        skip: [
+          'B2', # expected '0.0000' (0), got '1.0000' (1)
+          'D2', # expected '0.0000' (0), got '66.0000' (66)
+          'H2', # expected '0.0000' (0), got '62.0000' (62)
+          'I2', # expected '0.0000' (0), got '10.0000' (10)
+          'J2', # expected '0.0000' (0), got '18.0000' (18)
+          'B3', # expected '1.0000' (1), got '0.0000' (0)
+          'D3', # expected '66.0000' (66), got '2.0000' (2)
+          'H3', # expected '62.0000' (62), got '1.0000' (1)
+          'I3', # expected '10.0000' (10), got '0.0000' (0)
+          'J3', # expected '18.0000' (18), got '0.0000' (0)
+          'D4', # expected '0.0000' (0.0000), got '52.9800' (52.9848)
+          'H4', # expected '0.0000' (0.0000), got '64.4200' (64.4194)
+          'I4', # expected '0.0000' (0.0000), got '23.2000' (23.2)
+          'J4', # expected '0.0000' (0.0000), got '55.7200' (55.7222)
+          'D5', # expected '0.0000' (0.0000), got '6.0000' (6.0)
+          'H5', # expected '0.0000' (0.0000), got '21.0000' (21.0)
+          'J5', # expected '0.0000' (0.0000), got '10.0000' (10.0)
+        ],
       )
     end
 
@@ -305,11 +324,16 @@ RSpec.shared_context 'datalab organization s es caper', shared_context: :metadat
       )
     end
 
-    # Almost matches (off by a few) - client_id: 678933, enrollment: 324092 - flagged as CH in the test kit results, but not CH due in our results
-    xit 'Q26b' do
+    it 'Q26b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26b',
+        skip: [
+          'B2', # expected '9.0000' (9), got '8.0000' (8)
+          'D2', # expected '5.0000' (5), got '4.0000' (4)
+          'B3', # expected '150.0000' (150), got '151.0000' (151)
+          'D3', # expected '113.0000' (113), got '114.0000' (114)
+        ],
       )
     end
   end

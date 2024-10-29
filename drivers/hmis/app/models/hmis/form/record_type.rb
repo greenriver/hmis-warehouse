@@ -68,6 +68,11 @@ module Hmis::Form
           owner_type: 'Hmis::Hud::YouthEducationStatus',
           processor_name: 'YouthEducationStatus',
         ),
+        new(
+          id: 'GEOLOCATION',
+          owner_type: 'Hmis::Hud::Enrollment',
+          processor_name: 'Geolocation',
+        ),
       ].map(&:freeze).freeze
     end
   end

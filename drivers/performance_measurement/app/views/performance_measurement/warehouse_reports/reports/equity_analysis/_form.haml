@@ -10,10 +10,11 @@
     %h5 Additional Options
     .row.condensed-form-groups
       .col-xs-12.col-sm-6.col-md-4
-        = f.input :race, collection: @analysis_builder.race_options, label: "Races", include_blank: 'All Races / Ethnicities', value_method: :first, label_method: :last, as: :select_two, input_html: {multiple: true, placeholder: 'All Races / Ethnicities'}
         = f.input :age, collection: @analysis_builder.age_options, include_blank: 'All Ages', as: :select_two, input_html: {multiple: true, placeholder: 'All Ages'}, label: 'Ages'
         = f.input :gender, collection: @analysis_builder.gender_options, include_blank: 'All Genders', value_method: :first, label_method: :last, as: :select_two, input_html: {multiple: true, placeholder: 'All Genders'}, label: 'Genders'
         = f.input :household_type, collection: @analysis_builder.household_type_options, include_blank: 'All Household Types', label: 'Household Types', input_html: {multiple: true, placeholder: 'All Household Types'}, as: :select_two
+        = f.input :race, collection: @analysis_builder.race_options, label: "Races", include_blank: 'All Races', value_method: :first, label_method: :last, as: :select_two, input_html: {multiple: true, placeholder: 'All Races'}
+        = f.input :ethnicity, collection: @analysis_builder.ethnicity_options, label: "Ethnicity", include_blank: 'Any Ethnicity', value_method: :first, label_method: :last, as: :select_two, input_html: {multiple: true, placeholder: 'Any Ethnicity'}
       .col-xs-12.col-sm-6.col-md-4
         = f.input :project, collection: @analysis_builder.project_options, label_method: :first, value_method: :last, prompt: 'All Projects', label: 'Project', input_html: {multiple: true, placeholder: 'All Projects'}, as: :select_two, hint: 'Note: projects are only available to limit Project Level metrics'
         = f.input :project_type, collection: @analysis_builder.project_type_options, label_method: :first, value_method: :last, prompt: 'All Project Types', label: 'Project Type', input_html: {multiple: true, placeholder: 'All Project Types'}, as: :select_two

@@ -118,6 +118,17 @@ class GrdaWarehouse::Utility
       tables << HudDataQualityReport::Fy2020::DqLivingSituation
     end
 
+    if RailsDrivers.loaded.include?(:performance_measurement)
+      tables << PerformanceMeasurement::Report
+      tables << PerformanceMeasurement::Client
+      tables << PerformanceMeasurement::Project
+      tables << PerformanceMeasurement::Goal
+      tables << PerformanceMeasurement::Result
+      tables << PerformanceMeasurement::StaticSpm
+      tables << PerformanceMeasurement::PitCount
+      tables << PerformanceMeasurement::ClientProject
+    end
+
     tables << CustomImportsBostonService::Row if RailsDrivers.loaded.include?(:custom_imports_boston_services)
 
     if RailsDrivers.loaded.include?(:cas_ce_data)

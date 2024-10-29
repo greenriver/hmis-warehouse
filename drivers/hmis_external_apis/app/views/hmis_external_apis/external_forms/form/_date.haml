@@ -28,12 +28,12 @@
 
       $([month, day, year].join(', ')).on('change', function() {
         var parts = [
+          $(year).val(),
           $(month).val().padStart(2, '0'),
-          $(day).val().padStart(2, '0'),
-          $(year).val()
+          $(day).val().padStart(2, '0')
         ]
         // console.info(parts.join('/'));
-        $(date).val(parts.join('/'));
+        $(date).val(parts.join('-'));
       });
 
       var dateValidationMessage = function(month, day, year) {

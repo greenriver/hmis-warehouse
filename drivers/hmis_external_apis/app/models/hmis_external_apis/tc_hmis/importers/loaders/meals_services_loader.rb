@@ -15,7 +15,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def row_service_id(row)
-      "eto-#{service_type_name}-#{row_response_id(row)}".downcase.gsub(/[^a-z0-9]/, '-')
+      "sys-#{service_type_name}-#{row_response_id(row)}".downcase.gsub(/[^a-z0-9]/, '-')
     end
 
     def row_response_id(_row)

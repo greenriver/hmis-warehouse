@@ -47,7 +47,7 @@ class ClientsController < ApplicationController
       clean_params[gender_column] = 1
     end
     clean_params.delete(:Gender)
-    @client = client_source.new(clean_params)
+    @client = client_source.new(clean_params.merge(PersonalID: SecureRandom.uuid.gsub(/-/, '')))
 
     params_valid = validate_new_client_params(clean_params)
 
@@ -70,12 +70,11 @@ class ClientsController < ApplicationController
       client_source.transaction do
         destination_ds_id = GrdaWarehouse::DataSource.destination.first.id
         @client.save
-        @client.update(PersonalID: @client.id)
 
         destination_client = client_source.new(clean_params.
           merge(
             data_source_id: destination_ds_id,
-            PersonalID: @client.id,
+            PersonalID: @client.PersonalID,
             creator_id: current_user.id,
           ))
         destination_client.send_notifications = true

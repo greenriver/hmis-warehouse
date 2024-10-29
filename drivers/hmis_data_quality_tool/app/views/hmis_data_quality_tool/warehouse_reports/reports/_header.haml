@@ -3,7 +3,7 @@
 %h1= content_for :title
 .d-flex.mb-2
   %p= @report.description
-  %p.ml-auto= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
+  %p.ml-auto= "Created by #{@report.user.name_with_email} on #{@report.completed_at&.to_date}"
 
 .well.report-listing.warehouse-reports__completed
   .justify-content-between

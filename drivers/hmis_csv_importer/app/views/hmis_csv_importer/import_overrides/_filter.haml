@@ -1,0 +1,11 @@
+- overridden_files = HmisCsvImporter::ImportOverride.available_files_for(@data_source.id)
+- if overridden_files.count > 1
+  %nav.nav.nav-pills
+  - overridden_files.each.with_index do |f, i|
+    - classes = ['btn', 'd-block', 'mb-4']
+    - if f == @selected_filename
+      - classes << 'btn-primary'
+    - else
+      - classes << 'btn-secondary'
+
+    = link_to f, url_for(params.permit(:page).merge(filename: f)), class: classes

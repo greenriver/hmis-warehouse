@@ -59,10 +59,12 @@ module CasCeData::Synthetic
     end
 
     def self.find_enrollment(event)
+      date = event.referral_date
+      range = date - 90.days .. date
       scope = event.client.source_enrollments.
         joins(:project).
-        merge(GrdaWarehouse::Hud::Project.coc_funded).
-        open_during_range(event.referral_date - 90.days .. event.referral_date).
+        merge(GrdaWarehouse::Hud::Project.coc_funded.ce_participating(range)).
+        open_during_range(range).
         order(EntryDate: :desc)
       # If we have an enrollment with an assessment, use it
       # NOTE: this would be more efficient as left_outer_joins with nulls last

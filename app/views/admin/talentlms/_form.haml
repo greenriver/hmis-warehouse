@@ -1,5 +1,2 @@
 = f.input :subdomain
 = f.input :api_key, label: 'API Key'
-= f.input :courseid, label: 'Course ID'
-- label = if Rails.env.production? then 'Months' else 'Days' end
-= f.input :months_to_expiration, label: "#{label} Until Required Recertification", hint: 'Leave blank if recertification is not required'

@@ -31,6 +31,8 @@ module Types
 
     # check for the most minimal permission needed to resolve this object
     def self.authorized?(object, ctx)
+      # current_permission_for_context? checks to prevent data source leakage, but it is a secondary guard;
+      # the viewable_by scope is our primary defense against this.
       permission = :can_view_project
       super && GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: permission, entity: object)
     end
@@ -98,6 +100,8 @@ module Types
       can :delete_enrollments
       can :delete_assessments
       can :manage_inventory
+      can :manage_units
+      can :view_units
       can :manage_incoming_referrals
       can :manage_outgoing_referrals
       can :manage_denied_referrals
@@ -160,6 +164,8 @@ module Types
 
     # Build OpenStructs to resolve as UnitTypeCapacity
     def unit_types
+      return [] unless current_permission?(entity: object, permission: :can_view_units)
+
       project_units = object.units
       capacity = project_units.group(:unit_type_id).count
       unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
@@ -176,6 +182,8 @@ module Types
 
     # TODO use dataloader
     def units(**args)
+      return Hmis::Unit.none unless current_permission?(entity: object, permission: :can_view_units)
+
       resolve_units(**args)
     end
 
@@ -229,10 +237,15 @@ module Types
     end
 
     def external_form_submissions(**args)
-      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).active.where(entity: object)
+      # Find form instances for this project. Only include active instances. (Unlike other form types, we do not support
+      # viewing "legacy" form submissions from inactive instances, to simplify implementation.)
+      # Use for_project instead of for_project_through_entities because external forms are limited to project-level instances.
+      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).for_project(object).active
+      identifiers = instances.select(:definition_identifier)
+
       scope = HmisExternalApis::ExternalForms::FormSubmission.
         joins(:definition).
-        where(definition: { identifier: instances.select(:definition_identifier) })
+        where(definition: { identifier: identifiers })
 
       form_definition_identifier = args.delete(:form_definition_identifier)
       scope = scope.where(definition: { identifier: form_definition_identifier }) if form_definition_identifier

@@ -6,6 +6,7 @@
 
 module PerformanceMeasurement
   class Client < GrdaWarehouseBase
+    include Filter::FilterScopes # for race-ethnicity combination scopes
     self.table_name = :pm_clients
     acts_as_paranoid
 
@@ -68,10 +69,6 @@ module PerformanceMeasurement
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_white)
     end
 
-    scope :race_hispanic_latinaeo, -> do
-      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_hispanic_latinaeo)
-    end
-
     scope :race_mid_east_n_african, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_mid_east_n_african)
     end
@@ -90,6 +87,88 @@ module PerformanceMeasurement
 
     scope :race_not_collected, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_not_collected)
+    end
+
+    # Ethnicity Scopes
+    scope :ethnicity_hispanic_latinaeo, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_hispanic_latinaeo)
+    end
+
+    scope :ethnicity_non_hispanic_latinaeo, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_not_hispanic_latinaeo)
+    end
+
+    # Race Ethnicity Combination Scopes
+    def report_scope_source # needed for filter scopes
+      self.class
+    end
+
+    private def join_clients_method
+      :source_client
+    end
+
+    scope :race_ethnicity_am_ind_ak_native, -> do
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :AmIndAKNative, false))
+    end
+
+    scope :race_ethnicity_am_ind_ak_native_hispanic_latinaeo, -> do
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :AmIndAKNative, true))
+    end
+
+    scope :race_ethnicity_asian, -> do
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :Asian, false))
+    end
+
+    scope :race_ethnicity_asian_hispanic_latinaeo, -> do
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :Asian, true))
+    end
+
+    scope :race_ethnicity_black_af_american, -> do
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :BlackAfAmerican, false))
+    end
+
+    scope :race_ethnicity_black_af_american_hispanic_latinaeo, -> do
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :BlackAfAmerican, true))
+    end
+
+    scope :race_ethnicity_hispanic_latinaeo, -> do
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :HispanicLatinaeo, true))
+    end
+
+    scope :race_ethnicity_mid_east_n_african, -> do
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :MidEastNAfrican, false))
+    end
+
+    scope :race_ethnicity_mid_east_n_african_hispanic_latinaeo, -> do
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :MidEastNAfrican, true))
+    end
+
+    scope :race_ethnicity_native_hi_pacific, -> do
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :NativeHIPacific, false))
+    end
+
+    scope :race_ethnicity_native_hi_pacific_hispanic_latinaeo, -> do
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :NativeHIPacific, true))
+    end
+
+    scope :race_ethnicity_white, -> do
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :White, false))
+    end
+
+    scope :race_ethnicity_white_hispanic_latinaeo, -> do
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :White, true))
+    end
+
+    scope :race_ethnicity_multi_racial, -> do
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :MultiRacial, false))
+    end
+
+    scope :race_ethnicity_multi_racial_hispanic_latinaeo, -> do
+      joins(:source_client).merge(new.race_ethnicity_alternative(GrdaWarehouse::Hud::Client, :MultiRacial, true))
+    end
+
+    scope :race_ethnicity_race_none, -> do
+      race_none
     end
 
     def self.column_titles(period: 'reporting')

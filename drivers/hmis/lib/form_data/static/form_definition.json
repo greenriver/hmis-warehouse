@@ -40,7 +40,7 @@
         "field_name": "identifier"
       },
       "required": true,
-      "helper_text": "Unique system identifier for the form. This cannot be changed.",
+      "helper_text": "Unique system identifier for the form. This cannot be changed. It must contain only alphanumeric characters, underscores, and dashes, and must start with a letter.",
       "_comment": "Only shown when creating a new FormDefinition",
       "enable_behavior": "ALL",
       "enable_when": [

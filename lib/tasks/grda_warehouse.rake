@@ -325,6 +325,12 @@ namespace :grda_warehouse do
       Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
     end
 
+    if DateTime.current.hour == 4 && RailsDrivers.loaded.include?(:hmis_supplemental)
+      HmisSupplemental::DataSet.where(sync_enabled: true).order(:id).each do |data_set|
+        HmisSupplemental::ImportJob.perform_later(data_set_id: data_set.id)
+      end
+    end
+
     begin
       HmisExternalApis::ConsumeExternalFormSubmissionsJob.new.perform if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
     rescue StandardError => e
@@ -336,6 +342,8 @@ namespace :grda_warehouse do
     AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
 
     BuildTranslationCacheJob.perform_later
+
+    PgheroCollectStatsJob.perform_later(clean: DateTime.current.hour == 5) if !Rails.env.production? && PgHero.query_stats_enabled?
   end
 
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'

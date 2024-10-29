@@ -181,6 +181,7 @@ tasks = [
 ]
 
 job_type :rake_short, 'cd :path && :environment_variable=:environment bundle exec rake :task --silent #capacity_provider:short-term'
+job_type :rake_eks, 'bundle exec rake :task --silent ##interruptable=:interruptable##'
 
 tasks.each do |task|
   next if task.key?(:trigger) && ! task[:trigger]
@@ -188,7 +189,9 @@ tasks.each do |task|
   options = {}
   options[:at] = task[:at] if task[:at].present?
   every task[:frequency], options do
-    if ENV['ECS'] == 'true' && task[:interruptable]
+    if ENV['EKS'] == 'true'
+      rake_eks task[:task], interruptable: task[:interruptable].to_s
+    elsif ENV['ECS'] == 'true' && task[:interruptable]
       rake_short task[:task]
     else
       # For the time being, move all cron tasks to the "short-term" capacity provider

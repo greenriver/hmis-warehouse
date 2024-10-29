@@ -54,7 +54,8 @@
             "ORGANIZATION",
             "CE PARTICIPATION",
             "SERVICE",
-            "YOUTH_EDUCATION_STATUS"
+            "YOUTH_EDUCATION_STATUS",
+            "GEOLOCATION"
           ]
         },
         "field_name": {
@@ -256,6 +257,7 @@
                 "HUD: CoC",
                 "HUD: ESG",
                 "HUD: ESG RUSH",
+                "HUD: HOME",
                 "HUD: HOPWA",
                 "HUD: HUD-VASH",
                 "HUD: PFS",
@@ -702,6 +704,21 @@
             "properties": {
               "type": {
                 "const": "TIME_OF_DAY"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/genericInputFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "GEOLOCATION"
               }
             }
           },

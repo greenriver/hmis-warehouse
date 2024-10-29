@@ -10,6 +10,10 @@ module Superset
     'https://' + ENV.fetch('SUPERSET_FQDN', tokens.join('.'))
   end
 
+  def self.warehouse_login_url
+    "#{superset_base_url}/login/The%20Warehouse"
+  end
+
   def self.available?
     a_t = Doorkeeper::Application.arel_table
     Doorkeeper::Application.where(a_t[:redirect_uri].matches("%#{superset_base_url}%")).exists?
@@ -19,8 +23,10 @@ module Superset
   # https://github.com/greenriver/superset-sync/blob/main/docker/superset/superset_config.py
   def self.available_superset_roles
     [
-      'Admin',
-      'Reports Dashboard Read',
+      'Green River Admin',
+      'Warehouse Admin',
+      'Report Creator',
+      'Report Runner',
     ].freeze
   end
 end

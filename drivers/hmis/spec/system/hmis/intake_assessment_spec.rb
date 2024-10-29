@@ -21,8 +21,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
     before(:each) do
       make_household(enrollment_factory: :hmis_hud_wip_enrollment)
       sign_in(hmis_user)
-      disable_transitions
-      # click_link 'Open Path HMIS'
+
       click_link 'Projects'
       click_link p1.project_name
       click_link 'Enrollments'

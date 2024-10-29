@@ -11,7 +11,11 @@
     - if page_config.recaptcha_key
       %script{src: "https://www.google.com/recaptcha/api.js?render=#{page_config.recaptcha_key}"}
 
-    %link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous")
+    - if @form_definition.link_id_item_hash.any? { |_k, v| v['type'] == 'GEOLOCATION' }
+      %link(rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="")
+      %script(src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="")
+
+  %link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous")
     %script(src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous")
     %script(src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js" integrity="sha384-+sLIOodYLS7CIrQpBjl+C7nPvqq+FbNUBDunl/OZv93DB7Ln/533i8e/mZXLi/P+" crossorigin="anonymous")
     :css
@@ -34,10 +38,6 @@
       main.container {
         max-width: 540px;
         margin-bottom: 4rem;
-      }
-      .dependent-form-group > .form-group {
-        padding-left : 1.25rem;
-        border-left: 5px solid #eee;
       }
       @media (max-width: 540px) {
         main.container {
@@ -70,6 +70,13 @@
       .form-check {
         margin: 0.25rem;
       }
+      /* reduce padding for groups of checkboxes */
+      fieldset > .form-group:has(> .form-check) {
+          margin-bottom: 0px;
+      }
+      .leaflet-container {
+        height: 300px;
+      }
 
   %body.bg-light
     %nav.sticky-top.navbar-light.border-bottom.bg-white.mb-4.shadow-sm
@@ -91,8 +98,8 @@
       .modal-body
         %p Please take a moment to double-check your entries. Submit the form when you're ready.
       .modal-footer
-        %button.mr-3.btn.btn-outline-primary{ type: "button", "data-dismiss" => "modal" } Go Back
-        %button#confirmSubmitModalButton.btn.btn-primary{ type: "button", "data-dismiss" => "modal" } Yes, Submit Now
+        %button.mr-3.btn.btn-outline-primary{ type: "button", "data-dismiss" => "modal" } Check Entries
+        %button#confirmSubmitModalButton.btn.btn-primary{ type: "button", "data-dismiss" => "modal" } Submit Form
 
     = render_modal(html_id: 'spinnerModal', title: 'Loading', blocker: true) do
       .modal-body
@@ -103,9 +110,10 @@
 
     = render_modal(html_id: 'successModal', title: 'Success', blocker: true) do
       .modal-body
-        %p You've successfully submitted the form
+        %p Your response has been recorded.
       .modal-footer
-        %button.btn.btn-primary.reload-button{ type: "button" } Continue
+        %button.btn.btn-primary{ type: "button", id: 'addAnotherHouseholdMemberButton', style: 'display:none' } Add another household member
+        %button.btn.btn-primary.reload-button{ type: "button" } Done
 
     = render_modal(html_id: 'errorModal', title: 'Error') do
       .modal-body
