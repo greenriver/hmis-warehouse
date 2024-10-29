@@ -100,6 +100,11 @@
                 = link_to(edit_admin_user_path(id: user), class: 'btn btn-sm btn-secondary mb-2 text-nowrap') do
                   %i.icon-pencil
                   Edit Account
+              - if user.training_required? && user.required_training_courses.present?
+                .w-100
+                  = link_to(edit_admin_user_training_path(id: user), class: 'btn btn-sm btn-secondary mb-2 text-nowrap') do
+                    %i.icon-pencil
+                    Edit Training
               - if can_audit_users?
                 .w-100
                   = link_to admin_user_audit_path(user), class: 'btn btn-sm btn-secondary mb-2' do
