@@ -340,6 +340,49 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end.compact
   end
 
+  def occurrence_point_forms
+    project.occurrence_point_form_instances.map do |instance|
+      matches = instance.project_and_enrollment_match(project: project, enrollment: self).present?
+      has_any_data = false
+
+      unless matches # Only do this computation if the instance doesn't match this enrollment
+        instance.definition.walk_definition_nodes(as_open_struct: true) do |item|
+          next unless item.mapping.present?
+
+          record_type = item.mapping&.record_type
+          field_name = item.mapping&.field_name&.underscore
+          custom_field_key = item.mapping&.custom_field_key
+
+          next unless record_type == 'ENROLLMENT' || custom_field_key
+
+          if record_type && field_name
+            next unless respond_to?(field_name)
+
+            has_any_data = send(field_name).present?
+          elsif custom_field_key
+            # For simplicity, for now, just look for CDEDs where the owner is an Enrollment or a Client
+            owner_class_name = case record_type
+            when 'ENROLLMENT'
+              self.class.sti_name
+            when 'CLIENT'
+              Hmis::Hud::Client.sti_name
+            else
+              ''
+            end
+            cded = Hmis::Hud::CustomDataElementDefinition.for_type(owner_class_name).find_by(key: custom_field_key)
+            next unless cded
+
+            has_any_data = Hmis::Hud::CustomDataElement.where(data_element_definition: cded, owner: [self, client]).any?
+          end
+        end
+      end
+
+      next unless matches || has_any_data
+
+      instance
+    end.compact
+  end
+
   def save_new_enrollment!
     raise 'Unexpected: save_new_enrollment called on a persisted enrollment' if persisted?
 

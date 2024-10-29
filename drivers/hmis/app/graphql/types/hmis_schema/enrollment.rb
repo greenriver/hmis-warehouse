@@ -221,6 +221,7 @@ module Types
 
     field :source_referral_posting, HmisSchema::ReferralPosting, null: true, description: 'Present if this household was enrolled as the result of a referral from another project.'
     field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false, description: 'Data collection features that are enabled for this Enrollment (e.g. Current Living Situations, Events)'
+    field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Forms for individual data elements that are collected at occurrence for this Enrollment (e.g. Move-In Date)'
 
     audit_history_field(
       :audit_history,

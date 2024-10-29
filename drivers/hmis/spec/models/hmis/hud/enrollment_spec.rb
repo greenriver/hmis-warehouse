@@ -227,4 +227,122 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end
     end
   end
+
+  describe 'occurrence point form instances' do
+    let(:role) { :OCCURRENCE_POINT }
+    let!(:project) { create(:hmis_hud_project, data_source: ds1) }
+    let!(:hoh_enrollment) { create(:hmis_hud_enrollment, project: project, data_source: ds1, household_id: 'household1', relationship_to_hoh: 1) }
+    let!(:spouse_enrollment) { create(:hmis_hud_enrollment, project: project, data_source: ds1, household_id: 'household1', relationship_to_hoh: 3) }
+
+    context 'no relevant instance exists' do
+      it 'does not return the form when no instance exists' do
+        expect(hoh_enrollment.occurrence_point_forms).to be_empty
+      end
+
+      it 'does not return the form when a draft instance exists' do
+        definition = create(:hmis_form_definition, role: role, status: :draft)
+        create(:hmis_form_instance, role: role, entity: project, active: true, definition: definition)
+        expect(hoh_enrollment.occurrence_point_forms).to be_empty
+      end
+
+      it 'does not return when an irrelevant instance exists' do
+        create(:hmis_form_instance, role: role, entity: p1, active: true) # applies to a different project
+        expect(hoh_enrollment.occurrence_point_forms).to be_empty
+      end
+
+      it 'does not return when an inactive instance exists' do
+        create(:hmis_form_instance, role: role, entity: p1, active: false)
+        expect(hoh_enrollment.occurrence_point_forms).to be_empty
+      end
+    end
+
+    context 'when an instance exists relevant to this project' do
+      let!(:definition_json) do
+        {
+          'item': [
+            {
+              'text': 'Move-in Date',
+              'type': 'DATE',
+              'link_id': 'moveInDate',
+              'mapping': {
+                'field_name': 'moveInDate',
+                'record_type': 'ENROLLMENT',
+              },
+            },
+            {
+              'text': 'Move in address',
+              'type': 'OBJECT',
+              'link_id': 'moveInAddresses',
+              'mapping': {
+                'field_name': 'moveInAddresses',
+                'record_type': 'ENROLLMENT',
+              },
+              'repeats': false,
+              'component': 'ADDRESS',
+            },
+          ],
+        }
+      end
+      let!(:definition) { create :hmis_form_definition, role: role, definition: definition_json }
+      let!(:instance) { create(:hmis_form_instance, role: role, entity: project, active: true, definition: definition) }
+
+      context 'and applies to all clients' do
+        it 'returns the form for all clients' do
+          expect(hoh_enrollment.occurrence_point_forms).to contain_exactly(instance)
+        end
+      end
+
+      context 'and only applies to HoH' do
+        let!(:instance) { create(:hmis_form_instance, role: role, entity: project, active: true, definition: definition, data_collected_about: :HOH) }
+
+        it 'returns the form for HoH only' do
+          expect(hoh_enrollment.occurrence_point_forms).to contain_exactly(instance)
+          expect(spouse_enrollment.occurrence_point_forms).to be_empty
+        end
+
+        context 'but legacy data exists for non-HoH client' do
+          let!(:spouse_enrollment) do
+            create(
+              :hmis_hud_enrollment,
+              project: project,
+              data_source: ds1,
+              household_id: 'household1',
+              relationship_to_hoh: 3,
+              move_in_date: 3.weeks.ago,
+            )
+          end
+
+          let!(:address) { create(:hmis_move_in_address, data_source: ds1, enrollment: spouse_enrollment) }
+
+          it 'returns the form for that client' do
+            expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(instance)
+          end
+        end
+
+        context 'legacy data exists on a CDED' do
+          let!(:definition_json) do
+            {
+              'item': [
+                {
+                  'text': 'Foo data element',
+                  'type': 'STRING',
+                  'link_id': 'foo',
+                  'mapping': {
+                    'custom_field_key': 'foo',
+                    'record_type': 'CLIENT',
+                  },
+                },
+              ],
+            }
+          end
+          let!(:cded) { create :hmis_custom_data_element_definition, key: 'foo', data_source: ds1, owner_type: 'Hmis::Hud::Enrollment', repeats: false }
+          let!(:cde) { create :hmis_custom_data_element, data_element_definition: cded, owner: spouse_enrollment.client, data_source: ds1, value_string: 'bar' }
+
+          it 'returns the form for that client' do
+            expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(instance)
+          end
+        end
+      end
+    end
+  end
 end

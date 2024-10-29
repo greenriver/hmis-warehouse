@@ -3360,6 +3360,11 @@ type Enrollment {
   moveInAddresses: [ClientAddress!]!
   moveInDate: ISO8601Date
   numUnitsAssignedToHousehold: Int!
+
+  """
+  Forms for individual data elements that are collected at occurrence for this Enrollment (e.g. Move-In Date)
+  """
+  occurrencePointForms: [OccurrencePointForm!]!
   openEnrollmentSummary: [EnrollmentSummary!]!
   organizationName: String!
   percentAmi: PercentAMI
@@ -8572,7 +8577,7 @@ type Project {
   """
   Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)
   """
-  occurrencePointForms: [OccurrencePointForm!]!
+  occurrencePointForms: [OccurrencePointForm!]! @deprecated(reason: "Occurrence points should now be resolved on Enrollments")
   operatingEndDate: ISO8601Date
   operatingStartDate: ISO8601Date
   organization: Organization!
