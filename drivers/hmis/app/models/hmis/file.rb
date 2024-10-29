@@ -4,9 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::File < GrdaWarehouse::File
+class Hmis::File < GrdaWarehouseBase
+  self.table_name = :files
   include ClientFileBase
   include ::Hmis::Hud::Concerns::FormSubmittable
+
+  acts_as_paranoid
   has_paper_trail(
     meta: {
       enrollment_id: :enrollment_id,
@@ -16,6 +19,12 @@ class Hmis::File < GrdaWarehouse::File
   )
 
   acts_as_taggable
+
+  # Need to set 'type' directly because we don't subclass GrdaWarehouse::File (because we needed to define has_paper_trail differently)
+  after_initialize :set_default_type, if: :new_record?
+  def set_default_type
+    self.type ||= self.class.sti_name
+  end
 
   # These are not used, they're here so that we won't get an error trying to get/set the data source
   attr_accessor :data_source_id
@@ -27,8 +36,6 @@ class Hmis::File < GrdaWarehouse::File
     :date_created,
     :date_updated,
   ].freeze
-
-  self.table_name = :files
 
   belongs_to :enrollment, class_name: '::Hmis::Hud::Enrollment', optional: true
   belongs_to :client, class_name: '::Hmis::Hud::Client'
