@@ -234,14 +234,14 @@ class Hmis::Hud::Project < Hmis::Hud::Base
       when :CURRENT_LIVING_SITUATION
         current_living_situations.exists?
       when :SERVICE
-        services.exists?
+        custom_services.exists? || services.exists?
       when :CE_EVENT
         false # Only resolved on enrollments. Would need to update this logic if we resolve CE events on projects
       when :CE_ASSESSMENT
         false # Only resolved on enrollments. Would need to update this logic if we resolve CE assessments on projects
       when :CASE_NOTE
         false # Only resolved on enrollments. Would need to update this logic if we resolve case notes on projects
-      when :REFERRAL # todo @Martha - test this out in allegheny frontend
+      when :REFERRAL # todo @Martha - test this out in frontend
         external_referral_postings.exists?
       when :REFERRAL_REQUEST
         external_referral_requests.exists?
