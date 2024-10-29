@@ -6,13 +6,16 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
 
   let!(:client_in_source) { create :grda_warehouse_hud_client, data_source: source_data_source }
   let!(:client_in_destination) { create :grda_warehouse_hud_client, data_source: destination_data_source }
+  let(:destination_scope) { GrdaWarehouse::Hud::Client.destination }
+  let(:user) { create :user }
 
   describe 'When matching is enabled' do
-    before(:all) do
-      GrdaWarehouse::Utility.clear!
+    before(:all) { GrdaWarehouse::Utility.clear! }
+    after(:each) { @config.invalidate_cache }
+
+    before(:each) do
       # Enable de-duplication (the default)
       @config = GrdaWarehouse::Config.first_or_create
-      @config.invalidate_cache
       @config.update(enable_auto_deduplication: true)
     end
 
@@ -44,27 +47,15 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
       end
 
       describe 'merge processing after a split' do
-        let(:user) { create :user }
-
-        before(:each) do
-          destination_client = client_in_source.destination_client
-          split_client_id = destination_client.source_clients.last.id
-          destination_client.split(
-            [split_client_id],
-            destination_client.id,
-            destination_client.id,
-            user,
-          )
-        end
-
         it 'sees two destination clients after split' do
-          expect(GrdaWarehouse::Hud::Client.destination.count).to eq(2)
+          expect { split_client }.to change(destination_scope, :count).from(1).to(2)
         end
 
         it 'does not re-merge the split clients' do
-          GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false).match_existing!
-
-          expect(GrdaWarehouse::Hud::Client.destination.count).to eq(2)
+          expect do
+            split_client
+            GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false).match_existing!
+          end.to change(destination_scope, :count).from(1).to(2)
         end
       end
     end
@@ -175,27 +166,14 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
       end
 
       describe 'merge processing after a split' do
-        let(:user) { create :user }
-
-        before(:each) do
-          destination_client = client_in_source.destination_client
-          split_client_id = destination_client.source_clients.last.id
-          destination_client.split(
-            [split_client_id],
-            destination_client.id,
-            destination_client.id,
-            user,
-          )
-        end
-
         it 'sees four destination clients after split' do
-          expect(GrdaWarehouse::Hud::Client.destination.count).to eq(4)
+          expect { split_client }.to change(destination_scope, :count).from(3).to(4)
         end
 
         it 'does not re-merge the split clients' do
           GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false).match_existing!
 
-          expect(GrdaWarehouse::Hud::Client.destination.count).to eq(4)
+          expect { split_client }.to change(destination_scope, :count).from(3).to(4)
         end
       end
     end
@@ -206,5 +184,16 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
     inst = GrdaWarehouse::Tasks::IdentifyDuplicates.new
     inst.send(:build_destination_lookups)
     inst.send(:check_for_obvious_match, client_id)
+  end
+
+  def split_client
+    destination_client = client_in_source.destination_client
+    split_client_id = destination_client.source_clients.last.id
+    destination_client.split(
+      [split_client_id],
+      destination_client.id,
+      destination_client.id,
+      user,
+    )
   end
 end
