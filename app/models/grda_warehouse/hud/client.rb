@@ -2703,7 +2703,7 @@ module GrdaWarehouse::Hud
 
     def new_episode?(residential_enrollments:, enrollment:)
       ClientHistory::Calculator.new(client: self).
-        new_episode?(residential_enrollments: enrollments, enrollment: enrollment)
+        new_episode?(residential_enrollments: residential_enrollments, enrollment: enrollment)
     end
 
     # Include extensions at the end so they can override default behavior
