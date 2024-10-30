@@ -7,7 +7,8 @@
 # policies by resource type. This could be enhanced with shared context for data loading
 class GrdaWarehouse::AuthPolicies::PolicyProvider
   POLICIES = {
-    client: GrdaWarehouse::AuthPolicies::ClientPolicy,
+    source_client: GrdaWarehouse::AuthPolicies::SourceClientPolicy,
+    destination_client: GrdaWarehouse::AuthPolicies::DestinationClientPolicy,
     data_source: GrdaWarehouse::AuthPolicies::DataSourcePolicy,
     project: GrdaWarehouse::AuthPolicies::ProjectPolicy,
   }.freeze

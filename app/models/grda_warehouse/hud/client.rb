@@ -1444,7 +1444,9 @@ module GrdaWarehouse::Hud
     end
 
     memoize def pii_provider(user:)
-      GrdaWarehouse::PiiProvider.new(self, policy: user.policy_for(self, type: :client))
+      policy_type = destination? ? :destination_client : :source_client
+      policy = user.policy_for(self, type: policy_type)
+      GrdaWarehouse::PiiProvider.new(self, policy: policy)
     end
 
     def name

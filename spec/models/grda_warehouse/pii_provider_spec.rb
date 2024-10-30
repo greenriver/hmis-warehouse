@@ -32,7 +32,7 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
     end
 
     instance_double(
-      'GrdaWarehouse::AuthPolicies::ClientPolicy',
+      'GrdaWarehouse::AuthPolicies::SourceClientPolicy',
       default_permissions.merge(normalized_permissions),
     )
   end

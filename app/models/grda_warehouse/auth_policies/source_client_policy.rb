@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class GrdaWarehouse::AuthPolicies::ClientPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
+class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
   # expose role permissions. Optionally rename the permission
   [
     [:can_view_client_name, :can_view_name?],
@@ -29,16 +29,16 @@ class GrdaWarehouse::AuthPolicies::ClientPolicy < GrdaWarehouse::AuthPolicies::B
 
   # Can the user see the client record in search results? This provides minimal info on the client (compare to
   # can_view? which let's the user see the full client page)
-  memoize def can_search?
-    [
-      :can_search_own_clients,
-      :can_search_all_clients,
-    ].any? do |permission|
-      permission_granted_by_role?(permission)
-    end
+  # memoize def can_search?
+  #   [
+  #     :can_search_own_clients,
+  #     :can_search_all_clients,
+  #   ].any? do |permission|
+  #     permission_granted_by_role?(permission)
+  #   end
 
-    permission_granted_through_roi?(:can_search_clients_with_roi)
-  end
+  #   permission_granted_through_roi?(:can_search_clients_with_roi)
+  # end
 
   protected
 

@@ -1,0 +1,29 @@
+###
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+class GrdaWarehouse::AuthPolicies::DestinationClientPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
+  # delegate some methods to source clients
+  [
+    :can_view,
+    :can_view_name,
+    :can_view_photo,
+    :can_view_full_dob,
+    :can_view_full_ssn,
+    :can_view_hiv_status,
+  ].each do |permission|
+    method_name = :"#{permission}?"
+    define_method(method_name) do
+      client.source_clients.any? do |source_client|
+        user.policy_for(source_client, type: :source_client).send(method_name)
+      end
+    end
+    memoize method_name
+  end
+
+  memoize def client
+    resource_from_arg(resource, GrdaWarehouse::Hud::Client)
+  end
+end

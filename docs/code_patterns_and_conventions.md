@@ -40,7 +40,7 @@ When creating new JavaScript assets, use esbuild in `app/javascripts` rather tha
 When authorizing an action on an individual record, for example a Client, use a resource policy.
 
 ```ruby
-policy = user.policy_for(client, type: client)
+policy = user.policy_for(client, type: source_client)
 not_authorized! unless policy.can_view?
 ```
 
