@@ -179,6 +179,7 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
 
         expect do
           save_ignoring_warnings
+          e1.reload # todo @martha - this is the test that fails but not locally
         end.to change(e1.income_benefits, :count).by(1)
 
         expect(e1.income_benefits.sole.total_monthly_income).to eq(500)
