@@ -1756,6 +1756,7 @@ type CurrentLivingSituation {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
+  formDefinitionId: ID
   id: ID!
   informationDate: ISO8601Date
   leaseOwn60Day: NoYesReasonsForMissingData

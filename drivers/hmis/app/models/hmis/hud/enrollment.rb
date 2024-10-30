@@ -294,7 +294,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # Returns an OpenStruct that is resolved by the DataCollectionFeature GQL type.
   def data_collection_features
     # Create OpenStruct for each enabled feature
-    Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.map do |role| # todo @martha - add system tests
+    Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.map do |role|
       instance_scope = Hmis::Form::Instance.with_role(role).active.published
       # Service instances must specify a service type or category.
       instance_scope = instance_scope.for_services if role == :SERVICE
@@ -327,14 +327,16 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
       next unless best_instance || has_any_data
 
-      # If the best instance doesn't match this enrollment, return, UNLESS there is existing data.
+      matches_enrollment = best_instance&.project_and_enrollment_match(project: project, enrollment: self)
+
+      # If an instance applies to this project but doesn't match this enrollment, return, UNLESS there is existing data.
       # (Example: data is collected for HoH. If HoH changes, you still see past data from the original HoH's enrollment)
-      next if !has_any_data && best_instance.present? && !best_instance.project_and_enrollment_match(project: project, enrollment: self)
+      next if !has_any_data && best_instance.present? && !matches_enrollment
 
       OpenStruct.new(
         role: role.to_s,
         id: [id, role, best_instance&.id].join(':'), # Unique ID for Apollo caching
-        legacy: has_any_data && !best_instance,
+        legacy: has_any_data && (!best_instance || !matches_enrollment),
         data_collected_about: best_instance&.data_collected_about || 'ALL_CLIENTS', # Doesn't really matter for legacy
         instance: best_instance, # just for testing, not resolved
       )

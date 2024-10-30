@@ -10,6 +10,7 @@ module Types
   class HmisSchema::CurrentLivingSituation < Types::BaseObject
     include Types::HmisSchema::HasHudMetadata
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasFormDefinitionId
 
     def self.configuration
       Hmis::Hud::CurrentLivingSituation.hmis_configuration(version: '2024')

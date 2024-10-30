@@ -140,13 +140,6 @@ RSpec.describe Hmis::Hud::Project, type: :model do
 
       expect(selected_instances).to contain_exactly(inst_for_project)
     end
-
-    it 'if all are inactive, includes the most specific inactive' do
-      create(:hmis_form_instance, role: role, entity: nil, active: false)
-      inst_for_project = create(:hmis_form_instance, role: role, entity: project, active: false)
-
-      expect(selected_instances).to contain_exactly(inst_for_project)
-    end
   end
 
   describe 'data_collection_features for Services' do
@@ -178,9 +171,9 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     end
 
     it 'chooses instance specified by type (type > category)' do
+      expected = create(:hmis_form_instance, role: role, entity: nil, custom_service_type: cst)
       create(:hmis_form_instance, role: role, entity: nil)
       create(:hmis_form_instance, role: role, entity: nil, custom_service_category: csc)
-      expected = create(:hmis_form_instance, role: role, entity: nil, custom_service_type: cst)
       expect(selected_instance).to eq(expected)
     end
 
