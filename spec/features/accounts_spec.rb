@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.feature 'Accounts', type: :feature do
+RSpec.describe 'Accounts', type: :feature, ci_bucket: 'bucket-3' do
   let(:user) { create(:user) }
 
   before(:each) do

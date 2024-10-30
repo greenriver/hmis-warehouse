@@ -29,7 +29,7 @@ VETERAN_ATTR = {
   DischargeStatus: 1,
 }.freeze
 
-RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
+RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model, ci_bucket: 'bucket-4' do
   describe 'When Updating destination records from client sources, using db based relationships' do
     let!(:config) { GrdaWarehouse::Config.first || create(:config) }
     let!(:destination_client) { create(:grda_warehouse_hud_client, PersonalID: 2) }

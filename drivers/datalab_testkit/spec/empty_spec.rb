@@ -1,7 +1,7 @@
 require 'rails_helper'
 require_relative 'models/datalab_testkit_context'
 
-RSpec.describe 'Empty test to load fixpoints' do
+RSpec.describe 'Empty test to load fixpoints', ci_bucket: 'bucket-3' do
   include_context 'datalab testkit context'
   before(:all) do
     setup

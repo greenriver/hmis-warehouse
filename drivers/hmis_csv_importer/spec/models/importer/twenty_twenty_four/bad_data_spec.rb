@@ -6,7 +6,7 @@
 
 require 'rails_helper'
 
-RSpec.describe HmisCsvImporter, type: :model do
+RSpec.describe HmisCsvImporter, type: :model, ci_bucket: 'bucket-3' do
   describe 'When importing enrollments with bad data on 1/1/2020' do
     before(:all) do
       HmisCsvImporter::Utility.clear!

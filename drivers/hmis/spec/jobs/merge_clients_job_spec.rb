@@ -6,7 +6,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Hmis::MergeClientsJob, type: :model do
+RSpec.describe Hmis::MergeClientsJob, type: :model, ci_bucket: 'bucket-2' do
   # Probably other specs aren't cleaning up:
   before(:all) { cleanup_test_environment }
 
