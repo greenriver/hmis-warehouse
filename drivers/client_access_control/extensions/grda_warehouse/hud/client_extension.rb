@@ -197,7 +197,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
             # default to entry date if we don't have any services
             most_recent_service ||= entry.entry_date
 
-            new_episode = new_episode?(enrollments: enrollments, enrollment: entry)
+            new_episode = new_episode?(residential_enrollments: enrollments, enrollment: entry)
             {
               client_source_id: entry.source_client.id,
               project_id: project.id,

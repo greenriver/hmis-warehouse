@@ -6,30 +6,42 @@
 
 class ClientHistory::Calculator
   attr_accessor :client
+  # @param client [Object] the client for whom calculations are performed
   def initialize(client:)
     self.client = client
   end
 
-  # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode
-  # You aren't currently housed in PH, and you've had at least a week of being housed in the last 90 days
-  def new_episode?(enrollments:, enrollment:)
+  # Determines if the enrollment in question is the start of a new episode of homelessness.
+  # A new episode occurs if:
+  #  - The client has not been in a literally homeless project (ES, SH, SO) in the last 30 days
+  #  - The client is not currently housed in PH
+  #  - The client was housed for at least a week in the past 90 days
+  #
+  # @param residential_enrollments [Array] a list of the client's residential enrollments
+  # @param enrollment [Object] the specific enrollment being evaluated
+  # @return [Boolean] true if the enrollment constitutes a new episode, otherwise false
+  def new_episode?(residential_enrollments:, enrollment:)
     return false unless HudUtility2024.chronic_project_types.include?(enrollment.project_type)
 
     entry_date = enrollment.entry_date
     thirty_days_ago = entry_date - 30.days
     ninety_days_ago = entry_date - 90.days
 
-    housed_dates = residential_dates(enrollments: enrollments)
+    housed_dates = residential_dates(enrollments: residential_enrollments)
     currently_housed = housed_dates.include?(entry_date)
     housed_for_week_in_past_90_days = (housed_dates & (ninety_days_ago...entry_date).to_a).count > 7
 
-    other_homeless = (homeless_dates(enrollments: enrollments) & (thirty_days_ago...entry_date).to_a).present?
+    other_homeless = (homeless_dates(enrollments: residential_enrollments) & (thirty_days_ago...entry_date).to_a).present?
 
     return true if ! currently_housed && housed_for_week_in_past_90_days && ! other_homeless
 
     return ! other_homeless
   end
 
+  # Returns the dates the client was housed in permanent housing.
+  #
+  # @param enrollments [Array] a list of enrollments related to the client
+  # @return [Array<Date>] unique dates when the client was housed
   def residential_dates(enrollments:)
     @non_homeless_types ||= HudUtility2024.residential_project_type_numbers_by_code[:ph]
     @residential_dates ||= enrollments.select do |e|
@@ -42,6 +54,10 @@ class ClientHistory::Calculator
     end.flatten.compact.uniq
   end
 
+  # Returns the dates the client was in a homeless project
+  #
+  # @param enrollments [Array] a list of enrollments related to the client
+  # @return [Array<Date>] unique dates when the client was in a homeless project
   private def homeless_dates(enrollments:)
     @homeless_dates ||= enrollments.select do |e|
       e.project_type.in?(HudUtility2024.residential_project_type_ids)

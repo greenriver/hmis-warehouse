@@ -2612,7 +2612,7 @@ module GrdaWarehouse::Hud
       # and then ignore it for the calculation
       episode_count = 1
       chronic_enrollments.drop(1).map do |enrollment|
-        new_episode?(enrollments: residential_enrollments, enrollment: enrollment)
+        new_episode?(residential_enrollments: residential_enrollments, enrollment: enrollment)
       end.count(true) + episode_count
     end
 
@@ -2630,7 +2630,7 @@ module GrdaWarehouse::Hud
       initial_chronic_enrollment = chronic_enrollments.first
       current_start = initial_chronic_enrollment.first_date_in_program
       chronic_enrollments.drop(1).map do |enrollment|
-        if new_episode?(enrollments: residential_enrollments, enrollment: enrollment) # rubocop:disable Style/Next
+        if new_episode?(residential_enrollments: residential_enrollments, enrollment: enrollment) # rubocop:disable Style/Next
           days_served = chronic_enrollments.
             select do |e|
               e.last_date_in_program.blank? ||
@@ -2701,9 +2701,9 @@ module GrdaWarehouse::Hud
       ClientHistory::EnrollmentView.new(enrollment: enrollment, user: user).program_tooltip_data_for_enrollment
     end
 
-    def new_episode?(enrollments:, enrollment:)
+    def new_episode?(residential_enrollments:, enrollment:)
       ClientHistory::Calculator.new(client: self).
-        new_episode?(enrollments: enrollments, enrollment: enrollment)
+        new_episode?(residential_enrollments: enrollments, enrollment: enrollment)
     end
 
     # Include extensions at the end so they can override default behavior

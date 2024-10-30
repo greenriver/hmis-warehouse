@@ -6,6 +6,8 @@
 
 class ClientHistory::EnrollmentView
   attr_accessor :enrollment, :user
+  # @param enrollment [Object] the enrollment record for the client
+  # @param user [Object] the user accessing this view, used to correctly limit returned data
   def initialize(enrollment:, user:)
     self.enrollment = enrollment
     self.user = user
