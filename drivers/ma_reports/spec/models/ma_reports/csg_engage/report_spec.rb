@@ -64,7 +64,7 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
         pr = report.program_reports.find_by(program_id: p.id)
         expect(pr).to have_attributes(
           raw_result: '{"ok":true}',
-          json_result: { 'ok' => true },
+          json_result: [{ 'ok' => true }],
           error_data: nil,
           warning_data: nil,
           started_at: be_present,

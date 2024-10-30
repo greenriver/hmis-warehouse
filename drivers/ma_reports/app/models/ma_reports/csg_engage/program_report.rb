@@ -28,13 +28,19 @@ module MaReports::CsgEngage
     def run
       reset
 
-      data = MaReports::CsgEngage::ReportComponents::Report.new(program).serialize
       cleanup_last_report
-      result = MaReports::CsgEngage::Credential.first.post(data)
+
+      results = []
+
+      (0..(program.households_scope.distinct(:HouseholdID).count / batch_size)).each do |batch_index|
+        data = MaReports::CsgEngage::ReportComponents::Report.new(program, batch_size: batch_size, batch_index: batch_index).serialize
+        results << MaReports::CsgEngage::Credential.first.post(data)
+      end
+
       update(
         completed_at: Time.zone.now,
-        raw_result: result,
-        json_result: JSON.parse(result),
+        raw_result: results.join('\n'),
+        json_result: results.map { |res| JSON.parse(res) },
         imported_program_name: program.csg_engage_name,
         imported_import_keyword: program.csg_engage_import_keyword,
       )
@@ -69,6 +75,10 @@ module MaReports::CsgEngage
 
     def other_status_text
       return 'Completed without response' if completed_without_response?
+    end
+
+    def batch_size
+      1000
     end
   end
 end

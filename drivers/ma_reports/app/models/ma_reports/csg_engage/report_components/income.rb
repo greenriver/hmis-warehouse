@@ -9,7 +9,7 @@ module MaReports::CsgEngage::ReportComponents
     attr_accessor :amount, :description, :income_source, :payer_name
 
     def initialize(amount: 0, description: nil, income_source: nil, payer_name: nil)
-      @amount = ActiveSupport::NumberHelper.number_to_delimited(amount)
+      @amount = amount
       @description = description
       @income_source = income_source
       @payer_name = payer_name

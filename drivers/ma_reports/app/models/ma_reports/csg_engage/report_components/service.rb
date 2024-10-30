@@ -34,7 +34,7 @@ module MaReports::CsgEngage::ReportComponents
       field('ServiceDateTimeBegin') { service.DateProvided&.strftime('%m/%d/%Y') }
       field('ServiceDateTimeEnd') { nil }
       field('ServiceProvided') do
-        HudUtility2024.service_type_provided(service.Recordtype, service.TypeProvided) || 'Unknown Service Type'
+        HudUtility2024.service_type_provided(service.Recordtype, service.TypeProvided) || 'Service Provided'
       rescue StandardError
         'Unknown Service Type'
       end

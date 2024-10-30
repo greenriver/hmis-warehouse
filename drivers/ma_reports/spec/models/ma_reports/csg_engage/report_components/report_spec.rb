@@ -156,7 +156,7 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
           include(
             *MaReports::CsgEngage::ReportComponents::HouseholdMember::INCOME_MAPPINGS.map do |_field, amount_field, attrs|
               include(
-                'Amount' => (income_benefit.send(amount_field) * 12.0).round.to_s,
+                'Amount' => (income_benefit.send(amount_field) * 12.0).round,
                 'Description' => attrs[:description],
                 'IncomeSource' => attrs[:income_source],
               )
