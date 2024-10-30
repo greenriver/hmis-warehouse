@@ -41,11 +41,9 @@ module GrdaWarehouse::Tasks
 
     protected
 
-    # we only consider building ROI authorizations for destination clients, excluding data sources that do not obey consent
+    # we only consider building ROI authorizations for destination clients
     def destination_client_scope
-      GrdaWarehouse::Hud::Client.destination.
-        joins(:data_source).
-        merge(GrdaWarehouse::DataSource.obeys_consent)
+      GrdaWarehouse::Hud::Client.destination
     end
 
     def process_client(destination_client)
@@ -80,7 +78,8 @@ module GrdaWarehouse::Tasks
     end
 
     def roi_coc_codes(client)
-      client.consented_coc_codes&.uniq&.sort&.presence
+      result = client.consented_coc_codes&.compact_blank&.presence
+      result&.sort&.uniq
     end
 
     def roi_status(client)

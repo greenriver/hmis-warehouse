@@ -57,6 +57,6 @@ RSpec.describe 'Controller Authorization', type: :controller do
   end
 
   it 'does not have access to legacy authorization methods' do
-    expect(@controller.respond_to?(:require_can_view_projects)).to be false
+    expect(@controller.respond_to?(:require_can_view_projects!)).to be false
   end
 end

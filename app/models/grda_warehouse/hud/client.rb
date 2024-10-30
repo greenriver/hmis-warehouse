@@ -2537,6 +2537,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::HealthEmergency::UploadedTest,
         GrdaWarehouse::HealthEmergency::Vaccination,
         GrdaWarehouse::Anomaly,
+        GrdaWarehouse::ClientRoiAuthorization,
       ]
     end
 

@@ -39,6 +39,44 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ClientPolicy, type: :model do
     end
   end
 
+  shared_examples 'roi checks' do
+    context 'with ROI authorizations' do
+      before(:each) do
+        create(:warehouse_client, source: client, data_source: data_source)
+        create(:client_roi_authorization, destination_client: client.destination_client)
+        role.update!(can_search_clients_with_roi: true, can_view_client_enrollments_with_roi: true)
+      end
+
+      it 'grants view and search permissions through ROI' do
+        expect(policy.can_search?).to be true
+        expect(policy.can_view?).to be true
+      end
+
+      context 'without obeys consent' do
+        before(:each) do
+          data_source.update!(obey_consent: false)
+        end
+
+        it 'grants no ROI permissions' do
+          expect(policy.can_search?).to be false
+          expect(policy.can_view?).to be false
+        end
+      end
+    end
+
+    context 'without ROI authorizations' do
+      before(:each) do
+        create(:warehouse_client, source: client, data_source: data_source)
+        role.update!(can_search_clients_with_roi: true, can_view_client_enrollments_with_roi: true)
+      end
+
+      it 'grants no ROI permissions' do
+        expect(policy.can_search?).to be false
+        expect(policy.can_view?).to be false
+      end
+    end
+  end
+
   context 'with legacy user permissions' do
     let(:access_group) { create(:access_group) }
     let(:user) do
@@ -52,18 +90,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ClientPolicy, type: :model do
     context 'with project access' do
       before { access_group.add_viewable(project) }
       include_examples 'permission checks', true
-
-      context 'with ROI authorizations' do
-        before(:each) do
-          create(:client_roi_authorization, destination_client: client)
-          role.update!(can_search_clients_with_roi: true, can_view_client_enrollments_with_roi: true)
-        end
-
-        it 'grants view and search permissions through ROI' do
-          expect(policy.can_search?).to be true
-          expect(policy.can_view?).to be true
-        end
-      end
+      include_examples 'roi checks'
     end
 
     context 'without project access' do
@@ -85,18 +112,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ClientPolicy, type: :model do
       end
 
       include_examples 'permission checks', true
-
-      context 'with ROI authorizations' do
-        before(:each) do
-          role.update!(can_search_clients_with_roi: true, can_view_client_enrollments_with_roi: true)
-          create(:client_roi_authorization, destination_client: client, coc_codes: user.coc_codes)
-        end
-
-        it 'grants view and search permissions through ROI' do
-          expect(policy.can_search?).to be true
-          expect(policy.can_view?).to be true
-        end
-      end
+      include_examples 'roi checks'
     end
 
     context 'without collection access' do

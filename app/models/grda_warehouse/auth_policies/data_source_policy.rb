@@ -44,20 +44,6 @@ class GrdaWarehouse::AuthPolicies::DataSourcePolicy < GrdaWarehouse::AuthPolicie
     id_from_arg(resource, GrdaWarehouse::DataSource)
   end
 
-  def permission_granted_by_role?(permission)
-    if user.using_acls?
-      user.access_controls.joins(:role).
-        where(collection_id: data_source_collection_ids).
-        merge(Role.where(permission => true)).any?
-    else
-      # check if the user has permission on any role
-      return false unless user.public_send("#{permission}?")
-
-      # check if the user is in any of the access groups
-      user.access_groups.where(id: data_source_access_group_ids).exists?
-    end
-  end
-
   memoize def data_source_collection_ids
     ids = GrdaWarehouse::GroupViewableEntity.
       where(entity: data_source).
