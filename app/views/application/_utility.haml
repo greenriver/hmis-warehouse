@@ -5,7 +5,12 @@
 - notice_types = {'success' => 'success', 'notice' => 'info', 'alert' => 'warning', 'error' => 'danger' }
 - flash.each do |type, msg|
   - if msg.present? && msg.is_a?(String) && msg.strip != '__' # allow for some overrides, devise really wants to display messages
+    :ruby
+      # it seems that message might contain html(?) so allow some common tags
+      allowed_tags = %w(a b br div p strong em ul ol li)
+      allowed_attributes = %w(href title class)
+      sanitized_html = sanitize(msg, tags: allowed_tags, attributes: allowed_attributes)
     .mt-4{:class => ["alert", "alert-#{notice_types[type]}", " #{type}"]}
-      = msg.html_safe unless msg.blank?
+      = sanitized_html
       %button.close.ml-auto{href: '#', 'data-dismiss': 'alert', 'aria-label': 'close'}
         %span.icon-cross

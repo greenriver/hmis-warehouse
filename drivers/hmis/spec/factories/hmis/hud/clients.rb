@@ -57,16 +57,24 @@ FactoryBot.define do
     end
   end
 
+  # Client that is in the Warehouse destination data source (not the HMIS data source)
+  factory :destination_client, parent: :hmis_hud_base_client do
+    data_source { association :destination_data_source }
+  end
+
+  # WarehouseClient that links the source HMIS client to the destination client
   factory :hmis_warehouse_client, class: 'Hmis::WarehouseClient' do
     data_source { association :hmis_data_source }
-    destination { association :hmis_hud_base_client, data_source: data_source }
+    destination { association :destination_client }
     source { association :hmis_hud_base_client, data_source: data_source }
     sequence(:id_in_source, 100)
   end
 
+  # HMIS Source Client that is linked to a destination client (Via WarehouseClient)
   factory :hmis_hud_client_with_warehouse_client, parent: :hmis_hud_base_client do
     after(:create) do |client|
-      create(:hmis_warehouse_client, data_source: client.data_source, source: client)
+      destination = create(:destination_client, personal_id: client.personal_id)
+      create(:hmis_warehouse_client, data_source: client.data_source, source: client, destination: destination)
     end
   end
 end

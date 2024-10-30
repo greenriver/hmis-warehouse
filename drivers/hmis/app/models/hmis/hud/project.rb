@@ -134,7 +134,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   scope :receiving_referrals, -> do
     # Find all active instances that enable the Referral functionality
-    instance_scope = Hmis::Form::Instance.active.with_role(:REFERRAL)
+    instance_scope = Hmis::Form::Instance.active.with_role(:REFERRAL).published
     # Find open projects that have an instance that match the criteria, which indicates that the
     # project accepts referrals.
 
@@ -180,7 +180,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   def receives_referrals?
-    Hmis::Form::Instance.active.with_role(:REFERRAL).any? { |instance| instance.project_match(self) }
+    Hmis::Form::Instance.active.published.with_role(:REFERRAL).any? { |instance| instance.project_match(self) }
   end
 
   def active
@@ -221,7 +221,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def data_collection_features
     # Create OpenStruct for each enabled feature
     Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.map do |role|
-      base_scope = Hmis::Form::Instance.with_role(role)
+      # We don't currently support fully retiring forms (form definition gets retired with no newer published version).
+      # But if we do in the future, this should return instances for retired forms, same as it returns inactive instances.
+      # In https://github.com/open-path/Green-River/issues/6159 we outline switching this to always show a feature if
+      # there is any data for it, in addition to checking the form rules.
+      base_scope = Hmis::Form::Instance.with_role(role).published_or_retired
       # Service instances must specify a service type or category.
       base_scope = base_scope.for_services if role == :SERVICE
 
@@ -275,7 +279,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   # Occurrence Point Form Instances that are enabled for this project (e.g. Move In Date form)
   def occurrence_point_form_instances
     # All instances for Occurrence Point forms
-    base_scope = Hmis::Form::Instance.with_role(:OCCURRENCE_POINT).active
+    base_scope = Hmis::Form::Instance.with_role(:OCCURRENCE_POINT).active.published
 
     # All possible form identifiers used for Occurrence Point collection
     occurrence_point_identifiers = base_scope.pluck(:definition_identifier).uniq

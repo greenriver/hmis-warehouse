@@ -8,6 +8,29 @@ require 'aws-sdk-s3'
 class AwsS3
   attr_accessor :region, :bucket_name, :access_key_id, :secret_access_key, :client
   attr_reader :bucket
+
+  AVAILABLE_S3_REGIONS = [
+    'us-east-1',
+    'us-east-2',
+    'us-west-1',
+    'us-west-2',
+    'ap-northeast-1',
+    'ap-northeast-2',
+    'ap-south-1',
+    'ap-southeast-1',
+    'ap-southeast-2',
+    'ca-central-1',
+    'eu-central-1',
+    'eu-west-1',
+    'eu-west-2',
+    'eu-west-3',
+    'sa-east-1',
+  ].freeze
+
+  def self.available_s3_regions
+    AVAILABLE_S3_REGIONS
+  end
+
   def initialize(
     region: nil,
     bucket_name:,

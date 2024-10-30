@@ -53,15 +53,12 @@ RSpec.shared_context 'path organization q', shared_context: :metadata do
     end
 
     # Previous (127): https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recUam4bP8a5eJGSK
+    # Previous (134): https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/reckiuBz8DwhFmQ8n
+    # Previous (133): https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recSJ3fb7EBfkrakM
     it 'Q26' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26',
-        skip: [
-          'C89', # Pending (134): https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/reckiuBz8DwhFmQ8n
-          'C90',
-          'C91', # Pending (133): https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recSJ3fb7EBfkrakM
-        ],
       )
     end
   end

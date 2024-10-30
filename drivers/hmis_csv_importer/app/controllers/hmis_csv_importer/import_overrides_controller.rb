@@ -16,7 +16,8 @@ class HmisCsvImporter::ImportOverridesController < ApplicationController
   end
 
   def create
-    @override = import_override_source.create!(permitted_params.merge(data_source_id: @data_source.id))
+    @override = import_override_source.create(permitted_params.merge(data_source_id: @data_source.id))
+    flash[:alert] = @override.errors.full_messages.join(', ') unless @override.valid?
     respond_with(@override, location: hmis_csv_importer_data_source_import_overrides_path(@data_source))
   end
 

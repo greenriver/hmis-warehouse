@@ -4,10 +4,18 @@ require_relative '../../lib/util/git'
 
 # ENV['SENTRY_DSN'] is reserved by Sentry and its use seems to prevent this initializer from being recognized.
 # Hence, we use WAREHOUSE_SENTRY_DSN. Any other alternate key should also be fine.
-if ENV['WAREHOUSE_SENTRY_DSN'].present?
+
+sentry_dsn = ENV['WAREHOUSE_SENTRY_DSN'].presence
+if sentry_dsn
   Sentry.init do |config|
-    config.dsn = ENV['WAREHOUSE_SENTRY_DSN']
+    config.dsn = sentry_dsn
     config.breadcrumbs_logger = [:active_support_logger, :http_logger]
+
+    trace_rate = ENV['SENTRY_PERFORMANCE_TRACE_RATE'].presence
+    # enable performance monitoring on QA
+    trace_rate ||= '1.0' if Rails.env.staging? && ENV['CLIENT'] == 'qa_hmis'
+    trace_rate = trace_rate.to_f
+    config.traces_sample_rate = trace_rate if trace_rate.positive?
 
     config.enabled_environments = ['production', 'staging', 'development']
     config.environment = Rails.env

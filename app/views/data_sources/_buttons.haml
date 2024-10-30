@@ -44,3 +44,9 @@
     = link_to data_source_custom_imports_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
       %span.icon-eye
       Custom Imports
+
+- if RailsDrivers.loaded.include?(:hmis_supplemental) && can_edit_data_sources? && can_manage_config?
+  .config-button-wrapper
+    = link_to data_source_hmis_supplemental_data_sets_path(data_source_id: @data_source.id), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
+      %span.icon-eye
+      Supplemental Data Sets

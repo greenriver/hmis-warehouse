@@ -109,8 +109,11 @@ module GraphqlHelpers
     ERRORS
   end
 
+  # FIXME: this is not supported by graphql. We should find another way to test types, such as
+  # https://graphql-ruby.org/testing/helpers.html
   def to_gql_input_object(values, klass, current_user: nil)
-    klass.new(nil, context: { current_user: current_user }, defaults_used: Set.new, ruby_kwargs: values)
+    context = GraphQL::Query.new(HmisSchema, '{ __typename }', context: { current_user: current_user }).context
+    klass.new(nil, context: context, defaults_used: Set.new, ruby_kwargs: values)
   end
 
   def expect_gql_error(arr, message: nil)

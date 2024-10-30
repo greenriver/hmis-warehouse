@@ -578,11 +578,12 @@ module HudApr::Generators::Shared::Fy2024
           # enrollment.last_date_in_program ||= hoh_enrollment&.last_date_in_program
           enrolled = if enrollment.project_type.in?([3, 13]) || enrollment.enrollment.project.pay_for_success?
             # PSH/RRH OR project type 7 (other) with Funder 35 (Pay for Success)
+            move_in_date = calculate_move_in_date(enrollment.household_id, enrollment)
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
-              enrollment.move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
-              enrollment.move_in_date <= pit_date &&
-              enrollment.move_in_date >= enrollment.first_date_in_program
+              move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
+              move_in_date <= pit_date &&
+              move_in_date >= enrollment.first_date_in_program
           elsif enrollment.project_type.in?([0, 1, 2, 8, 9, 10]) # Other residential
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) # Exclude exit date
@@ -600,7 +601,7 @@ module HudApr::Generators::Shared::Fy2024
             last_date_in_program: enrollment.last_date_in_program,
             project_type: enrollment.project_type,
             project_tracking_method: enrollment.project_tracking_method,
-            move_in_date: enrollment.move_in_date,
+            move_in_date: calculate_move_in_date(enrollment.household_id, enrollment),
             relationship_to_hoh: enrollment.enrollment.relationship_to_hoh,
           }
         end
