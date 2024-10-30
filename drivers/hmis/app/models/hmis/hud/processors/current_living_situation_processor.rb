@@ -27,7 +27,7 @@ module Hmis::Hud::Processors
         # then copy the corresponding project name onto the HUD field `VerifiedBy` (aka `verified_by`).
         current_living_situation.assign_attributes(
           verified_by_project_id: verified_by_project.id,
-          verified_by: verified_by_project.name.truncate(100), # HUD spec has 100 char limit, and so does the database
+          verified_by: verified_by_project.name.truncate(200), # HUD spec has 200 char limit
         )
       elsif current_living_situation.verified_by_project_id
         # If we didn't find a verified_by_project, but the CLS already has a verified_by_project_id saved in the DB,
