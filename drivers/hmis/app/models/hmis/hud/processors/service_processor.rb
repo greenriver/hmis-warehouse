@@ -13,6 +13,10 @@ module Hmis::Hud::Processors
       # service is a Hmis::Hud::Service or Hmis::Hud::CustomService
       service = @processor.service_factory
 
+      # Get around the fact that we use the system service form for editing legacy custom services, which don't accept
+      # fields like other_type_provided and moving_on_other_type
+      return if service.instance_of?(Hmis::Hud::CustomService) && attribute_value.nil?
+
       attributes = case attribute_name
       when 'fa_start_date'
         # If FA Start Date is present, the Date Provided should match it

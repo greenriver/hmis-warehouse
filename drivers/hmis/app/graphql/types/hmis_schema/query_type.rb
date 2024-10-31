@@ -194,11 +194,10 @@ module Types
       end
 
       # If the frontend is making this query, it's trying to display some data using a form definition,
-      # so we try to avoid returning nil.
-      # Even if we didn't find a good match (e.g., because the form is retired or instance is inactive),
+      # so we try to avoid returning nil. Even if we didn't find a good match (e.g., because the instance is inactive),
       # we return some default "best guess", enabling the application to display the data somehow instead of erroring.
       # TODO(#6763) Use "system_managed" flag when it exists
-      record ||= Hmis::Form::Definition.where(role: role).first
+      record ||= Hmis::Form::Definition.published.where(role: role).first
 
       record&.filter_context = { project: project } # Apply project-specific filtering rules. Only relevant for some form types.
       record
@@ -244,10 +243,10 @@ module Types
 
       definition = Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
 
-      # Similar to record_form_definition above, we always want to return a definition if we possibly can
-      # TODO @MARTHA - this identifier could be different across environments, what is the best way to find the most basic service to return?
-      # service, hud-service-with-note, ...
-      definition || Hmis::Form::Definition.with_role(:SERVICE).where(identifier: 'service-date-only').first
+      # Similar to record_form_definition above, we always want to return a definition if we possibly can, so use the
+      # HUD default form. For non-HUD services, the only field that would show up is Date Provided.
+      # TODO(#6763) Use "system_managed" flag when it exists
+      definition || Hmis::Form::Definition.with_role(:SERVICE).where(identifier: 'service').first
     end
 
     field :static_form_definition, Types::Forms::FormDefinition, null: false do

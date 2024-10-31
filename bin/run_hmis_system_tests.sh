@@ -80,7 +80,7 @@ git clone --depth 1 --branch "$branch_to_checkout" "$REPO_URL" .
 CWD=$(pwd)
 yarn config set ignore-engines true
 yarn --cwd $CWD install
-yarn --cwd $CWD build
+PUBLIC_PROTECTED_IDS='false' yarn --cwd $CWD build
 
 # unset fails on exit
 set +e
