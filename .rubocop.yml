@@ -25,10 +25,6 @@ AllCops:
 
   NewCops: disable
 
-Lint/LastKeywordArgument:
-  Enabled: true
-  Safe: false
-
 # We don't care about method length, since we check method cyclomatic
 # complexity.
 Metrics/MethodLength:
