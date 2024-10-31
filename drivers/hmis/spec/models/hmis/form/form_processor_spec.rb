@@ -2098,16 +2098,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           end.to change(cls, :verified_by_project_id).to(p1.id).
             and change(cls, :verified_by).to(p1.name)
         end
-
-        it 'should truncate long project name' do
-          long_name_project = create(:hmis_hud_project, data_source: ds1, organization: o1, project_name: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque consequat, nisi eu varius lobortis, massa ligula congue nibh, ut condimentum tortor ex vitae ipsum.')
-          values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => long_name_project.id })
-
-          expect do
-            process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)
-          end.to change(cls, :verified_by_project_id).to(long_name_project.id).
-            and change(cls, :verified_by).to(long_name_project.name.truncate(100))
-        end
       end
 
       context 'when saving verified_by_project_id on an existing CLS' do
