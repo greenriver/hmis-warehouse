@@ -80,7 +80,7 @@ module HmisDataQualityTool
         section[:detail_columns]
       else
         # Handle CH details
-        columns = [
+        [
           :destination_client_id,
           :first_name,
           :last_name,
