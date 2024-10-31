@@ -11,26 +11,27 @@ module Mutations
     field :form_identifier, Types::Forms::FormIdentifier, null: true
 
     def resolve(identifier:)
-      definitions = Hmis::Form::Definition.
-        exclude_definition_from_select.
-        order(version: :desc).
-        where(identifier: identifier)
+      # Choose the most recent Published or Retired definition to duplicate
+      definition_to_duplicate = Hmis::Form::Definition.
+        where(identifier: identifier).
+        published_or_retired.
+        order(version: :desc).first
 
-      raise 'not found' if definitions.empty?
+      raise 'not found' unless definition_to_duplicate
 
-      access_denied! unless current_user.can_manage_forms_for_role?(definitions.first.role)
+      access_denied! unless current_user.can_manage_forms_for_role?(definition_to_duplicate.role)
 
-      # Re-fetch the most recent version (could be published or retired) to get the full form definition
-      most_recent = Hmis::Form::Definition.find(definitions.first.id)
+      # Drop all custom_field_key mappings on definition structure
+      cleaned_definition_json = remove_custom_field_mappings(definition_to_duplicate)
 
       # Create a new draft definition, giving it a unique identifier
       definition = Hmis::Form::Definition.new(
-        title: 'Copy of ' + most_recent.title, # set title, can be changed later
-        identifier: ensure_unique_identifier(most_recent.identifier + '_copy'), # cannot be changed
+        title: 'Copy of ' + definition_to_duplicate.title, # set title, can be changed later
+        identifier: ensure_unique_identifier(definition_to_duplicate.identifier + '_copy'), # cannot be changed
         status: Hmis::Form::Definition::DRAFT,
         version: 0,
-        role: most_recent.role,
-        definition: most_recent.definition, # TODO: needs to drop all custom_field_key mappings
+        role: definition_to_duplicate.role,
+        definition: cleaned_definition_json,
       )
 
       definition.save!
@@ -38,15 +39,27 @@ module Mutations
       { form_identifier: definition }
     end
 
+    # Remove any cutom fields mappings `{mapping: {custom_field_key: '...'}}` when duplicating.
+    # When this form is published, new custom field keys will be re-generated for these questions.
+    # Mappings for standard HUD fields are retained.
+    def remove_custom_field_mappings(definition)
+      definition.walk_definition_nodes do |item|
+        next unless item.dig('mapping', 'custom_field_key')
+
+        item.delete('mapping')
+      end
+      definition.definition
+    end
+
     def ensure_unique_identifier(key)
       return key unless Hmis::Form::Definition.exists?(identifier: key)
 
       count = 1
       possible_key = key
-      while Hmis::Form::Definition.exists?(identifier: key)
+      while Hmis::Form::Definition.exists?(identifier: possible_key)
         count += 1
         possible_key = "#{key}_#{count}"
-        raise if count > 50 # safety
+        raise 'count exceeded' if count > 50 # safety
       end
       possible_key
     end
