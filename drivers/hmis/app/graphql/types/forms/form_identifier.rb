@@ -22,6 +22,7 @@ module Types
 
     field :id, String, null: false
     field :identifier, String, null: false
+
     field :published_version, Types::Forms::FormDefinition, null: true
     field :draft_version, Types::Forms::FormDefinition, null: true
     field :all_versions, Types::Forms::FormDefinition.page_type, null: false
