@@ -1,0 +1,62 @@
+- document_chart_name = "time#{key.camelize}"
+#time-controller.time.mt-4{ data: { controller: 'chart-loader', chart: "document.#{document_chart_name}" }}
+  - url = URI(@report.chart_data_path('time'))
+  .d-flex
+    - chart_header = "Average Days by "
+    %h3
+      = chart_header
+      %span{ data: { 'chart-loader-target' => 'header' }} #{label}
+    - chart_data = klass.new(report: @report, filter: @filter, show_filter: show_filter).chart_data(key).to_json
+    - url.query = show_filter.for_params.merge(demographic_breakdown: key).to_query
+    - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key, 'table-name' => "Table - #{chart_header} #{label}", 'chart-data': chart_data }
+    - classes = ['hide', 'jChartLoaderItemTime']
+    = link_to(label, url.to_s, data: data, class: classes)
+  %div{id: "time-chart-#{key}-wrapper", data: { 'chart-loader-target' => 'wrapper' }}
+    .mb-6{id: "time-chart-#{key}", data: { 'chart-loader-target' => 'chart' }}
+    %div{id: "time-table-#{key}", data: { 'chart-loader-target' => 'table' }}
+
+  = content_for :page_js do
+    :javascript
+      document['#{document_chart_name}'] = bb.generate({
+        data: {
+          columns: [],
+          type: 'bar',
+          x: 'x',
+          labels: {
+            format: function(v, id, i, j) {
+              if (v == 0) return '';
+              if (! id) return v;
+              if (v < 5) return '';
+              return d3.format(",")(v);
+            },
+            centered: true,
+          }
+        },
+        legend: {
+          position: "right"
+        },
+        tooltip: {
+          order: '', // Enforce group order
+          format: {
+            value: (value, ratio, id, index) => d3.format(",")(value),
+          },
+        },
+        bindto: '#time-chart-#{key}',
+        size: {
+          height: 100,
+        },
+        bar: {
+          padding: 1,
+        },
+        axis: {
+          rotated: true,
+          x: {
+            type: 'category'
+          }
+        },
+        grid: {
+          x: {
+            show: true
+          }
+        }
+      });

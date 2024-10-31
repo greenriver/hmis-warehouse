@@ -31,10 +31,7 @@ module SystemPathways::WarehouseReports
       params.permit!
       @pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @report.filter, show_filter: show_filter)
       respond_to do |format|
-        format.html do
-          # FIXME: this is temporary
-          render 'show_pdf'
-        end
+        format.html {}
         format.xlsx do
           filename = "#{@report.title&.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
