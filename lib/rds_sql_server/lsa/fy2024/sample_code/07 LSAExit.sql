@@ -393,9 +393,7 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 						 or (ex.Cohort = -2 and disability.Exit2Age between 18 and 65)		
 						)
 					))
-		, HHFleeingDV = coalesce((select min(
-				case when dv.DVStatus = 1 then 1
-					else 2 end)
+		, HHFleeingDV = coalesce((select min(dv.DVStatus)
 				from tlsa_Enrollment dv
 				where dv.HouseholdID = hh.HouseholdID
 					and dv.DVStatus between 1 and 3
@@ -448,7 +446,7 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 		group by n.HouseholdID, hhid.ExitCohort) vet on vet.HouseholdID = ex.QualifyingExitHHID and vet.ExitCohort = ex.Cohort
 
 	update ex
-	set ex.HHAdultAge = case when ages.MaxAge not between 18 and 65 then -1
+	set ex.HHAdultAge = case when ages.MaxAge > 65 or ex.HHType not in (1,2) then -1
 		when ages.MaxAge = 21 then 18
 		when ages.MaxAge = 24 then 24
 		when ages.MinAge between 55 and 65 then 55

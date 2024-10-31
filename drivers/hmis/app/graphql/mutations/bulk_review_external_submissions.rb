@@ -15,7 +15,7 @@ module Mutations
 
       # Submissions could come from different definitions (versions), but should be all the same form identifier
       identifiers = definitions.pluck(:identifier).uniq
-      error_out('Cannot bulk process submissions from multiple form identifiers: ' + identifiers.inspect) unless identifiers.one?
+      raise "Cannot bulk process submissions from multiple form identifiers: #{identifiers}" unless identifiers.one?
 
       project = submissions.first.parent_project # can check first submission because we know they all have the same form identifier
 
