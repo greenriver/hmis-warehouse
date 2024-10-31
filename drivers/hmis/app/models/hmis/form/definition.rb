@@ -41,6 +41,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   attr_accessor :filter_context
 
   validates :identifier, format: { with: /\A[a-zA-Z][a-zA-Z0-9_-]*\z/, message: 'must contain only alphanumeric characters, underscores, and dashes, and must start with a letter' }
+  # Forms that are managed in version control cannot have more than 1 version. To enforce this, we ensure that the identifier is unique.
+  validates_uniqueness_of :identifier, if: :managed_in_version_control?
 
   # --- Relations by id ----
   has_many :form_processors, dependent: :restrict_with_exception

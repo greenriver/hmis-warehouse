@@ -360,9 +360,6 @@ module HmisUtil
         end
       end
       ensure_system_instances_exist!
-      # tbh this hsould have more coverage to include:
-      # - move-in date, DOE, Post-Exit assessment, etc.
-
       # puts "Saved definitions with identifiers: #{record_forms.keys.join(', ')}"
     end
 
