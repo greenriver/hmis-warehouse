@@ -71,6 +71,8 @@ module HmisDataQualityTool
         :organization_ids,
         :project_group_ids,
         :data_source_ids,
+        :funder_ids,
+        :funder_others,
       ]
       filter.describe_filter_as_html(keys, inline: inline, limited: limited)
     end
@@ -82,6 +84,8 @@ module HmisDataQualityTool
         :organization_ids,
         :project_group_ids,
         :data_source_ids,
+        :funder_ids,
+        :funder_others,
       ]
       filter.describe_filter(keys)
     end
@@ -97,6 +101,7 @@ module HmisDataQualityTool
         :project_group_ids,
         :data_source_ids,
         :funder_ids,
+        :funder_others,
         :default_project_type_codes,
       ]
     end
@@ -290,6 +295,7 @@ module HmisDataQualityTool
         'enrollment_any_ch',
         'average_days_before_entry',
         'destination_temporary',
+        'destination_permanent',
         'destination_other',
       ].freeze
     end
@@ -316,6 +322,9 @@ module HmisDataQualityTool
         item_class = Enrollment
       when 'destination_temporary'
         title = 'Temporary Destination'
+        item_class = Enrollment
+      when 'destination_permanent'
+        title = 'Permanent Destination'
         item_class = Enrollment
       when 'destination_other'
         title = 'Other Destination'
@@ -354,6 +363,8 @@ module HmisDataQualityTool
         enrollments.where.not(days_before_entry: nil)
       when 'destination_temporary'
         enrollments.where(destination: ::HudUtility2024.temporary_destinations)
+      when 'destination_permanent'
+        enrollments.where(destination: ::HudUtility2024.permanent_destinations)
       when 'destination_other'
         enrollments.where(destination: ::HudUtility2024.other_destinations)
       end
@@ -362,7 +373,7 @@ module HmisDataQualityTool
     def destination_percent(category)
       # All exits
       denominator = enrollments.where.not(exit_date: nil).count
-      # Exits in category (destination_temporary or destination_other)
+      # Exits in category (destination_temporary, destination_other, or destination_permanent)
       numerator = items_for(category.to_s).count
 
       return 100 if denominator.zero?

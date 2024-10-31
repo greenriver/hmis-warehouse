@@ -35,6 +35,7 @@ module UserConcern
            :two_factor_backupable,
            password_length: 10..128,
            otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
+           otp_secret_length: 26, # 128 bits keys, per RFC 4226. See GHSA-qjxf-mc72-wjr2
            otp_number_of_backup_codes: 10
 
     include OmniauthSupport
@@ -212,14 +213,24 @@ module UserConcern
       user != self
     end
 
-    def training_status
-      return 'Not Started' unless Talentlms::Login.find_by(user: self)
+    def training_status(course)
+      login = Talentlms::Login.find_by(user: self, config: course.config)
+      return 'Not Started' unless login
 
-      if last_training_completed
-        "Completed #{last_training_completed}"
+      completion_date = Talentlms::CompletedTraining.find_by(course: course, login: login)&.completion_date
+
+      if completion_date
+        "Completed #{completion_date}"
       else
         'In Progress'
       end
+    end
+
+    def required_training_courses
+      return Talentlms::Course.where(id: training_courses&.compact_blank) if training_courses&.compact_blank&.present?
+      return Talentlms::Course.default if training_required?
+
+      []
     end
 
     # def role_keys
@@ -265,11 +276,23 @@ module UserConcern
     end
 
     def two_factor_label
-      Translation.translate('Boston DND HMIS Warehouse')
+      label = Translation.translate('Boston DND HMIS Warehouse')
+      Rails.env.production? ? label : "#{label} [#{Rails.env}]"
     end
 
     def two_factor_issuer
       "#{two_factor_label} #{email}"
+    end
+
+    # clears all otp secrets
+    def reset_two_factor_model_attrs
+      self.encrypted_otp_secret = nil
+      self.encrypted_otp_secret_iv = nil
+      self.encrypted_otp_secret_salt = nil
+      self.otp_backup_codes = nil
+      self.otp_secret = nil
+      self.confirmed_2fa = 0
+      self.otp_required_for_login = false
     end
 
     def my_root_path
@@ -526,7 +549,7 @@ module UserConcern
         merge(Health::CoordinationTeam.lead_by(team_leader_ids + [id])).
         pluck(:user_id)
 
-      User.where(id: team_member_ids)
+      User.where(id: team_member_ids).active
     end
 
     # patients with CC or NCM relationship to this user
@@ -618,6 +641,7 @@ module UserConcern
         :organization_ids,
         :data_source_ids,
         :funder_ids,
+        :funder_others,
         :project_group_ids,
         :projects,
         :organizations,

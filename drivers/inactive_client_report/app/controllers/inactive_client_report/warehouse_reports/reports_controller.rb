@@ -21,6 +21,7 @@ module InactiveClientReport::WarehouseReports
           @report.client_ids = @clients.map(&:id)
         end
         format.xlsx do
+          @report.client_ids = @report.clients.map(&:id)
           filename = "#{@report.name} - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
@@ -49,6 +50,8 @@ module InactiveClientReport::WarehouseReports
           project_type_codes: ['ce'],
           end_date: Date.yesterday,
           start_date: 3.months.ago.to_date,
+          days_since_contact_min: 30,
+          days_since_contact_max: 90,
         },
       }
     end

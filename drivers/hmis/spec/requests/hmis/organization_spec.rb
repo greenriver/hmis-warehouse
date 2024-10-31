@@ -75,5 +75,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       orgs = result.dig('data', 'organizations', 'nodes')
       expect(orgs.length).to eq(0)
     end
+
+    context 'when there are multiple HMIS data sources' do
+      let!(:ds2) { create :hmis_data_source }
+      let!(:o5) { create :hmis_hud_organization, data_source: ds2, OrganizationName: 'Pineapples' }
+      let!(:ds2_access_control) { create_access_control(hmis_user, ds2) }
+
+      it 'does not return organizations from other data source' do
+        response, result = post_graphql { query }
+        expect(response.status).to eq 200
+        organizations = result.dig('data', 'organizations', 'nodes')
+        expect(organizations.size).to eq(4)
+        expect(organizations).to contain_exactly(
+          match(a_hash_including({ 'organizationName': o1.organization_name }.stringify_keys)),
+          match(a_hash_including({ 'organizationName': o2.organization_name }.stringify_keys)),
+          match(a_hash_including({ 'organizationName': o3.organization_name }.stringify_keys)),
+          match(a_hash_including({ 'organizationName': o4.organization_name }.stringify_keys)),
+        )
+      end
+    end
   end
 end

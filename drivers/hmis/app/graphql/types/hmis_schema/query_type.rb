@@ -39,6 +39,12 @@ module Types
     end
 
     def client_search(input:, **args)
+      # ensure that client search has sufficient search criteria, so as not to allow exposing all clients at once.
+      # caller must use some search criteria, OR a service filter by project to limit results (used in Bulk Services)
+      has_search_term = input.to_h.excluding(:projects, :organizations).values.compact_blank.any?
+      has_service_filter = args[:filters]&.service_in_range&.project_id.present?
+      raise 'Invalid search. At least 1 search param is required.' unless has_search_term || has_service_filter
+
       # if the search should also sort by rank
       sorted = args[:sort_order] == :best_match
       search_scope = Hmis::Hud::Client.client_search(
@@ -174,13 +180,19 @@ module Types
     field :record_form_definition, Types::Forms::FormDefinition, 'Get the most relevant Form Definition to use for record viewing/editing', null: true do
       argument :role, Types::Forms::Enums::RecordFormRole, required: true
       argument :project_id, ID, required: false, description: 'Optional Project to select the relevant form, and to apply rule filtering (e.g. show/hide questions based on Project applicability)'
+      argument :id, ID, required: false, description: 'Form Definition ID, if known'
     end
-    def record_form_definition(role:, project_id: nil)
+    def record_form_definition(role:, project_id: nil, id: nil)
       raise 'Not supported, use serviceFormDefinition to look up service forms' if role == 'SERVICE'
       raise 'unexpected role' unless Hmis::Form::Definition::FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
-      record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      record = if id
+        Hmis::Form::Definition.find(id)
+      else
+        Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      end
+
       record&.filter_context = { project: project } # Apply project-specific filtering rules. Only relevant for some form types.
       record
     end
@@ -397,13 +409,13 @@ module Types
       Hmis::Form::Definition.find(id)
     end
 
-    field :external_form_definition, Types::Forms::FormDefinition, null: true do
-      argument :identifier, String, required: true
+    field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true do
+      argument :id, ID, required: true
     end
-    def external_form_definition(identifier:)
+    def external_form_submission(id:)
       raise 'Access denied' unless current_user.can_manage_external_form_submissions?
 
-      Hmis::Form::Definition.with_role(:EXTERNAL_FORM).where(identifier: identifier).order(version: :desc).first
+      HmisExternalApis::ExternalForms::FormSubmission.find(id)
     end
 
     field :form_identifier, Types::Forms::FormIdentifier, null: true do
@@ -450,7 +462,7 @@ module Types
     def project_configs
       raise 'not allowed' unless current_user.can_configure_data_collection?
 
-      Hmis::ProjectConfig.all
+      Hmis::ProjectConfig.viewable_by(current_user)
     end
 
     field :project_can_accept_referral, Boolean, 'Whether the destination project is able to accept a referral for the client(s) belonging to the source enrollment', null: false do
@@ -480,7 +492,7 @@ module Types
     field :client_detail_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)'
     def client_detail_forms
       # No authorization required, this just resolving application configuration
-      Hmis::Form::Instance.active.with_role(:CLIENT_DETAIL).sort_by_option(:form_title)
+      Hmis::Form::Instance.active.with_role(:CLIENT_DETAIL).published.sort_by_option(:form_title)
     end
   end
 end

@@ -22,7 +22,7 @@ module ClientLocationHistory
       @options = {
         bounds: @bounds,
         cluster: true,
-        marker_color: '#72A0C1',
+        marker_color: ClientLocationHistory::Location::MARKER_COLOR,
       }
     end
 

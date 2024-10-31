@@ -93,7 +93,7 @@ module BuiltForZeroReport
 
     # @return [SourceDataHash] clients in cohort who were housed in the reporting period
     def housed
-      source_data.select { |_, v| v[:change] == 'destroy' && v[:reason] == 'Housed' }
+      filtered_source_data.select { |_, v| v[:change] == 'destroy' && v[:reason] == 'Housed' }
     end
 
     # @return a pair:
@@ -111,29 +111,34 @@ module BuiltForZeroReport
 
     # @return [SourceDataHash] clients in cohort who became inactive in the reporting period
     def inactive
-      source_data.select { |_, v| v[:change] == 'destroy' && v[:reason].downcase == 'inactive' }
+      filtered_source_data.select { |_, v| v[:change] == 'destroy' && v[:reason].downcase == 'inactive' }
     end
 
     # @return [SourceDataHash] clients who ceased to be eligible for inclusion in the cohort during the reporting period
     def ineligible
-      source_data.select { |_, v| v[:change] == 'destroy' && v[:reason].downcase == 'no longer meets criteria' }
+      filtered_source_data.select { |_, v| v[:change] == 'destroy' && v[:reason].downcase == 'no longer meets criteria' }
     end
 
     # :section: Inflow
 
     # @return [SourceDataHash] clients in cohort who were newly identified in the reporting period
     def newly_identified
-      source_data.select { |_, v| v[:change] == 'create' && v[:reason].downcase == 'newly identified' }
+      filtered_source_data.select { |_, v| v[:change] == 'create' && v[:reason].downcase == 'newly identified' }
     end
 
     # @return [SourceDataHash] clients in cohort who returned to homelessness from housing in the reporting period
     def returned_from_housing
-      source_data.select { |_, v| v[:change] == 'create' && v[:reason].downcase == 'returned from housing' }
+      filtered_source_data.select { |_, v| v[:change] == 'create' && v[:reason].downcase == 'returned from housing' }
     end
 
     # @return [SourceDataHash] clients who returned to the cohort after a period of inactivity in the reporting period
     def returned_from_inactivity
-      source_data.select { |_, v| v[:change] == 'create' && v[:reason].downcase == 'returned from inactive' }
+      filtered_source_data.select { |_, v| v[:change] == 'create' && v[:reason].downcase == 'returned from inactive' }
+    end
+
+    # Limit the source data to only changes that ocurred during the reporting period
+    private def filtered_source_data
+      @filtered_source_data ||= source_data.select { |_, v| v[:changed_at] > @start_date }
     end
 
     # Roll up of a cohort change history to reflect most recent change for each client on a specified date.
@@ -151,6 +156,9 @@ module BuiltForZeroReport
               define_window(:cohort_client_id_by_change_date).partition_by(c_c_change_t[:cohort_client_id], order_by: { c_c_change_t[:changed_at] => :desc }).
               select_window(:first_value, c_c_change_t[:id], over: :cohort_client_id_by_change_date, as: :current_id).
               where(cohort_id: @cohort_id).
+              # Include anyone whose data was changed before the end of the report
+              # We need to include the larger set to be able to calculate actively homeless
+              # We'll limit changes to the reporting period in the individual methods
               where(c_c_change_t[:changed_at].lteq(@end_date)),
         ).
         joins(join_cc.join_sources).

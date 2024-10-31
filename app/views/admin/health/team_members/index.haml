@@ -17,6 +17,7 @@
           %th
       %tbody
         - @team_members.find_each do |member|
+          - next unless member.user.active?
           %tr
             %td
               = member.coordination_team&.name

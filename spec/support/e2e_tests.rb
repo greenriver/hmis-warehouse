@@ -58,6 +58,7 @@ module E2eTests
         ::Capybara::Cuprite::Driver.new(
           app,
           **{
+            extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"], # https://github.com/rubycdp/ferrum?tab=readme-ov-file#customization
             window_size: [1200, 1600],
             browser_options: RemoteChrome.connected? ? { 'no-sandbox' => nil } : {},
             headless: ENV.fetch('CI', 'true') == 'true',

@@ -111,6 +111,16 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         expect(e2.intake_assessment).to be_present
       end
 
+      it 'creates assessments only in specified enrollment scope' do
+        e2 = create(:hmis_hud_enrollment, data_source: ds1, client: c1)
+
+        enrollments = Hmis::Hud::Enrollment.where(id: e2.id)
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, enrollments: enrollments, generate_empty_intakes: true)
+
+        expect(e1.custom_assessments).to be_empty # didn't create assessment for p1 enrollment
+        expect(e2.intake_assessment).to be_present
+      end
+
       it 'creates assessments only in specified projects (no assessments to create)' do
         p2 = create(:hmis_hud_project, data_source: ds1, organization: o1)
         num = Hmis::Hud::CustomAssessment.all.size

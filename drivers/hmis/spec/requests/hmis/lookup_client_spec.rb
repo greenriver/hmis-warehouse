@@ -30,7 +30,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:f1) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag] }
   let!(:f2) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag], confidential: true }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-  let!(:photo_tag) { create :available_file_tag, consent_form: false, name: 'Client Headshot' }
+  let!(:photo_tag) { create :available_file_tag, consent_form: false, name: GrdaWarehouse::ClientFile.headshot_tag_name }
   let!(:photo) { create :client_file, client: c1.as_warehouse, name: 'Client Headshot Cache', tags: [photo_tag] }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
@@ -42,6 +42,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ssn
           dob
           age
+          hudChronic
           user {
             id
             name
@@ -173,6 +174,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       'emailAddresses' => [{ 'value' => 'email@e.mail', 'use' => 'home', 'system' => 'email' }],
     )
     expect(result.dig('data', 'client', 'image')).not_to be_nil
+    expect(result.dig('data', 'client', 'hudChronic')).to eq(false)
+  end
+
+  context 'with a client who is chronically homeless per HUD definition' do
+    let!(:c1) { create :hmis_hud_client_with_warehouse_client, data_source: ds1 }
+    let!(:e1) do
+      create :hmis_hud_enrollment,
+             data_source: ds1,
+             project: p1,
+             client: c1,
+             DisablingCondition: 1,
+             MonthsHomelessPastThreeYears: 112, # see MonthsHomelessPastThreeYears enum
+             TimesHomelessPastThreeYears: 4
+    end
+    let!(:disability) { create :hmis_disability, client: c1, enrollment: e1 }
+
+    it 'should return chronic status correctly' do
+      response, result = post_graphql(id: c1.id) { query }
+      expect(response.status).to eq 200
+      expect(result.dig('data', 'client', 'hudChronic')).to eq(true)
+    end
   end
 
   it 'should return client if can view clients and client is unenrolled' do

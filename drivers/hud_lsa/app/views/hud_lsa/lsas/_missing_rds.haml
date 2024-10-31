@@ -1,0 +1,4 @@
+- if ! Rds.rds_available?
+  -# This should only show up if you are working locally or haven't configured RDS correctly
+  .alert.alert-danger
+    The LSA requires access to an additional SQL server to run.  This configuration does not appear to be setup correctly.  Please reach out to your system administrator.

@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# NOTE: the rails mailer does not appear to be aware of drivers; templates are in main view directory
 class ProjectScorecard::ScorecardMailer < ::DatabaseMailer
   def scorecard_prefilled(report, contact)
     @report = report

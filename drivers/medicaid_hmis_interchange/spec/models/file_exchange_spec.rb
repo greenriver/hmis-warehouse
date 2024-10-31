@@ -35,7 +35,7 @@ RSpec.describe MedicaidHmisInterchange::FileExchangeJob, type: :model do
 
   describe 'with submittable data' do
     let!(:client) { create(:fixed_destination_client) }
-    let!(:enrollment) { create :grda_warehouse_hud_enrollment, EntryDate: Date.current - 1.day, data_source_id: client.data_source_id }
+    let!(:enrollment) { create :grda_warehouse_hud_enrollment, EntryDate: Date.current - 1.day, data_source_id: client.data_source_id, PersonalID: client.PersonalID }
     let!(:service_history_enrollment) do
       create(
         :grda_warehouse_service_history,

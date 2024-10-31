@@ -9,7 +9,7 @@ module HudLsa
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform(report_id, email: true)
-      report = HudLsa::Generators::Fy2023::Lsa.find(report_id)
+      report = HudLsa::Generators::Fy2024::Lsa.find(report_id)
       report.start_report
       report.run!
       report.complete_report

@@ -16,3 +16,8 @@ Rails.application.config.hud_reports['HudLsa::Generators::Fy2023::Lsa'] = {
   title: 'Longitudinal System Analysis',
   helper: 'hud_reports_lsas_path',
 }
+
+Rails.application.config.hud_reports['HudLsa::Generators::Fy2024::Lsa'] = {
+  title: 'Longitudinal System Analysis',
+  helper: 'hud_reports_lsas_path',
+}

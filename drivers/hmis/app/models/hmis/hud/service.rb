@@ -45,6 +45,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   end
 
   private def warehouse_columns_changed?
+    # Re-process when there are changes to any fields used in GrdaWarehouse::Tasks::ServiceHistory rebuild_service_history
     (saved_changes.keys & ['DateProvided', 'RecordType', 'TypeProvided', 'DateDeleted']).any?
   end
 end

@@ -119,13 +119,17 @@ module Health::Claims
     end
 
     def load_cost_values
-      implementation_sum = @patient.amount_paids.implementation.map(&:total).sum&.round rescue 0 # rubocop:disable Style/RescueModifier
+      # FIXME: Rails 7.1 is expected to change the behavior of Enumeration#sum
+      #   This adds an initial value of 0 for cases where the first value is nil. This is behavior preserving as it
+      #   will still fail when it adds the nil (will be caught, and 0 returned). Should this really be replacing the
+      #   nils with 0s so the average is available?
+      implementation_sum = @patient.amount_paids.implementation.map(&:total).sum(0)&.round rescue 0 # rubocop:disable Style/RescueModifier
       implementation_count = @patient.amount_paids.implementation.map(&:total).count&.round
       patient = [
         implementation_sum,
         implementation_count,
       ]
-      baseline_sum = @patient.amount_paids.baseline.map(&:total).sum&.round rescue 0 # rubocop:disable Style/RescueModifier
+      baseline_sum = @patient.amount_paids.baseline.map(&:total).sum(0)&.round rescue 0 # rubocop:disable Style/RescueModifier
       baseline_count = @patient.amount_paids.baseline.map(&:total).count&.round rescue 0 # rubocop:disable Style/RescueModifier
       sdh = [
         baseline_sum,

@@ -202,6 +202,7 @@ module Admin
         :last_name,
         :first_name,
         :email,
+        :talent_lms_email,
         :phone,
         :credentials,
         :agency_id,

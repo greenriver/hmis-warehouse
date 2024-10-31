@@ -7,6 +7,78 @@
 module CasClientData
   extend ActiveSupport::Concern
   included do
+    scope :cas_active, -> do
+      scope = case GrdaWarehouse::Config.get(:cas_available_method).to_sym
+      when :cas_flag
+        # Short circuit if we're using manual flag setting
+        return where(sync_with_cas: true)
+      when :chronic
+        joins(:chronics).where(chronics: { date: GrdaWarehouse::Chronic.most_recent_day })
+      when :hud_chronic
+        joins(:hud_chronics).where(hud_chronics: { date: GrdaWarehouse::HudChronic.most_recent_day })
+      when :release_present
+        where(housing_release_status: [full_release_string, partial_release_string])
+      when :active_clients
+        range = GrdaWarehouse::Config.cas_sync_range
+
+        # Homeless and Coordinated Entry Projects
+        homeless_ce_project_ids = GrdaWarehouse::Hud::Project.with_project_type(HudUtility2024.homeless_project_types + [14]).pluck(:id)
+        # Projects with override to consider enrolled clients as actively homeless for CAS and Cohorts
+        override_project_ids = GrdaWarehouse::Hud::Project.where(active_homeless_status_override: true).pluck(:id)
+
+        service_options = { start_date: range.first, end_date: range.last }
+        service_options[:service_scope] = GrdaWarehouse::ServiceHistoryService.service_excluding_extrapolated unless GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.in_project(homeless_ce_project_ids + override_project_ids).
+          with_service_between(**service_options)
+        where(id: enrollment_scope.select(:client_id))
+      when :project_group
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group&.projects&.ids
+        return none if project_ids.blank?
+
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.ongoing.in_project(project_ids)
+        where(id: enrollment_scope.select(:client_id))
+      when :boston
+        # Release on file
+        scope = where(housing_release_status: [full_release_string, partial_release_string])
+        # enrolled in the chosen project group
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group&.projects&.ids
+        if project_ids.present?
+          enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.ongoing.in_project(project_ids)
+          scope = scope.where(id: enrollment_scope.select(:client_id))
+        end
+        # with a Pathways assessment (removed by request 11/23/23)
+        # scope.where(id: joins(source_clients: :most_recent_pathways_or_rrh_assessment).select(:id))
+        scope
+      when :ce_with_assessment
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          in_project_type(HudUtility2024.performance_reporting[:ce]).
+          ongoing.
+          joins(enrollment: :assessments)
+        where(id: enrollment_scope.select(:client_id))
+      else
+        raise NotImplementedError
+      end
+
+      # Include anyone who should be included by virtue of their data, and anyone who has the checkbox checked
+      scope.or(where(sync_with_cas: true))
+    end
+
+    scope :full_housing_release_on_file, -> do
+      where(housing_release_status: full_release_string)
+    end
+
+    scope :limited_cas_release_on_file, -> do
+      where(housing_release_status: partial_release_string)
+    end
+
+    scope :no_release_on_file, -> do
+      where(housing_release_status: nil)
+    end
+
+    scope :desiring_rrh, -> do
+      where(rrh_desired: true)
+    end
+
     scope :dmh_eligible, -> do
       where.not(dmh_eligible: false)
     end
@@ -21,6 +93,235 @@ module CasClientData
 
     scope :hiv_positive, -> do
       where.not(hiv_positive: false)
+    end
+
+    has_one :cas_project_client, class_name: 'CasAccess::ProjectClient', foreign_key: :id_in_data_source
+    has_one :cas_client, class_name: 'CasAccess::Client', through: :cas_project_client, source: :client
+    has_many :cas_reports, class_name: 'GrdaWarehouse::CasReport', inverse_of: :client
+    has_many :cas_houseds, class_name: 'GrdaWarehouse::CasHoused'
+
+    # Do we have any declines that make us ineligible
+    # that occurred more recently than our most-recent pathways
+    # assessment?
+    def pathways_ineligible?
+      most_recent_pathways_ineligible_cas_response.present?
+    end
+
+    def most_recent_pathways_ineligible_cas_response
+      @most_recent_pathways_ineligible_cas_response ||= cas_reports.ineligible_in_warehouse.
+        declined.
+        match_closed.
+        match_failed.
+        where(updated_at: most_recent_pathways_assessment_collected_on..Time.current).
+        order(updated_at: :desc)&.first
+    end
+
+    def pathways_ineligible_on
+      return false unless pathways_ineligible?
+
+      most_recent_pathways_ineligible_cas_response.updated_at&.to_date
+    end
+
+    # cas needs a simplified version of this
+    def cas_substance_response
+      response = source_disabilities.detect(&:substance?).try(:response)
+      nos = [
+        'No',
+        'Client doesn\'t know',
+        'Client refused',
+        'Data not collected',
+      ]
+      return nil unless response.present?
+      return 'Yes' unless nos.include?(response)
+
+      response
+    end
+
+    def cas_substance_response?
+      cas_substance_response == 'Yes'
+    end
+
+    def cas_pregnancy_status
+      one_year_ago = 1.years.ago.to_date
+      in_last_year = one_year_ago .. Date.current
+      # To allow preload(:source_health_and_dvs) do the calculation in memory
+      hmis_pregnancy = source_health_and_dvs.detect do |m|
+        m.PregnancyStatus == 1 &&
+        (
+          (m.InformationDate.present? && m.InformationDate > one_year_ago) ||
+          (m.DueDate.present? && m.DueDate > Date.current - 3.months)
+        )
+      end.present?
+      vispdat_pregnancy = false
+      eto_pregnancy = false
+      unless cas_calculator_instance.unrelated_columns.include?(:vispdat_score)
+        vispdat_pregnancy = vispdats.completed.where(pregnant_answer: 1, submitted_at: in_last_year).exists?
+        eto_pregnancy = source_hmis_forms.vispdat.
+          vispdat_pregnant.
+          where(collected_at: in_last_year).
+          exists?
+      end
+
+      hmis_pregnancy || vispdat_pregnancy || eto_pregnancy
+    end
+
+    def cas_race_am_ind_ak_native
+      self.AmIndAKNative == 1
+    end
+
+    def cas_race_asian
+      self.Asian == 1
+    end
+
+    def cas_race_black_af_american
+      self.BlackAfAmerican == 1
+    end
+
+    def cas_race_native_hi_pacific
+      self.NativeHIPacific == 1
+    end
+
+    def cas_race_white
+      self.White == 1
+    end
+
+    def cas_race_hispanic_latinaeo
+      self.HispanicLatinaeo == 1
+    end
+
+    def cas_race_mid_east_n_african
+      self.MidEastNAfrican == 1
+    end
+
+    def cas_gender_woman
+      self.Woman == 1
+    end
+
+    def cas_gender_female
+      cas_gender_woman
+    end
+
+    def cas_gender_man
+      self.Man == 1
+    end
+
+    def cas_gender_male
+      cas_gender_man
+    end
+
+    def cas_gender_no_single_gender
+      self.NonBinary == 1
+    end
+
+    def cas_gender_transgender
+      self.Transgender == 1
+    end
+
+    def cas_gender_questioning
+      self.Questioning == 1
+    end
+
+    def most_recent_vispdat
+      return if cas_calculator_instance.unrelated_columns.include?(:vispdat_score)
+
+      vispdats.completed.first
+    end
+
+    # Fetch most recent VI-SPDAT from the warehouse,
+    # if not available use the most recent ETO VI-SPDAT
+    # The ETO VI-SPDAT are prioritized by max score on the most recent assessment
+    # NOTE: if we have more than one VI-SPDAT on the same day, the calculation is complicated
+    def most_recent_vispdat_score
+      return if cas_calculator_instance.unrelated_columns.include?(:vispdat_score)
+
+      vispdats.completed.scores.first&.score ||
+        source_hmis_forms.vispdat.newest_first.
+          pluck(
+            :collected_at,
+            :vispdat_total_score,
+            :vispdat_youth_score,
+            :vispdat_family_score,
+          )&.
+          group_by(&:first)&.
+          first&.
+          last&.
+          map { |m| m.drop(1) }&.
+          flatten&.
+          compact&.
+          max
+    end
+
+    # NOTE: if we have more than one VI-SPDAT on the same day, the calculation is complicated
+    def most_recent_vispdat_length_homeless_in_days
+      return if cas_calculator_instance.unrelated_columns.include?(:vispdat_score)
+
+      vispdats.completed.order(submitted_at: :desc).limit(1).first&.days_homeless ||
+        source_hmis_forms.vispdat.newest_first.
+          map { |m| [m.collected_at, m.vispdat_days_homeless] }&.
+          group_by(&:first)&.
+          first&.
+          last&.
+          map { |m| m.drop(1) }&.
+          flatten&.
+          compact&.
+          max || 0
+    rescue # rubocop:disable Style/RescueStandardError
+      0
+    end
+
+    # Determine which vi-spdat to use based on dates
+    def most_recent_vispdat_object
+      return if cas_calculator_instance.unrelated_columns.include?(:vispdat_score)
+
+      internal = most_recent_vispdat
+      external = source_hmis_forms.vispdat.newest_first.first
+      vispdats = []
+      vispdats << [internal.submitted_at, internal] if internal
+      vispdats << [external.collected_at, external] if external
+      # return the newest vispdat
+      vispdats.sort_by(&:first)&.last&.last # rubocop:disable Style/RedundantSort
+    end
+
+    def most_recent_vispdat_family_vispdat?
+      return if cas_calculator_instance.unrelated_columns.include?(:vispdat_score)
+
+      # From local warehouse VI-SPDAT
+      return most_recent_vispdat_object.family? if most_recent_vispdat_object.respond_to?(:family?)
+
+      # From ETO VI-SPDAT, this is pre-calculated GrdaWarehouse::HmisForm.set_part_of_a_family
+      return family_member
+    end
+
+    def calculate_vispdat_priority_score
+      return if cas_calculator_instance.unrelated_columns.include?(:vispdat_score)
+
+      vispdat_score = most_recent_vispdat_score
+      return nil unless vispdat_score.present?
+
+      if GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'veteran_status'
+        prioritization_bump = 0
+        prioritization_bump += 100 if veteran?
+        vispdat_score + prioritization_bump
+      elsif GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'vets_family_youth'
+        prioritization_bump = 0
+        prioritization_bump += 100 if veteran?
+        prioritization_bump += 50 if most_recent_vispdat_family_vispdat?
+        prioritization_bump += 25 if youth_on?
+
+        vispdat_score + prioritization_bump
+      else # Default GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'length_of_time'
+        vispdat_length_homeless_in_days = days_homeless_for_vispdat_prioritization || 0
+        vispdat_prioritized_days_score = if vispdat_length_homeless_in_days >= 1095
+          1095
+        elsif vispdat_length_homeless_in_days >= 730
+          730
+        elsif vispdat_length_homeless_in_days >= 365 && vispdat_score >= 8
+          365
+        else
+          0
+        end
+        vispdat_score + vispdat_prioritized_days_score
+      end
     end
 
     def cas_calculator_instance

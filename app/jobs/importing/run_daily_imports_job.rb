@@ -184,8 +184,6 @@ module Importing
     end
 
     def warm_cache
-      # re-set cache key for delayed job
-      Rails.cache.write('deploy-dir', Delayed::Worker::Deployment.deployed_to)
       GrdaWarehouse::DataSource.data_spans_by_id
     end
 

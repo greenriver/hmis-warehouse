@@ -6,6 +6,7 @@
 
 class Hmis::Filter::ExternalFormSubmissionFilter < Hmis::Filter::BaseFilter
   def filter_scope(scope)
+    scope = ensure_scope(scope)
     date_range = input&.submitted_date&.then { |date| [date.beginning_of_day..date.end_of_day] }
     scope = scope.where(submitted_at: date_range) if date_range
     scope = scope.where(status: input.status) if input&.status

@@ -48,11 +48,13 @@ module Health
     # create team members for any matching unprocessed team members
     # don't add them to pilot patients
     def self.process!
+      Rails.logger.info 'EpicTeamMember: start process!'
       Health::Patient.bh_cp.
         joins(:epic_team_members).
         merge(Health::EpicTeamMember.unprocessed).
         distinct.
         each(&:import_epic_team_members)
+      Rails.logger.info 'EpicTeamMember: end process!'
     end
 
     def previously_processed_ids

@@ -39,6 +39,9 @@ module HmisCsvTwentyTwentyFour::Importer
 
     def self.hmis_validations
       {
+        ExitID: [
+          class: HmisCsvImporter::HmisCsvValidation::NonBlank,
+        ],
         EnrollmentID: [
           class: HmisCsvImporter::HmisCsvValidation::NonBlank,
         ],
@@ -46,7 +49,7 @@ module HmisCsvTwentyTwentyFour::Importer
           class: HmisCsvImporter::HmisCsvValidation::NonBlank,
         ],
         ExitDate: [
-          class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          class: HmisCsvImporter::HmisCsvValidation::NonBlank,
         ],
         Destination: [
           {

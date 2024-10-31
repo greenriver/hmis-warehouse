@@ -38,9 +38,11 @@
         %td
           .destination-sqr Warehouse
         %td= number_with_delimiter(GrdaWarehouse::Hud::Client.destination.count)
-        %td{colspan: 6}
+        - span = 6
+        - span = 7 if hmis_enabled?
+        %td{colspan: span}
       - @data_sources.each do |data_source|
-        - most_recently_completed = data_source.import_logs.maximum(:completed_at)&.localtime&.to_fs
+        - most_recently_completed = data_source.last_imported_at
         %tr
           %td= link_to data_source.name, data_source_path(data_source)
           %td

@@ -9,11 +9,15 @@ class HmisCsvImporter::ImportOverridesController < ApplicationController
   before_action :set_data_source
 
   def index
-    @overrides = import_override_scope.sorted
+    available_files = HmisCsvImporter::ImportOverride.available_files_for(@data_source.id)
+    @selected_filename = available_files.detect { |f| f == params[:filename] } || available_files.first
+    @overrides = import_override_scope.sorted.where(file_name: @selected_filename)
+    @pagy, @overrides = pagy(@overrides, items: 25)
   end
 
   def create
-    @override = import_override_source.create!(permitted_params.merge(data_source_id: @data_source.id))
+    @override = import_override_source.create(permitted_params.merge(data_source_id: @data_source.id))
+    flash[:alert] = @override.errors.full_messages.join(', ') unless @override.valid?
     respond_with(@override, location: hmis_csv_importer_data_source_import_overrides_path(@data_source))
   end
 

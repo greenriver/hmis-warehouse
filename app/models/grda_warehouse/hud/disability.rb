@@ -147,6 +147,17 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def measured_viral_load
+      return nil unless hiv?
+
+      case viral_load_available
+      when 1
+        viral_load
+      when 2 # undetectable
+        0
+      end
+    end
+
     def disability_type_text
       ::HudUtility2024.disability_type self.DisabilityType
     end

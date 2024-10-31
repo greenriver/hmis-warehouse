@@ -35,10 +35,6 @@ module Types
     field :bulk_assign_service, mutation: Mutations::BulkAssignService
     field :bulk_remove_service, mutation: Mutations::BulkRemoveService
 
-    field :create_service_category, mutation: Mutations::CreateServiceCategory
-    field :delete_service_category, mutation: Mutations::DeleteServiceCategory
-    field :rename_service_category, mutation: Mutations::RenameServiceCategory
-
     field :create_service_type, mutation: Mutations::CreateServiceType
     field :delete_service_type, mutation: Mutations::DeleteServiceType
     field :update_service_type, mutation: Mutations::UpdateServiceType
@@ -68,7 +64,8 @@ module Types
     field :create_next_draft_form_definition, mutation: Mutations::CreateNextDraftFormDefinition
 
     field :create_form_rule, mutation: Mutations::CreateFormRule
-    field :update_form_rule, mutation: Mutations::UpdateFormRule
+    field :delete_form_rule, mutation: Mutations::DeleteFormRule
+    field :update_form_rule, mutation: Mutations::UpdateFormRule, deprecation_reason: 'Replaced with DeleteFormRule'
 
     field :create_project_config, mutation: Mutations::CreateProjectConfig
     field :update_project_config, mutation: Mutations::UpdateProjectConfig
@@ -83,6 +80,8 @@ module Types
 
     field :update_external_form_submission, mutation: Mutations::UpdateExternalFormSubmission
     field :delete_external_form_submission, mutation: Mutations::DeleteExternalFormSubmission
+    field :bulk_review_external_submissions, mutation: Mutations::BulkReviewExternalSubmissions
+    field :refresh_external_submissions, mutation: Mutations::RefreshExternalSubmissions
 
     field :assign_staff, mutation: Mutations::AssignStaff
     field :unassign_staff, mutation: Mutations::UnassignStaff

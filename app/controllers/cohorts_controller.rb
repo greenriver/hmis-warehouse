@@ -163,6 +163,11 @@ class CohortsController < ApplicationController
     # END_ACL
     cohort_options = cohort_options.except(:name) if @cohort.system_cohort
 
+    # checks to see if user can see the project group OR if the project group is on the cohort pre-save.
+    user_can_view_new_project_group = cohort_options[:project_group_id].blank? || GrdaWarehouse::ProjectGroup.viewable_by(current_user).exists?(cohort_options[:project_group_id])
+    project_group_on_cohort_pre_save = @cohort.project_group_id == cohort_options[:project_group_id].to_i
+    cohort_options = cohort_options.except(:project_group_id) unless user_can_view_new_project_group || project_group_on_cohort_pre_save
+
     @cohort.update(cohort_options)
 
     # TODO: START_ACL remove when ACL transition complete

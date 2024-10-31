@@ -10,5 +10,6 @@ module Talentlms
 
     belongs_to :login
     belongs_to :config
+    belongs_to :course, class_name: 'Talentlms::Course'
   end
 end
