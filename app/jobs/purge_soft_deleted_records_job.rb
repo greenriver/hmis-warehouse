@@ -8,7 +8,7 @@
 class PurgeSoftDeletedRecordsJob < BaseJob
   include NotifierConfig
 
-  def perform(retain_at: 1.year.ago, max_deleted: 10_000_000, models: default_models, dry_run: true)
+  def perform(retain_at: 1.year.ago, max_deleted: 10_000_000, models: warehouse_models, dry_run: true)
     raise 'all models must be paranoid' unless models.all?(&:paranoid?)
 
     with_lock do
@@ -35,13 +35,19 @@ class PurgeSoftDeletedRecordsJob < BaseJob
     GrdaWarehouse::DataSource
   end
 
-  # client-related models
-  def default_models
+  # client-related warehouse models
+  def warehouse_models
     [
       # enrollment-dependent
+      GrdaWarehouse::Hud::Assessment,
+      GrdaWarehouse::Hud::AssessmentQuestion,
+      GrdaWarehouse::Hud::AssessmentResult,
       GrdaWarehouse::Hud::CurrentLivingSituation,
       GrdaWarehouse::Hud::Disability,
       GrdaWarehouse::Hud::EmploymentEducation,
+      GrdaWarehouse::Hud::Event,
+      GrdaWarehouse::Hud::Exit,
+      GrdaWarehouse::Hud::HealthAndDv,
       GrdaWarehouse::Hud::IncomeBenefit,
       GrdaWarehouse::Hud::Service,
       GrdaWarehouse::Hud::YouthEducationStatus,
@@ -57,25 +63,19 @@ class PurgeSoftDeletedRecordsJob < BaseJob
     ]
   end
 
-  # tables that have relationships but are not paranoid
-  def dependents(model)
-    case [model]
-    when [GrdaWarehouse::Hud::Client]
-      [
-        GrdaWarehouse::WarehouseClient.joins(:destination),
-        GrdaWarehouse::WarehouseClient.joins(:source),
-        GrdaWarehouse::WarehouseClientsProcessed.joins(:client),
-      ]
-    when [GrdaWarehouse::Hud::Enrollment]
-      [
-        GrdaWarehouse::EnrollmentExtra.joins(:enrollment),
-        GrdaWarehouse::Synthetic::Assessment.joins(:enrollment),
-        GrdaWarehouse::Synthetic::Event.joins(:enrollment),
-        GrdaWarehouse::Synthetic::YouthEducationStatus.joins(:enrollment),
-      ]
-    else
-      []
-    end
+  # tables with FK relationships need to be deleted. Choosing to leave other dangling references to client
+  def client_dependents(client_scope)
+    # double check that these are the same table before we start deleting records with that assumption
+    raise unless GrdaWarehouse::Hud::Client.table_name == Hmis::Hud::Client.table_name
+    raise unless GrdaWarehouse::Hud::Client.connection.current_database == Hmis::Hud::Client.connection.current_database
+
+    rhm_t = HmisExternalApis::AcHmis::ReferralHouseholdMember.arel_table
+    [
+      GrdaWarehouse::WarehouseClient.joins(:destination).merge(client_scope),
+      GrdaWarehouse::WarehouseClient.joins(:source).merge(client_scope),
+      GrdaWarehouse::WarehouseClientsProcessed.joins(:client).merge(client_scope),
+      HmisExternalApis::AcHmis::ReferralHouseholdMember.where(rhm_t[:client_id].in(client_scope.pluck(:id))),
+    ]
   end
 
   def with_lock(&block)
@@ -90,16 +90,17 @@ class PurgeSoftDeletedRecordsJob < BaseJob
       where(data_source: data_source).
       where(paranoia_col.lt(@retain_at))
 
-    scope.in_batches.each do |rel|
+    scope.in_batches.each do |batch|
       model.transaction do
-        dependents(model).each do |dependent_scope|
-          dependent_scope = dependent_scope.merge(rel)
-          check_max_deleted(dependent_scope.size)
-          dependent_scope.delete_all unless @dry_run
+        if model == GrdaWarehouse::Hud::Client
+          client_dependents(batch).each do |dependent_scope|
+            check_max_deleted(dependent_scope.size)
+            dependent_scope.delete_all unless @dry_run
+          end
         end
 
-        check_max_deleted(rel.size)
-        rel.delete_all unless @dry_run
+        check_max_deleted(batch.size)
+        batch.delete_all unless @dry_run
       end
     end
   end

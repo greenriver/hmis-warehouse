@@ -6,6 +6,7 @@
 
 FactoryBot.define do
   factory :hmis_external_api_ac_hmis_referral_household_member, class: 'HmisExternalApis::AcHmis::ReferralHouseholdMember' do
+    referral { association :hmis_external_api_ac_hmis_referral }
     client { association :hmis_hud_client }
     relationship_to_hoh { 1 }
     mci_id { Faker::IdNumber.valid }
