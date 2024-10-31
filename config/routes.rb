@@ -35,7 +35,7 @@ Rails.application.routes.draw do
     resources :account_requests, only: [:new, :create]
   end
 
-  get '/user_training', to: 'user_training#index'
+  get '/user_training', to: 'user_training#index' #something with this
 
   def healthcare_routes
     namespace :health do

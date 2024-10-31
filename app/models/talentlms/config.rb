@@ -71,6 +71,10 @@ module Talentlms
       errors.add(:api_key, error) if error.include?('API Key')
     end
 
+    def domain
+      "#{subdomain}.talentlms.com"
+    end
+
     # Get configuration error messages from TalentLMS
     #
     # @param course_id [Integer] the id of the course
@@ -79,7 +83,7 @@ module Talentlms
       get('courses')
       nil
     rescue JSON::ParserError
-      "Cannot contact server #{subdomain}.talentlms.com"
+      "Cannot contact server #{domain}"
     rescue RuntimeError => e
       e.message
     end
@@ -92,7 +96,7 @@ module Talentlms
     # @param args [Hash<String, String>] arguments to be added to the end of the URL
     # @return [String] the URL
     private def generate_url(action, args)
-      url = "https://#{subdomain}.talentlms.com/api/v1/#{action}"
+      url = "https://#{domain}/api/v1/#{action}"
       if args.present?
         arguments = args.map { |k, v| "#{k}:#{v}" }.join(',')
         url = "#{url}/#{arguments}"

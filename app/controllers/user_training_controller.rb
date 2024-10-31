@@ -5,10 +5,17 @@
 ###
 
 class UserTrainingController < ApplicationController
+  def set_lms_info
+    @courses = current_user.required_training_courses
+    @configs = courses.flat_map(&:config).uniq
+  end
+
+  attr_reader :courses
+  attr_reader :configs
+
   def index
     lms = Talentlms::Facade.new(current_user)
-    courses = current_user.required_training_courses
-    configs = courses.flat_map(&:config).uniq
+    set_lms_info
 
     # Verifying with local data before hitting the API. This prevents unneeded API calls
     # and ensures local data is updated when new trainings have been completed.
@@ -18,15 +25,21 @@ class UserTrainingController < ApplicationController
 
       begin
         course_redirects = []
+        config_logins = {}
         # Make sure the user has a login setup for each config
         # Pulling this out here to prevent duplicate API calls for courses that share a configuration
         configs.each do |config|
-          lms.login(config)
+          config_logins[config.id] = lms.login(config)
         end
+
         # Check each course traininig for progress/expiration
         courses.each do |course|
           config = course.config
           course_id = course.courseid
+
+          # Skip this course. This user does not have an account in this subdomain and
+          # the subdomian has been flagged not to allow automated account creation.
+          next unless config_logins[config.id]
 
           # Ensure the user is enrolled in the course
           lms.enroll(config, course_id)
@@ -51,15 +64,22 @@ class UserTrainingController < ApplicationController
           end
         end
 
+        account_exists_in_all_configs = config_logins.values.all?(true)
+
         if course_redirects.present?
           # redirect to the course training
           redirect_to course_redirects.first, allow_other_host: true
-        else
-          # All trainings are completed
+          return
+        elsif account_exists_in_all_configs
+          # All trainings are completed and the user has an account in all training configs
           redirect_to after_sign_in_path_for(current_user)
+          return
         end
+        # At least one config requires an account to be created for this user.
+        render 'required_trainings'
       rescue RuntimeError => e
         @message = e.message
+        render 'error'
       end
     end
   end
