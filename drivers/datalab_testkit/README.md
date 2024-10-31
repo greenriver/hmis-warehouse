@@ -20,3 +20,9 @@ destination_dir = 'drivers/datalab_testkit/spec/fixtures/inputs/merged/source'
 DatalabTestkit::TestkitCsvMerge.new(source_dirs, destination_dir).merge_dirs
 </pre>
 
+### Importing Test Kit Data
+
+If importing the test kit data into your web app, you may need to disable some automated data cleanup running in the warehouse to ensure data imported matches the CSVs exactly. 
+
+When running `GrdaWarehouse::Tasks::ProjectCleanup` in `HmisCsvImporter::Importer::Importer.post_process` (_File: `drivers/hmis_csv_importer/app/models/hmis_csv_importer/importer/importer.rb`_), the warehouse attempts to reconcile CoC Codes. This can interfere with Test Kits that are meant to have bad CoC codes. If you set the `skip_location_cleanup` argument to false during the Test Kit import process, these CoC codes will remain as they are in the CSVs.
+
