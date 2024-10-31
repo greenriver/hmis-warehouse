@@ -5,10 +5,11 @@ class RemoveCurrentLivingSituationVerifiedByLimit2 < ActiveRecord::Migration[7.0
   # 2. Modify the column size
   # 3. Recreate the view
   def up
-    change_column :CurrentLivingSituation, :VerifiedBy, :string, :limit => nil
+    change_column :CurrentLivingSituation, :VerifiedBy, :string, limit: nil
   end
+
   def down
     # Including the revese steps for rollbacks
-    change_column :CurrentLivingSituation, :VerifiedBy, :string, :limit => 100
+    change_column :CurrentLivingSituation, :VerifiedBy, :string, limit: 100
   end
 end

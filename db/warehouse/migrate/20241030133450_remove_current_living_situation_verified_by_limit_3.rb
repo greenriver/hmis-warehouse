@@ -6,8 +6,9 @@ class RemoveCurrentLivingSituationVerifiedByLimit3 < ActiveRecord::Migration[7.0
   # 3. Recreate the view
   def up
     Bi::ViewMaintainer.new.safe_create_role
-    Bi::ViewMaintainer.new.non_client_view(GrdaWarehouse::Hud::CurrentLivingSituation) 
+    Bi::ViewMaintainer.new.non_client_view(GrdaWarehouse::Hud::CurrentLivingSituation)
   end
+
   def down
     # Including the revese steps for rollbacks
     safety_assured do

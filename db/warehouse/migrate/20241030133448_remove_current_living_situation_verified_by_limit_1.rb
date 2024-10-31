@@ -9,6 +9,7 @@ class RemoveCurrentLivingSituationVerifiedByLimit1 < ActiveRecord::Migration[7.0
       Bi::ViewMaintainer.new.safe_drop_view(Bi::ViewMaintainer.new.view_name(GrdaWarehouse::Hud::CurrentLivingSituation))
     end
   end
+
   def down
     # Including the revese steps for rollbacks
     Bi::ViewMaintainer.new.safe_create_role
