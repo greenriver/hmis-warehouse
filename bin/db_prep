@@ -7,6 +7,7 @@ require 'pathname'
 require 'fileutils'
 require 'pg'
 require 'yaml'
+require 'erb'
 
 # path to your application root.
 APP_ROOT = Pathname.new File.expand_path('..', __dir__)
@@ -18,7 +19,7 @@ def db(db_section)
   @db ||=
     begin
       path = APP_ROOT.join( ENV.fetch("DB_YAML_PATH", "config/database.yml") ).to_s
-      env = ENV["RAILS_ENV"].presence || 'development'
+      env = ENV["RAILS_ENV"] || 'development'
       parsed = if env == 'development'
         YAML.safe_load(ERB.new(File.read(path)).result, aliases: true)
       else
