@@ -28,24 +28,24 @@ erDiagram
     Project ||--o{ Affiliation : "may be affiliated with"
     Project ||--o{ HMISParticipation : "has"
     Project ||--o{ CEParticipation : "has"
-
+    
     Client ||--o{ Enrollment : "has"
-    Enrollment ||--|| Project : "enrolled in"
+    Enrollment ||--|| Project : "has"
     Enrollment }|..|| CoC : "served in"
-    Enrollment ||--o{ Exit : "may have"
+    Enrollment ||--|o Exit : "may have"
     Enrollment ||--o{ IncomeBenefits : "has"
     Enrollment ||--o{ HealthAndDV : "has"
     Enrollment ||--o{ EmploymentEducation : "has"
     Enrollment ||--o{ Disabilities : "has"
-    Enrollment ||--o{ Services : "receives"
+    Enrollment ||--o{ Services : "has"
     Enrollment ||--o{ CurrentLivingSituation : "has"
     Enrollment ||--o{ Assessment : "has"
-    Assessment ||--o{ AssessmentQuestions : "contains"
-    Assessment ||--o{ AssessmentResults : "produces"
+    Assessment ||--o{ AssessmentQuestions : "has"
+    Assessment ||--o{ AssessmentResults : "has"
     Enrollment ||--o{ Event : "has"
     Enrollment ||--o{ YouthEducationStatus : "has"
 
-
+   
 
     Export {
         string ExportID PK
