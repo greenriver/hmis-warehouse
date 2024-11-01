@@ -20,7 +20,7 @@ def db(db_section)
       path = APP_ROOT.join( ENV.fetch("DB_YAML_PATH", "config/database.yml") ).to_s
       env = ENV["RAILS_ENV"]
       parsed = if Rails.env.development?
-        YAML.safe_load(ERB.new(File.read(Rails.root.join(path))).result, aliases: true)
+        YAML.safe_load(ERB.new(File.read(path)).result, aliases: true)
       else
         YAML.load_file(path)
       end
