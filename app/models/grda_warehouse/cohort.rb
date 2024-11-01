@@ -427,6 +427,8 @@ module GrdaWarehouse
         ::CohortColumns::MostRecentSelfReportMonthsHomeless.new,
         ::CohortColumns::MostRecentPriorLivingSituation.new,
         ::CohortColumns::MostRecentCls.new,
+        ::CohortColumns::VeteranStatusCalculated.new,
+        ::CohortColumns::MostRecentDisablingCondition.new,
         ::CohortColumns::UserString1.new,
         ::CohortColumns::UserString2.new,
         ::CohortColumns::UserString3.new,
@@ -653,6 +655,7 @@ module GrdaWarehouse
         most_recent_prior_living_situation: :calculated_most_recent_prior_living_situation,
         most_recent_household_type: :calculated_most_recent_household_type,
         most_recent_self_report_months_homeless: :calculated_most_recent_self_report_months_homeless,
+        most_recent_disabling_condition: :calculated_most_recent_disabling_condition,
       }
     end
 
@@ -798,12 +801,26 @@ module GrdaWarehouse
       else
         most_recent_un_automaintained_data_item(scope, client)
       end
-
       return unless item&.months_homeless_past_three_years
       # Ignore any unknown values
       return unless item.months_homeless_past_three_years > 100
 
       "#{HudUtility2024.months_homeless_past_three_years(item.months_homeless_past_three_years)} on #{item.entry_date} at #{item.project.name}"
+    end
+
+    # Returns the most recent value for DisablingCondition based on EntryDate desc, DateUpdated desc
+    # If the cohort is auto maintained, limit to Enrollments at projects in the project group
+    private def calculated_most_recent_disabling_condition(client)
+      scope = GrdaWarehouse::Hud::Enrollment.order(entry_date: :desc, date_updated: :desc).
+        joins(:project, client: :warehouse_client_source)
+      item = if auto_maintained?
+        most_recent_automaintained_data_item(scope, client)
+      else
+        most_recent_un_automaintained_data_item(scope, client)
+      end
+      return unless item&.disabling_condition
+
+      "#{HudUtility2024.no_yes_reasons_for_missing_data(item.disabling_condition)} on #{item.entry_date} at #{item.project.name}"
     end
 
     private def maintain_system_group

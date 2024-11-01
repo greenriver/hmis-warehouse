@@ -6269,7 +6269,8 @@ CREATE TABLE public.cohort_clients (
     most_recent_cls character varying,
     most_recent_prior_living_situation character varying,
     most_recent_household_type character varying,
-    most_recent_self_report_months_homeless character varying
+    most_recent_self_report_months_homeless character varying,
+    most_recent_disabling_condition character varying
 );
 
 
