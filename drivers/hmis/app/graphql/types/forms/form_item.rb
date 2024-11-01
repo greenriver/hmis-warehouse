@@ -39,6 +39,7 @@ module Types
     field :enable_when, [Forms::EnableWhen], null: true
     field :initial, [Forms::InitialValue], 'Initial value(s) when item is first rendered', null: true
     field :autofill_values, [Forms::AutofillValue], 'Value(s) to autofill based on conditional logic', null: true
+    field :editor_user_ids, [ID], 'Users who can edit this field. If null, all users can edit', null: true
     field :service_detail_type, Forms::Enums::ServiceDetailType, 'Whether to apply this field to all clients or a single client when bulk creating', null: true, deprecation_reason: 'from old bulk services implementation, no longer supported'
 
     field :rule, GraphQL::Types::JSON, 'Rules that apply to this item', null: true
