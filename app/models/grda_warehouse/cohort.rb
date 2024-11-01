@@ -253,7 +253,7 @@ module GrdaWarehouse
     end
 
     def active?
-      active_cohort?
+      active_cohort
     end
 
     # Never show the cohort on the client dashboard if we haven't explicitly
@@ -705,9 +705,19 @@ module GrdaWarehouse
       most_recent_enrollment&.presented_as_individual
     end
 
+    # Returns the most recent value for 3.917.3 DateToStreetESSH based on EntryDate desc, DateUpdated desc
+    # If the cohort is auto maintained, limit to Enrollments at projects in the project group
     private def most_recent_date_to_street(client)
-      most_recent_enrollment = client.service_history_enrollments.entry.homeless.order(first_date_in_program: :desc).first
-      most_recent_enrollment&.enrollment&.DateToStreetESSH
+      scope = GrdaWarehouse::Hud::Enrollment.order(entry_date: :desc, date_updated: :desc).
+        joins(:project, client: :warehouse_client_source)
+      item = if auto_maintained?
+        most_recent_automaintained_data_item(scope, client)
+      else
+        most_recent_un_automaintained_data_item(scope.homeless, client)
+      end
+      return unless item
+
+      item.DateToStreetESSH
     end
 
     private def related_users(client)
