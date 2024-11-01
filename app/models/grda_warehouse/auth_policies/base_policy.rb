@@ -16,21 +16,12 @@ class GrdaWarehouse::AuthPolicies::BasePolicy
     @resource = resource.presence
   end
 
-  def id_from_arg(arg, resource_class)
-    case arg
-    when Integer, String
-      arg.to_i
-    when resource_class
-      arg.id
-    else
-      raise ArgumentError, "Invalid argument: #{arg.inspect}"
-    end
+  def id_from_arg(resource_class)
+    resource_from_arg(resource_class).id
   end
 
-  def resource_from_arg(arg, resource_class)
-    case arg
-    when Integer, String
-      resource_class.find(arg.to_i)
+  def resource_from_arg(resource_class)
+    case @resource
     when resource_class
       arg
     else

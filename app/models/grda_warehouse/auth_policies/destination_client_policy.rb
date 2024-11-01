@@ -17,13 +17,13 @@ class GrdaWarehouse::AuthPolicies::DestinationClientPolicy < GrdaWarehouse::Auth
     method_name = :"#{permission}?"
     define_method(method_name) do
       client.source_clients.any? do |source_client|
-        user.policy_for(source_client, type: :source_client).send(method_name)
+        user.policy_for(source_client).send(method_name)
       end
     end
     memoize method_name
   end
 
-  memoize def client
-    resource_from_arg(resource, GrdaWarehouse::Hud::Client)
+  def client
+    resource
   end
 end

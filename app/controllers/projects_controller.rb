@@ -14,7 +14,7 @@ class ProjectsController < ApplicationControllerV2
   before_action :set_census_params, only: [:show]
 
   helper_method def project_policy
-    current_user.policy_for(@project, type: :project)
+    current_user.policy_for(@project)
   end
 
   def show

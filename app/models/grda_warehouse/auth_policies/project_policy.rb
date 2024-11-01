@@ -22,7 +22,7 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
 
   # delegate to the project's data source
   memoize def can_see_raw_hmis_data?
-    user.policy_for(project.data_source, type: :data_source).can_see_raw_hmis_data?
+    user.policy_for(project.data_source).can_see_raw_hmis_data?
   end
 
   # can the user see the project locations (on a map)
@@ -45,12 +45,12 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
 
   protected
 
-  memoize def project
-    resource_from_arg(resource, GrdaWarehouse::Hud::Project)
+  def project
+    resource
   end
 
   memoize def project_id
-    id_from_arg(resource, GrdaWarehouse::Hud::Project)
+    resource.id
   end
 
   # query the roles this the user has on the project; check if any of those roles grant the requested permission

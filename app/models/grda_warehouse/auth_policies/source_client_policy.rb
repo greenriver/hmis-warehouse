@@ -42,12 +42,12 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
 
   protected
 
-  memoize def client_id
-    id_from_arg(resource, GrdaWarehouse::Hud::Client)
+  def client_id
+    resource.id
   end
 
-  memoize def client
-    resource_from_arg(resource, GrdaWarehouse::Hud::Client)
+  def client
+    resource.id
   end
 
   memoize def roi_authorizations

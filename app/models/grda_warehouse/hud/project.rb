@@ -673,7 +673,7 @@ module GrdaWarehouse::Hud
     # @param include_project_type [Boolean] include the HUD project type in the name?
     # @param ignore_confidential_status [Boolean] always show confidential names, regardless of user access?
     def name(user = nil, include_project_type: false, ignore_confidential_status: false)
-      project_name = if ignore_confidential_status || user&.policy_for(self, type: :project)&.can_view_name?
+      project_name = if ignore_confidential_status || user&.policy_for(self)&.can_view_name?
         self.ProjectName
       else
         safe_project_name

@@ -36,12 +36,12 @@ class GrdaWarehouse::AuthPolicies::DataSourcePolicy < GrdaWarehouse::AuthPolicie
     end
   end
 
-  memoize def data_source
-    resource_from_arg(resource, GrdaWarehouse::DataSource)
+  def data_source
+    resource
   end
 
-  memoize def data_source_id
-    id_from_arg(resource, GrdaWarehouse::DataSource)
+  def data_source_id
+    resource.id
   end
 
   memoize def data_source_collection_ids
