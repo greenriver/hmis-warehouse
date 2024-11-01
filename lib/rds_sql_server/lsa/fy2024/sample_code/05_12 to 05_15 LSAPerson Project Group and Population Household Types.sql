@@ -55,10 +55,10 @@ FY2024 Changes
 			where n.HouseholdID = hhid.HouseholdID), 0)
 		--Set HHAdultAge for active households based on HH member AgeGroup(s) 
 		, hhid.HHAdultAge = (select 
-				-- n/a for households with member(s) of unknown age
-				case when max(n.ActiveAge) >= 98 then -1
-					-- n/a for CO households
-					when max(n.ActiveAge) <= 17 then -1
+				-- n/a except for AO and AC households 
+				case when hhid.ActiveHHType not in (1,2) then -1
+					-- n/a for AC households with members of unknown age
+					when max(n.ActiveAge) >= 98 then -1
 					-- 18-21
 					when max(n.ActiveAge) = 21 then 18
 					-- 22-24
