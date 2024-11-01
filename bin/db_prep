@@ -19,7 +19,12 @@ def db(db_section)
     begin
       path = APP_ROOT.join( ENV.fetch("DB_YAML_PATH", "config/database.yml") ).to_s
       env = ENV["RAILS_ENV"]
-      YAML.load_file(path)[env]
+      parsed = if Rails.env.development?
+        YAML.safe_load(ERB.new(File.read(Rails.root.join(path))).result, aliases: true)
+      else
+        YAML.load_file(path)
+      end
+      parsed[env]
     end
 
   payload = {
