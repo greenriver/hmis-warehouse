@@ -89,12 +89,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       Hmis::Form::Definition.where(role: :SERVICE).first
     end
 
-    it 'should find no definitions if there are no service-specific instances' do
+    it 'should return the default service if there are no service-specific instances' do
       response, result = post_graphql({ project_id: p1.id.to_s, service_type_id: cst1.id.to_s }) { service_query }
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
         form_definition = result.dig('data', 'serviceFormDefinition')
-        expect(form_definition).to be_nil
+        expect(form_definition).to be_present
+        expect(form_definition['identifier']).to eq('service')
       end
     end
 
