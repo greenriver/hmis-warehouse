@@ -6,7 +6,7 @@
 
 # policies by resource type. This could be enhanced with shared context for data loading
 class GrdaWarehouse::AuthPolicies::PolicyProvider
-  def self.policy_for(resource, type:, user:)
+  def self.policy_for(resource:, user:)
     policy_class(resource).new(user: user, resource: resource_or_id)
   end
 

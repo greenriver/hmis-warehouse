@@ -3,11 +3,11 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-
 require 'memery'
+
 class GrdaWarehouse::AuthPolicies::BasePolicy
-  include Memery
   attr_reader :user, :resource
+  include Memery
 
   def initialize(user:, resource:)
     raise "unexpected user #{user.class.name}" unless user.is_a?(::User)
@@ -16,24 +16,7 @@ class GrdaWarehouse::AuthPolicies::BasePolicy
     @resource = resource.presence
   end
 
-  def id_from_arg(resource_class)
-    resource_from_arg(resource_class).id
-  end
-
-  def resource_from_arg(resource_class)
-    case @resource
-    when resource_class
-      arg
-    else
-      raise ArgumentError, "Invalid argument: #{arg.inspect}"
-    end
-  end
-
-  memoize def system_access_group_ids(group_name)
-    [AccessGroup.system_groups[group_name]&.id].compact
-  end
-
-  memoize def system_collection_ids(group_name)
-    [Collection.system_collection(group_name)&.id].compact
+  def context
+    user.policy_context
   end
 end

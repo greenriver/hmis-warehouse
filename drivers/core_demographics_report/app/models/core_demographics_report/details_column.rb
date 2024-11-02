@@ -5,8 +5,7 @@ module CoreDemographicsReport
       raw_value = row[index]
 
       project_id = row[project_id_index]
-      # here
-      policy = user.policy_for(project_id, type: :project)
+      policy = user.policy_for(project_id, policy_class: ProjectPiiPolicy)
       pii_value(raw_value, policy)
     end
 

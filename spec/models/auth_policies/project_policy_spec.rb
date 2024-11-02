@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
   let(:data_source) { create :data_source_fixed_id }
   let(:organization) { create :hud_organization, data_source: data_source }
-  let(:project) { create :grda_warehouse_hud_project, organization: organization }
+  let(:project) { create :grda_warehouse_hud_project, organization: organization, data_source: data_source }
 
   # Permissions that will be granted through the role
   let(:permissions) do
@@ -203,22 +203,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
       end
 
       include_examples 'permission checks', true
-    end
-  end
-
-  describe '#can_see_raw_hmis_data?' do
-    let(:user) { create(:acl_user) }
-    let(:policy) { described_class.new(user: user, resource: project) }
-    let(:data_source_policy) { instance_double(GrdaWarehouse::AuthPolicies::DataSourcePolicy) }
-
-    before do
-      allow(user).to receive(:policy_for).with(project.data_source, type: :data_source).
-        and_return(data_source_policy)
-    end
-
-    it 'delegates to the data source policy' do
-      expect(data_source_policy).to receive(:can_see_raw_hmis_data?).and_return(true)
-      expect(policy.can_see_raw_hmis_data?).to be true
     end
   end
 end

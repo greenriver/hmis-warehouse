@@ -225,7 +225,19 @@ class User < ApplicationRecord
     roles.map(&:name).uniq
   end
 
-  memoize def policy_for(resource_or_id)
-    GrdaWarehouse::AuthPolicies::PolicyProvider.policy_for(resource_or_id, type: type, user: self)
+  memoize def policy_for(resource, policy_class: nil)
+    if policy_class
+      policy_class(resource, user: self)
+    else
+      GrdaWarehouse::AuthPolicies::PolicyProvider.policy_for(resource, user: self)
+    end
+  end
+
+  memoize def policy_context
+    if using_acls?
+      GrdaWarehouse::AuthPolicies::UserAclContext.new(self)
+    else
+      GrdaWarehouse::AuthPolicies::UserLegacyContext.new(self)
+    end
   end
 end

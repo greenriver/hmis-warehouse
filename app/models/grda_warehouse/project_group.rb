@@ -16,7 +16,8 @@ module GrdaWarehouse
     attr_accessor :editor_ids
 
     validates_presence_of :name
-    after_create :maintain_system_group
+    attr_accessor :skip_maintain_system_group
+    after_create :maintain_system_group, unless: :skip_maintain_system_group
 
     has_and_belongs_to_many :projects, class_name: 'GrdaWarehouse::Hud::Project', join_table: :project_project_groups
     has_many :clients, through: :projects
