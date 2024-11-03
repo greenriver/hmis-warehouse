@@ -1140,7 +1140,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "lib/rds_sql_server/rds.rb",
-      "line": 243,
+      "line": 244,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBootstrapModel.connection.execute(\"if not exists(select * from sys.databases where name = '#{database}')\\n  select 0;\\nelse\\n  select 1;\\n\")",
       "render_path": null,
@@ -1199,6 +1199,29 @@
       "confidence": "Medium",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Redirect",
+      "warning_code": 18,
+      "fingerprint": "704745811a99d55eb2c8459caa8cd2a8e34486b3b6f1f77f51ce64252262220f",
+      "check_name": "Redirect",
+      "message": "Possible unprotected redirect",
+      "file": "app/controllers/user_training_controller.rb",
+      "line": 56,
+      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
+      "code": "redirect_to(Talentlms::Facade.new(current_user).course_url(course.config, course.courseid, (clients_url or root_url), logout_talentlms_url), :allow_other_host => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "UserTrainingController",
+        "method": "index"
+      },
+      "user_input": "Talentlms::Facade.new(current_user).course_url(course.config, course.courseid, (clients_url or root_url), logout_talentlms_url)",
+      "confidence": "Weak",
+      "cwe_id": [
+        601
       ],
       "note": ""
     },
@@ -2149,29 +2172,6 @@
       "note": ""
     },
     {
-      "warning_type": "Redirect",
-      "warning_code": 18,
-      "fingerprint": "bd9f8cdc95ec9905f13a5cf6a7c5d3c477b24d145188564f6a93c2df51d089b7",
-      "check_name": "Redirect",
-      "message": "Possible unprotected redirect",
-      "file": "app/controllers/user_training_controller.rb",
-      "line": 41,
-      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
-      "code": "redirect_to(Talentlms::Facade.new.course_url(current_user, Talentlms::Config.first.courseid, (clients_url or root_url), logout_talentlms_url), :allow_other_host => true)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "UserTrainingController",
-        "method": "index"
-      },
-      "user_input": "Talentlms::Facade.new.course_url(current_user, Talentlms::Config.first.courseid, (clients_url or root_url), logout_talentlms_url)",
-      "confidence": "Weak",
-      "cwe_id": [
-        601
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "c001b77515db71c33c42f71ebb9f55b97fc3fa1dc0f7c8bc3c6255abcf416607",
@@ -2521,7 +2521,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "lib/rds_sql_server/rds.rb",
-      "line": 257,
+      "line": 258,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBootstrapModel.connection.execute(\"if not exists(select * from sys.databases where name = '#{database}')\\n  create database #{database}\\n\")",
       "render_path": null,
@@ -2860,6 +2860,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-10-26 21:28:47 +0000",
+  "updated": "2024-10-29 12:24:27 +0000",
   "brakeman_version": "6.2.1"
 }

@@ -386,6 +386,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   private def warehouse_columns_changed?
+    # Re-process when there are changes to any fields used in GrdaWarehouse::Tasks::IdentifyDuplicates.match_existing
     (saved_changes.keys & ['FirstName', 'LastName', 'DOB', 'SSN', 'DateDeleted']).any?
   end
 

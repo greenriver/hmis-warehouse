@@ -42,7 +42,7 @@ module Talentlms
       get('courses', { id: courseid })
       nil
     rescue JSON::ParserError
-      "Cannot contact server #{course.subdomain}.talentlms.com"
+      "Cannot contact server #{config.subdomain}.talentlms.com"
     rescue RuntimeError => e
       e.message
     end
