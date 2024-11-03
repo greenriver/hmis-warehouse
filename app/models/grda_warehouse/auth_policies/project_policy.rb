@@ -22,8 +22,7 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
   # delegate to the project's data source
   def can_see_raw_hmis_data?
     data_source_permissions = context.data_source_role_permissions(project.data_source_id)
-    perms = [:can_edit_data_sources, :can_upload_hud_zips].to_set
-    data_source_permissions.subset?(perms)
+    data_source_permissions.include?(:can_edit_data_sources) && data_source_permissions.include?(:can_upload_hud_zips)
   end
 
   # can the user see the project locations (on a map)
@@ -43,6 +42,10 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
   end
 
   protected
+
+  def validate_resource!(arg)
+    ensure_arg_type!(arg, GrdaWarehouse::Hud::Project)
+  end
 
   def role_permissions
     context.project_role_permissions(project_id)

@@ -16,10 +16,14 @@ class GrdaWarehouse::AuthPolicies::DataSourcePolicy < GrdaWarehouse::AuthPolicie
   end
 
   memoize def can_see_raw_hmis_data?
-    perms.subset?(role_permissions)
+    role_permissions.include?(:can_edit_data_sources) && role_permissions.include?(:can_upload_hud_zips)
   end
 
   protected
+
+  def validate_resource!(arg)
+    ensure_arg_type!(arg, GrdaWarehouse::DataSource)
+  end
 
   def role_permissions
     context.project_role_permissions(project_id)

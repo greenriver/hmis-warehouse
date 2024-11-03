@@ -23,6 +23,13 @@ class GrdaWarehouse::AuthPolicies::DestinationClientPolicy < GrdaWarehouse::Auth
     memoize method_name
   end
 
+  protected
+
+  def validate_resource!(arg)
+    ensure_arg_type!(arg, GrdaWarehouse::Hud::Client)
+    raise ArgumentError 'Must be a destination client' unless arg.destination?
+  end
+
   def client
     resource
   end

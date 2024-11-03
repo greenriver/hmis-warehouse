@@ -15,10 +15,14 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
       can_view_clients: true,
       can_view_project_locations: false,
       can_view_confidential_project_names: true,
+      can_upload_hud_zips: false,
+      can_edit_data_sources: false,
     }
   end
 
   let(:role) { create(:role, **permissions.compact_blank) }
+
+  let(:hud_data_access_role) { create(:role, can_upload_hud_zips: true, can_edit_data_sources: true) }
 
   shared_examples 'permission checks' do |role_present|
     it 'handles basic permissions appropriately' do
@@ -33,6 +37,12 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
         expected = role_present ? expected : false
         actual = policy.send(method)
         expect(actual).to eq(expected), "#{method}: #{actual} != #{expected}"
+      end
+    end
+
+    context 'with no data source permissions' do
+      it 'denies access to raw HMIS data' do
+        expect(policy.can_see_raw_hmis_data?).to be false
       end
     end
 
@@ -62,7 +72,17 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
       access_group.add(user)
       user
     end
-    let(:policy) { described_class.new(user: user, resource: project) }
+    let(:policy) { user.policy_for(project) }
+
+    context 'with full data source permissions' do
+      before do
+        access_group.add_viewable(data_source)
+        hud_data_access_role.add(user)
+      end
+      it 'allows access to raw HMIS data' do
+        expect(policy.can_see_raw_hmis_data?).to be true
+      end
+    end
 
     context 'with direct project access' do
       before { access_group.add_viewable(project) }
@@ -118,7 +138,21 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
 
   context 'with user access control permissions' do
     let(:user) { create(:acl_user) }
-    let(:policy) { described_class.new(user: user, resource: project) }
+    let(:policy) { user.policy_for(project) }
+
+    context 'with full data source permissions' do
+      before do
+        user_group = create(:user_group)
+        user_group.add(user)
+        collection = create(:collection)
+        create(:access_control, role: hud_data_access_role, collection: collection, user_group: user_group)
+        collection.set_viewables({ data_sources: [data_source.id] })
+      end
+
+      it 'allows access to raw HMIS data' do
+        expect(policy.can_see_raw_hmis_data?).to be true
+      end
+    end
 
     context 'with collection access' do
       before do

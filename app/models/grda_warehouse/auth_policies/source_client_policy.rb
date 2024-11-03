@@ -29,6 +29,11 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
 
   protected
 
+  def validate_resource!(arg)
+    ensure_arg_type!(arg, GrdaWarehouse::Hud::Client)
+    raise ArgumentError 'Must be a source client' if arg.destination?
+  end
+
   def client_id
     resource.id
   end
@@ -39,7 +44,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
 
   memoize def role_permissions
     clients = GrdaWarehouse::Hud::Client.where(id: client_id)
-    project_ids = GrdaWarehouse::Hud::Project.joins(:clients).merge(clients).pluck(:id)
+    project_ids = GrdaWarehouse::Hud::Project.joins(:clients).merge(clients).distinct.pluck(:id)
 
     results = Set.new
     project_ids.each do |project_id|

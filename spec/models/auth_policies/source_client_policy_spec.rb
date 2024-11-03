@@ -85,7 +85,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
       access_group.add(user)
       user
     end
-    let(:policy) { described_class.new(user: user, resource: client) }
+    let(:policy) { user.policy_for(client) }
 
     context 'with project access' do
       before { access_group.add_viewable(project) }
@@ -100,7 +100,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
 
   context 'with user access control permissions' do
     let(:user) { create(:acl_user) }
-    let(:policy) { described_class.new(user: user, resource: client) }
+    let(:policy) { user.policy_for(client) }
 
     context 'with collection access' do
       before do

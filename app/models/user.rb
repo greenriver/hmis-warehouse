@@ -227,9 +227,9 @@ class User < ApplicationRecord
 
   memoize def policy_for(resource, policy_class: nil)
     if policy_class
-      policy_class(resource, user: self)
+      policy_class.new(resource: resource, context: policy_context)
     else
-      GrdaWarehouse::AuthPolicies::PolicyProvider.policy_for(resource, user: self)
+      GrdaWarehouse::AuthPolicies::PolicyProvider.policy_for(resource: resource, context: policy_context)
     end
   end
 
