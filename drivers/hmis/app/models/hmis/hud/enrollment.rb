@@ -285,7 +285,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   #
   # Is it enabled?
   #   If ANY data exists for it in this enrollment, even if no active instances exist, then yes.
-  #   (This supports both inactive instances and migrated-in data, as well as context changes such as change in HoH)
+  #   This allows users to see data in the following "legacy" scenarios:
+  #   (1) data was previously collected in HMIS, but the rule (Instance) has since been deactivated
+  #   (2) data was previously collected for this Enrollment, but is no longer collected because of some change in context (e.g. they are no longer HoH, or the project funder/attributes changed)
+  #   (3) data was migrated-in, but has no rule (Instance) to enable it
+  #   Data in these categories is considered "legacy" because it's not collected going forward.
   #
   # Who is data collected about?
   #   Choose the "best" instance – IE the one that would actually be selected
@@ -294,7 +298,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # Returns an OpenStruct that is resolved by the DataCollectionFeature GQL type.
   def data_collection_features
     # Create OpenStruct for each enabled feature
-    Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.map do |role|
+    Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.
+      excluding(:REFERRAL, :REFERRAL_REQUEST, :EXTERNAL_FORM). # These are only relevant to projects, not enrollments
+      map do |role|
       instance_scope = Hmis::Form::Instance.with_role(role).active.published
       # Service instances must specify a service type or category.
       instance_scope = instance_scope.for_services if role == :SERVICE
@@ -315,12 +321,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
         assessments.exists?
       when :CASE_NOTE
         custom_case_notes.exists?
-      when :REFERRAL
-        false # Referrals are resolved only on projects, not enrollments
-      when :REFERRAL_REQUEST
-        false # Referrals are resolved only on projects, not enrollments
-      when :EXTERNAL_FORM
-        false # Not resolved on enrollments
       else
         raise "Unexpected data collection feature role: #{role}"
       end
