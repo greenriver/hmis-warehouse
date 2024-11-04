@@ -1,6 +1,5 @@
 - title = "Support for ..."
 = content_for :modal_title, title
-
 - all_data = AllNeighborsSystemDashboard::HousingTotalPlacementsData.new(@report)
 - grouped_by_date = {donut: {}, line: {}}
 - dates = all_data.line_data[:project_types].detect { |m| m[:project_type] == params[:project_type] }[:count_levels].detect { |m| m[:count_level] == params[:count_level] }[params[:group]].first
@@ -18,6 +17,14 @@
       = f.input :date, collection: months, include_blank: false, selected: start_date, label: false
     .col-sm-3
       = f.submit 'Update'
+    .col-sm-6.text-right
+      %p
+        Report ID: #{@report.id}
+        %br
+        = link_to format: :csv do
+          %i.icon-download2
+          Download enrollments
+
 %h2 Placements between #{start_date} & #{end_date}
 - if enrollments.present?
   - headers = enrollments.first.debug_column_names.values
