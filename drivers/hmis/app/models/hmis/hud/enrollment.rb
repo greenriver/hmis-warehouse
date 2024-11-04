@@ -301,13 +301,14 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
       # Choose the "best" instance, i.e. the one that would actually be selected when recording new data.
       # We need to do this so that we can accurately set "data collected about" based on the most applicable form.
+      # This detect_best_instance_for_project logic is also called from the query to resolve the actual form definition
       best_instance = instance_scope.detect_best_instance_for_project(project: project)
 
       has_any_data = case role
       when :CURRENT_LIVING_SITUATION
         current_living_situations.exists?
       when :SERVICE
-        services.exists?
+        custom_services.exists? || services.exists?
       when :CE_EVENT
         events.exists?
       when :CE_ASSESSMENT
@@ -326,16 +327,18 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
       next unless best_instance || has_any_data
 
-      # If the best instance doesn't match this enrollment, return, UNLESS there is existing data.
+      matches_enrollment = best_instance&.project_and_enrollment_match(project: project, enrollment: self)
+
+      # If an instance applies to this project but doesn't match this enrollment, return, UNLESS there is existing data.
       # (Example: data is collected for HoH. If HoH changes, you still see past data from the original HoH's enrollment)
-      next if !has_any_data && best_instance.present? && !best_instance.project_and_enrollment_match(project: project, enrollment: self)
+      next if !has_any_data && best_instance.present? && !matches_enrollment
 
       OpenStruct.new(
         role: role.to_s,
         id: [id, role, best_instance&.id].join(':'), # Unique ID for Apollo caching
-        legacy: has_any_data && !best_instance,
+        legacy: has_any_data && (!best_instance || !matches_enrollment),
         data_collected_about: best_instance&.data_collected_about || 'ALL_CLIENTS', # Doesn't really matter for legacy
-        instance: best_instance, # just for testing
+        instance: best_instance, # just for testing, not resolved
       )
     end.compact
   end
@@ -530,7 +533,16 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   private def warehouse_columns_changed?
-    (saved_changes.keys & ['EntryDate', 'ProjectID', 'DateDeleted']).any?
+    # Re-process when there are changes to any fields used in GrdaWarehouse::Tasks::ServiceHistory rebuild_service_history
+    (saved_changes.keys & [
+      'EntryDate',
+      'ProjectID', # If Enrollment was moved from WIP=>non-WIP, or moved to a different Project
+      'HouseholdID', # If Enrollment was moved to a different Household
+      'RelationshipToHoH',
+      'MoveInDate',
+      'LivingSituation',
+      'DateDeleted',
+    ]).any?
   end
 
   include RailsDrivers::Extensions

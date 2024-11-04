@@ -186,7 +186,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
             count_until = calculated_end_of_enrollment(enrollment: entry, enrollments: enrollments)
             # days included in adjusted days that are not also served by a residential project
             adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
-            homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - residential_dates(enrollments: enrollments)
+            homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - ClientHistory::Calculator.new(client: self).residential_dates(enrollments: enrollments)
             # extrapolated days may extend beyond the actual last contact, turning off ineligible_uses_extrapolated_days means
             # we only count actual contacts
             most_recent_service = if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
@@ -197,7 +197,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
             # default to entry date if we don't have any services
             most_recent_service ||= entry.entry_date
 
-            new_episode = new_episode?(enrollments: enrollments, enrollment: entry)
+            new_episode = new_episode?(residential_enrollments: enrollments, enrollment: entry)
             {
               client_source_id: entry.source_client.id,
               project_id: project.id,
@@ -235,6 +235,30 @@ module ClientAccessControl::GrdaWarehouse::Hud
               # support: dates_served,
             }
           end
+        end
+      end
+
+      private def adjusted_dates(dates:, stop_date:)
+        return dates if stop_date.nil?
+
+        dates.select { |date| date <= stop_date }
+      end
+
+      private def adjusted_months_served(dates:)
+        dates.group_by { |d| [d.year, d.month] }.keys
+      end
+
+      private def calculated_end_of_enrollment(enrollment:, enrollments:)
+        if enrollment.project.street_outreach_and_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month)
+          enrollment.last_date_in_program&.end_of_month
+        elsif enrollment.project.bed_night_tracking?
+          enrollment.last_date_in_program
+        else
+          enrollments.select do |m|
+            m.project_type == enrollment.project_type &&
+              m.first_date_in_program > enrollment.first_date_in_program
+          end.
+            sort_by(&:first_date_in_program)&.first&.first_date_in_program || enrollment.last_date_in_program # rubocop:disable Style/RedundantSort
         end
       end
 

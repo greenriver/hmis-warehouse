@@ -230,21 +230,27 @@ class Hmis::Hud::Project < Hmis::Hud::Base
       # We need to do this so that we can accurately set "data collected about" based on the most applicable form.
       best_instance = instance_scope.detect_best_instance_for_project(project: self)
 
+      # (Side note: For SERVICE specifically, there's really no such thing as a "best" instance in this context
+      # without a service type. As long as there is ANY instance, the data collection feature is enabled. But we don't
+      # need to worry about the fact that "best" instance chosen here might not actually be the most specific.)
+
       has_any_data = case role
       when :CURRENT_LIVING_SITUATION
         current_living_situations.exists?
       when :SERVICE
-        services.exists?
+        custom_services.exists? || services.exists?
       when :CE_EVENT
         false # Only resolved on enrollments. Would need to update this logic if we resolve CE events on projects
       when :CE_ASSESSMENT
         false # Only resolved on enrollments. Would need to update this logic if we resolve CE assessments on projects
       when :CASE_NOTE
         false # Only resolved on enrollments. Would need to update this logic if we resolve case notes on projects
-      when :REFERRAL # todo @Martha - test this out in allegheny frontend
+      when :REFERRAL
+        # Referrals are a special case, the Data Collection Feature is not really used in the frontend. Appearance of
+        # this feature is gated based on permission instead. However, just for consistency we still return has_any_data
         external_referral_postings.exists?
       when :REFERRAL_REQUEST
-        external_referral_requests.exists?
+        external_referral_requests.exists? # Also a special case, see above
       when :EXTERNAL_FORM
         false # Relies on instances only; see comment in HmisSchema::Project.external_form_submissions
       else

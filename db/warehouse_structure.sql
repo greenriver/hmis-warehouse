@@ -8138,7 +8138,8 @@ CREATE TABLE public.files (
     enrollment_id bigint,
     confidential boolean DEFAULT false NOT NULL,
     updated_by_id bigint,
-    data_source_id bigint
+    data_source_id bigint,
+    consent_revoked_by_user_id integer
 );
 
 
@@ -26182,8 +26183,8 @@ CREATE TABLE public.talentlms_completed_trainings (
     id bigint NOT NULL,
     login_id bigint NOT NULL,
     config_id bigint NOT NULL,
-    course_id integer NOT NULL,
-    completion_date date NOT NULL
+    completion_date date NOT NULL,
+    course_id bigint
 );
 
 
@@ -26214,9 +26215,7 @@ CREATE TABLE public.talentlms_configs (
     id bigint NOT NULL,
     subdomain character varying,
     encrypted_api_key character varying,
-    encrypted_api_key_iv character varying,
-    courseid integer,
-    months_to_expiration integer
+    encrypted_api_key_iv character varying
 );
 
 
@@ -26240,6 +26239,39 @@ ALTER SEQUENCE public.talentlms_configs_id_seq OWNED BY public.talentlms_configs
 
 
 --
+-- Name: talentlms_courses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.talentlms_courses (
+    id bigint NOT NULL,
+    config_id bigint,
+    courseid integer,
+    months_to_expiration integer,
+    name character varying,
+    "default" boolean DEFAULT false
+);
+
+
+--
+-- Name: talentlms_courses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.talentlms_courses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: talentlms_courses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.talentlms_courses_id_seq OWNED BY public.talentlms_courses.id;
+
+
+--
 -- Name: talentlms_logins; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -26249,7 +26281,8 @@ CREATE TABLE public.talentlms_logins (
     login character varying,
     encrypted_password character varying,
     encrypted_password_iv character varying,
-    lms_user_id integer
+    lms_user_id integer,
+    config_id bigint
 );
 
 
@@ -30855,6 +30888,13 @@ ALTER TABLE ONLY public.talentlms_configs ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: talentlms_courses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.talentlms_courses ALTER COLUMN id SET DEFAULT nextval('public.talentlms_courses_id_seq'::regclass);
+
+
+--
 -- Name: talentlms_logins id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -35043,6 +35083,14 @@ ALTER TABLE ONLY public.talentlms_completed_trainings
 
 ALTER TABLE ONLY public.talentlms_configs
     ADD CONSTRAINT talentlms_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: talentlms_courses talentlms_courses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.talentlms_courses
+    ADD CONSTRAINT talentlms_courses_pkey PRIMARY KEY (id);
 
 
 --
@@ -58171,10 +58219,31 @@ CREATE INDEX index_talentlms_completed_trainings_on_config_id ON public.talentlm
 
 
 --
+-- Name: index_talentlms_completed_trainings_on_course_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_talentlms_completed_trainings_on_course_id ON public.talentlms_completed_trainings USING btree (course_id);
+
+
+--
 -- Name: index_talentlms_completed_trainings_on_login_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_talentlms_completed_trainings_on_login_id ON public.talentlms_completed_trainings USING btree (login_id);
+
+
+--
+-- Name: index_talentlms_courses_on_config_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_talentlms_courses_on_config_id ON public.talentlms_courses USING btree (config_id);
+
+
+--
+-- Name: index_talentlms_logins_on_config_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_talentlms_logins_on_config_id ON public.talentlms_logins USING btree (config_id);
 
 
 --
@@ -60937,6 +61006,22 @@ ALTER TABLE ONLY public.external_ids
 
 
 --
+-- Name: talentlms_courses fk_rails_026db1a8dd; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.talentlms_courses
+    ADD CONSTRAINT fk_rails_026db1a8dd FOREIGN KEY (config_id) REFERENCES public.talentlms_configs(id);
+
+
+--
+-- Name: talentlms_logins fk_rails_054f112767; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.talentlms_logins
+    ADD CONSTRAINT fk_rails_054f112767 FOREIGN KEY (config_id) REFERENCES public.talentlms_configs(id);
+
+
+--
 -- Name: service_history_services_2023 fk_rails_0702601703; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -61465,6 +61550,14 @@ ALTER TABLE ONLY public.service_history_services_2015
 
 
 --
+-- Name: talentlms_completed_trainings fk_rails_b415e43c44; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.talentlms_completed_trainings
+    ADD CONSTRAINT fk_rails_b415e43c44 FOREIGN KEY (course_id) REFERENCES public.talentlms_courses(id);
+
+
+--
 -- Name: service_history_services_2041 fk_rails_b5bc457eae; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -61934,7 +62027,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241003194213'),
 ('20241010005805'),
 ('20241011182445'),
+('20241017181722'),
+('20241017183109'),
+('20241018170014'),
+('20241018174906'),
+('20241018175039'),
 ('20241018220220'),
+('20241022185534'),
 ('20241023021050');
 
 
