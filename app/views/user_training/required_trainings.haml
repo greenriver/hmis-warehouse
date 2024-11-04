@@ -32,8 +32,6 @@
             %tr
               %td= course.name
               %td= course.courseid
-              %td
-                - if course.completed_by?(current_user)
-                  %i.icon-checkmark
+              %td= checkmark(course.completed_by?(current_user))
 
 =render 'logout'
