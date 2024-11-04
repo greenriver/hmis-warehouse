@@ -69,9 +69,9 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DestinationClientPolicy, type: :mode
 
   context 'with user access control permissions' do
     let(:user) { create(:acl_user) }
-    let(:user_group) { create(:user_group)}
+    let(:user_group) { create(:user_group) }
     let(:policy) { user.policy_for(destination_client) }
-    let(:collection) {create(:collection) }
+    let(:collection) { create(:collection) }
 
     before do
       user_group.add(user)
@@ -89,6 +89,5 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DestinationClientPolicy, type: :mode
     context 'without collection access' do
       include_examples 'pii permission checks without access'
     end
-
   end
 end

@@ -75,9 +75,9 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
         end
 
         expect(policy.can_edit?).to be(false),
-          "Expected edit access to be denied with #{test_role.class}"
+                                    "Expected edit access to be denied with #{test_role.class}"
         expect(policy.can_see_raw_hmis_data?).to be(false),
-          "Expected raw HMIS access to be denied with #{test_role.class}"
+                                                 "Expected raw HMIS access to be denied with #{test_role.class}"
       end
     end
   end

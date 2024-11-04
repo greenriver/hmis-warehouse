@@ -24,7 +24,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPiiPolicy, type: :model do
     create(:role)
   end
 
-  shared_examples 'pii permission checks with access' do |has_access|
+  shared_examples 'pii permission checks with access' do |_has_access|
     context 'standard PII permissions' do
       it 'grants configured PII permissions' do
         # These permissions are granted in our test role
@@ -41,7 +41,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPiiPolicy, type: :model do
     end
   end
 
-  shared_examples 'pii permission checks without access' do |has_access|
+  shared_examples 'pii permission checks without access' do |_has_access|
     context 'standard PII permissions' do
       it 'denies all PII permissions when user lacks access' do
         expect(policy.can_view_name?).to be false
@@ -54,7 +54,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPiiPolicy, type: :model do
   end
 
   context 'with legacy user permissions' do
-    let(:role) { full_access_role}
+    let(:role) { full_access_role }
     let(:access_group) { create(:access_group) }
     let(:user) do
       user = create(:user)

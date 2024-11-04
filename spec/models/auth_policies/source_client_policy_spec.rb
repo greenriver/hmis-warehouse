@@ -107,7 +107,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
   context 'with user access control permissions' do
     let(:user) { create(:acl_user) }
     let(:policy) { user.policy_for(client) }
-    let(:collection) {create :collection }
+    let(:collection) { create :collection }
     before do
       user_group = create(:user_group)
       user_group.add(user)

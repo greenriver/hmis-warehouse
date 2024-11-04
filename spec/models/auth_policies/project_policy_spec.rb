@@ -100,7 +100,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
     end
 
     context 'with CoC code access' do
-
       before do
         project.project_cocs.create!(coc_code: coc_code)
         access_group.update!(coc_codes: [coc_code])
@@ -135,7 +134,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
     end
 
     context 'with full data source permissions' do
-      let(:role) {hud_data_access_role}
+      let(:role) { hud_data_access_role }
 
       before do
         collection.set_viewables({ data_sources: [data_source.id] })
