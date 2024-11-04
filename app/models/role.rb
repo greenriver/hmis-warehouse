@@ -602,6 +602,12 @@ class Role < ApplicationRecord
         category: 'Cohorts',
         sub_category: 'Cohort Administration',
       },
+      can_edit_cohort_columns: {
+        description: 'Ability to adjust columns on assigned cohorts',
+        administrative: false,
+        category: 'Cohorts',
+        sub_category: 'Cohort Administration',
+      },
       can_add_cohort_clients: {
         description: 'Ability to add, remove, and import cohort clients',
         administrative: false,
