@@ -80,7 +80,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         #   - Alternatively can we get the frontend to stop sending these values, or is that too risky a change?
         # - with mapped_form_items I'm trying to be generic to other future use cases where we need to know something about the item's attributes when processing the form. Should we somehow try to combine mapped_form_items with the other maps or is that too risky a change?
         item = mapped_form_items["#{container}:#{field}"]
-        raise 'unauthorized' if item.editor_user_ids && !item.editor_user_ids.include?(user.id)
+        raise 'unauthorized' if item.present? && item.editor_user_ids.present? && !item.editor_user_ids.include?(user.id)
 
         if mapped_custom_form_fields[container].include?(field)
           # If this key can be identified as a CustomDataElement, set it and continue
