@@ -7,21 +7,18 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
 
   let(:full_access_role) do
     create(:role,
-      can_edit_data_sources: true,
-      can_upload_hud_zips: true
-    )
+           can_edit_data_sources: true,
+           can_upload_hud_zips: true)
   end
 
   let(:edit_only_role) do
     create(:role,
-      can_edit_data_sources: true
-    )
+           can_edit_data_sources: true)
   end
 
   let(:upload_only_role) do
     create(:role,
-      can_upload_hud_zips: true
-    )
+           can_upload_hud_zips: true)
   end
 
   let(:no_access_role) do

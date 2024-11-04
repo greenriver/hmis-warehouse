@@ -1,4 +1,3 @@
-
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPiiPolicy, type: :model do
@@ -7,20 +6,18 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPiiPolicy, type: :model do
 
   let(:full_access_role) do
     create(:role,
-      can_view_client_name: true,
-      can_view_client_photo: true,
-      can_view_full_dob: true,
-      can_view_full_ssn: true,
-      can_view_hiv_status: true
-    )
+           can_view_client_name: true,
+           can_view_client_photo: true,
+           can_view_full_dob: true,
+           can_view_full_ssn: true,
+           can_view_hiv_status: true)
   end
 
   let(:limited_access_role) do
     create(:role,
-      can_view_client_name: true,
-      can_view_client_photo: true,
-      can_view_full_dob: true
-    )
+           can_view_client_name: true,
+           can_view_client_photo: true,
+           can_view_full_dob: true)
   end
 
   let(:no_access_role) do

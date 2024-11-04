@@ -1,4 +1,3 @@
-
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::AuthPolicies::DestinationClientPolicy, type: :model do
@@ -13,13 +12,12 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DestinationClientPolicy, type: :mode
 
   let(:role) do
     create(:role,
-      can_view_clients: true,
-      can_view_client_name: true,
-      can_view_client_photo: true,
-      can_view_full_dob: true,
-      can_view_full_ssn: false,
-      can_view_hiv_status: false
-    )
+           can_view_clients: true,
+           can_view_client_name: true,
+           can_view_client_photo: true,
+           can_view_full_dob: true,
+           can_view_full_ssn: false,
+           can_view_hiv_status: false)
   end
 
   context 'with legacy user permissions' do
