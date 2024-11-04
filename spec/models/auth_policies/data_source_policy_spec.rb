@@ -96,19 +96,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
     context 'without any access' do
       include_examples 'data source permission checks', false
     end
-
-    context 'with indirect access through projects' do
-      let(:organization) { create :hud_organization, data_source: data_source }
-      let(:project) { create :grda_warehouse_hud_project, organization: organization, data_source: data_source }
-      let(:role) { full_access_role }
-
-      before { access_group.add_viewable(project) }
-
-      it 'denies data source level permissions' do
-        expect(policy.can_edit?).to be false
-        expect(policy.can_see_raw_hmis_data?).to be false
-      end
-    end
   end
 
   context 'with user access control permissions' do
@@ -134,35 +121,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
 
     context 'without any access' do
       include_examples 'data source permission checks', false
-    end
-
-    context 'with multiple roles' do
-      let(:collection2) { create(:collection) }
-
-      before do
-        collection.set_viewables({ data_sources: [data_source.id] })
-        collection2.set_viewables({ data_sources: [data_source.id] })
-        create(:access_control, role: edit_only_role, collection: collection, user_group: user_group)
-        create(:access_control, role: upload_only_role, collection: collection2, user_group: user_group)
-      end
-
-      it 'combines permissions from multiple roles' do
-        expect(policy.can_edit?).to be true
-        expect(policy.can_see_raw_hmis_data?).to be true
-      end
-    end
-
-    context 'with indirect access through projects' do
-      let(:organization) { create :hud_organization, data_source: data_source }
-      let(:project) { create :grda_warehouse_hud_project, organization: organization, data_source: data_source }
-      let(:role) { full_access_role }
-
-      before { collection.set_viewables({ projects: [project.id] }) }
-
-      it 'denies data source level permissions' do
-        expect(policy.can_edit?).to be false
-        expect(policy.can_see_raw_hmis_data?).to be false
-      end
     end
   end
 

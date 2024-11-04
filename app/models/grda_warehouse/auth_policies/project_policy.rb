@@ -37,8 +37,7 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
     return false unless role_permissions.include?(:can_view_projects)
     return true unless project.confidential?
 
-    confidential_perms = [:can_edit_projects, :can_view_confidential_project_names].to_set
-    role_permissions.intersect?(confidential_perms)
+    role_permissions.include?(:can_edit_projects) || role_permissions.include?(:can_view_confidential_project_names)
   end
 
   protected

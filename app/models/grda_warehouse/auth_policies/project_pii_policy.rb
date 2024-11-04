@@ -4,9 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# FIXME: for a report context, we only have a project id of an enrollment to determine PII. This is efficient but the
-# permissions not entirely accurate in every case. We are not including permissions granted by all the client's
-# enrollments or direct client-record visibility
+# FIXME: in a report context we may only have a project id to determine PII. Using just the project id is efficient but
+# the # permissions not are entirely accurate in every case. We are not including permissions granted by all the
+# client's enrollments or direct client-record visibility
 class GrdaWarehouse::AuthPolicies::ProjectPiiPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
   [
     [:can_view_client_name, :can_view_name?],
