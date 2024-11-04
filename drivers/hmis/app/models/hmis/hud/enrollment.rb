@@ -307,8 +307,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
       # Choose the "best" instance, i.e. the one that would actually be selected when recording new data.
       # We need to do this so that we can accurately set "data collected about" based on the most applicable form.
-      # This detect_best_instance_for_project logic is also called from the query to resolve the actual form definition
-      best_instance = instance_scope.detect_best_instance_for_project(project: project)
+      best_instance = instance_scope.detect_best_instance_for_enrollment(enrollment: self)
 
       has_any_data = case role
       when :CURRENT_LIVING_SITUATION
@@ -327,16 +326,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
       next unless best_instance || has_any_data
 
-      matches_enrollment = best_instance&.project_and_enrollment_match(project: project, enrollment: self)
-
-      # If an instance applies to this project but doesn't match this enrollment, return, UNLESS there is existing data.
-      # (Example: data is collected for HoH. If HoH changes, you still see past data from the original HoH's enrollment)
-      next if !has_any_data && best_instance.present? && !matches_enrollment
-
       OpenStruct.new(
         role: role.to_s,
         id: [id, role, best_instance&.id].join(':'), # Unique ID for Apollo caching
-        legacy: has_any_data && (!best_instance || !matches_enrollment),
+        legacy: has_any_data && !best_instance,
         data_collected_about: best_instance&.data_collected_about || 'ALL_CLIENTS', # Doesn't really matter for legacy
         instance: best_instance, # just for testing, not resolved
       )
