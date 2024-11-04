@@ -329,14 +329,14 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
                   'link_id': 'foo',
                   'mapping': {
                     'custom_field_key': 'foo',
-                    'record_type': 'CLIENT',
+                    'record_type': 'ENROLLMENT',
                   },
                 },
               ],
             }
           end
           let!(:cded) { create :hmis_custom_data_element_definition, key: 'foo', data_source: ds1, owner_type: 'Hmis::Hud::Enrollment', repeats: false }
-          let!(:cde) { create :hmis_custom_data_element, data_element_definition: cded, owner: spouse_enrollment.client, data_source: ds1, value_string: 'bar' }
+          let!(:cde) { create :hmis_custom_data_element, data_element_definition: cded, owner: spouse_enrollment, data_source: ds1, value_string: 'bar' }
 
           it 'returns the form for that client' do
             expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(instance)

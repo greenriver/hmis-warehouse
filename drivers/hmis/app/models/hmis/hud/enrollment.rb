@@ -363,19 +363,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
             has_any_data = send(field_name).present?
           elsif custom_field_key
-            # For simplicity, for now, just look for CDEDs where the owner is an Enrollment or a Client
-            owner_class_name = case record_type
-            when 'ENROLLMENT'
-              self.class.sti_name
-            when 'CLIENT'
-              Hmis::Hud::Client.sti_name
-            else
-              ''
-            end
+            # For simplicity, for now, just look for CDEDs where the owner is an Enrollment
+            owner_class_name = self.class.sti_name
             cded = Hmis::Hud::CustomDataElementDefinition.for_type(owner_class_name).find_by(key: custom_field_key)
             next unless cded
 
-            has_any_data = Hmis::Hud::CustomDataElement.where(data_element_definition: cded, owner: [self, client]).any?
+            has_any_data = Hmis::Hud::CustomDataElement.where(data_element_definition: cded, owner: self).any?
           end
         end
       end
