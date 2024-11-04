@@ -229,7 +229,9 @@ class User < ApplicationRecord
     if policy_class
       policy_class.new(resource: resource, context: policy_context)
     else
-      GrdaWarehouse::AuthPolicies::PolicyProvider.policy_for(resource: resource, context: policy_context)
+      raise ArgumentError, "expected #{resource.class.name} to implement policy_class" unless resource.respond_to?(:policy_class)
+
+      resource.policy_class.new(resource: resource, context: policy_context)
     end
   end
 

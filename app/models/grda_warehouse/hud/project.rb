@@ -613,6 +613,10 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def policy_class
+      GrdaWarehouse::AuthPolicies::ProjectPolicy
+    end
+
     def rrh?
       project_type_to_use.in?(HudUtility2024.performance_reporting[:rrh])
     end

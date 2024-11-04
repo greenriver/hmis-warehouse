@@ -6,7 +6,7 @@
 
 require 'memery'
 
-# helper methods; memoize relevant queries
+# cross-policy memoized utils for Legacy user-role-based permissions
 class GrdaWarehouse::AuthPolicies::UserLegacyContext
   include Memery
   attr_accessor :user
@@ -25,8 +25,8 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     permissions_for_access_group_ids(access_group_ids)
   end
 
-  memoize def client_role_permissions(client_id)
-    access_group_ids = client_access_group_ids(client_id)
+  memoize def direct_client_role_permissions(client_id)
+    access_group_ids = direct_client_access_group_ids(client_id)
     permissions_for_access_group_ids(access_group_ids)
   end
 
@@ -77,7 +77,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
   end
 
   # access_groups for the client's authoritative data source. Needed for clients records that do not have enrollments
-  def client_access_group_ids(client_id)
+  def direct_client_access_group_ids(client_id)
     c_t = GrdaWarehouse::Hud::Client.arel_table
     gve_t = GrdaWarehouse::GroupViewableEntity.arel_table
     GrdaWarehouse::DataSource.authoritative.not_hmis.

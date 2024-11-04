@@ -468,6 +468,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
+  def policy_class
+    GrdaWarehouse::AuthPolicies::DataSourcePolicy
+  end
+
   def directly_viewable_by?(user, permission: :can_view_projects)
     # TODO: START_ACL cleanup after migration to ACLs
     if user.using_acls?

@@ -26,7 +26,7 @@ class GrdaWarehouse::AuthPolicies::DataSourcePolicy < GrdaWarehouse::AuthPolicie
   end
 
   def role_permissions
-    context.project_role_permissions(project_id)
+    context.data_source_role_permissions(data_source_id)
   end
 
   def data_source

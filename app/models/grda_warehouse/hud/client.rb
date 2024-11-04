@@ -669,7 +669,7 @@ module GrdaWarehouse::Hud
         cohort = cc.cohort
         meta = CohortColumns::Meta.new(cohort: cohort, cohort_client: cc)
         # cc.active? && cc.cohort&.active? && cc.cohort&.show_on_client_dashboard? && ! meta.inactive
-        next nil unless cohort&.active? && cohort&.show_on_client_dashboard?
+        next nil unless cohort&.active? && cohort.show_on_client_dashboard?
 
         OpenStruct.new(
           id: cohort.id,
@@ -1321,6 +1321,14 @@ module GrdaWarehouse::Hud
           return true if child && adult
         end
         return child && adult
+      end
+    end
+
+    def policy_class
+      if destination?
+        GrdaWarehouse::AuthPolicies::DestinationClientPolicy
+      else
+        GrdaWarehouse::AuthPolicies::SourceClientPolicy
       end
     end
 

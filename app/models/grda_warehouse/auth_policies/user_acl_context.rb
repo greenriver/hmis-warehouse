@@ -6,7 +6,7 @@
 
 require 'memery'
 
-# helper methods; memoize relevant queries
+# cross-policy memoized utils for ACL permissions
 class GrdaWarehouse::AuthPolicies::UserAclContext
   include Memery
   attr_accessor :user
@@ -26,8 +26,8 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
     permissions_for_collection_ids(collection_ids)
   end
 
-  memoize def client_role_permissions(client_id)
-    collection_ids = client_collection_ids(client_id)
+  memoize def direct_client_role_permissions(client_id)
+    collection_ids = direct_client_collection_ids(client_id)
     permissions_for_collection_ids(collection_ids)
   end
 
@@ -73,7 +73,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
     collection_ids.uniq.sort
   end
 
-  def client_collection_ids(client_id)
+  def direct_client_collection_ids(client_id)
     c_t = GrdaWarehouse::Hud::Client.arel_table
     gve_t = GrdaWarehouse::GroupViewableEntity.arel_table
     GrdaWarehouse::DataSource.authoritative.not_hmis.

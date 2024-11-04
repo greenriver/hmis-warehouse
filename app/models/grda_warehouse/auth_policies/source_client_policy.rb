@@ -50,7 +50,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     project_ids.each do |project_id|
       results.merge(context.project_role_permissions(project_id))
     end
-    results.merge(context.client_role_permissions(client_id))
+    results.merge(context.direct_client_role_permissions(client_id))
   end
 
   # An ROI confers some level of visibility to the client under the following circumstances:
