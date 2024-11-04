@@ -2288,9 +2288,8 @@ module GrdaWarehouse::Hud
     def move_dependent_hmis_items(previous_id, new_id)
       return if previous_id == new_id
 
-      hmis_dependent_items.each do |klass|
-        klass.where(client_id: previous_id).
-          update_all(client_id: new_id)
+      hmis_dependent_items.each do |klass, foreign_key|
+        klass.where(foreign_key => previous_id).update_all(foreign_key => new_id)
       end
     end
 
@@ -2325,29 +2324,29 @@ module GrdaWarehouse::Hud
 
     private def hmis_dependent_items
       [
-        GrdaWarehouse::ClientNotes::Base,
-        GrdaWarehouse::ClientFile,
-        GrdaWarehouse::Vispdat::Base,
-        GrdaWarehouse::CohortClient,
-        GrdaWarehouse::Chronic,
-        GrdaWarehouse::HudChronic,
-        GrdaWarehouse::UserClient,
-        GrdaWarehouse::EnrollmentChangeHistory,
-        GrdaWarehouse::CasAvailability,
-        GrdaWarehouse::YouthIntake::Base,
-        GrdaWarehouse::Youth::DirectFinancialAssistance,
-        GrdaWarehouse::Youth::YouthCaseManagement,
-        GrdaWarehouse::Youth::YouthReferral,
-        GrdaWarehouse::Youth::YouthFollowUp,
-        GrdaWarehouse::HealthEmergency::AmaRestriction,
-        GrdaWarehouse::HealthEmergency::Test,
-        GrdaWarehouse::HealthEmergency::ClinicalTriage,
-        GrdaWarehouse::HealthEmergency::Isolation,
-        GrdaWarehouse::HealthEmergency::Quarantine,
-        GrdaWarehouse::HealthEmergency::UploadedTest,
-        GrdaWarehouse::HealthEmergency::Vaccination,
-        GrdaWarehouse::Anomaly,
-        GrdaWarehouse::ClientRoiAuthorization,
+        [GrdaWarehouse::ClientNotes::Base, :client_id],
+        [GrdaWarehouse::ClientFile, :client_id],
+        [GrdaWarehouse::Vispdat::Base, :client_id],
+        [GrdaWarehouse::CohortClient, :client_id],
+        [GrdaWarehouse::Chronic, :client_id],
+        [GrdaWarehouse::HudChronic, :client_id],
+        [GrdaWarehouse::UserClient, :client_id],
+        [GrdaWarehouse::EnrollmentChangeHistory, :client_id],
+        [GrdaWarehouse::CasAvailability, :client_id],
+        [GrdaWarehouse::YouthIntake::Base, :client_id],
+        [GrdaWarehouse::Youth::DirectFinancialAssistance, :client_id],
+        [GrdaWarehouse::Youth::YouthCaseManagement, :client_id],
+        [GrdaWarehouse::Youth::YouthReferral, :client_id],
+        [GrdaWarehouse::Youth::YouthFollowUp, :client_id],
+        [GrdaWarehouse::HealthEmergency::AmaRestriction, :client_id],
+        [GrdaWarehouse::HealthEmergency::Test, :client_id],
+        [GrdaWarehouse::HealthEmergency::ClinicalTriage, :client_id],
+        [GrdaWarehouse::HealthEmergency::Isolation, :client_id],
+        [GrdaWarehouse::HealthEmergency::Quarantine, :client_id],
+        [GrdaWarehouse::HealthEmergency::UploadedTest, :client_id],
+        [GrdaWarehouse::HealthEmergency::Vaccination, :client_id],
+        [GrdaWarehouse::Anomaly, :client_id],
+        [GrdaWarehouse::ClientRoiAuthorization, :destination_client_id],
       ]
     end
 
