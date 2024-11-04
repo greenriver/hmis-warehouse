@@ -15,14 +15,14 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
   ].each do |permission, method_name|
     method_name ||= :"#{permission}?"
     define_method(method_name) do
-      role_permissions.include?(permission)
+      resource_permissions.include?(permission)
     end
   end
 
   # can the user see the full client dash page and additional details?
   memoize def can_view?
-    return true if role_permissions.include?(:can_view_clients)
-    return roi_authorized? if role_permissions.include?(:can_view_client_enrollments_with_roi)
+    return true if resource_permissions.include?(:can_view_clients)
+    return roi_authorized? if resource_permissions.include?(:can_view_client_enrollments_with_roi)
 
     false
   end
@@ -42,8 +42,10 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     resource
   end
 
-  memoize def role_permissions
+  # a set of permissions the user has for either the project or the client which would grant them access to this client
+  memoize def resource_permissions
     clients = GrdaWarehouse::Hud::Client.where(id: client_id)
+    # project_ids are the projects for which the client has an enrollment
     project_ids = GrdaWarehouse::Hud::Project.joins(:clients).merge(clients).distinct.pluck(:id)
 
     results = Set.new
@@ -53,6 +55,9 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     results.merge(context.direct_client_role_permissions(client_id))
   end
 
+  # NOTE: this will query `destination_client.roi_authorizations` which could be a source of N+1 queries if authorizing
+  # multiple clients
+  #
   # An ROI confers some level of visibility to the client under the following circumstances:
   # - the source client must be in a data source with `obeys_consent=true`
   # - the ROI has a valid status (not revoked). ROI fields are stored on the destination client record (for now)

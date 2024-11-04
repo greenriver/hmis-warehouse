@@ -4,9 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# FIXME: in a report context we may only have a project id to determine PII. Using just the project id is efficient but
-# the # permissions not are entirely accurate in every case. We are not including permissions granted by all the
-# client's enrollments or direct client-record visibility
+# Often reports display client PII from the destination client (sometimes the source client for DQ). Using this project
+# PII policy grants access to PII based only on the client/project which may be more restrictive than permissions
+# granted through the full set of source clients
 class GrdaWarehouse::AuthPolicies::ProjectPiiPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
   [
     [:can_view_client_name, :can_view_name?],
@@ -17,7 +17,7 @@ class GrdaWarehouse::AuthPolicies::ProjectPiiPolicy < GrdaWarehouse::AuthPolicie
   ].each do |permission, method_name|
     method_name ||= :"#{permission}?"
     define_method(method_name) do
-      role_permissions.include?(permission)
+      resource_permissions.include?(permission)
     end
   end
 
@@ -31,7 +31,7 @@ class GrdaWarehouse::AuthPolicies::ProjectPiiPolicy < GrdaWarehouse::AuthPolicie
     resource
   end
 
-  def role_permissions
+  def resource_permissions
     context.project_role_permissions(project_id)
   end
 end

@@ -11,12 +11,12 @@ class GrdaWarehouse::AuthPolicies::DataSourcePolicy < GrdaWarehouse::AuthPolicie
   ].each do |permission, method_name|
     method_name ||= :"#{permission}?"
     define_method(method_name) do
-      role_permissions.include?(permission)
+      resource_permissions.include?(permission)
     end
   end
 
   memoize def can_see_raw_hmis_data?
-    role_permissions.include?(:can_edit_data_sources) && role_permissions.include?(:can_upload_hud_zips)
+    resource_permissions.include?(:can_edit_data_sources) && resource_permissions.include?(:can_upload_hud_zips)
   end
 
   protected
@@ -25,7 +25,7 @@ class GrdaWarehouse::AuthPolicies::DataSourcePolicy < GrdaWarehouse::AuthPolicie
     ensure_arg_type!(arg, GrdaWarehouse::DataSource)
   end
 
-  def role_permissions
+  def resource_permissions
     context.data_source_role_permissions(data_source_id)
   end
 

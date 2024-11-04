@@ -16,6 +16,7 @@ module GrdaWarehouse
     attr_accessor :editor_ids
 
     validates_presence_of :name
+    # allows us to skip this expensive operation when running in tests
     attr_accessor :skip_maintain_system_group
     after_create :maintain_system_group, unless: :skip_maintain_system_group
 
@@ -135,6 +136,7 @@ module GrdaWarehouse
 
     private def maintain_system_group
       AccessGroup.delayed_system_group_maintenance(group: :project_groups)
+      Collection.delayed_system_group_maintenance(group: :project_groups)
     end
 
     def filter

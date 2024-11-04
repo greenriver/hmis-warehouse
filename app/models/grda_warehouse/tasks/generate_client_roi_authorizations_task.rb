@@ -4,15 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Build ROI values from the client. We change ROI authorization to the canonical record in the future, instead of
-# generating it from the client. At that point, this task can be removed
+# Build ROI values from the client. This task can be removed if we change RoiAuthorizations to be canonical record in
+# the future
 module GrdaWarehouse::Tasks
   class GenerateClientRoiAuthorizationsTask
     def self.perform(...)
       new.perform(...)
     end
 
-    # @param client_ids only rebuild
+    # @param client_ids [Array<Integer>, nil] client ids to rebuild. Rebuild all clients if nil
     def perform(client_ids: nil)
       with_lock do
         scope = destination_client_scope
@@ -62,10 +62,9 @@ module GrdaWarehouse::Tasks
     end
 
     def roi_expiry_date(client)
-      duration = GrdaWarehouse::Hud::Client.release_duration
-      case GrdaWarehouse::Hud::Client.release_duration
+      case roi_duration
       when 'One Year', 'Two Years'
-        return nil unless client.consent_form_signed_on
+        raise "missing consent form signature on client: #{client.id}" unless client.consent_form_signed_on
 
         client.consent_form_signed_on + GrdaWarehouse::Hud::Client.consent_validity_period
       when 'Use Expiration Date'
@@ -73,8 +72,12 @@ module GrdaWarehouse::Tasks
       when 'Indefinite'
         nil
       else
-        raise "unknown release duration \"#{duration}\""
+        raise "unknown release duration \"#{roi_duration}\""
       end
+    end
+
+    def roi_duration
+      GrdaWarehouse::Hud::Client.release_duration
     end
 
     def roi_coc_codes(client)
@@ -83,6 +86,9 @@ module GrdaWarehouse::Tasks
     end
 
     def roi_status(client)
+      # skip if the roi is missing a signature date and it's needed to determine the validity period
+      return nil if client.consent_form_signed_on.nil? && roi_duration.in?(['One Year', 'Two Years'])
+
       if client.revoked_consent?
         GrdaWarehouse::ClientRoiAuthorization::REVOKED_STATUS
       elsif client.partial_release?

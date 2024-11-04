@@ -14,6 +14,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
 
   def initialize(user)
     @user = user
+    raise ArgumentError, 'must be acl user' unless @user.using_acls?
   end
 
   memoize def project_role_permissions(project_id)
@@ -43,7 +44,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
 
     Role.joins(:access_controls).
       merge(user.access_controls.where(collection_id: collection_ids)).
-      flat_map(&:permissions).to_set.freeze
+      flat_map(&:granted_permissions).to_set.freeze
   end
 
   def data_source_collection_ids(data_source_id)
@@ -68,11 +69,14 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
       joins(:project).
       where(p_t[:id].eq(project_id)).
       pluck(:coc_code)
+    # two queries are required because COC codes are on the app db
     collection_ids += Collection.for_coc_codes(coc_codes).pluck(:id) if coc_codes.any?
 
     collection_ids.uniq.sort
   end
 
+  # These are source clients, mostly for health-care and youth. See DataSource.authoritative_types.
+  # It's an affordance for direct data entry into the warehouse before we had an HMIS, or non HMIS data.
   def direct_client_collection_ids(client_id)
     c_t = GrdaWarehouse::Hud::Client.arel_table
     gve_t = GrdaWarehouse::GroupViewableEntity.arel_table

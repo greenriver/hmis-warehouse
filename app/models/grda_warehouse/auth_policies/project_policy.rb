@@ -15,7 +15,7 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
   ].each do |permission, method_name|
     method_name ||= :"#{permission}?"
     define_method(method_name) do
-      role_permissions.include?(permission)
+      resource_permissions.include?(permission)
     end
   end
 
@@ -29,15 +29,15 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
   memoize def can_view_project_locations?
     return false unless RailsDrivers.loaded.include?(:client_location_history)
 
-    role_permissions.include?(:can_view_project_locations)
+    resource_permissions.include?(:can_view_project_locations)
   end
 
   # for confidential projects, is there permission to view the name
   def can_view_name?
-    return false unless role_permissions.include?(:can_view_projects)
+    return false unless resource_permissions.include?(:can_view_projects)
     return true unless project.confidential?
 
-    role_permissions.include?(:can_edit_projects) || role_permissions.include?(:can_view_confidential_project_names)
+    resource_permissions.include?(:can_edit_projects) || resource_permissions.include?(:can_view_confidential_project_names)
   end
 
   protected
@@ -46,7 +46,7 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
     ensure_arg_type!(arg, GrdaWarehouse::Hud::Project)
   end
 
-  def role_permissions
+  def resource_permissions
     context.project_role_permissions(project_id)
   end
 

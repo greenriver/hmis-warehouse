@@ -192,7 +192,7 @@ class Role < ApplicationRecord
     column.to_s.humanize
   end
 
-  def permissions
+  def granted_permissions
     self.class.permissions_with_descriptions.keys.filter do |permission|
       self[permission]
     end
