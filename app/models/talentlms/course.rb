@@ -66,7 +66,7 @@ module Talentlms
       login = Talentlms::Login.find_by(config: config, user: user)
       return unless login # Login does not exist, user has not completed training
 
-      Talentlms::CompletedTraining.all.detect { |ct| ct.login_id == login.id && ct.course_id == id }.present?
+      Talentlms::CompletedTraining.where(login_id: login.id, course_id: id).exists?
     end
   end
 end
