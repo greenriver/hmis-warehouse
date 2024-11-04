@@ -25,11 +25,15 @@
           %tr
             %th Course Name
             %th Course ID
+            %th Course Completed
         %tbody
           - required_courses_for_config = (@courses & config.courses)
           - required_courses_for_config.each do |course|
             %tr
               %td= course.name
               %td= course.courseid
+              %td
+                - if course.completed_by?(current_user)
+                  %i.icon-checkmark
 
 =render 'logout'
