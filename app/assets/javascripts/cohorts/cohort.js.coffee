@@ -54,7 +54,7 @@ class App.Cohorts.Cohort
       # enableFilter: true,
       singleClickEdit: true,
       rowSelection: 'multiple',
-      rowDeselection: true,
+      suppressRowDeselection: false,
       getRowNodeId: (data) ->
         data.meta.cohort_client_id
       onSortChanged: (data) ->
@@ -112,7 +112,6 @@ class App.Cohorts.Cohort
       header = {
         headerName: column.headerName,
         headerTooltip: column.headerTooltip,
-        tooltipShowDelay: 250,
         field: column.field,
         editable: column.editable,
         # tooltip: (params) ->

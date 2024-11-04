@@ -41,6 +41,7 @@
       %h3 Integrations
       .well
         = f.input :show_on_client_dashboard, as: :pretty_boolean, label: 'Show cohort in client dashboard?'
+        = f.input :expose_inactive_on_client_dashboard, as: :pretty_boolean, label: 'Even show this cohort on client dashboards if the cohort has been made inactive? By default, only active cohorts will be shown on the client dashboard.'
         = f.input :visible_in_cas, as: :pretty_boolean,  label: 'Show cohort in CAS?'
         = f.input :tag_id, collection: CasAccess::Tag.available_cohort_tags, label: 'CAS Tag', hint: 'A CAS tag should only be applied to one cohort at a time.  It is used in conjunction with the Rank prioritization scheme to determine which cohort client rank to use for a client.', as: :select_two
   .row
