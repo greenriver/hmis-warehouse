@@ -25,47 +25,59 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
     create(:role)
   end
 
-  shared_examples 'data source permission checks' do |role_present|
-    context 'with edit permission' do
-      let(:role) { edit_only_role }
-
-      it 'correctly handles edit permission' do
-        expected = role_present
-        expect(policy.can_edit?).to eq(expected)
-      end
-    end
-
-    context 'with raw HMIS data access' do
+  shared_examples 'permission checks with access' do
+    context 'with full access role' do
       let(:role) { full_access_role }
 
-      it 'requires both edit and upload permissions' do
-        expected = role_present
-        expect(policy.can_see_raw_hmis_data?).to eq(expected)
+      it 'grants both edit and raw HMIS data access' do
+        expect(policy.can_edit?).to be true
+        expect(policy.can_see_raw_hmis_data?).to be true
       end
     end
 
-    context 'with edit-only permissions' do
+    context 'with edit-only role' do
       let(:role) { edit_only_role }
 
-      it 'denies raw HMIS data access' do
+      it 'grants edit but denies raw HMIS data access' do
+        expect(policy.can_edit?).to be true
         expect(policy.can_see_raw_hmis_data?).to be false
       end
     end
 
-    context 'with upload-only permissions' do
+    context 'with upload-only role' do
       let(:role) { upload_only_role }
 
-      it 'denies raw HMIS data access' do
+      it 'denies both edit and raw HMIS data access' do
+        expect(policy.can_edit?).to be false
         expect(policy.can_see_raw_hmis_data?).to be false
       end
     end
 
-    context 'with no permissions' do
+    context 'with no permissions role' do
       let(:role) { no_access_role }
 
       it 'denies all access' do
         expect(policy.can_edit?).to be false
         expect(policy.can_see_raw_hmis_data?).to be false
+      end
+    end
+  end
+
+  shared_examples 'permission checks without access' do
+    it 'denies all access when user lacks resource access' do
+      [full_access_role, edit_only_role, upload_only_role, no_access_role].each do |test_role|
+        # Switch roles and verify all permissions are denied
+        if defined?(user_group)
+          create(:access_control, role: test_role, collection: collection, user_group: user_group)
+        else
+          user.roles.destroy_all
+          test_role.add(user)
+        end
+
+        expect(policy.can_edit?).to be(false),
+          "Expected edit access to be denied with #{test_role.class}"
+        expect(policy.can_see_raw_hmis_data?).to be(false),
+          "Expected raw HMIS access to be denied with #{test_role.class}"
       end
     end
   end
@@ -82,7 +94,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
 
     context 'with direct data source access' do
       before { access_group.add_viewable(data_source) }
-      include_examples 'data source permission checks', true
+      include_examples 'permission checks with access'
     end
 
     context 'with system group access' do
@@ -90,11 +102,11 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
         system_group = AccessGroup.system_groups[:data_sources]
         system_group.add(user)
       end
-      include_examples 'data source permission checks', true
+      include_examples 'permission checks with access'
     end
 
     context 'without any access' do
-      include_examples 'data source permission checks', false
+      include_examples 'permission checks without access'
     end
   end
 
@@ -111,16 +123,16 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
 
     context 'with direct data source access' do
       before { collection.set_viewables({ data_sources: [data_source.id] }) }
-      include_examples 'data source permission checks', true
+      include_examples 'permission checks with access'
     end
 
     context 'with system collection access' do
       let(:collection) { Collection.system_collection(:data_sources) }
-      include_examples 'data source permission checks', true
+      include_examples 'permission checks with access'
     end
 
     context 'without any access' do
-      include_examples 'data source permission checks', false
+      include_examples 'permission checks without access'
     end
   end
 

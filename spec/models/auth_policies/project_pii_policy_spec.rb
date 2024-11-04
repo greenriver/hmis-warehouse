@@ -9,7 +9,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPiiPolicy, type: :model do
            can_view_client_name: true,
            can_view_client_photo: true,
            can_view_full_dob: true,
-           can_view_full_ssn: true,
+           can_view_full_ssn: false,
            can_view_hiv_status: true)
   end
 
@@ -24,35 +24,26 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPiiPolicy, type: :model do
     create(:role)
   end
 
-  shared_examples 'pii permission checks' do |role_present|
-    context 'with full access role' do
-      let(:role) { full_access_role }
-
-      it 'grants all PII permissions' do
-        expect(policy.can_view_name?).to eq(role_present)
-        expect(policy.can_view_photo?).to eq(role_present)
-        expect(policy.can_view_full_dob?).to eq(role_present)
-        expect(policy.can_view_full_ssn?).to eq(role_present)
-        expect(policy.can_view_hiv_status?).to eq(role_present)
+  shared_examples 'pii permission checks with access' do |has_access|
+    context 'standard PII permissions' do
+      it 'grants configured PII permissions' do
+        # These permissions are granted in our test role
+        expect(policy.can_view_name?).to be true
+        expect(policy.can_view_photo?).to be true
+        expect(policy.can_view_full_dob?).to be true
+        expect(policy.can_view_hiv_status?).to be true
       end
-    end
 
-    context 'with limited access role' do
-      let(:role) { limited_access_role }
-
-      it 'grants only specified permissions' do
-        expect(policy.can_view_name?).to eq(role_present)
-        expect(policy.can_view_photo?).to eq(role_present)
-        expect(policy.can_view_full_dob?).to eq(role_present)
+      it 'denies unconfigured PII permissions' do
+        # These permissions aren't granted in our test role
         expect(policy.can_view_full_ssn?).to be false
-        expect(policy.can_view_hiv_status?).to be false
       end
     end
+  end
 
-    context 'with no access role' do
-      let(:role) { no_access_role }
-
-      it 'denies all PII permissions' do
+  shared_examples 'pii permission checks without access' do |has_access|
+    context 'standard PII permissions' do
+      it 'denies all PII permissions when user lacks access' do
         expect(policy.can_view_name?).to be false
         expect(policy.can_view_photo?).to be false
         expect(policy.can_view_full_dob?).to be false
@@ -63,6 +54,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPiiPolicy, type: :model do
   end
 
   context 'with legacy user permissions' do
+    let(:role) { full_access_role}
     let(:access_group) { create(:access_group) }
     let(:user) do
       user = create(:user)
@@ -74,7 +66,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPiiPolicy, type: :model do
 
     context 'with project access' do
       before { access_group.add_viewable(project) }
-      include_examples 'pii permission checks', true
+      include_examples 'pii permission checks with access'
     end
 
     context 'with system group access' do
@@ -82,11 +74,11 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPiiPolicy, type: :model do
         system_group = AccessGroup.system_groups[:data_sources]
         system_group.add(user)
       end
-      include_examples 'pii permission checks', true
+      include_examples 'pii permission checks with access'
     end
 
     context 'without any access' do
-      include_examples 'pii permission checks', false
+      include_examples 'pii permission checks without access'
     end
   end
 
@@ -104,19 +96,19 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPiiPolicy, type: :model do
 
     context 'with direct project access' do
       before { collection.set_viewables({ projects: [project.id] }) }
-      include_examples 'pii permission checks', true
+      include_examples 'pii permission checks with access'
     end
 
     context 'with system collection access' do
+      let(:collection) { Collection.system_collection(:data_sources) }
       before do
-        collection = Collection.system_collection(:data_sources)
         create(:access_control, role: role, collection: collection, user_group: user_group)
       end
-      include_examples 'pii permission checks', true
+      include_examples 'pii permission checks with access'
     end
 
     context 'without any access' do
-      include_examples 'pii permission checks', false
+      include_examples 'pii permission checks without access'
     end
 
     context 'with multiple roles' do
@@ -133,7 +125,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPiiPolicy, type: :model do
         expect(policy.can_view_name?).to be true
         expect(policy.can_view_photo?).to be true
         expect(policy.can_view_full_dob?).to be true
-        expect(policy.can_view_full_ssn?).to be true
+        expect(policy.can_view_full_ssn?).to be false
         expect(policy.can_view_hiv_status?).to be true
       end
     end

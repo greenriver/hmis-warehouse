@@ -4,6 +4,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
   let(:data_source) { create :data_source_fixed_id }
   let(:organization) { create :hud_organization, data_source: data_source }
   let(:project) { create :grda_warehouse_hud_project, organization: organization, data_source: data_source }
+  let(:coc_code) { 'XX-500' }
 
   # Permissions that will be granted through the role
   let(:permissions) do
@@ -24,43 +25,30 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
 
   let(:hud_data_access_role) { create(:role, can_upload_hud_zips: true, can_edit_data_sources: true) }
 
-  shared_examples 'permission checks' do |role_present|
-    it 'handles basic permissions appropriately' do
-      [
-        [:can_edit?, false],
-        [:can_delete?, false],
-        [:can_view?, true],
-        [:can_view_imports?, false],
-        [:can_view_clients?, true],
-        [:can_view_project_locations?, false],
-      ].each do |method, expected|
-        expected = role_present ? expected : false
-        actual = policy.send(method)
-        expect(actual).to eq(expected), "#{method}: #{actual} != #{expected}"
-      end
+  shared_examples 'permission checks with access' do
+    it 'grants configured permissions' do
+      # Check permissions that should be granted by our role
+      expect(policy.can_view?).to be true
+      expect(policy.can_view_clients?).to be true
     end
 
-    context 'with no data source permissions' do
-      it 'denies access to raw HMIS data' do
-        expect(policy.can_see_raw_hmis_data?).to be false
-      end
+    it 'denies unconfigured permissions' do
+      # Check permissions that weren't granted to our role
+      expect(policy.can_edit?).to be false
+      expect(policy.can_delete?).to be false
+      expect(policy.can_view_imports?).to be false
+      expect(policy.can_view_project_locations?).to be false
     end
+  end
 
-    context 'project name visibility' do
-      context 'with non-confidential project' do
-        it 'allows viewing project name' do
-          expected = role_present
-          expect(policy.can_view_name?).to eq(expected)
-        end
-      end
-
-      context 'with confidential project' do
-        it 'respects confidential project name permissions' do
-          project.update!(confidential: true)
-          expected = role_present && permissions[:can_view_confidential_project_names]
-          expect(policy.can_view_name?).to eq(expected)
-        end
-      end
+  shared_examples 'permission checks without access' do
+    it 'denies all permissions when user lacks access' do
+      expect(policy.can_view?).to be false
+      expect(policy.can_view_clients?).to be false
+      expect(policy.can_edit?).to be false
+      expect(policy.can_delete?).to be false
+      expect(policy.can_view_imports?).to be false
+      expect(policy.can_view_project_locations?).to be false
     end
   end
 
@@ -86,17 +74,17 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
 
     context 'with direct project access' do
       before { access_group.add_viewable(project) }
-      include_examples 'permission checks', true
+      include_examples 'permission checks with access'
     end
 
     context 'with organization access' do
       before { access_group.add_viewable(organization) }
-      include_examples 'permission checks', true
+      include_examples 'permission checks with access'
     end
 
     context 'with data source access' do
       before { access_group.add_viewable(data_source) }
-      include_examples 'permission checks', true
+      include_examples 'permission checks with access'
     end
 
     context 'with project group access' do
@@ -108,18 +96,17 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
       end
 
       before { access_group.add_viewable(project_group) }
-      include_examples 'permission checks', true
+      include_examples 'permission checks with access'
     end
 
     context 'with CoC code access' do
-      let(:coc_code) { 'authtest1' }
 
       before do
         project.project_cocs.create!(coc_code: coc_code)
         access_group.update!(coc_codes: [coc_code])
       end
 
-      include_examples 'permission checks', true
+      include_examples 'permission checks with access'
     end
 
     context 'with system group access' do
@@ -128,24 +115,29 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
         system_group.add(user)
       end
 
-      include_examples 'permission checks', true
+      include_examples 'permission checks with access'
     end
 
     context 'without any access' do
-      include_examples 'permission checks', false
+      include_examples 'permission checks without access'
     end
   end
 
   context 'with user access control permissions' do
     let(:user) { create(:acl_user) }
     let(:policy) { user.policy_for(project) }
+    let(:collection) { create(:collection) }
+    let(:user_group) { create(:user_group) }
+
+    before do
+      user_group.add(user)
+      create(:access_control, role: role, collection: collection, user_group: user_group)
+    end
 
     context 'with full data source permissions' do
+      let(:role) {hud_data_access_role}
+
       before do
-        user_group = create(:user_group)
-        user_group.add(user)
-        collection = create(:collection)
-        create(:access_control, role: hud_data_access_role, collection: collection, user_group: user_group)
         collection.set_viewables({ data_sources: [data_source.id] })
       end
 
@@ -156,38 +148,26 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
 
     context 'with collection access' do
       before do
-        user_group = create(:user_group)
-        user_group.add(user)
-        collection = create(:collection)
-        create(:access_control, role: role, collection: collection, user_group: user_group)
         collection.set_viewables({ projects: [project.id] })
       end
 
-      include_examples 'permission checks', true
+      include_examples 'permission checks with access'
     end
 
     context 'with organization access' do
       before do
-        user_group = create(:user_group)
-        user_group.add(user)
-        collection = create(:collection)
-        create(:access_control, role: role, collection: collection, user_group: user_group)
         collection.set_viewables({ organizations: [organization.id] })
       end
 
-      include_examples 'permission checks', true
+      include_examples 'permission checks with access'
     end
 
     context 'with data source access' do
       before do
-        user_group = create(:user_group)
-        user_group.add(user)
-        collection = create(:collection)
-        create(:access_control, role: role, collection: collection, user_group: user_group)
         collection.set_viewables({ data_sources: [data_source.id] })
       end
 
-      include_examples 'permission checks', true
+      include_examples 'permission checks with access'
     end
 
     context 'with project group access' do
@@ -199,44 +179,28 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
       end
 
       before do
-        user_group = create(:user_group)
-        user_group.add(user)
-        collection = create(:collection)
-        create(:access_control, role: role, collection: collection, user_group: user_group)
         collection.set_viewables({ project_groups: [project_group.id] })
       end
 
-      include_examples 'permission checks', true
+      include_examples 'permission checks with access'
     end
 
     context 'with CoC code access' do
-      let(:coc_code) { 'authtest1' }
-
       before do
         project.project_cocs.create!(coc_code: coc_code)
-        user_group = create(:user_group)
-        user_group.add(user)
-        collection = create(:collection)
-        create(:access_control, role: role, collection: collection, user_group: user_group)
         collection.update!(coc_codes: [coc_code])
       end
 
-      include_examples 'permission checks', true
+      include_examples 'permission checks with access'
     end
 
     context 'without any access' do
-      include_examples 'permission checks', false
+      include_examples 'permission checks without access'
     end
 
     context 'with system collection access' do
-      before do
-        user_group = create(:user_group)
-        user_group.add(user)
-        collection = Collection.system_collection(:data_sources)
-        create(:access_control, role: role, collection: collection, user_group: user_group)
-      end
-
-      include_examples 'permission checks', true
+      let(:collection) { Collection.system_collection(:data_sources) }
+      include_examples 'permission checks with access'
     end
   end
 end

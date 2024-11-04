@@ -23,19 +23,28 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
 
   let(:role) { create(:role, **permissions.compact_blank) }
 
-  shared_examples 'permission checks' do |role_present|
-    it 'handles basic permissions appropriately' do
-      [
-        [:can_view_name?, true],
-        [:can_view_photo?, true],
-        [:can_view_full_dob?, true],
-        [:can_view_full_ssn?, false],
-        [:can_view_hiv_status?, false],
-      ].each do |method, expected|
-        expected = role_present ? expected : false
-        actual = policy.send(method)
-        expect(actual).to eq(expected), "#{method}: #{actual} != #{expected}"
-      end
+  shared_examples 'pii permission checks with access' do
+    it 'grants configured PII permissions' do
+      # These permissions are granted in our test role
+      expect(policy.can_view_name?).to be true
+      expect(policy.can_view_photo?).to be true
+      expect(policy.can_view_full_dob?).to be true
+    end
+
+    it 'denies unconfigured PII permissions' do
+      # These permissions aren't granted in our test role
+      expect(policy.can_view_full_ssn?).to be false
+      expect(policy.can_view_hiv_status?).to be false
+    end
+  end
+
+  shared_examples 'pii permission checks without access' do
+    it 'denies all PII permissions when user lacks access' do
+      expect(policy.can_view_name?).to be false
+      expect(policy.can_view_photo?).to be false
+      expect(policy.can_view_full_dob?).to be false
+      expect(policy.can_view_full_ssn?).to be false
+      expect(policy.can_view_hiv_status?).to be false
     end
   end
 
@@ -49,7 +58,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
 
       it 'grants view and search permissions through ROI' do
         expect(policy.can_view?).to be true
-        # expect(policy.can_search?).to be true
       end
 
       context 'without obeys consent' do
@@ -59,7 +67,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
 
         it 'grants no ROI permissions' do
           expect(policy.can_view?).to be false
-          # expect(policy.can_search?).to be false
         end
       end
     end
@@ -72,7 +79,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
 
       it 'grants no ROI permissions' do
         expect(policy.can_view?).to be false
-        # expect(policy.can_search?).to be false
       end
     end
   end
@@ -89,45 +95,47 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
 
     context 'with project access' do
       before { access_group.add_viewable(project) }
-      include_examples 'permission checks', true
+      include_examples 'pii permission checks with access'
       include_examples 'roi checks'
     end
 
     context 'without project access' do
-      include_examples 'permission checks', false
+      include_examples 'pii permission checks without access'
     end
   end
 
   context 'with user access control permissions' do
     let(:user) { create(:acl_user) }
     let(:policy) { user.policy_for(client) }
+    let(:collection) {create :collection }
+    before do
+      user_group = create(:user_group)
+      user_group.add(user)
+      create(:access_control, role: role, collection: collection, user_group: user_group)
+    end
 
     context 'with collection access' do
       before do
-        user_group = create(:user_group)
-        user_group.add(user)
-        collection = create(:collection)
-        create(:access_control, role: role, collection: collection, user_group: user_group)
         collection.set_viewables({ projects: [project.id] })
       end
 
-      include_examples 'permission checks', true
+      include_examples 'pii permission checks with access'
       include_examples 'roi checks'
     end
 
     context 'without collection access' do
-      include_examples 'permission checks', false
+      include_examples 'pii permission checks without access'
     end
 
     context 'with system collection access' do
+      let(:collection) { Collection.system_collection(:data_sources) }
       before do
         user_group = create(:user_group)
         user_group.add(user)
-        collection = Collection.system_collection(:data_sources)
         create(:access_control, role: role, collection: collection, user_group: user_group)
       end
 
-      include_examples 'permission checks', true
+      include_examples 'pii permission checks with access'
     end
   end
 end
