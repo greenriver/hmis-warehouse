@@ -12,89 +12,107 @@ VERSION 1.4
 * Each Enrollment is tied to exactly one Project and one Client
 * Each Enrollment can have multiple associated services, assessments, and other records
 
-## ERD
+## Enrollment ERD
 
-Note "CoC" is not a defined table; is included in the diagram as an "implied" entity
+Note "CoC" and "Household" are not formally defined but are implied or virtual entities
+```mermaid
+erDiagram
+  Project }o--o{ CoC : "via ProjectCCoC"
+
+  CustomService }|--|| Enrollment : "has"
+  CustomServiceType ||--|{ CustomService : "has"
+  CustomServiceCategory ||--|{ CustomService : "has"
+
+
+
+  CustomAssessment }|--|| Enrollment : "has"
+  CustomCaseNote }|--|| Enrollment : "has"
+  CustomClientName }|--|| Client : "has"
+  CustomClientAddress }|--|| Client : "has"
+  CustomClientContactPoint }|--|| Client : "has"
+
+
+  CoC }|..|| Enrollment : "served in"
+  Project ||--|| Enrollment : "enrolled in"
+
+
+  Enrollment }|..|| Household: "in"
+
+
+  Enrollment ||--o| Exit : "may have"
+  Enrollment ||--o{ IncomeBenefits : "has"
+  Enrollment ||--o{ HealthAndDV : "has"
+  Enrollment ||--o{ EmploymentEducation : "has"
+  Enrollment ||--o{ Disabilities : "has"
+  Enrollment ||--o{ Services : "has"
+  Enrollment ||--o{ CurrentLivingSituation : "has"
+  Enrollment ||--o{ Assessment : "has"
+  Assessment ||--o{ AssessmentQuestions : "has"
+  Assessment ||--o{ AssessmentResults : "has"
+  Enrollment ||--o{ Event : "has"
+  Enrollment ||--o{ YouthEducationStatus : "has"
+  Enrollment }o--|| Client : "has"
+
+
+  Client {
+      string PersonalID PK
+      string FirstName
+      string LastName
+      string SSN
+      date DOB
+      string VeteranStatus
+  }
+
+  Enrollment {
+      string EnrollmentID PK
+      string HouseholdID FK
+      string PersonalID FK
+      string ProjectID FK
+      string EnrollmentCoC FK
+      date EntryDate
+      string RelationshipToHoH
+      string DisablingCondition
+  }
+
+  Exit {
+      date ExitDate
+  }
+```
+
+## Project ERD
 
 ```mermaid
 erDiagram
-    CoC ||..o{ Organization : "operates in"
-    CoC ||..o{ ProjectCoC : "contains"
-    Export ||--o{ Organization : contains
-    Organization ||--o{ Project : operates
-    Project ||--o{ ProjectCoC : "has locations in"
-    Project ||--o{ Funder : "funded by"
-    Project ||--o{ Inventory : "has"
-    Project ||--o{ Affiliation : "may be affiliated with"
-    Project ||--o{ HMISParticipation : "has"
-    Project ||--o{ CEParticipation : "has"
-    
-    Client ||--o{ Enrollment : "has"
-    Enrollment ||--|| Project : "has"
-    Enrollment }|..|| CoC : "served in"
-    Enrollment ||--|o Exit : "may have"
-    Enrollment ||--o{ IncomeBenefits : "has"
-    Enrollment ||--o{ HealthAndDV : "has"
-    Enrollment ||--o{ EmploymentEducation : "has"
-    Enrollment ||--o{ Disabilities : "has"
-    Enrollment ||--o{ Services : "has"
-    Enrollment ||--o{ CurrentLivingSituation : "has"
-    Enrollment ||--o{ Assessment : "has"
-    Assessment ||--o{ AssessmentQuestions : "has"
-    Assessment ||--o{ AssessmentResults : "has"
-    Enrollment ||--o{ Event : "has"
-    Enrollment ||--o{ YouthEducationStatus : "has"
+  CoC ||..o{ ProjectCoC : "contains"
+  Organization ||--o{ Project : operates
+  Project ||--o{ ProjectCoC : "operates in"
+  Project ||--o{ Funder : "funded by"
+  Project ||--o{ Inventory : "has"
+  Project ||--o{ Enrollment : "has"
+  Project |o--o{ Affiliation : "has"
+  Affiliation |o--o{ Project : "has"
 
-   
+  Project ||--o{ HMISParticipation : "has"
+  Project ||--o{ CEParticipation : "has"
 
-    Export {
-        string ExportID PK
-        string SourceType
-        string SourceID
-        datetime ExportDate
-        string HashStatus
-    }
+  Organization {
+      string OrganizationID PK
+      string CoCCode FK
+      string OrganizationName
+      boolean VictimServiceProvider
+  }
 
-    Organization {
-        string OrganizationID PK
-        string CoCCode FK
-        string OrganizationName
-        boolean VictimServiceProvider
-    }
+  Project {
+      string ProjectID PK
+      string OrganizationID FK
+      string ProjectName
+      date OperatingStartDate
+      int ProjectType
+  }
 
-    Project {
-        string ProjectID PK
-        string OrganizationID FK
-        string ProjectName
-        date OperatingStartDate
-        int ProjectType
-    }
-
-    ProjectCoC {
-        string ProjectCoCID PK
-        string ProjectID FK
-        string CoCCode FK
-        string Geocode
-        string Address
-        string Geography
-    }
-
-    Client {
-        string PersonalID PK
-        string FirstName
-        string LastName
-        string SSN
-        date DOB
-        string VeteranStatus
-    }
-
-    Enrollment {
-        string EnrollmentID PK
-        string PersonalID FK
-        string ProjectID FK
-        string EnrollmentCoC FK
-        date EntryDate
-        string RelationshipToHoH
-        string DisablingCondition
-    }
+  ProjectCoC {
+      string ProjectCoCID PK
+      string ProjectID FK
+      string CoCCode FK
+  }
 ```
