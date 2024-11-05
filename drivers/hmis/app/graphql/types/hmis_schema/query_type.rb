@@ -436,7 +436,8 @@ module Types
       scope = Hmis::Form::Definition.non_static.valid.latest_versions
       scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
       scope = scope.apply_filters(filters) if filters
-      scope.order(updated_at: :desc)
+      # Sort system-managed forms last, because they aren't edited through the config tool. Then sort by most recently updated.
+      scope.order(managed_in_version_control: :asc, updated_at: :desc, id: :desc)
     end
 
     form_rules_field
