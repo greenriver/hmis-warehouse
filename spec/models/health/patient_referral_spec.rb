@@ -19,6 +19,7 @@ RSpec.describe Health::PatientReferral, type: :model do
     end
 
     it 'leaves simple closed referrals alone' do
+      expect(PaperTrail.enabled?).to be(true)
       closed_referral = create :patient_referral, enrollment_start_date: Date.current - 91.days
       closed_referral.update(disenrollment_date: Date.current)
       expect(closed_referral.versions.count).to eq(2)
@@ -29,6 +30,7 @@ RSpec.describe Health::PatientReferral, type: :model do
     end
 
     it 'creates two contributing referrals  (one current) for re-opened referrals in 90 days' do
+      expect(PaperTrail.enabled?).to be(true)
       closed_referral = create :patient_referral, enrollment_start_date: Date.current - 91.days
       closed_referral.update(disenrollment_date: Date.current - 31.days)
       closed_referral.update(disenrollment_date: nil)

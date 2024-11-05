@@ -43,11 +43,12 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
 
     it 'tracks versions for committed changes to the correct table' do
+      expect(PaperTrail.enabled?).to be(true)
       expect do
         client.update!(last_name: "test-#{Time.current.to_f}")
       end.to change(client.versions, :count).by(1).
-        and change(GrdaWarehouse::Version, :count).by(1).
-        and not_change(PaperTrail::Version, :count)
+        and not_change(PaperTrail::Version, :count).
+        and change(GrdaWarehouse::Version, :count).by(1)
     end
 
     it 'rolls back versions within a transaction' do
