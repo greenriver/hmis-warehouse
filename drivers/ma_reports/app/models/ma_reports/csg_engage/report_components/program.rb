@@ -31,7 +31,10 @@ module MaReports::CsgEngage::ReportComponents
     end
 
     def households_scope
-      GrdaWarehouse::Hud::Enrollment.joins(:project).where(project: { id: project_ids }).heads_of_households.preload(project: [:project_cocs])
+      GrdaWarehouse::Hud::Enrollment.
+        joins(:project).where(project: { id: project_ids }).
+        heads_of_households.
+        preload(project: [:project_cocs])
     end
   end
 end
