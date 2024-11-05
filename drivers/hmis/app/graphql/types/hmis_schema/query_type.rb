@@ -246,7 +246,10 @@ module Types
       # Similar to record_form_definition above, we always want to return a definition if we possibly can, so use the
       # HUD default form. For non-HUD services, the only field that would show up is Date Provided.
       # TODO(#6763) Use "system_managed" flag when it exists
-      definition || Hmis::Form::Definition.with_role(:SERVICE).where(identifier: 'service').first
+      # Similar to record_form_definition above, we always want to return a definition if we possibly can, so use the
+      # default HUD Service form for HUD service types. For Custom service types, return empty because we can't determine which form to use.
+      # TODO(#6763) Use "system_managed" flag when it exists
+      definition || Hmis::Form::Definition.with_role(:SERVICE).where(identifier: 'service').first if service_type.hud_service?
     end
 
     field :static_form_definition, Types::Forms::FormDefinition, null: false do
