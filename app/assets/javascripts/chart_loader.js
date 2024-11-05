@@ -10,9 +10,13 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
   connect() {
     // allow access to this controller from other controllers
     this.element['chartLoader'] = this
-    // trigger initial click to load data
-    this.loadChartData(new Event('click'));
     this.initial_config = this.chart().config();
+    // trigger initial click to load data
+    if ($(this.changerTarget).data('chartData')) {
+      this.loadChartDataSync()
+    } else {
+      this.loadChartData(new Event('click'));
+    }
   }
 
   chart() {
@@ -138,6 +142,13 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
         this.updateTable(json, target);
         this.disableLoader();
       })
+  }
+
+  loadChartDataSync() {
+    const target = this.changerTarget
+    const chartData = $(target).data('chartData')
+    this.updateChart(chartData)
+    this.updateTable(chartData, target);
   }
 
   activeTarget(event) {
