@@ -239,10 +239,8 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       # Rule 2 is less specific for the project, but applies to the non-HOH enrollment in question
       let!(:rule2) { create :hmis_form_instance, entity: nil, project_type: p1.project_type, role: 'CURRENT_LIVING_SITUATION', definition_identifier: 'custom_cls' }
 
-      let!(:hoh) { create :hmis_hud_client, first_name: 'Annie', data_source: ds1 }
-      let!(:spouse) { create :hmis_hud_client, first_name: 'Jessie', data_source: ds1 }
-      let!(:hoh_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: hoh, entry_date: 1.month.ago, household_id: 'household1', relationship_to_hoh: 1 }
-      let!(:spouse_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: spouse, entry_date: 1.month.ago, household_id: 'household1', relationship_to_hoh: 3 }
+      let!(:hoh_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 1.month.ago, household_id: 'household1', relationship_to_hoh: 1 }
+      let!(:spouse_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 1.month.ago, household_id: 'household1', relationship_to_hoh: 3 }
 
       it 'should still return this feature for the enrollment' do
         expect(spouse_enrollment.data_collection_features.pluck(:role)).to include('CURRENT_LIVING_SITUATION')
