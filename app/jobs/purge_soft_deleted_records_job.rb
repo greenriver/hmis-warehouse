@@ -4,10 +4,21 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# hard-delete HMIS old soft-deleted records
+# Purge soft-deleted client records and their associated data across multiple warehouse models.
+#
+# This job:
+# * Processes records older than a specified retention date
+# * Maintains referential integrity by properly handling dependent relationships
+# * Enforces a maximum deletion limit as a safety mechanism
 class PurgeSoftDeletedRecordsJob < BaseJob
   include NotifierConfig
 
+  # @param retain_at [DateTime] Records deleted before this date will be purged
+  # @param max_deleted [Integer] Maximum number of records to delete in one run
+  # @param models [Array<Class>] Models to process
+  # @param dry_run [Boolean] When true, only counts records that would be deleted (default: true)
+  #
+  # @return [Integer] Total number of records deleted
   def perform(retain_at: 1.year.ago, max_deleted: 10_000_000, models: warehouse_models, dry_run: true)
     raise 'all models must be paranoid' unless models.all?(&:paranoid?)
 
@@ -90,7 +101,7 @@ class PurgeSoftDeletedRecordsJob < BaseJob
       where(data_source: data_source).
       where(paranoia_col.lt(@retain_at))
 
-    scope.in_batches.each do |batch|
+    scope.in_batches(of: 5_000).each do |batch|
       model.transaction do
         if model == GrdaWarehouse::Hud::Client
           client_dependents(batch).each do |dependent_scope|
