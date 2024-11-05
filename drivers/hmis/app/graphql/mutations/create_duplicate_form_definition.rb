@@ -22,7 +22,7 @@ module Mutations
       access_denied! unless current_user.can_manage_forms_for_role?(definition_to_duplicate.role)
 
       # Drop all custom_field_key mappings on definition structure
-      cleaned_definition_json = remove_custom_field_mappings(definition_to_duplicate)
+      cleaned_definition_json = remove_custom_field_mappings(definition_to_duplicate.dup)
 
       # Create a new draft definition, giving it a unique identifier
       definition = Hmis::Form::Definition.new(
