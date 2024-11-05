@@ -196,8 +196,7 @@ module Types
       # If the frontend is making this query, it's trying to display some data using a form definition,
       # so we try to avoid returning nil. Even if we didn't find a good match (e.g., because the instance is inactive),
       # we return some default "best guess", enabling the application to display the data somehow instead of erroring.
-      # TODO(#6763) Use "system_managed" flag when it exists
-      record ||= Hmis::Form::Definition.published.where(role: role).first
+      record ||= Hmis::Form::Definition.published.where(role: role, managed_in_version_control: true).first
 
       record&.filter_context = { project: project } # Apply project-specific filtering rules. Only relevant for some form types.
       record
@@ -245,8 +244,7 @@ module Types
 
       # Similar to record_form_definition above, we always want to return a definition if we possibly can, so use the
       # default HUD Service form for HUD service types. For Custom service types, return empty because we can't determine which form to use.
-      # TODO(#6763) Use "system_managed" flag when it exists
-      definition || (service_type.hud_service? ? Hmis::Form::Definition.with_role(:SERVICE).where(identifier: 'service').first : nil)
+      definition || (service_type.hud_service? ? Hmis::Form::Definition.with_role(:SERVICE).where(managed_in_version_control: true).first : nil)
     end
 
     field :static_form_definition, Types::Forms::FormDefinition, null: false do
