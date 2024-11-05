@@ -25,31 +25,27 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPiiPolicy, type: :model do
   end
 
   shared_examples 'pii permission checks with access' do |_has_access|
-    context 'standard PII permissions' do
-      it 'grants configured PII permissions' do
-        # These permissions are granted in our test role
-        expect(policy.can_view_name?).to be true
-        expect(policy.can_view_photo?).to be true
-        expect(policy.can_view_full_dob?).to be true
-        expect(policy.can_view_hiv_status?).to be true
-      end
+    it 'grants configured PII permissions' do
+      # These permissions are granted in our test role
+      expect(policy.can_view_name?).to be true
+      expect(policy.can_view_photo?).to be true
+      expect(policy.can_view_full_dob?).to be true
+      expect(policy.can_view_hiv_status?).to be true
+    end
 
-      it 'denies unconfigured PII permissions' do
-        # These permissions aren't granted in our test role
-        expect(policy.can_view_full_ssn?).to be false
-      end
+    it 'denies unconfigured PII permissions' do
+      # These permissions aren't granted in our test role
+      expect(policy.can_view_full_ssn?).to be false
     end
   end
 
   shared_examples 'pii permission checks without access' do |_has_access|
-    context 'standard PII permissions' do
-      it 'denies all PII permissions when user lacks access' do
-        expect(policy.can_view_name?).to be false
-        expect(policy.can_view_photo?).to be false
-        expect(policy.can_view_full_dob?).to be false
-        expect(policy.can_view_full_ssn?).to be false
-        expect(policy.can_view_hiv_status?).to be false
-      end
+    it 'denies all PII permissions when user lacks access' do
+      expect(policy.can_view_name?).to be false
+      expect(policy.can_view_photo?).to be false
+      expect(policy.can_view_full_dob?).to be false
+      expect(policy.can_view_full_ssn?).to be false
+      expect(policy.can_view_hiv_status?).to be false
     end
   end
 

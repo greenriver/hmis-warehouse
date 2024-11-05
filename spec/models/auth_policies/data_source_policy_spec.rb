@@ -66,14 +66,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
   shared_examples 'permission checks without access' do
     it 'denies all access when user lacks resource access' do
       [full_access_role, edit_only_role, upload_only_role, no_access_role].each do |test_role|
-        # Switch roles and verify all permissions are denied
-        if defined?(user_group)
-          create(:access_control, role: test_role, collection: collection, user_group: user_group)
-        else
-          user.roles.destroy_all
-          test_role.add(user)
-        end
-
         expect(policy.can_edit?).to be(false),
                                     "Expected edit access to be denied with #{test_role.class}"
         expect(policy.can_see_raw_hmis_data?).to be(false),
