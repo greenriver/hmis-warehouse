@@ -23,23 +23,18 @@ erDiagram
   CustomServiceType ||--|{ CustomService : "has"
   CustomServiceCategory ||--|{ CustomService : "has"
 
-
-
   CustomAssessment }|--|| Enrollment : "has"
   CustomCaseNote }|--|| Enrollment : "has"
   CustomClientName }|--|| Client : "has"
   CustomClientAddress }|--|| Client : "has"
   CustomClientContactPoint }|--|| Client : "has"
 
-
   CoC }|..|| Enrollment : "served in"
   Project ||--|| Enrollment : "enrolled in"
 
-
   Enrollment }|..|| Household: "in"
 
-
-  Enrollment ||--o| Exit : "may have"
+  Enrollment ||--o| Exit : "has"
   Enrollment ||--o{ IncomeBenefits : "has"
   Enrollment ||--o{ HealthAndDV : "has"
   Enrollment ||--o{ EmploymentEducation : "has"
@@ -52,7 +47,6 @@ erDiagram
   Enrollment ||--o{ Event : "has"
   Enrollment ||--o{ YouthEducationStatus : "has"
   Enrollment }o--|| Client : "has"
-
 
   Client {
       string PersonalID PK
