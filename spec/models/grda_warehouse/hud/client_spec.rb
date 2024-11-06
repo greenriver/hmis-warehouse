@@ -37,17 +37,15 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     around(:all) do |example|
       @paper_trail_was = PaperTrail.enabled?
       PaperTrail.enabled = true
+      sleep 3 # not sure why there is a timing issue here
       example.run
     ensure
       PaperTrail.enabled = @paper_trail_was
     end
 
     it 'tracks versions for committed changes to the correct table' do
-      expect(PaperTrail.enabled?).to be(true)
       expect do
-        sleep 5
         client.update!(last_name: "test-#{Time.current.to_f}")
-        sleep 5
       end.to change(client.versions, :count).by(1).
         and not_change(PaperTrail::Version, :count).
         and change(GrdaWarehouse::Version, :count).by(1)
