@@ -6298,12 +6298,7 @@ CREATE TABLE public.cohort_clients (
     user_string_27 character varying,
     user_string_28 character varying,
     user_string_29 character varying,
-    user_string_30 character varying,
-    most_recent_cls character varying,
-    most_recent_prior_living_situation character varying,
-    most_recent_household_type character varying,
-    most_recent_self_report_months_homeless character varying,
-    most_recent_disabling_condition character varying
+    user_string_30 character varying
 );
 
 
@@ -6437,8 +6432,7 @@ CREATE TABLE public.cohorts (
     system_cohort boolean DEFAULT false,
     type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying,
     project_group_id bigint,
-    enforce_project_visibility_on_cells boolean DEFAULT true NOT NULL,
-    expose_inactive_on_client_dashboard boolean DEFAULT false
+    enforce_project_visibility_on_cells boolean DEFAULT true NOT NULL
 );
 
 
@@ -62117,5 +62111,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241018175039'),
 ('20241018220220'),
 ('20241022185534'),
+('20241023021050'),
 ('20241101134230'),
 ('20241101160422');
+
+
