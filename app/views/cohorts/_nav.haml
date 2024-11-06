@@ -10,7 +10,7 @@
       = link_to edit_cohort_path(@cohort), title: 'Edit Cohort', class: 'nav-link' do
         %i.icon-pencil
         Edit
-  - if can_configure_cohorts?
+  - if can_edit_cohort_columns?
     %li.nav-item
       = link_to edit_cohort_columns_path(cohort_id: @cohort.id), data: {loads_in_ajax_modal: true}, class: 'nav-link' do
         %i.icon-cog

@@ -13,4 +13,4 @@ DjMetrics.instance.register_metrics_for_metrics_endpoint!
 use Rack::Deflater
 use Prometheus::Middleware::Exporter
 
-run Sinatra::Application
+run App.freeze.app
