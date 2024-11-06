@@ -38,13 +38,13 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       @paper_trail_was = PaperTrail.enabled?
       PaperTrail.enabled = true
       example.run
-      sleep 3 # not sure why there is a timing issue here
     ensure
       PaperTrail.enabled = @paper_trail_was
     end
 
     it 'tracks versions for committed changes to the correct table' do
       expect do
+        sleep 3 # not sure why there is a timing issue here
         client.update!(last_name: "test-#{Time.current.to_f}")
       end.to change(client.versions, :count).by(1).
         and not_change(PaperTrail::Version, :count).

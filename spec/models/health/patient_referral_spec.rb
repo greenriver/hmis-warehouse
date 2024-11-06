@@ -5,7 +5,6 @@ RSpec.describe Health::PatientReferral, type: :model do
     @paper_trail_was = PaperTrail.enabled?
     PaperTrail.enabled = true
     example.run
-    sleep 3 # not sure why there is a timing issue here
   ensure
     PaperTrail.enabled = @paper_trail_was
   end
@@ -23,6 +22,7 @@ RSpec.describe Health::PatientReferral, type: :model do
       closed_referral = create :patient_referral, enrollment_start_date: Date.current - 91.days
       closed_referral.update(disenrollment_date: Date.current)
       expect(closed_referral.versions.count).to eq(2)
+      sleep 3 # not sure why there is a timing issue here
       expect(Health::PatientReferral.count).to eq(1)
 
       closed_referral.build_derived_referrals.map(&:save!)
@@ -34,6 +34,7 @@ RSpec.describe Health::PatientReferral, type: :model do
       closed_referral.update(disenrollment_date: Date.current - 31.days)
       closed_referral.update(disenrollment_date: nil)
       closed_referral.update(enrollment_start_date: Date.current)
+      sleep 3 # not sure why there is a timing issue here
       expect(closed_referral.versions.count).to eq(4)
       expect(Health::PatientReferral.count).to eq(1)
 
