@@ -34,11 +34,11 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     # call the factory outside of expect block to isolate version side effects
     let!(:client) { create :grda_warehouse_hud_client }
 
-    before(:all) do
+    around(:each) do |example|
       @paper_trail_was = PaperTrail.enabled?
       PaperTrail.enabled = true
-    end
-    after(:all) do
+      example.run
+    ensure
       PaperTrail.enabled = @paper_trail_was
     end
 
