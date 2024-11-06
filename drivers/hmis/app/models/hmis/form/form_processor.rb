@@ -73,14 +73,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         processor = container_processor(container)
         raise unknown_field_error(definition) unless processor
 
-        # TODO @MARTHA couple things:
-        # - This doesn't work because the frontend includes the value, even if nil
-        #   - We can't just check for nil values, because that would miss users trying to turn an existing value back to nil
-        #   - We probably don't want to take the time to go into every form processor and do this individually, but there is no other way to know whether the attribute has already been filled out or not
-        #   - Alternatively can we get the frontend to stop sending these values, or is that too risky a change?
-        # - with mapped_form_items I'm trying to be generic to other future use cases where we need to know something about the item's attributes when processing the form. Should we somehow try to combine mapped_form_items with the other maps or is that too risky a change?
+        # Check item-level permissions (editor_user_ids) here. The frontend passes all values even if nil, so rather
+        # than raising an exception, just skip processing if we see a value this user doesn't have permission to edit.
         item = mapped_form_items["#{container}:#{field}"]
-        raise 'unauthorized' if item.present? && item.editor_user_ids.present? && !item.editor_user_ids.include?(user.id)
+        next if item.present? && item.editor_user_ids.present? && !item.editor_user_ids.include?(user.id)
 
         if mapped_custom_form_fields[container].include?(field)
           # If this key can be identified as a CustomDataElement, set it and continue
