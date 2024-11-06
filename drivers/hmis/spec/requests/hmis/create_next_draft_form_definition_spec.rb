@@ -61,4 +61,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     remove_permissions(access_control, :can_manage_forms)
     expect_access_denied post_graphql(identifier: fd2.identifier) { mutation }
   end
+
+  it 'should error if the form is managed in version control' do
+    fd = create(:hmis_form_definition, managed_in_version_control: true)
+    expect_gql_error post_graphql(identifier: fd.identifier) { mutation }, message: /cannot create draft for form that is managed in version control/
+  end
 end

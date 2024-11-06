@@ -576,14 +576,16 @@ module HudUtility2024
     codes = coc_codes_options
     return codes.freeze if Rails.env.production?
 
-    codes.merge(
-      {
-        'XX-500' => 'Test CoC',
-        'XX-501' => '2nd Test CoC',
-        'XX-502' => '3rd Test CoC', # testkit
-        # 'XX-518' => '4th Test CoC', # testkit, removed for CoC APR Organization J HP (TODO: do we need this for the LSA?)
-      },
-    ).freeze
+    test_codes = {
+      'XX-500' => 'Test CoC',
+      'XX-501' => '2nd Test CoC',
+      'XX-502' => '3rd Test CoC', # testkit
+      'XX-518' => '4th Test CoC', # testkit
+    }
+    invalid_codes = ENV['INVALID_COC_CODES'].to_s.split(',')
+    test_codes.delete_if { |k, _| invalid_codes&.include?(k) }
+
+    codes.merge(test_codes).freeze
   end
 
   def cocs_in_state(states)
