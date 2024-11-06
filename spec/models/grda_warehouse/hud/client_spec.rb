@@ -37,8 +37,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     around(:each) do |example|
       @paper_trail_was = PaperTrail.enabled?
       PaperTrail.enabled = true
-      sleep 3 # not sure why there is a timing issue here
       example.run
+      sleep 3 # not sure why there is a timing issue here
     ensure
       PaperTrail.enabled = @paper_trail_was
     end
