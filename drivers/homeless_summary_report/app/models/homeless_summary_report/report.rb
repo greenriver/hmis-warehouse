@@ -459,6 +459,8 @@ module HomelessSummaryReport
               report_client[:last_name] = hud_client.last_name
               report_client[:report_id] = id
               report_client["spm_#{spm_field}"] = parts.fetch(:value_accessor).call(spm_member)
+              # In Measure 7b, set the destination to 0 to flag the destination as 'Remained housed' for clients who have moved in
+              report_client["spm_#{spm_field}"] ||= 0 if spm_field == :m7b2_destination && spm_member.move_in_date.present?
               # FIXME: document what this is
               report_client[field_name(cell)] = true if field_measure(spm_field) == 7
               report_client[detail_variant_name] = report[:report].id # SPM ID for future reference
@@ -663,25 +665,25 @@ module HomelessSummaryReport
       {
         m1a_es_sh_days: {
           cells: [['1a', 'B1']],
-          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
+          value_accessor: lambda(&:days_homeless),
           title: 'with ES or SH stays',
           calculations: [:count, :average, :median],
         },
         m1a_es_sh_th_days: {
           cells: [['1a', 'B2']],
-          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
+          value_accessor: lambda(&:days_homeless),
           title: 'with ES, SH, or TH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_ph_days: {
           cells: [['1b', 'B1']],
-          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
+          value_accessor: lambda(&:days_homeless),
           title: 'with ES, SH, or PH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_th_ph_days: {
           cells: [['1b', 'B2']],
-          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
+          value_accessor: lambda(&:days_homeless),
           title: 'with ES, SH, TH, or PH stays',
           calculations: [:count, :average, :median],
         },
@@ -696,7 +698,7 @@ module HomelessSummaryReport
             ['7a.1', 'C3'],
             ['7a.1', 'C4'],
           ],
-          value_accessor: ->(spm_enrollment) { spm_enrollment.destination },
+          value_accessor: lambda(&:destination),
           title: 'who exit Street Outreach',
           calculations: [:count, :count_destinations],
         },
@@ -705,7 +707,7 @@ module HomelessSummaryReport
             ['7b.1', 'C2'],
             ['7b.1', 'C3'],
           ],
-          value_accessor: ->(spm_enrollment) { spm_enrollment.destination },
+          value_accessor: lambda(&:destination),
           title: 'in ES, SH, TH, and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing',
           calculations: [:count, :count_destinations],
         },
@@ -714,7 +716,7 @@ module HomelessSummaryReport
             ['7b.2', 'C2'],
             ['7b.2', 'C3'],
           ],
-          value_accessor: ->(spm_enrollment) { spm_enrollment.destination },
+          value_accessor: lambda(&:destination),
           title: 'in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project',
           calculations: [:count, :count_destinations],
         },
