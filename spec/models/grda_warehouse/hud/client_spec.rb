@@ -44,8 +44,9 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
     it 'tracks versions for committed changes to the correct table' do
       expect do
-        sleep 3 # not sure why there is a timing issue here
+        sleep 4 # not sure why there is a timing issue here
         client.update!(last_name: "test-#{Time.current.to_f}")
+        sleep 4
       end.to change(client.versions, :count).by(1).
         and not_change(PaperTrail::Version, :count).
         and change(GrdaWarehouse::Version, :count).by(1)
