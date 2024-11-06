@@ -34,7 +34,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     # call the factory outside of expect block to isolate version side effects
     let!(:client) { create :grda_warehouse_hud_client }
 
-    around(:all) do |example|
+    around(:each) do |example|
       @paper_trail_was = PaperTrail.enabled?
       PaperTrail.enabled = true
       sleep 3 # not sure why there is a timing issue here

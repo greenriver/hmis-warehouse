@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe Health::PatientReferral, type: :model do
-  around(:all) do |example|
+  around(:each) do |example|
     @paper_trail_was = PaperTrail.enabled?
     PaperTrail.enabled = true
     sleep 3 # not sure why there is a timing issue here
