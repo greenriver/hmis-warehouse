@@ -646,6 +646,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       'integer'
     when 'CURRENCY'
       'float'
+    when 'FILE', 'IMAGE'
+      'file'
     else
       raise "unable to determine cded type for #{item_type}"
     end

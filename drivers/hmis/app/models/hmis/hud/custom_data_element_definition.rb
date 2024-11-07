@@ -19,6 +19,7 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
     :text,
     :date,
     :json,
+    :file,
   ].freeze
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'

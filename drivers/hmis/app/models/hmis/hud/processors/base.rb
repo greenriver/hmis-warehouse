@@ -152,7 +152,8 @@ class Hmis::Hud::Processors::Base
     # Normalize the input value
     value = normalize_custom_field_value(cded, value)
     # Infer the field name on the CustomDataElement
-    value_field_name = "value_#{cded.field_type}"
+    # todo @martha - would like this attr itself to be called value_file ?
+    value_field_name = cded.field_type == 'file' ? 'file' : "value_#{cded.field_type}"
 
     # Existing CustomDataElement records for this record with this definition
     existing_values = existing_custom_data_elements[cded.id] || []
@@ -287,6 +288,20 @@ class Hmis::Hud::Processors::Base
         false
       when 1, '1', true
         true
+      else
+        raise "unexpected value \"#{value}\""
+      end
+    when 'file'
+      case value
+      when String
+        # todo @martha - this only works if new and non repeating
+        # todo @martha - is this the right place for this stuff anyway?
+        blob = ActiveStorage::Blob.find_by(id: value)
+        file = Hmis::File.new
+        file.name = blob.filename
+        file.client = @processor.send(:client_factory)
+        file.client_file.attach(blob)
+        file # todo @martha - maybe this is the reason the file is not good going in the other direction?
       else
         raise "unexpected value \"#{value}\""
       end

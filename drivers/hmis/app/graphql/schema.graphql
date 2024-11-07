@@ -2018,6 +2018,7 @@ Allowed values for CustomDataElementDefinition.type
 enum CustomDataElementType {
   boolean
   date
+  file
   float
   integer
   json
@@ -2030,6 +2031,8 @@ type CustomDataElementValue {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
+  file: File
+  fileId: ID
   id: ID!
   user: ApplicationUser
   valueBoolean: Boolean

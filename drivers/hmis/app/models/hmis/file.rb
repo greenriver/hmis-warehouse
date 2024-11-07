@@ -46,7 +46,7 @@ class Hmis::File < GrdaWarehouse::File
     # NOTE: it's okay that confidential files are included in this scope even if the user
     # doesn't have permission to read the file. Users can see the existence of confidential
     # files but they can't read them. Reference:
-    # https://www.pivotaltracker.com/n/projects/2591838/stories/185293913
+    # https://github.com/open-path/Green-River/issues/5184
     client_scope = Hmis::Hud::Client.
       viewable_by(user).
       with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
@@ -82,7 +82,7 @@ class Hmis::File < GrdaWarehouse::File
     end
   end
 
-  def self.authorize_proc
+  def self.authorize_proc # todo @Martha - what parts of this need to be incorporated/updated?
     ->(entity_base, user) do
       # If the entity_base is a file, we're authorizing someone to edit an existing file.
       case entity_base
