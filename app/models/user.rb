@@ -181,7 +181,7 @@ class User < ApplicationRecord
   end
 
   def can_access_hmis_data_source?(data_source_id)
-    as_hmis_user&.data_source_ids&.include?(data_source_id)
+    as_hmis_user&.can_access_hmis_data_source?(data_source_id)
   end
 
   # list any cohort this user has some level of access to
