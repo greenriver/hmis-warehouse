@@ -244,7 +244,6 @@ namespace :import do
       household.each do |member|
         client = mci_id_to_client[member[:mci_id].to_s]&.source
         if !client
-          # Rails.logger.info "Client with MCI ID #{member[:mci_id]} not found. Skipping."
           skipped_mci_ids << member[:mci_id]
           next # Skip but proceed with other members in the household
         end
@@ -278,7 +277,7 @@ namespace :import do
     case_notes_export_file = HmisExternalApis::TcHmis::Importers::Loaders::XlsxFile.new(filename: "#{dir}/HCM-EXPORT-ContactNotes.xlsx", sheet_number: 0, header_row_number: 1)
 
     case_notes = []
-    skiped_case_notes_ids = []
+    skipped_case_notes_ids = []
     case_notes_export_file.each do |row|
       case_id = row.field_value('CASEID')
       information_date = row.field_value('CONTACT_DT')
@@ -292,8 +291,7 @@ namespace :import do
 
       enrollment = case_id_to_hoh_enrollment[case_id]
       if !enrollment
-        # Rails.logger.info "Enrollment not found for case ID #{case_id}. Skipping case note."
-        skiped_case_notes_ids << row.field_value('CONTACT_ID')
+        skipped_case_notes_ids << row.field_value('CONTACT_ID') # Enrollment not found, skip and record
         next
       end
       case_notes << Hmis::Hud::CustomCaseNote.new(
@@ -311,7 +309,7 @@ namespace :import do
 
     Rails.logger.info "Skipped Case IDs: #{skipped_case_ids}"
     Rails.logger.info "Skipped MCI IDs: #{skipped_mci_ids}"
-    Rails.logger.info "Skipped Case Notes Case IDs (CONTANT_ID): #{skiped_case_notes_ids}"
+    Rails.logger.info "Skipped Case Notes Case IDs (CONTANT_ID): #{skipped_case_notes_ids}"
     Rails.logger.info "Built #{enrollments.count} Enrollments and #{case_notes.count} Case Notes for Project #{project.ProjectName}"
     next if dry_run
 
