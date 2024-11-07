@@ -124,6 +124,7 @@ namespace :import do
     raise 'project_id not valid' unless Hmis::Hud::Project.hmis.find_by(id: args.project_id)
 
     dry_run = args.dry_run == 'true'
+    dir = args.dir
 
     Rails.logger.info "Dry run? #{dry_run}"
 
@@ -243,7 +244,7 @@ namespace :import do
       household.each do |member|
         client = mci_id_to_client[member[:mci_id].to_s]&.source
         if !client
-          Rails.logger.info "Client with MCI ID #{member[:mci_id]} not found. Skipping."
+          # Rails.logger.info "Client with MCI ID #{member[:mci_id]} not found. Skipping."
           skipped_mci_ids << member[:mci_id]
           next # Skip but proceed with other members in the household
         end
@@ -268,12 +269,16 @@ namespace :import do
 
         enrollments << enrollment
       end
+
+      # If couldn't find ANY household members for this household, log the CASE_ID as skipped
+      skipped_case_ids << case_id unless case_id_to_hoh_enrollment[case_id]
     end
 
     # Build CaseNotes
     case_notes_export_file = HmisExternalApis::TcHmis::Importers::Loaders::XlsxFile.new(filename: "#{dir}/HCM-EXPORT-ContactNotes.xlsx", sheet_number: 0, header_row_number: 1)
 
     case_notes = []
+    skiped_case_notes_ids = []
     case_notes_export_file.each do |row|
       case_id = row.field_value('CASEID')
       information_date = row.field_value('CONTACT_DT')
@@ -287,7 +292,8 @@ namespace :import do
 
       enrollment = case_id_to_hoh_enrollment[case_id]
       if !enrollment
-        Rails.logger.info "Enrollment not found for case ID #{case_id}. Skipping case note."
+        # Rails.logger.info "Enrollment not found for case ID #{case_id}. Skipping case note."
+        skiped_case_notes_ids << row.field_value('CONTACT_ID')
         next
       end
       case_notes << Hmis::Hud::CustomCaseNote.new(
@@ -305,7 +311,8 @@ namespace :import do
 
     Rails.logger.info "Skipped Case IDs: #{skipped_case_ids}"
     Rails.logger.info "Skipped MCI IDs: #{skipped_mci_ids}"
-    Rails.logger.info "Dry run complete, not importing #{enrollments.count} Enrollments and #{case_notes.count} Case Notes"
+    Rails.logger.info "Skipped Case Notes Case IDs (CONTANT_ID): #{skiped_case_notes_ids}"
+    Rails.logger.info "Built #{enrollments.count} Enrollments and #{case_notes.count} Case Notes"
     next if dry_run
 
     # Import Enrollment and Case Note records
