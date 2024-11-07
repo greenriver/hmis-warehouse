@@ -89,13 +89,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       Hmis::Form::Definition.where(role: :SERVICE).first
     end
 
-    it 'should return the default service if there are no service-specific instances' do
+    it 'should find no definitions if there are no service-specific instances' do
       response, result = post_graphql({ project_id: p1.id.to_s, service_type_id: cst1.id.to_s }) { service_query }
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
         form_definition = result.dig('data', 'serviceFormDefinition')
-        expect(form_definition).to be_present
-        expect(form_definition['identifier']).to eq('service')
+        expect(form_definition).to be_nil
       end
     end
 
@@ -132,6 +131,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq 200
         form_definition = result.dig('data', 'serviceFormDefinition')
         expect(form_definition).to be_present
+        expect(form_definition['id']).to eq(service_form_definition.id.to_s)
+      end
+    end
+
+    it 'should return the default HUD service definition for a HUD service, even if there is no instance' do
+      hud_service = Hmis::Hud::CustomServiceType.where.not(hud_record_type: nil).first
+      expect(Hmis::Form::Definition.find_definition_for_service_type(hud_service, project: p1)).to be_nil
+
+      response, result = post_graphql({ project_id: p1.id.to_s, service_type_id: hud_service.id.to_s }) { service_query }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        form_definition = result.dig('data', 'serviceFormDefinition')
         expect(form_definition['id']).to eq(service_form_definition.id.to_s)
       end
     end

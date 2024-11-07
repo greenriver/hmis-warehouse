@@ -1,3 +1,4 @@
+= render 'invisible_project_warning'
 = f.error_notification
 
 .form-inputs.well
@@ -25,3 +26,4 @@
       - users.each do |u|
         %li= u.name_with_email
   = f.input :editor_ids, collection:  User.active.not_system, as: :select_two, selected: @editor_ids, input_html: {multiple: :multiple, placeholder: 'Please choose'}, label: 'Users with direct edit access to this group'
+= render 'invisible_project_warning'
