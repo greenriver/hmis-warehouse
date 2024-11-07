@@ -15,7 +15,7 @@ class ApplicationController < ActionController::Base
   # moved to top for dockerization
   prepend_before_action :check_all_db_migrations
 
-  include ControllerAuthorization
+  include LegacyControllerAuthorization
   include ActivityLogger
   include LogRagePayloadBehavior
   include Pagy::Backend

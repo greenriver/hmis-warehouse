@@ -1,11 +1,11 @@
 require 'rails_helper'
 
 RSpec.describe Health::PatientReferral, type: :model do
-  around(:each) do |example|
+  before(:all) do
     @paper_trail_was = PaperTrail.enabled?
     PaperTrail.enabled = true
-    example.run
-  ensure
+  end
+  after(:all) do
     PaperTrail.enabled = @paper_trail_was
   end
 
