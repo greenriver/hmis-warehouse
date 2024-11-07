@@ -69,7 +69,7 @@ module HudLsa::Generators::Fy2024::ViewRelatedConcern
   end
 
   def report_filename
-    "#{self.class.generic_title} #{filter.coc_code}"
+    "#{self.class.generic_title} #{filter&.coc_code}"
   end
 
   def url

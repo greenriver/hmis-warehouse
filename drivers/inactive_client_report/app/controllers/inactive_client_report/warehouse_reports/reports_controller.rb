@@ -55,6 +55,7 @@ module InactiveClientReport::WarehouseReports
         },
       }
     end
+    helper_method :default_filter_options
 
     private def filter_class
       ::Filters::FilterBase

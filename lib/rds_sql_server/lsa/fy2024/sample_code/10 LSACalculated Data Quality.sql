@@ -26,7 +26,7 @@ FY2024 Changes
 		and hx.DateDeleted is null
 	inner join hmis_Project p on p.ProjectID = n.ProjectID 
 	inner join tlsa_CohortDates cd on cd.Cohort = 1 
-		and p.OperatingEndDate between dateadd(dd, 1, cd.CohortStart) and cd.CohortEnd
+		and p.OperatingEndDate between cd.CohortStart and cd.CohortEnd
 	where (hx.ExitDate is null or hx.ExitDate > p.OperatingEndDate)
 	group by case when hx.ExitDate is null then 901
 			else 902 end 
