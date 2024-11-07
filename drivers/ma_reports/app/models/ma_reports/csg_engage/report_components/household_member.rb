@@ -84,7 +84,7 @@ module MaReports::CsgEngage::ReportComponents
       field('In School, age 0-24')
       field('Insurance') { boolean_string(latest_income_benefit&.InsuranceFromAnySource == 1) }
       field('InsuranceSecondary')
-      field('Military Status') { client.veteran_status == 1 ? '1' : nil }
+      field('Military Status') { client.VeteranStatus == 1 ? '1' : nil }
       field('Non-Cash Benefits - ACA Subsidy')
       field('Non-Cash Benefits - Childcare Voucher')
       field('Non-Cash Benefits - LIHEAP')
@@ -118,7 +118,7 @@ module MaReports::CsgEngage::ReportComponents
 
       if services.present?
         services.map do |service|
-          MaReports::CsgEngage::ReportComponents::Service.new(service)
+          MaReports::CsgEngage::ReportComponents::Service.new(service, enrollment)
         end
       else
         [
