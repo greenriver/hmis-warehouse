@@ -266,6 +266,33 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
   describe 'occurrence point form instances' do
     let(:role) { :OCCURRENCE_POINT }
+    let!(:definition_json) do
+      {
+        'item': [
+          {
+            'text': 'Move-in Date',
+            'type': 'DATE',
+            'link_id': 'moveInDate',
+            'mapping': {
+              'field_name': 'moveInDate',
+              'record_type': 'ENROLLMENT',
+            },
+          },
+          {
+            'text': 'Move in address',
+            'type': 'OBJECT',
+            'link_id': 'moveInAddresses',
+            'mapping': {
+              'field_name': 'moveInAddresses',
+              'record_type': 'ENROLLMENT',
+            },
+            'repeats': false,
+            'component': 'ADDRESS',
+          },
+        ],
+      }
+    end
+    let!(:definition) { create :hmis_form_definition, role: role, definition: definition_json }
     let!(:project) { create(:hmis_hud_project, data_source: ds1) }
     let!(:hoh_enrollment) { create(:hmis_hud_enrollment, project: project, data_source: ds1, household_id: 'household1', relationship_to_hoh: 1) }
     let!(:spouse_enrollment) { create(:hmis_hud_enrollment, project: project, data_source: ds1, household_id: 'household1', relationship_to_hoh: 3) }
@@ -293,33 +320,6 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     end
 
     context 'when an instance exists relevant to this project' do
-      let!(:definition_json) do
-        {
-          'item': [
-            {
-              'text': 'Move-in Date',
-              'type': 'DATE',
-              'link_id': 'moveInDate',
-              'mapping': {
-                'field_name': 'moveInDate',
-                'record_type': 'ENROLLMENT',
-              },
-            },
-            {
-              'text': 'Move in address',
-              'type': 'OBJECT',
-              'link_id': 'moveInAddresses',
-              'mapping': {
-                'field_name': 'moveInAddresses',
-                'record_type': 'ENROLLMENT',
-              },
-              'repeats': false,
-              'component': 'ADDRESS',
-            },
-          ],
-        }
-      end
-      let!(:definition) { create :hmis_form_definition, role: role, definition: definition_json }
       let!(:instance) { create(:hmis_form_instance, role: role, entity: project, active: true, definition: definition) }
 
       context 'and applies to all clients' do
@@ -348,8 +348,6 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
             )
           end
 
-          let!(:address) { create(:hmis_move_in_address, data_source: ds1, enrollment: spouse_enrollment) }
-
           it 'returns the form for that client' do
             expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(instance)
           end
@@ -376,6 +374,22 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
           it 'returns the form for that client' do
             expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(instance)
+          end
+        end
+
+        context 'legacy data exists for this occurrence point in another project' do
+          let!(:spouses_other_enrollment) do
+            create(
+              :hmis_hud_enrollment,
+              client: spouse_enrollment.client,
+              project: p1, # some other project
+              data_source: ds1,
+              move_in_date: 3.weeks.ago,
+            )
+          end
+
+          it 'does not return the form for the client' do
+            expect(spouse_enrollment.occurrence_point_forms).to be_empty
           end
         end
       end
