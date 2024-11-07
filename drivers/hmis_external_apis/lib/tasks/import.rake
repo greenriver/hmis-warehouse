@@ -309,7 +309,7 @@ namespace :import do
 
     Rails.logger.info "Skipped Case IDs: #{skipped_case_ids}"
     Rails.logger.info "Skipped MCI IDs: #{skipped_mci_ids}"
-    Rails.logger.info "Skipped Case Notes Case IDs (CONTANT_ID): #{skipped_case_notes_ids}"
+    Rails.logger.info "Skipped Case Notes Case IDs: #{skipped_case_notes_ids}"
     Rails.logger.info "Built #{enrollments.count} Enrollments and #{case_notes.count} Case Notes for Project #{project.ProjectName}"
     next if dry_run
 
