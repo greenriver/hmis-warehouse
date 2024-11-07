@@ -244,7 +244,8 @@ module Types
 
       # Similar to record_form_definition above, we always want to return a definition if we possibly can, so use the
       # default HUD Service form for HUD service types. For Custom service types, return empty because we can't determine which form to use.
-      definition || (service_type.hud_service? ? Hmis::Form::Definition.with_role(:SERVICE).where(managed_in_version_control: true).first : nil)
+      definition ||= Hmis::Form::Definition.with_role(:SERVICE).where(managed_in_version_control: true).first if service_type.hud_service?
+      definition
     end
 
     field :static_form_definition, Types::Forms::FormDefinition, null: false do
