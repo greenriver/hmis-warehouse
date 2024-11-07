@@ -9,7 +9,7 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :most_recent_date_to_street
     attribute :translation_key, String, lazy: true, default: 'Most Recent Date To Street'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
-    attribute :description_translation_key, String, lazy: true, default: 'Approximate date this episode of homelessness started (3.917.3) from the client\'s most-recently opened homeless enrollment.'
+    attribute :description_translation_key, String, lazy: true, default: 'The most-recent response to 3.917.3 Approximate date this episode of homelessness started on a homeless enrollment based on EntryDate and DateUpdated.  If this cohort uses automation, the situation will be limited to projects in the selected project group.'
     attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def cast_value(val)
