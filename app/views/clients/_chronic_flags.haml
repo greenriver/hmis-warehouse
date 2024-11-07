@@ -15,7 +15,7 @@
       .c-tag__icon
         .icon-clock-o
       .c-tag__content
-        %span Long-term Stayer
+        %span #{Translation.translate('Long-term Stayer')}
 
 - if client.active_in_cas? && client.calculated_chronically_homeless_for_cas?
   .c-tag.c-tag--info.client-flag
@@ -24,7 +24,7 @@
         .icon-clock-o
       .c-tag__content
         %span
-          Chronically Homeless &amp; in CAS
+          #{Translation.translate('Chronically Homeless & in CAS')}
           - if cas_id.present? && GrdaWarehouse::Config.get(:cas_url).present?
             = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
               View in CAS
@@ -35,7 +35,7 @@
       .c-tag__icon
         .icon-clock-o
       .c-tag__content
-        %span Chronically Homeless for CAS
+        %span #{Translation.translate('Chronically Homeless for CAS')}
 
 - elsif client.active_in_cas?
   .c-tag.c-tag--info.client-flag
@@ -44,7 +44,7 @@
         .icon-user
       .c-tag__content
         %span
-          Available in CAS
+          #{Translation.translate('Available in CAS')}
           - if cas_id.present? && GrdaWarehouse::Config.get(:cas_url).present?
             = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
               View in CAS

@@ -1,11 +1,17 @@
 # frozen_string_literal: true
 
-require 'sinatra'
+require 'roda'
 
-get '/healthz' do
-  'ok'
-end
+class App < Roda
+  route do |r|
+    # Route for health check
+    r.get 'healthz' do
+      'ok'
+    end
 
-get '/*' do
-  redirect '/metrics'
+    # Catch-all route to redirect to /metrics
+    r.get true do
+      r.redirect '/metrics'
+    end
+  end
 end
