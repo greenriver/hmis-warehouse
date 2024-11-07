@@ -24,11 +24,15 @@ module HudLsa::Filters
       super
 
       filters = filters.to_h.with_indifferent_access
-      pit_date = filters.dig(:on)&.to_date
-      return unless pit_date.present?
 
-      self.start = pit_date
-      self.end = pit_date
+      # Support the HIC
+      if filters.dig(:lsa_scope) == HudLsa::Fy2024::Report.available_lsa_scopes['HIC'].to_s
+        pit_date = filters.dig(:on)&.to_date
+        self.start = pit_date
+        self.end = pit_date
+      else
+        self.on = nil
+      end
       self
     end
 

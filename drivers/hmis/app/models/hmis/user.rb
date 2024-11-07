@@ -245,17 +245,20 @@ class Hmis::User < ApplicationRecord
     Hmis::Filter::ApplicationUserFilter.new(input).filter_scope(self)
   end
 
-  # list any data sources the user has some level of access to
-  def data_source_ids
-    ids_for_relations(:data_source_ids)
-  end
+  # Determine whether this user has _any_ access to a given HMIS data source.
+  # Returns true even if they can only access 1 project or org within the DS.
+  # This doesn't check for permissions (so, they don't necessarily have can_view_projects within the DS).
+  def can_access_hmis_data_source?(data_source_id)
+    @accessible_data_source_ids ||= {}
+    return @accessible_data_source_ids[data_source_id] if @accessible_data_source_ids.key?(data_source_id)
 
-  # memoize some id lookups to prevent N+1s (copied from warehouse User)
-  private def ids_for_relations(relation)
-    @ids_for_relations ||= {}
-    return @ids_for_relations[relation] if @ids_for_relations.key?(relation)
+    data_source = GrdaWarehouse::DataSource.hmis.find(data_source_id)
+    can_access_ds = Hmis::GroupViewableEntity.
+      where(collection_id: access_controls.pluck(:access_group_id)).
+      includes_any_entity_in_data_source(data_source).exists?
 
-    @ids_for_relations[relation] = access_groups.flat_map(&relation).uniq
-    @ids_for_relations[relation]
+    @accessible_data_source_ids[data_source_id] = can_access_ds
+
+    can_access_ds
   end
 end
