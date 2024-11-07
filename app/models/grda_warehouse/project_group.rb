@@ -136,7 +136,7 @@ module GrdaWarehouse
 
     private def maintain_system_group
       AccessGroup.delayed_system_group_maintenance(group: :project_groups)
-      # Collection.delayed_system_group_maintenance(group: :project_groups)
+      Collection.delayed_system_group_maintenance(group: :project_groups)
     end
 
     def filter
