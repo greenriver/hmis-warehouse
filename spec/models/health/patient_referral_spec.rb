@@ -19,24 +19,20 @@ RSpec.describe Health::PatientReferral, type: :model do
     end
 
     it 'leaves simple closed referrals alone' do
-      sleep 4 # not sure why there is a timing issue here
       closed_referral = create :patient_referral, enrollment_start_date: Date.current - 91.days
       closed_referral.update(disenrollment_date: Date.current)
       expect(closed_referral.versions.count).to eq(2)
       expect(Health::PatientReferral.count).to eq(1)
-      sleep 4
 
       closed_referral.build_derived_referrals.map(&:save!)
       expect(Health::PatientReferral.count).to eq(1)
     end
 
     it 'creates two contributing referrals  (one current) for re-opened referrals in 90 days' do
-      sleep 4 # not sure why there is a timing issue here
       closed_referral = create :patient_referral, enrollment_start_date: Date.current - 91.days
       closed_referral.update(disenrollment_date: Date.current - 31.days)
       closed_referral.update(disenrollment_date: nil)
       closed_referral.update(enrollment_start_date: Date.current)
-      sleep 4
       expect(closed_referral.versions.count).to eq(4)
       expect(Health::PatientReferral.count).to eq(1)
 
