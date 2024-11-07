@@ -210,7 +210,7 @@ namespace :import do
         next
       end
 
-      # raise if Referral ID duplicated, shouldn't happen? (use case id instead.?)      
+      # Raise if Referral ID has multiple households, shouldn't happen
       raise "Referral ID #{referral_id} linked to multiple households. unexpected." if referral_id_to_hh_id.key?(referral_id) && referral_id_to_hh_id[referral_id] != household_id
 
       referral_id_to_hh_id[referral_id] = household_id
