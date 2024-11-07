@@ -5,6 +5,6 @@
 ###
 
 module GrdaWarehouse::Tasks::ScrubPii
-  class NullReplacement < BaseReplacement
+  class NullStrategy < BaseStrategy
   end
 end
