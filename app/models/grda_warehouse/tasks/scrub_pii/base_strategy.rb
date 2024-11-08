@@ -1,4 +1,3 @@
-
 ###
 # Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
@@ -10,7 +9,6 @@ require 'faker'
 # replaces
 module GrdaWarehouse::Tasks::ScrubPii
   class BaseStrategy
-
     def client_attrs(client)
       {
         # required non-nullable fields for upsert
@@ -23,8 +21,8 @@ module GrdaWarehouse::Tasks::ScrubPii
         FirstName: nil,
         MiddleName: nil,
         NameDataQuality: 99,
-        LastName:  nil,
-        DOB: client_dob(client),
+        LastName: nil,
+        DOB: scramble_dob(client.dob),
         DOBDataQuality: client.dob ? 2 : 99,
         soundex_first: nil,
         soundex_last: nil,
@@ -51,12 +49,21 @@ module GrdaWarehouse::Tasks::ScrubPii
         LastPermanentZIP: nil,
         AddressDataQuality: 99,
         last_locality: nil,
-        last_zipcode: nil
+        last_zipcode: nil,
       }
     end
 
-    def client_dob(client)
-      current = client.dob
+    def scrub_ssn_cdes(scope)
+      scope.delete_all
+    end
+
+    def scrub_dob_cdes(scope)
+      scope.delete_all
+    end
+
+    protected
+
+    def scramble_dob(current)
       return nil unless current
 
       Faker::Date.between(from: current - 6.months, to: current + 6.months)

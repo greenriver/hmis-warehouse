@@ -14,37 +14,34 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubPiiTask do
   # Create test clients with PII
   let!(:client1) do
     create(:grda_warehouse_hud_client,
-      data_source: data_source,
-      FirstName: 'John',
-      MiddleName: 'Q',
-      LastName: 'Public',
-      SSN: '123-45-6789',
-      DOB: '1980-01-01'
-    )
+           data_source: data_source,
+           FirstName: 'John',
+           MiddleName: 'Q',
+           LastName: 'Public',
+           SSN: '123-45-6789',
+           DOB: '1980-01-01')
   end
 
   let!(:client2) do
     create(:grda_warehouse_hud_client,
-      data_source: data_source,
-      FirstName: 'Jane',
-      MiddleName: 'R',
-      LastName: 'Doe',
-      SSN: '987-65-4321',
-      DOB: '1985-02-15'
-    )
+           data_source: data_source,
+           FirstName: 'Jane',
+           MiddleName: 'R',
+           LastName: 'Doe',
+           SSN: '987-65-4321',
+           DOB: '1985-02-15')
   end
 
   # Create enrollments with address data
   let!(:enrollment1) do
     create(:grda_warehouse_hud_enrollment,
-      data_source: data_source,
-      client: client1,
-      project: project,
-      LastPermanentStreet: '123 Main St',
-      LastPermanentCity: 'Boston',
-      LastPermanentState: 'MA',
-      LastPermanentZIP: '02108'
-    )
+           data_source: data_source,
+           client: client1,
+           project: project,
+           LastPermanentStreet: '123 Main St',
+           LastPermanentCity: 'Boston',
+           LastPermanentState: 'MA',
+           LastPermanentZIP: '02108')
   end
 
   # Helper methods
@@ -137,7 +134,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubPiiTask do
       before do
         described_class.new.perform(
           strategy: :null,
-          client_ids: [client1.id]
+          client_ids: [client1.id],
         )
         reload_records
       end
@@ -154,16 +151,15 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubPiiTask do
       let(:other_data_source) { create(:grda_warehouse_data_source) }
       let!(:other_client) do
         create(:grda_warehouse_hud_client,
-          data_source: other_data_source,
-          FirstName: 'Alice',
-          LastName: 'Smith'
-        )
+               data_source: other_data_source,
+               FirstName: 'Alice',
+               LastName: 'Smith')
       end
 
       before do
         described_class.new.perform(
           strategy: :null,
-          data_source_ids: [data_source.id]
+          data_source_ids: [data_source.id],
         )
         reload_records
         other_client.reload
@@ -180,17 +176,17 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubPiiTask do
 
     context 'error handling' do
       it 'raises error for invalid strategy' do
-        expect {
+        expect do
           described_class.new.perform(strategy: :invalid)
-        }.to raise_error(ArgumentError)
+        end.to raise_error(ArgumentError)
       end
     end
 
     context 'version handling' do
       it 'deletes associated versions' do
-        expect {
+        expect do
           described_class.new.perform(strategy: :null)
-        }.to change(GrdaWarehouse::Version, :count).by(-2)
+        end.to change(GrdaWarehouse::Version, :count).by(-2)
       end
     end
   end

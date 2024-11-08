@@ -22,10 +22,10 @@ module GrdaWarehouse::Tasks::ScrubPii
       with_lock do
         Faker::Config.random = Random.new(prng_seed) if prng_seed
         raise ArgumentError, "unknown strategy #{strategy}" unless STRATEGIES.key?(strategy)
+
         @strategy = STRATEGIES[strategy].new
 
-
-        GrdaWarehouse::Hud::Client.unscoped do # turn off soft-delete
+        GrdaWarehouse::Hud::Client.unscoped do # turn off paranoia soft-delete
           client_scope(client_ids: client_ids, data_source_ids: data_source_ids).find_in_batches do |clients|
             GrdaWarehouse::Hud::Client.transaction do
               process_client_batch(clients)
@@ -56,6 +56,12 @@ module GrdaWarehouse::Tasks::ScrubPii
           scrub_custom_data_elements(GrdaWarehouse::Hud::Enrollment, enrollments.map(&:id))
           delete_versions(GrdaWarehouse::Hud::Enrollment, enrollments.map(&:id))
         end
+        [
+          Hmis::Hud::CustomAssessment,
+        ].each do |model|
+          scope = model.where(data_source: data_source_id, PersonalID: clients.map(&:PersonalID))
+          scrub_custom_data_elements(model, scope.pluck(:id))
+        end
       end
     end
 
@@ -65,12 +71,24 @@ module GrdaWarehouse::Tasks::ScrubPii
           where(owner_type: klass.sti_name, owner_id: ids).
           joins(:data_element_definition)
         arel = Hmis::Hud::CustomDataElementDefinition.arel_table
-        ssns = Hmis::Hud::CustomDataElementDefinition.where(arel[:label].matches("%SSN%"))
-        dobs = Hmis::Hud::CustomDataElementDefinition.where(arel[:label].matches("%DOB%"))
 
-        # FIXME - should probably call strategy rather than delete
-        scope.merge(ssns).delete_all
-        scope.merge(dobs).delete_all
+        [
+          arel[:label].matches('%SSN%', nil, true), # case sensitive
+          arel[:label].matches('%social security number%'),
+        ].each do |cond|
+          strategy.scrub_ssn_cdes(
+            scope.merge(Hmis::Hud::CustomDataElementDefinition.where(cond)),
+          )
+        end
+
+        [
+          arel[:label].matches('%DOB%', nil, true), # case sensitive
+          arel[:label].matches('%date of birth%'),
+        ].each do |cond|
+          strategy.scrub_dob_cdes(
+            scope.merge(Hmis::Hud::CustomDataElementDefinition.where(cond)),
+          )
+        end
       end
     end
 
@@ -92,6 +110,7 @@ module GrdaWarehouse::Tasks::ScrubPii
 
     def import!(klass, values)
       return if values.blank?
+
       result = klass.import(values, on_duplicate_key_update: { conflict_target: [:id], columns: values.first.keys }, validate: false)
       raise if result.failed_instances.any?
     end
