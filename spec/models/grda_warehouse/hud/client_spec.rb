@@ -40,9 +40,13 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
     it 'tracks versions for committed changes to the correct table' do
       client = create :grda_warehouse_hud_client
-      expect(client.paper_trail.send(:enabled?)).to be true
-      client.versions.delete_all(:delete_all)
+      expect([
+        PaperTrail.enabled?,
+        PaperTrail.request.enabled?,
+        PaperTrail.request.enabled_for_model?(client.class),
+      ]).to eq([true, true, true])
       RequestStore.store[:paper_trail] = nil
+      client.versions.delete_all(:delete_all)
       expect do
         PaperTrail::RecordTrail.new(client)
         client.update!(last_name: "test-#{Time.current.to_f}")
