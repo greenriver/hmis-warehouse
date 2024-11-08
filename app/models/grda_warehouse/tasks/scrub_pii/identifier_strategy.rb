@@ -13,23 +13,21 @@ module GrdaWarehouse::Tasks::ScrubPii
         :MiddleName,
         :LastName,
       ].to_h do |field|
-        [field, field_value(record, field)]
+        [field, field_value(client, field)]
       end
       result[:NameDataQuality] = 2
-      result
+      super(client).merge(result)
     end
 
-    def enrollment_attrs(_enrollment)
+    def enrollment_attrs(enrollment)
       result = [
         :LastPermanentStreet,
         :LastPermanentCity,
-        :LastPermanentState,
-        :LastPermanentZIP,
       ].to_h do |field|
-        [field, field_value(record, field)]
+        [field, field_value(enrollment, field)]
       end
       result[:AddressDataQuality] = nil
-      result
+      super(enrollment).merge(result)
     end
 
     protected

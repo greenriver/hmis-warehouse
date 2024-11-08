@@ -54,7 +54,6 @@ module GrdaWarehouse::Tasks::ScrubPii
           enrollments = GrdaWarehouse::Hud::Enrollment.where(data_source: data_source_id, PersonalID: clients.map(&:PersonalID))
           scrub_enrollments(enrollments)
           scrub_custom_data_elements(GrdaWarehouse::Hud::Enrollment, enrollments.map(&:id))
-          delete_hmis_enrollment_records(enrollments)
           delete_versions(GrdaWarehouse::Hud::Enrollment, enrollments.map(&:id))
         end
       end
@@ -95,15 +94,6 @@ module GrdaWarehouse::Tasks::ScrubPii
       return if values.blank?
       result = klass.import(values, on_duplicate_key_update: { conflict_target: [:id], columns: values.first.keys }, validate: false)
       raise if result.failed_instances.any?
-    end
-
-    def delete_hmis_enrollment_records(_clients)
-      # No-op for now,
-      # recent_report_enrollments
-      # report enrollments
-      # youth_case_managements
-      # youth_follow_ups
-      # youth_intakes
     end
 
     def delete_hmis_client_records(clients, data_source_id)

@@ -8,7 +8,7 @@ require 'faker'
 module GrdaWarehouse::Tasks::ScrubPii
   class FakeStrategy < BaseStrategy
     def client_attrs(client)
-      {
+      super(client).merge({
         SSN: Faker::IdNumber.invalid,
         FirstName: Faker::Name.first_name,
         MiddleName: Faker::Name.middle_name,
@@ -16,18 +16,18 @@ module GrdaWarehouse::Tasks::ScrubPii
         NameDataQuality: 99,
         SSNDataQuality: 99,
         DOBDataQuality: client.dob ? 2 : 99,
-      }
+      })
     end
 
-    def enrollment_attrs(_enrollment)
-      {
+    def enrollment_attrs(enrollment)
+      super(enrollment).merge({
         LastPermanentStreet: Faker::Address.street_address,
         LastPermanentCity: Faker::Address.city,
         LastPermanentState: Faker::Address.state_abbr,
         LastPermanentZIP: Faker::Address.zip,
         last_locality: nil,
         last_zipcode: nil,
-      }
+      })
     end
   end
 end

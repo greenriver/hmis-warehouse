@@ -2,6 +2,14 @@ require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubPiiTask do
   let(:data_source) { create(:grda_warehouse_data_source) }
+  let(:project) { create :grda_warehouse_hud_project, data_source: data_source, project_type: 0 }
+
+  before(:all) do
+    PaperTrail.enabled = true
+  end
+  after(:all) do
+    PaperTrail.enabled = false
+  end
 
   # Create test clients with PII
   let!(:client1) do
@@ -30,7 +38,8 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubPiiTask do
   let!(:enrollment1) do
     create(:grda_warehouse_hud_enrollment,
       data_source: data_source,
-      PersonalID: client1.PersonalID,
+      client: client1,
+      project: project,
       LastPermanentStreet: '123 Main St',
       LastPermanentCity: 'Boston',
       LastPermanentState: 'MA',
@@ -181,7 +190,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubPiiTask do
       it 'deletes associated versions' do
         expect {
           described_class.new.perform(strategy: :null)
-        }.to change { GrdaWarehouse::Version.count }.to(0)
+        }.to change(GrdaWarehouse::Version, :count).by(-2)
       end
     end
   end
