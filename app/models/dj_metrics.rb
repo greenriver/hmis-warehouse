@@ -1,8 +1,9 @@
 # https://github.com/prometheus/client_ruby
 #
-# This is run by a rails (the delayed job worker) AND by a standalone sinatra
+# This is run by a rails (the delayed job worker) AND by a standalone roda
 # app exposing the metrics, so rails-dependent code should be used sparingly.
 
+require 'set'
 class DjMetrics
   include Singleton
   attr_reader :queues
