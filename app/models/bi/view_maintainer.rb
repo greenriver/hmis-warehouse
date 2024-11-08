@@ -409,7 +409,7 @@ module Bi
 
       begin
         GrdaWarehouseBase.connection.execute sql
-      rescue PG::UndefinedObject, PG::InsufficientPrivilege
+      rescue PG::UndefinedObject, PG::InsufficientPrivilege, ActiveRecord::StatementInvalid
         # It's ok if we don't have permission, not every installation uses this
       end
     end
@@ -422,7 +422,7 @@ module Bi
 
       begin
         GrdaWarehouseBase.connection.execute sql
-      rescue PG::UndefinedObject, PG::InsufficientPrivilege
+      rescue PG::UndefinedObject, PG::InsufficientPrivilege, ActiveRecord::StatementInvalid
         # It's ok if we don't have permission, not every installation uses this
       end
     end
