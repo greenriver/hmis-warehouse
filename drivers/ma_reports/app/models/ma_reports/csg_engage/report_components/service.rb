@@ -6,10 +6,11 @@
 
 module MaReports::CsgEngage::ReportComponents
   class Service < Base
-    attr_accessor :service
+    attr_accessor :service, :enrollment
 
-    def initialize(service)
+    def initialize(service, enrollment)
       @service = service
+      @enrollment = enrollment
     end
 
     subfield('Service') do
@@ -31,10 +32,22 @@ module MaReports::CsgEngage::ReportComponents
       field('PayPayeeAddress2')
       field('PayPayeeAddress3')
       field('PayPayeeName')
-      field('ServiceDateTimeBegin') { service.DateProvided&.strftime('%m/%d/%Y') }
-      field('ServiceDateTimeEnd') { nil }
+      field('ServiceDateTimeBegin') do
+        if service.DateProvided.present?
+          service.DateProvided.strftime('%m/%d/%Y')
+        else
+          enrollment.EntryDate&.strftime('%m/%d/%Y')
+        end
+      end
+      field('ServiceDateTimeEnd') do
+        if service.DateProvided.present?
+          (service.DateProvided + 1.days).strftime('%m/%d/%Y')
+        else
+          enrollment.exit&.ExitDate&.strftime('%m/%d/%Y')
+        end
+      end
       field('ServiceProvided') do
-        HudUtility2024.service_type_provided(service.Recordtype, service.TypeProvided) || 'Unknown Service Type'
+        HudUtility2024.service_type_provided(service.RecordType, service.TypeProvided) || 'Unknown Service Type'
       rescue StandardError
         'Unknown Service Type'
       end
