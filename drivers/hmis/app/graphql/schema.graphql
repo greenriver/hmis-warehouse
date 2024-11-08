@@ -2031,12 +2031,11 @@ type CustomDataElementValue {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
-  file: File
-  fileId: ID
   id: ID!
   user: ApplicationUser
   valueBoolean: Boolean
   valueDate: ISO8601Date
+  valueFile: File
   valueFloat: Float
   valueInteger: Int
   valueJson: JsonObject

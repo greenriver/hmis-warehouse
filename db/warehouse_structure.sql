@@ -1183,7 +1183,7 @@ CREATE TABLE public."CustomDataElements" (
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
-    file_id bigint
+    value_file_id bigint
 );
 
 

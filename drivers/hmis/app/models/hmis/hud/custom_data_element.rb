@@ -25,14 +25,14 @@ class Hmis::Hud::CustomDataElement < Hmis::Hud::Base
     :value_json,
     :value_string,
     :value_text,
-    :file_id, # todo @martha - would like this to be value_file
+    :value_file,
   ].freeze
 
   belongs_to :owner, polymorphic: true, optional: false
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :custom_data_elements
   belongs_to :data_element_definition, class_name: 'Hmis::Hud::CustomDataElementDefinition', optional: false
-  belongs_to :file, class_name: 'Hmis::File', optional: true, autosave: true # todo @martha foreign_key: 'value_file_id',
+  belongs_to :value_file, class_name: 'Hmis::File', optional: true, autosave: true, foreign_key: 'value_file_id'
 
   delegate :key, :label, :repeats, to: :data_element_definition
 
@@ -63,8 +63,7 @@ class Hmis::Hud::CustomDataElement < Hmis::Hud::Base
 
     # Error if value_string is set but the definition says its a boolean type (for example)
     field_type = values.keys.first.gsub('value_', '')
-    # todo @martha - this needs to be fixed, for now just figuring things out
-    errors.add(:base, :invalid, message: "has a value for '#{values.keys.first}' but definition is for type '#{data_element_definition.field_type}") unless data_element_definition.field_type.to_s == field_type.to_s || data_element_definition.field_type.to_s == 'file' && field_type.to_s == 'file_id'
+    errors.add(:base, :invalid, message: "has a value for '#{values.keys.first}' but definition is for type '#{data_element_definition.field_type}") unless data_element_definition.field_type.to_s == field_type.to_s
   end
 
   def equal_for_merge?(other)
@@ -80,13 +79,7 @@ class Hmis::Hud::CustomDataElement < Hmis::Hud::Base
   end
 
   def value
-    VALUE_COLUMNS.map do |f|
-      # todo @martha - this hasn't been tested, where is it used?
-      if f == 'file_id'
-        send(f).client_file.blob.id
-      else
-        send(f)
-      end
-    end.compact.first
+    # todo @martha - where is this used?
+    VALUE_COLUMNS.map { |f| send(f) }.compact.first
   end
 end

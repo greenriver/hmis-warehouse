@@ -5,10 +5,9 @@
 
 class AddFileToCde < ActiveRecord::Migration[7.0]
   def change
-    # todo @martha - fix safety assured
-    # todo @martha - would rather call this value_file_id;
-    # add_column :custom_data_elements, :value_file_id, :bigint
-    # add_foreign_key :custom_data_elements, :files, column: :value_file_id
-    safety_assured { add_reference :CustomDataElements, :file, null: true }
+    # use safety_assured (ignore StrongMigrations) here because validating a column full of nulls should still be fast
+    safety_assured do
+      add_reference :CustomDataElements, :value_file, null: true, foreign_key: { to_table: :files }
+    end
   end
 end
