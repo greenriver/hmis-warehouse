@@ -15,7 +15,6 @@ class ApplicationController < ActionController::Base
   # moved to top for dockerization
   prepend_before_action :check_all_db_migrations
 
-  include LegacyControllerAuthorization
   include ActivityLogger
   include LogRagePayloadBehavior
   include Pagy::Backend
@@ -23,10 +22,10 @@ class ApplicationController < ActionController::Base
   # conditional includes support the migration away from deprecated authorization methods.
   # New controllers should inherit from ApplicationControllerV2 which replaces older auth
   # methods with authorize_with()
-  # def self.inherited(subclass)
-  #   super
-  #   subclass.include(LegacyControllerAuthorization) unless ApplicationControllerV2.in?(subclass.ancestors)
-  # end
+  def self.inherited(subclass)
+    super
+    subclass.include(LegacyControllerAuthorization) unless ApplicationControllerV2.in?(subclass.ancestors)
+  end
 
   protect_from_forgery with: :exception
 
