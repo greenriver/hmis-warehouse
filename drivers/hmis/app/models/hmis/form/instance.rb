@@ -123,6 +123,12 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     matches.sort_by.with_index { |match, idx| [match.rank, idx] }.first&.instance
   end
 
+  def self.detect_best_instance_for_enrollment(enrollment:)
+    matches = all.map { |i| i.project_and_enrollment_match(project: enrollment.project, enrollment: enrollment) }.compact
+    # with_index for stable sort
+    matches.sort_by.with_index { |match, idx| [match.rank, idx] }.first&.instance
+  end
+
   def project_match(project)
     match = Hmis::Form::InstanceProjectMatch.new(instance: self, project: project)
     match.valid? ? match : nil

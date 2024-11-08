@@ -211,7 +211,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   # Data Collection Features that are enabled for this project (e.g. Current Living Situation)
   #
   # Is it enabled?
-  #   If ANY instances exist for it for this project, even inactive ones, then yes.
+  #   If ANY data exists for it in this project, even if no active instances exist, then yes.
+  #   (This supports both inactive instances and migrated-in data, as well as context changes such as change in HoH)
   #
   # Who is data collected about?
   #   Choose the "best" instance – IE the one that would actually be selected
@@ -221,32 +222,48 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def data_collection_features
     # Create OpenStruct for each enabled feature
     Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.map do |role|
-      # We don't currently support fully retiring forms (form definition gets retired with no newer published version).
-      # But if we do in the future, this should return instances for retired forms, same as it returns inactive instances.
-      # In https://github.com/open-path/Green-River/issues/6159 we outline switching this to always show a feature if
-      # there is any data for it, in addition to checking the form rules.
-      base_scope = Hmis::Form::Instance.with_role(role).published_or_retired
+      instance_scope = Hmis::Form::Instance.with_role(role).active.published
       # Service instances must specify a service type or category.
-      base_scope = base_scope.for_services if role == :SERVICE
+      instance_scope = instance_scope.for_services if role == :SERVICE
 
       # Choose the "best" instance, i.e. the one that would actually be selected when recording new data.
       # We need to do this so that we can accurately set "data collected about" based on the most applicable form.
-      #
-      # If there are no active instances, but there are IN-active ones, then choose the best out of the inactives.
-      # Inactive features need to continue to be "turned on" in order to view and edit legacy data.
-      # If/when there is no legacy data, the instance can be fully deleted.
+      best_instance = instance_scope.detect_best_instance_for_project(project: self)
 
-      best_instance = [
-        base_scope.active,
-        base_scope.inactive,
-      ].lazy.map { |scope| scope.order(updated_at: :desc).detect_best_instance_for_project(project: self) }.detect(&:present?)
-      next unless best_instance
+      # (Side note: For SERVICE specifically, there's really no such thing as a "best" instance in this context
+      # without a service type. As long as there is ANY instance, the data collection feature is enabled. But we don't
+      # need to worry about the fact that "best" instance chosen here might not actually be the most specific.)
+
+      has_any_data = case role
+      when :CURRENT_LIVING_SITUATION
+        current_living_situations.exists?
+      when :SERVICE
+        custom_services.exists? || services.exists?
+      when :CE_EVENT
+        false # Only resolved on enrollments. Would need to update this logic if we resolve CE events on projects
+      when :CE_ASSESSMENT
+        false # Only resolved on enrollments. Would need to update this logic if we resolve CE assessments on projects
+      when :CASE_NOTE
+        false # Only resolved on enrollments. Would need to update this logic if we resolve case notes on projects
+      when :REFERRAL
+        # Referrals are a special case, the Data Collection Feature is not really used in the frontend. Appearance of
+        # this feature is gated based on permission instead. However, just for consistency we still return has_any_data
+        external_referral_postings.exists?
+      when :REFERRAL_REQUEST
+        external_referral_requests.exists? # Also a special case, see above
+      when :EXTERNAL_FORM
+        false # Relies on instances only; see comment in HmisSchema::Project.external_form_submissions
+      else
+        raise "Unexpected data collection feature role: #{role}"
+      end
+
+      next unless best_instance || has_any_data
 
       OpenStruct.new(
         role: role.to_s,
-        id: [id, best_instance.id].join(':'), # Unique ID for Apollo caching
-        legacy: best_instance.active == false,
-        data_collected_about: best_instance.data_collected_about || 'ALL_CLIENTS',
+        id: [id, role, best_instance&.id].join(':'), # Unique ID for Apollo caching
+        legacy: has_any_data && !best_instance,
+        data_collected_about: best_instance&.data_collected_about || 'ALL_CLIENTS', # Doesn't really matter for legacy
         instance: best_instance, # just for testing
       )
     end.compact

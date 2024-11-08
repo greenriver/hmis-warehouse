@@ -193,6 +193,11 @@ module Types
         Hmis::Form::Definition.find_definition_for_role(role, project: project)
       end
 
+      # If the frontend is making this query, it's trying to display some data using a form definition,
+      # so we try to avoid returning nil. Even if we didn't find a good match (e.g., because the instance is inactive),
+      # we return some default "best guess", enabling the application to display the data somehow instead of erroring.
+      record ||= Hmis::Form::Definition.published.where(role: role, managed_in_version_control: true).first
+
       record&.filter_context = { project: project } # Apply project-specific filtering rules. Only relevant for some form types.
       record
     end
@@ -235,7 +240,12 @@ module Types
       service_type = Hmis::Hud::CustomServiceType.find_by(id: service_type_id)
       raise HmisErrors::ApiError, 'Service type not found' unless service_type.present?
 
-      Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
+      definition = Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
+
+      # Similar to record_form_definition above, we always want to return a definition if we possibly can, so use the
+      # default HUD Service form for HUD service types. For Custom service types, return empty because we can't determine which form to use.
+      definition ||= Hmis::Form::Definition.with_role(:SERVICE).where(managed_in_version_control: true).first if service_type.hud_service?
+      definition
     end
 
     field :static_form_definition, Types::Forms::FormDefinition, null: false do
