@@ -39,7 +39,13 @@ if sentry_dsn
             end
           when /delayed_job/
             # delayed job
-            1.0
+            case transaction_context[:name]
+            when 'Confidence::AddEnrollmentChangeHistoryJob'
+              # reduce rate on some jobs
+              0.001
+            else
+              1.0
+            end
           else
             0.0 # ignore all other transactions
           end
