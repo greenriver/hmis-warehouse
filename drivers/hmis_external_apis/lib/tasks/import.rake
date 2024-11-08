@@ -125,6 +125,7 @@ namespace :import do
 
     dry_run = args.dry_run == 'true'
     dir = args.dir
+    project_id = args.project_id
 
     Rails.logger.info "Dry run? #{dry_run}"
 
@@ -166,7 +167,7 @@ namespace :import do
 
     data_source = GrdaWarehouse::DataSource.hmis.first
     system_hud_user = Hmis::Hud::User.system_user(data_source_id: data_source.id)
-    project = Hmis::Hud::Project.hmis.find(args.project_id)
+    project = Hmis::Hud::Project.hmis.find(project_id)
 
     # Read Export file. Each row is a "Case" which represents a HoH Enrollment. It gives us the Entry Date.
     export_file = HmisExternalApis::TcHmis::Importers::Loaders::XlsxFile.new(filename: "#{dir}/HCM-EXPORT.xlsx", sheet_number: 0, header_row_number: 1)
@@ -221,7 +222,10 @@ namespace :import do
     end
 
     # Find Clients. No special care taken to situation where there are multiple clients with the same MCI ID, just pick one.
-    mci_id_to_client = HmisExternalApis::ExternalId.mci_ids.where(value: mci_ids).preload(:source).index_by(&:value)
+    mci_id_to_client = HmisExternalApis::ExternalId.mci_ids.
+      where(value: mci_ids).
+      order(:id).
+      preload(:source).index_by(&:value)
 
     # Build Enrollments
     enrollments = []
