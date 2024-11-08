@@ -75,4 +75,53 @@ RSpec.describe Hmis::AccessControl, type: :model do
       expect(hmis_user.can_view_full_ssn_for?(p2)).to eq(false)
     end
   end
+
+  describe 'can_access_hmis_data_source? checker' do
+    let!(:ds2) { create :hmis_data_source } # add a second data source
+    let!(:ds2_organization) { create :hmis_hud_organization, data_source: ds2 }
+    let!(:ds2_project) { create :hmis_hud_project, data_source: ds2, organization: ds2_organization }
+
+    it 'is false when no access control is present' do
+      expect(hmis_user.can_access_hmis_data_source?(ds1.id)).to eq(false)
+    end
+
+    it 'is true when user has access to a project in the data source' do
+      create_access_control(hmis_user, p1)
+      expect(hmis_user.can_access_hmis_data_source?(ds1.id)).to eq(true)
+    end
+
+    it 'is true when user has access to an organization in the data source' do
+      create_access_control(hmis_user, o1)
+      expect(hmis_user.can_access_hmis_data_source?(ds1.id)).to eq(true)
+    end
+
+    it 'is true when user has access to the data source' do
+      create_access_control(hmis_user, ds1)
+      expect(hmis_user.can_access_hmis_data_source?(ds1.id)).to eq(true)
+    end
+
+    describe 'when there are multiple HMIS data sources' do
+      let!(:ds2) { create :hmis_data_source } # add a second data source
+      let!(:ds2_organization) { create :hmis_hud_organization, data_source: ds2 }
+      let!(:ds2_project) { create :hmis_hud_project, data_source: ds2, organization: ds2_organization }
+
+      it 'returns true for ds2 and false for ds1' do
+        create_access_control(hmis_user, ds2_project)
+
+        expect(hmis_user.can_access_hmis_data_source?(ds1.id)).to eq(false)
+        expect(hmis_user.can_access_hmis_data_source?(ds2.id)).to eq(true)
+      end
+
+      it 'does not re-calculate for the same ds' do
+        create_access_control(hmis_user, p1)
+        create_access_control(hmis_user, ds2_project)
+
+        expect { hmis_user.can_access_hmis_data_source?(ds2.id) }.to make_database_queries
+        expect { hmis_user.can_access_hmis_data_source?(ds2.id) }.not_to make_database_queries
+
+        expect { hmis_user.can_access_hmis_data_source?(ds1.id) }.to make_database_queries
+        expect { hmis_user.can_access_hmis_data_source?(ds1.id) }.not_to make_database_queries
+      end
+    end
+  end
 end
