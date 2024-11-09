@@ -63,14 +63,14 @@ module GrdaWarehouse::Tasks::ScrubPii
         GrdaWarehouse::Hud::Client.unscoped do # turn off paranoia soft-delete
           scope = client_scope(client_ids: client_ids, data_source_ids: data_source_ids)
           progress_bar = ProgressBar.new(scope.count, :counter, :bar, :percentage, :rate, :eta) if progress
-          process_universe(scope, progress_bar)
+          process_client_universe(scope, progress_bar)
         end
       end
     end
 
     protected
 
-    def process_universe(scope, progress)
+    def process_client_universe(scope, progress)
       scope.find_in_batches do |clients|
         without_paper_trail do
           GrdaWarehouse::Hud::Client.transaction do
@@ -81,16 +81,11 @@ module GrdaWarehouse::Tasks::ScrubPii
       end
     end
 
-    def without_paper_trail
-      pt_was = PaperTrail.enabled?
-      PaperTrail.enabled = false
-      yield
-    ensure
-      PaperTrail.enabled = pt_was
-    end
-
-    def with_lock(&block)
-      GrdaWarehouseBase.with_advisory_lock('identify_external_clients', timeout_seconds: 0, &block)
+    def client_scope(client_ids: nil, data_source_ids: nil)
+      scope = GrdaWarehouse::Hud::Client
+      scope = scope.where(id: client_ids) if client_ids
+      scope = scope.where(data_source_id: data_source_ids) if data_source_ids
+      scope
     end
 
     def process_client_batch(clients)
@@ -112,6 +107,7 @@ module GrdaWarehouse::Tasks::ScrubPii
         end
         [
           Hmis::Hud::CustomAssessment,
+          # other models?
         ].each do |model|
           scope = model.where(data_source: data_source_id, PersonalID: clients.map(&:PersonalID))
           delete_custom_data_elements(model, scope.pluck(:id))
@@ -119,7 +115,7 @@ module GrdaWarehouse::Tasks::ScrubPii
       end
     end
 
-    def delete_custom_data_elements(klass, ids)
+    def delete_custom_data_elements(model, ids)
       Hmis::Hud::CustomDataElement.unscoped do
         arel = Hmis::Hud::CustomDataElementDefinition.arel_table
         conditions = [
@@ -133,10 +129,10 @@ module GrdaWarehouse::Tasks::ScrubPii
           arel[:label].matches('%city%'),
           arel[:label].matches('%email%'),
           arel[:label].matches('%phone%'),
-        ].reduce { |acc, cond| acc.or(cond) }
+        ].reduce(&:or)
 
         scope = Hmis::Hud::CustomDataElement.
-          where(owner_type: klass.sti_name, owner_id: ids).
+          where(owner_type: model.sti_name, owner_id: ids).
           joins(:data_element_definition).
           merge(Hmis::Hud::CustomDataElementDefinition.where(conditions))
 
@@ -161,13 +157,6 @@ module GrdaWarehouse::Tasks::ScrubPii
       import!(GrdaWarehouse::Hud::Enrollment, values)
     end
 
-    def import!(klass, values)
-      return if values.blank?
-
-      result = klass.import(values, on_duplicate_key_update: { conflict_target: [:id], columns: values.first.keys }, validate: false)
-      raise if result.failed_instances.any?
-    end
-
     def delete_hmis_client_records(clients, data_source_id)
       [
         Hmis::Hud::CustomClientAddress,
@@ -187,11 +176,23 @@ module GrdaWarehouse::Tasks::ScrubPii
       GrdaWarehouse::Version.where(item_type: item_type.sti_name, item_id: item_ids).delete_all
     end
 
-    def client_scope(client_ids: nil, data_source_ids: nil)
-      scope = GrdaWarehouse::Hud::Client
-      scope = scope.where(id: client_ids) if client_ids
-      scope = scope.where(data_source_id: data_source_ids) if data_source_ids
-      scope
+    def import!(klass, values)
+      return if values.blank?
+
+      result = klass.import(values, on_duplicate_key_update: { conflict_target: [:id], columns: values.first.keys }, validate: false)
+      raise if result.failed_instances.any?
+    end
+
+    def without_paper_trail
+      pt_was = PaperTrail.enabled?
+      PaperTrail.enabled = false
+      yield
+    ensure
+      PaperTrail.enabled = pt_was
+    end
+
+    def with_lock(&block)
+      GrdaWarehouseBase.with_advisory_lock('identify_external_clients', timeout_seconds: 0, &block)
     end
   end
 end
