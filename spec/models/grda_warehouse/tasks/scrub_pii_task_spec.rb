@@ -190,7 +190,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubPiiTask do
     it 'removes custom elements containing PII' do
       expect do
         described_class.new.perform(strategy: :null)
-      end.to change { Hmis::Hud::CustomDataElement.count }.by(-1)
+      end.to change { Hmis::Hud::CustomDataElement.with_deleted.count }.by(-1)
     end
   end
 
@@ -218,8 +218,8 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubPiiTask do
     it 'removes all associated custom records' do
       expect do
         described_class.new.perform(strategy: :null)
-      end.to change { Hmis::Hud::CustomClientAddress.count }.by(-1).
-        and change { Hmis::Hud::CustomClientContactPoint.count }.by(-1)
+      end.to change { Hmis::Hud::CustomClientAddress.with_deleted.count }.by(-1).
+        and change { Hmis::Hud::CustomClientContactPoint.with_deleted.count }.by(-1)
     end
   end
 end

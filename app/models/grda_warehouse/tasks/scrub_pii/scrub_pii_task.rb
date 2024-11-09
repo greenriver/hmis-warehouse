@@ -60,9 +60,9 @@ module GrdaWarehouse::Tasks::ScrubPii
 
         @strategy = STRATEGIES[strategy].new
 
-        GrdaWarehouse::Hud::Client.unscoped do # turn off paranoia soft-delete
-          scope = client_scope(client_ids: client_ids, data_source_ids: data_source_ids)
-          progress_bar = ProgressBar.new(scope.count, :counter, :bar, :percentage, :rate, :eta) if progress
+        scope = client_scope(client_ids: client_ids, data_source_ids: data_source_ids)
+        progress_bar = ProgressBar.new(scope.count, :counter, :bar, :percentage, :rate, :eta) if progress
+        without_paper_trail do
           process_client_universe(scope, progress_bar)
         end
       end
@@ -72,17 +72,16 @@ module GrdaWarehouse::Tasks::ScrubPii
 
     def process_client_universe(scope, progress)
       scope.find_in_batches do |clients|
-        without_paper_trail do
-          GrdaWarehouse::Hud::Client.transaction do
-            process_client_batch(clients)
-            progress&.increment!(clients.size)
-          end
+        # one transaction per batch
+        GrdaWarehouse::Hud::Client.transaction do
+          process_client_batch(clients)
+          progress&.increment!(clients.size)
         end
       end
     end
 
     def client_scope(client_ids: nil, data_source_ids: nil)
-      scope = GrdaWarehouse::Hud::Client
+      scope = GrdaWarehouse::Hud::Client.with_deleted
       scope = scope.where(id: client_ids) if client_ids
       scope = scope.where(data_source_id: data_source_ids) if data_source_ids
       scope
@@ -90,55 +89,36 @@ module GrdaWarehouse::Tasks::ScrubPii
 
     def process_client_batch(clients)
       scrub_clients(clients)
-      delete_custom_data_elements(Hmis::Hud::Client, clients.map(&:id))
-      delete_versions(GrdaWarehouse::Hud::Client, clients.map(&:id))
-      delete_versions(Hmis::Hud::Client, clients.map(&:id))
 
       data_source_ids = clients.map(&:data_source_id).uniq
       data_source_ids.each do |data_source_id|
         delete_hmis_client_records(clients, data_source_id)
-
-        GrdaWarehouse::Hud::Enrollment.unscoped do
-          enrollments = GrdaWarehouse::Hud::Enrollment.where(data_source: data_source_id, PersonalID: clients.map(&:PersonalID))
-          scrub_enrollments(enrollments)
-          delete_custom_data_elements(Hmis::Hud::Enrollment, enrollments.map(&:id))
-          delete_versions(GrdaWarehouse::Hud::Enrollment, enrollments.map(&:id))
-          delete_versions(Hmis::Hud::Enrollment, enrollments.map(&:id))
-        end
-        [
-          Hmis::Hud::CustomAssessment,
-          # other models?
-        ].each do |model|
-          scope = model.where(data_source: data_source_id, PersonalID: clients.map(&:PersonalID))
-          delete_custom_data_elements(model, scope.pluck(:id))
-        end
+        scrub_enrollments(clients, data_source_id)
       end
     end
 
     def delete_custom_data_elements(model, ids)
-      Hmis::Hud::CustomDataElement.unscoped do
-        arel = Hmis::Hud::CustomDataElementDefinition.arel_table
-        conditions = [
-          arel[:label].matches('%SSN%', nil, true), # case sensitive
-          arel[:label].matches('%social security number%'),
-          arel[:label].matches('%DOB%', nil, true), # case sensitive
-          arel[:label].matches('%date of birth%'),
-          arel[:label].matches('%first name%'),
-          arel[:label].matches('%last name%'),
-          arel[:label].matches('%address%'),
-          arel[:label].matches('%city%'),
-          arel[:label].matches('%email%'),
-          arel[:label].matches('%phone%'),
-        ].reduce(&:or)
+      arel = Hmis::Hud::CustomDataElementDefinition.arel_table
+      conditions = [
+        arel[:label].matches('%SSN%', nil, true), # case sensitive
+        arel[:label].matches('%social security number%'),
+        arel[:label].matches('%DOB%', nil, true), # case sensitive
+        arel[:label].matches('%date of birth%'),
+        arel[:label].matches('%first name%'),
+        arel[:label].matches('%last name%'),
+        arel[:label].matches('%address%'),
+        arel[:label].matches('%city%'),
+        arel[:label].matches('%email%'),
+        arel[:label].matches('%phone%'),
+      ].reduce(&:or)
 
-        scope = Hmis::Hud::CustomDataElement.
-          where(owner_type: model.sti_name, owner_id: ids).
-          joins(:data_element_definition).
-          merge(Hmis::Hud::CustomDataElementDefinition.where(conditions))
+      scope = Hmis::Hud::CustomDataElement.with_deleted.
+        where(owner_type: model.sti_name, owner_id: ids).
+        joins(:data_element_definition).
+        merge(Hmis::Hud::CustomDataElementDefinition.with_deleted.where(conditions))
 
-        delete_versions(Hmis::Hud::CustomDataElement, scope.pluck(:id))
-        scope.delete_all
-      end
+      delete_versions([Hmis::Hud::CustomDataElement], scope.pluck(:id))
+      scope.delete_all
     end
 
     def scrub_clients(clients)
@@ -146,34 +126,55 @@ module GrdaWarehouse::Tasks::ScrubPii
         strategy.client_attrs(client)
       end
       import!(GrdaWarehouse::Hud::Client, values)
+
+      client_ids = clients.map(&:id)
+      delete_custom_data_elements(Hmis::Hud::Client, client_ids)
+      delete_versions([GrdaWarehouse::Hud::Client, Hmis::Hud::Client], client_ids)
     end
 
-    def scrub_enrollments(enrollments)
-      return if enrollments.empty?
+    def scrub_enrollments(clients, data_source_id)
+      enrollments = GrdaWarehouse::Hud::Enrollment.
+        with_deleted.
+        where(data_source: data_source_id, PersonalID: clients.map(&:PersonalID))
+      return if enrollments.to_a.empty?
 
       values = enrollments.map do |enrollment|
         strategy.enrollment_attrs(enrollment)
       end
       import!(GrdaWarehouse::Hud::Enrollment, values)
+
+      enrollment_ids = enrollments.map(&:id)
+      delete_custom_data_elements(Hmis::Hud::Enrollment, enrollment_ids)
+      delete_versions([GrdaWarehouse::Hud::Enrollment, Hmis::Hud::Enrollment], enrollment_ids)
     end
 
     def delete_hmis_client_records(clients, data_source_id)
+      personal_ids = clients.map(&:PersonalID)
+
+      # delete from custom tables that may contain sensitive info
       [
         Hmis::Hud::CustomClientAddress,
         Hmis::Hud::CustomClientName,
         Hmis::Hud::CustomClientContactPoint,
         Hmis::Hud::CustomCaseNote,
       ].each do |model|
-        model.unscoped do
-          scope = model.where(data_source_id: data_source_id, PersonalID: clients.map(&:PersonalID))
-          delete_versions(model, scope.pluck(:id))
-          scope.delete_all
-        end
+        scope = model.with_deleted.where(data_source_id: data_source_id, PersonalID: personal_ids)
+        delete_versions([model], scope.map(&:id))
+        scope.delete_all
+      end
+
+      # delete custom data elements from tables that may contain sensitive info
+      [
+        Hmis::Hud::CustomAssessment,
+        # other models?
+      ].each do |model|
+        scope = model.with_deleted.where(data_source_id: data_source_id, PersonalID: personal_ids)
+        delete_custom_data_elements(model, scope.pluck(:id))
       end
     end
 
-    def delete_versions(item_type, item_ids)
-      GrdaWarehouse::Version.where(item_type: item_type.sti_name, item_id: item_ids).delete_all
+    def delete_versions(models, item_ids)
+      GrdaWarehouse::Version.where(item_type: models.map(&:sti_name), item_id: item_ids).delete_all
     end
 
     def import!(klass, values)
