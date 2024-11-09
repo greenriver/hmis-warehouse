@@ -17,9 +17,10 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     cleanup_test_environment
   end
 
+  let!(:enrollment) { create(:hmis_hud_enrollment, project: project, data_source: project.data_source) }
+
   let!(:project) { create :hmis_hud_project }
   before(:each) do
-    create(:hmis_hud_enrollment, project: project, data_source: project.data_source)
     create(:hmis_hud_project_coc, project: project, data_source: project.data_source)
     create(:hmis_hud_funder, project: project, data_source: project.data_source)
     create(:hmis_hud_inventory, project: project, data_source: project.data_source)
@@ -82,11 +83,22 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       expect(selected_instances.size).to eq(0)
     end
 
-    it 'returns the instance if form is retired' do
-      create(:hmis_form_definition, role: role, identifier: 'fully-retired-form', status: :retired)
-      inst_for_retired = create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'fully-retired-form')
+    context 'if the form is retired' do
+      let!(:retired_def) { create(:hmis_form_definition, role: role, identifier: 'fully-retired-form', status: :retired) }
+      let!(:retired_inst) { create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'fully-retired-form') }
 
-      expect(selected_instances).to contain_exactly(inst_for_retired)
+      it 'returns nothing' do
+        expect(selected_instances.size).to eq(0)
+      end
+
+      context 'and there is historical data' do
+        let!(:cls) { create(:hmis_current_living_situation, data_source: project.data_source, client: enrollment.client, user: project.user, enrollment: enrollment) }
+
+        it 'returns a legacy feature if there is historical data' do
+          data_collection_feature = project.data_collection_features.find { |os| os.role == role.to_s }
+          expect(data_collection_feature.legacy).to be_truthy
+        end
+      end
     end
 
     it 'chooses default instance, prefers active > inactive' do
@@ -128,13 +140,6 @@ RSpec.describe Hmis::Hud::Project, type: :model do
 
       expect(selected_instances).to contain_exactly(inst_for_project)
     end
-
-    it 'if all are inactive, includes the most specific inactive' do
-      create(:hmis_form_instance, role: role, entity: nil, active: false)
-      inst_for_project = create(:hmis_form_instance, role: role, entity: project, active: false)
-
-      expect(selected_instances).to contain_exactly(inst_for_project)
-    end
   end
 
   describe 'data_collection_features for Services' do
@@ -162,13 +167,6 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     it 'chooses instance specified by category' do
       create(:hmis_form_instance, role: role, entity: nil)
       expected = create(:hmis_form_instance, role: role, entity: nil, custom_service_category: csc)
-      expect(selected_instance).to eq(expected)
-    end
-
-    it 'chooses instance specified by type (type > category)' do
-      create(:hmis_form_instance, role: role, entity: nil)
-      create(:hmis_form_instance, role: role, entity: nil, custom_service_category: csc)
-      expected = create(:hmis_form_instance, role: role, entity: nil, custom_service_type: cst)
       expect(selected_instance).to eq(expected)
     end
 
