@@ -31,24 +31,20 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
   end
 
   describe 'with paper trail enabled' do
+    # call the factory outside of expect block to isolate version side effects
+    let!(:client) { create :grda_warehouse_hud_client }
+
     before(:all) do
       PaperTrail.enabled = true
+      PaperTrail.request.enabled = true
     end
     after(:all) do
       PaperTrail.enabled = false
+      PaperTrail.request.enabled = false
     end
 
     it 'tracks versions for committed changes to the correct table' do
-      client = create :grda_warehouse_hud_client
-      expect([
-        PaperTrail.enabled?,
-        PaperTrail.request.enabled?,
-        PaperTrail.request.enabled_for_model?(client.class),
-      ]).to eq([true, true, true])
-      RequestStore.store[:paper_trail] = nil
-      client.versions.delete_all(:delete_all)
       expect do
-        PaperTrail::RecordTrail.new(client)
         client.update!(last_name: "test-#{Time.current.to_f}")
       end.to change(client.versions, :count).by(1).
         and change(GrdaWarehouse::Version, :count).by(1).
@@ -56,8 +52,6 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
 
     it 'rolls back versions within a transaction' do
-      client = create :grda_warehouse_hud_client
-      client.versions.delete_all(:delete_all)
       expect do
         client.transaction do
           client.update!(last_name: "test-#{Time.current.to_f}")
