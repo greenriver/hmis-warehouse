@@ -68,126 +68,173 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubPiiTask do
     expect(enrollment.AddressDataQuality).to eq(99)
   end
 
-  describe '#perform' do
-    context 'with null strategy' do
-      before do
+  context 'with null strategy' do
+    before do
+      described_class.new.perform(strategy: :null)
+      reload_records
+    end
+
+    it 'nullifies all PII in clients' do
+      verify_nullified_client(client1)
+      verify_nullified_client(client2)
+    end
+
+    it 'nullifies all PII in enrollments' do
+      verify_nullified_enrollment(enrollment1)
+    end
+
+    it 'maintains non-PII data' do
+      expect(client1.PersonalID).not_to be_nil
+      expect(enrollment1.ProjectID).not_to be_nil
+    end
+  end
+
+  context 'with fake strategy' do
+    before do
+      described_class.new.perform(strategy: :fake)
+      reload_records
+    end
+
+    it 'replaces client PII with fake data' do
+      expect(client1.FirstName).not_to eq('John')
+      expect(client1.FirstName).not_to be_nil
+      expect(client1.LastName).not_to eq('Public')
+      expect(client1.LastName).not_to be_nil
+      expect(client1.SSN).not_to eq('123-45-6789')
+      expect(client1.SSN).not_to be_nil
+    end
+
+    it 'replaces enrollment PII with fake data' do
+      expect(enrollment1.LastPermanentStreet).not_to eq('123 Main St')
+      expect(enrollment1.LastPermanentStreet).not_to be_nil
+      expect(enrollment1.LastPermanentCity).not_to eq('Boston')
+      expect(enrollment1.LastPermanentCity).not_to be_nil
+    end
+  end
+
+  context 'with identifier strategy' do
+    before do
+      described_class.new.perform(strategy: :identifier)
+      reload_records
+    end
+
+    it 'replaces PII with identifier-based values' do
+      expect(client1.FirstName).to eq("FirstName#{client1.id}")
+      expect(client1.LastName).to eq("LastName#{client1.id}")
+    end
+
+    it 'replaces enrollment data with identifier-based values' do
+      expect(enrollment1.LastPermanentStreet).to eq("LastPermanentStreet#{enrollment1.id}")
+      expect(enrollment1.LastPermanentCity).to eq("LastPermanentCity#{enrollment1.id}")
+    end
+  end
+
+  context 'with specific client_ids' do
+    before do
+      described_class.new.perform(
+        strategy: :null,
+        client_ids: [client1.id],
+      )
+      reload_records
+    end
+
+    it 'only scrubs specified clients' do
+      verify_nullified_client(client1)
+
+      expect(client2.FirstName).to eq('Jane')
+      expect(client2.LastName).to eq('Doe')
+    end
+  end
+
+  context 'with specific data_source_ids' do
+    let(:other_data_source) { create(:grda_warehouse_data_source) }
+    let!(:other_client) do
+      create(:grda_warehouse_hud_client,
+             data_source: other_data_source,
+             FirstName: 'Alice',
+             LastName: 'Smith')
+    end
+
+    before do
+      described_class.new.perform(
+        strategy: :null,
+        data_source_ids: [data_source.id],
+      )
+      reload_records
+      other_client.reload
+    end
+
+    it 'only scrubs clients from specified data sources' do
+      verify_nullified_client(client1)
+      verify_nullified_client(client2)
+
+      expect(other_client.FirstName).to eq('Alice')
+      expect(other_client.LastName).to eq('Smith')
+    end
+  end
+
+  context 'error handling' do
+    it 'raises error for invalid strategy' do
+      expect do
+        described_class.new.perform(strategy: :invalid)
+      end.to raise_error(ArgumentError)
+    end
+  end
+
+  context 'version handling' do
+    it 'deletes associated versions' do
+      expect do
         described_class.new.perform(strategy: :null)
-        reload_records
-      end
+      end.to change(GrdaWarehouse::Version, :count).by(-2)
+    end
+  end
 
-      it 'nullifies all PII in clients' do
-        verify_nullified_client(client1)
-        verify_nullified_client(client2)
-      end
-
-      it 'nullifies all PII in enrollments' do
-        verify_nullified_enrollment(enrollment1)
-      end
-
-      it 'maintains non-PII data' do
-        expect(client1.PersonalID).not_to be_nil
-        expect(enrollment1.ProjectID).not_to be_nil
-      end
+  describe 'custom data element handling' do
+    let!(:custom_definition) do
+      create(:hmis_custom_data_element_definition, label: 'Client SSN', data_source: data_source)
     end
 
-    context 'with fake strategy' do
-      before do
-        described_class.new.perform(strategy: :fake)
-        reload_records
-      end
-
-      it 'replaces client PII with fake data' do
-        expect(client1.FirstName).not_to eq('John')
-        expect(client1.FirstName).not_to be_nil
-        expect(client1.LastName).not_to eq('Public')
-        expect(client1.LastName).not_to be_nil
-        expect(client1.SSN).not_to eq('123-45-6789')
-        expect(client1.SSN).not_to be_nil
-      end
-
-      it 'replaces enrollment PII with fake data' do
-        expect(enrollment1.LastPermanentStreet).not_to eq('123 Main St')
-        expect(enrollment1.LastPermanentStreet).not_to be_nil
-        expect(enrollment1.LastPermanentCity).not_to eq('Boston')
-        expect(enrollment1.LastPermanentCity).not_to be_nil
-      end
+    let!(:custom_element) do
+      create(:hmis_custom_data_element,
+             owner: client1.as_hmis,
+             data_element_definition: custom_definition,
+             data_source: data_source,
+             value_string: '123-45-6789')
     end
 
-    context 'with identifier strategy' do
-      before do
-        described_class.new.perform(strategy: :identifier)
-        reload_records
-      end
+    it 'removes custom elements containing PII' do
+      expect do
+        described_class.new.perform(strategy: :null)
+      end.to change { Hmis::Hud::CustomDataElement.count }.by(-1)
+    end
+  end
 
-      it 'replaces PII with identifier-based values' do
-        expect(client1.FirstName).to eq("FirstName#{client1.id}")
-        expect(client1.LastName).to eq("LastName#{client1.id}")
-      end
+  describe 'DOB scrambling' do
+    it 'maintains age brackets' do
+      original_dob = Date.new(1980, 1, 1)
+      client1.update(DOB: original_dob)
 
-      it 'replaces enrollment data with identifier-based values' do
-        expect(enrollment1.LastPermanentStreet).to eq("LastPermanentStreet#{enrollment1.id}")
-        expect(enrollment1.LastPermanentCity).to eq("LastPermanentCity#{enrollment1.id}")
-      end
+      described_class.new.perform(strategy: :null)
+      client1.reload
+
+      age_difference_in_years = ((client1.DOB - original_dob) / 365.25).abs
+      expect(age_difference_in_years).to be < 5 # Should stay within 5-year bracket
+    end
+  end
+
+  describe 'custom client record handling' do
+    let!(:client_address) do
+      create(:hmis_hud_custom_client_address, client: client1.as_hmis, data_source: data_source)
+    end
+    let!(:client_contact) do
+      create(:hmis_hud_custom_client_contact_point, client: client1.as_hmis, data_source: data_source)
     end
 
-    context 'with specific client_ids' do
-      before do
-        described_class.new.perform(
-          strategy: :null,
-          client_ids: [client1.id],
-        )
-        reload_records
-      end
-
-      it 'only scrubs specified clients' do
-        verify_nullified_client(client1)
-
-        expect(client2.FirstName).to eq('Jane')
-        expect(client2.LastName).to eq('Doe')
-      end
-    end
-
-    context 'with specific data_source_ids' do
-      let(:other_data_source) { create(:grda_warehouse_data_source) }
-      let!(:other_client) do
-        create(:grda_warehouse_hud_client,
-               data_source: other_data_source,
-               FirstName: 'Alice',
-               LastName: 'Smith')
-      end
-
-      before do
-        described_class.new.perform(
-          strategy: :null,
-          data_source_ids: [data_source.id],
-        )
-        reload_records
-        other_client.reload
-      end
-
-      it 'only scrubs clients from specified data sources' do
-        verify_nullified_client(client1)
-        verify_nullified_client(client2)
-
-        expect(other_client.FirstName).to eq('Alice')
-        expect(other_client.LastName).to eq('Smith')
-      end
-    end
-
-    context 'error handling' do
-      it 'raises error for invalid strategy' do
-        expect do
-          described_class.new.perform(strategy: :invalid)
-        end.to raise_error(ArgumentError)
-      end
-    end
-
-    context 'version handling' do
-      it 'deletes associated versions' do
-        expect do
-          described_class.new.perform(strategy: :null)
-        end.to change(GrdaWarehouse::Version, :count).by(-2)
-      end
+    it 'removes all associated custom records' do
+      expect do
+        described_class.new.perform(strategy: :null)
+      end.to change { Hmis::Hud::CustomClientAddress.count }.by(-1).
+        and change { Hmis::Hud::CustomClientContactPoint.count }.by(-1)
     end
   end
 end

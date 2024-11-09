@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'progress_bar'
 module GrdaWarehouse::Tasks::ScrubPii
   class ScrubPiiTask
     attr_accessor :strategy
@@ -18,7 +19,7 @@ module GrdaWarehouse::Tasks::ScrubPii
       identifier: IdentifierStrategy,
     }.freeze
 
-    def perform(client_ids: nil, data_source_ids: nil, strategy: :null, prng_seed: nil)
+    def perform(client_ids: nil, data_source_ids: nil, strategy: :null, prng_seed: nil, progress: false)
       with_lock do
         Faker::Config.random = Random.new(prng_seed) if prng_seed
         raise ArgumentError, "unknown strategy #{strategy}" unless STRATEGIES.key?(strategy)
@@ -26,16 +27,33 @@ module GrdaWarehouse::Tasks::ScrubPii
         @strategy = STRATEGIES[strategy].new
 
         GrdaWarehouse::Hud::Client.unscoped do # turn off paranoia soft-delete
-          client_scope(client_ids: client_ids, data_source_ids: data_source_ids).find_in_batches do |clients|
-            GrdaWarehouse::Hud::Client.transaction do
-              process_client_batch(clients)
-            end
-          end
+          scope = client_scope(client_ids: client_ids, data_source_ids: data_source_ids)
+          progress_bar = ProgressBar.new(scope.count, :counter, :bar, :percentage, :rate, :eta) if progress
+          process_universe(scope, progress_bar)
         end
       end
     end
 
     protected
+
+    def process_universe(scope, progress)
+      scope.find_in_batches do |clients|
+        without_paper_trail do
+          GrdaWarehouse::Hud::Client.transaction do
+            process_client_batch(clients)
+            progress&.increment!(clients.size)
+          end
+        end
+      end
+    end
+
+    def without_paper_trail
+      pt_was = PaperTrail.enabled?
+      PaperTrail.enabled = false
+      yield
+    ensure
+      PaperTrail.enabled = pt_was
+    end
 
     def with_lock(&block)
       GrdaWarehouseBase.with_advisory_lock('identify_external_clients', timeout_seconds: 0, &block)
@@ -43,8 +61,9 @@ module GrdaWarehouse::Tasks::ScrubPii
 
     def process_client_batch(clients)
       scrub_clients(clients)
-      scrub_custom_data_elements(GrdaWarehouse::Hud::Client, clients.map(&:id))
+      delete_custom_data_elements(Hmis::Hud::Client, clients.map(&:id))
       delete_versions(GrdaWarehouse::Hud::Client, clients.map(&:id))
+      delete_versions(Hmis::Hud::Client, clients.map(&:id))
 
       data_source_ids = clients.map(&:data_source_id).uniq
       data_source_ids.each do |data_source_id|
@@ -53,42 +72,42 @@ module GrdaWarehouse::Tasks::ScrubPii
         GrdaWarehouse::Hud::Enrollment.unscoped do
           enrollments = GrdaWarehouse::Hud::Enrollment.where(data_source: data_source_id, PersonalID: clients.map(&:PersonalID))
           scrub_enrollments(enrollments)
-          scrub_custom_data_elements(GrdaWarehouse::Hud::Enrollment, enrollments.map(&:id))
+          delete_custom_data_elements(Hmis::Hud::Enrollment, enrollments.map(&:id))
           delete_versions(GrdaWarehouse::Hud::Enrollment, enrollments.map(&:id))
+          delete_versions(Hmis::Hud::Enrollment, enrollments.map(&:id))
         end
         [
           Hmis::Hud::CustomAssessment,
         ].each do |model|
           scope = model.where(data_source: data_source_id, PersonalID: clients.map(&:PersonalID))
-          scrub_custom_data_elements(model, scope.pluck(:id))
+          delete_custom_data_elements(model, scope.pluck(:id))
         end
       end
     end
 
-    def scrub_custom_data_elements(klass, ids)
+    def delete_custom_data_elements(klass, ids)
       Hmis::Hud::CustomDataElement.unscoped do
-        scope = Hmis::Hud::CustomDataElement.
-          where(owner_type: klass.sti_name, owner_id: ids).
-          joins(:data_element_definition)
         arel = Hmis::Hud::CustomDataElementDefinition.arel_table
-
-        [
+        conditions = [
           arel[:label].matches('%SSN%', nil, true), # case sensitive
           arel[:label].matches('%social security number%'),
-        ].each do |cond|
-          strategy.scrub_ssn_cdes(
-            scope.merge(Hmis::Hud::CustomDataElementDefinition.where(cond)),
-          )
-        end
-
-        [
           arel[:label].matches('%DOB%', nil, true), # case sensitive
           arel[:label].matches('%date of birth%'),
-        ].each do |cond|
-          strategy.scrub_dob_cdes(
-            scope.merge(Hmis::Hud::CustomDataElementDefinition.where(cond)),
-          )
-        end
+          arel[:label].matches('%first name%'),
+          arel[:label].matches('%last name%'),
+          arel[:label].matches('%address%'),
+          arel[:label].matches('%city%'),
+          arel[:label].matches('%email%'),
+          arel[:label].matches('%phone%'),
+        ].reduce { |acc, cond| acc.or(cond) }
+
+        scope = Hmis::Hud::CustomDataElement.
+          where(owner_type: klass.sti_name, owner_id: ids).
+          joins(:data_element_definition).
+          merge(Hmis::Hud::CustomDataElementDefinition.where(conditions))
+
+        delete_versions(Hmis::Hud::CustomDataElement, scope.pluck(:id))
+        scope.delete_all
       end
     end
 

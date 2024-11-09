@@ -10,7 +10,7 @@ module GrdaWarehouse::Tasks::ScrubPii
     def client_attrs(client)
       super(client).merge(
         {
-          SSN: Faker::IdNumber.invalid,
+          SSN: invalid_ssn,
           FirstName: Faker::Name.first_name,
           MiddleName: Faker::Name.middle_name,
           LastName: Faker::Name.last_name,
@@ -33,19 +33,10 @@ module GrdaWarehouse::Tasks::ScrubPii
         },
       )
     end
-  end
 
-  def scrub_ssn_cdes(scope)
-    scope.each do |cde|
-      cde.value = Faker::IdNumber.invalid
-      cde.save!
-    end
-  end
-
-  def scrub_dob_cdes(scope)
-    scope.each do |cde|
-      cde.value = scramble_dob(cde.value)
-      cde.save!
+    def invalid_ssn
+      # use 999 to make it more obvious the ssn is invalid
+      Faker::IdNumber.invalid.gsub(/^\d{3}/, '999')
     end
   end
 end

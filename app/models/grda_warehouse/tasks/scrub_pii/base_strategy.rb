@@ -53,20 +53,21 @@ module GrdaWarehouse::Tasks::ScrubPii
       }
     end
 
-    def scrub_ssn_cdes(scope)
-      scope.delete_all
-    end
-
-    def scrub_dob_cdes(scope)
-      scope.delete_all
-    end
-
     protected
 
-    def scramble_dob(current)
+    def today
+      @today ||= Date.current
+    end
+
+    def scramble_dob(current, fuzz_years: 5)
       return nil unless current
 
-      Faker::Date.between(from: current - 6.months, to: current + 6.months)
+      age_at_scrub = ((today - current) / 365.25).floor
+      age_bracket = (age_at_scrub / fuzz_years) * fuzz_years # Creates brackets
+      bracket_start = today - (age_bracket + fuzz_years).years
+      bracket_end = today - age_bracket.years
+
+      Faker::Date.between(from: bracket_start, to: bracket_end)
     end
   end
 end
