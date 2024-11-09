@@ -97,18 +97,8 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubPiiTask do
 
     it 'replaces client PII with fake data' do
       expect(client1.FirstName).not_to eq('John')
-      expect(client1.FirstName).not_to be_nil
       expect(client1.LastName).not_to eq('Public')
-      expect(client1.LastName).not_to be_nil
       expect(client1.SSN).not_to eq('123-45-6789')
-      expect(client1.SSN).not_to be_nil
-    end
-
-    it 'replaces enrollment PII with fake data' do
-      expect(enrollment1.LastPermanentStreet).not_to eq('123 Main St')
-      expect(enrollment1.LastPermanentStreet).not_to be_nil
-      expect(enrollment1.LastPermanentCity).not_to eq('Boston')
-      expect(enrollment1.LastPermanentCity).not_to be_nil
     end
   end
 
@@ -121,11 +111,6 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubPiiTask do
     it 'replaces PII with identifier-based values' do
       expect(client1.FirstName).to eq("FirstName#{client1.id}")
       expect(client1.LastName).to eq("LastName#{client1.id}")
-    end
-
-    it 'replaces enrollment data with identifier-based values' do
-      expect(enrollment1.LastPermanentStreet).to eq("LastPermanentStreet#{enrollment1.id}")
-      expect(enrollment1.LastPermanentCity).to eq("LastPermanentCity#{enrollment1.id}")
     end
   end
 

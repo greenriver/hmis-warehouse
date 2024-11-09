@@ -14,22 +14,8 @@ module GrdaWarehouse::Tasks::ScrubPii
           FirstName: Faker::Name.first_name,
           MiddleName: Faker::Name.middle_name,
           LastName: Faker::Name.last_name,
-          NameDataQuality: 99,
-          SSNDataQuality: 99,
-          DOBDataQuality: client.dob ? 2 : 99,
-        },
-      )
-    end
-
-    def enrollment_attrs(enrollment)
-      super(enrollment).merge(
-        {
-          LastPermanentStreet: Faker::Address.street_address,
-          LastPermanentCity: Faker::Address.city,
-          LastPermanentState: Faker::Address.state_abbr,
-          LastPermanentZIP: Faker::Address.zip,
-          last_locality: nil,
-          last_zipcode: nil,
+          NameDataQuality: 1,
+          SSNDataQuality: 1,
         },
       )
     end

@@ -19,17 +19,6 @@ module GrdaWarehouse::Tasks::ScrubPii
       super(client).merge(result)
     end
 
-    def enrollment_attrs(enrollment)
-      result = [
-        :LastPermanentStreet,
-        :LastPermanentCity,
-      ].to_h do |field|
-        [field, field_value(enrollment, field)]
-      end
-      result[:AddressDataQuality] = nil
-      super(enrollment).merge(result)
-    end
-
     protected
 
     def field_value(record, field)

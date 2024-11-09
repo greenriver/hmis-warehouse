@@ -6,7 +6,7 @@
 
 require 'faker'
 
-# replaces
+# replace attributes on client and related records
 module GrdaWarehouse::Tasks::ScrubPii
   class BaseStrategy
     def client_attrs(client)
@@ -14,8 +14,8 @@ module GrdaWarehouse::Tasks::ScrubPii
         # required non-nullable fields for upsert
         id: client.id,
         data_source_id: client.data_source_id,
-        # fields to overwrite
         PersonalID: client.PersonalID,
+        # fields to overwrite
         SSN: nil,
         SSNDataQuality: 99,
         FirstName: nil,
@@ -23,7 +23,7 @@ module GrdaWarehouse::Tasks::ScrubPii
         NameDataQuality: 99,
         LastName: nil,
         DOB: scramble_dob(client.dob),
-        DOBDataQuality: client.dob ? 2 : 99,
+        DOBDataQuality: client.dob ? 1 : 99,
         soundex_first: nil,
         soundex_last: nil,
         encrypted_FirstName: nil,
@@ -59,6 +59,8 @@ module GrdaWarehouse::Tasks::ScrubPii
       @today ||= Date.current
     end
 
+    # Scrambles a date of birth while preserving approximate age bracket of the original
+    # For example, with a 5-year bracket, someone aged 32 will get a DOB corresponding to age 30-35.
     def scramble_dob(current, fuzz_years: 5)
       return nil unless current
 

@@ -6,6 +6,40 @@
 
 require 'progress_bar'
 module GrdaWarehouse::Tasks::ScrubPii
+  # Responsible for removing or obfuscating personally identifiable information (PII) from client records.
+  #
+  # The task supports multiple strategies for handling PII:
+  # - :null     - Removes all PII fields by setting them to nil
+  # - :fake     - Replaces PII with realistic but fake data (includes 999-prefixed SSNs)
+  # - :identifier - Replaces PII with deterministic values based on record IDs
+  #
+  # Usage:
+  #   # Scrub all clients using null strategy
+  #   ScrubPiiTask.new.perform(strategy: :null)
+  #
+  #   # Scrub specific clients using fake data
+  #   ScrubPiiTask.new.perform(strategy: :fake, client_ids: [1, 2, 3])
+  #
+  #   # Scrub clients from specific data sources with deterministic values
+  #   ScrubPiiTask.new.perform(strategy: :identifier, data_source_ids: [1, 2])
+  #
+  #   # Use specific seed for reproducible fake data
+  #   ScrubPiiTask.new.perform(strategy: :fake, prng_seed: 12345)
+  #
+  # The task handles:
+  # - Client PII (names, SSN, DOB)
+  # - Enrollment PII (addresses)
+  # - Custom client records
+  # - Custom data elements containing PII
+  # - Associated versions of modified records
+  #
+  # All operations are performed within a transaction and protected by an advisory lock
+  # to prevent concurrent modifications.
+  #
+  # @see BaseStrategy
+  # @see FakeStrategy
+  # @see IdentifierStrategy
+  # @see NullStrategy
   class ScrubPiiTask
     attr_accessor :strategy
 
