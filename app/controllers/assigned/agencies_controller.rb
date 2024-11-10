@@ -9,10 +9,6 @@ module Assigned
   class AgenciesController < ApplicationController
     before_action :require_can_manage_an_agency!
 
-    # TODO: START_ACL remove when ACL transition complete
-    before_action :set_legacy_implicitly_assume_authorized_access
-    # # END ACL
-
     def index
       if current_user.agency
         @users = User.

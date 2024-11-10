@@ -40,8 +40,30 @@ When creating new JavaScript assets, use esbuild in `app/javascripts` rather tha
 When authorizing an action on an individual record, for example a Client, use a resource policy.
 
 ```ruby
-policy = user.policies.for_client(client)
-not_authorized! unless policy.show?
+policy = user.policy_for(client)
+not_authorized! unless policy.can_view?
+```
+
+### Authorization on a controller action
+
+Keep authorizations at the top of the controller. Use the `authorize_with()` helper, preferably with a policy class.
+
+```ruby
+class ProjectsController < ApplicationControllerV2
+  authorize_with { project_policy.can_view? }
+  authorize_with(only: [:edit, :update]) { project_policy.can_edit? }
+
+  helper_method def project_policy
+    current_user.policy_for(@project)
+  end
+```
+
+Note, the deprecated legacy pattern uses "require_can_*" helpers. However these do not provide granular enough checks going forward
+
+```ruby
+class ProjectsController < ApplicationController
+   # deprecated, use authorize_with instead
+   before_action :require_can_edit_projects!, only: [:edit, :update]
 ```
 
 ### Authorization on a scope

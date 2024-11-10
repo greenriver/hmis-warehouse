@@ -965,7 +965,7 @@ module Health
     def pii_provider(user:)
       # patient almost duck-types for client, except dob field is different
       GrdaWarehouse::PiiProvider.from_attributes(
-        policy: user.policies.for_patient(self),
+        policy: user.policy_for(client),
         first_name: first_name,
         last_name: last_name,
         middle_name: middle_name,

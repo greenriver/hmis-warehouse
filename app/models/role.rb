@@ -192,6 +192,12 @@ class Role < ApplicationRecord
     column.to_s.humanize
   end
 
+  def granted_permissions
+    self.class.permissions_with_descriptions.keys.filter do |permission|
+      self[permission]
+    end
+  end
+
   def self.permissions_with_descriptions
     {
       can_view_clients: {

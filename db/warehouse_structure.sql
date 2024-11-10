@@ -5840,6 +5840,39 @@ ALTER SEQUENCE public.client_notes_id_seq OWNED BY public.client_notes.id;
 
 
 --
+-- Name: client_roi_authorizations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_roi_authorizations (
+    id bigint NOT NULL,
+    destination_client_id bigint NOT NULL,
+    status character varying NOT NULL,
+    coc_codes character varying[],
+    starts_at date,
+    expires_at date
+);
+
+
+--
+-- Name: client_roi_authorizations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_roi_authorizations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_roi_authorizations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_roi_authorizations_id_seq OWNED BY public.client_roi_authorizations.id;
+
+
+--
 -- Name: client_searchable_names; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -22836,6 +22869,27 @@ CREATE TABLE public.project_project_groups (
 
 
 --
+-- Name: project_access_group_members; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.project_access_group_members AS
+ SELECT targets.project_id,
+    group_viewable_entities.access_group_id
+   FROM (public.group_viewable_entities
+     JOIN ( SELECT "Project".data_source_id,
+            "Project".id AS project_id,
+            "Organization".id AS organization_id,
+            project_groups.id AS project_group_id
+           FROM (((public."Project"
+             LEFT JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
+             LEFT JOIN public.project_project_groups ON ((project_project_groups.project_id = "Project".id)))
+             LEFT JOIN public.project_groups ON (((project_groups.deleted_at IS NULL) AND (project_groups.id = project_project_groups.project_group_id))))
+          WHERE ("Project"."DateDeleted" IS NULL)) targets ON (((group_viewable_entities.deleted_at IS NULL) AND ((((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (group_viewable_entities.entity_id = targets.data_source_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Project'::text) AND (group_viewable_entities.entity_id = targets.project_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Organization'::text) AND (group_viewable_entities.entity_id = targets.organization_id)) OR ((((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::ProjectAccessGroup'::text) OR ((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::ProjectGroup'::text)) AND (group_viewable_entities.entity_id = targets.project_group_id))))))
+  WHERE ((group_viewable_entities.deleted_at IS NULL) AND (group_viewable_entities.collection_id IS NULL))
+  GROUP BY targets.project_id, group_viewable_entities.access_group_id;
+
+
+--
 -- Name: project_collection_members; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -28331,6 +28385,13 @@ ALTER TABLE ONLY public.client_notes ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: client_roi_authorizations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_roi_authorizations ALTER COLUMN id SET DEFAULT nextval('public.client_roi_authorizations_id_seq'::regclass);
+
+
+--
 -- Name: client_split_histories id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -31734,6 +31795,13 @@ ALTER TABLE ONLY public.client_merge_histories
 
 ALTER TABLE ONLY public.client_notes
     ADD CONSTRAINT client_notes_pkey PRIMARY KEY (id);
+
+--
+-- Name: client_roi_authorizations client_roi_authorizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_roi_authorizations
+    ADD CONSTRAINT client_roi_authorizations_pkey PRIMARY KEY (id);
 
 
 --
@@ -51225,6 +51293,13 @@ CREATE INDEX index_client_notes_on_user_id ON public.client_notes USING btree (u
 
 
 --
+-- Name: index_client_roi_authorizations_on_destination_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_client_roi_authorizations_on_destination_client_id ON public.client_roi_authorizations USING btree (destination_client_id);
+
+
+--
 -- Name: index_client_split_histories_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -62765,8 +62840,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240918170406'),
 ('20240918171315'),
 ('20240920203113'),
+('20241005004713'),
 ('20241003194213'),
 ('20241010005805'),
+('20241016010729'),
 ('20241011182445'),
 ('20241017181722'),
 ('20241017183109'),

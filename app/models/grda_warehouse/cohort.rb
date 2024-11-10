@@ -835,6 +835,7 @@ module GrdaWarehouse
 
     private def maintain_system_group
       AccessGroup.delayed_system_group_maintenance(group: :cohorts)
+      Collection.delayed_system_group_maintenance(group: :cohorts)
     end
 
     def self.maintain_auto_maintained!
