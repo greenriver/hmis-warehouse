@@ -1,13 +1,12 @@
-
 # The 20241010005805_prune_warehouse_indexes_phase_1 ran on staging and removed some indexes that
 # proved to be in use.
-class RevertWarehouseIndexesPhase1< ActiveRecord::Migration[7.0]
+class RevertWarehouseIndexesPhase1 < ActiveRecord::Migration[7.0]
   def up
     # the migration in question (we are reverting) only ran on staging/dev so skip if this is prod
     return if Rails.env.production?
 
     connection = GrdaWarehouseBase.connection
-    indexes.each do |sql|
+    index_txt.split("\n").each do |sql|
       connection.execute(sql)
     end
   end
@@ -18,7 +17,7 @@ class RevertWarehouseIndexesPhase1< ActiveRecord::Migration[7.0]
 
   protected
 
-  def indexes
+  def index_txt
     <<~TEXT
       CREATE INDEX IF NOT EXISTS "hmis_2022_affiliations-6457" ON public.hmis_2022_affiliations USING btree ("AffiliationID", data_source_id)
       CREATE INDEX IF NOT EXISTS "hmis_2022_funders-4ad5" ON public.hmis_2022_funders USING btree ("FunderID", data_source_id)

@@ -49,11 +49,6 @@ class PruneWarehouseIndexesPhase2 < ActiveRecord::Migration[7.0]
     end
   end
 
-  ## dry-run
-  # def remove_index(table, columns: nil, name: nil)
-  #   puts "would remove: #{table}, columns: #{columns.inspect}, name: #{name}"
-  # end
-
   def parse_definition(definition)
     # Parse the CREATE INDEX statement
     match = definition.match(/CREATE INDEX "?(?<index_name>[^"\s]+)"? ON (?:public\.)?(?<table>[^\s]+).*\((?<columns>.*)\)/)
