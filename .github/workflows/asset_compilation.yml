@@ -74,7 +74,7 @@ jobs:
         aws-region: us-east-1
 
     - id: container-setup
-      uses: ./.github/workflows/container_setup.yml
+      uses: ./.github/workflows/container_setup
 
     - name: Generate checksum and compile
       shell: bash
