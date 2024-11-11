@@ -12,20 +12,20 @@ jobs:
     container: ruby:3.1.6-alpine3.20
     steps:
       - name: Set up dependencies
-      env:
-        DATABASE_APP_DB_TEST: warehouse_app_test
-        WAREHOUSE_DATABASE_DB_TEST: warehouse_test
-        HEALTH_DATABASE_DB_TEST: health_test
-        DATABASE_DB_TEST: cas_test
-        REPORTING_DATABASE_DB_TEST: reporting_test
-        # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
-        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
-        PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
-      run: |
-        apk add --no-cache $(cat .github/dependencies.txt)
+        env:
+          DATABASE_APP_DB_TEST: warehouse_app_test
+          WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+          HEALTH_DATABASE_DB_TEST: health_test
+          DATABASE_DB_TEST: cas_test
+          REPORTING_DATABASE_DB_TEST: reporting_test
+          # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+        run: |
+          apk add --no-cache $(cat .github/dependencies.txt)
 
-        echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
-        chmod 600 ~/.pgpass
+          echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
+          chmod 600 ~/.pgpass
 
       # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
       # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)

@@ -73,8 +73,8 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
-    - call-reusable-workflow:
-        uses: ./.github/workflows/container_setup.yml
+    - id: container-setup
+      uses: ./.github/workflows/container_setup.yml
 
     - name: Generate checksum and compile
       shell: bash
