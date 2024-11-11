@@ -781,7 +781,7 @@ CREATE TABLE public."CurrentLivingSituation" (
     "PersonalID" character varying NOT NULL,
     "InformationDate" date NOT NULL,
     "CurrentLivingSituation" integer NOT NULL,
-    "VerifiedBy" character varying(100),
+    "VerifiedBy" character varying,
     "LeaveSituation14Days" integer,
     "SubsequentResidence" integer,
     "ResourcesToObtain" integer,
@@ -4160,7 +4160,7 @@ CREATE VIEW public.bi_lookups_yes_no_etcs AS
 --
 
 CREATE TABLE public.nightly_census_by_projects (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     date date NOT NULL,
     project_id integer NOT NULL,
     veterans integer DEFAULT 0,
@@ -6265,7 +6265,12 @@ CREATE TABLE public.cohort_clients (
     user_string_27 character varying,
     user_string_28 character varying,
     user_string_29 character varying,
-    user_string_30 character varying
+    user_string_30 character varying,
+    most_recent_cls character varying,
+    most_recent_prior_living_situation character varying,
+    most_recent_household_type character varying,
+    most_recent_self_report_months_homeless character varying,
+    most_recent_disabling_condition character varying
 );
 
 
@@ -6399,7 +6404,8 @@ CREATE TABLE public.cohorts (
     system_cohort boolean DEFAULT false,
     type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying,
     project_group_id bigint,
-    enforce_project_visibility_on_cells boolean DEFAULT true NOT NULL
+    enforce_project_visibility_on_cells boolean DEFAULT true NOT NULL,
+    expose_inactive_on_client_dashboard boolean DEFAULT false
 );
 
 
@@ -26215,7 +26221,8 @@ CREATE TABLE public.talentlms_configs (
     id bigint NOT NULL,
     subdomain character varying,
     encrypted_api_key character varying,
-    encrypted_api_key_iv character varying
+    encrypted_api_key_iv character varying,
+    create_new_accounts boolean DEFAULT true
 );
 
 
@@ -62034,6 +62041,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241018175039'),
 ('20241018220220'),
 ('20241022185534'),
-('20241023021050');
+('20241023021050'),
+('20241030133448'),
+('20241030133449'),
+('20241030133450'),
+('20241031145454'),
+('20241101134230'),
+('20241101160422');
 
 

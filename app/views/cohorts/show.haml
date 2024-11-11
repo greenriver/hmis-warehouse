@@ -13,7 +13,11 @@
 - if @cohort.inactive?
   %p.alert.alert-warning.text-center
     %i.icon-warning
-    This cohort is inactive.  Changes will not be reflected on client dashboards.
+    This cohort is inactive.
+    - if @cohort.should_show_on_client_dashboard?
+      However it is set to continue showing on client dashboards.
+    - else
+      Changes will not be reflected on client dashboards.
 
 = render 'nav', system_cohort: @cohort.system_cohort, active_tab: 'cohort'
 = render 'cohort_client_tabs', current: cohort_path(@cohort, population: @population)

@@ -26,6 +26,7 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
     first(:button, 'Submit').click
     assert_text 'Ignore Warnings'
     click_button 'Confirm'
+    assert_text "#{c1.full_name} Assessments" # waits, so we can be sure the mutation completes before reloading
     e1.reload
   end
 

@@ -2,7 +2,7 @@ require 'rails_helper'
 
 # curl -I -s "http://hmis-url/?[1-350]" | grep HTTP/
 
-describe Rack::Attack, type: :request do
+RSpec.describe Rack::Attack, type: :request do
   let(:user) { create :user }
 
   before(:all) do
