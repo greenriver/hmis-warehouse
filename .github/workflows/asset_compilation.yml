@@ -75,6 +75,8 @@ jobs:
 
     - id: container-setup
       uses: ./.github/workflows/container_setup
+      with:
+        os: ${{ runner.os }}
 
     - name: Generate checksum and compile
       shell: bash
