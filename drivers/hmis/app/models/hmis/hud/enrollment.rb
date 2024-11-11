@@ -337,13 +337,16 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def occurrence_point_forms
-    project.occurrence_point_form_instances.map do |instance|
+    # Iterate over all instances, even if they don't match the project, in case there is legacy data
+    instances = Hmis::Form::Instance.with_role(:OCCURRENCE_POINT)
+
+    instances.map do |instance|
       # This instance is enabled for this project _and_ matches this Enrollment (for "Data Collected About")
-      matches = instance.project_and_enrollment_match(project: project, enrollment: self).present?
+      matches = instance.active? && instance.published? && instance.project_and_enrollment_match(project: project, enrollment: self).present?
       next instance if matches
 
-      # This instance is enabled for this project BUT doesn't match this Enrollment.
-      # Determine if it has any data, in which case we will show it anyway.
+      # This instance doesn't match this Enrollment. It may not be published or active, but check if it has any data,
+      # in which case we will show it anyway
       has_any_data = false
       instance.definition.walk_definition_nodes(as_open_struct: true) do |item|
         next unless item.mapping.present?

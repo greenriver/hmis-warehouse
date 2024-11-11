@@ -100,6 +100,10 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     end
   end
 
+  def published?
+    definitions.published.any?
+  end
+
   def validate_external_form_restrictions
     return unless definition.role.to_s == 'EXTERNAL_FORM'
 

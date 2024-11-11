@@ -313,9 +313,29 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         expect(hoh_enrollment.occurrence_point_forms).to be_empty
       end
 
-      it 'does not return when an inactive instance exists' do
-        create(:hmis_form_instance, role: role, entity: p1, active: false)
-        expect(hoh_enrollment.occurrence_point_forms).to be_empty
+      context 'when an inactive instance exists' do
+        let!(:instance) { create(:hmis_form_instance, role: role, entity: project, active: false, definition: definition) }
+
+        it 'does not return the form' do
+          expect(hoh_enrollment.occurrence_point_forms).to be_empty
+        end
+
+        context 'but legacy data exists' do
+          let!(:spouse_enrollment) do
+            create(
+              :hmis_hud_enrollment,
+              project: project,
+              data_source: ds1,
+              household_id: 'household1',
+              relationship_to_hoh: 3,
+              move_in_date: 3.weeks.ago,
+            )
+          end
+
+          it 'does return the form' do
+            expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(instance)
+          end
+        end
       end
     end
 
