@@ -6565,7 +6565,8 @@ CREATE TABLE public.configs (
     filter_date_span_years integer DEFAULT 1 NOT NULL,
     include_pii_in_detail_downloads boolean DEFAULT true,
     self_report_start_date date,
-    chronic_adult_only_cohort boolean DEFAULT false
+    chronic_adult_only_cohort boolean DEFAULT false,
+    enable_auto_deduplication boolean DEFAULT true
 );
 
 
@@ -18477,7 +18478,8 @@ CREATE TABLE public.hmis_form_definitions (
     title character varying NOT NULL,
     deleted_at timestamp without time zone,
     external_form_object_key character varying,
-    backup_definition jsonb
+    backup_definition jsonb,
+    managed_in_version_control boolean DEFAULT false
 );
 
 
@@ -20133,7 +20135,8 @@ CREATE TABLE public.hud_report_apr_clients (
     current_school_attend_at_exit integer,
     most_recent_ed_status_at_exit integer,
     current_ed_status_at_exit integer,
-    pay_for_success boolean DEFAULT false
+    pay_for_success boolean DEFAULT false,
+    race_multi_include_race_none character varying
 );
 
 
@@ -62773,12 +62776,15 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241018170014'),
 ('20241018174906'),
 ('20241018175039'),
+('20241018220220'),
+('20241021182945'),
 ('20241022185534'),
 ('20241023021050'),
 ('20241030133448'),
 ('20241030133449'),
 ('20241030133450'),
 ('20241101134230'),
-('20241101160422');
+('20241101160422'),
+('20241111143412');
 
 
