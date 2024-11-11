@@ -36,11 +36,13 @@ jobs:
       - name: cache gems
         uses: actions/cache@v4
         id: gemcache
+        env:
+          OS: ${{ inputs.os }}
         with:
           path: |
             vendor/bundle
             /usr/local/bundle/
-          key: ${{ inputs.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
+          key: $OS-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
 
       - name: Install gems
         if: always()
@@ -51,9 +53,11 @@ jobs:
 
       - name: Cache Node.js modules
         uses: actions/cache@v4
+        env:
+          OS: ${{ inputs.os }}
         with:
           path: node_modules
-          key: ${{ inputs.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
+          key: $OS-node_modules-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install Node.js modules
         run: yarn install --frozen-lockfile
