@@ -111,14 +111,14 @@ select
 		else pStart end
 	, case 
 		when LSAProjectType = 1 and LastBednight = rpt.ReportEnd then null
-		when LSAProjectType = 1 and ExitDate <= rpt.ReportEnd then dateadd(dd, 1, LastBednight)
+		when LSAProjectType = 1 and ExitDate < rpt.ReportEnd then dateadd(dd, 1, LastBednight)
 		when dateadd(dd, 90, LastBednight) <= rpt.ReportEnd then dateadd(dd, 1, LastBednight)
 		-- When RRH MoveInDate = ExitDate, uses an effective ExitDate of MoveIn + 1 day so that subsequent
 		--	sections can use the same logic for RRH and PSH.
 		when LSAProjectType in (13,15) and core.MoveInDate = ExitDate and ExitDate = rpt.ReportEnd then NULL
 		when LSAProjectType in (13,15) and core.MoveInDate = ExitDate and ExitDate < rpt.ReportEnd then dateadd(dd, 1, ExitDate)
-		when ExitDate <= rpt.ReportEnd or (pEnd is null and ExitDate is null) then ExitDate   
-		else pEnd end 
+		when pEnd is not null and (ExitDate is null or ExitDate >= pEnd) then pEnd   
+		else ExitDate end 
 	, LastBednight
 	, '3.3.1'
 from

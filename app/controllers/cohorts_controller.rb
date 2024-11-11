@@ -197,6 +197,7 @@ class CohortsController < ApplicationController
       :active_cohort,
       :static_column_count,
       :show_on_client_dashboard,
+      :expose_inactive_on_client_dashboard,
       :visible_in_cas,
       :assessment_trigger,
       :tag_id,

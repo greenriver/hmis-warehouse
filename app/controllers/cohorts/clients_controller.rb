@@ -603,15 +603,18 @@ module Cohorts
     # only clients who have at least one source client
     # that is visible in the window
     # This is more strict than visible_in_window_to(user)
+    # Additionally limited to clients the user has access to see
+    # via can_view_clients or an ROI
     def client_scope
-      if @cohort.only_window
+      scope = if @cohort.only_window
         client_source.destination.where(
           id: GrdaWarehouse::WarehouseClient.joins(:data_source).
-          where(ds_t[:visible_in_window].eq(true)).select(:destination_id),
+          merge(GrdaWarehouse::DataSource.visible_in_window).select(:destination_id),
         )
       else
         client_source.destination
       end
+      scope.destination_visible_to(current_user)
     end
 
     def client_source

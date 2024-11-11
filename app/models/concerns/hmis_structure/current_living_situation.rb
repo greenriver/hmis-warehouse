@@ -116,7 +116,7 @@ module HmisStructure::CurrentLivingSituation
           },
           VerifiedBy: {
             type: :string,
-            limit: 100,
+            limit: 200,
           },
           LeaveSituation14Days: {
             type: :integer,
