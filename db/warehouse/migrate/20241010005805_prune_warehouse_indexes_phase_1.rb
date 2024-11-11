@@ -41,10 +41,8 @@ class PruneWarehouseIndexesPhase1 < ActiveRecord::Migration[7.0]
   # it seems that the index names aren't consistent between prod and dev. Attempt to remove the index by name only
   def remove_index_safely(table:, index_name:, columns:)
     if index_exists?(table, columns, name: index_name)
-      remove_index(table, name: index_name) if check_unused_index_table(index_name, table) # additional safety check
-    # we could try and remove equivalent index but there's less certainty that is is unused if the name doesn't match
-    # elsif Rails.env.development? && index_exists?(table, columns)
-    #   remove_index(table, column: columns)
+      # remove_index(table, name: index_name) if check_unused_index_table(index_name, table) # additional safety check
+      Rails.logger.info("dry-run, would remove #{table} #{index_name}") if check_unused_index_table(index_name, table) # additional safety check
     else
       msg = "Index not found for table: #{table}, columns: #{columns.join(', ')}"
       Rails.logger.error(msg)
