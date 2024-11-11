@@ -110,7 +110,7 @@ class Cronjob
   end
 
   def namespace
-    'warehouse-qa-staging'
+    ENV.fetch('K8S_NAMESPACE', 'namespace-should-be-set-via-kyverno-policy')
   end
 
   def crons

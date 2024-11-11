@@ -244,4 +244,18 @@ class Hmis::User < ApplicationRecord
   def self.apply_filters(input)
     Hmis::Filter::ApplicationUserFilter.new(input).filter_scope(self)
   end
+
+  # list any data sources the user has some level of access to
+  def data_source_ids
+    ids_for_relations(:data_source_ids)
+  end
+
+  # memoize some id lookups to prevent N+1s (copied from warehouse User)
+  private def ids_for_relations(relation)
+    @ids_for_relations ||= {}
+    return @ids_for_relations[relation] if @ids_for_relations.key?(relation)
+
+    @ids_for_relations[relation] = access_groups.flat_map(&relation).uniq
+    @ids_for_relations[relation]
+  end
 end

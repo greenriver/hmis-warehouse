@@ -1,5 +1,5 @@
 x-app: &app
-  image: hmis-warehouse:4.2
+  image: hmis-warehouse:4.3
   build:
     context: .
     dockerfile: docker/app/Dockerfile
@@ -16,6 +16,7 @@ x-app: &app
     AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
     AWS_SECURITY_TOKEN: ${AWS_SECURITY_TOKEN:-}
     AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+    EAGER_LOAD: ${EAGER_LOAD:-false}
     NODE_ENV: ${NODE_ENV:-development}
     BOOTSNAP_CACHE_DIR: /bundle/bootsnap
     WEBPACKER_DEV_SERVER_HOST: webpacker
@@ -102,16 +103,29 @@ services:
       minio:
         condition: service_started
 
-  dj-metrics:
+  # once we're fully on EKS, we can refactor this into the main dj service.
+  dj-eks:
     <<: *backend
-    entrypoint: /usr/bin/entrypoint.dj-metrics.sh
+    profiles:
+      - eks
+    entrypoint: '/usr/bin/entrypoint.dj-eks-test.sh'
+    command: "delayed_job run --pool=*:1"
     ports:
       # visit localhost:34533/metrics
       - "${DJ_METRICS_PORT:-34533}:9292"
     expose:
       - "9292"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9292/metrics"]
+      interval: 60s
+      timeout: 3s
+      retries: 3
     depends_on:
-      dj:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
         condition: service_started
 
   yarn:

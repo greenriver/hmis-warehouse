@@ -125,7 +125,7 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache/${{ matrix.cache_key }}
           cache-to: type=local,dest=/tmp/.buildx-cache/${{ matrix.cache_key }},mode=max
 
-      - name: Push scanned image with tags
+      - name: Push image with tags
         env:
           image: ${{ secrets.ECR_REPOSITORY_URI }}
         run: |

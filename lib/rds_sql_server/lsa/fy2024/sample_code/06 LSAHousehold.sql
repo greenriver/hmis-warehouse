@@ -229,49 +229,36 @@ begin
 	-- Enrollment with latest active date in report period for project group
 */
 
-	update hh
-	set hh.ESTGeography = case when hh.ESTStatus = 0 then -1 
-			else coalesce(
-				(select top 1 coc.GeographyType
-				from tlsa_HHID hhid
-				inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
-				inner join lsa_ProjectCoC coc on coc.ProjectID = hhid.ProjectID 
-				where hhid.Active = 1 and hhid.LSAProjectType in (0,1,2,8) 
-					and hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
-				order by case when hhid.ExitDate is null then rpt.ReportEnd else hhid.ExitDate end desc
-					, hhid.EntryDate desc)
-				, 99) end
-		, hh.Step = '6.5.1'
-	from tlsa_Household hh 
 
-	update hh
-	set hh.RRHGeography = case when hh.RRHStatus = 0 then -1 
+update hh
+set hh.ESTGeography = case when hh.ESTStatus = 0 then -1 
+		else coalesce(
+			(select top 1 coc.GeographyType
+			from tlsa_HHID hhid
+			inner join lsa_ProjectCoC coc on coc.ProjectID = hhid.ProjectID 
+			where hhid.Active = 1 and hhid.LSAProjectType in (0,1,2,8) 
+				and hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
+				order by coalesce(hhid.ExitDate, '9999-9-9') desc, hhid.EntryDate desc)
+			, 99) end
+	,hh.RRHGeography = case when hh.RRHStatus = 0 then -1 
 			else coalesce(
 				(select top 1 coc.GeographyType
 				from tlsa_HHID hhid
-				inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
 				inner join lsa_ProjectCoC coc on coc.ProjectID = hhid.ProjectID 
 				where hhid.Active = 1 and hhid.LSAProjectType = 13 
 					and hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
-				order by case when hhid.ExitDate is null then rpt.ReportEnd else hhid.ExitDate end desc
-					, hhid.EntryDate desc)
+				order by coalesce(hhid.ExitDate, '9999-9-9') desc, hhid.EntryDate desc)
 				, 99) end
-		, hh.Step = '6.5.2'
-	from tlsa_Household hh 
-
-	update hh
-	set hh.PSHGeography = case when hh.PSHStatus = 0 then -1 
+	, hh.PSHGeography = case when hh.PSHStatus = 0 then -1 
 			else coalesce(
 				(select top 1 coc.GeographyType
 				from tlsa_HHID hhid
-				inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
 				inner join lsa_ProjectCoC coc on coc.ProjectID = hhid.ProjectID 
 				where hhid.Active = 1 and hhid.LSAProjectType = 3 
 					and hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
-				order by case when hhid.ExitDate is null then rpt.ReportEnd else hhid.ExitDate end desc
-					, hhid.EntryDate desc)
+				order by coalesce(hhid.ExitDate, '9999-9-9') desc, hhid.EntryDate desc)
 				, 99) end
-		, hh.Step = '6.5.3'
+		, hh.Step = '6.5.1'
 	from tlsa_Household hh 
 
 /*
@@ -1276,8 +1263,8 @@ group by Stat
 		else TotalHomelessDays end 
 	, SystemPath, ESTAHAR, RRHAHAR, PSHAHAR, RRHSOStatus, RRHSOMoveIn, ReportID 
 
-end --END IF LSAScope <> HIC
+end -- END IF LSAScope <> HIC
+
 /*
 	End LSAHousehold
 */
-

@@ -15,19 +15,24 @@ module Types
     argument :dob, GraphQL::Types::ISO8601Date, required: true
     argument :gender, [Types::HmisSchema::Enums::Gender], required: false
 
-    def to_client
-      attributes = to_h.except(:gender)
-      hud_user = Hmis::Hud::User.system_user(data_source_id: current_user.hmis_data_source_id)
+    def self.to_client(attributes_hash, user)
+      attributes = attributes_hash.except(:gender)
+      genders = attributes_hash[:gender] || []
+      hud_user = Hmis::Hud::User.system_user(data_source_id: user.hmis_data_source_id)
       Hmis::Hud::Client.new(
         **attributes,
-        **Hmis::Hud::Processors::ClientProcessor.gender_attributes(gender || []),
+        **Hmis::Hud::Processors::ClientProcessor.gender_attributes(genders),
         **HudUtility2024.races.keys.map { |k| [k, 99] }.to_h,
         name_data_quality: 1,
         dob_data_quality: 1,
-        ssn_data_quality: ssn.present? ? 1 : 99,
+        ssn_data_quality: attributes[:ssn].present? ? 1 : 99,
         veteran_status: 99,
         user: hud_user,
       )
+    end
+
+    def to_client
+      self.class.to_client(to_h, current_user)
     end
   end
 end

@@ -11,10 +11,10 @@ module HudApr::Generators::Shared::Fy2024
     def self.table_descriptions
       {
         'Question 24' => '',
-        'Question 24a' => 'Homelessness Prevention Housing Assessment at Exit',
-        'Question 24b' => 'Moving On Assistance Provided to Households in PSH',
-        'Question 24c' => 'Sexual Orientation of Adults in PSH',
-        'Question 24d' => 'Language of Persons Requiring Translation Assistance',
+        'Q24a' => 'Homelessness Prevention Housing Assessment at Exit',
+        'Q24b' => 'Moving On Assistance Provided to Households in PSH',
+        'Q24c' => 'Sexual Orientation of Adults in PSH',
+        'Q24d' => 'Language of Persons Requiring Translation Assistance',
       }.freeze
     end
 

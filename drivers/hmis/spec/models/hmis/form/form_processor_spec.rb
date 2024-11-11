@@ -409,6 +409,34 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(disabilities.find_by(disability_type: 8).t_cell_count_available).to eq(1)
     end
 
+    it 'processes HOPWA fields (regression #6864)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'DisabilityGroup.hivAids' => 'YES',
+        'DisabilityGroup.tCellCountAvailable' => 'YES',
+        'DisabilityGroup.tCellCount' => '222',
+        'DisabilityGroup.tCellSource' => 'MEDICAL_REPORT',
+        'DisabilityGroup.viralLoadAvailable' => 'AVAILABLE',
+        'DisabilityGroup.viralLoad' => '333',
+        'DisabilityGroup.viralLoadSource' => 'CLIENT_REPORT',
+        'Enrollment.disablingCondition' => 'YES',
+      }
+
+      assessment.form_processor.run!(user: hmis_user)
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.disabilities.count).to eq(1)
+      expect(assessment.enrollment.disabling_condition).to eq(1)
+      disability = assessment.enrollment.disabilities.sole
+      expect(disability.disability_type).to eq(8) # hiv/aids
+      expect(disability.t_cell_count_available).to eq(1)
+      expect(disability.t_cell_count).to eq(222)
+      expect(disability.t_cell_source).to eq(1) # medical report
+      expect(disability.viral_load_available).to eq(1)
+      expect(disability.viral_load).to eq(333)
+      expect(disability.viral_load_source).to eq(2) # client report
+    end
+
     it 'can process nil and _HIDDEN DisabilityGroup fields' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
@@ -1210,6 +1238,22 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(client.contact_points.pluck(:id)).to include(contact1.id)
       expect(client.contact_points.pluck(:id)).not_to include(contact2.id)
       expect(client.contact_points.pluck(:value)).to contain_exactly('foo@bar.com', 'baz@boop.com')
+    end
+
+    describe 'with imageBlobId' do
+      let!(:file) { File.open('drivers/hmis/spec/fixtures/files/client_photo_00001.jpg') }
+      let(:blob) { ActiveStorage::Blob.create_and_upload!(io: file, filename: 'client_photo_00001.jpg', content_type: 'image/jpeg') }
+      let(:hud_values) { complete_hud_values.merge('imageBlobId' => blob.id.to_s) }
+
+      it 'creates a ClientFile tagged as a client headshot' do
+        client = Hmis::Hud::Client.new(data_source: ds1, user: u1)
+        process_record(record: client, hud_values: hud_values, user: hmis_user, definition: definition)
+
+        file = client.client_files.first
+        expect(file.name).to eq(GrdaWarehouse::ClientFile.headshot_tag_name)
+        expect(file.visible_in_window).to be false
+        expect(GrdaWarehouse::ClientFile.client_photos).to include(file) # ensures correct tagging
+      end
     end
 
     describe 'with unknown custom field' do

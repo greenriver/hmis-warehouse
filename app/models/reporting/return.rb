@@ -72,6 +72,10 @@ module Reporting
         enrollment_data(ids).pluck(*enrollment_columns.values).each do |row|
           enrollments[row.first] = row_to_hash(row, enrollment_columns.keys)
         end
+
+        # if we didn't find any enrollments in this batch, skip it
+        next unless enrollments.present?
+
         # create an array with a record for each enrollment that includes the first and last date seen
         service_data(enrollments.keys).pluck_in_batches(shs_columns.values, batch_size: 400_000) do |batch|
           batch.each do |row|

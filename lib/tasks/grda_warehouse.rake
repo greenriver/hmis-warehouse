@@ -326,7 +326,7 @@ namespace :grda_warehouse do
     end
 
     if DateTime.current.hour == 4 && RailsDrivers.loaded.include?(:hmis_supplemental)
-      HmisSupplemental::DataSet.order(:id).each do |data_set|
+      HmisSupplemental::DataSet.where(sync_enabled: true).order(:id).each do |data_set|
         HmisSupplemental::ImportJob.perform_later(data_set_id: data_set.id)
       end
     end
