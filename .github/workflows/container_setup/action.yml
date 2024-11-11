@@ -1,15 +1,14 @@
 name: Container Setup
-inputs:
-  os:
-    description: 'OS of the GitHub runner'
-    required: true
-    default: ''
+
 on:
   workflow_call:
     secrets:
       GITHUB_TOKEN:
         required: true
-
+    inputs:
+      os:
+        description: 'OS of the GitHub runner'
+        required: true
 jobs:
   reusable_job:
     runs-on: ubuntu-20.04
@@ -41,7 +40,7 @@ jobs:
           path: |
             vendor/bundle
             /usr/local/bundle/
-          key: ${{ github.event.inputs.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
+          key: ${{ inputs.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
 
       - name: Install gems
         if: always()
@@ -54,7 +53,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ github.event.inputs.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ inputs.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install Node.js modules
         run: yarn install --frozen-lockfile
