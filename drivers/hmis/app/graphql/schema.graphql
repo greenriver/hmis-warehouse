@@ -3294,6 +3294,11 @@ type Enrollment {
   currentUnit: Unit
   customCaseNotes(limit: Int, offset: Int, sortOrder: CustomCaseNoteSortOption): CustomCaseNotesPaginated!
   customDataElements: [CustomDataElement!]!
+
+  """
+  Data collection features that are enabled for this Enrollment (e.g. Current Living Situations, Events)
+  """
+  dataCollectionFeatures: [DataCollectionFeature!]!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateOfBcpStatus: ISO8601Date

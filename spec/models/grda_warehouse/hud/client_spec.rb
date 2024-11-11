@@ -35,11 +35,12 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     let!(:client) { create :grda_warehouse_hud_client }
 
     before(:all) do
-      @paper_trail_was = PaperTrail.enabled?
       PaperTrail.enabled = true
+      PaperTrail.request.enabled = true
     end
     after(:all) do
-      PaperTrail.enabled = @paper_trail_was
+      PaperTrail.enabled = false
+      PaperTrail.request.enabled = false
     end
 
     it 'tracks versions for committed changes to the correct table' do

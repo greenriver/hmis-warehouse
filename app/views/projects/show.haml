@@ -45,11 +45,11 @@
               - if @project.HousingType.present?
                 = HudUtility2024.housing_type(@project.HousingType)
                 (#{@project.HousingType})
-        - if can_view_imports?
+        - if project_policy.can_view_imports?
           %tr
             %th Project Contacts
             %td= link_to 'View/Edit', project_contacts_path(@project)
-        - if can_view_project_locations? && RailsDrivers.loaded.include?(:client_location_history)
+        - if project_policy.can_view_project_locations?
           %tr
             %th Client Locations
             %td= link_to 'View', map_client_location_history_project_path(@project)
@@ -72,14 +72,14 @@
             %td
               - @project.affiliated_projects.each do |project|
                 = link_to project_path(project) do
-                  = project.name(current_user, ignore_confidential_status: can_edit_projects?)
+                  = project.name(current_user, ignore_confidential_status: project_policy.can_edit?)
         - if @project.residential_projects.any?
           %tr
             %th Affiliated Residential Projects
             %td
               - @project.residential_projects.each do |project|
                 = link_to project_path(project) do
-                  = project.name(current_user, ignore_confidential_status: can_edit_projects?)
+                  = project.name(current_user, ignore_confidential_status: project_policy.can_edit?)
 
   .col-sm-4
     .card
@@ -105,19 +105,19 @@
           %th PIT Count
           %td= @project.PITCount
   .col-sm-4.text-right
-    - if can_edit_projects?
+    - if project_policy.can_edit?
       .mb-4
         = link_to edit_project_path(@project), class: ['btn', 'btn-sm', 'btn-secondary'] do
           %i.icon-pencil
           Edit Project
-    - if can_delete_projects?
+    - if project_policy.can_delete?
       .mb-4
         = link_to project_path(@project), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: "Deleting #{@project.ProjectName} will delete ALL associated data.  Do you want to proceed?"} do
           %i.icon-cross
           Delete Project
-    - if RailsDrivers.loaded.include?(:synthetic_ce_assessment) && can_edit_projects?
+    - if RailsDrivers.loaded.include?(:synthetic_ce_assessment) && project_policy.can_edit?
       = render 'synthetic_ce_assessments/project_config'
-    - if can_see_raw_hmis_data?
+    - if project_policy.can_see_raw_hmis_data?
       .mb-4
         = link_to 'HMIS', source_datum_path(@project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
 - overrides = HmisCsvImporter::ImportOverride.where(data_source: @project.data_source).sorted.select { |override| override.applies?(@project) }
@@ -139,7 +139,7 @@
   :javascript
     (function($) {
       if ('#{@census_filter_params.present?}' === 'true') {
-        census = new App.Census.Base('#{date_range_censuses_path()}', '#{@census_filter_params.to_json.html_safe}', { follow_link: '#{can_view_clients?}' });
+        census = new App.Census.Base('#{date_range_censuses_path()}', '#{@census_filter_params.to_json.html_safe}', { follow_link: '#{project_policy.can_view_clients?}' });
         census.load();
       }
     })(jQuery);
