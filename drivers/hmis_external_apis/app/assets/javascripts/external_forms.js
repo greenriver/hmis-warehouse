@@ -221,7 +221,7 @@ window.addDependentGroup = function (conditions, targetSelector, enableBehavior 
   // When *any* dependent item changes, this function will check all the conditions, and show/hide the target item accordingly.
   var onDependentItemChanged = function() {
     var evaluations = conditions.map(function (condition) {
-      var $el = $('[name="' + condition.input_name + '"]')
+      var $el = $('[name="' + condition.input_name + '"]:visible')
 
       // If the dependent item is a radio button item, we need to look at all the radio buttons with the same name, and find the one that is checked.
       if ($el.is(':radio')) {

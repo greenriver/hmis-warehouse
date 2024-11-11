@@ -76,6 +76,19 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       expect(selected_instances.size).to eq(0)
     end
 
+    it 'returns none if form is draft' do
+      create(:hmis_form_definition, role: :REFERRAL, identifier: 'bad-referral-form', status: :draft)
+      create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'bad-referral-form')
+      expect(selected_instances.size).to eq(0)
+    end
+
+    it 'returns the instance if form is retired' do
+      create(:hmis_form_definition, role: role, identifier: 'fully-retired-form', status: :retired)
+      inst_for_retired = create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'fully-retired-form')
+
+      expect(selected_instances).to contain_exactly(inst_for_retired)
+    end
+
     it 'chooses default instance, prefers active > inactive' do
       default_inst = create(:hmis_form_instance, role: role, entity: nil)
       create(:hmis_form_instance, role: role, entity: nil, active: false) # not chosen
@@ -205,6 +218,13 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       doe_org = create(:hmis_form_instance, role: role, entity: project.organization, definition_identifier: doe_default.definition_identifier)
 
       expect(selected_instances).to contain_exactly(mid_project, doe_org)
+    end
+
+    it 'does not return draft forms, even for active instances' do
+      create(:hmis_form_definition, role: role, identifier: 'abc-assessment', status: :draft)
+      create(:hmis_form_instance, role: role, entity: project, definition_identifier: 'abc-assessment')
+
+      expect(selected_instances).to be_empty
     end
   end
 

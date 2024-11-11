@@ -14,7 +14,7 @@ module Reporting::Hud
 
       # Load the report so we can key the advisory lock off of the specific report
       report = HudReports::ReportInstance.find_by(id: report_id)
-      # Occassionally people delete the report before it actually runs
+      # Occasionally people delete the report before it actually runs
       return unless report.present?
 
       # advisory lock to check the number of jobs running for this generator so we don't
@@ -38,16 +38,28 @@ module Reporting::Hud
       end
 
       puts "Running: #{@generator.class.name} Report ID: #{report_id}"
-      report.start_report
-      @generator.class.questions.each do |q, klass|
-        next unless report.build_for_questions.include?(q)
 
-        klass.new(@generator, report).run!
+      capture_failure(report) do
+        @generator.prepare_report
+        @generator.class.questions.each do |q, klass|
+          klass.new(@generator, report).run! if report.build_for_questions.include?(q)
+        end
       end
 
       report_completed = report.complete_report
       NotifyUser.driver_hud_report_finished(@generator).deliver_now if report.user_id && email
       report_completed
+    end
+
+    protected def capture_failure(report)
+      yield
+    rescue StandardError => e
+      # for debugging sql issues in tests, raise immediately since attempting further updates will crash in failed tx
+      # and we'd like to get the backtrace from the original exception
+      raise if Rails.env.test? && e.is_a?(ActiveRecord::StatementInvalid)
+
+      report.update!(state: 'Failed') unless report.failed?
+      raise
     end
 
     private def requeue_job(class_name)

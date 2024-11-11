@@ -49,6 +49,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     owner_type == Hmis::Hud::CustomAssessment.sti_name
   end
 
+  def external_form_submission?
+    owner_type == HmisExternalApis::ExternalForms::FormSubmission.sti_name
+  end
+
   def unknown_field_error(definition)
     RuntimeError.new("Not a submittable field for Form Definition '#{definition.title}' (ID: #{definition.id})")
   end
@@ -97,6 +101,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         # This related record will be created or updated, so assign the metadata and information date.
         processor&.assign_metadata
         processor&.information_date(owner.assessment_date) if custom_assessment?
+        processor&.information_date(owner.submitted_at.to_date) if external_form_submission?
       end
     end
 
@@ -222,15 +227,13 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
   end
 
-  # Common HUD Assessment-related attributes
+  # Common HUD Assessment-related attributes. These always have enrollments so enrollment_factory *should* exist
   def common_attributes
     data_collection_stage = owner.data_collection_stage if owner.respond_to?(:data_collection_stage)
-    personal_id = owner.personal_id if owner.respond_to?(:personal_id)
-    information_date = owner.information_date if owner.respond_to?(:information_date)
+    personal_id = enrollment_factory(create: false)&.personal_id
     {
       data_collection_stage: data_collection_stage,
       personal_id: personal_id,
-      information_date: information_date,
     }
   end
 

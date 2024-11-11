@@ -428,7 +428,16 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   private def warehouse_columns_changed?
-    (saved_changes.keys & ['EntryDate', 'ProjectID', 'DateDeleted']).any?
+    # Re-process when there are changes to any fields used in GrdaWarehouse::Tasks::ServiceHistory rebuild_service_history
+    (saved_changes.keys & [
+      'EntryDate',
+      'ProjectID', # If Enrollment was moved from WIP=>non-WIP, or moved to a different Project
+      'HouseholdID', # If Enrollment was moved to a different Household
+      'RelationshipToHoH',
+      'MoveInDate',
+      'LivingSituation',
+      'DateDeleted',
+    ]).any?
   end
 
   include RailsDrivers::Extensions

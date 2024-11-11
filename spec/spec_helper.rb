@@ -18,7 +18,18 @@
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 ENV['RAILS_ENV'] = 'test'
 
-require 'simplecov' if ENV['COVERAGE']
+if ENV['COVERAGE'] == 'true'
+  require 'simplecov'
+  SimpleCov.start do
+    add_filter '/spec/'
+    # in CI we run tests in batches with a command similar to:
+    # bundle exec rspec --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ci_bucket:bucket-2 --tag ~type:system
+    # this attempts to tell simplecov that we should treat those as different commands and should merge rather
+    # than clobber the coverage
+    bucket = ARGV&.join('_')
+    command_name(bucket) if bucket
+  end
+end
 
 RSpec.configure do |config|
   ENV['NO_LSA_RDS'] = 'true'

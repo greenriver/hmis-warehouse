@@ -35,8 +35,15 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionFive
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
+      es_sh_so_projects = HudUtility2024.performance_reporting[:es] + HudUtility2024.performance_reporting[:sh] + HudUtility2024.performance_reporting[:so]
+      th_projects = HudUtility2024.performance_reporting[:th]
+      ph_projects = HudUtility2024.performance_reporting[:ph]
+      ce_projects = HudUtility2024.performance_reporting[:ce]
+      sso_ds_hp_projects = HudUtility2024.performance_reporting[:services_only] + HudUtility2024.performance_reporting[:day_shelter] + HudUtility2024.performance_reporting[:prevention]
+      report_projects = es_sh_so_projects + th_projects + ph_projects + ce_projects + sso_ds_hp_projects
+
       adults_and_hohs = universe.members.where(engaged_clause).where(
-        a_t[:project_type].in([0, 1, 4, 8, 2, 3, 9, 10, 13]).
+        a_t[:project_type].in(report_projects).
           and(a_t[:first_date_in_program].gt(Date.parse('2016-10-01')).
             and(a_t[:age].gteq(18).
               or(a_t[:head_of_household].eq(true).
@@ -45,10 +52,10 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionFive
       )
 
       es_sh_so_clients = es_sh_so(table_name, adults_and_hohs)
-      th_clients = project_type_row(table_name, adults_and_hohs, row_number: 3, project_types: [2])
-      ph_clients = project_type_row(table_name, adults_and_hohs, row_number: 4, project_types: [3, 9, 10, 13])
-      ce_clients = project_type_row(table_name, adults_and_hohs, row_number: 5, project_types: [14])
-      sso_clients = project_type_row(table_name, adults_and_hohs, row_number: 6, project_types: [6, 11, 12])
+      th_clients = project_type_row(table_name, adults_and_hohs, row_number: 3, project_types: th_projects)
+      ph_clients = project_type_row(table_name, adults_and_hohs, row_number: 4, project_types: ph_projects)
+      ce_clients = project_type_row(table_name, adults_and_hohs, row_number: 5, project_types: ce_projects)
+      sso_ds_hp_clients = project_type_row(table_name, adults_and_hohs, row_number: 6, project_types: sso_ds_hp_projects)
 
       # totals
       answer = @report.answer(question: table_name, cell: 'B7')
@@ -61,14 +68,15 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionFive
         or(th_clients).
         or(ph_clients).
         or(ce_clients).
-        or(sso_clients)
+        or(sso_ds_hp_clients)
       answer.add_members(total_members)
       answer.update(summary: total_members.count)
       answer.update(summary: percentage(total_members.count / adults_and_hohs.count.to_f))
     end
 
     private def es_sh_so(table_name, adults_and_hohs)
-      es_sh_so = adults_and_hohs.where(a_t[:project_type].in([0, 1, 4, 8]))
+      es_sh_so_projects = HudUtility2024.performance_reporting[:es] + HudUtility2024.performance_reporting[:sh] + HudUtility2024.performance_reporting[:so]
+      es_sh_so = adults_and_hohs.where(a_t[:project_type].in(es_sh_so_projects))
 
       # count
       answer = @report.answer(question: table_name, cell: 'B2')

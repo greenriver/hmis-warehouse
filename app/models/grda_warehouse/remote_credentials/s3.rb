@@ -12,6 +12,9 @@ module GrdaWarehouse
     alias_attribute :s3_secret_access_key, :password
     alias_attribute :s3_prefix, :path
 
+    validates :region, presence: true
+    validates :bucket, presence: true
+
     def s3
       @s3 ||= if s3_secret_access_key.present? && s3_secret_access_key != 'unknown'
         AwsS3.new(

@@ -77,8 +77,8 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
       )
     end
 
-    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec5AxqrAUl0f8yAf
-    xit 'Q7b' do
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec5AxqrAUl0f8yAf
+    it 'Q7b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q7b',
@@ -98,10 +98,10 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
         question: 'Q8b',
         # The following are off by a few after the fix for PIT households
         skip: [
-          'B3',
-          'D3',
-          'B4',
-          'D4',
+          'B3', # expected '28.0000' (28), got '27.0000' (27)
+          'D3', # expected '10.0000' (10), got '9.0000' (9)
+          'B4', # expected '16.0000' (16), got '14.0000' (14)
+          'D4', # expected '6.0000' (6), got '4.0000' (4)
         ],
       )
     end
@@ -262,12 +262,14 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q21' do
+    it 'Q21' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q21',
+        skip: [
+          'C14', # expected '5.0000' (5), got '3.0000' (3)
+          'C15', # expected '17.0000' (17), got '19.0000' (19)
+        ],
       )
     end
 
@@ -292,30 +294,58 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q22e' do
+    it 'Q22e' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22e',
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q22f' do
+    it 'Q22f' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22f',
+        skip: [
+          'D2', # expected '5.0000' (5), got '12.0000' (12)
+          'H2', # expected '86.0000' (86), got '97.0000' (97)
+          'I2', # expected '17.0000' (17), got '18.0000' (18)
+          'D3', # expected '7.0000' (7), got '0.0000' (0)
+          'H3', # expected '20.0000' (20), got '9.0000' (9)
+          'I3', # expected '5.0000' (5), got '4.0000' (4)
+          'D4', # expected '18.6000' (18.6000), got '158.5000' (158.5)
+          'H4', # expected '15.0800' (15.0814), got '17.5500' (17.5464)
+          'I4', # expected '1.5900' (1.5882), got '21.8300' (21.8333)
+          'D5', # expected '0.0000' (0.0000), got '46.5000' (46.5)
+          'H5', # expected '1.5000' (1.5000), got '1.0000' (1.0)
+          'I5', # expected '0.0000' (0.0000), got '0.5000' (0.5)
+        ],
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q22g' do
+    it 'Q22g' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
+        skip: [
+          'B2', # expected '1.0000' (1), got '2.0000' (2)
+          'D2', # expected '8.0000' (8), got '16.0000' (16)
+          'H2', # expected '105.0000' (105), got '130.0000' (130)
+          'I2', # expected '20.0000' (20), got '28.0000' (28)
+          'J2', # expected '7.0000' (7), got '8.0000' (8)
+          'D3', # expected '0.0000' (0), got '3.0000' (3)
+          'H3', # expected '0.0000' (0), got '8.0000' (8)
+          'I3', # expected '0.0000' (0), got '4.0000' (4)
+          'J3', # expected '0.0000' (0), got '2.0000' (2)
+          'B4', # expected '259.0000' (259.0000), got '154.0000' (154.0)
+          'D4', # expected '171.0000' (171.0000), got '240.5000' (240.5)
+          'H4', # expected '177.2100' (177.2095), got '167.4200' (167.4154)
+          'I4', # expected '98.2500' (98.2500), got '471.0400' (471.0357)
+          'J4', # expected '88.8600' (88.8571), got '82.3800' (82.375)
+          'B5', # expected '259.0000' (259.0000), got '154.0000' (154.0)
+          'D5', # expected '39.5000' (39.5000), got '150.0000' (150.0)
+          'H5', # expected '105.0000' (105.0000), got '95.5000' (95.5)
+          'I5', # expected '70.0000' (70.0000), got '73.0000' (73.0)
+        ],
       )
     end
 
@@ -410,12 +440,12 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
         question: 'Q26a',
         # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recZbEHrNyt7aUsfw
         skip: [
-          'B3',
-          'C3', # new
-          'D3',
-          'B5',
-          'C5', # new
-          'D5',
+          'B3', # expected '82.0000' (82), got '84.0000' (84)
+          'C3', # expected '56.0000' (56), got '57.0000' (57)
+          'D3', # expected '26.0000' (26), got '27.0000' (27)
+          'B5', # expected '20.0000' (20), got '18.0000' (18)
+          'C5', # expected '15.0000' (15), got '14.0000' (14)
+          'D5', # expected '5.0000' (5), got '4.0000' (4)
         ],
       )
     end
@@ -523,12 +553,6 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27j',
-        # We round, it's unclear what the expectation is
-        skip: [
-          'B2',
-          'C2',
-          'C3',
-        ],
       )
     end
 
@@ -539,12 +563,18 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q27l' do
+    it 'Q27l' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27l',
+        skip: [
+          'B10', # expected '0.0000' (0), got '1.0000' (1)
+          'D10', # expected '0.0000' (0), got '1.0000' (1)
+          'B12', # expected '8.0000' (8), got '9.0000' (9)
+          'D12', # expected '2.0000' (2), got '3.0000' (3)
+          'B13', # expected '3.0000' (3), got '2.0000' (2)
+          'D13', # expected '1.0000' (1), got '0.0000' (0)
+        ],
       )
     end
 

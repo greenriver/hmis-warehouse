@@ -78,9 +78,9 @@ module GrdaWarehouse
 
       # TODO: START_ACL cleanup after permission migration is complete
       if user.using_acls?
-        return none unless viewable_permissions.map { |perm| user.send("#{perm}?") }.any?
+        return none unless GrdaWarehouse::Cohort.viewable_permissions.map { |perm| user.send("#{perm}?") }.any?
 
-        ids = viewable_permissions.flat_map do |perm|
+        ids = GrdaWarehouse::Cohort.viewable_permissions.flat_map do |perm|
           group_ids = user.collections_for_permission(perm)
           next [] if group_ids.empty?
 
@@ -253,7 +253,18 @@ module GrdaWarehouse
     end
 
     def active?
-      active_cohort?
+      active_cohort
+    end
+
+    # Never show the cohort on the client dashboard if we haven't explicitly
+    # indicated it should be shown
+    # If the cohort is active and we have indicated it should be shown, show it
+    # If the cohort is inactive, only show it if we indicated it should be shown even when inactive
+    def should_show_on_client_dashboard?
+      return false unless show_on_client_dashboard?
+      return true if active?
+
+      expose_inactive_on_client_dashboard?
     end
 
     def cas_tag_name
@@ -411,6 +422,13 @@ module GrdaWarehouse
         ::CohortColumns::MostRecentClsSheltered.new,
         ::CohortColumns::CeAssessmentDate.new,
         ::CohortColumns::CeAssessmentName.new,
+        ::CohortColumns::SourceClientPersonalIds.new,
+        ::CohortColumns::MostRecentHouseholdType.new,
+        ::CohortColumns::MostRecentSelfReportMonthsHomeless.new,
+        ::CohortColumns::MostRecentPriorLivingSituation.new,
+        ::CohortColumns::MostRecentCls.new,
+        ::CohortColumns::VeteranStatusCalculated.new,
+        ::CohortColumns::MostRecentDisablingCondition.new,
         ::CohortColumns::UserString1.new,
         ::CohortColumns::UserString2.new,
         ::CohortColumns::UserString3.new,
@@ -604,43 +622,41 @@ module GrdaWarehouse
       scope.joins(:client).preload(client: :processed_service_history).find_in_batches do |batch|
         rows = []
         batch.each do |cc|
-          cc.assign_attributes(
-            calculated_days_homeless_on_effective_date: calculated_days_homeless(cc.client),
-            days_homeless_last_three_years_on_effective_date: days_homeless_last_three_years(cc.client),
-            days_literally_homeless_last_three_years_on_effective_date: days_literally_homeless_last_three_years(cc.client),
-            destination_from_homelessness: destination_from_homelessness(cc.client),
-            related_users: related_users(cc.client),
-            disability_verification_date: disability_verification_date(cc.client),
-            missing_documents: missing_documents(cc.client),
-            days_homeless_plus_overrides: days_homeless_plus_overrides(cc.client),
-            individual_in_most_recent_homeless_enrollment: individual_in_most_recent_homeless_enrollment(cc.client),
-            most_recent_date_to_street: most_recent_date_to_street(cc.client),
-            sheltered_days_homeless_last_three_years: sheltered_days_homeless_last_three_years(cc.client),
-            unsheltered_days_homeless_last_three_years: unsheltered_days_homeless_last_three_years(cc.client),
-          )
+          time_dependent_methods.each do |column, meth|
+            cc[column] = send(meth, cc.client)
+          end
           rows << cc
         end
         GrdaWarehouse::CohortClient.import(
           rows,
           on_duplicate_key_update: {
             conflict_target: [:id],
-            columns: [
-              :calculated_days_homeless_on_effective_date,
-              :days_homeless_last_three_years_on_effective_date,
-              :days_literally_homeless_last_three_years_on_effective_date,
-              :destination_from_homelessness,
-              :related_users,
-              :disability_verification_date,
-              :missing_documents,
-              :days_homeless_plus_overrides,
-              :individual_in_most_recent_homeless_enrollment,
-              :most_recent_date_to_street,
-              :sheltered_days_homeless_last_three_years,
-              :unsheltered_days_homeless_last_three_years,
-            ],
+            columns: time_dependent_methods.keys,
           },
         )
       end
+    end
+
+    private def time_dependent_methods
+      {
+        calculated_days_homeless_on_effective_date: :calculated_days_homeless,
+        days_homeless_last_three_years_on_effective_date: :days_homeless_last_three_years,
+        days_literally_homeless_last_three_years_on_effective_date: :days_literally_homeless_last_three_years,
+        destination_from_homelessness: :destination_from_homelessness,
+        related_users: :related_users,
+        disability_verification_date: :disability_verification_date,
+        missing_documents: :missing_documents,
+        days_homeless_plus_overrides: :days_homeless_plus_overrides,
+        individual_in_most_recent_homeless_enrollment: :individual_in_most_recent_homeless_enrollment,
+        most_recent_date_to_street: :most_recent_date_to_street,
+        sheltered_days_homeless_last_three_years: :sheltered_days_homeless_last_three_years,
+        unsheltered_days_homeless_last_three_years: :unsheltered_days_homeless_last_three_years,
+        most_recent_cls: :calculated_most_recent_cls,
+        most_recent_prior_living_situation: :calculated_most_recent_prior_living_situation,
+        most_recent_household_type: :calculated_most_recent_household_type,
+        most_recent_self_report_months_homeless: :calculated_most_recent_self_report_months_homeless,
+        most_recent_disabling_condition: :calculated_most_recent_disabling_condition,
+      }
     end
 
     private def inactive_date
@@ -689,9 +705,19 @@ module GrdaWarehouse
       most_recent_enrollment&.presented_as_individual
     end
 
+    # Returns the most recent value for 3.917.3 DateToStreetESSH based on EntryDate desc, DateUpdated desc
+    # If the cohort is auto maintained, limit to Enrollments at projects in the project group
     private def most_recent_date_to_street(client)
-      most_recent_enrollment = client.service_history_enrollments.entry.homeless.order(first_date_in_program: :desc).first
-      most_recent_enrollment&.enrollment&.DateToStreetESSH
+      scope = GrdaWarehouse::Hud::Enrollment.order(entry_date: :desc, date_updated: :desc).
+        joins(:project, client: :warehouse_client_source)
+      item = if auto_maintained?
+        most_recent_automaintained_data_item(scope, client)
+      else
+        most_recent_un_automaintained_data_item(scope.homeless, client)
+      end
+      return unless item
+
+      item.DateToStreetESSH
     end
 
     private def related_users(client)
@@ -715,6 +741,96 @@ module GrdaWarehouse
 
     private def days_homeless_plus_overrides(client)
       client.processed_service_history&.days_homeless_plus_overrides
+    end
+
+    private def most_recent_automaintained_data_item(scope, client)
+      scope.merge(GrdaWarehouse::WarehouseClient.where(destination_id: client.id)).
+        merge(GrdaWarehouse::Hud::Project.joins(:project_groups).merge(GrdaWarehouse::ProjectGroup.where(id: project_group_id))).
+        first
+    end
+
+    private def most_recent_un_automaintained_data_item(scope, client)
+      scope.merge(GrdaWarehouse::WarehouseClient.where(destination_id: client.id)).
+        first
+    end
+
+    # Most recent CLS based on InformationDate desc, DateUpdated desc
+    # If the cohort is auto maintained, limit to CLS at projects in the project group
+    private def calculated_most_recent_cls(client)
+      scope = GrdaWarehouse::Hud::CurrentLivingSituation.order(information_date: :desc, date_updated: :desc).
+        joins(enrollment: [:project, client: :warehouse_client_source])
+      item = if auto_maintained?
+        most_recent_automaintained_data_item(scope, client)
+      else
+        most_recent_un_automaintained_data_item(scope, client)
+      end
+      return unless item
+
+      "#{item.situation_label} on #{item.information_date} at #{item.enrollment.project.name}"
+    end
+
+    # Most recent prior LivingSituation based on EntryDate desc, DateUpdated desc
+    # If the cohort is auto maintained, limit to Enrollments at projects in the project group
+    private def calculated_most_recent_prior_living_situation(client)
+      scope = GrdaWarehouse::Hud::Enrollment.order(entry_date: :desc, date_updated: :desc).
+        joins(:project, client: :warehouse_client_source)
+      item = if auto_maintained?
+        most_recent_automaintained_data_item(scope, client)
+      else
+        most_recent_un_automaintained_data_item(scope, client)
+      end
+      return unless item
+
+      "#{item.prior_living_situation_label} on #{item.entry_date} at #{item.project.name}"
+    end
+
+    # Household type form the most recent enrollment based on EntryDate desc, DateUpdated desc
+    # If the cohort is auto maintained, limit to Enrollments at projects in the project group
+    private def calculated_most_recent_household_type(client)
+      scope = GrdaWarehouse::Hud::Enrollment.order(entry_date: :desc, date_updated: :desc).
+        joins(:project, client: :warehouse_client_source)
+      item = if auto_maintained?
+        most_recent_automaintained_data_item(scope, client)
+      else
+        most_recent_un_automaintained_data_item(scope, client)
+      end
+      return unless item
+
+      # NOTE: we may want to figure out how to batch preload household members in the future
+      # at the moment, we use the default which loads clients for each enrollment
+      "#{item.household_type} on #{item.entry_date} at #{item.project.name}"
+    end
+
+    # Returns the most recent value for 3.917.5 MonthsHomelessPastThreeYears based on EntryDate desc, DateUpdated desc
+    # If the cohort is auto maintained, limit to Enrollments at projects in the project group
+    private def calculated_most_recent_self_report_months_homeless(client)
+      scope = GrdaWarehouse::Hud::Enrollment.order(entry_date: :desc, date_updated: :desc).
+        joins(:project, client: :warehouse_client_source)
+      item = if auto_maintained?
+        most_recent_automaintained_data_item(scope, client)
+      else
+        most_recent_un_automaintained_data_item(scope, client)
+      end
+      return unless item&.months_homeless_past_three_years
+      # Ignore any unknown values
+      return unless item.months_homeless_past_three_years > 100
+
+      "#{HudUtility2024.months_homeless_past_three_years(item.months_homeless_past_three_years)} on #{item.entry_date} at #{item.project.name}"
+    end
+
+    # Returns the most recent value for DisablingCondition based on EntryDate desc, DateUpdated desc
+    # If the cohort is auto maintained, limit to Enrollments at projects in the project group
+    private def calculated_most_recent_disabling_condition(client)
+      scope = GrdaWarehouse::Hud::Enrollment.order(entry_date: :desc, date_updated: :desc).
+        joins(:project, client: :warehouse_client_source)
+      item = if auto_maintained?
+        most_recent_automaintained_data_item(scope, client)
+      else
+        most_recent_un_automaintained_data_item(scope, client)
+      end
+      return unless item&.disabling_condition
+
+      "#{HudUtility2024.no_yes_reasons_for_missing_data(item.disabling_condition)} on #{item.entry_date} at #{item.project.name}"
     end
 
     private def maintain_system_group

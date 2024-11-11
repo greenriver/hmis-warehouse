@@ -11,7 +11,7 @@ Rails.application.configure do
   # your application in memory, allowing both threaded web servers
   # and those relying on copy on write to perform better.
   # Rake tasks automatically ignore this option for performance.
-  config.eager_load = true
+  config.eager_load = ENV.fetch('EAGER_LOAD', 'true') == 'true'
 
   # Full error reports are disabled and caching is turned on.
   config.consider_all_requests_local       = false

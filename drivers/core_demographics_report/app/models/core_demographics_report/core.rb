@@ -15,7 +15,7 @@ module CoreDemographicsReport
     include CoreDemographicsReport::GenderCalculations
     include CoreDemographicsReport::RaceCalculations
     include CoreDemographicsReport::EthnicityCalculations
-    # RaceEthnicityCalculations relies on Race and Ethnicity Calculations, and must come  after thme
+    # RaceEthnicityCalculations relies on Race and Ethnicity Calculations, and must come after them
     include CoreDemographicsReport::RaceEthnicityCalculations
     include CoreDemographicsReport::DisabilityCalculations
     include CoreDemographicsReport::RelationshipCalculations

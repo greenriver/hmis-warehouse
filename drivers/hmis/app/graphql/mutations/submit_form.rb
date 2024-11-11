@@ -25,11 +25,11 @@ module Mutations
       # Look up form definition
       definition = Hmis::Form::Definition.find_by(id: input.form_definition_id)
       raise HmisErrors::ApiError, 'Form Definition not found' unless definition.present?
-      raise HmisErrors::ApiError, 'FormDefinition status is invalid' unless definition.valid_status_for_submit?
+      raise HmisErrors::ApiError, "FormDefinition #{definition.id} status #{definition.status} is invalid" unless definition.valid_status_for_submit?
 
       # Determine record class
       klass = definition.owner_class
-      raise HmisErrors::ApiError, 'Form Definition not configured' unless klass.present?
+      raise HmisErrors::ApiError, "Form Definition #{definition.id} not configured" unless klass.present?
 
       # Find or create record
       if input.record_id.present?
@@ -44,7 +44,6 @@ module Mutations
       raise HmisErrors::ApiError, 'Record not found' unless record.present?
 
       # Check permission
-      allowed = nil
       perms_to_check = definition.record_editing_permissions
       if definition.allowed_proc.present?
         allowed = definition.allowed_proc.call(entity_for_permissions, current_user)

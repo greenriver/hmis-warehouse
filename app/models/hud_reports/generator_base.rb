@@ -42,15 +42,19 @@ module HudReports
     def queue
       @report.state = 'Waiting'
       @report.question_names = self.class.questions.keys
-      @report.save
+      @report.save!
       Reporting::Hud::RunReportJob.perform_later(self.class.name, @report.id)
+    end
+
+    def prepare_report
+      @report.start_report
     end
 
     def run!(email: true, manual: true)
       @report.state = 'Waiting'
       @report.question_names = self.class.questions.keys
       @report.manual = manual
-      @report.save
+      @report.save!
       Reporting::Hud::RunReportJob.perform_now(self.class.name, @report.id, email: email)
     end
 

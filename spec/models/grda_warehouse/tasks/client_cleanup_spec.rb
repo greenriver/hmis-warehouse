@@ -14,6 +14,20 @@ DEFAULT_DEST_ATTR = {
   GenderNone: nil,
   pronouns: 'they',
 }.freeze
+VETERAN_ATTR = {
+  YearEnteredService: 1950,
+  YearSeparated: 1980,
+  WorldWarII: 1,
+  KoreanWar: 1,
+  VietnamWar: 1,
+  DesertStorm: 1,
+  AfghanistanOEF: 1,
+  IraqOIF: 1,
+  IraqOND: 1,
+  OtherTheater: 1,
+  MilitaryBranch: 1,
+  DischargeStatus: 1,
+}.freeze
 
 RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
   describe 'When Updating destination records from client sources, using db based relationships' do
@@ -290,14 +304,48 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(destination_client.VeteranStatus).to eq(@veteran)
     end
 
-    it 'updates veteran status with the newest yes/no value' do
-      destination_client.update(VeteranStatus: @veteran)
-      source_1.update(VeteranStatus: @civilian, DateUpdated: 2.days.ago)
-      source_2.update(VeteranStatus: @veteran, DateUpdated: 1.days.ago)
+    describe 'updates veteran status with the newest yes/no value' do
+      describe 'when veteran is newest' do
+        before do
+          destination_client.update(VeteranStatus: @veteran)
+          source_1.update(VeteranStatus: @civilian, DateUpdated: 2.days.ago)
+          source_2.update(VeteranStatus: @veteran, DateUpdated: 1.days.ago, **VETERAN_ATTR)
+        end
+        it 'chooses the veteran' do
+          @cleanup.update_client_demographics_based_on_sources
+          destination_client.reload
+          expect(destination_client.VeteranStatus).to eq(@veteran)
+        end
+        it 'sets the related values' do
+          @cleanup.update_client_demographics_based_on_sources
+          destination_client.reload
+          expect(destination_client.VeteranStatus).to eq(@veteran)
+          VETERAN_ATTR.each do |k, v|
+            expect(destination_client[k]).to eq(v)
+          end
+        end
+      end
 
-      @cleanup.update_client_demographics_based_on_sources
-      destination_client.reload
-      expect(destination_client.VeteranStatus).to eq(@veteran)
+      describe 'when civilian is newest, and no veterans on file' do
+        before do
+          destination_client.update(VeteranStatus: @civilian, YearEnteredService: 1950)
+          source_1.update(VeteranStatus: @civilian, DateUpdated: 1.days.ago, **VETERAN_ATTR)
+          source_2.update(VeteranStatus: @civilian, DateUpdated: 2.days.ago)
+        end
+        it 'chooses the civilian' do
+          @cleanup.update_client_demographics_based_on_sources
+          destination_client.reload
+          expect(destination_client.VeteranStatus).to eq(@civilian)
+        end
+        it 'sets the related values' do
+          @cleanup.update_client_demographics_based_on_sources
+          destination_client.reload
+          expect(destination_client.VeteranStatus).to eq(@civilian)
+          VETERAN_ATTR.each_key do |k|
+            expect(destination_client[k]).to eq(nil)
+          end
+        end
+      end
     end
 
     describe 'Gender Fields' do
@@ -347,6 +395,24 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           expect(destination_client[col]).to eq(0)
         end
       end
+      describe 'DifferentIdentityText' do
+        it 'pulls DifferentIdentityText from the newest client where present' do
+          destination_client.update(DifferentIdentityText: 'blank')
+          source_1.update(DifferentIdentityText: 'present', DateUpdated: 2.days.ago)
+          source_2.update(DifferentIdentityText: nil, DateUpdated: 1.days.ago)
+          @cleanup.update_client_demographics_based_on_sources
+          destination_client.reload
+          expect(destination_client[:DifferentIdentityText]).to eq('present')
+        end
+        it 'clears DifferentIdentityText if not present in any source client' do
+          destination_client.update(DifferentIdentityText: 'present')
+          source_1.update(DifferentIdentityText: nil, DateUpdated: 2.days.ago)
+          source_2.update(DifferentIdentityText: nil, DateUpdated: 1.days.ago)
+          @cleanup.update_client_demographics_based_on_sources
+          destination_client.reload
+          expect(destination_client[:DifferentIdentityText]).to eq(nil)
+        end
+      end
     end
 
     describe 'Race Fields' do
@@ -394,6 +460,24 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           @cleanup.update_client_demographics_based_on_sources
           destination_client.reload
           expect(destination_client[col]).to eq(0)
+        end
+      end
+      describe 'AdditionalRaceEthnicity' do
+        it 'pulls AdditionalRaceEthnicity from the newest client where present' do
+          destination_client.update(AdditionalRaceEthnicity: 'blank')
+          source_1.update(AdditionalRaceEthnicity: 'present', DateUpdated: 2.days.ago)
+          source_2.update(AdditionalRaceEthnicity: nil, DateUpdated: 1.days.ago)
+          @cleanup.update_client_demographics_based_on_sources
+          destination_client.reload
+          expect(destination_client[:AdditionalRaceEthnicity]).to eq('present')
+        end
+        it 'clears AdditionalRaceEthnicity if not present in any source client' do
+          destination_client.update(AdditionalRaceEthnicity: 'present')
+          source_1.update(AdditionalRaceEthnicity: nil, DateUpdated: 2.days.ago)
+          source_2.update(AdditionalRaceEthnicity: nil, DateUpdated: 1.days.ago)
+          @cleanup.update_client_demographics_based_on_sources
+          destination_client.reload
+          expect(destination_client[:AdditionalRaceEthnicity]).to eq(nil)
         end
       end
     end

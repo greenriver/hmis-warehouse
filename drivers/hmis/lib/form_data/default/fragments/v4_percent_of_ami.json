@@ -2,7 +2,7 @@
   "type": "GROUP",
   "link_id": "V4",
   "data_collected_about": "HOH",
-  "text": "Percent of AMI (SSVF Eligibility)",
+  "text": "Percent of AMI",
   "item": [
     {
       "type": "CHOICE",

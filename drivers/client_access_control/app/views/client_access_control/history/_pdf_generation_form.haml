@@ -1,6 +1,16 @@
 - if window_file_access?
+  :ruby
+    pdf_history_options = {
+      'Last 1 year' => 1,
+      'Last 2 years' => 2, 
+      'Last 3 years' => 3, 
+      'Last 4 years' => 4, 
+      'Last 5 years' => 5, 
+      'Last 6 years' => 6, 
+      'Last 7 years' => 7,
+    }
   - url = polymorphic_path([:queue] + history_path_generator, client_id: @client.id)
   = simple_form_for :pdf, url: url, method: :post do |f|
-    = f.input :years, as: :select_two, collection: {'Last 3 years' => 3, 'Last 5 years' => 5}, include_blank: false, label: false, style: 'width: 100%;'
+    = f.input :years, as: :select_two, collection: pdf_history_options, selected: 3, include_blank: false, label: false, style: 'width: 100%;'
     .d-flex
       = f.submit 'Generate PDF', class: "btn btn-secondary ml-auto"

@@ -1,4 +1,6 @@
 # Developer Setup
+The following document provides a brief overview of how to setup the Open Path Warehouse for local development.  Once you have the application running, you may find the [developer data guide](developer_data.md) and [developer FAQ](developer_faq.md) useful in gaining more familiarity with the application.
+
 The warehouse application consists of three main parts:
 1. The Rails Application Code
 2. The Rails Application Database
@@ -63,6 +65,7 @@ If everything worked as designed your site should now be available at [https://h
 
 ## Loading Data
 At this point, you'll probably want to [load some sample HMIS data](developer_data.md).
+
 
 ## Running E2E Tests
 See [spec/support/E2E_README.md](../spec/support/E2E_README.md).

@@ -751,8 +751,6 @@ Style/GlobalStdStream:
 Style/GuardClause:
   Exclude:
     - 'app/models/cas/user.rb'
-    - 'app/models/glacier/backup.rb'
-    - 'app/models/glacier/restore.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/health/cp_members/file_base.rb'
     - 'app/models/report_result.rb'
@@ -1118,11 +1116,6 @@ Style/TrailingCommaInArrayLiteral:
 # SupportedStylesForMultiline: comma, consistent_comma, no_comma
 Style/TrailingCommaInHashLiteral:
   Exclude:
-    - 'app/models/glacier/archive_runner.rb'
-    - 'app/models/glacier/backup.rb'
-    - 'app/models/glacier/restore.rb'
-    - 'app/models/glacier/uploader.rb'
-    - 'app/models/glacier/utils.rb'
     - 'app/models/grda_warehouse/shape.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'

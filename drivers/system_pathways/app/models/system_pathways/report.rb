@@ -70,6 +70,9 @@ module SystemPathways
         :organization_ids,
         :project_group_ids,
         :data_source_ids,
+        :funder_ids,
+        :funder_others,
+        :hoh_only,
       ]
       filter.describe_filter_as_html(keys, inline: inline, limited: limited)
     end
@@ -85,6 +88,8 @@ module SystemPathways
         :data_source_ids,
         :organization_ids,
         :funder_ids,
+        :funder_others,
+        :hoh_only,
         :default_project_type_codes,
       ]
     end

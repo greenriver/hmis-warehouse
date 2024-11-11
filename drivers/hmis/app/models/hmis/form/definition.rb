@@ -40,6 +40,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # convenience attr for passing graphql args
   attr_accessor :filter_context
 
+  validates :identifier, format: { with: /\A[a-zA-Z][a-zA-Z0-9_-]*\z/, message: 'must contain only alphanumeric characters, underscores, and dashes, and must start with a letter' }
+
   # --- Relations by id ----
   has_many :form_processors, dependent: :restrict_with_exception
   has_many :external_form_submissions, class_name: 'HmisExternalApis::ExternalForms::FormSubmission', dependent: :restrict_with_exception
@@ -322,6 +324,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   scope :published, -> do
     where(status: PUBLISHED)
+  end
+
+  scope :published_or_retired, -> do
+    where(status: [PUBLISHED, RETIRED])
   end
 
   validate :validate_external_form_object_key

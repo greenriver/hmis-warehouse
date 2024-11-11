@@ -1,0 +1,11 @@
+= content_for :crumbs do
+  = link_to path_for_report(@report) do
+    = "« #{report_short_name} Report"
+- content_for :title do
+  = "#{report_short_name} #{@question}"
+
+%h1= content_for :title
+
+.well.mt-6
+  = render 'hud_reports/inline_parameters', report: @report
+= render 'hud_reports/tables', report: @report, question: @question

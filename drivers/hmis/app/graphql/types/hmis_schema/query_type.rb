@@ -180,13 +180,19 @@ module Types
     field :record_form_definition, Types::Forms::FormDefinition, 'Get the most relevant Form Definition to use for record viewing/editing', null: true do
       argument :role, Types::Forms::Enums::RecordFormRole, required: true
       argument :project_id, ID, required: false, description: 'Optional Project to select the relevant form, and to apply rule filtering (e.g. show/hide questions based on Project applicability)'
+      argument :id, ID, required: false, description: 'Form Definition ID, if known'
     end
-    def record_form_definition(role:, project_id: nil)
+    def record_form_definition(role:, project_id: nil, id: nil)
       raise 'Not supported, use serviceFormDefinition to look up service forms' if role == 'SERVICE'
       raise 'unexpected role' unless Hmis::Form::Definition::FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
-      record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      record = if id
+        Hmis::Form::Definition.find(id)
+      else
+        Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      end
+
       record&.filter_context = { project: project } # Apply project-specific filtering rules. Only relevant for some form types.
       record
     end
@@ -403,15 +409,6 @@ module Types
       Hmis::Form::Definition.find(id)
     end
 
-    field :external_form_definition, Types::Forms::FormDefinition, null: true, deprecation_reason: 'use definition from the individual submission to display' do
-      argument :identifier, String, required: true
-    end
-    def external_form_definition(identifier:)
-      raise 'Access denied' unless current_user.can_manage_external_form_submissions?
-
-      Hmis::Form::Definition.with_role(:EXTERNAL_FORM).where(identifier: identifier).order(version: :desc).first
-    end
-
     field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true do
       argument :id, ID, required: true
     end
@@ -465,7 +462,7 @@ module Types
     def project_configs
       raise 'not allowed' unless current_user.can_configure_data_collection?
 
-      Hmis::ProjectConfig.all
+      Hmis::ProjectConfig.viewable_by(current_user)
     end
 
     field :project_can_accept_referral, Boolean, 'Whether the destination project is able to accept a referral for the client(s) belonging to the source enrollment', null: false do
@@ -495,7 +492,7 @@ module Types
     field :client_detail_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)'
     def client_detail_forms
       # No authorization required, this just resolving application configuration
-      Hmis::Form::Instance.active.with_role(:CLIENT_DETAIL).sort_by_option(:form_title)
+      Hmis::Form::Instance.active.with_role(:CLIENT_DETAIL).published.sort_by_option(:form_title)
     end
   end
 end

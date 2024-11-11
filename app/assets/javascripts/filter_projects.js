@@ -18,6 +18,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       'organizations',
       'projectGroups',
       'funderIds',
+      'funderOthers',
       'cocCodes',
       'calculatedProjects',
       'missingItems',
@@ -87,6 +88,10 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       const val = $(this.funderIdsTarget).val();
       if (val) data.funder_ids = Array.isArray(val) ? val : [val];
     }
+    if (this.hasFunderOthersTarget) {
+      const val = $(this.funderOthersTarget).val();
+      if (val) data.funder_others = Array.isArray(val) ? val : [val];
+    }
     if (this.hasCocCodesTarget) {
       const val = $(this.cocCodesTarget).val();
       if (val) data.coc_codes = Array.isArray(val) ? val : [val];
@@ -103,13 +108,44 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
     return data
   }
 
+/**
+ * Transform rails-formatted input field names into a deeply nested object for submission
+ * 
+ * Example inputs:
+ * <input name="filter[project_ids][]" value="123">
+ * <input name="filter[data_source_ids][]" value>
+ * <input name="filter[widget]" value="100">
+ * 
+ * Example output:
+ * {
+ *   filter: {
+ *     project_ids: ["123"],
+ *     data_source_ids: [], // empty arrays get lost with unless we submit as JSON
+ *     widgets: "100"
+ *   }
+ * }
+ */
+  rawFormFiltersInput() {
+    let inputs = {};
+    $(this.element).find(':input').each((i, el) => {
+      if(el.name.startsWith('filter[')) {
+        // remove any trailing arrays, this is a rails-ism and generates weird empty hashes
+        const nameParts = el.name.replaceAll('][]', '').replaceAll("]", "").split("[");
+        const input = nameParts.reduceRight((nestedObj, key) => ({ [key]: nestedObj }), $(el).val());
+        inputs = $.extend(true, {}, inputs, input); // use jquery for deep merge
+      }
+    })
+    return inputs;
+  }
+
   checkMissingData() {
     if (! this.hasMissingItemsTarget) {
       return false
     }
+    const form_data = this.rawFormFiltersInput()
     return $.ajax({
-      async: false, type: 'POST', url: $(this.missingItemsTarget).attr('formaction') + '.json', data: { filter: this.formData() } }).done().responseJSON
-  }
+      async: false, type: 'POST', url: $(this.missingItemsTarget).attr('formaction') + '.json', data: JSON.stringify(form_data), contentType: "application/json" }).done().responseJSON
+    }
 
   addMissingDataWarning() {
     if (!this.hasMissingItemsTarget) {
@@ -142,6 +178,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       this.projectGroupsTarget,
     ];
     if (this.hasFunderIdsTarget) targets.push(this.funderIdsTarget);
+    if (this.hasFunderOthersTarget) targets.push(this.funderOthersTarget);
     if (this.hasCocCodesTarget) targets.push(this.cocCodesTarget);
     if (this.hasOrganizationsTarget) targets.push(this.organizationsTarget);
 

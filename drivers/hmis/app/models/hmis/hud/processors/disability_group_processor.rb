@@ -33,6 +33,7 @@ module Hmis::Hud::Processors
         @processor.send(factory_name, create: false)&.assign_attributes(
           user: @processor.hud_user,
           data_source_id: @processor.hud_user.data_source_id,
+          client: @processor.client_factory(create: false),
         )
       end
     end

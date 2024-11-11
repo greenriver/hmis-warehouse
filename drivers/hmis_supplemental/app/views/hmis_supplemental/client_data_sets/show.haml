@@ -1,0 +1,14 @@
+- title = @data_set.name
+- content_for :title, title
+= render 'clients/breadcrumbs'
+
+= render 'clients/aliases'
+= render 'clients/tab_navigation', current: hmis_supplemental_data_set_client_data_set_path(id: @client.id, data_set_id: @data_set.id)
+
+%h1= title
+
+- @groups.each do |group|
+  %section
+    %h2.h3= group.fetch(:title)
+    .c-card.c-card--flush.c-card--block
+      = render 'table', data_set: @data_set, values: group.fetch(:values)

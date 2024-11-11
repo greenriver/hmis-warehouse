@@ -560,6 +560,12 @@ class Role < ApplicationRecord
         category: 'Client Extras',
         sub_category: 'Privacy',
       },
+      can_view_supplemental_client_data: {
+        description: 'Access to assigned external supplemental client data',
+        administrative: false,
+        category: 'Client Extras',
+        sub_category: 'General Client Access',
+      },
       can_edit_client_notes: {
         description: 'Ability to edit any client note, used to remove inappropriate notes',
         administrative: true,
@@ -592,6 +598,12 @@ class Role < ApplicationRecord
       },
       can_configure_cohorts: {
         description: 'Ability to create, configure, and remove cohorts',
+        administrative: false,
+        category: 'Cohorts',
+        sub_category: 'Cohort Administration',
+      },
+      can_edit_cohort_columns: {
+        description: 'Ability to adjust columns on assigned cohorts',
         administrative: false,
         category: 'Cohorts',
         sub_category: 'Cohort Administration',

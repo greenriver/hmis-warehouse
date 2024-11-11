@@ -454,12 +454,12 @@ module HudApr::Generators::Shared::Fy2024
           value = 0
           case method
           when :average
-            value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any?
+            value = (stay_lengths.sum(0.0) / stay_lengths.count).round(2) if stay_lengths.any?
           when :median
             if stay_lengths.any?
               sorted = stay_lengths.sort
               length = stay_lengths.count
-              value = ((sorted[(length - 1) / 2] + sorted[length / 2]) / 2.0).round
+              value = ((sorted[(length - 1) / 2] + sorted[length / 2]) / 2.0).round(2)
             end
           end
 

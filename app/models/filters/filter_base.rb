@@ -44,6 +44,7 @@ module Filters
     attribute :organization_ids, Array, default: []
     attribute :data_source_ids, Array, default: []
     attribute :funder_ids, Array, default: []
+    attribute :funder_others, Array, default: []
     attribute :cohort_ids, Array, default: []
     attribute :secondary_cohort_ids, Array, default: []
     attribute :cohort_column, String, default: nil
@@ -78,6 +79,9 @@ module Filters
     attribute :dates_to_compare, Symbol, default: :entry_to_exit
     attribute :days_since_contact_min, Integer, default: nil
     attribute :days_since_contact_max, Integer, default: nil
+    # personal_ids_for_days_since_contact_calculations is used to increase performance
+    # of the CTEs used to filter for days since contact.  Set this directly if necessary
+    attribute :personal_ids_for_days_since_contact_calculations, Array, default: []
     attribute :required_files, Array, default: []
     attribute :optional_files, Array, default: []
     attribute :active_roi, Boolean, default: false
@@ -133,6 +137,7 @@ module Filters
       self.organization_ids = filters.dig(:organization_ids)&.reject(&:blank?)&.map(&:to_i).presence || organization_ids
       self.project_ids = filters.dig(:project_ids)&.reject(&:blank?)&.map(&:to_i).presence || project_ids
       self.funder_ids = filters.dig(:funder_ids)&.reject(&:blank?)&.map(&:to_i).presence || funder_ids
+      self.funder_others = filters.dig(:funder_others)&.reject(&:blank?)&.presence || funder_others
       self.veteran_statuses = filters.dig(:veteran_statuses)&.reject(&:blank?)&.map(&:to_i).presence || veteran_statuses
       self.age_ranges = filters.dig(:age_ranges)&.reject(&:blank?)&.map(&:to_sym).presence || age_ranges
       self.genders = filters.dig(:genders)&.reject(&:blank?)&.map(&:to_i).presence || genders
@@ -204,6 +209,7 @@ module Filters
           organization_ids: organization_ids,
           project_ids: project_ids,
           funder_ids: funder_ids,
+          funder_others: funder_others,
           veteran_statuses: veteran_statuses,
           age_ranges: age_ranges,
           genders: genders,
@@ -310,6 +316,7 @@ module Filters
         organization_ids: [],
         project_ids: [],
         funder_ids: [],
+        funder_others: [],
         project_group_ids: [],
         cohort_ids: [],
         secondary_cohort_ids: [],
@@ -350,6 +357,7 @@ module Filters
       projects: 'Projects',
       project_groups: 'Project Groups',
       funders: 'Funders',
+      funder_others: 'Other or Local Funders',
       hoh_only: 'Heads of Household only?',
       coordinated_assessment_living_situation_homeless: 'Including CE homeless at entry',
       ce_cls_as_homeless: 'Including CE Current Living Situation Homeless',
@@ -410,6 +418,7 @@ module Filters
         opts[label(:projects, labels)] = project_names(project_ids) if project_ids.any?
         opts[label(:project_groups, labels)] = project_groups if project_group_ids.any?
         opts[label(:funders, labels)] = funder_names if funder_ids.any?
+        opts[label(:funder_others, labels)] = funder_others if funder_others.any?
         opts[label(:hoh_only, labels)] = 'Yes' if hoh_only
         opts[label(:coordinated_assessment_living_situation_homeless, labels)] = 'Yes' if coordinated_assessment_living_situation_homeless
         opts[label(:ce_cls_as_homeless, labels)] = 'Yes' if ce_cls_as_homeless
@@ -538,16 +547,18 @@ module Filters
     end
 
     def effective_project_ids
-      @effective_project_ids = effective_project_ids_from_projects
-      @effective_project_ids += effective_project_ids_from_project_groups
-      @effective_project_ids += effective_project_ids_from_organizations
-      @effective_project_ids += effective_project_ids_from_data_sources
-      @effective_project_ids += effective_project_ids_from_coc_codes
+      @effective_project_ids ||= begin
+        project_ids = effective_project_ids_from_projects
+        project_ids += effective_project_ids_from_project_groups
+        project_ids += effective_project_ids_from_organizations
+        project_ids += effective_project_ids_from_data_sources
+        project_ids += effective_project_ids_from_coc_codes
 
-      # Add an invalid id if there are none
-      @effective_project_ids = [0] if @effective_project_ids.empty?
+        # Add an invalid id if there are none
+        project_ids = [0] if project_ids.empty?
 
-      @effective_project_ids.uniq.reject(&:blank?)
+        project_ids.uniq.reject(&:blank?)
+      end
     end
 
     def any_effective_project_ids?
@@ -555,14 +566,16 @@ module Filters
     end
 
     def anded_effective_project_ids
-      ids = []
-      ids << effective_project_ids_from_projects
-      ids << effective_project_ids_from_project_groups
-      ids << effective_project_ids_from_organizations
-      ids << effective_project_ids_from_data_sources
-      ids << effective_project_ids_from_coc_codes
-      ids << effective_project_ids_from_project_types
-      ids.reject(&:empty?).reduce(&:&)
+      @anded_effective_project_ids ||= begin
+        ids = []
+        ids << effective_project_ids_from_projects
+        ids << effective_project_ids_from_project_groups
+        ids << effective_project_ids_from_organizations
+        ids << effective_project_ids_from_data_sources
+        ids << effective_project_ids_from_coc_codes
+        ids << effective_project_ids_from_project_types
+        ids.reject(&:empty?).reduce(&:&)
+      end
     end
 
     # Apply all known scopes
@@ -664,6 +677,10 @@ module Filters
 
     def funder_ids
       @funder_ids.reject(&:blank?)
+    end
+
+    def funder_others
+      @funder_others.reject(&:blank?)
     end
 
     def cohort_ids
@@ -795,6 +812,10 @@ module Filters
 
     def funder_options_for_select(user:)
       all_funders_scope.options_for_select(user: user)
+    end
+
+    def funder_other_options_for_select(user:)
+      all_funders_scope.options_for_select_other(user: user)
     end
 
     def coc_code_options_for_select(user:)
@@ -1151,6 +1172,8 @@ module Filters
         label(:project_groups, labels)
       when :funder_ids
         label(:funders, labels)
+      when :funder_others
+        label(:funder_others, labels)
       when :project_type_codes, :project_type_ids, :project_type_numbers
         label(:project_types, labels)
       when :heads_of_household, :hoh_only
@@ -1227,6 +1250,8 @@ module Filters
         chosen_project_groups
       when :funder_ids
         chosen_funding_sources
+      when :funder_others
+        chosen_funding_other_sources
       when :veteran_statuses
         chosen_veteran_statuses
       when :household_type
@@ -1385,6 +1410,12 @@ module Filters
       return nil unless funder_ids.reject(&:blank?).present?
 
       funder_ids.map { |code| "#{HudUtility2024.funding_source(code&.to_i)} (#{code})" }
+    end
+
+    def chosen_funding_other_sources
+      return nil unless funder_others.reject(&:blank?).present?
+
+      funder_others.select(&:present?)
     end
 
     def chosen_veteran_statuses

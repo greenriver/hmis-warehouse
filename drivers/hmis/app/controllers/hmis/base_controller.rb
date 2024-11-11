@@ -29,6 +29,8 @@ class Hmis::BaseController < ActionController::Base
   end
 
   def current_hmis_host
+    raise 'cannot determine HMIS host because origin is missing' unless request.origin.present?
+
     URI.parse(request.origin).host
   end
 
@@ -92,10 +94,10 @@ class Hmis::BaseController < ActionController::Base
   end
 
   def not_authorized!
-    raise HmisErrors::NotAuthorizedError
+    raise NotAuthorizedError
   end
 
-  rescue_from 'HmisErrors::NotAuthorizedError' do |_exception|
+  rescue_from 'NotAuthorizedError' do |_exception|
     head :unauthorized
   end
 end

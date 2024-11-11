@@ -234,7 +234,7 @@ module HudSpmReport::Fy2023
         funder.funder.in?(HudUtility2024.spm_coc_funders.map(&:to_s)) &&
           # Unroll open_between to allow preload
           (funder.end_date.nil? || funder.end_date >= start_date) &&
-          funder.start_date <= end_date
+          (funder.start_date.nil? || funder.start_date <= end_date)
       end
     end
 

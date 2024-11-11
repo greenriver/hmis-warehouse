@@ -459,6 +459,17 @@ module ApplicationHelper
     }</span>)
   end
 
+  def render_paginated_list(scope:, item_name:, list_partial:)
+    pagy, list = controller.send(:pagy, scope)
+    return content_tag(:div, "No #{item_name.pluralize} found", class: 'none-found') if pagy.count.zero?
+
+    capture do
+      concat render('common/pagination_top', item_name: item_name, pagy: pagy)
+      concat render(list_partial, list: list)
+      concat render('common/pagination_bottom', item_name: item_name, pagy: pagy)
+    end
+  end
+
   def small_population_brackets
     {
       0 => 0..0,

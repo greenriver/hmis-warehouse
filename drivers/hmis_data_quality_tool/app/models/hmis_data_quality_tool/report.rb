@@ -71,6 +71,8 @@ module HmisDataQualityTool
         :organization_ids,
         :project_group_ids,
         :data_source_ids,
+        :funder_ids,
+        :funder_others,
       ]
       filter.describe_filter_as_html(keys, inline: inline, limited: limited)
     end
@@ -82,6 +84,8 @@ module HmisDataQualityTool
         :organization_ids,
         :project_group_ids,
         :data_source_ids,
+        :funder_ids,
+        :funder_others,
       ]
       filter.describe_filter(keys)
     end
@@ -97,6 +101,7 @@ module HmisDataQualityTool
         :project_group_ids,
         :data_source_ids,
         :funder_ids,
+        :funder_others,
         :default_project_type_codes,
       ]
     end

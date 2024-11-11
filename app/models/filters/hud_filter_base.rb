@@ -42,6 +42,14 @@ module Filters
           pluck(p_t[:id])
       end
 
+      if funder_others.present?
+        @effective_project_ids = funder_scope.where(OtherFunder: funder_others).
+          joins(:project).
+          where(p_t[:id].in(@effective_project_ids)).
+          distinct.
+          pluck(p_t[:id])
+      end
+
       if coc_codes&.any?(&:present?)
         @effective_project_ids = GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes).
           joins(:project).

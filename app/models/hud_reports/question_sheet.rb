@@ -11,7 +11,7 @@ module HudReports
 
     def initialize(report:, question:)
       @report = report
-      raise "invalid question id #{question.inpsect}" unless question =~ /\AQ\d+/
+      raise "invalid question id #{question.inspect}" unless question =~ /\AQ\d+/
 
       @question = question
     end
@@ -121,9 +121,10 @@ module HudReports
       @cell_values = {}
     end
 
-    def append_cell_members(col: next_column, members:)
+    def append_cell_members(col: next_column, members:, value: nil)
       col = check_col(col)
       cell_members[col] = members
+      cell_values[col] = value unless value.nil?
       col
     end
 

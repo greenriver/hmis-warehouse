@@ -437,4 +437,29 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       end
     end
   end
+
+  context 'with Move-in Dates on non-HoH members' do
+    let(:hoh) { create(:hmis_hud_enrollment, move_in_date: 1.month.ago, data_source: hmis_ds, project: p1) }
+    let(:hhm) { create(:hmis_hud_enrollment, move_in_date: 1.month.ago, data_source: hmis_ds, project: p1, relationship_to_hoh: 99, household_id: hoh.household_id) }
+
+    it 'clears move-in date from non-HoH member' do
+      expect do
+        HmisDataCleanup::Util.clear_household_move_in_dates!(hmis_ds.id)
+        [hhm, hoh].map(&:reload)
+      end.to change(hhm, :move_in_date).to(nil).
+        and(not_change(hoh, :move_in_date)).
+        and(not_change { hhm.date_updated.to_fs(:db) })
+    end
+
+    it 'does not clear move-in date if household has no HoH' do
+      hoh.update!(relationship_to_hoh: 99)
+
+      expect do
+        HmisDataCleanup::Util.clear_household_move_in_dates!(hmis_ds.id)
+        [hhm, hoh].map(&:reload)
+      end.to not_change(hhm, :move_in_date).
+        and(not_change(hoh, :move_in_date)).
+        and(not_change { hhm.date_updated.to_fs(:db) })
+    end
+  end
 end

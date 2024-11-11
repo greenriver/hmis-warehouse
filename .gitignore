@@ -33,6 +33,7 @@ docker-compose.override.yml
 !/.env.test
 !/.eslintrc.js
 !/.rspec.sample
+!/.trivyignore
 
 # Ignore operational files
 package.box
@@ -175,3 +176,4 @@ lib/data/*.xlsx
 
 assets.tar
 prometheus-metrics/**
+etc-localtime

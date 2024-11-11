@@ -279,6 +279,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect_gql_error perform_search, message: /failed authorization check/
     end
 
+    context 'when there are multiple hmis installations' do
+      # Create a 2nd data source and give hmis_user permission to view clients in it
+      let!(:ds2) { create :hmis_data_source }
+      # Create a client in the 2nd data source
+      let!(:client2) { create :hmis_hud_client, data_source: ds2 }
+
+      it 'should raise when querying client in a different data source (regression #6758)' do
+        # Remove client access from ds1
+        remove_permissions(access_control, :can_view_clients)
+        # Add permissions in ds2. The query below will still fail because it is querying in the ds1 context.
+        create_access_control(hmis_user, ds2, with_permission: [:can_view_clients])
+
+        # Mock a scenario where client search incorrectly returns a client in ds2.
+        # (This wouldn't happen in real life thanks to viewable_by scope)
+        expect(Hmis::Hud::Client).to receive(:client_search).and_return(Hmis::Hud::Client.where(id: client2.id))
+
+        # Object-level authorization (i.e. HmisSchema::Client.authorized?) should still cause the query to fail
+        expect_gql_error perform_search, message: /failed authorization check/
+      end
+    end
+
     context 'when client has an Enrollment at a deleted project (regression #6641)' do
       before(:each) do
         # client has 1 non-deleted Enrollment that is at a deleted Project (specific regression scenario)

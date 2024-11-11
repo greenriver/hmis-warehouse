@@ -1,0 +1,17 @@
+%table.table
+  %colgroup
+    %col
+    %col(style='width: 300px')
+  %thead
+    %tr
+      %th Label
+      %th Value
+  %tbody
+    - data_set.fields.each do |field|
+      %tr
+        %th(scope="col")= field.label
+        - formatted = field.format_value(values[field.key])
+        - if formatted.present?
+          %td= formatted
+        - else
+          %td.muted N/A

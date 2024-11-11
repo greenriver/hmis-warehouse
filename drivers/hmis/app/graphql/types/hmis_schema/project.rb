@@ -31,6 +31,8 @@ module Types
 
     # check for the most minimal permission needed to resolve this object
     def self.authorized?(object, ctx)
+      # current_permission_for_context? checks to prevent data source leakage, but it is a secondary guard;
+      # the viewable_by scope is our primary defense against this.
       permission = :can_view_project
       super && GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: permission, entity: object)
     end
@@ -97,7 +99,8 @@ module Types
       can :edit_enrollments
       can :delete_enrollments
       can :delete_assessments
-      can :manage_inventory
+      can :manage_units
+      can :view_units
       can :manage_incoming_referrals
       can :manage_outgoing_referrals
       can :manage_denied_referrals
@@ -160,6 +163,8 @@ module Types
 
     # Build OpenStructs to resolve as UnitTypeCapacity
     def unit_types
+      return [] unless current_permission?(entity: object, permission: :can_view_units)
+
       project_units = object.units
       capacity = project_units.group(:unit_type_id).count
       unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
@@ -176,6 +181,8 @@ module Types
 
     # TODO use dataloader
     def units(**args)
+      return Hmis::Unit.none unless current_permission?(entity: object, permission: :can_view_units)
+
       resolve_units(**args)
     end
 

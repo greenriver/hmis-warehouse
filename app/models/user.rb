@@ -12,6 +12,8 @@ class User < ApplicationRecord
   include UserConcern
   include RailsDrivers::Extensions
 
+  validates :talent_lms_email, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: -> { talent_lms_email.blank? }
+
   USER_PERMISSION_PREFIX = 'user_permissions'
   USER_PROJECT_ID_PREFIX = "#{USER_PERMISSION_PREFIX}_project_ids".freeze
   EXPIRY_MINUTES = 5
@@ -73,8 +75,10 @@ class User < ApplicationRecord
     # Provide a scope for each permission to get any user who qualifies
     # e.g. User.can_administer_health
     scope permission, -> do
-      joins(:legacy_roles).
-        merge(Role.where(permission => true))
+      roles = Role.where(permission => true)
+      legacy = User.joins(:legacy_roles).merge(roles)
+      acl = User.joins(:roles).merge(roles)
+      where(id: legacy.select(:id)).or(where(id: acl.select(:id)))
     end
   end
 
@@ -163,16 +167,21 @@ class User < ApplicationRecord
   #   FIXME, this isn't quite right yet
   #   Controls.where(id: acs.pluck(:access_group_id), entity_type: entity_type)
   # end
-  def related_hmis_user(data_source)
-    return unless HmisEnforcement.hmis_enabled?
 
-    Hmis::User.find(id)&.tap { |u| u.update(hmis_data_source_id: data_source.id) }
+  def related_hmis_user(data_source)
+    as_hmis_user&.tap { |u| u.update(hmis_data_source_id: data_source.id) }
   end
 
-  def any_hmis_access?
-    return false unless HmisEnforcement.hmis_enabled?
+  def as_hmis_user
+    return unless HmisEnforcement.hmis_enabled?
 
-    Hmis::UserGroupMember.where(user_id: id).exists? # belongs to any HMIS user groups
+    # memoize so we can make use of memoizations on Hmis::User (@ids_for_relations)
+    @hmis_user ||= Hmis::User.find(id)
+    @hmis_user
+  end
+
+  def can_access_hmis_data_source?(data_source_id)
+    as_hmis_user&.can_access_hmis_data_source?(data_source_id)
   end
 
   # list any cohort this user has some level of access to

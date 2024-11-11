@@ -129,5 +129,12 @@ module BostonHmis
         update_all(processed_as: nil)
       GrdaWarehouse::ChEnrollment.maintain!
     end
+
+    # Force a one time rebuild of destination clients to incorporate changes to ClientCleanup
+    config.queued_tasks[:client_cleanup_veteran_details] = -> do
+      GrdaWarehouse::Hud::Client.destination.pluck_in_batches(:id, batch_size: 10_000) do |batch|
+        GrdaWarehouse::Tasks::ClientCleanup.new(destination_ids: batch).run!
+      end
+    end
   end
 end

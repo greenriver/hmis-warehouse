@@ -268,7 +268,7 @@ RSpec.describe 'Update External Form Submission', type: :request do
         let!(:submission) do
           data = {
             'Client.firstName': 'bar',
-            'Client.veteranStatus': 'foo',
+            'Client.bleepBloop': 'foo',
           }.stringify_keys
           create(:hmis_external_form_submission, raw_data: data, definition: definition)
         end
@@ -456,6 +456,33 @@ RSpec.describe 'Update External Form Submission', type: :request do
           end.to change(Hmis::Hud::Client, :count).by(1).
             and change(Hmis::Hud::Enrollment, :count).by(1).
             and not_change(ClientLocationHistory::Location, :count)
+        end
+      end
+
+      context 'when disability questions are answered' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'bar',
+            'DisabilityGroup.substanceUseDisorder': 'NO',
+            'DisabilityGroup.hivAids': 'YES',
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should save correctly' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1).
+            and change(Hmis::Hud::Disability, :count).by(2)
+
+          submission.reload
+          expect(submission.enrollment.disabilities).to contain_exactly(
+            have_attributes(disability_type: 10, disability_response: 0, data_collection_stage: 1),
+            have_attributes(disability_type: 8, disability_response: 1, data_collection_stage: 1),
+          )
         end
       end
     end

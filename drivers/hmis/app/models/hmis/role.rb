@@ -148,7 +148,14 @@ class Hmis::Role < ::ApplicationRecord
         category: 'Project Access',
         sub_category: 'Management',
       },
-      can_manage_inventory: { # TODO: should be renamed to "can manage units"
+      can_view_units: {
+        description: 'Ability to view bed and unit capacity in the project',
+        administrative: false,
+        access: [:viewable],
+        category: 'Project Access',
+        sub_category: 'Management',
+      },
+      can_manage_units: {
         description: 'Ability to manage bed and unit capacity in the project',
         administrative: false,
         access: [:editable],

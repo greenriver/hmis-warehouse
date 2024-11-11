@@ -17,6 +17,7 @@ module Types
     field :client, HmisSchema::Client, null: false
     field :content, String, null: false
     field :information_date, GraphQL::Types::ISO8601Date, null: true
+    field :form_definition_id, ID, null: true
     custom_data_elements_field
 
     def enrollment
@@ -25,6 +26,10 @@ module Types
 
     def client
       load_ar_association(object, :client)
+    end
+
+    def form_definition_id
+      load_ar_association(object, :form_processor)&.definition_id
     end
   end
 end

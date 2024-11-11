@@ -14,32 +14,30 @@ module HmisExternalApis
 
     prepend_before_action :skip_timeout
 
-    NotAuthorized = Class.new(StandardError)
-
-    rescue_from 'NotAuthorized' do |exception|
-      json = {
-        message: exception.message,
-      }
-      render(status: :unauthorized, json: json)
-    end
-
     private
 
     def internal_system
       raise 'Set in subclass'
     end
 
+    def handle_unauthorized_error(error)
+      json = {
+        message: error.message,
+      }
+      render(status: :unauthorized, json: json)
+    end
+
     def authorize_request
-      raise(NotAuthorized, 'No API key provided') unless request.headers['Authorization']
+      not_authorized!('No API key provided') unless request.headers['Authorization']
 
       request.headers['Authorization'].match(/\A *bearer +(.+) *\z/i) do |match|
         api_key = match[1]
 
-        raise(NotAuthorized, 'Authorization header not formatted correctly') unless api_key
+        not_authorized!('Authorization header not formatted correctly') unless api_key
 
         valid = InboundApiConfiguration.validate(api_key: api_key, internal_system: internal_system)
 
-        raise(NotAuthorized, 'Invalid key or mismatched usage') unless valid
+        not_authorized!('Invalid key or mismatched usage') unless valid
       end
     end
 

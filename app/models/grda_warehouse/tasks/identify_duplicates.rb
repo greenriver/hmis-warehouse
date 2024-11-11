@@ -66,8 +66,13 @@ module GrdaWarehouse::Tasks
               destination_client[:SSN] = client.SSN
               should_save = true
             end
-
-            destination_client_updates << destination_client if should_save
+            if should_save
+              # set non-nullable fields, these aren't used because of the column limitation on import
+              # but Postgres complains if they aren't there
+              destination_client[:PersonalID] = client.PersonalID
+              destination_client[:data_source_id] = @dnd_warehouse_data_source.id
+              destination_client_updates << destination_client
+            end
           else
             new_created += 1
             destination_client = client.dup
@@ -85,7 +90,7 @@ module GrdaWarehouse::Tasks
           )
         end
         GrdaWarehouse::Hud::Client.import(
-          destination_client_updates,
+          destination_client_updates.uniq { |m| m[:id] }, # ensure no duplicate rows
           on_duplicate_key_update: {
             conflict_target: [:id],
             columns: [:SSN, :DOB],
@@ -177,6 +182,9 @@ module GrdaWarehouse::Tasks
 
     private def find_merge_candidates
       to_merge = Set.new
+      # Never return obvious matches if auto deduplication is disabled
+      return to_merge unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
+
       all_splits = GrdaWarehouse::ClientSplitHistory.pluck(:split_from, :split_into)
       splits_by_from = all_splits.group_by(&:first)
       splits_by_into = all_splits.group_by(&:last)
@@ -243,6 +251,9 @@ module GrdaWarehouse::Tasks
     #   2. birthdate matches
     #   3. perfect name matches
     private def check_for_obvious_match(client)
+      # Never return obvious matches if auto deduplication is disabled
+      return nil unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
+
       ssn_matches = @dest_ssn_lookup.get_ids(ssn: client.SSN)
       birthdate_matches = @dest_dob_lookup.get_ids(dob: client.DOB)
       name_matches = @dest_name_lookup.get_ids(first_name: client.first_name, last_name: client.last_name)
@@ -263,6 +274,7 @@ module GrdaWarehouse::Tasks
       client.splits_to.where(split_into: candidate_id).exists?
     end
 
+    # Only use in development
     private def check_personal_ids(personal_id)
       return [] if personal_id.to_i.to_s == personal_id.to_s
 

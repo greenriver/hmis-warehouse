@@ -28,6 +28,10 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
     this.element['roleManager'] = this // allow access to this controller from other controllers
     // console.log('role manager connected', this.roleToggleTargets)
     this.path = $(this.inputWrapperTarget).data('roleManagerFormValue')
+    this.columnStateKey = 'roleManagerState' + this.path
+    this.enabledColumns = []
+    this.enabledColumns = this.setInitialColumns()
+
     this.setInitialState()
   }
 
@@ -55,6 +59,8 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
 
     // toggle the visibility of the associated roleColumn
     if($(input).val() == 'show') {
+      // add this role to the visible columns
+      this.enabledColumns.push(target_role)
       this.roleColumnTargets.forEach((column) => {
         if (target_role == $(column).data('roleManagerRoleValue')) {
           $(column).removeClass('hide')
@@ -63,11 +69,26 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
         this.showSearchPermissions(search_string, false)
       });
     } else {
+      // remove this role from the visible columns
+      this.enabledColumns = this.enabledColumns.filter(element => element !== target_role)
       this.roleColumnTargets.forEach((column) => {
         if (target_role == $(column).data('roleManagerRoleValue')) {
           $(column).addClass('hide')
         }
       });
+    }
+    this.storeColumnState()
+  }
+
+  storeColumnState() {
+    window.localStorage.setItem(this.columnStateKey, JSON.stringify(this.enabledColumns));
+  }
+
+  fetchColumnState() {
+    try {
+      return JSON.parse(window.localStorage.getItem(this.columnStateKey));
+    } catch (error) {
+      console.error('Error parsing localStorage item:', error);
     }
   }
 
@@ -132,11 +153,43 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
     this.setState(this.initialState)
   }
 
+  valueForTarget(t) {
+    return $(t).data('roleManagerRoleValue')
+  }
+
+  // enable columns that were previously enabled
+  setInitialColumns() {
+    let visibleColumns = this.fetchColumnState() || $(this.roleToggleTargets).map((i) => {
+      // by default, show the first 3 roles
+      // this is slightly awkward because we only work on the "show" input, and calculate the
+      // state for the "hide" input, so we ignore odd values
+      if(i > 5 || i % 2 == 1) {
+        return
+      }
+      return this.valueForTarget(this.roleToggleTargets[i])
+    }).get()
+    $(this.roleToggleTargets).each((i) => {
+      // this is slightly awkward because we only work on the "show" input, and calculate the
+      // state for the "hide" input, so we ignore odd values
+      if (i % 2 == 1) {
+        return
+      }
+      const target = $(this.roleToggleTargets[i])
+
+      if(visibleColumns.includes(this.valueForTarget(target))) {
+        this.toggleColumn({ currentTarget: target })
+        $(target).find('input').attr('checked', 'checked')
+        $(target).next().find('input').removeAttr('checked')
+      }
+    })
+
+    return visibleColumns;
+  }
+
   setState(variable) {
     const inputs = $(this.roleColumnTargets).find('input')
     $(inputs).each((i) => {
       const input = inputs[i]
-      // console.log(inputs[i])
       if ($(input).is(':checked')) {
         variable[$(input).attr('name')] = '1'
       } else {
@@ -157,93 +210,29 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
     let changed = 0
     $.each(this.currentState, (key, value) => {
       const input = $(`input[name="${key}"]`)
-      const input_wrapper = input.closest('.form-check')
+      const input_status = input.closest('.form-check').find('.input-status')
+      const dirty_note = '<div class="dirty-note d-flex"><div class="ml-auto"><i>change pending</i></div></div>';
       if (this.initialState[key] != value) {
         changed += 1
         input.addClass('dirty')
         // ensure we only get the pending note once
-        input_wrapper.find('.dirty-note').remove()
-        input_wrapper.append('<div class="dirty-note d-flex"><div class="ml-auto"><i>change pending</i></div></div>')
+        input_status.find('.dirty-note').remove()
+        input_status.append(dirty_note)
       }
       else {
         input.removeClass('dirty')
-        input_wrapper.find('.dirty-note').remove()
+        input_status.find('.dirty-note').remove()
       }
     })
     if (changed == 0) {
-      $(this.changeCountTarget).text('')
-      $(this.changeButtonTarget).addClass('hide')
+      $(this.changeCountTargets).text('')
+      $(this.changeButtonTargets).addClass('hide')
     } else if (changed == 1) {
-      $(this.changeCountTarget).text(`${changed} change pending`)
-      $(this.changeButtonTarget).removeClass('hide')
+      $(this.changeCountTargets).text(`${changed} change pending`)
+      $(this.changeButtonTargets).removeClass('hide')
     } else {
-      $(this.changeCountTarget).text(`${changed} changes pending`)
-      $(this.changeButtonTarget).removeClass('hide')
+      $(this.changeCountTargets).text(`${changed} changes pending`)
+      $(this.changeButtonTargets).removeClass('hide')
     }
   }
-
-  save(e) {
-    // Disabling in favor of batch saves
-    // const target = $(e.currentTarget)
-    // const target_role_id = target.data('roleManagerRoleValue')
-    // const key = target.data('roleManagerPermissionValue')
-    // const checked = $(target).is(':checked')
-    // const value = checked ? '1' : '0'
-    // const data = { role: { } }
-    // const label = $(target).closest('.form-check').find('label').text().trim()
-    // const text_value = checked ? 'Yes' : 'No'
-    // data.role[key] = value
-    // // console.log(target_role_id, key, checked, this.path, data)
-    // $.ajax({
-    //   type: 'PATCH',
-    //   dataType: 'JSON',
-    //   url: `${this.path}/${target_role_id}`,
-    //   data: data,
-    //   success: (response) => {
-    //     // attach a toast to the page with a success message
-    //     $('.toast-header strong').text('Permission Updated')
-    //     $('.toast-body').text(`${label} set to ${text_value}`)
-    //     $('.toast').toast('show')
-    //   },
-    //   error: (response) => {
-    //     // attach an alert to the page with an error messages
-    //     alert(`Failed to save permission: ${label}. Please refresh and try again`)
-    //   }
-    // })
-  }
 });
-
-
-// submitChanges() {
-//   $(this.submitActionSelector).trigger('blur')
-//   if (this.isSaving) return
-//   this.saving()
-//   const {
-//     tableContainerSelector,
-//     tableObjectHeadingSelector,
-//     tableInputSelector,
-//   } = this.props
-//   const rolePromises =
-//     this.$tableContainer.data('objects')
-//       .map((id, i) => {
-//         const inputBaseQuery = `${tableInputSelector}[data-role=${id}] input`
-//         const inputs = this.$tableContainer.find(`${inputBaseQuery}.dirty`)
-//         if (inputs.length) {
-//           inputs.add(`${tableContainerSelector} input[name=authenticity_token]`)
-//           return $.ajax({
-//             type: 'PATCH',
-//             dataType: 'JSON',
-//             url: `${this.patch_url}/${id}`,
-//             data: this.$tableContainer.find(inputBaseQuery).serialize(),
-//           })
-//         } else {
-//           return null
-//         }
-//       })
-//   Promise.all(rolePromises)
-//     .then(() => {
-//       this.confirmSaved()
-//     }).catch((error) => {
-//       this.confirmSaved(error)
-//     })
-// }

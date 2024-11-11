@@ -2016,7 +2016,7 @@ module Concerns::HudLists2024
       _translate(ssvf_services_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
-    # V2.3
+    # W2.2
     def hopwa_financial_assistance_options
       {
         1 => 'Rental assistance',
