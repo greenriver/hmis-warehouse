@@ -2,16 +2,16 @@ require 'rails_helper'
 
 RSpec.describe HmisSupplemental::ClientDataSetsController, type: :request do
   let!(:user) { create :acl_user }
-  let(:user_group) { create(:user_group) }
   let(:policy) { user.policy_for(destination_client) }
-  let(:collection) { create(:collection) }
 
   let(:data_source) { create :source_data_source }
   let(:source_client) { create :hud_client, data_source: data_source }
   let(:project1) { create :grda_warehouse_hud_project, data_source: data_source }
   let(:project2) { create :grda_warehouse_hud_project, data_source: data_source }
+  let(:project3) { create :grda_warehouse_hud_project, data_source: data_source }
   let!(:enrolment1) { create :hud_enrollment, data_source: data_source, client: source_client, project: project1 }
   let!(:enrolment2) { create :hud_enrollment, data_source: data_source, client: source_client, project: project2 }
+  let!(:enrolment3) { create :hud_enrollment, data_source: data_source, client: source_client, project: project3 }
 
   let(:data_source_other) { create :source_data_source }
   let(:source_client_other) { create :hud_client, data_source: data_source_other }
@@ -25,22 +25,28 @@ RSpec.describe HmisSupplemental::ClientDataSetsController, type: :request do
   let(:owner_type) { 'client' }
   let(:data_set) { create(:hmis_supplemental_data_set, owner_type: owner_type, data_source: data_source) }
 
-  let(:role) do
-    create(
-      :admin_role,
-      can_view_supplemental_client_data: true,
-    )
-  end
+  let(:project_role) { create(:role, can_view_supplemental_client_data: true, can_view_clients: true) }
+  let(:project_user_group) { create(:user_group) }
+  let(:project_collection) { create(:collection) }
+
+  let(:ds_role) { create(:role, can_view_supplemental_client_data: true) }
+  let(:ds_user_group) { create(:user_group) }
+  let(:ds_collection) { create(:collection) }
 
   before(:each) do
-    create(:access_control, role: role, collection: collection, user_group: user_group)
-    collection.set_viewables({ supplemental_data_sets: [data_set.id], data_sources: [data_source.id], projects: [project1.id, project2.id, project_other.id] })
+    create(:access_control, role: project_role, collection: project_collection, user_group: project_user_group)
+    project_collection.set_viewables({ projects: [project1.id, project2.id, project_other.id] })
+
+    create(:access_control, role: ds_role, collection: ds_collection, user_group: ds_user_group)
+    ds_collection.set_viewables({ supplemental_data_sets: [data_set.id] })
+
     sign_in(user)
   end
 
-  context 'with access' do
+  context 'with project and data set access' do
     before(:each) do
-      user_group.add(user)
+      project_user_group.add(user)
+      ds_user_group.add(user)
     end
 
     it 'resolves one group for the client' do
@@ -69,7 +75,25 @@ RSpec.describe HmisSupplemental::ClientDataSetsController, type: :request do
     end
   end
 
-  context 'without access' do
+  context 'with only project set access' do
+    before(:each) do
+      project_user_group.add(user)
+      expect do
+        get hmis_supplemental_data_set_client_data_set_path(data_set, destination_client)
+      end.to raise_error(ActiveRecord::RecordNotFound)
+    end
+  end
+
+  context 'with only data set access' do
+    before(:each) do
+      ds_user_group.add(user)
+      expect do
+        get hmis_supplemental_data_set_client_data_set_path(data_set, destination_client)
+      end.to raise_error(ActiveRecord::RecordNotFound)
+    end
+  end
+
+  context 'without any access' do
     it 'denies access' do
       get hmis_supplemental_data_set_client_data_set_path(data_set, destination_client)
       expect(response).to redirect_to(root_path)
