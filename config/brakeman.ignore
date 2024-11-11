@@ -360,29 +360,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "16c0cb5a23d3b4e34da31e5856da88cbace653507f608bbed9b6f10689ef48eb",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/collection.rb",
-      "line": 91,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "where(\"#{quoted_table_name}.coc_codes ?| array[#{coc_codes.map do\n connection.quote(code)\n end.join(\",\")}]\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Collection",
-        "method": "for_coc_codes"
-      },
-      "user_input": "coc_codes.map do\n connection.quote(code)\n end.join(\",\")",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "17b51608f07889a142d8f548bbe24583b3bab7d8146caeedc9ad2c7e9ad1d2bf",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -1304,6 +1281,29 @@
         89
       ],
       "note": "Injection from internal sources"
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "75f342df6e943c243e47939ca03736da54ae42fc51d328d9fa38ef7f8f16940a",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/collection.rb",
+      "line": 92,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"#{quoted_table_name}.coc_codes ?| #{SqlHelper.quote_sql_array(coc_codes, :type => :varchar)}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Collection",
+        "method": "for_coc_codes"
+      },
+      "user_input": "SqlHelper.quote_sql_array(coc_codes, :type => :varchar)",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
     },
     {
       "warning_type": "SQL Injection",
@@ -2465,6 +2465,29 @@
       "confidence": "Weak",
       "cwe_id": [
         79
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "d7f4d4ebb81d5a7a5647803b4265ebb0f79bc82b65211104ec2b3e26631634bf",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/access_group.rb",
+      "line": 75,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"#{quoted_table_name}.coc_codes @> #{SqlHelper.quote_sql_array(coc_codes, :type => :varchar)}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "AccessGroup",
+        "method": "for_coc_codes"
+      },
+      "user_input": "SqlHelper.quote_sql_array(coc_codes, :type => :varchar)",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
       ],
       "note": ""
     },

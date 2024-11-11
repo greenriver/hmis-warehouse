@@ -16,6 +16,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Census::ByProject,
       GrdaWarehouse::ProjectGroup,
       GrdaWarehouse::Chronic,
+      GrdaWarehouse::ClientRoiAuthorization,
       GrdaWarehouse::HudChronic,
       GrdaWarehouse::Hud::Affiliation,
       GrdaWarehouse::Hud::Disability,

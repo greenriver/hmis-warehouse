@@ -60,5 +60,13 @@ module Talentlms
     def self.collection_for_form
       Talentlms::Course.all.map { |c| [c.name_with_subdomain, c.id] }
     end
+
+    # Check local data for course completion by user
+    def completed_by?(user)
+      login = Talentlms::Login.find_by(config: config, user: user)
+      return unless login # Login does not exist, user has not completed training
+
+      Talentlms::CompletedTraining.where(login_id: login.id, course_id: id).exists?
+    end
   end
 end

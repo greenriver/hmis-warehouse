@@ -407,7 +407,11 @@ module Bi
         $$;
       SQL
 
-      GrdaWarehouseBase.connection.execute sql
+      begin
+        GrdaWarehouseBase.connection.execute sql
+      rescue PG::UndefinedObject, PG::InsufficientPrivilege, ActiveRecord::StatementInvalid
+        # It's ok if we don't have permission, not every installation uses this
+      end
     end
 
     def safe_create_view(name, sql_definition:)
@@ -416,7 +420,11 @@ module Bi
       GrdaWarehouseBase.connection.execute sql
       sql = "GRANT SELECT ON #{name} TO #{PG_ROLE}"
 
-      GrdaWarehouseBase.connection.execute sql
+      begin
+        GrdaWarehouseBase.connection.execute sql
+      rescue PG::UndefinedObject, PG::InsufficientPrivilege, ActiveRecord::StatementInvalid
+        # It's ok if we don't have permission, not every installation uses this
+      end
     end
   end
 end
