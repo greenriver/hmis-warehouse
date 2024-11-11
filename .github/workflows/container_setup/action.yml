@@ -1,18 +1,17 @@
 name: Container Setup
-
 on:
   workflow_call:
     secrets:
       GITHUB_TOKEN:
         required: true
-    inputs:
-      os:
-        description: 'OS of the GitHub runner'
-        required: true
 jobs:
   reusable_job:
     runs-on: ubuntu-20.04
     container: ruby:3.1.6-alpine3.20
+    inputs:
+      os:
+        description: 'OS of the GitHub runner'
+        required: true
     steps:
       - name: Set up dependencies
         env:
