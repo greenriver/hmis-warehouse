@@ -75,8 +75,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
         # Check item-level permissions (editor_user_ids) here. The frontend passes all values even if nil, so rather
         # than raising an exception, just skip processing if we see a value this user doesn't have permission to edit.
-        item = mapped_form_items["#{container}:#{field}"]
-        next unless item&.editor_user_ids&.include?(user.id)
+        editor_user_ids = mapped_form_items["#{container}:#{field}"]&.editor_user_ids
+        # If the item doesn't specify editor_user_ids, then everyone can edit it.
+        next if editor_user_ids && !editor_user_ids.include?(user.id)
 
         if mapped_custom_form_fields[container].include?(field)
           # If this key can be identified as a CustomDataElement, set it and continue
