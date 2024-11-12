@@ -8,12 +8,9 @@ description: "Reusable action to DRY up CI"
 
 runs:
   using: 'composite'
-  runs-on: ubuntu-20.04
-  container: ruby:3.1.6-alpine3.20
-
   steps:
     - name: Set up dependencies
-      shell: bash
+      shell: sh
       env:
         DATABASE_APP_DB_TEST: warehouse_app_test
         WAREHOUSE_DATABASE_DB_TEST: warehouse_test
