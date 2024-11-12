@@ -1,13 +1,11 @@
 name: Container Setup
-on:
-  workflow_call:
-    inputs:
-      os:
-        description: 'OS of the GitHub runner'
-        required: true
-    secrets:
-      GITHUB_TOKEN:
-        required: true
+
+inputs:
+  os:
+    description: 'OS of the GitHub runner'
+    required: true
+    type: string
+
 jobs:
   reusable_job:
     runs-on: ubuntu-20.04
@@ -16,13 +14,8 @@ jobs:
     steps:
       - name: 'Display runner info'
         run: |
-          echo "Running on ${{ runner.os }} runner."
-          echo "Runner name: ${{ runner.name }}"
-          echo "Runner architecture: ${{ runner.arch }}"
-          echo "Workflow: ${{ github.workflow }}"
-          echo "Repository: ${{ github.repository }}"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Job: ${{ github.job }}"
+          echo "Running on ${{ inputs.os }} runner."
+
       # - name: Set up dependencies
       #   env:
       #     DATABASE_APP_DB_TEST: warehouse_app_test
