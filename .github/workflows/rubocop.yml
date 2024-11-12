@@ -1,0 +1,41 @@
+name: Rubocop
+on:
+  push:
+    branches:
+      - '*'
+      - '**/*'
+concurrency:
+  group: ${{ github.ref }}-rubocop
+  cancel-in-progress: true
+
+jobs:
+  rubocop:
+    name: Rubocop
+    # Containers must run in Linux based operating systems
+    runs-on: ubuntu-20.04
+
+    # Docker Hub image that the job executes in
+    container: ruby:3.1.6-alpine3.20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 'Container Setup'
+        id: container-setup
+        uses: ./.github/workflows/container_setup
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+
+      - id: rubocop
+        name: Run Rubocop
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          ignore_patterns="db/schema.rb\|bin/rails\|bin/rake\|bin/bundle"
+          files=`echo "${ALL_CHANGED_FILES}" | tr " " "\n" | grep -v $ignore_patterns | grep "**/*.rb" | tr "\n" " ./"`
+          num=`echo $files | wc -w`
+          echo $files
+          if [ $num -gt 0 ]; then bundle exec rubocop --config ./.rubocop.yml $files; else echo "No changed ruby files"; fi

@@ -11,6 +11,16 @@ description: "Reusable action to DRY up CI"
 runs:
   using: 'composite'
   steps:
+    - name: Install git
+      shell: sh
+      run: |
+        apk add --no-cache git
+
+    # ensure changed-files can read repo files from git
+    - name: Configure Git Safe Directory
+      shell: sh
+      run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
+
     - name: Install GNU tar (required by cache step and checksumming)
       shell: sh
       run: |
