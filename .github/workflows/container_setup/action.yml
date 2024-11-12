@@ -12,6 +12,7 @@ runs:
   using: 'composite'
   steps:
     - name: Install GNU tar (required by cache step and checksumming)
+      shell: sh
       run: |
         apk add --no-cache tar
 
