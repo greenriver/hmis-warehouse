@@ -1,5 +1,5 @@
-name: Container Setup
-
+name: "Container Setup"
+description: "Reusable action to DRY up CI"
 # inputs:
 #   os:
 #     description: 'OS of the GitHub runner'
@@ -11,7 +11,7 @@ runs:
 
   steps:
     - name: Set up dependencies
-      shell: /bin/bash
+      shell: bash
       env:
         DATABASE_APP_DB_TEST: warehouse_app_test
         WAREHOUSE_DATABASE_DB_TEST: warehouse_test
