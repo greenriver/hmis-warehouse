@@ -145,6 +145,8 @@ RSpec.feature 'Data collection features', type: :system do
       click_button 'Edit'
       fill_in 'Note', with: 'An updated legacy custom case note'
       click_button 'Save'
+      assert_text 'Displaying 1 of 1 case note'
+      assert_no_text 'Edit Case Note'
       case_note.reload
       expect(case_note.content).to eq('An updated legacy custom case note')
     end
