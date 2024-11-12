@@ -17,6 +17,9 @@ jobs:
     # Docker Hub image that the job executes in
     container: ruby:3.1.6-alpine3.20
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: 'Container Setup'
         id: container-setup
         uses: ./.github/workflows/container_setup

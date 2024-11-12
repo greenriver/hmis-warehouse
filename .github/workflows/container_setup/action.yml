@@ -2,20 +2,19 @@ name: "Container Setup"
 description: "Reusable action to DRY up CI"
 
 ## Call from the caller workflow like so:
+# - name: Checkout
+#     uses: actions/checkout@v4
 # - name: 'Container Setup'
 #   id: container-setup
 #   uses: ./.github/workflows/container_setup
 
-## Can accept inputs like this:
-# inputs:
-#   os:
-#     description: 'OS of the GitHub runner'
-#     required: true
-#     type: string
-
 runs:
   using: 'composite'
   steps:
+    - name: Install GNU tar (required by cache step and checksumming)
+      run: |
+        apk add --no-cache tar
+
     - name: Set up dependencies
       shell: sh
       env:

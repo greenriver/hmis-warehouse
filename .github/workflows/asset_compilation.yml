@@ -62,10 +62,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Install GNU tar (required by cache step and checksumming)
-      run: |
-        apk add --no-cache tar
-
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1-node16
       with:
