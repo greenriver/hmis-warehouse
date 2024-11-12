@@ -335,7 +335,7 @@ module GrdaWarehouse::Hud
 
       return 'With Only Children' if member_ages.all?(&:present?) && member_ages.all? { |age| age < 18 }
       return 'Without Children' if member_ages.all?(&:present?) && member_ages.all? { |age| age >= 18 }
-      return 'With Children and Adults' if member_ages.any? { |age| age >= 18 } && member_ages.any? { |age| age < 18 }
+      return 'With Children and Adults' if member_ages.reject(&:blank?).any? { |age| age >= 18 } && member_ages.reject(&:blank?).any? { |age| age < 18 }
 
       'Unknown Household Type'
     end

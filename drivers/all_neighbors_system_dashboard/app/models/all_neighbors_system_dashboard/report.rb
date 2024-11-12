@@ -279,6 +279,18 @@ module AllNeighborsSystemDashboard
         )
     end
 
+    # for debugging
+    def enrollments_as_csv
+      return [] unless enrollments.any?
+
+      CSV.generate do |csv|
+        csv << enrollments.first.attributes.keys
+        enrollments.find_each do |enrollment|
+          csv << enrollment.attributes.values
+        end
+      end
+    end
+
     def event_scope
       GrdaWarehouse::Hud::Event.
         joins(enrollment: :project).

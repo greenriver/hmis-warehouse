@@ -119,7 +119,7 @@ class HmisSupplemental::ImportJob < BaseJob
       new_row = {}
       # normalize headers
       csv.headers.each do |header|
-        new_row[header.downcase] = row[header]&.strip.presence
+        new_row[header.downcase.strip] = row[header]&.strip.presence
       end
       next if new_row.empty?
 
