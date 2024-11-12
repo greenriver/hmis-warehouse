@@ -8,7 +8,6 @@ class SetMissingTimestamps < ActiveRecord::Migration[7.0]
           client.date_created = client.warehouse_client_destination.min(&:created_at)
           client.date_updated ||= client.warehouse_client_destination.min(&:updated_at)
           import_batch << client
-
         end
         GrdaWarehouse::Hud::Client.import!(
           import_batch,
@@ -27,7 +26,6 @@ class SetMissingTimestamps < ActiveRecord::Migration[7.0]
           client.date_created = client.warehouse_client_source.created_at
           client.date_updated ||= client.warehouse_client_source.updated_at
           import_batch << client
-
         end
         GrdaWarehouse::Hud::Client.import!(
           import_batch,
