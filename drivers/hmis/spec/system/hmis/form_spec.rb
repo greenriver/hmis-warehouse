@@ -39,7 +39,7 @@ RSpec.feature 'Hmis Form behavior', type: :system do
     end
 
     it 'warns you of empty fields that have warn_if_empty, but still lets you submit' do
-      fill_in 'A required field', with: 'tomatoes'
+      fill_in 'A required field', with: '2'
       click_button 'Submit'
       assert_text 'Please confirm the following warnings.'
       assert_text '1 field was left empty'
