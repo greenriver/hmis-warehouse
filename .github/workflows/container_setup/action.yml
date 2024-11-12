@@ -1,6 +1,10 @@
 name: Container Setup
 on:
   workflow_call:
+    inputs:
+      os:
+        description: 'OS of the GitHub runner'
+        required: true
     secrets:
       GITHUB_TOKEN:
         required: true
@@ -8,51 +12,57 @@ jobs:
   reusable_job:
     runs-on: ubuntu-20.04
     container: ruby:3.1.6-alpine3.20
-    inputs:
-      os:
-        description: 'OS of the GitHub runner'
-        required: true
+
     steps:
-      - name: Set up dependencies
-        env:
-          DATABASE_APP_DB_TEST: warehouse_app_test
-          WAREHOUSE_DATABASE_DB_TEST: warehouse_test
-          HEALTH_DATABASE_DB_TEST: health_test
-          DATABASE_DB_TEST: cas_test
-          REPORTING_DATABASE_DB_TEST: reporting_test
-          # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
-          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+      - name: 'Display runner info'
         run: |
-          apk add --no-cache $(cat .github/dependencies.txt)
+          echo "Running on ${{ runner.os }} runner."
+          echo "Runner name: ${{ runner.name }}"
+          echo "Runner architecture: ${{ runner.arch }}"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Job: ${{ github.job }}"
+      # - name: Set up dependencies
+      #   env:
+      #     DATABASE_APP_DB_TEST: warehouse_app_test
+      #     WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+      #     HEALTH_DATABASE_DB_TEST: health_test
+      #     DATABASE_DB_TEST: cas_test
+      #     REPORTING_DATABASE_DB_TEST: reporting_test
+      #     # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
+      #     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+      #     PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+      #   run: |
+      #     apk add --no-cache $(cat .github/dependencies.txt)
 
-          echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
-          chmod 600 ~/.pgpass
+      #     echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
+      #     chmod 600 ~/.pgpass
 
-      # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
-      # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
-      # isn't supported on Alpine.
-      - name: cache gems
-        uses: actions/cache@v4
-        id: gemcache
-        with:
-          path: |
-            vendor/bundle
-            /usr/local/bundle/
-          key: ${{ inputs.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
+      # # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
+      # # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
+      # # isn't supported on Alpine.
+      # - name: cache gems
+      #   uses: actions/cache@v4
+      #   id: gemcache
+      #   with:
+      #     path: |
+      #       vendor/bundle
+      #       /usr/local/bundle/
+      #     key: ${{ inputs.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
 
-      - name: Install gems
-        if: always()
-        run: |
-          gem install bundler --version=2.5.17
-          bundle config set --local without 'production staging development'
-          bundle install --jobs 10 --retry 3
+      # - name: Install gems
+      #   if: always()
+      #   run: |
+      #     gem install bundler --version=2.5.17
+      #     bundle config set --local without 'production staging development'
+      #     bundle install --jobs 10 --retry 3
 
-      - name: Cache Node.js modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ inputs.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
+      # - name: Cache Node.js modules
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: node_modules
+      #     key: ${{ inputs.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
 
-      - name: Install Node.js modules
-        run: yarn install --frozen-lockfile
+      # - name: Install Node.js modules
+      #   run: yarn install --frozen-lockfile
