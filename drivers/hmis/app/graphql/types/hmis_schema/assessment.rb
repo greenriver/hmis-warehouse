@@ -136,6 +136,16 @@ module Types
       load_ar_association(object, :enrollment)
     end
 
+    def load_last_user_from_versions(object)
+      # Don't need to load from versions since assessments have updated_by as an attribute on the record
+      object.updated_by
+    end
+
+    def load_created_by_user_from_versions(object)
+      # Don't need to load from versions since assessments have created_by as an attribute on the record
+      object.created_by
+    end
+
     protected
 
     def form_processor

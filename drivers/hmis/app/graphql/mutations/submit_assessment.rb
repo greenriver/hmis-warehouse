@@ -53,6 +53,9 @@ module Mutations
 
       has_already_been_submitted = assessment.persisted? && !assessment.in_progress?
 
+      assessment.updated_by = current_user
+      assessment.created_by = current_user unless has_already_been_submitted
+
       # HoH Exit constraints
       if enrollment.head_of_household? && assessment.exit? && !has_already_been_submitted
         open_enrollments = Hmis::Hud::Enrollment.open_on_date(Date.tomorrow). # if other members exited today, its OK

@@ -80,25 +80,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(e1.custom_assessments.count).to eq(1)
         expect(e1.custom_assessments.in_progress.count).to eq(0)
         expect(e1.custom_assessments.first.enrollment_id).to eq(e1.enrollment_id)
+        expect(e1.custom_assessments.first.created_by).to eq(hmis_user)
+        expect(e1.custom_assessments.first.updated_by).to eq(hmis_user)
       end
     end
   end
 
   describe 'Re-Submitting a form that has already been submitted' do
-    let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, assessment_date: e1.entry_date }
-
-    it 'should update assessment successfully' do
-      expect(e1.custom_assessments.count).to eq(1)
-
-      new_assessment_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
-      input = {
+    let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, assessment_date: e1.entry_date, created_by: hmis_user, updated_by: hmis_user }
+    let(:new_assessment_date) { (e1.entry_date + 1.week).strftime('%Y-%m-%d') }
+    let!(:new_input) do
+      {
         assessment_id: a1.id,
         enrollment_id: a1.enrollment.id,
         form_definition_id: fd1.id,
         values: { 'linkid_date' => new_assessment_date },
         hud_values: { 'assessmentDate' => new_assessment_date },
       }
-      response, result = post_graphql(input: { input: input }) { mutation }
+    end
+
+    it 'should update assessment successfully' do
+      expect(e1.custom_assessments.count).to eq(1)
+      response, result = post_graphql(input: { input: new_input }) { mutation }
       assessment = result.dig('data', 'submitAssessment', 'assessment')
       errors = result.dig('data', 'submitAssessment', 'errors')
 
@@ -109,6 +112,29 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessment['assessmentDate']).to eq(new_assessment_date)
         expect(e1.custom_assessments.count).to eq(1)
         expect(e1.custom_assessments.in_progress.count).to eq(0)
+      end
+    end
+
+    context 'when assessment is updated by a different user' do
+      let!(:other_user) { create(:user, first_name: 'someone', last_name: 'else') }
+      let!(:other_hmis_user) { other_user.related_hmis_user(ds1) }
+      let!(:other_ac) { create_access_control(other_user, p1) }
+
+      before(:each) do
+        delete destroy_hmis_user_session_path
+        hmis_login(other_user)
+      end
+
+      it 'should update updated_by, but not created_by' do
+        assmt = e1.custom_assessments.sole
+        expect(assmt.created_by).to eq(hmis_user)
+        expect(assmt.updated_by).to eq(hmis_user)
+        expect do
+          response, result = post_graphql(input: { input: new_input }) { mutation }
+          expect(response.status).to eq(200), result.inspect
+          assmt.reload
+        end.to change(assmt, :updated_by).from(hmis_user).to(other_hmis_user).
+          and not_change(assmt, :created_by)
       end
     end
   end
