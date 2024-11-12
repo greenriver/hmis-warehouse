@@ -54,4 +54,5 @@ runs:
           key: ${{ inputs.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install Node.js modules
+        shell: bash
         run: yarn install --frozen-lockfile
