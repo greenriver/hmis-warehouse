@@ -1,5 +1,12 @@
 name: "Container Setup"
 description: "Reusable action to DRY up CI"
+
+## Call from the caller workflow like so:
+# - name: 'Container Setup'
+#   id: container-setup
+#   uses: ./.github/workflows/container_setup
+
+## Can accept inputs like this:
 # inputs:
 #   os:
 #     description: 'OS of the GitHub runner'

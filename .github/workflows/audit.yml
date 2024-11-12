@@ -1,0 +1,30 @@
+name: Bundle Audit and Brakeman
+on:
+  push:
+    branches:
+      - '*'
+      - '**/*'
+concurrency:
+  group: ${{ github.ref }}-audit
+  cancel-in-progress: true
+
+jobs:
+  # Label of the container job
+  audit:
+    # Containers must run in Linux based operating systems
+    runs-on: ubuntu-20.04
+
+    # Docker Hub image that the job executes in
+    container: ruby:3.1.6-alpine3.20
+    steps:
+      - name: 'Container Setup'
+        id: container-setup
+        uses: ./.github/workflows/container_setup
+
+      - name: Run bundle-audit
+        run: |
+          bundle exec bundle-audit check --update
+
+      - name: Run brakeman
+        run: |
+          bundle exec brakeman -q --no-pager
