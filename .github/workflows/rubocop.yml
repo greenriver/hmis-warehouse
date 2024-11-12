@@ -18,12 +18,14 @@ jobs:
     container: ruby:3.1.6-alpine3.20
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: 'Container Setup'
         id: container-setup
         uses: ./.github/workflows/container_setup
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Get changed files
         id: changed-files
