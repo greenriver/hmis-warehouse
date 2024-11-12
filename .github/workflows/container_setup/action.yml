@@ -11,6 +11,7 @@ runs:
 
   steps:
       - name: Set up dependencies
+        shell: bash
         env:
           DATABASE_APP_DB_TEST: warehouse_app_test
           WAREHOUSE_DATABASE_DB_TEST: warehouse_test
@@ -39,6 +40,7 @@ runs:
           key: ${{ inputs.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
 
       - name: Install gems
+        shell: bash
         if: always()
         run: |
           gem install bundler --version=2.5.17
