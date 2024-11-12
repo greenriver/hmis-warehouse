@@ -59,8 +59,8 @@ jobs:
     container: ruby:3.1.6-alpine3.20
 
     steps:
-    # - name: Checkout
-    #   uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
     # - name: Install GNU tar (required by cache step and checksumming)
     #   run: |
