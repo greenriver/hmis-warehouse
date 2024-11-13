@@ -313,28 +313,37 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         expect(hoh_enrollment.occurrence_point_forms).to be_empty
       end
 
-      context 'when an inactive instance exists' do
-        let!(:instance) { create(:hmis_form_instance, role: role, entity: project, active: false, definition: definition) }
+      it 'does not return when an inactive instance exists' do
+        create(:hmis_form_instance, role: role, entity: project, active: false, definition: definition)
+        expect(hoh_enrollment.occurrence_point_forms).to be_empty
+      end
+    end
 
-        it 'does not return the form' do
-          expect(hoh_enrollment.occurrence_point_forms).to be_empty
-        end
+    context 'when there is legacy data' do
+      let!(:inactive_instance) { create(:hmis_form_instance, role: role, entity: project, active: false, definition: definition) }
+      let!(:spouse_enrollment) do
+        create(
+          :hmis_hud_enrollment,
+          project: project,
+          data_source: ds1,
+          household_id: 'household1',
+          relationship_to_hoh: 3,
+          move_in_date: 3.weeks.ago,
+        )
+      end
 
-        context 'but legacy data exists' do
-          let!(:spouse_enrollment) do
-            create(
-              :hmis_hud_enrollment,
-              project: project,
-              data_source: ds1,
-              household_id: 'household1',
-              relationship_to_hoh: 3,
-              move_in_date: 3.weeks.ago,
-            )
-          end
+      it 'does return the form' do
+        expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(inactive_instance)
+      end
 
-          it 'does return the form' do
-            expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(instance)
-          end
+      context 'when multiple irrelevant instances exist' do
+        let!(:instance1) { create(:hmis_form_instance, role: role, project_type: 2, active: true, definition: definition) }
+        let!(:instance2) { create(:hmis_form_instance, role: role, project_type: 3, active: true, definition: definition) }
+        let!(:instance3) { create(:hmis_form_instance, role: role, project_type: 4, active: true, definition: definition) }
+        let!(:another_inactive) { create(:hmis_form_instance, role: role, project_type: 6, active: false, definition: definition) }
+
+        it 'returns the form, with no duplicates' do
+          expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(instance3)
         end
       end
     end

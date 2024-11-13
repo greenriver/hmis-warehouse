@@ -337,38 +337,53 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def occurrence_point_forms
-    # Iterate over all instances, even if they don't match the project, in case there is legacy data
-    instances = Hmis::Form::Instance.with_role(:OCCURRENCE_POINT)
+    # All instances for Occurrence Point forms, including inactive/retired, so we can check for legacy data.
+    # Draft forms should never have legacy data, but let's include them just in case.
+    base_scope = Hmis::Form::Instance.with_role(:OCCURRENCE_POINT)
 
-    instances.map do |instance|
-      # This instance is enabled for this project _and_ matches this Enrollment (for "Data Collected About")
-      matches = instance.active? && instance.published? && instance.project_and_enrollment_match(project: project, enrollment: self).present?
-      next instance if matches
+    # All possible form identifiers used for Occurrence Point collection
+    occurrence_point_identifiers = base_scope.pluck(:definition_identifier).uniq
 
-      # This instance doesn't match this Enrollment. It may not be published or active, but check if it has any data,
-      # in which case we will show it anyway
+    # Get the latest version of each form definition so we can check for legacy data
+    # todo @martha - edge case with drafts
+    definitions = Hmis::Form::Definition.where(identifier: occurrence_point_identifiers).latest_versions
+
+    definitions.map do |definition|
+      # Choose the most specific instance for each definition identifier
+      instance_scope = base_scope.where(definition_identifier: definition.identifier).order(updated_at: :desc)
+      best_instance = instance_scope.active.published.detect_best_instance_for_enrollment(enrollment: self)
+
+      # If we didn't find a best_instance, check for legacy data
       has_any_data = false
-      instance.definition.walk_definition_nodes(as_open_struct: true) do |item|
-        next unless item.mapping.present?
+      unless best_instance
+        definition.walk_definition_nodes(as_open_struct: true) do |item|
+          next unless item.mapping.present?
 
-        record_type = item.mapping&.record_type
-        field_name = item.mapping&.field_name&.underscore
-        custom_field_key = item.mapping&.custom_field_key
+          record_type = item.mapping&.record_type
+          field_name = item.mapping&.field_name&.underscore
+          custom_field_key = item.mapping&.custom_field_key
 
-        next unless record_type == 'ENROLLMENT' || custom_field_key
+          next unless record_type == 'ENROLLMENT' || custom_field_key
 
-        if record_type && field_name
-          has_any_data = respond_to?(field_name) && send(field_name).present?
-        elsif custom_field_key
-          # For simplicity, for now, just look for CDEDs where the owner is an Enrollment
-          owner_class_name = self.class.sti_name
-          cded = Hmis::Hud::CustomDataElementDefinition.for_type(owner_class_name).find_by(key: custom_field_key)
-          has_any_data = cded && Hmis::Hud::CustomDataElement.where(data_element_definition: cded, owner: self).any?
+          if record_type && field_name
+            has_any_data = respond_to?(field_name) && send(field_name).present?
+          elsif custom_field_key
+            # For simplicity, for now, just look for CDEDs where the owner is an Enrollment
+            owner_class_name = self.class.sti_name
+            cded = Hmis::Hud::CustomDataElementDefinition.for_type(owner_class_name).find_by(key: custom_field_key)
+            has_any_data = cded && Hmis::Hud::CustomDataElement.where(data_element_definition: cded, owner: self).any?
+          end
+          break if has_any_data # if we found data, we don't need to keep iterating through the items
         end
-        break if has_any_data # if we found data, we don't need to keep iterating through the items
       end
 
-      has_any_data ? instance : nil
+      # If we found legacy data, then return an instance so we can display it. Prioritize active/published
+      if has_any_data
+        best_instance ||= instance_scope.active.published.first # prioritize active/published instances
+        best_instance ||= instance_scope.first # but if none exist, just return the latest instance
+      end
+
+      best_instance
     end.compact
   end
 
