@@ -1,0 +1,37 @@
+%h1 Additional Training is Required
+
+%div The training(s) identified below are required to be completed prior to accessing the warehouse.
+%div Please contact an administrator to setup your account in the following TalentLMS domain(s) and ensure that the correct email address linked to your warehouse account.
+%br
+%h2 Account Information
+.well
+  %div
+    Warehouse email:
+    = current_user.email
+  %div
+    TalentLMS email:
+    = current_user.talent_lms_email
+
+%h2 Required Training Course Information
+- @configs.sort_by(&:unique_name).each do |config|
+  .well
+    %h3= config.unique_name
+    %p 
+      Domain:
+      = link_to config.domain, "https://#{config.domain}"
+    .table-responsive
+      %table.table.table-striped
+        %thead
+          %tr
+            %th Course Name
+            %th Course ID
+            %th Course Completed
+        %tbody
+          - required_courses_for_config = (@courses & config.courses)
+          - required_courses_for_config.each do |course|
+            %tr
+              %td= course.name
+              %td= course.courseid
+              %td= checkmark(course.completed_by?(current_user))
+
+=render 'logout'
