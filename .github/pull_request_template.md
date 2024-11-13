@@ -3,10 +3,11 @@
 - use a merge-commit or rebase strategy for PRs targeting the stable branch
 
 ## Description
-[//]: # (Summarize changes and include links related issue. List any new dependencies)
+[//]: # (Summarize changes and include links related issue)
+[//]: # (List any new dependencies or relevant ADRs (Architectural Decision Records))
 
 ## Type of change
-[//]: # (e.g., Bug fix, New feature, Code clean-up, Dependency update)
+[//]: # (e.g., Bug fix, New feature, Documentation, Code clean-up, Dependency update)
 
 ## Checklist before requesting review
 [//]: # (Remove any items that are not applicable)

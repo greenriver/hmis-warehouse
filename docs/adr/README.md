@@ -65,6 +65,8 @@ docs/
 
 ## Contributing
 
+An ADR should be accepted during the planning phase of new work that requires major architectural changes.
+
 1. Copy `template.md` to create your new ADR
 2. Fill in the template
 3. Create a pull request
