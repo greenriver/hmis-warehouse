@@ -209,7 +209,7 @@ module Admin
       @cocs = {
         label: 'CoC Codes',
         selected: @collection&.coc_codes || [],
-        collection: GrdaWarehouse::Hud::ProjectCoc.distinct.distinct.order(:CoCCode).pluck(:CoCCode).compact,
+        collection: GrdaWarehouse::Hud::ProjectCoc.distinct.order(:CoCCode).pluck(:CoCCode).compact,
         placeholder: 'CoC',
         multiple: true,
         input_html: {
@@ -221,7 +221,7 @@ module Admin
       @coc_codes = {
         label: 'CoC Codes',
         selected: @collection&.coc_codes || [],
-        collection: GrdaWarehouse::Hud::ProjectCoc.distinct.distinct.order(:CoCCode).pluck(:CoCCode).compact.map { |coc| [HudUtility2024.coc_name(coc), coc] },
+        collection: GrdaWarehouse::Hud::ProjectCoc.distinct.order(:CoCCode).pluck(:CoCCode).reject(&:blank?).compact.map { |coc| [HudUtility2024.coc_name(coc), coc] },
         placeholder: 'CoC',
         multiple: true,
         input_html: {
