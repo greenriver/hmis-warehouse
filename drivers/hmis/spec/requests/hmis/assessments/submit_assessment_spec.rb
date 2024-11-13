@@ -86,6 +86,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(e1.custom_assessments.first.enrollment_id).to eq(e1.enrollment_id)
         expect(e1.custom_assessments.first.created_by).to eq(hmis_user)
         expect(e1.custom_assessments.first.updated_by).to eq(hmis_user)
+        expect(e1.custom_assessments.first.created_by_hud_user).to eq(Hmis::Hud::User.from_user(hmis_user))
       end
     end
 
@@ -99,11 +100,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       expect(e1.custom_assessments.sole.created_by).to eq(hmis_user)
       expect(e1.custom_assessments.sole.updated_by).to eq(hmis_user)
+      expect(e1.custom_assessments.sole.created_by_hud_user).to eq(Hmis::Hud::User.from_user(hmis_user))
+      expect(e1.custom_assessments.sole.user).to eq(Hmis::Hud::User.from_user(other_hmis_user)) # NOT the true user
     end
   end
 
   describe 'Re-Submitting a form that has already been submitted' do
-    let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, assessment_date: e1.entry_date, created_by: hmis_user, updated_by: hmis_user }
+    let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, assessment_date: e1.entry_date, created_by: hmis_user, updated_by: hmis_user, user: Hmis::Hud::User.from_user(hmis_user), created_by_hud_user: Hmis::Hud::User.from_user(hmis_user) }
     let(:new_assessment_date) { (e1.entry_date + 1.week).strftime('%Y-%m-%d') }
     let!(:new_input) do
       {
@@ -141,12 +144,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         assmt = e1.custom_assessments.sole
         expect(assmt.created_by).to eq(hmis_user)
         expect(assmt.updated_by).to eq(hmis_user)
+        expect(assmt.created_by_hud_user).to eq(Hmis::Hud::User.from_user(hmis_user))
         expect do
           response, result = post_graphql(input: { input: new_input }) { mutation }
           expect(response.status).to eq(200), result.inspect
           assmt.reload
         end.to change(assmt, :updated_by).from(hmis_user).to(other_hmis_user).
-          and not_change(assmt, :created_by)
+          and change(assmt, :user).from(Hmis::Hud::User.from_user(hmis_user)).to(Hmis::Hud::User.from_user(other_hmis_user)).
+          and not_change(assmt, :created_by).
+          and not_change(assmt, :created_by_hud_user)
       end
     end
   end

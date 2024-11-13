@@ -53,10 +53,6 @@ module Mutations
 
       has_already_been_submitted = assessment.persisted? && !assessment.in_progress?
 
-      # use true_user rather than current_user in case of impersonation, matching load_last_user_from_versions
-      assessment.updated_by = true_user
-      assessment.created_by = true_user unless has_already_been_submitted
-
       # HoH Exit constraints
       if enrollment.head_of_household? && assessment.exit? && !has_already_been_submitted
         open_enrollments = Hmis::Hud::Enrollment.open_on_date(Date.tomorrow). # if other members exited today, its OK
@@ -91,7 +87,16 @@ module Mutations
       assessment.assign_attributes(
         user_id: hmis_user.user_id,
         assessment_date: assessment.form_processor.find_assessment_date_from_values,
+        # Use true_user rather than current_user in case of impersonation, matching load_last_user_from_versions.
+        # See comments on CustomAssessments about user, created_by, created_by_hud_user, and updated_by
+        updated_by: true_user,
       )
+      unless has_already_been_submitted
+        assessment.assign_attributes(
+          created_by: true_user,
+          created_by_hud_user: true_hmis_user,
+        )
+      end
 
       # Validate form values based on FormDefinition
       form_validations = assessment.form_processor.collect_form_validations

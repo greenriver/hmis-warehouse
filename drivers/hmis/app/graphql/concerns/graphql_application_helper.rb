@@ -14,6 +14,10 @@ module GraphqlApplicationHelper
     Hmis::Hud::User.from_user(current_user)
   end
 
+  def true_hmis_user
+    Hmis::Hud::User.from_user(true_user)
+  end
+
   def access_denied!(message = 'access denied')
     raise message
   end

@@ -839,7 +839,8 @@ CREATE TABLE public."CustomAssessments" (
     wip boolean DEFAULT false NOT NULL,
     lock_version integer DEFAULT 0 NOT NULL,
     created_by_user_id bigint,
-    updated_by_user_id bigint
+    updated_by_user_id bigint,
+    created_by_hud_user_id bigint
 );
 
 
