@@ -340,6 +340,15 @@ namespace :grda_warehouse do
       Rails.logger.error(e.message)
     end
 
+    if DateTime.current.hour == 20
+      begin
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.perform
+      rescue StandardError => e
+        Sentry.capture_exception(e)
+        Rails.logger.error(e.message)
+      end
+    end
+
     stats_collector = AppResourceMonitor::CollectStatsJob.new
     AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
 

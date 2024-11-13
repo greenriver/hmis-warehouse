@@ -459,6 +459,8 @@ module HomelessSummaryReport
               report_client[:last_name] = hud_client.last_name
               report_client[:report_id] = id
               report_client["spm_#{spm_field}"] = parts.fetch(:value_accessor).call(spm_member)
+              # In Measure 7b, set the destination to 0 to flag the destination as 'Remained housed'
+              report_client["spm_#{spm_field}"] ||= 0 if measure_7b_remained_housed?(spm_field, spm_member)
               # FIXME: document what this is
               report_client[field_name(cell)] = true if field_measure(spm_field) == 7
               report_client[detail_variant_name] = report[:report].id # SPM ID for future reference
@@ -493,6 +495,22 @@ module HomelessSummaryReport
         },
       )
       universe.add_universe_members(report_clients)
+    end
+
+    # Identify members who have remainied housed in Meaasure 7b
+    private def measure_7b_remained_housed?(spm_field, spm_member)
+      # We only want to calculate this for measure 7b
+      return unless spm_field == :m7b2_destination
+
+      # client must have moved in and not exited by the end of the report date
+      valid_move_in = spm_member.move_in_date.present?
+      valid_exit = spm_member.exit_date.blank? || spm_member.exit_date > @filter.end
+
+      # this must be for a PH project, exluding RRH
+      valid_project_types = HudUtility2024.permanent_housing_project_types - [HudUtility2024.project_type_number('PH - RRH')]
+      valid_project = valid_project_types.include?(spm_member.enrollment.project.project_type)
+
+      valid_project && valid_move_in && valid_exit
     end
 
     # This needs to temporarily set @filter to something useful for further limiting the default
@@ -663,25 +681,25 @@ module HomelessSummaryReport
       {
         m1a_es_sh_days: {
           cells: [['1a', 'B1']],
-          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
+          value_accessor: lambda(&:days_homeless),
           title: 'with ES or SH stays',
           calculations: [:count, :average, :median],
         },
         m1a_es_sh_th_days: {
           cells: [['1a', 'B2']],
-          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
+          value_accessor: lambda(&:days_homeless),
           title: 'with ES, SH, or TH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_ph_days: {
           cells: [['1b', 'B1']],
-          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
+          value_accessor: lambda(&:days_homeless),
           title: 'with ES, SH, or PH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_th_ph_days: {
           cells: [['1b', 'B2']],
-          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
+          value_accessor: lambda(&:days_homeless),
           title: 'with ES, SH, TH, or PH stays',
           calculations: [:count, :average, :median],
         },
@@ -696,7 +714,7 @@ module HomelessSummaryReport
             ['7a.1', 'C3'],
             ['7a.1', 'C4'],
           ],
-          value_accessor: ->(spm_enrollment) { spm_enrollment.destination },
+          value_accessor: lambda(&:destination),
           title: 'who exit Street Outreach',
           calculations: [:count, :count_destinations],
         },
@@ -705,7 +723,7 @@ module HomelessSummaryReport
             ['7b.1', 'C2'],
             ['7b.1', 'C3'],
           ],
-          value_accessor: ->(spm_enrollment) { spm_enrollment.destination },
+          value_accessor: lambda(&:destination),
           title: 'in ES, SH, TH, and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing',
           calculations: [:count, :count_destinations],
         },
@@ -714,7 +732,7 @@ module HomelessSummaryReport
             ['7b.2', 'C2'],
             ['7b.2', 'C3'],
           ],
-          value_accessor: ->(spm_enrollment) { spm_enrollment.destination },
+          value_accessor: lambda(&:destination),
           title: 'in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project',
           calculations: [:count, :count_destinations],
         },

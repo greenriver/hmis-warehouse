@@ -1,5 +1,6 @@
 - pii = client.pii_provider(user: current_user)
-%tr
+-# data attr is used for by automated test to check cilent visibility
+%tr{'data-test-client-id' => client.id}
   %td
     .ds{class: "ds-color-#{client.data_source_id}"}= ds_short_name_for(client.id)
   %td.client-name

@@ -17,13 +17,28 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
   let(:masked_ssn) { 'XXX-XX-6789' }
   let(:age_with_year_only) { "#{pii_attributes[:dob].year} (#{pii_age})" }
 
-  def new_policy(**perms)
-    # roles and policy have the same shape
-    build(:role, **perms)
+  def new_policy(permissions = {})
+    default_permissions = {
+      can_view_name?: false,
+      can_view_photo?: false,
+      can_view_full_dob?: false,
+      can_view_full_ssn?: false,
+      can_view_hiv_status?: false,
+    }
+
+    # Convert string/symbol keys to method names with question marks
+    normalized_permissions = permissions.transform_keys do |key|
+      key.to_s.end_with?('?') ? key.to_sym : "#{key}?".to_sym
+    end
+
+    instance_double(
+      'GrdaWarehouse::AuthPolicies::SourceClientPolicy',
+      default_permissions.merge(normalized_permissions),
+    )
   end
 
   context('pii with view name permission') do
-    let(:policy) { new_policy(can_view_client_name: true) }
+    let(:policy) { new_policy(can_view_name: true) }
     let(:pii) { GrdaWarehouse::PiiProvider.from_attributes(policy: policy, **pii_attributes) }
 
     it('displays first_name') { expect(pii.first_name).to eq(pii_attributes[:first_name]) }
@@ -62,7 +77,7 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
   end
 
   context('pii with view photo permission') do
-    let(:policy) { new_policy(can_view_client_photo: true) }
+    let(:policy) { new_policy(can_view_photo: true) }
     let(:pii) { GrdaWarehouse::PiiProvider.from_attributes(policy: policy, **pii_attributes) }
 
     it('displays image') { expect(pii.image).to eq(pii_attributes[:image]) }
@@ -77,7 +92,7 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
   end
 
   context('pii without permissions') do
-    let(:policy) { GrdaWarehouse::AuthPolicies::DenyPolicy.instance }
+    let(:policy) { new_policy }
     let(:pii) { GrdaWarehouse::PiiProvider.from_attributes(policy: policy, **pii_attributes) }
     let(:name_redacted) { 'Name Redacted' }
     it('redacts first_name') { expect(pii.first_name).to eq(name_redacted) }

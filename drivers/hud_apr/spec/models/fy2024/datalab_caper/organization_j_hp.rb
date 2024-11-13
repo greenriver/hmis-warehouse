@@ -7,7 +7,8 @@
 RSpec.shared_context 'datalab organization j hp caper', shared_context: :metadata do
   describe 'Datalab 2024 CAPER - Organization J HP' do
     let(:results_dir) { 'caper/organization_j_hp' }
-    before(:all) do
+    before(:all) do\
+      ENV['INVALID_COC_CODES'] = 'XX-518'
       generator = HudApr::Generators::Caper::Fy2024::Generator
       project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['Organization J - HP']).pluck(:id)
       run(generator, project_ids_filter(project_ids))
