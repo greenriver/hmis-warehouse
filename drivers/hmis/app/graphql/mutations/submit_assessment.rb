@@ -53,8 +53,9 @@ module Mutations
 
       has_already_been_submitted = assessment.persisted? && !assessment.in_progress?
 
-      assessment.updated_by = current_user
-      assessment.created_by = current_user unless has_already_been_submitted
+      # use true_user rather than current_user in case of impersonation, matching load_last_user_from_versions
+      assessment.updated_by = true_user
+      assessment.created_by = true_user unless has_already_been_submitted
 
       # HoH Exit constraints
       if enrollment.head_of_household? && assessment.exit? && !has_already_been_submitted

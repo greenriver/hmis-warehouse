@@ -838,8 +838,8 @@ CREATE TABLE public."CustomAssessments" (
     "DateDeleted" timestamp without time zone,
     wip boolean DEFAULT false NOT NULL,
     lock_version integer DEFAULT 0 NOT NULL,
-    created_by_user_id integer,
-    updated_by_user_id integer
+    created_by_user_id bigint,
+    updated_by_user_id bigint
 );
 
 

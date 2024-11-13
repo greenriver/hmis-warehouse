@@ -34,6 +34,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
+  let!(:other_user) { create(:user, first_name: 'someone', last_name: 'else') }
+  let!(:other_hmis_user) { other_user.related_hmis_user(ds1) }
+  let!(:other_ac) { create_access_control(other_user, p1) }
+
   let(:test_assessment_date) { e1.entry_date.strftime('%Y-%m-%d') }
   let(:test_input) do
     {
@@ -84,6 +88,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(e1.custom_assessments.first.updated_by).to eq(hmis_user)
       end
     end
+
+    it 'should save the true user as the creator when another user is being impersonated' do
+      post hmis_impersonations_path, params: { user_id: other_hmis_user.id }, headers: {
+        'ORIGIN' => GraphqlHelpers::HMIS_ORIGIN,
+      }
+
+      response, result = post_graphql(input: { input: test_input }) { mutation }
+      expect(response.status).to eq(200), result.inspect
+
+      expect(e1.custom_assessments.sole.created_by).to eq(hmis_user)
+      expect(e1.custom_assessments.sole.updated_by).to eq(hmis_user)
+    end
   end
 
   describe 'Re-Submitting a form that has already been submitted' do
@@ -116,10 +132,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when assessment is updated by a different user' do
-      let!(:other_user) { create(:user, first_name: 'someone', last_name: 'else') }
-      let!(:other_hmis_user) { other_user.related_hmis_user(ds1) }
-      let!(:other_ac) { create_access_control(other_user, p1) }
-
       before(:each) do
         delete destroy_hmis_user_session_path
         hmis_login(other_user)
