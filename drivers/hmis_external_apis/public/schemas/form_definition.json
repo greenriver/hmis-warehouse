@@ -1101,6 +1101,13 @@
               "items": {
                 "$ref": "#/$defs/autofillValues"
               }
+            },
+            "editor_user_ids": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "integer"
+              }
             }
           }
         }

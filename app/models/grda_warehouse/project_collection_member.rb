@@ -4,7 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# DB view
+# This DB view finds project and collection relationships. It includes access groups that relate to the project
+# indirectly (via organization, project groups, etc)
 module GrdaWarehouse
   class ProjectCollectionMember < GrdaWarehouseBase
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'

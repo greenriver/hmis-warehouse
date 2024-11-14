@@ -317,6 +317,8 @@ namespace :grda_warehouse do
       Hmis::AutoExitJob.perform_now
     end
 
+    PurgeSoftDeletedRecordsJob.perform_now(dry_run: false) if DateTime.current.hour == 5
+
     # Run CSG Engage export if ready
     MaReports::CsgEngage::Report.run_if_ready if RailsDrivers.loaded.include?(:ma_reports)
 
@@ -336,6 +338,15 @@ namespace :grda_warehouse do
     rescue StandardError => e
       Sentry.capture_exception(e)
       Rails.logger.error(e.message)
+    end
+
+    if DateTime.current.hour == 20
+      begin
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.perform
+      rescue StandardError => e
+        Sentry.capture_exception(e)
+        Rails.logger.error(e.message)
+      end
     end
 
     stats_collector = AppResourceMonitor::CollectStatsJob.new

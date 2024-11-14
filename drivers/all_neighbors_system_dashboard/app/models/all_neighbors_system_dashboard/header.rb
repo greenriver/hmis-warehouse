@@ -59,7 +59,7 @@ module AllNeighborsSystemDashboard
     end
 
     def returned_percent
-      return 0 if housed_count.zero?
+      return 0 if housed_and_exited_count.zero?
 
       percent = ((returned_total_scope.select(Enrollment.arel_table[:return_date]).count / housed_and_exited_count.to_f) * 100).round
       "#{percent}%"

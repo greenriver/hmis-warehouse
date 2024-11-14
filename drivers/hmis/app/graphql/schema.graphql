@@ -3294,6 +3294,11 @@ type Enrollment {
   currentUnit: Unit
   customCaseNotes(limit: Int, offset: Int, sortOrder: CustomCaseNoteSortOption): CustomCaseNotesPaginated!
   customDataElements: [CustomDataElement!]!
+
+  """
+  Data collection features that are enabled for this Enrollment (e.g. Current Living Situations, Events)
+  """
+  dataCollectionFeatures: [DataCollectionFeature!]!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateOfBcpStatus: ISO8601Date
@@ -4173,6 +4178,11 @@ type FormItem {
   How to display item if it is disabled
   """
   disabledDisplay: DisabledDisplay
+
+  """
+  Users who can edit this field. If null, all users can edit
+  """
+  editorUserIds: [ID!]
   enableBehavior: EnableBehavior
   enableWhen: [EnableWhen!]
 

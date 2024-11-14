@@ -56,13 +56,13 @@ module Talentlms
     # The Local login record for the user. If no record exists, one will by created/syncronized from the api.
     #
     # @param api [Integer] Config ID for the record that contains information about the subdomain.
-    # @return [Login] Local login record for the user
+    # @return [Login] Local login record for the user, nil if local data cannot be created/retrieved
     def local_login(api)
       login = Login.find_by(config: api, user: @user)
       if login.nil?
-        # If the login record does not exist, we need to create it - call the sync method then pull the information.
-        sync_lms_account(api, nil)
-        login = Login.find_by(config: api, user: @user)
+        # If the login record does not exist, we need to attempt to create it - call the sync method then pull the information.
+        api_data = sync_lms_account(api, nil)
+        login = Login.find_by(config: api, user: @user) if api_data.present?
       end
       login
     end
@@ -70,22 +70,23 @@ module Talentlms
     # Login user to TalentLMS
     #
     # @param api [Integer] Config ID for the record that contains information about the subdomain where the user will be logged in
-    # @return [String] URL to redirect user to
+    # @return [Boolean] true if login was successful, false if not
     def login(api)
       login = Login.find_by(config: api, user: @user)
 
       # We may have a local talent record for this user, but we need to run it
       # through the sync process to ensure that the email address that we have
       # on record matches the email address that TalentLMS has for this user.
-      result = sync_lms_account(api, login)
-      result['login_key']
+      api_data = sync_lms_account(api, login)
+
+      api_data.present?
     end
 
     # Syncronize the user's local data with taht found in the config (subdomain)
     #
     # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account will be synced with the local data
     # @param login [Integer] Nullable ID for the Login record that contains local information about the user we are syncronizing.
-    # @return [String] URL to redirect user to
+    # @return [JSON] Account data returned from the API, nil if no account data is available
     def sync_lms_account(api, login)
       username = lms_username
       email_address = lms_email
@@ -101,17 +102,19 @@ module Talentlms
       # Talent does not have a record associated with this user, create an account for them.
       result ||= create_account(api)
 
-      # Update the talent_lms_email on the local user if it differs from the email address in TalentLMS
-      @user.update!(talent_lms_email: result['email']) if result.try(:[], 'email') != @user.talent_lms_email
+      if result.present?
+        # Update the talent_lms_email on the local user if it differs from the email address in TalentLMS
+        @user.update!(talent_lms_email: result['email']) if result.try(:[], 'email') != @user.talent_lms_email
 
-      # If we want to update the email in Talent to match the local account instead of updating the local email
-      # address to match what we are seeing in Talent. The line below will update the account in TalentLMS.
-      # Leaving this here in case we want to use this behavior.
-      ## result = api.post('edituser', { user_id: result['id'], email: email_address }) if result.present? && result['email'] != email_address
+        # If we want to update the email in Talent to match the local account instead of updating the local email
+        # address to match what we are seeing in Talent. The line below will update the account in TalentLMS.
+        # Leaving this here in case we want to use this behavior.
+        ## result = api.post('edituser', { user_id: result['id'], email: email_address }) if result.present? && result['email'] != email_address
 
-      # Make sure the local login record matches what we have identified in the Talent account.
-      # With this saved, out local data will be synced with that in Talent for this user.
-      create_or_update_local_login(api, result) if result.present?
+        # Make sure the local login record matches what we have identified in the Talent account.
+        # With this saved, out local data will be synced with that in Talent for this user.
+        create_or_update_local_login(api, result) if result.present?
+      end
 
       result
     end
@@ -119,7 +122,7 @@ module Talentlms
     # Set the locally stored data for an lmls account
     #
     # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
-    # @param lms_account_data Data from the lms API return that contains the user information
+    # @param lms_account_data [JSON] Data from the lms API return that contains the user information
     def create_or_update_local_login(api, lms_account_data)
       login = Login.where(config: api, user: @user).first_or_initialize
       login.login = lms_account_data['login']
@@ -130,7 +133,7 @@ module Talentlms
     # Create an account in TalentLMS for a user
     #
     # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account will exist
-    # @return [String] URL to redirect the user to to login
+    # @return [JSON] Account data returned from the API, nil if the account was not created
     def create_account(api)
       username = lms_username
       email_address = lms_email
@@ -143,20 +146,20 @@ module Talentlms
         password: random_password,
         restrict_email: 'on',
       }
-      result = api.post('usersignup', account)
+      result = api.post('usersignup', account) if api.create_new_accounts?
       result
     end
 
     # Enroll a user in a course in TalentLMS
     #
     # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
-    # @param course_id [Integer] the id of the course
+    # @param course_id [Integer] the id of the course, nil if enrollment could not be completed
     def enroll(api, course_id)
       login = local_login(api)
-      return false if login.nil?
+      return nil if login.nil?
 
       course = Course.find_by(config: api, courseid: course_id)
-      return false if course.nil?
+      return nil if course.nil?
 
       api.post('addusertocourse', { course_id: course.courseid, user_id: login.lms_user_id })
     rescue RuntimeError => e
@@ -166,13 +169,13 @@ module Talentlms
     # Reset progress for a user in a course in TalentLMS
     #
     # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
-    # @param course_id [Integer] the id of the course
+    # @param course_id [Integer] the id of the course, nil if progress could not be reset
     def reset_user_progress(api, course_id)
       login = local_login(api)
-      return false if login.nil?
+      return nil if login.nil?
 
       course = Course.find_by(config: api, courseid: course_id)
-      return false if course.nil?
+      return nil if course.nil?
 
       api.post('resetuserprogress', { course_id: course.courseid, user_id: login.lms_user_id })
     end
@@ -182,13 +185,13 @@ module Talentlms
     # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
     # @param completion_date [Date] the date which the training was completed
     # @param course_id [Integer] the id of the course
-    # @return [CompletedTraining] the completed training data
+    # @return [CompletedTraining] the completed training data, nil if completion could not be logged
     def log_course_completion(api, course_id, completion_date)
       login = local_login(api)
       return nil if login.nil?
 
       course = Course.find_by(config: api, courseid: course_id)
-      return false if course.nil?
+      return nil if course.nil?
 
       CompletedTraining.where(login: login, config: api, course_id: course, completion_date: completion_date).first_or_create
     end
@@ -215,10 +218,10 @@ module Talentlms
     #
     # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
     # @param verify_with_api [Boolean] call the API for the last completed date or use local data
-    # @return [Boolean] true if the user's training has expired
+    # @return [Boolean] true if the user's training has expired, false if training has not expired, nil if it cannot be determined
     def training_expired?(api, course_id, verify_with_api = true)
       login = local_login(api)
-      return false if login.nil?
+      return nil if login.nil?
 
       course = Course.find_by(config: api, courseid: course_id)
       return false if course.nil?
@@ -237,10 +240,10 @@ module Talentlms
     # Checks if the user requires training
     #
     # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account exists
-    # @return true if the user requires training
+    # @return true if the user requires training, false if no training is required, nil if it cannot be determined
     def training_required?(api, course_id)
       login = local_login(api)
-      return false if login.nil?
+      return nil if login.nil?
 
       course = Course.find_by(config: api, courseid: course_id)
       return false if course.nil?
@@ -305,7 +308,10 @@ module Talentlms
       @courses.each do |course|
         training_required << training_required?(course.config, course.courseid)
       end
-      training_required.any?(true)
+
+      # Only respond as trainings are not required if we know all trainigs are not required.
+      # We could have a training where it cannot be determined that requires additional inquiry
+      !training_required.all?(false)
     end
 
     def self.expiration_duration_period
