@@ -60,13 +60,8 @@ task migrate_assessments_20241111: [:environment] do
   puts "Now going back through to update #{total_records} assessments with their `created_by_hud_user`"
 
   assessments.find_each.with_index(1) do |assessment, index|
-    create_version = assessment.versions.detect { |v| v.event == 'create' && (v.clean_true_user_id.present? || v.clean_user_id.present?) }
-    if create_version
-      hud_user = app_user_ids_to_hud_users[create_version.clean_true_user_id || create_version.clean_user_id]
-      hud_user.reload
-
-      assessment.update_column!(:created_by_hud_user_id, hud_user.id)
-    end
+    hud_user_id = app_user_ids_to_hud_users[assessment.created_by_hud_user]&.id
+    assessment.update_column!(:created_by_hud_user_id, hud_user_id)
 
     if index % 1000 == 0 || index == total_records
       puts "Processed #{index} of #{total_records}."
