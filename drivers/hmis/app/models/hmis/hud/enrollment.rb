@@ -337,27 +337,17 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def occurrence_point_forms
-    # All instances for Occurrence Point forms, including inactive/retired, so we can check for legacy data.
-    # Draft forms should never have legacy data, but let's include them just in case.
-    base_scope = Hmis::Form::Instance.with_role(:OCCURRENCE_POINT)
-
-    # All possible form identifiers used for Occurrence Point collection
-    occurrence_point_identifiers = base_scope.pluck(:definition_identifier).uniq
-
-    # Get the latest version of each form definition so we can check for legacy data
-    definitions = Hmis::Form::Definition.where(identifier: occurrence_point_identifiers).latest_versions
+    # Get definitions for Occurrence Point forms, including inactive/retired (but excluding drafts)
+    definitions = Hmis::Form::Definition.with_role(:OCCURRENCE_POINT).published_or_retired.latest_versions
 
     definitions.map do |definition|
-      # Choose the most specific instance for each definition identifier
-      instance_scope = base_scope.where(definition_identifier: definition.identifier).order(updated_at: :desc)
-      best_instance = instance_scope.active.published.detect_best_instance_for_enrollment(enrollment: self)
+      # Choose the most specific instance for this enrollment
+      best_instance = definition.instances.active.detect_best_instance_for_enrollment(enrollment: self)
 
       # If we didn't find a best_instance, check for legacy data
       has_any_data = false
       unless best_instance
-        definition_to_walk = definition.published_version || definition
-
-        definition_to_walk.walk_definition_nodes(as_open_struct: true) do |item|
+        definition.walk_definition_nodes(as_open_struct: true) do |item|
           next unless item.mapping.present?
 
           record_type = item.mapping&.record_type
@@ -374,17 +364,19 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
             cded = Hmis::Hud::CustomDataElementDefinition.for_type(owner_class_name).find_by(key: custom_field_key)
             has_any_data = cded && Hmis::Hud::CustomDataElement.where(data_element_definition: cded, owner: self).any?
           end
+
           break if has_any_data # if we found data, we don't need to keep iterating through the items
         end
       end
 
-      # If we found legacy data, then return an instance so we can display it. Prioritize active/published
-      if has_any_data
-        best_instance ||= instance_scope.active.published.first # prioritize active/published instances
-        best_instance ||= instance_scope.first # but if none exist, just return the latest instance
-      end
+      next unless best_instance || has_any_data
 
-      best_instance
+      OpenStruct.new(
+        id: definition.id,
+        legacy: has_any_data && !best_instance,
+        definition: definition,
+        data_collected_about: best_instance&.data_collected_about || 'ALL_CLIENTS',
+      )
     end.compact
   end
 
