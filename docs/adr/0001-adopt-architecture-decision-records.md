@@ -2,9 +2,9 @@
 
 ## Status
 
-- Current Status: Proposed
-- Date of last update: 2024-11-10
-- Decision-makers:
+- Current Status: Approved
+- Date of last update: 2024-11-14
+- Decision-makers: Consenus of OP Engineering team
 
 ## Context
 
