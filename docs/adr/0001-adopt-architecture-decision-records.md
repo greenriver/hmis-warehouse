@@ -4,7 +4,7 @@
 
 - Current Status: Approved
 - Date of last update: 2024-11-14
-- Decision-makers: Consenus of OP Engineering team
+- Decision-makers: Consensus of OP Engineering team
 
 ## Context
 
