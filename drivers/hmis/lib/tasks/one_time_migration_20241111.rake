@@ -43,26 +43,25 @@ task migrate_assessments_20241111: [:environment] do
   raise 'unexpectedly found multiple HMIS data sources' if data_source_ids.size > 1
 
   # find (and if needed, save) a HUD user for each app user we encountered
-  app_user_ids_to_hud_users = {}
+  app_user_ids_to_hud_user_ids = {}
+  saved_users = 0
+
   user_ids.each do |user_id|
     user = Hmis::User.find(user_id)
     user.hmis_data_source_id = data_source_ids.first
     hud_user = Hmis::Hud::User.from_user(user)
-    hud_user.save!
-    app_user_ids_to_hud_users[user_id] = hud_user
+    app_user_ids_to_hud_user_ids[user_id] = hud_user.id
   end
 
-  users_to_import = app_user_ids_to_hud_users.values.filter { |user| !user.persisted? }
-  puts "Encountered #{user_ids.size} app users, of which #{users_to_import.size} don't yet have a corresponding HUD user."
-  Hmis::Hud::User.import(users_to_import)
+  puts "Encountered #{user_ids.size} app users."
 
-  assessments = Hmis::Hud::CustomAssessment.where(created_by_hud_user: nil).preload(:versions)
+  assessments = Hmis::Hud::CustomAssessment.where.not(created_by_user_id: nil)
   total_records = assessments.count
   puts "Now going back through to update #{total_records} assessments with their `created_by_hud_user`"
 
   assessments.find_each.with_index(1) do |assessment, index|
-    hud_user_id = app_user_ids_to_hud_users[assessment.created_by_hud_user]&.id
-    assessment.update_column!(:created_by_hud_user_id, hud_user_id)
+    hud_user_id = app_user_ids_to_hud_user_ids[assessment.created_by_user_id]
+    assessment.update_column(:created_by_hud_user_id, hud_user_id) if hud_user_id
 
     if index % 1000 == 0 || index == total_records
       puts "Processed #{index} of #{total_records}."
