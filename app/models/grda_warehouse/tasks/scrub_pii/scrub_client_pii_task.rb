@@ -40,7 +40,7 @@ module GrdaWarehouse::Tasks::ScrubPii
   # @see FakeStrategy
   # @see IdentifierStrategy
   # @see NullStrategy
-  class ScrubPiiTask
+  class ScrubClientPiiTask
     attr_accessor :strategy
 
     def self.perform(...)
@@ -193,7 +193,8 @@ module GrdaWarehouse::Tasks::ScrubPii
     end
 
     def with_lock(&block)
-      GrdaWarehouseBase.with_advisory_lock('identify_external_clients', timeout_seconds: 0, &block)
+      lock_name = self.class.name.demodulize
+      GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0, &block)
     end
   end
 end

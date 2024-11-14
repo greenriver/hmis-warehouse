@@ -10,11 +10,7 @@ require 'faker'
 module GrdaWarehouse::Tasks::ScrubPii
   class BaseStrategy
     def client_attrs(client)
-      {
-        # required non-nullable fields for upsert
-        id: client.id,
-        data_source_id: client.data_source_id,
-        PersonalID: client.PersonalID,
+      not_null_attrs(client).merge(
         # fields to overwrite
         SSN: nil,
         SSNDataQuality: 99,
@@ -23,25 +19,17 @@ module GrdaWarehouse::Tasks::ScrubPii
         NameDataQuality: 99,
         LastName: nil,
         DOB: scramble_dob(client.dob),
-        DOBDataQuality: client.dob ? 1 : 99,
         soundex_first: nil,
         soundex_last: nil,
         encrypted_FirstName: nil,
         encrypted_MiddleName: nil,
         encrypted_LastName: nil,
         encrypted_SSN: nil,
-      }
+      )
     end
 
     def enrollment_attrs(enrollment)
-      {
-        # required non-nullable fields for upsert
-        id: enrollment.id,
-        data_source_id: enrollment.data_source_id,
-        PersonalID: enrollment.PersonalID,
-        EnrollmentID: enrollment.EnrollmentID,
-        ProjectID: enrollment.ProjectID,
-        EntryDate: enrollment.EntryDate,
+      not_null_attrs(enrollment).merge(
         # fields to overwrite
         LastPermanentStreet: nil,
         LastPermanentCity: nil,
@@ -50,7 +38,18 @@ module GrdaWarehouse::Tasks::ScrubPii
         AddressDataQuality: 99,
         last_locality: nil,
         last_zipcode: nil,
-      }
+      )
+    end
+
+    def report_client_attrs(client)
+      not_null_attrs(client).merge(
+        age: client.dob ? today - scramble_dob(client.dob) : nil,
+        first_name: nil,
+        last_name: nil,
+        name_quality: 99,
+        ssn: nil,
+        ssn_quality: 99
+      )
     end
 
     protected
@@ -70,6 +69,17 @@ module GrdaWarehouse::Tasks::ScrubPii
       bracket_end = today - age_bracket.years
 
       Faker::Date.between(from: bracket_start, to: bracket_end)
+    end
+
+    def not_null_attrs(record)
+      raise ArgumentError unless record.is_a?(ActiveRecord::Base)
+
+      result = {}
+      record.class.columns.reject(&:null).each do |column|
+        attr_name = column.name.to_sym
+        result[attr_name] = record[attr_name]
+      end
+      result
     end
   end
 end

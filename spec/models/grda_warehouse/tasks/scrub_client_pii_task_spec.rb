@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubPiiTask do
+RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
   let(:data_source) { create(:grda_warehouse_data_source) }
   let(:project) { create :grda_warehouse_hud_project, data_source: data_source, project_type: 0 }
 
@@ -13,35 +13,41 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubPiiTask do
 
   # Create test clients with PII
   let!(:client1) do
-    create(:grda_warehouse_hud_client,
+    create(
+      :grda_warehouse_hud_client,
            data_source: data_source,
            FirstName: 'John',
            MiddleName: 'Q',
            LastName: 'Public',
            SSN: '123-45-6789',
-           DOB: '1980-01-01')
+           DOB: '1980-01-01'
+           )
   end
 
   let!(:client2) do
-    create(:grda_warehouse_hud_client,
+    create(
+      :grda_warehouse_hud_client,
            data_source: data_source,
            FirstName: 'Jane',
            MiddleName: 'R',
            LastName: 'Doe',
            SSN: '987-65-4321',
-           DOB: '1985-02-15')
+           DOB: '1985-02-15'
+           )
   end
 
   # Create enrollments with address data
   let!(:enrollment1) do
-    create(:grda_warehouse_hud_enrollment,
+    create(
+      :grda_warehouse_hud_enrollment,
            data_source: data_source,
            client: client1,
            project: project,
            LastPermanentStreet: '123 Main St',
            LastPermanentCity: 'Boston',
            LastPermanentState: 'MA',
-           LastPermanentZIP: '02108')
+           LastPermanentZIP: '02108'
+           )
   end
 
   # Helper methods

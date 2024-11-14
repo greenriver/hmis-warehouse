@@ -7,6 +7,10 @@
 require 'faker'
 module GrdaWarehouse::Tasks::ScrubPii
   class FakeStrategy < BaseStrategy
+    def initialize(seed: nil)
+      Faker::Config.random = Random.new(seed) if seed
+    end
+
     def client_attrs(client)
       super(client).merge(
         {
