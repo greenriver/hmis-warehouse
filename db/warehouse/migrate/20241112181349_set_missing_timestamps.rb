@@ -5,8 +5,8 @@ class SetMissingTimestamps < ActiveRecord::Migration[7.0]
       preload(:warehouse_client_destination).find_in_batches do |client_batch|
         import_batch = []
         client_batch.each do |client|
-          client.date_created = client.warehouse_client_destination.min(&:created_at)
-          client.date_updated ||= client.warehouse_client_destination.min(&:updated_at)
+          client.date_created = client.warehouse_client_destination.map(&:created_at).min
+          client.date_updated ||= client.warehouse_client_destination.map(&:updated_at).min
           import_batch << client
         end
         GrdaWarehouse::Hud::Client.import!(
