@@ -4,7 +4,7 @@
 
 ## Description
 [//]: # (Summarize changes and include links related issue)
-[//]: # (List any new dependencies or relevant ADRs (Architectural Decision Records))
+[//]: # (List any new dependencies or relevant ADRs)
 
 ## Type of change
 [//]: # (e.g., Bug fix, New feature, Documentation, Code clean-up, Dependency update)
