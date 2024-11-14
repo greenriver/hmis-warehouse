@@ -345,7 +345,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     occurrence_point_identifiers = base_scope.pluck(:definition_identifier).uniq
 
     # Get the latest version of each form definition so we can check for legacy data
-    # todo @martha - edge case with drafts
     definitions = Hmis::Form::Definition.where(identifier: occurrence_point_identifiers).latest_versions
 
     definitions.map do |definition|
@@ -356,7 +355,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
       # If we didn't find a best_instance, check for legacy data
       has_any_data = false
       unless best_instance
-        definition.walk_definition_nodes(as_open_struct: true) do |item|
+        definition_to_walk = definition.published_version || definition
+
+        definition_to_walk.walk_definition_nodes(as_open_struct: true) do |item|
           next unless item.mapping.present?
 
           record_type = item.mapping&.record_type

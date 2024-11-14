@@ -346,6 +346,14 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
           expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(instance3)
         end
       end
+
+      context 'when a draft version of the form does not collect the same data' do
+        let!(:draft_definition) { create(:hmis_form_definition, role: role, identifier: definition.identifier, version: 2, status: :draft) }
+
+        it 'returns the form' do
+          expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(inactive_instance)
+        end
+      end
     end
 
     context 'when an instance exists relevant to this project' do
