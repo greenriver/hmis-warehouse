@@ -41,44 +41,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
   let!(:access_control) { create_access_control(hmis_user, p1) }
-
   let!(:definition) do
-    definition = Hmis::Form::Definition.where(identifier: 'move_in_date', role: :OCCURRENCE_POINT).first
-    definition.definition = {
-      'item': [
-        {
-          'text': 'Move-in Date',
-          'type': 'DATE',
-          'link_id': 'date',
-          'mapping': {
-            'field_name': 'moveInDate',
-            'record_type': 'ENROLLMENT',
+    item_with_rule = {
+      'text': 'Move-in address',
+      'type': 'OBJECT',
+      'link_id': 'address',
+      'mapping': {
+        'field_name': 'moveInAddresses',
+        'record_type': 'ENROLLMENT',
+      },
+      'component': 'ADDRESS',
+      'custom_rule': {
+        'operator': 'ANY',
+        'parts': [
+          {
+            'variable': 'projectId',
+            'operator': 'NOT_EQUAL',
+            'value': p1.project_id,
           },
-        },
-        {
-          'text': 'Move-in address',
-          'type': 'OBJECT',
-          'link_id': 'address',
-          'mapping': {
-            'field_name': 'moveInAddresses',
-            'record_type': 'ENROLLMENT',
-          },
-          'component': 'ADDRESS',
-          'custom_rule': {
-            'operator': 'ANY',
-            'parts': [
-              {
-                'variable': 'projectId',
-                'operator': 'NOT_EQUAL',
-                'value': p1.project_id,
-              },
-            ],
-          },
-        },
-      ],
+        ],
+      },
     }
-    definition.save!
-    definition
+    create(:occurrence_point_form, append_items: item_with_rule)
   end
   let!(:instance) { create(:hmis_form_instance, role: :OCCURRENCE_POINT, entity: p1, active: true, definition: definition) }
 

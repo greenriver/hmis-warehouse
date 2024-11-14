@@ -266,7 +266,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
   describe 'occurrence point form instances' do
     let(:role) { :OCCURRENCE_POINT }
-    let(:definition) { Hmis::Form::Definition.where(identifier: 'move_in_date', role: role).first }
+    let!(:definition) { create(:occurrence_point_form) }
     let!(:project) { create(:hmis_hud_project, data_source: ds1) }
     let!(:hoh_enrollment) { create(:hmis_hud_enrollment, project: project, data_source: ds1, household_id: 'household1', relationship_to_hoh: 1) }
     let!(:spouse_enrollment) { create(:hmis_hud_enrollment, project: project, data_source: ds1, household_id: 'household1', relationship_to_hoh: 3) }
@@ -281,12 +281,6 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
     context 'no relevant instance exists' do
       it 'does not return the form when no instance exists' do
-        expect(hoh_enrollment.occurrence_point_forms).to be_empty
-      end
-
-      it 'does not return the form when a draft instance exists' do
-        definition = create(:hmis_form_definition, role: role, status: :draft)
-        create(:hmis_form_instance, role: role, entity: project, active: true, definition: definition)
         expect(hoh_enrollment.occurrence_point_forms).to be_empty
       end
 
@@ -329,7 +323,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end
 
       context 'when a draft version of the form does not collect the same data' do
-        let!(:draft_definition) { create(:hmis_form_definition, role: role, identifier: definition.identifier, version: 2, status: :draft) }
+        let!(:draft_definition) { create(:occurrence_point_form, version: 2, status: :draft) }
 
         it 'returns the form' do
           expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
@@ -339,6 +333,14 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
     context 'when an instance exists relevant to this project' do
       let!(:instance) { create(:hmis_form_instance, role: role, entity: project, active: true, definition: definition) }
+
+      context 'but the only definition is in draft' do
+        let!(:definition) { create(:occurrence_point_form, status: :draft) }
+        it 'does not return the form' do
+          expect(hoh_enrollment.occurrence_point_forms).to be_empty
+          expect(spouse_enrollment.occurrence_point_forms).to be_empty
+        end
+      end
 
       context 'and applies to all clients' do
         it 'returns the form for all clients' do
@@ -400,7 +402,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
               ],
             }
           end
-          let!(:definition) { create :hmis_form_definition, role: role, definition: definition_json }
+          let!(:definition) { create :occurrence_point_form, definition: definition_json }
           let!(:cded) { create :hmis_custom_data_element_definition, key: 'foo', data_source: ds1, owner_type: 'Hmis::Hud::Enrollment', repeats: false }
           let!(:cde) { create :hmis_custom_data_element, data_element_definition: cded, owner: spouse_enrollment, data_source: ds1, value_string: 'bar' }
 

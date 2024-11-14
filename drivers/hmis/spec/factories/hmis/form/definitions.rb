@@ -56,7 +56,8 @@ FactoryBot.define do
     end
     after(:create) do |instance, evaluator|
       if evaluator.append_items
-        instance.definition['item'][0]['item'].push(*Array.wrap(evaluator.append_items))
+        array = instance.definition['item'][0]['item'] || instance.definition['item']
+        array.push(*Array.wrap(evaluator.append_items))
         instance.save!
       end
 
@@ -842,6 +843,28 @@ FactoryBot.define do
                   ]
                 }
               ]
+            }
+          ]
+        }
+      JSON
+    end
+  end
+
+  factory :occurrence_point_form, parent: :hmis_form_definition do
+    identifier { 'move_in_date' }
+    role { :OCCURRENCE_POINT }
+    definition do
+      JSON.parse(<<~JSON)
+        {
+          "item": [
+            {
+              "text": "Move-in Date",
+              "type": "DATE",
+              "link_id": "date",
+              "mapping": {
+                "field_name": "moveInDate",
+                "record_type": "ENROLLMENT"
+              }
             }
           ]
         }
