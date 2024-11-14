@@ -50,6 +50,7 @@ module HudConcerns::Client
     end
 
     # This can be used to retrieve numeric representations of the client's race
+    # @return [Array<Integer>] An array of integers representing the client's race where the race field is `1`, excluding any values for `RaceNone`
     def race_multi
       @race_multi ||= [].tap do |gm|
         HudUtility2024.race_field_name_to_id.except(:RaceNone).each do |k, v|
@@ -57,6 +58,18 @@ module HudConcerns::Client
         end
         # Per the data standards, only look to RaceNone if we don't have a more specific response
         gm << self.RaceNone if gm.empty? && self.RaceNone.in?([8, 9, 99])
+      end
+    end
+
+    # This can be used to retrieve numeric representations of the client's race
+    # @return [Array<Integer>] An array of integers representing the client's race where the race field is `1` with any valid values of `RaceNone`
+    def race_multi_include_race_none
+      @race_multi_include_race_none ||= [].tap do |gm|
+        HudUtility2024.race_field_name_to_id.except(:RaceNone).each do |k, v|
+          gm << v if self[k] == 1
+        end
+        # Always include RaceNone data
+        gm << self.RaceNone if self.RaceNone.in?([8, 9, 99])
       end
     end
 

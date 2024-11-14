@@ -110,12 +110,12 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
 
 /**
  * Transform rails-formatted input field names into a deeply nested object for submission
- * 
+ *
  * Example inputs:
  * <input name="filter[project_ids][]" value="123">
  * <input name="filter[data_source_ids][]" value>
  * <input name="filter[widget]" value="100">
- * 
+ *
  * Example output:
  * {
  *   filter: {
@@ -189,6 +189,14 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       });
       $(el).trigger('change')
     })
+
+    // Rails UJS _really_ wants to disable all buttons in a form when you click
+    // one, we open the form in a new window, so don't want to disable the main
+    // submit button when looking at missing items
+    if (this.hasMissingItemsTarget) {
+      $(this.submitButtonTarget).removeAttr('data-disable-with');
+      $(this.missingItemsTarget).removeAttr('data-disable-with');
+    }
   }
 
   // Projects can be loaded via ajax, make sure we update the list if that
