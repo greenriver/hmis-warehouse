@@ -356,6 +356,26 @@ module UserConcern
       end
     end
 
+    # Prevent sending confirmation emails if the user has an open invitation
+    def send_reset_password_instructions
+      if invitation_token.present?
+        errors.add :email, 'There is an open invitation for this account.'
+        false
+      else
+        super
+      end
+    end
+
+    # Prevent confirming accounts if the user has an open invitation
+    def pending_any_confirmation
+      if invitation_token.present?
+        errors.add :email, 'There is an open invitation for this account.'
+        false
+      else
+        super
+      end
+    end
+
     # @return [Array] an array of text that describes the status of the account
     def overall_status(current_user)
       return ['Active'] if active_for_authentication?
