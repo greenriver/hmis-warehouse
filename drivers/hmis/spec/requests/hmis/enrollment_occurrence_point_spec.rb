@@ -1,0 +1,96 @@
+#  Copyright 2016 - 2024 Green River Data Analysis, LLC
+#
+#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+#
+
+require 'rails_helper'
+require_relative 'login_and_permissions'
+require_relative '../../support/hmis_base_setup'
+
+RSpec.describe Hmis::GraphqlController, type: :request do
+  before(:all) do
+    cleanup_test_environment
+  end
+  after(:all) do
+    cleanup_test_environment
+  end
+
+  include_context 'hmis base setup'
+
+  before(:each) do
+    hmis_login(user)
+  end
+
+  let(:query) do
+    <<~GRAPHQL
+      query EnrollmentsWithOccurrencePoints(
+        $enrollmentId: ID!
+      ) {
+        enrollment(id: $enrollmentId) {
+          occurrencePointForms {
+            id
+            definition {
+              #{form_definition_fragment}
+            }
+            dataCollectedAbout
+          }
+        }
+      }
+    GRAPHQL
+  end
+
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
+  let!(:access_control) { create_access_control(hmis_user, p1) }
+
+  let!(:definition) do
+    definition = Hmis::Form::Definition.where(identifier: 'move_in_date', role: :OCCURRENCE_POINT).first
+    definition.definition = {
+      'item': [
+        {
+          'text': 'Move-in Date',
+          'type': 'DATE',
+          'link_id': 'date',
+          'mapping': {
+            'field_name': 'moveInDate',
+            'record_type': 'ENROLLMENT',
+          },
+        },
+        {
+          'text': 'Move-in address',
+          'type': 'OBJECT',
+          'link_id': 'address',
+          'mapping': {
+            'field_name': 'moveInAddresses',
+            'record_type': 'ENROLLMENT',
+          },
+          'component': 'ADDRESS',
+          'custom_rule': {
+            'operator': 'ANY',
+            'parts': [
+              {
+                'variable': 'projectId',
+                'operator': 'NOT_EQUAL',
+                'value': p1.project_id,
+              },
+            ],
+          },
+        },
+      ],
+    }
+    definition.save!
+    definition
+  end
+  let!(:instance) { create(:hmis_form_instance, role: :OCCURRENCE_POINT, entity: p1, active: true, definition: definition) }
+
+  it 'returns the correct definition with custom rules applied' do
+    response, result = post_graphql(enrollment_id: e1.id) { query }
+    expect(response.status).to eq(200), result.inspect
+    occurrence_point_form = result.dig('data', 'enrollment', 'occurrencePointForms', 0)
+    expect(occurrence_point_form.dig('id')).to eq("#{definition.id}:#{e1.id}")
+    expect(occurrence_point_form.dig('definition', 'definition', 'item').size).to eq(1)
+  end
+end
+
+RSpec.configure do |c|
+  c.include GraphqlHelpers
+end

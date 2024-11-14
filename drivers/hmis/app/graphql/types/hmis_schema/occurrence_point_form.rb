@@ -24,6 +24,7 @@ module Types
     def definition(parent:)
       definition = object[:definition]
       definition.filter_context = { project: parent } if parent.is_a?(Hmis::Hud::Project)
+      definition.filter_context = { project: parent.project } if parent.is_a?(Hmis::Hud::Enrollment)
       definition
     end
   end
