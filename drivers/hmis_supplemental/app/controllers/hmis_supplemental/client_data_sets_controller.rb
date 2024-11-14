@@ -39,9 +39,10 @@ module HmisSupplemental
     protected
 
     def source_clients
+      # order is important here, source_visible_to appears to clobber the data source condition
       @client.source_clients.
-        where(data_source_id: @data_set.data_source_id).
         source_visible_to(current_user).
+        where(data_source_id: @data_set.data_source_id).
         order(:id)
     end
 
@@ -55,20 +56,6 @@ module HmisSupplemental
 
     def load_authorized_data_set
       data_set_scope.find(params[:data_set_id])
-    end
-
-    def client_groups
-      # note: order is important here, source_visible_to appears to clobber the data source condition
-      clients = @client.source_clients.
-        source_visible_to(current_user).
-        where(data_source_id: @data_set.data_source_id).
-        order(:id)
-      clients.map do |client|
-        {
-          title: client.data_source.name,
-          values: @data_set.field_values.for_owner(@client).index_by(&:field_key),
-        }
-      end
     end
 
     def data_set_scope

@@ -67,7 +67,7 @@
               - if user.using_acls?
                 .mt-2
                   = checkmark(true)
-                  ACLs Enabled
+                  Access Controls Enabled
               - else
                 -# TODO: START_ACL cleanup after ACL transition
                 - names = user.access_groups.general.order(name: :asc).distinct.map(&:name)

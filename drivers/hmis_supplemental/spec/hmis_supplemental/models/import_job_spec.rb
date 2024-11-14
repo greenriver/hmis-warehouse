@@ -138,5 +138,43 @@ RSpec.describe HmisSupplemental::ImportJob, type: :model do
         expect(saved).to eq(expected)
       end
     end
+
+    describe 'simple spreadsheet' do
+      let(:client) do
+        create(:hud_client, data_source: data_source)
+      end
+
+      let(:field1) { fields.reject(&:multi_valued)[0] }
+      let(:field2) { fields.reject(&:multi_valued)[1] }
+      let(:rows) do
+        [
+          [
+            client,
+            {
+              field1.key => fake_field_value(field1),
+              field2.key => fake_field_value(field2),
+            },
+          ],
+        ]
+      end
+      it 'normalizes CSV header cols with case or white-space differences' do
+        value_scope = HmisSupplemental::FieldValue.where(data_set: data_set)
+
+        expect do
+          csv = csv_string(rows)
+          csv.sub!(field1.key, "\" #{field1.key} \"")
+          csv.sub!(field2.key, field2.key.upcase)
+          run_job(data_set, csv)
+        end.to change(value_scope, :count).from(0).to(2)
+
+        rows.each do |client, row|
+          data_set.field_values.for_owner(client).each do |value|
+            field = fields.detect { |f| f.key == value.field_key }
+            expected = row[field.key]
+            expect(value.data).to eq(expected)
+          end
+        end
+      end
+    end
   end
 end

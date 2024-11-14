@@ -16,8 +16,8 @@ RSpec.describe model, type: :model do
     end
 
     it 'the database will have the correct number of source clients' do
-      expect(GrdaWarehouse::Hud::Client.source.count).to eq(4)
-      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(5)
+      expect(GrdaWarehouse::Hud::Client.source.count).to eq(5)
+      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(8)
     end
 
     it 'there are the correct number of service history services' do
@@ -187,6 +187,37 @@ RSpec.describe model, type: :model do
         en.TimesHomelessPastThreeYears = 4
         en.MonthsHomelessPastThreeYears = 110
         expect(en.chronically_homeless_at_start?(date: en.EntryDate + 6.months)).to be(true)
+      end
+    end
+
+    describe 'households are calculated as expected' do
+      it 'identifies child only households' do
+        travel_to('2015-03-01'.to_date) do
+          GrdaWarehouse::Hud::Client.where(PersonalID: 2).update_all(DOB: '2010-01-01'.to_date)
+          en = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'TH')
+          expect(en.household_type).to eq('With Only Children')
+        end
+      end
+
+      it 'identifies adult only households' do
+        en = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'ESNbN')
+        expect(en.household_type).to eq('Without Children')
+      end
+
+      it 'identifies unknown households' do
+        en = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'PH2')
+        expect(en.household_type).to eq('Unknown Household Type')
+      end
+
+      it 'identifies adult and child households' do
+        travel_to('2015-03-01'.to_date) do
+          # PersonalID 1 == adult
+          # PersonalID 4 == child
+          # PersonalID 5 == unknown
+          GrdaWarehouse::Hud::Client.where(PersonalID: 4).update_all(DOB: '2010-01-01'.to_date)
+          enrollments = GrdaWarehouse::Hud::Enrollment.where(EnrollmentID: ['ES', 'ES1', 'ES2'])
+          expect(enrollments.map(&:household_type).uniq).to eq(['With Children and Adults'])
+        end
       end
     end
   end

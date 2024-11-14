@@ -30,6 +30,10 @@ class ClientsController < ApplicationController
 
   def create
     clean_params = client_create_params
+    # Enforce DateCreated and DateUpdated
+    clean_params[:DateCreated] = Time.current
+    clean_params[:DateUpdated] = Time.current
+
     clean_params[:SSN] = clean_params[:SSN]&.gsub(/\D/, '')
     existing_matches = look_for_existing_match(clean_params)
     @bypass_search = false
