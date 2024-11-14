@@ -71,7 +71,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(response.status).to eq(200), result.inspect
     occurrence_point_form = result.dig('data', 'enrollment', 'occurrencePointForms', 0)
     expect(occurrence_point_form.dig('id')).to eq("#{definition.id}:#{e1.id}")
-    expect(occurrence_point_form.dig('definition', 'definition', 'item').size).to eq(1)
+
+    # Excludes the question that has a custom rule excluding it for this project
+    definition_items = occurrence_point_form.dig('definition', 'definition', 'item')
+    expect(definition_items.size).to eq(1)
+    expect(definition_items.first['text']).to eq('Move-in Date')
   end
 end
 
