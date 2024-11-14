@@ -56,6 +56,7 @@ FactoryBot.define do
     end
     after(:create) do |instance, evaluator|
       if evaluator.append_items
+        # If the first item is a group, append the items there. Otherwise just append to the end of the form.
         array = instance.definition['item'][0]['item'] || instance.definition['item']
         array.push(*Array.wrap(evaluator.append_items))
         instance.save!
