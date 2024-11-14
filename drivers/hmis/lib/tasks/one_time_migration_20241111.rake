@@ -48,6 +48,7 @@ task migrate_assessments_20241111: [:environment] do
     user = Hmis::User.find(user_id)
     user.hmis_data_source_id = data_source_ids.first
     hud_user = Hmis::Hud::User.from_user(user)
+    hud_user.save!
     app_user_ids_to_hud_users[user_id] = hud_user
   end
 
