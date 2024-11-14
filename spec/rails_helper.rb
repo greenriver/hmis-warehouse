@@ -93,6 +93,11 @@ RSpec.configure do |config|
       GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
     end
 
+    # load hmis forms if we're testing the driver
+    if example_file_paths.grep(%r{/drivers/hmis/}).any? # rubocop:disable Style/RegexpLiteral
+      ::HmisUtil::JsonForms.seed_all if ENV['ENABLE_HMIS_API'] == 'true'
+    end
+
     AccessGroup.maintain_system_groups
   end
 end
