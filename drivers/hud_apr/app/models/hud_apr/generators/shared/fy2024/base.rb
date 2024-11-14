@@ -341,7 +341,7 @@ module HudApr::Generators::Shared::Fy2024
             race_multi: source_client.race_multi.sort.join(','),
             # For data quality checks, we want all data instead of filtering out RaceNone responses when additional race data is included.
             # HMIS Reporting Glossary Reference: Data Quality - Q2: include records with an 8 or 9 indicated even if there is also a value of 1, 2, 3, 4, 5, 6, or 7 in the same field
-            race_multi_include_race_none: source_client.race_multi_include_race_none.sort.join(','),
+            race_multi_include_race_none: source_client.race_multi_include_race_none.sort,
             relationship_to_hoh: enrollment.RelationshipToHoH,
             sexual_orientation: enrollment.sexual_orientation,
             ssn_quality: source_client.SSNDataQuality,

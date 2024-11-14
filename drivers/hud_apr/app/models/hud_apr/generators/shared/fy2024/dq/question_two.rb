@@ -190,9 +190,9 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionTwo
       m_member_ids = []
       universe_members.find_each do |u_member|
         member = u_member.universe_membership
-        race_array = member.race_multi_include_race_none.split(',')
-        dkr_member_ids << u_member.id if (race_array & ['8', '9']).present?
-        m_member_ids << u_member.id if (race_array & ['99']).present?
+        race_array = member.race_multi_include_race_none
+        dkr_member_ids << u_member.id if (race_array & [8, 9]).present?
+        m_member_ids << u_member.id if (race_array & [99]).present?
       end
 
       # Race DK/R / compute missing
