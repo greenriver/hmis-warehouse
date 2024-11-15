@@ -139,6 +139,8 @@ class GrdaWarehouse::Utility
 
     tables << SyntheticCeAssessment::ProjectConfig if RailsDrivers.loaded.include?(:synthetic_ce_assessment)
 
+    tables << Hmis::Form::Definition if RailsDrivers.loaded.include?(:hmis)
+
     HmisCsvImporter::Utility.clear! if RailsDrivers.loaded.include?(:hmis_csv_importer)
 
     # Remove reports after associated clients
