@@ -40,7 +40,6 @@ module GrdaWarehouse::Tasks::ScrubPii
     def models
       [
         HudApr::Fy2020::AprClient,
-        HudApr::Fy2020::AprClient,
         HapReport::HapClient,
         HomelessSummaryReport::Client,
         HudDataQualityReport::Fy2020::DqClient,

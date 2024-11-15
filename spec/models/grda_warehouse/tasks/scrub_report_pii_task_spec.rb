@@ -4,16 +4,22 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubReportPiiTask do
   let(:data_source) { create(:grda_warehouse_data_source) }
   let(:project) { create :grda_warehouse_hud_project, data_source: data_source, project_type: 0 }
 
-  let!(:apr_client) do
-    HudApr::Fy2020::AprClient.create!
+  let!(:clients) do
+    attrs = {first_name: 'RealName'}
+    [
+      HudApr::Fy2020::AprClient.create!(attrs),
+      HapReport::HapClient.create!(attrs),
+      HomelessSummaryReport::Client.create!(attrs),
+      HudDataQualityReport::Fy2020::DqClient.create!(attrs),
+      HudPathReport::Fy2020::PathClient.create!(attrs),
+      HudSpmReport::Fy2020::SpmClient.create!(attrs),
+      IncomeBenefitsReport::Client.create!(attrs),
+      MaYyaReport::Client.create!(attrs),
+    ]
   end
 
   def reload_records
-    apr_client.reload
-  end
-
-  def verify_nullified_record(client)
-    expect(client.first_name).to be_nil
+    clients.each(&:reload)
   end
 
   context 'with null strategy' do
@@ -23,7 +29,9 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubReportPiiTask do
     end
 
     it 'nullifies all PII in clients' do
-      verify_nullified_record(apr_client)
+      clients.each do |client|
+        expect(client.first_name).to be_nil
+      end
     end
   end
 
@@ -34,7 +42,8 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubReportPiiTask do
     end
 
     it 'replaces client PII with fake data' do
-      expect(apr_client.first_name).not_to eq('John')
+      expect(apr_client.first_name).not_to eq('RealName')
+      expect(apr_client.first_name).not_to be_null
     end
   end
 
