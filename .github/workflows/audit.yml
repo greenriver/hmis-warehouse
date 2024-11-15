@@ -20,24 +20,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up dependencies
-        run: |
-          apk add --no-cache $(cat .github/dependencies.txt)
-
-      - name: cache gems
-        uses: actions/cache@v4
-        id: gemcache
-        with:
-          path: |
-            vendor/bundle
-            /usr/local/bundle/
-          key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
-
-      - name: Install gems
-        run: |
-          gem install bundler --version=2.5.17
-          bundle config set --local without 'production staging development'
-          bundle install --jobs 4 --retry 3
+      - name: 'Container Setup'
+        id: container-setup
+        uses: ./.github/workflows/container_setup
 
       - name: Run bundle-audit
         run: |
