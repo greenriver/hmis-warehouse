@@ -5,7 +5,7 @@ module CoreDemographicsReport
       raw_value = row[index]
 
       project_id = row[project_id_index]
-      policy = user.policies.for_project(project_id)
+      policy = user.policy_for(project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
       pii_value(raw_value, policy)
     end
 

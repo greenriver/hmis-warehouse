@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module ControllerAuthorization
+module LegacyControllerAuthorization
   extend ActiveSupport::Concern
 
   delegate(*Role.permissions.map { |m| "#{m}?".to_sym }, to: :current_user, allow_nil: true)
@@ -30,19 +30,5 @@ module ControllerAuthorization
 
     not_authorized!
     return false
-  end
-
-  protected def not_authorized!(message = nil)
-    raise NotAuthorizedError, message
-  end
-
-  included do
-    rescue_from 'NotAuthorizedError', with: :handle_unauthorized_error
-  end
-
-  protected def handle_unauthorized_error(error)
-    # should override to handle API requests
-    location = current_user&.my_root_path || root_path
-    redirect_to(location, alert: error.message)
   end
 end

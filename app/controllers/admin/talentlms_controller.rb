@@ -47,6 +47,7 @@ module Admin
       params.require(:talentlms_config).permit(
         :subdomain,
         :api_key,
+        :create_new_accounts,
       )
     end
   end

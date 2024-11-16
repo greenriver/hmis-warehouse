@@ -73,6 +73,12 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         processor = container_processor(container)
         raise unknown_field_error(definition) unless processor
 
+        # Check item-level permissions (editor_user_ids) here. The frontend passes all values even if nil, so rather
+        # than raising an exception, just skip processing if we see a value this user doesn't have permission to edit.
+        editor_user_ids = mapped_form_items["#{container}:#{field}"]&.editor_user_ids
+        # If the item doesn't specify editor_user_ids, then everyone can edit it.
+        next if editor_user_ids && !editor_user_ids.include?(user.id)
+
         if mapped_custom_form_fields[container].include?(field)
           # If this key can be identified as a CustomDataElement, set it and continue
           processor.process_custom_field(field, value)
@@ -589,6 +595,22 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       end
       result
     end
+  end
+
+  # @return <Hash{container_name:field_name=> FormItem }>
+  private def mapped_form_items
+    @mapped_form_items ||= begin
+     result = {}
+     definition.link_id_item_hash.each_value do |item|
+       mapping = item.mapping
+       next unless mapping && (mapping.field_name || mapping.custom_field_key)
+
+       container_name = mapping_container_name(mapping)
+       field_name = mapping.field_name || mapping.custom_field_key
+       result["#{container_name}:#{field_name}"] = item
+     end
+     result
+   end
   end
 
   # convert the record_type to a "container name" that matches the form processor names
