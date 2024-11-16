@@ -124,37 +124,37 @@ module
             id: 'coc_codes',
             label: 'CoC Codes',
             short_label: 'CoC',
-            value: @filter.chosen_coc_codes,
+            value: -> {  @filter.chosen_coc_codes },
           )
         end
         section.add_control(
           id: 'funding_sources',
-          value: @filter.funder_names,
+          value: -> { @filter.funder_names },
         )
         section.add_control(
           id: 'funding_other_sources',
-          value: @filter.funder_others,
+          value: -> { @filter.funder_others },
         )
         section.add_control(
           id: 'data_sources',
-          value: @filter.data_source_names,
+          value: -> { @filter.data_source_names },
         )
         section.add_control(
           id: 'organizations',
-          value: @filter.organization_names,
+          value: -> { @filter.organization_names },
         )
         section.add_control(
           id: 'projects',
-          value: @filter.project_names,
+          value: -> { @filter.project_names },
         )
         section.add_control(
           id: 'project_groups',
-          value: @filter.project_groups,
+          value: -> { @filter.project_groups },
         )
         if GrdaWarehouse::Cohort.viewable_by(@filter.user).exists?
           section.add_control(
             id: 'cohorts',
-            value: @filter.cohorts,
+            value: -> { @filter.cohorts },
           )
         end
       end
