@@ -8,29 +8,25 @@ require 'progress_bar'
 module GrdaWarehouse::Tasks::ScrubPii
   # Responsible for removing or obfuscating personally identifiable information (PII) from report records.
   class ScrubReportPiiTask
-    attr_accessor :strategy
 
     def self.perform(...)
       new.perform(...)
     end
 
-    STRATEGIES = {
-      null: NullStrategy,
-      fake: FakeStrategy,
-      identifier: IdentifierStrategy,
-    }.freeze
-
-    def perform(strategy: :null, prng_seed: nil, progress: false)
+    def perform(custom_scrubber: nil, prng_seed: nil, progress: false)
       with_lock do
         Faker::Config.random = Random.new(prng_seed) if prng_seed
         raise ArgumentError, "unknown strategy #{strategy}" unless STRATEGIES.key?(strategy)
-
-        @strategy = STRATEGIES[strategy].new
+        scrubbers = [
+          DobScrubber.new(prng_seed),
+          custom_scrubber,
+          NullScrubber.new,
+        ].compact
 
         total = models.map(&:count).sum
         progress_bar = ProgressBar.new(total, :counter, :bar, :percentage, :rate, :eta) if progress
         models.each do |model|
-          process_model(model, progress_bar)
+          process_model(model, scrubbers, progress_bar)
         end
       end
     end
@@ -47,21 +43,34 @@ module GrdaWarehouse::Tasks::ScrubPii
         HudSpmReport::Fy2020::SpmClient,
         IncomeBenefitsReport::Client,
         MaYyaReport::Client,
+        # check for enrollment, "SimpleReports::ReportInstance", anything inheriting from ReportingBase
       ]
     end
 
-    def process_model(model, progress)
+    def process_model(model, scrubbers, progress)
+      non_nullable_cols = model.columns.reject(&:null).map { |c| c.name.to_sym }
       model.unscoped.find_in_batches do |batch|
         # one transaction per batch
-        GrdaWarehouse::Hud::Client.transaction do
+        model.transaction do
           values = batch.map do |record|
-            strategy.report_client_attrs(record)
+            pii_fields = PiiAttribute.from_record(record)
+            @scrubbers.each do |scrubber|
+              transformer.perform(pii_fields)
+            end
+            pii_attrs = pii_fields.to_h { |f| [f.name, f.scrubbed_value] }
+
+            required_attrs = non_nullable_cols.to_h do |column|
+              [column, record.send(column)]
+            end
+            pii_attrs.merge(required_attrs)
           end
           import!(model, values)
           progress&.increment!(batch.size)
         end
       end
     end
+
+    protected
 
     def import!(klass, values)
       return if values.blank?

@@ -5,6 +5,11 @@
 ###
 
 module GrdaWarehouse::Tasks::ScrubPii
-  class NullStrategy < BaseStrategy
+  class NullScrubber
+    def perform(pii)
+      pii.fields do |field|
+        pii.scrub(nil)
+      end
+    end
   end
 end

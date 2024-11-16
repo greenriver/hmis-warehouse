@@ -744,6 +744,12 @@ module GrdaWarehouse::Hud
       @source_clients_searchable_to[user.id]
     end
 
+    pii_attr(:ssn)
+    pii_attr(:FirstName)
+    pii_attr(:MiddleName)
+    pii_attr(:LastName)
+    pii_attr(:DOB)
+
     def alternate_names
       names = source_clients.map(&:full_name).uniq
       names -= [full_name]

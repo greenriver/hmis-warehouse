@@ -40,5 +40,11 @@ module HudApr::Fy2020
 
       detail_headers.except('first_name', 'last_name', 'dob', 'ssn')
     end
+
+    pii_attr(:ssn)
+    pii_attr(:first_name)
+    pii_attr(:middle_name)
+    pii_attr(:last_name)
+    pii_attr(:dob)
   end
 end

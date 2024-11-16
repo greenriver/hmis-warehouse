@@ -7,6 +7,7 @@
 class GrdaWarehouseBase < ApplicationRecord
   include ArelHelper
   include Efind
+  include HasPiiAttributes
 
   self.abstract_class = true
   connects_to database: { writing: :warehouse, reading: :warehouse }

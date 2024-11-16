@@ -5,23 +5,26 @@
 ###
 
 require 'faker'
+
 module GrdaWarehouse::Tasks::ScrubPii
-  class FakeStrategy < BaseStrategy
+  class FakeScrubber < DefaultPiiScrubber
     def initialize(seed: nil)
       Faker::Config.random = Random.new(seed) if seed
     end
 
-    def client_attrs(client)
-      super(client).merge(
-        {
-          SSN: invalid_ssn,
-          FirstName: Faker::Name.first_name,
-          MiddleName: Faker::Name.middle_name,
-          LastName: Faker::Name.last_name,
-          NameDataQuality: 1,
-          SSNDataQuality: 1,
-        },
-      )
+    def perform(fields)
+      fields.each do |field|
+        case field.type
+        when :ssn
+          field.scrub(invalid_ssn)
+        when :first_name
+          field.scrub(Faker::Name.first_name)
+        when :last_name
+          field.scrub(Faker::Name.last_name)
+        when :middle_name
+          field.scrub(Faker::Name.middle_name)
+        end
+      end
     end
 
     def invalid_ssn

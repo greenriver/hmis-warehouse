@@ -14,5 +14,7 @@ module HapReport
     scope :imported, -> do
       where.not(mci_id: nil)
     end
+
+    pii_attr :age
   end
 end
