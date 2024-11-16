@@ -213,14 +213,24 @@ module UserConcern
       user != self
     end
 
-    def training_status
-      return 'Not Started' unless Talentlms::Login.find_by(user: self)
+    def training_status(course)
+      login = Talentlms::Login.find_by(user: self, config: course.config)
+      return 'Not Started' unless login
 
-      if last_training_completed
-        "Completed #{last_training_completed}"
+      completion_date = Talentlms::CompletedTraining.find_by(course: course, login: login)&.completion_date
+
+      if completion_date
+        "Completed #{completion_date}"
       else
         'In Progress'
       end
+    end
+
+    def required_training_courses
+      return Talentlms::Course.where(id: training_courses&.compact_blank) if training_courses&.compact_blank&.present?
+      return Talentlms::Course.default if training_required?
+
+      []
     end
 
     # def role_keys

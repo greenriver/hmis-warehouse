@@ -257,7 +257,12 @@ module HmisDataQualityTool
           next if nbn_en.id == en.id
 
           end_date = en.exit&.ExitDate || report.filter.end
-          services_in_range = nbn_en.services.where(RecordType: 200, DateProvided: [en.EntryDate, end_date]).pluck(:DateProvided)
+          services_in_range = if en.project&.es_nbn?
+            en_services = en.services.where(RecordType: 200, DateProvided: [en.EntryDate, end_date]).pluck(:DateProvided)
+            nbn_en.services.where(RecordType: 200, DateProvided: en_services).pluck(:DateProvided)
+          else
+            nbn_en.services.where(RecordType: 200, DateProvided: [en.EntryDate, end_date]).pluck(:DateProvided)
+          end
           overlaps << [simple_enrollment(nbn_en), simple_enrollment(en)].sort_by { |m| m[:id] } if services_in_range.any?
         end
       end

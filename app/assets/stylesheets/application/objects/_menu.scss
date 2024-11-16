@@ -105,6 +105,14 @@
   }
 }
 
+.o-menu .js-back-to-top {
+  background: rgba($cob-sg-charles-blue, .8);
+  padding: 2em;
+  width: $nav-side-width;
+  position: fixed;
+  bottom: 0;
+}
+
 .l-content-width-md .o-menu {
   @include media-breakpoint-down(md) {
     @include o-menu-drawer;

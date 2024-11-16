@@ -181,6 +181,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     )
   end
 
+  describe 'when there are both HUD and custom service categories' do
+    let!(:hud_category) { create :hmis_custom_service_category, data_source: ds1, name: 'HUD category' }
+    let!(:custom_category) { create :hmis_custom_service_category, data_source: ds1, name: 'Custom category' }
+    let!(:hud_type) { create :hmis_custom_service_type, custom_service_category: hud_category, data_source: ds1, name: 'HUD type', hud_record_type: 141, hud_type_provided: 1 }
+    let!(:custom_type) { create :hmis_custom_service_type, custom_service_category: custom_category, data_source: ds1, name: 'Custom type' }
+
+    it 'returns custom-only service category pick list' do
+      response, result = post_graphql(pick_list_type: 'CUSTOM_SERVICE_CATEGORIES') { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.non_hud.count)
+      expect(options.pluck('code')).to include(custom_category.id.to_s)
+      expect(options.pluck('code')).not_to include(hud_category.id.to_s)
+    end
+  end
+
   describe 'Resolving available Service Types for a Project' do
     include_context 'hmis service setup'
     let(:bednight_service_type) do

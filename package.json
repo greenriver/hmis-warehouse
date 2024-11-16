@@ -18,7 +18,7 @@
     "d3-interpolate": "3.0.1",
     "d3-sankey": "^0.12.3",
     "d3-scale-chromatic": "3.0.0",
-    "esbuild": "^0.19.11",
+    "esbuild": "0.24.0",
     "inputmask": "3.3.8",
     "leaflet": "1.9.4",
     "leaflet.markercluster": "^1.5.3",

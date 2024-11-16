@@ -1233,7 +1233,9 @@ CREATE TABLE public.hmis_roles (
     can_view_client_contact_info boolean DEFAULT false,
     can_view_client_photo boolean DEFAULT false,
     can_manage_forms boolean DEFAULT false,
-    can_administrate_config boolean DEFAULT false
+    can_administrate_config boolean DEFAULT false,
+    can_view_units boolean DEFAULT false,
+    can_manage_units boolean DEFAULT false
 );
 
 
@@ -2069,6 +2071,74 @@ CREATE SEQUENCE public.outreach_histories_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
+
+
+--
+-- Name: pghero_query_stats; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pghero_query_stats (
+    id bigint NOT NULL,
+    database text,
+    "user" text,
+    query text,
+    query_hash bigint,
+    total_time double precision,
+    calls bigint,
+    captured_at timestamp without time zone
+);
+
+
+--
+-- Name: pghero_query_stats_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pghero_query_stats_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pghero_query_stats_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pghero_query_stats_id_seq OWNED BY public.pghero_query_stats.id;
+
+
+--
+-- Name: pghero_space_stats; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pghero_space_stats (
+    id bigint NOT NULL,
+    database text,
+    schema text,
+    relation text,
+    size bigint,
+    captured_at timestamp without time zone
+);
+
+
+--
+-- Name: pghero_space_stats_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pghero_space_stats_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pghero_space_stats_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pghero_space_stats_id_seq OWNED BY public.pghero_space_stats.id;
 
 
 --
@@ -3234,7 +3304,8 @@ CREATE TABLE public.users (
     hmis_unique_session_id character varying,
     permission_context character varying DEFAULT 'role_based'::character varying,
     superset_roles jsonb DEFAULT '[]'::jsonb,
-    talent_lms_email character varying
+    talent_lms_email character varying,
+    training_courses jsonb
 );
 
 
@@ -3617,6 +3688,20 @@ ALTER TABLE ONLY public.oauth_identities ALTER COLUMN id SET DEFAULT nextval('pu
 --
 
 ALTER TABLE ONLY public.old_passwords ALTER COLUMN id SET DEFAULT nextval('public.old_passwords_id_seq'::regclass);
+
+
+--
+-- Name: pghero_query_stats id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pghero_query_stats ALTER COLUMN id SET DEFAULT nextval('public.pghero_query_stats_id_seq'::regclass);
+
+
+--
+-- Name: pghero_space_stats id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pghero_space_stats ALTER COLUMN id SET DEFAULT nextval('public.pghero_space_stats_id_seq'::regclass);
 
 
 --
@@ -4060,6 +4145,22 @@ ALTER TABLE ONLY public.oauth_identities
 
 ALTER TABLE ONLY public.old_passwords
     ADD CONSTRAINT old_passwords_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pghero_query_stats pghero_query_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pghero_query_stats
+    ADD CONSTRAINT pghero_query_stats_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pghero_space_stats pghero_space_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pghero_space_stats
+    ADD CONSTRAINT pghero_space_stats_pkey PRIMARY KEY (id);
 
 
 --
@@ -4621,6 +4722,20 @@ CREATE UNIQUE INDEX index_oauth_identities_on_user_id_and_provider ON public.oau
 --
 
 CREATE INDEX index_password_archivable ON public.old_passwords USING btree (password_archivable_type, password_archivable_id);
+
+
+--
+-- Name: index_pghero_query_stats_on_database_and_captured_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pghero_query_stats_on_database_and_captured_at ON public.pghero_query_stats USING btree (database, captured_at);
+
+
+--
+-- Name: index_pghero_space_stats_on_database_and_captured_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pghero_space_stats_on_database_and_captured_at ON public.pghero_space_stats USING btree (database, captured_at);
 
 
 --
@@ -5329,6 +5444,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240829152856'),
 ('20240911201727'),
 ('20240911204731'),
-('20241011125827');
+('20241011125827'),
+('20241016202657'),
+('20241018034506'),
+('20241018140929'),
+('20241021194355');
 
 

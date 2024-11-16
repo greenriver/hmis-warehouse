@@ -15,12 +15,14 @@ module GrdaWarehouse
     CONSENT_FORM_TAG_CACHE_KEY = 'consent_form_tagging_ids/tag_ids'.freeze
 
     mount_uploader :file, FileUploader # This is probably no necessary, but added to be safe
+    has_paper_trail
     acts_as_taggable
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base', optional: true
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
+    belongs_to :consent_revoked_by_user, class_name: 'User', optional: true
     validates_inclusion_of :visible_in_window, in: [true, false]
     validates_presence_of :expiration_date, on: :requires_expiration_date, message: 'Expiration date is required'
     validates_presence_of :effective_date, on: :requires_effective_date, message: 'Effective date is required'
@@ -233,10 +235,10 @@ module GrdaWarehouse
     ####################
     # Callbacks
     ####################
-    after_create_commit :notify_users, if: ->(m) { m.should_run_callbacks? }
-    before_save :adjust_consent_date, if: ->(m) { m.should_run_callbacks? }
-    after_save :note_changes_in_consent, if: ->(m) { m.should_run_callbacks? }
-    after_commit :set_client_consent, on: [:create, :update], if: ->(m) { m.should_run_callbacks? }
+    after_create_commit :notify_users, if: ->(m) { m.should_run_callbacks? } # rubocop:disable Style/SymbolProc
+    before_save :adjust_consent_date, if: ->(m) { m.should_run_callbacks? } # rubocop:disable Style/SymbolProc
+    after_save :note_changes_in_consent, if: ->(m) { m.should_run_callbacks? } # rubocop:disable Style/SymbolProc
+    after_commit :set_client_consent, on: [:create, :update], if: ->(m) { m.should_run_callbacks? } # rubocop:disable Style/SymbolProc
 
     def should_run_callbacks?
       callbacks_skipped.nil? || ! callbacks_skipped
@@ -408,6 +410,16 @@ module GrdaWarehouse
             ds.id,
           ]
         end
+    end
+
+    def sync_revokation_info(current_user)
+      return unless consent_revoked_at_changed?
+
+      self.consent_revoked_by_user_id = if consent_revoked_at.present?
+        current_user.id
+      else # rubocop:disable Style/EmptyElse
+        nil
+      end
     end
 
     def copy_to_s3!

@@ -103,7 +103,9 @@ module Clients
         attrs[:effective_date] = attrs[:consent_form_signed_on]
         attrs[:consent_form_confirmed] = true if GrdaWarehouse::Config.get(:auto_confirm_consent)
       end
-      @file.update(attrs)
+      @file.assign_attributes(attrs)
+      @file.sync_revokation_info(current_user)
+      @file.save
     end
 
     def file_params
