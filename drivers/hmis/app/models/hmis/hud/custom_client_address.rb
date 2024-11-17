@@ -17,6 +17,16 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
     },
   )
 
+  include HasPiiAttributes
+  pii_attr :line1, as: :geo_street
+  pii_attr :line2, as: :geo_street
+  pii_attr :city, as: :geo_locality
+  pii_attr :state, as: :geo_admin_1
+  pii_attr :district, as: :geo_admin_2
+  pii_attr :postal_code, as: :geo_postal_code
+  pii_attr :country, as: :geo_country
+  pii_attr :notes, as: :free_text
+
   USE_VALUES = [
     :home,
     :work,

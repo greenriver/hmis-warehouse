@@ -4,11 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# replace PII attributes
 module GrdaWarehouse::Tasks::ScrubPii
-  class NullScrubber
-    def perform(pii)
-      pii.fields do |field|
-        pii.scrub(nil)
+  class DefaultScrubber
+    def perform(fields)
+      fields.each do |field|
+        field.scrub(nil)
       end
     end
   end

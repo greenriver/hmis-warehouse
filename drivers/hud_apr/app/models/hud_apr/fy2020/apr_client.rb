@@ -9,6 +9,13 @@ module HudApr::Fy2020
     self.table_name = 'hud_report_apr_clients'
     acts_as_paranoid
 
+    include HasPiiAttributes
+    pii_attr(:ssn)
+    pii_attr(:first_name)
+    pii_attr(:last_name)
+    pii_attr(:dob)
+    pii_attr(:age)
+
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
     has_many :hud_report_apr_living_situations, class_name: 'HudApr::Fy2020::AprLivingSituation', foreign_key: :hud_report_apr_client_id, inverse_of: :apr_client
     has_many :hud_report_ce_assessments, class_name: 'HudApr::Fy2020::CeAssessment', foreign_key: :hud_report_apr_client_id, inverse_of: :apr_client
@@ -40,11 +47,5 @@ module HudApr::Fy2020
 
       detail_headers.except('first_name', 'last_name', 'dob', 'ssn')
     end
-
-    pii_attr(:ssn)
-    pii_attr(:first_name)
-    pii_attr(:middle_name)
-    pii_attr(:last_name)
-    pii_attr(:dob)
   end
 end

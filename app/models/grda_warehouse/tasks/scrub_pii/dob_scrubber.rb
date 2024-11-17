@@ -8,32 +8,32 @@ require 'faker'
 
 module GrdaWarehouse::Tasks::ScrubPii
   class DobScrubber
-    def initialize(seed: nil)
-      Faker::Config.random = Random.new(seed) if seed
-    end
-
     def perform(fields)
-      dob_field = fields.detect { |f| f.type == :dob}
-      if dob_field
-        dob_value = scramble_dob(dob_field.raw_value)
-        field.scrub(dob_value)
-      end
+      dob_field = fields.detect { |f| f.type == :dob }
+      real_dob = dob_field&.real_value
+      dob_field.scrub(scramble_dob(real_dob)) if real_dob
 
-      dob_field = fields.detect { |f| f.type == :age }
-      if age_field
-        age_value = age_field.raw_value
-        age_value = dob_value ? today - dob_value : scramble_age(age_value)
-        field.scrub(age_value)
-      end
+      age_field = fields.detect { |f| f.type == :age }
+      real_age = age_field&.real_value
+      return unless real_age
+
+      age_value = age_in_years(dob_field.scrubbed_value || scramble_dob(today - real_age.years))
+      age_field.scrub(age_value)
     end
 
     protected
+
+    def age_in_years(dob)
+      age = today.year - dob.year
+      age -= 1 if today < dob + age.years
+      age
+    end
 
     def scramble_age(current, fuzz_years: 5)
       return nil unless current
 
       new_dob = scramble_dob(today - current, fuzz_years: fuzz_years)
-      today - new_dob
+      (today - new_dob).years
     end
 
     # Scrambles a date of birth while preserving approximate age bracket of the original

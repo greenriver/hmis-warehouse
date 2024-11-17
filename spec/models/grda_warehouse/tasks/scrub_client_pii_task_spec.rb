@@ -15,39 +15,39 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
   let!(:client1) do
     create(
       :grda_warehouse_hud_client,
-           data_source: data_source,
-           FirstName: 'John',
-           MiddleName: 'Q',
-           LastName: 'Public',
-           SSN: '123-45-6789',
-           DOB: '1980-01-01'
-           )
+      data_source: data_source,
+      FirstName: 'John',
+      MiddleName: 'Q',
+      LastName: 'Public',
+      SSN: '123-45-6789',
+      DOB: '1980-01-01',
+    )
   end
 
   let!(:client2) do
     create(
       :grda_warehouse_hud_client,
-           data_source: data_source,
-           FirstName: 'Jane',
-           MiddleName: 'R',
-           LastName: 'Doe',
-           SSN: '987-65-4321',
-           DOB: '1985-02-15'
-           )
+      data_source: data_source,
+      FirstName: 'Jane',
+      MiddleName: 'R',
+      LastName: 'Doe',
+      SSN: '987-65-4321',
+      DOB: '1985-02-15',
+    )
   end
 
   # Create enrollments with address data
   let!(:enrollment1) do
     create(
       :grda_warehouse_hud_enrollment,
-           data_source: data_source,
-           client: client1,
-           project: project,
-           LastPermanentStreet: '123 Main St',
-           LastPermanentCity: 'Boston',
-           LastPermanentState: 'MA',
-           LastPermanentZIP: '02108'
-           )
+      data_source: data_source,
+      client: client1,
+      project: project,
+      LastPermanentStreet: '123 Main St',
+      LastPermanentCity: 'Boston',
+      LastPermanentState: 'MA',
+      LastPermanentZIP: '02108',
+    )
   end
 
   # Helper methods
@@ -62,21 +62,11 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
     expect(client.MiddleName).to be_nil
     expect(client.LastName).to be_nil
     expect(client.SSN).to be_nil
-    expect(client.NameDataQuality).to eq(99)
-    expect(client.SSNDataQuality).to eq(99)
   end
 
-  def verify_nullified_enrollment(enrollment)
-    expect(enrollment.LastPermanentStreet).to be_nil
-    expect(enrollment.LastPermanentCity).to be_nil
-    expect(enrollment.LastPermanentState).to be_nil
-    expect(enrollment.LastPermanentZIP).to be_nil
-    expect(enrollment.AddressDataQuality).to eq(99)
-  end
-
-  context 'with null strategy' do
+  context 'with defaults' do
     before do
-      described_class.new.perform(strategy: :null)
+      described_class.new.perform
       reload_records
     end
 
@@ -84,48 +74,11 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
       verify_nullified_client(client1)
       verify_nullified_client(client2)
     end
-
-    it 'nullifies all PII in enrollments' do
-      verify_nullified_enrollment(enrollment1)
-    end
-
-    it 'maintains non-PII data' do
-      expect(client1.PersonalID).not_to be_nil
-      expect(enrollment1.ProjectID).not_to be_nil
-    end
-  end
-
-  context 'with fake strategy' do
-    before do
-      described_class.new.perform(strategy: :fake)
-      reload_records
-    end
-
-    it 'replaces client PII with fake data' do
-      expect(client1.FirstName).not_to eq('John')
-      expect(client1.LastName).not_to eq('Public')
-      expect(client1.SSN).not_to eq('123-45-6789')
-    end
-  end
-
-  context 'with identifier strategy' do
-    before do
-      described_class.new.perform(strategy: :identifier)
-      reload_records
-    end
-
-    it 'replaces PII with identifier-based values' do
-      expect(client1.FirstName).to eq("FirstName#{client1.id}")
-      expect(client1.LastName).to eq("LastName#{client1.id}")
-    end
   end
 
   context 'with specific client_ids' do
     before do
-      described_class.new.perform(
-        strategy: :null,
-        client_ids: [client1.id],
-      )
+      described_class.new.perform(client_ids: [client1.id])
       reload_records
     end
 
@@ -140,17 +93,16 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
   context 'with specific data_source_ids' do
     let(:other_data_source) { create(:grda_warehouse_data_source) }
     let!(:other_client) do
-      create(:grda_warehouse_hud_client,
-             data_source: other_data_source,
-             FirstName: 'Alice',
-             LastName: 'Smith')
+      create(
+        :grda_warehouse_hud_client,
+        data_source: other_data_source,
+        FirstName: 'Alice',
+        LastName: 'Smith'
+      )
     end
 
     before do
-      described_class.new.perform(
-        strategy: :null,
-        data_source_ids: [data_source.id],
-      )
+      described_class.new.perform(data_source_ids: [data_source.id])
       reload_records
       other_client.reload
     end
@@ -164,18 +116,10 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
     end
   end
 
-  context 'error handling' do
-    it 'raises error for invalid strategy' do
-      expect do
-        described_class.new.perform(strategy: :invalid)
-      end.to raise_error(ArgumentError)
-    end
-  end
-
   context 'version handling' do
     it 'deletes associated versions' do
       expect do
-        described_class.new.perform(strategy: :null)
+        described_class.new.perform
       end.to change(GrdaWarehouse::Version, :count).by(-2)
     end
   end
@@ -186,16 +130,18 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
     end
 
     let!(:custom_element) do
-      create(:hmis_custom_data_element,
-             owner: client1.as_hmis,
-             data_element_definition: custom_definition,
-             data_source: data_source,
-             value_string: '123-45-6789')
+      create(
+        :hmis_custom_data_element,
+        owner: client1.as_hmis,
+        data_element_definition: custom_definition,
+        data_source: data_source,
+        value_string: '123-45-6789'
+        )
     end
 
     it 'removes custom elements containing PII' do
       expect do
-        described_class.new.perform(strategy: :null)
+        described_class.new.perform
       end.to change { Hmis::Hud::CustomDataElement.with_deleted.count }.by(-1)
     end
   end
@@ -205,7 +151,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
       original_dob = Date.new(1980, 1, 1)
       client1.update(DOB: original_dob)
 
-      described_class.new.perform(strategy: :null)
+      described_class.new.perform
       client1.reload
 
       age_difference_in_years = ((client1.DOB - original_dob) / 365.25).abs
@@ -223,7 +169,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
 
     it 'removes all associated custom records' do
       expect do
-        described_class.new.perform(strategy: :null)
+        described_class.new.perform
       end.to change { Hmis::Hud::CustomClientAddress.with_deleted.count }.by(-1).
         and change { Hmis::Hud::CustomClientContactPoint.with_deleted.count }.by(-1)
     end

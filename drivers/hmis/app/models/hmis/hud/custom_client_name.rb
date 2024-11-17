@@ -12,6 +12,12 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
   self.ignored_columns += [:search_name_full, :search_name_last]
   has_paper_trail(meta: { client_id: ->(r) { r.client&.id } })
 
+  include HasPiiAttributes
+  pii_attr :first, as: :first_name
+  pii_attr :middle, as: :middle_name
+  pii_attr :last, as: :last_name
+  pii_attr :notes, as: :free_text
+
   USE_VALUES = [
     :usual,
     :official,

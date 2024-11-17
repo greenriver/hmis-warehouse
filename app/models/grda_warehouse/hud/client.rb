@@ -31,6 +31,13 @@ module GrdaWarehouse::Hud
     include NotifierConfig
     has_paper_trail
 
+    include HasPiiAttributes
+    pii_attr(:ssn)
+    pii_attr(:FirstName)
+    pii_attr(:MiddleName)
+    pii_attr(:LastName)
+    pii_attr(:DOB)
+
     attr_accessor :source_id
 
     self.table_name = :Client
@@ -747,12 +754,6 @@ module GrdaWarehouse::Hud
       end
       @source_clients_searchable_to[user.id]
     end
-
-    pii_attr(:ssn)
-    pii_attr(:FirstName)
-    pii_attr(:MiddleName)
-    pii_attr(:LastName)
-    pii_attr(:DOB)
 
     def alternate_names
       names = source_clients.map(&:full_name).uniq

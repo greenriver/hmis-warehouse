@@ -17,6 +17,11 @@ class Hmis::Hud::CustomDataElement < Hmis::Hud::Base
     },
   )
 
+  include HasPiiAttributes
+  pii_attr :value_string, as: :free_text
+  pii_attr :value_text, as: :free_text
+  pii_attr :value_date, as: :free_text
+
   VALUE_COLUMNS = [
     :value_boolean,
     :value_date,

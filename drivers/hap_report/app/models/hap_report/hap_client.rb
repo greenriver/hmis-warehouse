@@ -8,6 +8,8 @@ module HapReport
   class HapClient < GrdaWarehouseBase
     self.table_name = :hap_report_clients
     acts_as_paranoid
+    include HasPiiAttributes
+    pii_attr :age
 
     has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
 
@@ -15,6 +17,5 @@ module HapReport
       where.not(mci_id: nil)
     end
 
-    pii_attr :age
   end
 end

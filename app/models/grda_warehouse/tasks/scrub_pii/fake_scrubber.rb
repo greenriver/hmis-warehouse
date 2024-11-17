@@ -7,11 +7,7 @@
 require 'faker'
 
 module GrdaWarehouse::Tasks::ScrubPii
-  class FakeScrubber < DefaultPiiScrubber
-    def initialize(seed: nil)
-      Faker::Config.random = Random.new(seed) if seed
-    end
-
+  class FakeScrubber
     def perform(fields)
       fields.each do |field|
         case field.type
