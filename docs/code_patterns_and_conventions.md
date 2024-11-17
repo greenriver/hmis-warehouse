@@ -70,6 +70,24 @@ class ProjectsController < ApplicationController
 
 We should use `ArModel.viewable_by(user)`. Note there are variations of this scope in the code base but we should prefer `viewable_by` over visible_by or other variations.
 
+## Tracking PII
+
+If your model could store Personally Identifiable Information (PII), use the `pii_attr` helper to catalog it. Why track PII? It allows us to inventory and potentially scrub PII from our database if needed
+
+For example, if your model has name, dob, and ssn cols:
+
+```ruby
+  module MyReportClient GrdaWarehouseBase
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :dob
+    pii_attr :ssn
+  end
+```
+
+Note, there is a similar pattern for tracking PHI on in the health-related classes
+
 ### Storing credentials
 
 credentials and related configuration should be stored in the `GrdaWarehouse::RemoteCredential` table. This is an STI model, so use the appropriate subclass (s3 etc).

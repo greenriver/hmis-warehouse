@@ -4,10 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'progress_bar'
 module GrdaWarehouse::Tasks::ScrubPii
-  # Responsible for removing or obfuscating personally identifiable information (PII) from client records.
-
+  # * Selectively scrub personally identifiable information (PII) for HMIS Clients
+  # * Delete client-related custom hmis data
+  # * Delete versions
   class ScrubClientPiiTask
     def self.perform(...)
       new.perform(...)
@@ -57,6 +57,8 @@ module GrdaWarehouse::Tasks::ScrubPii
         arel[:label].matches('%city%'),
         arel[:label].matches('%email%'),
         arel[:label].matches('%phone%'),
+        arel[:label].matches('%license number%'),
+        arel[:label].matches('%policy number%'),
       ].reduce(&:or)
 
       scope = Hmis::Hud::CustomDataElement.with_deleted.

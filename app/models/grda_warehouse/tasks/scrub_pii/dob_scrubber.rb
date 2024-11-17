@@ -9,16 +9,22 @@ require 'faker'
 module GrdaWarehouse::Tasks::ScrubPii
   class DobScrubber
     def perform(fields)
-      dob_field = fields.detect { |f| f.type == :dob }
-      real_dob = dob_field&.real_value
-      dob_field.scrub(scramble_dob(real_dob)) if real_dob
+      dob_fields = fields.filter { |f| f.type == :dob }
 
-      age_field = fields.detect { |f| f.type == :age }
-      real_age = age_field&.real_value
-      return unless real_age
+      dob_fields.each do |dob_field|
+        real_dob = dob_field.real_value
+        dob_field.scrub(scramble_dob(real_dob))
+      end
 
-      age_value = age_in_years(dob_field.scrubbed_value || scramble_dob(today - real_age.years))
-      age_field.scrub(age_value)
+      # If there's one dob field, try and adjust ages to correspond
+      dob_field = dob_fields.size == 1 ? dob_fields.first : nil
+      return unless dob_field
+
+      age_fields = fields.filter { |f| f.type == :age }
+      age_fields.each do |age_field|
+        age_value = dob_field.scrubbed_value ? age_in_years(dob_field.scrubbed_value) : age_field.real_value
+        age_field.scrub(age_value)
+      end
     end
 
     protected
@@ -29,12 +35,13 @@ module GrdaWarehouse::Tasks::ScrubPii
       age
     end
 
-    def scramble_age(current, fuzz_years: 5)
-      return nil unless current
+    # not current scrubbing age unless accompanied by DOB
+    # def scramble_age(current, fuzz_years: 5)
+    #   return nil unless current
 
-      new_dob = scramble_dob(today - current, fuzz_years: fuzz_years)
-      (today - new_dob).years
-    end
+    #   new_dob = scramble_dob(today - current, fuzz_years: fuzz_years)
+    #   (today - new_dob).years
+    # end
 
     # Scrambles a date of birth while preserving approximate age bracket of the original
     # For example, with a 5-year bracket, someone aged 32 will get a DOB corresponding to age 30-35.

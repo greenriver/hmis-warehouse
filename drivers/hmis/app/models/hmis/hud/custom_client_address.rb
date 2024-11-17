@@ -24,7 +24,6 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
   pii_attr :state, as: :geo_admin_1
   pii_attr :district, as: :geo_admin_2
   pii_attr :postal_code, as: :geo_postal_code
-  pii_attr :country, as: :geo_country
   pii_attr :notes, as: :free_text
 
   USE_VALUES = [

@@ -10,6 +10,12 @@ module HudSpmReport::Fy2023
     include ArelHelper
     include Detail
 
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :dob
+    pii_attr :age
+
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :current_income_benefits, class_name: 'GrdaWarehouse::Hud::IncomeBenefit', optional: true

@@ -31,13 +31,6 @@ module GrdaWarehouse::Hud
     include NotifierConfig
     has_paper_trail
 
-    include HasPiiAttributes
-    pii_attr(:ssn)
-    pii_attr(:FirstName)
-    pii_attr(:MiddleName)
-    pii_attr(:LastName)
-    pii_attr(:DOB)
-
     attr_accessor :source_id
 
     self.table_name = :Client

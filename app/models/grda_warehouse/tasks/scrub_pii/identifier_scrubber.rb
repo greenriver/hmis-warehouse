@@ -4,7 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-
 # replace PII attributes with static text
 module GrdaWarehouse::Tasks::ScrubPii
   class IdentifierScrubber

@@ -1,17 +1,19 @@
 # wrap a PII field for scrubbing
 module GrdaWarehouse::Tasks::ScrubPii
   class PiiAttribute
-    attr_accessor :name, :type
+    attr_reader :name, :type, :level, :record
 
     def self.from_record(record)
-      record.class.pii_attributes_config.values.map do |attribute, type, required|
-        new(attribute, type, required, record)
+      record.class.pii_attributes_config.values.map do |config|
+        new(**config, record: record)
       end
     end
 
-    def initialize(name, type, required, record)
-      self.name = name
-      self.type = type
+    # invoked by class.from_record above
+    def initialize(name:, type:, required:, level:, record:)
+      @name = name
+      @type = type
+      @level = level
       @required = required
       @record = record
     end
@@ -20,9 +22,11 @@ module GrdaWarehouse::Tasks::ScrubPii
       !!@required
     end
 
-    def scrub(value)
-      return if @scrubbed
+    def scrubbed?
+      !!@scrubbed
+    end
 
+    def scrub(value)
       @scrubbed = true
       @scrubbed_value = value
     end
@@ -34,11 +38,11 @@ module GrdaWarehouse::Tasks::ScrubPii
     end
 
     def real_value
-      @record.send(name)
+      record.send(name)
     end
 
     def record_id
-      @record.id
+      record.id
     end
   end
 end

@@ -7,6 +7,12 @@
 module TextMessage
   class TopicSubscriber < GrdaWarehouseBase
     acts_as_paranoid
+
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :phone
+
     belongs_to :topic
     has_many :messages, foreign_key: :subscriber_id
 

@@ -5,12 +5,13 @@
 ###
 
 require 'progress_bar'
-# scrubber = GrdaWarehouse::Tasks::ScrubPii::ScrubModelPii.new(variant: :fake)
-# scrubber.perform(Client.all, progress: true)
 
 module GrdaWarehouse::Tasks::ScrubPii
+  # Scrub personally identifiable information (PII) from the given scope
+  # usage:
+  #   scrubber = GrdaWarehouse::Tasks::ScrubPii::ScrubModelPii.new(variant: :fake, progress: true)
+  #   scrubber.perform(Hmis::Hud::Client.all)
   class ScrubModelPii
-
     def initialize(variant: nil, progress: false)
       @progress = progress
       @scrubbers = [
@@ -22,7 +23,7 @@ module GrdaWarehouse::Tasks::ScrubPii
 
     def perform(scope)
       model = scope.klass
-      raise "#{model.name} is missing pii attribute configuration" unless model.has_pii?
+      raise "#{model.name} is missing pii attribute configuration" unless model.stores_pii?
 
       bar = new_progress_bar(models) if @progress
       bar.puts model.name if @progress
@@ -39,7 +40,9 @@ module GrdaWarehouse::Tasks::ScrubPii
           @scrubbers.each do |scrubber|
             scrubber.perform(pii_fields)
           end
-          pii_attrs = pii_fields.to_h { |f| [f.name, f.scrubbed_value] }
+          pii_attrs = pii_fields.
+            filter(&:scrubbed?).
+            to_h { |f| [f.name, f.scrubbed_value] }
 
           # include non-nullable attrs to ensure upsert works in postgres
           required_attrs = non_nullable_cols.to_h do |column|

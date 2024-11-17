@@ -5,7 +5,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubReportPiiTask do
 
   let(:real_first_name) { 'RealFirstName' }
   let(:real_middle_name) { 'RealMiddleName' }
-  let(:real_last_name ) { 'RealLastName' }
+  let(:real_last_name) { 'RealLastName' }
   let(:real_ssn) { '123-45-6789' }
   let(:real_age) { 28 }
   let(:real_dob) { Date.new(1996, 10, 20) }
@@ -47,11 +47,10 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubReportPiiTask do
 
   let(:scrubbed_age) { 30 }
   let(:scrubbed_dob) { Date.new(1994, 11, 16) }
-  let(:fake_first_name) {"FakeFirstName"}
-  let(:fake_last_name) {"FakeLastName"}
-  let(:fake_middle_name) {"FakeMiddleName"}
-  let(:fake_ssn) {'999-00-0000'}
-
+  let(:fake_first_name) { 'FakeFirstName' }
+  let(:fake_last_name) { 'FakeLastName' }
+  let(:fake_middle_name) { 'FakeMiddleName' }
+  let(:fake_ssn) { '999-00-0000' }
 
   # stub faker to get reproducable test values
   before(:each) do
@@ -60,25 +59,25 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubReportPiiTask do
     allow(Faker::Name).to receive(:middle_name).and_return(fake_middle_name)
     allow(Faker::IdNumber).to receive(:invalid).and_return(fake_ssn)
     allow(Faker::Date).to receive(:between) do |kwargs|
-      kwargs[:from]# Always returns the lower bound
+      kwargs[:from] # Always returns the lower bound
     end
   end
 
   context 'with null strategy' do
     it 'nullifies all PII' do
-      expect {
+      expect do
         perform_task
-      }.
+      end.
         # hud client
-        to change{ hud_client.first_name}.to(nil).
+        to change { hud_client.first_name }.to(nil).
         and change { hud_client.last_name }.to(nil).
-        and change { hud_client.ssn}.to(nil).
+        and change { hud_client.ssn }.to(nil).
         and change { hud_client.dob }.to(scrubbed_dob).
         and change { hud_client.age }.to(scrubbed_age).
         # apr
-        and change{ apr_client.first_name}.to(nil).
+        and change { apr_client.first_name }.to(nil).
         and change { apr_client.last_name }.to(nil).
-        and change {apr_client.ssn}.to(nil).
+        and change { apr_client.ssn }.to(nil).
         and change { apr_client.dob }.to(scrubbed_dob).
         and change { apr_client.age }.to(scrubbed_age)
     end
@@ -86,9 +85,9 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubReportPiiTask do
 
   context 'with fake strategy' do
     it 'replaces client PII with fake data' do
-      expect {
+      expect do
         perform_task(variant: :fake)
-      }.to change{ apr_client.first_name }.to(fake_first_name).
+      end.to change { apr_client.first_name }.to(fake_first_name).
         and change { apr_client.last_name }.to(fake_last_name).
         and change { apr_client.ssn }.to(fake_ssn).
         and change { apr_client.dob }.to(scrubbed_dob).
@@ -98,9 +97,9 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubReportPiiTask do
 
   context 'with static strategy' do
     it 'replaces PII with static identifier-based values' do
-      expect {
+      expect do
         perform_task(variant: :static)
-      }.to change{ apr_client.first_name }.to("FirstName#{apr_client.id}").
+      end.to change { apr_client.first_name }.to("FirstName#{apr_client.id}").
         and change { apr_client.last_name }.to("LastName#{apr_client.id}").
         and change { apr_client.ssn }.to(nil).
         and change { apr_client.dob }.to(scrubbed_dob).

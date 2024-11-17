@@ -97,7 +97,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
         :grda_warehouse_hud_client,
         data_source: other_data_source,
         FirstName: 'Alice',
-        LastName: 'Smith'
+        LastName: 'Smith',
       )
     end
 
@@ -135,8 +135,8 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
         owner: client1.as_hmis,
         data_element_definition: custom_definition,
         data_source: data_source,
-        value_string: '123-45-6789'
-        )
+        value_string: '123-45-6789',
+      )
     end
 
     it 'removes custom elements containing PII' do

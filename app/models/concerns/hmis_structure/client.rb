@@ -7,6 +7,7 @@
 module HmisStructure::Client
   extend ActiveSupport::Concern
   include ::HmisStructure::Base
+  include HasPiiAttributes
 
   included do
     # pg generated columns for search
@@ -14,6 +15,12 @@ module HmisStructure::Client
     self.hud_key = :PersonalID
     self.additional_upsert_columns = [:demographic_dirty]
     acts_as_paranoid(column: :DateDeleted) unless included_modules.include?(Paranoia)
+
+    pii_attr :ssn
+    pii_attr :FirstName
+    pii_attr :MiddleName
+    pii_attr :LastName
+    pii_attr :DOB
   end
 
   module ClassMethods

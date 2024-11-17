@@ -6,9 +6,14 @@
 
 # replace PII attributes
 module GrdaWarehouse::Tasks::ScrubPii
+  # scrub all sensitive fields that have not yet been scrubbed
   class DefaultScrubber
-    def perform(fields)
-      fields.each do |field|
+    # max_level: sanitize fields below this sensitivity level
+    def perform(fields, max_level: 3)
+      candidates = fields.filter do |field|
+        !field.scrubbed? && field.level < max_level
+      end
+      candidates.each do |field|
         field.scrub(nil)
       end
     end

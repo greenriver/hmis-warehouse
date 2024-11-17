@@ -5,7 +5,7 @@
 ###
 
 module GrdaWarehouse::Tasks::ScrubPii
-  # Responsible for scrubber personally identifiable information (PII) from report records.
+  # Scrub personally identifiable information (PII) from all warehouse and reporting tables
   class ScrubReportPiiTask
     def self.perform(...)
       new.perform(...)
@@ -24,24 +24,63 @@ module GrdaWarehouse::Tasks::ScrubPii
 
     def models
       [
+        # misc
+        TextMessage::TopicSubscriber,
+        GrdaWarehouse::HealthEmergency::UploadedTest,
+        GrdaWarehouse::Contact::Base,
+        GrdaWarehouse::Hmis::Staff,
+        GrdaWarehouse::HmisClient,
+        # warehouse.ClientUnencrypted, # no model?
+
         # hud records
         GrdaWarehouse::Hud::Client,
-        # custom hmis data
+        GrdaWarehouse::Hud::User,
         Hmis::Hud::CustomClientAddress,
         Hmis::Hud::CustomClientName,
         Hmis::Hud::CustomClientContactPoint,
         Hmis::Hud::CustomCaseNote,
         Hmis::Hud::CustomDataElement,
-        #reports
+
+        # reports
         HudApr::Fy2020::AprClient,
-        HapReport::HapClient,
-        # HomelessSummaryReport::Client,
-        # HudDataQualityReport::Fy2020::DqClient,
-        # HudPathReport::Fy2020::PathClient,
-        # HudSpmReport::Fy2020::SpmClient,
-        # IncomeBenefitsReport::Client,
-        # MaYyaReport::Client,
-        # check for enrollment, "SimpleReports::ReportInstance", anything inheriting from ReportingBase
+        HomelessSummaryReport::Client,
+        HudDataQualityReport::Fy2020::DqClient,
+        HudPathReport::Fy2020::PathClient,
+        HudSpmReport::Fy2020::SpmClient,
+        IncomeBenefitsReport::Client,
+        MaYyaReport::Client,
+        HudSpmReport::Fy2023::SpmEnrollment,
+        GrdaWarehouse::AdHocClient,
+        CePerformance::Client,
+        GrdaWarehouse::ClientContact,
+        Financial::Client,
+        HmisDataQualityTool::Client,
+        HmisDataQualityTool::Enrollment,
+        HudPit::Fy2022::PitClient,
+        HudReports::UniverseMember,
+        MaReports::MonthlyPerformance::Enrollment,
+        PerformanceMetrics::Client,
+        ProjectPassFail::Client,
+        SimpleReports::UniverseMember,
+
+        # reporting db
+        Reporting::Housed,
+        Reporting::DataQualityReports::Enrollment,
+
+        HmisCsvTwentyTwenty::Importer::Client,
+        HmisCsvTwentyTwenty::Importer::User,
+        HmisCsvTwentyTwenty::Loader::Client,
+        HmisCsvTwentyTwenty::Loader::User,
+
+        HmisCsvTwentyTwentyTwo::Importer::Client,
+        HmisCsvTwentyTwentyTwo::Importer::User,
+        HmisCsvTwentyTwentyTwo::Loader::Client,
+        HmisCsvTwentyTwentyTwo::Loader::User,
+
+        HmisCsvTwentyTwentyFour::Importer::Client,
+        HmisCsvTwentyTwentyFour::Importer::User,
+        HmisCsvTwentyTwentyFour::Loader::Client,
+        HmisCsvTwentyTwentyFour::Loader::User,
       ]
     end
 
