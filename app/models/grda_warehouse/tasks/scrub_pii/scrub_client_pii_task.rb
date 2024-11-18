@@ -13,9 +13,9 @@ module GrdaWarehouse::Tasks::ScrubPii
       new.perform(...)
     end
 
-    def perform(client_ids: nil, data_source_ids: nil, variant: nil, progress: false)
+    def perform(client_ids: nil, data_source_ids: nil, custom_scrubber: nil, progress: false)
       with_lock do
-        @scrubber = GrdaWarehouse::Tasks::ScrubPii::ScrubModelPii.new(variant: variant, progress: progress)
+        @scrubber = GrdaWarehouse::Tasks::ScrubPii::ScrubModelPii.new(custom_scrubber: custom_scrubber, progress: progress)
 
         client_scope = GrdaWarehouse::Hud::Client.with_deleted
         client_scope = client_scope.where(id: client_ids) if client_ids

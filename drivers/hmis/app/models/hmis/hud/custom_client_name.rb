@@ -16,7 +16,7 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
   pii_attr :first, as: :first_name
   pii_attr :middle, as: :middle_name
   pii_attr :last, as: :last_name
-  pii_attr :notes, as: :free_text
+  pii_attr :notes, as: :free_text, level: 2
 
   USE_VALUES = [
     :usual,

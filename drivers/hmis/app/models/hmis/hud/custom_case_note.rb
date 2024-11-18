@@ -18,7 +18,7 @@ class Hmis::Hud::CustomCaseNote < Hmis::Hud::Base
   )
 
   include HasPiiAttributes
-  pii_attr :content, as: :free_text
+  pii_attr :content, as: :free_text, level: 2, required: true
 
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   include ::Hmis::Hud::Concerns::FormSubmittable

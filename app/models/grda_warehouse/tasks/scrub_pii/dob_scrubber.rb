@@ -29,12 +29,6 @@ module GrdaWarehouse::Tasks::ScrubPii
 
     protected
 
-    def age_in_years(dob)
-      age = today.year - dob.year
-      age -= 1 if today < dob + age.years
-      age
-    end
-
     # not current scrubbing age unless accompanied by DOB
     # def scramble_age(current, fuzz_years: 5)
     #   return nil unless current
@@ -54,6 +48,10 @@ module GrdaWarehouse::Tasks::ScrubPii
       bracket_start = today - (age_bracket + fuzz_years).years
 
       Faker::Date.between(from: bracket_start, to: bracket_end)
+    end
+
+    def age_in_years(dob)
+      ((today - dob) / 365.25).floor
     end
 
     def today

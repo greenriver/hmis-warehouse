@@ -6,9 +6,11 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
 
   before(:all) do
     PaperTrail.enabled = true
+    PaperTrail.request.enabled = true
   end
   after(:all) do
     PaperTrail.enabled = false
+    PaperTrail.request.enabled = false
   end
 
   # Create test clients with PII
@@ -57,7 +59,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
     enrollment1.reload
   end
 
-  def verify_nullified_client(client)
+  def verify_scrubbed_client(client)
     expect(client.FirstName).to be_nil
     expect(client.MiddleName).to be_nil
     expect(client.LastName).to be_nil
@@ -71,8 +73,8 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
     end
 
     it 'nullifies all PII in clients' do
-      verify_nullified_client(client1)
-      verify_nullified_client(client2)
+      verify_scrubbed_client(client1)
+      verify_scrubbed_client(client2)
     end
   end
 
@@ -83,7 +85,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
     end
 
     it 'only scrubs specified clients' do
-      verify_nullified_client(client1)
+      verify_scrubbed_client(client1)
 
       expect(client2.FirstName).to eq('Jane')
       expect(client2.LastName).to eq('Doe')
@@ -108,8 +110,8 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
     end
 
     it 'only scrubs clients from specified data sources' do
-      verify_nullified_client(client1)
-      verify_nullified_client(client2)
+      verify_scrubbed_client(client1)
+      verify_scrubbed_client(client2)
 
       expect(other_client.FirstName).to eq('Alice')
       expect(other_client.LastName).to eq('Smith')

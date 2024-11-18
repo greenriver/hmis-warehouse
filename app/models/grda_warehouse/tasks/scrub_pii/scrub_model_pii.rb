@@ -9,16 +9,14 @@ require 'progress_bar'
 module GrdaWarehouse::Tasks::ScrubPii
   # Scrub personally identifiable information (PII) from the given scope
   # usage:
-  #   scrubber = GrdaWarehouse::Tasks::ScrubPii::ScrubModelPii.new(variant: :fake, progress: true)
+  #   scrubber = GrdaWarehouse::Tasks::ScrubPii::ScrubModelPii.new(progress: true)
   #   scrubber.perform(Hmis::Hud::Client.all)
   class ScrubModelPii
-    def initialize(variant: nil, progress: false)
+    attr_accessor :custom_scrubber
+    def initialize(progress: false, custom_scrubber: nil)
       @progress = progress
-      @scrubbers = [
-        custom_scrubber(variant), # custom handling for names (identifier, faker, etc)
-        GrdaWarehouse::Tasks::ScrubPii::DobScrubber.new, # special handling for dob/age
-        GrdaWarehouse::Tasks::ScrubPii::DefaultScrubber.new, # catch-all, handles fields not yet consumed
-      ].compact
+
+      self.custom_scrubber = lookup_custom_scrubber(custom_scrubber)
     end
 
     def perform(scope)
@@ -39,9 +37,16 @@ module GrdaWarehouse::Tasks::ScrubPii
       scope.find_in_batches do |batch|
         values = batch.map do |record|
           pii_fields = PiiAttribute.from_record(record)
-          @scrubbers.each do |scrubber|
-            scrubber.perform(pii_fields)
-          end
+
+          # custom scrubbing if provided (fake values)
+          custom_scrubber&.perform(pii_fields)
+
+          # handle dob and age fields
+          dob_scrubber.perform(pii_fields.reject(&:scrubbed?))
+
+          # scrub remaining sensitive fields
+          basic_scrubber.perform(pii_fields.filter { |f| f.sensitive? && !f.scrubbed? })
+
           pii_attrs = pii_fields.
             filter(&:scrubbed?).
             to_h { |f| [f.name, f.scrubbed_value] }
@@ -58,16 +63,26 @@ module GrdaWarehouse::Tasks::ScrubPii
       end
     end
 
-    def custom_scrubber(name)
+    # special handling for dob/age
+    def dob_scrubber
+      @dob_scrubber || GrdaWarehouse::Tasks::ScrubPii::DobScrubber.new
+    end
+
+    # catch-all scrubber
+    def basic_scrubber
+      @basic_scrubber ||= GrdaWarehouse::Tasks::ScrubPii::BasicScrubber.new
+    end
+
+    def lookup_custom_scrubber(name)
       case name
-      when :static
-        GrdaWarehouse::Tasks::ScrubPii::IdentifierScrubber.new
       when :fake
         GrdaWarehouse::Tasks::ScrubPii::FakeScrubber.new
+      when :static
+        GrdaWarehouse::Tasks::ScrubPii::StaticScrubber.new
       when nil
         nil
       else
-        raise ArgumentError, "unknown scrubber #{name}"
+        raise "unknown scrubber '#{name}'"
       end
     end
 

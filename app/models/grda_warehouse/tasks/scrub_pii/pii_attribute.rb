@@ -9,7 +9,6 @@ module GrdaWarehouse::Tasks::ScrubPii
       end
     end
 
-    # invoked by class.from_record above
     def initialize(name:, type:, required:, level:, record:)
       @name = name
       @type = type
@@ -18,8 +17,16 @@ module GrdaWarehouse::Tasks::ScrubPii
       @record = record
     end
 
+    def description
+      "#{record.class.name}##{name} (#{type})"
+    end
+
     def required?
       !!@required
+    end
+
+    def sensitive?
+      level < 3
     end
 
     def scrubbed?

@@ -63,8 +63,8 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
     end
   end
 
-  context 'with null strategy' do
-    it 'nullifies all PII' do
+  context 'with defaults' do
+    it 'scrubs all PII' do
       expect do
         perform_task
       end.
@@ -86,22 +86,10 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
   context 'with fake strategy' do
     it 'replaces client PII with fake data' do
       expect do
-        perform_task(variant: :fake)
+        perform_task(custom_scrubber: :fake)
       end.to change { apr_client.first_name }.to(fake_first_name).
         and change { apr_client.last_name }.to(fake_last_name).
         and change { apr_client.ssn }.to(fake_ssn).
-        and change { apr_client.dob }.to(scrubbed_dob).
-        and change { apr_client.age }.to(scrubbed_age)
-    end
-  end
-
-  context 'with static strategy' do
-    it 'replaces PII with static identifier-based values' do
-      expect do
-        perform_task(variant: :static)
-      end.to change { apr_client.first_name }.to("FirstName#{apr_client.id}").
-        and change { apr_client.last_name }.to("LastName#{apr_client.id}").
-        and change { apr_client.ssn }.to(nil).
         and change { apr_client.dob }.to(scrubbed_dob).
         and change { apr_client.age }.to(scrubbed_age)
     end
