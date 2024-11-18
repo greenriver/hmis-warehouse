@@ -6,7 +6,7 @@
 
 require 'faker'
 
-module GrdaWarehouse::Tasks::ScrubPii
+module Pii::Scrubber
   class ReplacementPii
     attr_accessor :max_level
 

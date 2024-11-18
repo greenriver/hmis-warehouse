@@ -6,13 +6,13 @@
 
 require 'faker'
 
-module GrdaWarehouse::Tasks::ScrubPii
+module Pii::Scrubber
   # replace PII attributes with fake values
-  class BasicScrubber
+  class FakeScrubber
     def perform(fields)
       fields.each do |field|
-        value = field.required? ? GrdaWarehouse::Tasks::ScrubPii::ReplacementPii.static_value(field) : nil
-        field.scrub(value)
+        value = Pii::Scrubber::ReplacementPii.fake_value(field)
+        field.scrub(value) unless value.nil?
       end
     end
   end

@@ -1,5 +1,5 @@
 # wrap a PII field for scrubbing
-module GrdaWarehouse::Tasks::ScrubPii
+module Pii::Scrubber
   class PiiAttribute
     attr_reader :name, :type, :level, :record
 

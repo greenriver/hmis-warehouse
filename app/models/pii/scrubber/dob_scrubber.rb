@@ -6,7 +6,7 @@
 
 require 'faker'
 
-module GrdaWarehouse::Tasks::ScrubPii
+module Pii::Scrubber
   class DobScrubber
     def perform(fields)
       dob_fields = fields.filter { |f| f.type == :dob }

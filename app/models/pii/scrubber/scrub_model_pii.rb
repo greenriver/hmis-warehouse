@@ -6,10 +6,10 @@
 
 require 'progress_bar'
 
-module GrdaWarehouse::Tasks::ScrubPii
+module Pii::Scrubber
   # Scrub personally identifiable information (PII) from the given scope
   # usage:
-  #   scrubber = GrdaWarehouse::Tasks::ScrubPii::ScrubModelPii.new(progress: true)
+  #   scrubber = ScrubModelPii.new(progress: true)
   #   scrubber.perform(Hmis::Hud::Client.all)
   class ScrubModelPii
     attr_accessor :custom_scrubber
@@ -36,7 +36,7 @@ module GrdaWarehouse::Tasks::ScrubPii
       non_nullable_cols = model.columns.reject(&:null).map { |c| c.name.to_sym }
       scope.find_in_batches do |batch|
         values = batch.map do |record|
-          pii_fields = PiiAttribute.from_record(record)
+          pii_fields = Pii::Scrubber::PiiAttribute.from_record(record)
 
           # custom scrubbing if provided (fake values)
           custom_scrubber&.perform(pii_fields)
@@ -65,20 +65,20 @@ module GrdaWarehouse::Tasks::ScrubPii
 
     # special handling for dob/age
     def dob_scrubber
-      @dob_scrubber || GrdaWarehouse::Tasks::ScrubPii::DobScrubber.new
+      @dob_scrubber || Pii::Scrubber::DobScrubber.new
     end
 
     # catch-all scrubber
     def basic_scrubber
-      @basic_scrubber ||= GrdaWarehouse::Tasks::ScrubPii::BasicScrubber.new
+      @basic_scrubber ||= Pii::Scrubber::BasicScrubber.new
     end
 
     def lookup_custom_scrubber(name)
       case name
       when :fake
-        GrdaWarehouse::Tasks::ScrubPii::FakeScrubber.new
+        Pii::Scrubber::FakeScrubber.new
       when :static
-        GrdaWarehouse::Tasks::ScrubPii::StaticScrubber.new
+        Pii::Scrubber::StaticScrubber.new
       when nil
         nil
       else

@@ -13,7 +13,7 @@ module GrdaWarehouse::Tasks::ScrubPii
 
     def perform(...)
       with_lock do
-        scrubber = GrdaWarehouse::Tasks::ScrubPii::ScrubModelPii.new(...)
+        scrubber = Pii::Scrubber::ScrubModelPii.new(...)
         models.each do |model|
           scrubber.perform(model.unscoped)
         end
