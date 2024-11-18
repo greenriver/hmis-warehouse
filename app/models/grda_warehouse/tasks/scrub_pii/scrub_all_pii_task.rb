@@ -6,7 +6,7 @@
 
 module GrdaWarehouse::Tasks::ScrubPii
   # Scrub personally identifiable information (PII) from all warehouse and reporting tables
-  class ScrubReportPiiTask
+  class ScrubAllPiiTask
     def self.perform(...)
       new.perform(...)
     end

@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubReportPiiTask do
+RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
   let(:today) { Date.new(2024, 11, 16) }
 
   let(:real_first_name) { 'RealFirstName' }

@@ -25,9 +25,11 @@ module GrdaWarehouse::Tasks::ScrubPii
       model = scope.klass
       raise "#{model.name} is missing pii attribute configuration" unless model.stores_pii?
 
-      bar = new_progress_bar(models) if @progress
+      bar = new_progress_bar(scope) if @progress
       bar.puts model.name if @progress
-      process_model(model, scope, bar)
+      without_optimistic_locking(model) do
+        process_model(model, scope, bar)
+      end
     end
 
     protected
@@ -76,9 +78,19 @@ module GrdaWarehouse::Tasks::ScrubPii
       raise if result.failed_instances.any?
     end
 
-    def new_progress_bar(models)
-      total = models.map(&:count).sum
-      ProgressBar.new(total, :counter, :bar, :percentage, :rate, :eta) if progress
+    def without_optimistic_locking(model)
+      prev = model.lock_optimistically
+      model.lock_optimistically = false
+      begin
+        yield
+      ensure
+        model.lock_optimistically = prev
+      end
+    end
+
+    def new_progress_bar(scope)
+      total = scope.count
+      ProgressBar.new(total, :counter, :bar, :percentage, :rate, :eta)
     end
   end
 end
