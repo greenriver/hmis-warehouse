@@ -41,6 +41,7 @@ Implement a multi-phase approach to PII management:
 
 ### Phase 2: Enhanced Tooling & Management
 
+- Implemnent systemic PII access control across all locations that expose level 1 PII (dashboards and reports)
 - Implement and deploy PII scrubbing for our development and testing needs
 - Support for tracking PII in key-value PII storage, such as CustomDataElements
 - Create tools to support auditing PII
