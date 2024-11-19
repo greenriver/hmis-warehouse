@@ -113,8 +113,11 @@ module AllNeighborsSystemDashboard
           exit_date = exit_date(filter, enrollment)
           diversion_enrollment = enrollment.project.id.in?(filter.secondary_project_ids)
 
-          placed_date = if diversion_enrollment && exit_type == 'Permanent'
-            exit_date
+          # Diversion is prioritized over RRH & PH (some diversion projects may be RRH projects)
+          # But we only want diversion enrollments where the client exited to a permanent destination
+          # All others should be thrown out
+          placed_date = if diversion_enrollment
+            exit_date if exit_type == 'Permanent'
           elsif enrollment.project.ph?
             move_in_date
           end
