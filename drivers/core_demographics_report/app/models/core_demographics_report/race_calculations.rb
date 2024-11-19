@@ -34,7 +34,7 @@ module
     end
 
     def race_count(type, coc_code = base_count_sym)
-      mask_small_population(race_breakdowns(coc_code)[type]&.count&.presence || 0)
+      mask_small_population(client_ids_in_race(type, coc_code)&.count&.presence || 0)
     end
 
     def race_percentage(type, coc_code = base_count_sym)
