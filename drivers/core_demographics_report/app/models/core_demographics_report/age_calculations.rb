@@ -24,6 +24,13 @@ module
       }
     end
 
+    def age_range_for(category)
+      return (0..17) if category == 'child'
+      return (18..110) if category == 'adult'
+
+      raise "unknown category: #{category}"
+    end
+
     def age_detail_hash
       {}.tap do |hashes|
         genders.each do |gender_col, gender_label|
@@ -39,7 +46,15 @@ module
               title: "Ages - #{title}",
               headers: client_headers,
               columns: client_columns,
-              scope: -> { send(scope).joins(:client, :enrollment).distinct },
+              scope: -> {
+                age_ids = client_ids_in_age_range(age_range_for(age_category)).to_a
+                gender_ids = client_ids_in_gender(gender_col).to_a
+                ids = age_ids & gender_ids
+                send(scope).
+                  where(client_id: ids).
+                  joins(:client, :enrollment).
+                  distinct
+              },
             }
           end
           age_categories.each do |age_key, title|
@@ -109,7 +124,10 @@ module
 
         define_method "#{age_category}_#{gender_col}_count" do
           Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-            mask_small_population(send("#{age_category}_#{gender_col}_scope").select(:client_id).distinct.count)
+            age_ids = client_ids_in_age_range(age_range_for(age_category)).to_a
+            gender_ids = client_ids_in_gender(gender_col).to_a
+            ids = age_ids & gender_ids
+            mask_small_population(send("#{age_category}_#{gender_col}_scope").where(client_id: ids).select(:client_id).distinct.count)
           end
         end
 

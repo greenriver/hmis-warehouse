@@ -28,15 +28,19 @@ module Filters
   end
 
   class UiControl
-    attr_accessor :id, :label, :short_label, :value, :required, :hint
+    attr_accessor :id, :label, :short_label, :possibly_lazy_value, :required, :hint
 
-    def initialize(id:, value:, label: nil, short_label: nil, required: false, hint: nil) # rubocop:disable Metrics/ParameterLists
+    def initialize(id:, value:, label: nil, short_label: nil, required: false, hint: nil)
       self.id = id
       self.label = label || id.humanize.titleize
       self.short_label = short_label || self.label
       self.required = required
       self.hint = hint
-      self.value = value
+      self.possibly_lazy_value = value
+    end
+
+    def value
+      possibly_lazy_value.is_a?(Proc) ? possibly_lazy_value.call : possibly_lazy_value
     end
 
     def report_period?
