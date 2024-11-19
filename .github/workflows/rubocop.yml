@@ -44,5 +44,5 @@ jobs:
       - id: eslint
         name: Run ESLint
         run: |
-          yarn install
+          yarn install --frozen-lockfile
           yarn lint --quiet
