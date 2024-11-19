@@ -37,8 +37,7 @@
   },
   "resolutions": {
     "minimatch": "^3.0.5",
-    "ws": "^8.17.1",
-    "cross-spawn": "^7.0.5"
+    "ws": "^8.17.1"
   },
   "scripts": {
     "lint": "eslint app/assets/javascripts",
