@@ -2,6 +2,7 @@ window.App.Form = window.App.Form || {};
 window.App.StimulusApp = window.App.StimulusApp || {};
 
 // Provides a means of reloading a fragment when an input changes
+// eslint-disable-next-line no-undef
 App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
   static get targets() {
     return ['element', 'changer', 'header', 'chart', 'table', 'wrapper', 'loader'];
@@ -15,6 +16,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
     if ($(this.changerTarget).data('chartData')) {
       this.loadChartDataSync();
     } else {
+      // eslint-disable-next-line no-undef
       this.loadChartData(new Event('click'));
     }
   }
@@ -27,6 +29,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
     // Deep copy initial config
     // Note: because we don't have full ES6/node support
     // we're bringing in rfdc in a weird way
+    // eslint-disable-next-line no-undef
     const clone = rfdc();
     let config = clone(this.initial_config);
     if (data.config) {
@@ -46,6 +49,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
     chart.destroy();
     this.showChartAndTable();
     // regenerate
+    // eslint-disable-next-line no-undef
     chart = bb.generate(config);
   }
 
@@ -74,6 +78,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
       row = document.createElement('tr');
       data_row.forEach(function (data_cell, j) {
         if(i > 0 && j > 0 && link_base) {
+          // eslint-disable-next-line no-undef
           url = new URL(link_base);
           // TODO: this is specific to the system pathways report
           // and should be generalized
@@ -129,6 +134,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
     this.hideChartAndTable();
     let target = this.activeTarget(event);
     let url = target.href;
+    // eslint-disable-next-line no-undef
     fetch(url)
       .then(response => response.json())
       .then(json => {

@@ -31,6 +31,7 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
 
   _build_chart() {
     if ($(this.chart_selector).length > 0) {
+      // eslint-disable-next-line no-unused-vars
       const self = this;
       this.options = $(this.chart_selector).data('chart').options;
       this.categories = $(this.chart_selector).data('chart').categories;
@@ -60,6 +61,7 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
         type: 'bar',
         color: this._colors,
         labels: {
+          // eslint-disable-next-line no-unused-vars
           format: (v, id, i, j) => {
             if (this.options.showPercentageWithValue) {
               let percentage = 0;

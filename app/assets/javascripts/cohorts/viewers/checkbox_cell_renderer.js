@@ -13,6 +13,7 @@ CheckboxCellRenderer.prototype.getGui = function() {
 };
 
 // gets called whenever the user gets the cell to refresh
+// eslint-disable-next-line no-unused-vars
 CheckboxCellRenderer.prototype.refresh = function(params) {
   // Force the grid to re-initialize this
   return false;

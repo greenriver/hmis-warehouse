@@ -71,6 +71,7 @@ App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
         indicateLoading(false, data.error);
         displayResults(data);
       })
+      // eslint-disable-next-line no-unused-vars
       .fail((xhr) => {
         indicateLoading(false);
         alert('An error occured while processing your request');

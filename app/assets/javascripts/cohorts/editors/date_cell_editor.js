@@ -14,6 +14,7 @@ DateCellEditor.prototype.init = function(params) {
     changeYear: true,
     autoclose: true,
     clearBtn: true
+    // eslint-disable-next-line no-unused-vars
   }).on('hide', function(e) {
     params.stopEditing();
   });

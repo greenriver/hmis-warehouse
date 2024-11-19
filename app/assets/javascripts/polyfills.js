@@ -3,6 +3,7 @@ if (!Object.keys) {
   Object.keys = (function () {
     'use strict';
     var hasOwnProperty = Object.prototype.hasOwnProperty,
+      // eslint-disable-next-line no-prototype-builtins
       hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
       dontEnums = [
         'toString',
@@ -97,6 +98,7 @@ if (!Array.prototype.includes) {
 if (typeof Object.assign !== 'function') {
   // Must be writable: true, enumerable: false, configurable: true
   Object.defineProperty(Object, 'assign', {
+    // eslint-disable-next-line no-unused-vars
     value: function assign(target, varArgs) { // .length of function is 2
       'use strict';
       if (target === null || target === undefined) {

@@ -3,13 +3,16 @@
 'use strict';
 
 function copyBuffer (cur) {
+  // eslint-disable-next-line no-undef
   if (cur instanceof Buffer) {
+    // eslint-disable-next-line no-undef
     return Buffer.from(cur);
   }
 
   return new cur.constructor(cur.buffer.slice(), cur.byteOffset, cur.length);
 }
 
+// eslint-disable-next-line no-unused-vars
 function rfdc (opts) {
   opts = opts || {};
 

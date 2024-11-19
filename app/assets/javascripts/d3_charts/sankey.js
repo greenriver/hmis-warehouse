@@ -62,6 +62,7 @@ App.D3Chart.Sankey = class Sankey {
     let linkSource = ({ source }) => source; // given d in links, returns a node identifier string
     let linkTarget = ({ target }) => target; // given d in links, returns a node identifier string
     let linkValue = ({ value }) => value; // given d in links, returns the quantitative value
+    // eslint-disable-next-line no-unused-vars
     let targetColors = {};
     let linkPath = this.d3Sankey.sankeyLinkHorizontal(); // given d in (computed) links, returns the SVG path
     // let linkTitle = d => `${d.source.id} → ${d.target.id}\n${format(d.value)}`; // given d in (computed) links
@@ -85,6 +86,7 @@ App.D3Chart.Sankey = class Sankey {
     const G = d3.map(nodes, nodeGroup).map(this.intern);
 
     // Replace the input nodes and links with mutable objects for the simulation.
+    // eslint-disable-next-line no-undef
     nodes = d3.map(nodes, (_, i) => ({ id: N[i], layer: nodeColumns[N[i]] }));
     links = d3.map(links, (_, i) => ({ source: LS[i], target: LT[i], value: LV[i] }));
     // Ignore a group-based linkColor option if no groups are specified.
@@ -103,6 +105,7 @@ App.D3Chart.Sankey = class Sankey {
     this.sankey
       .nodeId(({ index: i }) => N[i])
       // Force nodes to specific horizontal locations
+      // eslint-disable-next-line no-unused-vars
       .nodeAlign((node, n) => {
         return node.layer;
       })
@@ -117,6 +120,7 @@ App.D3Chart.Sankey = class Sankey {
     const Tl = N;
     // const Tt = nodeTitle == null ? null : d3.map(nodes, nodeTitle);
     let linkTitle = d => `${d.source.id} → ${d.target.id}\n${d3.format(d.value)}`;
+    // eslint-disable-next-line no-unused-vars
     const Lt = d3.map(links, linkTitle);
 
     // A unique identifier for clip paths (to avoid conflicts).
@@ -153,6 +157,7 @@ App.D3Chart.Sankey = class Sankey {
       })
       .on('click', (e, d) => {
         if (this.detail_path) {
+          // eslint-disable-next-line no-undef
           let url = new URL(this.detail_path);
           url.searchParams.append('node', d.id);
           window.open(url.toString(), '_blank');
@@ -207,6 +212,7 @@ App.D3Chart.Sankey = class Sankey {
       })
       .on('click', (e, d) => {
         if (this.detail_path) {
+          // eslint-disable-next-line no-undef
           let url = new URL(this.detail_path);
           url.searchParams.append('source', d.source.id);
           url.searchParams.append('target', d.target.id);
@@ -290,6 +296,7 @@ App.D3Chart.Sankey = class Sankey {
     return a_weight > b_weight;
   }
 
+  // eslint-disable-next-line no-unused-vars
   over(event, node, type) {
     // Reset container
     this.Tooltip.html('');
@@ -349,8 +356,11 @@ App.D3Chart.Sankey = class Sankey {
     }
   }
 
+  // eslint-disable-next-line no-unused-vars
   move(event, node) {
+    // eslint-disable-next-line no-unused-vars
     let domain = { 'x domain': [0, $(this.chart_selector).width()], 'y domain': [0, $(this.chart_selector).height()]  };
+    // eslint-disable-next-line no-unused-vars
     let range = { 'x range': [0, this.width], 'y range': [0, this.height] };
     let xScale = this.d3Sankey.scaleLinear();
     let yScale = this.d3Sankey.scaleLinear();
@@ -373,6 +383,7 @@ App.D3Chart.Sankey = class Sankey {
 
   }
 
+  // eslint-disable-next-line no-unused-vars
   out(event, node) {
     this.Tooltip
       .style('opacity', 0);

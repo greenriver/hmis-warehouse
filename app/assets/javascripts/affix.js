@@ -21,6 +21,7 @@ class Affix {
    * @return {}
    */
   spy() {
+    // eslint-disable-next-line no-unused-vars
     window.addEventListener('scroll', (event) => {
       if (this.affixing) return;
       // Do nothing if page content is not of sufficent height to affix elements

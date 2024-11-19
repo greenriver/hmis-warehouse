@@ -1,6 +1,7 @@
 window.App.Form = window.App.Form || {};
 window.App.StimulusApp = window.App.StimulusApp || {};
 
+// eslint-disable-next-line no-undef
 App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
   static get values() {
     return {
@@ -184,6 +185,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
 
     targets.forEach(el => {
       $(el).on('select2:close', (e) => {
+        // eslint-disable-next-line no-undef
         let event = new Event('change', { bubbles: true }); // fire a native event
         e.target.dispatchEvent(event);
       });
@@ -206,6 +208,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       this.projectsTarget,
     ];
     targets.forEach(el => {
+      // eslint-disable-next-line no-unused-vars
       $(el).on('change', (e) => {
         this.update();
       });

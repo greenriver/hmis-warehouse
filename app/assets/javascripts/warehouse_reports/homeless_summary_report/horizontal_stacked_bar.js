@@ -22,12 +22,14 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
 
   _build_chart() {
     if ($(this.chart_selector).length > 0) {
+      // eslint-disable-next-line no-unused-vars
       const self = this;
       this.options = $(this.chart_selector).data('chart').options;
       this.categories = $(this.chart_selector).data('chart').categories;
       if (this.truncate_labels > 0) {
         // this.categories = this.categories.map(c => c.substring(0, this.truncate_labels))
         this.categories = this.categories.map(c => {
+          // eslint-disable-next-line no-undef
           separator = ' ';
           if (c.length <= this.truncate_labels) return c;
           return c.substr(0, c.lastIndexOf(' ', this.truncate_labels)) + '...';
@@ -43,6 +45,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
       const _columns = JSON.parse(JSON.stringify(columns));
       this.groups = $(this.chart_selector).data('chart').groups;
       const setNames = [];
+      // eslint-disable-next-line no-unused-vars
       const columnTotals = _columns.map((col) => {
         setNames.push(col[0]);
         col.shift();
@@ -235,6 +238,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
   }
 };
 
+// eslint-disable-next-line no-unused-vars
 function __guard__(value, transform) {
   return typeof value !== 'undefined' && value !== null ? transform(value) : undefined;
 }

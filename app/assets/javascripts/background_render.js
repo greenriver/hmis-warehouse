@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-undef
 App.StimulusApp.register('background-render', class extends Stimulus.Controller {
   static get values() {
     return {renderId: String, url: String, fetchParams: Object};
@@ -14,6 +15,7 @@ App.StimulusApp.register('background-render', class extends Stimulus.Controller 
         this.fetch();
       },
       received: (data) => {
+        // eslint-disable-next-line no-undef
         if (data.cableReady) CableReady.perform(data.operations);
       }
     });
@@ -34,6 +36,7 @@ App.StimulusApp.register('background-render', class extends Stimulus.Controller 
     const body = this.fetchParamsValue;
     body.render_id = this.renderIdValue;
 
+    // eslint-disable-next-line no-undef
     fetch(this.urlValue, {
       method: 'POST',
       headers: {

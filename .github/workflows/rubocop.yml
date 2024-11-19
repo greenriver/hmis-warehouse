@@ -41,3 +41,7 @@ jobs:
           num=`echo $files | wc -w`
           echo $files
           if [ $num -gt 0 ]; then bundle exec rubocop --config ./.rubocop.yml $files; else echo "No changed ruby files"; fi
+      - id: eslint
+        name: Run ESLint
+        run: |
+          yarn lint --quiet

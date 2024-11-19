@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 class AppClientHistoryCalendar {
   constructor(data, eventsData, calendar_selector) {
     // console.log('ClientHistoryCalendar')
@@ -109,7 +110,7 @@ class AppClientHistoryCalendar {
 
       week = this.container
         .selectAll(`.${this.prefixClass('week', `${i}`)}`);
-
+      // eslint-disable-next-line no-unused-vars
       var days = week.selectAll(`.${this.prefixClass('day')}`)
         .data(dayDomain)
         .enter()
@@ -147,6 +148,7 @@ class AppClientHistoryCalendar {
           if (d.extrapolation_only) {
             var classes = [this.prefixClass('project')];
           } else {
+            // eslint-disable-next-line no-redeclare
             var classes = [this.prefixClass('project'), 'project-type-' + d.project_type];
           }
 
@@ -180,6 +182,7 @@ class AppClientHistoryCalendar {
         .style('bottom', 0)
         .style('width', (d) => d.extrapolation_only ? barWidth(d.extrapolation) : barWidth(d));
 
+      // eslint-disable-next-line no-unused-vars
       tooltipTriggers.each(function (d, index) {
         $(this).popover({
           trigger: 'focus',
@@ -203,6 +206,7 @@ class AppClientHistoryCalendar {
               .attr('class', (d) => includesEnd(d.extrapolation) ? 'icon-cross' : '');
           },
           (update) => {
+            // eslint-disable-next-line no-unused-vars
             update.style('opacity', (d) => {
               if (filters.contactTypes && filters.contactTypes.length > 0) {
                 return filters.contactTypes.includes('extrapolation') ? 1 : 0.2;
@@ -290,7 +294,7 @@ class AppClientHistoryCalendar {
           }
           if (includesEnd(d)) {
             if (this.getDateFromString(d.exit_date) == new Date()) {
-
+              // eslint-disable-next-line no-empty
             } else {
               classes.push(this.prefixClass('project', 'label-has-end'));
             }
@@ -328,6 +332,7 @@ class AppClientHistoryCalendar {
                 .append('span')
                 .attr('class', eventClass)
                 .append('i')
+                // eslint-disable-next-line no-undef
                 .attr('class', (eventsData[event] || {}).icon);
             },
             (update) => {

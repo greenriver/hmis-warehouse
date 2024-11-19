@@ -68,11 +68,13 @@ window.App.RoleTable = class RoleTable {
     this.saving();
     const {
       tableContainerSelector,
+      // eslint-disable-next-line no-unused-vars
       tableObjectHeadingSelector,
       tableInputSelector,
     } = this.props;
     const rolePromises =
       this.$tableContainer.data('objects')
+        // eslint-disable-next-line no-unused-vars
         .map((id, i) => {
           const inputBaseQuery = `${tableInputSelector}[data-role=${id}] input`;
           const inputs = this.$tableContainer.find(`${inputBaseQuery}.dirty`);

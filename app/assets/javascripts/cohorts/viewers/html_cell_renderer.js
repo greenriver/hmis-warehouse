@@ -13,6 +13,7 @@ HtmlCellRenderer.prototype.getGui = function() {
 };
 
 // gets called whenever the user gets the cell to refresh
+// eslint-disable-next-line no-unused-vars
 HtmlCellRenderer.prototype.refresh = function(params) {
   var wrapper = document.createElement('div');
   wrapper.className = '';

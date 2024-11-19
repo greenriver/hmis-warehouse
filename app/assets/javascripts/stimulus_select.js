@@ -1,6 +1,7 @@
 window.App.Form = window.App.Form || {};
 window.App.StimulusApp = window.App.StimulusApp || {};
 
+// eslint-disable-next-line no-undef
 App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
   static get targets() {
     return ['element', 'projectTypes', 'organizations', 'projects', 'optGroup', 'opt', 'selectAll'];
@@ -22,14 +23,17 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
   setupDependentProjectList() {
     if (this.hasOrganizationsTarget) {
       $(this.organizationsTarget).on('select2:select', (e) => {
+        // eslint-disable-next-line no-undef
         let event = new Event('change', { bubbles: true }); // fire a native event
         e.target.dispatchEvent(event);
       });
       $(this.organizationsTarget).on('select2:unselect', (e) => {
+        // eslint-disable-next-line no-undef
         let event = new Event('change', { bubbles: true }); // fire a native event
         e.target.dispatchEvent(event);
       });
       $(this.organizationsTarget).on('select2:close', (e) => {
+        // eslint-disable-next-line no-undef
         let event = new Event('change', { bubbles: true }); // fire a native event
         e.target.dispatchEvent(event);
       });
@@ -37,14 +41,17 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
     }
     if (this.hasProjectTypesTarget) {
       $(this.projectTypesTarget).on('select2:select', (e) => {
+        // eslint-disable-next-line no-undef
         let event = new Event('change', { bubbles: true }); // fire a native event
         e.target.dispatchEvent(event);
       });
       $(this.projectTypesTarget).on('select2:unselect', (e) => {
+        // eslint-disable-next-line no-undef
         let event = new Event('change', { bubbles: true }); // fire a native event
         e.target.dispatchEvent(event);
       });
       $(this.projectTypesTarget).on('select2:close', (e) => {
+        // eslint-disable-next-line no-undef
         let event = new Event('change', { bubbles: true }); // fire a native event
         e.target.dispatchEvent(event);
       });
@@ -65,15 +72,19 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
       let $projectTarget = $(project_stimulus.projectsTarget);
       let selected_project_ids = $projectTarget.val();
       let url = $projectTarget.data('project-url');
+      // eslint-disable-next-line no-undef
       selections = { selected_project_ids: selected_project_ids };
       if ($organization_controller.length > 0) {
         let organization_stimulus = $organization_controller[0].stimulusSelect;
+        // eslint-disable-next-line no-undef
         selections.organization_ids = $(organization_stimulus.organizationsTarget).val();
       }
       if ($project_types_controller.length > 0) {
         let project_types_stimulus = $project_types_controller[0].stimulusSelect;
+        // eslint-disable-next-line no-undef
         selections.project_types = $(project_types_stimulus.projectTypesTarget).val();
       }
+      // eslint-disable-next-line no-undef
       $.post(url, selections, (data) => {
         $projectTarget.html(data);
         $projectTarget.trigger('change');
@@ -151,6 +162,7 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
     $select.select2(options);
     if (this.elementTarget.hasAttribute('multiple')) {
       this._initToggleSelectAll();
+      // eslint-disable-next-line no-unused-vars
       $select.on('select2:unselecting', (e) => {
         // Prevent toggling of select2 drop-down when unselecting
         $select.select2('open');
@@ -173,6 +185,7 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
     let drop_down_class = '.select2-dropdown';
     const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
     if (MutationObserver) {
+      // eslint-disable-next-line no-unused-vars
       let observer = new MutationObserver((mutations) => {
         if ($(drop_down_class).length > 0) {
           $(drop_down_class).each((i, drop_down_span) => {
@@ -191,6 +204,7 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
     let opt_group_class = '.select2-results__group';
     const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
     if (MutationObserver) {
+      // eslint-disable-next-line no-unused-vars
       let observer = new MutationObserver((mutations) => {
         if ($(opt_group_class).length > 0) {
           $(opt_group_class).each((i, strong) => {
@@ -280,6 +294,7 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
     $selectAllToggle
       .attr('data-stimulus-select-target', 'selectAll')
       .attr('data-action', 'click->stimulus-select#toggleAll');
+    // eslint-disable-next-line no-unused-vars
     $select.on('change', (e) => {
       const option_count = $select.find('option').length;
       let hideSelectAllText = $select.data('disableSelectAll') || option_count > 75;

@@ -11,6 +11,7 @@ DateCellRenderer.prototype.getGui = function() {
 };
 
 // gets called whenever the user gets the cell to refresh
+// eslint-disable-next-line no-unused-vars
 DateCellRenderer.prototype.refresh = function(params) {
   // tell the grid to rebuild
   return false;

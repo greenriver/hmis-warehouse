@@ -59,6 +59,7 @@ window.App.FileDropzone = class FileDropzone {
 
     // update file input if there's a different visible input on screen
     // if there are multiple inputs, don't do anything
+    // eslint-disable-next-line no-unused-vars
     $(window).on('dragenter', (e) => {
       if ($('input[type=\'file\']:visible').length == 1) {
         this.update_dropzone_input($('input[type=\'file\']:visible'));
@@ -74,6 +75,7 @@ window.App.FileDropzone = class FileDropzone {
       }
     });
 
+    // eslint-disable-next-line no-unused-vars
     $(window).on('dragleave', (e) => {
       if ($('input[type=\'file\']:visible').length == 1) {
         showDrag = false;

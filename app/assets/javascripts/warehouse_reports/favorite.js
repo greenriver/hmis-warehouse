@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-undef
 App.StimulusApp.register('favorite', class extends Stimulus.Controller {
   static get targets() {
     return ['icon'];
@@ -29,6 +30,7 @@ App.StimulusApp.register('favorite', class extends Stimulus.Controller {
       url: `/api/reports/${this.idValue}/${route}`,
       method: 'PUT'
     })
+      // eslint-disable-next-line no-unused-vars
       .done((ret) => {
         console.debug(`Successful ${route} ${this.idValue}`);
       })

@@ -29,14 +29,18 @@ window.App.ViewableEntities = class {
     };
 
     $('.j-add').on('click', (event) => {
+      // eslint-disable-next-line no-unused-vars
       const elements = showHideEl(event, 'add');
     });
     $('.j-remove-all-toggle').on('click', (event) => {
+      // eslint-disable-next-line no-unused-vars
       const elements = showHideEl(event, 'remove');
     });
+    // eslint-disable-next-line no-unused-vars
     $('.j-remove-all').on('click', function (event) {
       self.removeAll(getSelect2(this), $(this).closest('.j-column'));
     });
+    // eslint-disable-next-line no-unused-vars
     $('.j-list.j-editable').on('click', 'li', function (event) {
       self.removeItem(this, getSelect2(this));
     });
@@ -50,6 +54,7 @@ window.App.ViewableEntities = class {
     const unlimitableIds = ($list.data('unlimitable') || []);
     const itemValues = [];
     for (const i in items) {
+      // eslint-disable-next-line no-prototype-builtins
       if (items.hasOwnProperty(i)) {
         itemValues.push(items[i]);
       }
@@ -119,6 +124,7 @@ window.App.ViewableEntities = class {
         query = ':selected';
       }
       const $selectedOptions = $this.find(query);
+      // eslint-disable-next-line no-unused-vars
       const values = $this.val();
       const selected = {};
       $selectedOptions.each(function(i, el) {

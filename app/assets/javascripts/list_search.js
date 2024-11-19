@@ -33,6 +33,7 @@ const showOrHideElement = (condition, el, className='hide') => {
   }
 };
 
+// eslint-disable-next-line no-undef
 App.StimulusApp.register('list-search', class extends Stimulus.Controller {
   static get targets() {
     return [
@@ -76,6 +77,7 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
     if (this.selectedCategories === el) {
       return;
     }
+    // eslint-disable-next-line no-unused-vars
     const { ACTIVE_CLASS, ALL_KEY } = this;
     const { category, hash } = el.dataset;
     if(hash) {
