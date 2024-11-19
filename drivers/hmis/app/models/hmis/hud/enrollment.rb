@@ -357,6 +357,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
           next unless record_type == 'ENROLLMENT' || custom_field_key
 
           if record_type && field_name
+           # Example: if this item collects `move_in_date` and the Enrollment has a Move-in Date value, then we want to show this form on the Enrollment Dashboard (even though it isn't "enabled" via an instance)
             has_any_data = respond_to?(field_name) && send(field_name).present?
           elsif custom_field_key
             # For simplicity, for now, just look for CDEDs where the owner is an Enrollment
