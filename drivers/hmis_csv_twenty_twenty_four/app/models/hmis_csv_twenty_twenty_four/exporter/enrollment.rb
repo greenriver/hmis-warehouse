@@ -42,10 +42,6 @@ module HmisCsvTwentyTwentyFour::Exporter
           modified_within_range(range: (export.start_date..export.end_date))
       end
 
-      # Limit to the chosen CoC codes if any are specified
-      filter = export.filter
-      export_scope = export_scope.where(EnrollmentCoC: filter.coc_codes) if filter.coc_codes.any?
-
       note_involved_user_ids(scope: export_scope, export: export)
 
       export_scope.distinct.preload(:user, :project, client: :warehouse_client_source)
