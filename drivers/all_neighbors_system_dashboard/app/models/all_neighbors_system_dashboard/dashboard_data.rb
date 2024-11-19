@@ -269,7 +269,7 @@ module AllNeighborsSystemDashboard
       # Diversion is a special case, limited to the secondary project ids.
       # For all others, we'll limit to the effective project ids to prevent double counting
       when 'Diversion'
-        scope.where(project_id: @report.filter.secondary_project_ids, destination: @report.class::POSITIVE_DIVERSION_DESTINATIONS)
+        scope.where(project_id: @report.filter.secondary_project_ids)
       when 'Permanent Supportive Housing' # NOTE: these project types are specified and do not match HUD
         scope.where(project_type: [3, 10], project_id: @report.filter.effective_project_ids).
           # Prioritize counting clients in diversion over by project type
