@@ -507,7 +507,6 @@ module Types
         includes(:definition).
         map do |instance|
         OpenStruct.new(
-          id: instance.definition.id,
           legacy: false,
           definition: instance.definition,
           data_collected_about: instance.data_collected_about || 'ALL_CLIENTS',

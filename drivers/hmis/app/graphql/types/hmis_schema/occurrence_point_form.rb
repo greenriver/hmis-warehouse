@@ -18,14 +18,21 @@ module Types
 
     def id(parent:)
       # Include project id (if present) so that instance is not cached for use across projects.
-      [object[:id], parent&.id].compact.join(':')
+      [object.definition.id, parent_project(parent)&.id].compact.join(':')
     end
 
     def definition(parent:)
       definition = object[:definition]
-      definition.filter_context = { project: parent } if parent.is_a?(Hmis::Hud::Project)
-      definition.filter_context = { project: parent.project } if parent.is_a?(Hmis::Hud::Enrollment)
+      definition.filter_context = { project: parent_project(parent) }
       definition
+    end
+
+    private def parent_project(parent)
+      if parent.is_a?(Hmis::Hud::Project)
+        parent
+      elsif parent.is_a?(Hmis::Hud::Enrollment)
+        parent.project
+      end
     end
   end
 end

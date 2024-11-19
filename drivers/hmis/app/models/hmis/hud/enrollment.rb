@@ -339,46 +339,46 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   def occurrence_point_forms
     # Get definitions for Occurrence Point forms, including inactive/retired (but excluding drafts)
     definitions = Hmis::Form::Definition.with_role(:OCCURRENCE_POINT).published_or_retired.latest_versions
+    # Get cdeds that this enrollment has CDE record(s) for. Do this in advance so we don't make extra trips to db
+    cdeds_this_enrollment_has = custom_data_element_definitions.pluck(:key).to_set
 
     definitions.map do |definition|
       # Choose the most specific instance for this enrollment
       best_instance = definition.instances.active.detect_best_instance_for_enrollment(enrollment: self)
 
-      # If we didn't find a best_instance, check for legacy data
-      has_any_data = false
-      unless best_instance
-        definition.walk_definition_nodes(as_open_struct: true) do |item|
-          next unless item.mapping.present?
+      # Check for legacy data. Skip the calculation if there is a current instance
+      has_legacy_data = best_instance ? false : legacy_occurrence_point_data?(definition, cdeds_this_enrollment_has)
 
-          record_type = item.mapping&.record_type
-          field_name = item.mapping&.field_name&.underscore
-          custom_field_key = item.mapping&.custom_field_key
-
-          next unless record_type == 'ENROLLMENT' || custom_field_key
-
-          if record_type && field_name
-           # Example: if this item collects `move_in_date` and the Enrollment has a Move-in Date value, then we want to show this form on the Enrollment Dashboard (even though it isn't "enabled" via an instance)
-            has_any_data = respond_to?(field_name) && send(field_name).present?
-          elsif custom_field_key
-            # For simplicity, for now, just look for CDEDs where the owner is an Enrollment
-            owner_class_name = self.class.sti_name
-            cded = Hmis::Hud::CustomDataElementDefinition.for_type(owner_class_name).find_by(key: custom_field_key)
-            has_any_data = cded && Hmis::Hud::CustomDataElement.where(data_element_definition: cded, owner: self).any?
-          end
-
-          break if has_any_data # if we found data, we don't need to keep iterating through the items
-        end
-      end
-
-      next unless best_instance || has_any_data
+      next unless best_instance || has_legacy_data
 
       OpenStruct.new(
-        id: definition.id,
-        legacy: has_any_data && !best_instance,
+        legacy: has_legacy_data && !best_instance,
         definition: definition,
         data_collected_about: best_instance&.data_collected_about || 'ALL_CLIENTS',
       )
     end.compact
+  end
+
+  private def legacy_occurrence_point_data?(definition, cdeds_this_enrollment_has)
+    definition.walk_definition_nodes(as_open_struct: true) do |item|
+      next unless item.mapping.present?
+
+      record_type = item.mapping&.record_type
+      field_name = item.mapping&.field_name&.underscore
+      custom_field_key = item.mapping&.custom_field_key
+
+      next unless record_type == 'ENROLLMENT' || custom_field_key
+
+      if record_type && field_name
+        # Example: if this item collects `move_in_date` and the Enrollment has a Move-in Date value, then we want to show this form on the Enrollment Dashboard (even though it isn't "enabled" via an instance)
+        return true if respond_to?(field_name) && send(field_name).present?
+      elsif custom_field_key
+        # For simplicity, for now, just look for CDEDs where the owner is this Enrollment
+        return true if cdeds_this_enrollment_has.include?(custom_field_key)
+      end
+    end
+
+    false
   end
 
   def save_new_enrollment!
