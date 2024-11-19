@@ -44,4 +44,5 @@ jobs:
       - id: eslint
         name: Run ESLint
         run: |
+          yarn install
           yarn lint --quiet
