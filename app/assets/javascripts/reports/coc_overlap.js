@@ -39,12 +39,12 @@ App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
   };
 
   const displayResults = (data) => {
-    $('.coc1-name').html(data.coc1 || `<span class="text-muted">Primary CoC not selected</span>`);
-    $('.coc2-name').html(data.coc2 || `<span class="text-muted">Secondary CoC not selected</span>`);
+    $('.coc1-name').html(data.coc1 || '<span class="text-muted">Primary CoC not selected</span>');
+    $('.coc2-name').html(data.coc2 || '<span class="text-muted">Secondary CoC not selected</span>');
     if (data.title) {
       $('.j-title')
         .html(data.title)
-        .removeClass('d-none')
+        .removeClass('d-none');
     }
     $('.j-subtitle').html(data.subtitle);
     $(resultsSelector).html(data.html);
@@ -71,6 +71,7 @@ App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
         indicateLoading(false, data.error);
         displayResults(data);
       })
+      // eslint-disable-next-line no-unused-vars
       .fail((xhr) => {
         indicateLoading(false);
         alert('An error occured while processing your request');

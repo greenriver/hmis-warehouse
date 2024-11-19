@@ -23,7 +23,7 @@ window.App.WarehouseReports.PerformanceDashboards.Pie = class Pie {
       this.categories = $(this.chart_selector).data('chart').categories;
       this.link_params = $(this.chart_selector).data('chart').params;
 
-      const legendPosition = this.options.legendPosition || 'bottom'
+      const legendPosition = this.options.legendPosition || 'bottom';
       this.padding = this.options.padding || {};
       this.height = this.options.height || 400;
       const data = {
@@ -59,7 +59,7 @@ window.App.WarehouseReports.PerformanceDashboards.Pie = class Pie {
     if (key.id != null) {
       key = key.id;
     }
-    const colors = window.Chart.defaults.colors
+    const colors = window.Chart.defaults.colors;
     if (['All'].includes(key)) {
       color = '#288BEE';
     } else {
