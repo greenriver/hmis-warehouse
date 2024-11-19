@@ -293,7 +293,6 @@ class Hmis::Hud::Processors::Base
     when 'file'
       case value
       when String
-        # todo @martha - this only works if new and non repeating
         # todo @martha - is this the right place for this stuff anyway?
         # todo @martha - how does this relate to going in the other direction? (value is a file?)
         blob = ActiveStorage::Blob.find_by(id: value)
@@ -302,6 +301,10 @@ class Hmis::Hud::Processors::Base
         file.client = @processor.send(:client_factory)
         file.client_file.attach(blob)
         file
+      when Object
+        raise "unexpected value \"#{value}\"" unless value.key?('fileBlobId') && value.key?('id')
+
+        Hmis::File.find(value['id'])
       else
         raise "unexpected value \"#{value}\""
       end
