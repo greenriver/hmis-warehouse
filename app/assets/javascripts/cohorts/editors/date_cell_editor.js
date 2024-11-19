@@ -9,7 +9,7 @@ DateCellEditor.prototype.init = function(params) {
 
   // https://jqueryui.com/datepicker/
   $(this.eInput).datepicker({
-    dateFormat: "dd/mm/yyyy",
+    dateFormat: 'dd/mm/yyyy',
     changeMonth: true,
     changeYear: true,
     autoclose: true,

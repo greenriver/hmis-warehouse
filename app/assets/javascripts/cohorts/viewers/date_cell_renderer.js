@@ -30,7 +30,7 @@ DateCellRenderer.prototype.content = function (params) {
   wrapper.appendChild(value);
   wrapper.appendChild(icon);
   return wrapper;
-}
+};
 
 // gets called when the cell is removed from the grid
 DateCellRenderer.prototype.destroy = function() {

@@ -1,11 +1,11 @@
-window.App.Form = window.App.Form || {}
-window.App.StimulusApp = window.App.StimulusApp || {}
+window.App.Form = window.App.Form || {};
+window.App.StimulusApp = window.App.StimulusApp || {};
 
 App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
   static get values() {
     return {
       supportedProjectTypes: Array,
-    }
+    };
   }
 
   static get targets() {
@@ -23,7 +23,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       'calculatedProjects',
       'missingItems',
       'submitButton',
-    ]
+    ];
   }
 
   initialize() {
@@ -31,18 +31,18 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
   }
 
   connect() {
-    this.element['filterProjects'] = this // allow access to this controller from other controllers
-    this.prepNativeEvents()
-    this.watchForRemoteLoads()
-    this.update()
+    this.element['filterProjects'] = this; // allow access to this controller from other controllers
+    this.prepNativeEvents();
+    this.watchForRemoteLoads();
+    this.update();
   }
 
   update() {
-    let data = this.formData()
+    let data = this.formData();
 
-    $(this.calculatedProjectsTarget).html('<p class="well rollup-container"></p>')
+    $(this.calculatedProjectsTarget).html('<p class="well rollup-container"></p>');
     // Fetch the asynchronous nature of the query from the HTML, we'll set it to true for Development only
-    const async = $(this.projectsTarget).data('async')
+    const async = $(this.projectsTarget).data('async');
 
     $.ajax({
       // It is not ideal to call this synchronously as it sometimes hangs the browser temporarily,
@@ -54,27 +54,27 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
     }).done((ret) => {
       // console.debug('success')
       if (ret.includes('No Projects')) {
-        this.addProjectDataWarning()
+        this.addProjectDataWarning();
         $(this.submitButtonTarget).attr('disabled', 'disabled');
       }
       else {
         // we have some projects, so remove the warning
-        this.removeProjectDataWarning()
+        this.removeProjectDataWarning();
         if (this.checkMissingData()) {
           // we have some data issues
-          this.addMissingDataWarning()
+          this.addMissingDataWarning();
           $(this.submitButtonTarget).attr('disabled', 'disabled');
         }
         else {
           // All good to proceed
-          this.removeMissingDataWarning()
+          this.removeMissingDataWarning();
           $(this.submitButtonTarget).data('title', '').removeAttr('disabled');
         }
       }
-      $(this.calculatedProjectsTarget).html(ret)
+      $(this.calculatedProjectsTarget).html(ret);
     }).fail((ret) => {
-      console.error(['Failed to fetch project list', ret])
-    })
+      console.error(['Failed to fetch project list', ret]);
+    });
   }
 
   formData() {
@@ -83,7 +83,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       data_source_ids: $(this.dataSourcesTarget).val(),
       project_group_ids: $(this.projectGroupsTarget).val(),
       project_type_codes: $(this.projectTypesTarget).val(),
-    }
+    };
     if (this.hasFunderIdsTarget) {
       const val = $(this.funderIdsTarget).val();
       if (val) data.funder_ids = Array.isArray(val) ? val : [val];
@@ -103,12 +103,12 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
 
     // Special parameter to limit the project list by supported project type IDs
     if (this.hasSupportedProjectTypesValue) {
-      data.supported_project_types = this.supportedProjectTypesValue
+      data.supported_project_types = this.supportedProjectTypesValue;
     }
-    return data
+    return data;
   }
 
-/**
+  /**
  * Transform rails-formatted input field names into a deeply nested object for submission
  *
  * Example inputs:
@@ -130,29 +130,29 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
     $(this.element).find(':input').each((i, el) => {
       if(el.name.startsWith('filter[')) {
         // remove any trailing arrays, this is a rails-ism and generates weird empty hashes
-        const nameParts = el.name.replaceAll('][]', '').replaceAll("]", "").split("[");
+        const nameParts = el.name.replaceAll('][]', '').replaceAll(']', '').split('[');
         const input = nameParts.reduceRight((nestedObj, key) => ({ [key]: nestedObj }), $(el).val());
         inputs = $.extend(true, {}, inputs, input); // use jquery for deep merge
       }
-    })
+    });
     return inputs;
   }
 
   checkMissingData() {
     if (! this.hasMissingItemsTarget) {
-      return false
+      return false;
     }
-    const form_data = this.rawFormFiltersInput()
+    const form_data = this.rawFormFiltersInput();
     return $.ajax({
-      async: false, type: 'POST', url: $(this.missingItemsTarget).attr('formaction') + '.json', data: JSON.stringify(form_data), contentType: "application/json" }).done().responseJSON
-    }
+      async: false, type: 'POST', url: $(this.missingItemsTarget).attr('formaction') + '.json', data: JSON.stringify(form_data), contentType: 'application/json' }).done().responseJSON;
+  }
 
   addMissingDataWarning() {
     if (!this.hasMissingItemsTarget) {
-      return
+      return;
     }
     if ($('.jMissingDataWarning').length == 0) {
-      $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jMissingDataWarning">This report will not work unless the required project descriptor data is present, please see "Missing Data".</p>')
+      $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jMissingDataWarning">This report will not work unless the required project descriptor data is present, please see "Missing Data".</p>');
     }
   }
 
@@ -162,7 +162,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
 
   addProjectDataWarning() {
     if ($('.jProjectWarning').length == 0) {
-      $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jProjectWarning">This report will not work unless you have included at least one project above.</p>')
+      $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jProjectWarning">This report will not work unless you have included at least one project above.</p>');
     }
   }
 
@@ -184,11 +184,11 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
 
     targets.forEach(el => {
       $(el).on('select2:close', (e) => {
-        let event = new Event('change', { bubbles: true }) // fire a native event
+        let event = new Event('change', { bubbles: true }); // fire a native event
         e.target.dispatchEvent(event);
       });
-      $(el).trigger('change')
-    })
+      $(el).trigger('change');
+    });
 
     // Rails UJS _really_ wants to disable all buttons in a form when you click
     // one, we open the form in a new window, so don't want to disable the main
@@ -207,8 +207,8 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
     ];
     targets.forEach(el => {
       $(el).on('change', (e) => {
-        this.update()
+        this.update();
       });
     });
   }
-})
+});

@@ -20,7 +20,7 @@ CheckboxCellRenderer.prototype.refresh = function(params) {
 
 CheckboxCellRenderer.prototype.content = function (params) {
   var wrapper = document.createElement('div');
-  wrapper.className = 'text-center'
+  wrapper.className = 'text-center';
   var checkmark = document.createElement('span');
   if (params.value != 'false' && params.value) {
     checkmark.className = 'icon-checkmark o-color--positive';
@@ -30,7 +30,7 @@ CheckboxCellRenderer.prototype.content = function (params) {
   }
   wrapper.appendChild(checkmark);
   return wrapper;
-}
+};
 
 // gets called when the cell is removed from the grid
 CheckboxCellRenderer.prototype.destroy = function() {

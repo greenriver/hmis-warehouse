@@ -3,17 +3,17 @@ if (!Object.keys) {
   Object.keys = (function () {
     'use strict';
     var hasOwnProperty = Object.prototype.hasOwnProperty,
-        hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
-        dontEnums = [
-          'toString',
-          'toLocaleString',
-          'valueOf',
-          'hasOwnProperty',
-          'isPrototypeOf',
-          'propertyIsEnumerable',
-          'constructor'
-        ],
-        dontEnumsLength = dontEnums.length;
+      hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
+      dontEnums = [
+        'toString',
+        'toLocaleString',
+        'valueOf',
+        'hasOwnProperty',
+        'isPrototypeOf',
+        'propertyIsEnumerable',
+        'constructor'
+      ],
+      dontEnumsLength = dontEnums.length;
 
     return function (obj) {
       if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
@@ -96,7 +96,7 @@ if (!Array.prototype.includes) {
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
 if (typeof Object.assign !== 'function') {
   // Must be writable: true, enumerable: false, configurable: true
-  Object.defineProperty(Object, "assign", {
+  Object.defineProperty(Object, 'assign', {
     value: function assign(target, varArgs) { // .length of function is 2
       'use strict';
       if (target === null || target === undefined) {
@@ -156,7 +156,7 @@ if (!Array.from) {
 
       // 3. ReturnIfAbrupt(items).
       if (arrayLike == null) {
-        throw new TypeError("Array.from requires an array-like object - not null or undefined");
+        throw new TypeError('Array.from requires an array-like object - not null or undefined');
       }
 
       // 4. If mapfn is undefined, then let mapping be false.
