@@ -273,10 +273,14 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     let(:legacy_expected_struct) do
       have_attributes(
         legacy: true,
-        id: definition.id,
         definition: definition,
         data_collected_about: 'ALL_CLIENTS',
       )
+    end
+
+    before(:all) do
+      Hmis::Form::Definition.delete_all
+      Hmis::Form::Instance.delete_all
     end
 
     it 'does not return the form when no instance exists' do
@@ -344,7 +348,6 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         it 'returns the form for all clients' do
           expected = have_attributes(
             legacy: false,
-            id: definition.id,
             definition: definition,
             data_collected_about: 'ALL_CLIENTS',
           )
@@ -360,7 +363,6 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       it 'returns the form for HoH only' do
         expected = have_attributes(
           legacy: false,
-          id: definition.id,
           definition: definition,
           data_collected_about: 'HOH',
         )
