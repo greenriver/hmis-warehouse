@@ -263,4 +263,170 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end
     end
   end
+
+  describe 'occurrence point form instances' do
+    let(:role) { :OCCURRENCE_POINT }
+    let!(:definition) { create(:occurrence_point_form) }
+    let!(:project) { create(:hmis_hud_project, data_source: ds1) }
+    let!(:hoh_enrollment) { create(:hmis_hud_enrollment, project: project, data_source: ds1, household_id: 'household1', relationship_to_hoh: 1) }
+    let!(:spouse_enrollment) { create(:hmis_hud_enrollment, project: project, data_source: ds1, household_id: 'household1', relationship_to_hoh: 3) }
+    let(:legacy_expected_struct) do
+      have_attributes(
+        legacy: true,
+        definition: definition,
+        data_collected_about: 'ALL_CLIENTS',
+      )
+    end
+
+    before(:all) do
+      Hmis::Form::Definition.delete_all
+      Hmis::Form::Instance.delete_all
+    end
+
+    it 'does not return the form when no instance exists' do
+      expect(hoh_enrollment.occurrence_point_forms).to be_empty
+    end
+
+    it 'does not return the form when an irrelevant instance exists' do
+      create(:hmis_form_instance, role: role, entity: p1, active: true) # applies to a different project
+      expect(hoh_enrollment.occurrence_point_forms).to be_empty
+    end
+
+    it 'does not return the form when an inactive instance exists' do
+      create(:hmis_form_instance, role: role, entity: project, active: false, definition: definition)
+      expect(hoh_enrollment.occurrence_point_forms).to be_empty
+    end
+
+    context 'when there is no instance, but there is legacy data' do
+      let!(:spouse_enrollment) do
+        create(
+          :hmis_hud_enrollment,
+          project: project,
+          data_source: ds1,
+          household_id: 'household1',
+          relationship_to_hoh: 3,
+          move_in_date: 3.weeks.ago,
+        )
+      end
+
+      it 'does return the form' do
+        expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
+      end
+
+      context 'when multiple irrelevant instances exist' do
+        let!(:instance1) { create(:hmis_form_instance, role: role, project_type: 2, active: true, definition: definition) }
+        let!(:instance2) { create(:hmis_form_instance, role: role, project_type: 3, active: true, definition: definition) }
+        let!(:instance3) { create(:hmis_form_instance, role: role, project_type: 4, active: true, definition: definition) }
+        let!(:inactive_instance) { create(:hmis_form_instance, role: role, project_type: 6, active: false, definition: definition) }
+
+        it 'returns the form, with no duplicates' do
+          expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
+        end
+      end
+
+      context 'when a draft version of the form does not collect the same data' do
+        let!(:draft_definition) { create(:occurrence_point_form, version: 2, status: :draft) }
+
+        it 'returns the form' do
+          expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
+        end
+      end
+    end
+
+    context 'when a relevant instance exists for all clients' do
+      let!(:instance) { create(:hmis_form_instance, role: role, entity: project, active: true, definition: definition) }
+
+      context 'when the only definition is in draft' do
+        let!(:definition) { create(:occurrence_point_form, status: :draft) }
+        it 'does not return the form' do
+          expect(hoh_enrollment.occurrence_point_forms).to be_empty
+          expect(spouse_enrollment.occurrence_point_forms).to be_empty
+        end
+      end
+
+      context 'when the instance applies to all clients' do
+        it 'returns the form for all clients' do
+          expected = have_attributes(
+            legacy: false,
+            definition: definition,
+            data_collected_about: 'ALL_CLIENTS',
+          )
+          expect(hoh_enrollment.occurrence_point_forms).to contain_exactly(expected)
+          expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(expected)
+        end
+      end
+    end
+
+    context 'when a relevant instance exists for HoH only' do
+      let!(:instance) { create(:hmis_form_instance, role: role, entity: project, active: true, definition: definition, data_collected_about: :HOH) }
+
+      it 'returns the form for HoH only' do
+        expected = have_attributes(
+          legacy: false,
+          definition: definition,
+          data_collected_about: 'HOH',
+        )
+        expect(hoh_enrollment.occurrence_point_forms).to contain_exactly(expected)
+        expect(spouse_enrollment.occurrence_point_forms).to be_empty
+      end
+
+      context 'when legacy data exists for non-HoH client' do
+        let!(:spouse_enrollment) do
+          create(
+            :hmis_hud_enrollment,
+            project: project,
+            data_source: ds1,
+            household_id: 'household1',
+            relationship_to_hoh: 3,
+            move_in_date: 3.weeks.ago,
+          )
+        end
+
+        it 'returns the form for non-HoH' do
+          expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
+        end
+      end
+
+      context 'when legacy data exists on a CDED' do
+        let!(:definition_json) do
+          {
+            'item': [
+              {
+                'text': 'Foo data element',
+                'type': 'STRING',
+                'link_id': 'foo',
+                'mapping': {
+                  'custom_field_key': 'foo',
+                  'record_type': 'ENROLLMENT',
+                },
+              },
+            ],
+          }
+        end
+        let!(:definition) { create :occurrence_point_form, definition: definition_json }
+        let!(:cded) { create :hmis_custom_data_element_definition, key: 'foo', data_source: ds1, owner_type: 'Hmis::Hud::Enrollment', repeats: false }
+        let!(:cde) { create :hmis_custom_data_element, data_element_definition: cded, owner: spouse_enrollment, data_source: ds1, value_string: 'bar' }
+
+        it 'returns the form for non-HoH' do
+          expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
+        end
+      end
+
+      context 'when legacy data exists for this occurrence point in another project' do
+        let!(:spouses_other_enrollment) do
+          create(
+            :hmis_hud_enrollment,
+            client: spouse_enrollment.client,
+            project: p1, # some other project
+            data_source: ds1,
+            move_in_date: 3.weeks.ago,
+          )
+        end
+
+        it 'does not return the form' do
+          expect(spouse_enrollment.occurrence_point_forms).to be_empty
+        end
+      end
+    end
+  end
 end
