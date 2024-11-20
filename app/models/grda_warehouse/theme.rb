@@ -36,7 +36,10 @@ module GrdaWarehouse
     belongs_to :remote_credential, class_name: 'GrdaWarehouse::RemoteCredentials::S3', optional: true
 
     # Max 1 theme per HMIS origin
-    validates :hmis_origin, uniqueness: { scope: [:client] }, if: :hmis_theme?
+    validates_uniqueness_of :hmis_origin,
+                            scope: :client,
+                            if: :hmis_theme?, # only run validation if this is an HMIS theme
+                            conditions: -> { where.not(hmis_value: [nil, '']) } # only validate uniqueness against other HMIS themes
 
     def set_theme_defaults
       # Fetch files from S3 if available or use defaults
