@@ -22,7 +22,7 @@ module Types
     end
 
     def definition(parent:)
-      definition = object[:definition]
+      definition = object.definition
       definition.filter_context = { project: parent_project(parent) }
       definition
     end
