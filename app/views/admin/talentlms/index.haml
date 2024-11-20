@@ -11,7 +11,7 @@
   Configuration
 .well
   = simple_form_for @site_configs, url: update_site_config_admin_talentlms_path(@site_configs), method: :post, remote: true do |f|
-    = f.input :number_lms_courses_required, as: :select_two, collection: { "All": -1, "One of Any": 1 },  input_html: {class: :jRemoteSubmit}, label: 'TalentLMS Courses Completion Requirement'
+    = f.input :number_lms_courses_required, as: :select_two, collection: GrdaWarehouse::Config.available_number_lms_courses_required,  input_html: {class: :jRemoteSubmit}, label: 'TalentLMS Courses Completion Requirement'
 .h2 
   Subdomians
 .well
@@ -87,13 +87,13 @@
           url: form.attr('action'),
           success: function(e) {
             console.debug('success')
-            var html = '<div class="jAjaxSave alert alert-success">Site config saved successfully.</div>';
+            var html = '<div class="jAjaxSave alert alert-success">Course completion requirement saved successfully.</div>';
             $('.utility').html(html);
             $('.jAjaxSave').delay(5000).fadeOut(250);
           },
           error: function(e) {
             console.debug('fail')
-            var html = '<div class="jAjaxSave alert alert-danger">Failed to save site config</div>';
+            var html = '<div class="jAjaxSave alert alert-danger">Failed to save course completion requirement.</div>';
             $('.utility').html(html);
             $('.jAjaxSave').delay(5000).fadeOut(250);
           }
