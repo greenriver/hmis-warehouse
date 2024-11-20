@@ -286,27 +286,52 @@ module HudLsa::Generators::Fy2024
         # Delete any existing data
         klass.delete_all
         klass.reset_column_information
-        # Read the file in batches to avoid over RAM usage
-        File.open(File.join(extract_path, file_name)) do |file|
-          headers = file.first
-          file.lazy.each_slice(read_rows) do |lines|
-            content = ::CSV.parse(lines.join, headers: headers)
-            import_headers = content.first.headers
-            next unless content.any?
+        Tempfile.open(klass.name) do |cleaned_output|
+          csv_output = CSV.new(cleaned_output)
+          headers_added = false
+          # Read the file in batches to avoid over RAM usage
+          File.open(File.join(extract_path, file_name)) do |file|
+            headers = file.first
+            file.lazy.each_slice(read_rows) do |lines|
+              content = ::CSV.parse(lines.join, headers: headers)
+              import_headers = content.first.headers
+              next unless content.any?
 
-            # this fixes dates that default to 1900-01-01 if you send an empty string
-            content = content.map do |row|
-              klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
-            end.compact
-            # Using TsqlImport because active_record import doesn't play nice
-            insert_batch(klass, standardize_headers(import_headers), content, batch_size: 1_000)
+              csv_output << standardize_headers(import_headers) unless headers_added
+              # this fixes dates that default to 1900-01-01 if you send an empty string
+              content.map do |row|
+                csv_output << klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
+              end.compact
+            end
           end
+          cleaned_output.rewind
+          mssql_import_from_s3(
+            ActiveStorage::Blob.create_and_upload!(
+              io: cleaned_output,
+              filename: "lsa_id_#{file_name}",
+              content_type: 'text/csv',
+            ),
+          )
         end
       end
       FileUtils.rm_rf(extract_path)
       GrdaWarehouseBase.connection.reconnect!
       ApplicationRecord.connection.reconnect!
       ReportingBase.connection.reconnect!
+    end
+
+    private def mssql_import_from_s3(blob)
+      sql = <<~SQL
+        BULK INSERT #{klass.quoted_table_name}
+        FROM '#{blob.url}'
+        WITH (
+            DATA_SOURCE = 'your_s3_integration',
+            FIELDTERMINATOR = ',',
+            ROWTERMINATOR = '\n',
+            FIRSTROW = 2
+        );
+      SQL
+      klass.connection.execute(sql)
     end
 
     # This reverses some export changes we made to maintain case sensitive matching with the 2024 spec
