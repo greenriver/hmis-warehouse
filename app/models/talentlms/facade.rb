@@ -309,7 +309,13 @@ module Talentlms
         training_required << training_required?(course.config, course.courseid)
       end
 
-      # Only respond as trainings are not required if we know all trainigs are not required.
+      # If a number of courses required to be completed is set, use that, otherwise, all courses are required to be completed.
+      # IF number_courses_required is -1, all courses are required
+      number_courses_required = GrdaWarehouse::Config.get(:number_lms_courses_required)
+      number_courses_completed = training_required.count(false)
+      return number_courses_completed < number_courses_required if number_courses_required >= 0
+
+      # Only respond as trainings are not required if we know all trainings are not required.
       # We could have a training where it cannot be determined that requires additional inquiry
       !training_required.all?(false)
     end

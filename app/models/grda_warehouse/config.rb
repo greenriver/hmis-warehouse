@@ -352,5 +352,12 @@ module GrdaWarehouse
 
       Consent::Default
     end
+
+    def self.available_number_lms_courses_required
+      {
+        "All": -1,
+        "One of Any": 1,
+      }
+    end
   end
 end
