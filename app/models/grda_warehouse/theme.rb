@@ -54,7 +54,7 @@ module GrdaWarehouse
     def self.hmis_theme_for_origin(origin)
       hmis_themes = GrdaWarehouse::Theme.where(client: ENV['CLIENT']&.to_sym).filter(&:hmis_theme?)
 
-      # Look for theme that matches this HMIS origin
+      # Look for theme that matches this HMIS origin. The origin is the value of field `hmis` on the DataSource
       theme = hmis_themes.find { |t| t.hmis_origin == origin }
       return theme if theme
 
