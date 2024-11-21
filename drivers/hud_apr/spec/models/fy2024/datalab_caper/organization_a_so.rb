@@ -63,13 +63,13 @@ RSpec.shared_context 'datalab organization a so caper', shared_context: :metadat
       )
     end
 
+    # [Pending] It looks like the 4 clients returning have CLS that is >90 days from the report end date and should all be included in C2
     it 'Q6f' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6f',
         skip: [
-          'B2', # expected '4.0000' (4), got '19.0000' (19)
-          'C2', # expected '1.0000' (1), got '19.0000' (19)
+          'C2', # expected '1.0000' (1), got '4.0000' (4)
           'D2', # expected '0.2500' (0.25), got '1.0000' (1.0000)
         ],
       )

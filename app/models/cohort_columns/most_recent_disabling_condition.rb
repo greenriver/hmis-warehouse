@@ -15,9 +15,5 @@ module CohortColumns
     def available_for_rules?
       false
     end
-
-    def value(cohort_client) # OK
-      HudUtility2024.veteran_status(cohort_client.client.veteran_status)
-    end
   end
 end

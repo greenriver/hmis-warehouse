@@ -17,38 +17,15 @@ jobs:
     # Docker Hub image that the job executes in
     container: ruby:3.1.6-alpine3.20
     steps:
-      - name: Install git
-        run: |
-          apk add --no-cache git
+      - uses: actions/checkout@v4
+
+      - name: 'Container Setup'
+        id: container-setup
+        uses: ./.github/workflows/container_setup
 
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - id: dependencies
-        name: Set up dependencies
-        run: |
-          apk add --no-cache $(cat .github/dependencies.txt)
-
-      # ensure changed-files can read repo files from git
-      - name: Configure Git Safe Directory
-        run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
-
-      - name: cache gems
-        uses: actions/cache@v4
-        id: gemcache
-        with:
-          path: |
-            vendor/bundle
-            /usr/local/bundle/
-          key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
-
-      - id: gems
-        name: Install gems
-        run: |
-          gem install bundler --version=2.5.17
-          bundle config set --local without 'production staging'
-          bundle install --jobs 4 --retry 3
 
       - name: Get changed files
         id: changed-files
@@ -64,3 +41,8 @@ jobs:
           num=`echo $files | wc -w`
           echo $files
           if [ $num -gt 0 ]; then bundle exec rubocop --config ./.rubocop.yml $files; else echo "No changed ruby files"; fi
+      - id: eslint
+        name: Run ESLint
+        run: |
+          yarn install --frozen-lockfile
+          yarn lint --quiet

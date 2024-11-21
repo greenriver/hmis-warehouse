@@ -3352,6 +3352,11 @@ type Enrollment {
   moveInAddresses: [ClientAddress!]!
   moveInDate: ISO8601Date
   numUnitsAssignedToHousehold: Int!
+
+  """
+  Forms for individual data elements that are collected at occurrence for this Enrollment (e.g. Move-In Date)
+  """
+  occurrencePointForms: [OccurrencePointForm!]!
   openEnrollmentSummary: [EnrollmentSummary!]!
   organizationName: String!
   percentAmi: PercentAMI

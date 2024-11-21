@@ -31,6 +31,7 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
 
   _build_chart() {
     if ($(this.chart_selector).length > 0) {
+      // eslint-disable-next-line no-unused-vars
       const self = this;
       this.options = $(this.chart_selector).data('chart').options;
       this.categories = $(this.chart_selector).data('chart').categories;
@@ -39,7 +40,7 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
         this.categories = this.categories.map(c => {
           if (c.length <= this.truncate_labels) return c;
           return c.substr(0, c.lastIndexOf(' ', this.truncate_labels)) + '...';
-        })
+        });
       }
       this.link_params = $(this.chart_selector).data('chart').params;
       const { legendBindTo } = $(this.chart_selector).data('chart');
@@ -60,16 +61,17 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
         type: 'bar',
         color: this._colors,
         labels: {
+          // eslint-disable-next-line no-unused-vars
           format: (v, id, i, j) => {
             if (this.options.showPercentageWithValue) {
-              let percentage = 0
-              let setIndex = setNames.indexOf(id)
+              let percentage = 0;
+              let setIndex = setNames.indexOf(id);
               if (columnTotals[setIndex] > v) {
-                percentage = (v/columnTotals[setIndex])*100
+                percentage = (v/columnTotals[setIndex])*100;
               }
-              return `${d3.format(",")(v)} (${percentage.toFixed(1)}%)`;
+              return `${d3.format(',')(v)} (${percentage.toFixed(1)}%)`;
             }
-            return d3.format(",")(v);
+            return d3.format(',')(v);
           }
         },
         onclick: this._follow_link,
@@ -139,7 +141,7 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
     if (key.id != null) {
       key = key.id;
     }
-    const colors = window.Chart.defaults.colors
+    const colors = window.Chart.defaults.colors;
     if (['All'].includes(key)) {
       color = '#288BEE';
     } else {
