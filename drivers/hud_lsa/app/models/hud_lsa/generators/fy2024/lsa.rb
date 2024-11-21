@@ -9,6 +9,7 @@ if ENV['RDS_AWS_ACCESS_KEY_ID'].present? && !ENV['NO_LSA_RDS'].present?
   load 'lib/rds_sql_server/sql_server_base.rb'
 end
 
+require 'csv'
 # Testing notes:
 # Re-use an existing report
 # r = HudLsa::Generators::Fy2024::Lsa.last
@@ -81,6 +82,9 @@ module HudLsa::Generators::Fy2024
         update_report_progress(percent: 29)
         setup_lsa_report
         log_and_ping('LSA Report Setup')
+
+        # Ensure the RDS has permission to pull files from S3
+        setup_instance_role
 
         populate_hmis_tables
         update_report_progress(percent: 30)
@@ -305,14 +309,10 @@ module HudLsa::Generators::Fy2024
             end
           end
           cleaned_output.rewind
-          s3 = AwsS3.new(bucket_name: )
-          mssql_import_from_s3(
-            ActiveStorage::Blob.create_and_upload!(
-              io: cleaned_output,
-              filename: "lsa/tmp/lsa_id_#{file_name}",
-              content_type: 'text/csv',
-            ),
-          )
+          s3 = AwsS3.new(bucket_name: ActiveStorage::Blob.service.bucket.name)
+          s3_upload_path = "lsa/tmp/#{id}/#{file_name}"
+          s3.store(content: cleaned_output, name: s3_upload_path, content_type: 'text/csv')
+          mssql_import_from_s3(s3, path: s3_upload_path)
         end
       end
       FileUtils.rm_rf(extract_path)
@@ -321,17 +321,31 @@ module HudLsa::Generators::Fy2024
       ReportingBase.connection.reconnect!
     end
 
-    private def mssql_import_from_s3(blob)
+    private def mssql_import_from_s3(s3, path:)
+      windows_path = path.gsub('/', '\\')
+
+      # -- EXEC msdb.dbo.rds_download_from_s3
+      #     --   @rds_file_path='D:\S3\openpath-development-warehouse-file-storage-ea\lsa\tmp\Client.csv',
+      #     --   @s3_arn_of_file='arn:aws:s3:::openpath-development-warehouse-file-storage-ea/lsa/tmp/Client.csv',
+      #     --   @overwrite_file=1;
+
       # Move the S3 blob to the SQL server
+      full_windows_path = "#{s3.bucket.name}\#{windows_path}"
       sql = <<~SQL
-        exec msdb.dbo.rds_download_from_s3
-        @s3_arn_of_file='arn:aws:s3:::#{ActiveStorage::Blob.service.bucket.name}',
+        EXEC msdb.dbo.rds_download_from_s3
+        @rds_file_path='D:\S3\#{full_windows_path}',
+        @s3_arn_of_file='arn:aws:s3:::#{s3.bucket.name}/#{path}',
         @overwrite_file=1;
       SQL
       klass.connection.execute(sql)
+
+      # Needs to wait until the following indicates the most-recent task_type of DOWNLOAD_FROM_S3 has a lifecycle of SUCCESS
+      # We'll probably also need to handle errors (or only wait a specified amount of time)
+      # SELECT * FROM msdb.dbo.rds_fn_task_status(NULL,0);
+
       sql = <<~SQL
         BULK INSERT #{klass.quoted_table_name}
-        FROM 'D:\\S3\\#{blob.url.gsub("s3://", "").gsub("/", "\")}'
+        FROM 'D:\\S3\\#{full_windows_path}'
         WITH (
             FIELDTERMINATOR = ',',
             ROWTERMINATOR = '\n',
@@ -339,6 +353,10 @@ module HudLsa::Generators::Fy2024
         );
       SQL
       klass.connection.execute(sql)
+    end
+
+    private def setup_instance_role
+
     end
 
     # This reverses some export changes we made to maintain case sensitive matching with the 2024 spec
