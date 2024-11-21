@@ -13,7 +13,6 @@ module HudSpmReport::Fy2023
     include HasPiiAttributes
     pii_attr :first_name
     pii_attr :last_name
-    pii_attr :dob
     pii_attr :age
 
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'

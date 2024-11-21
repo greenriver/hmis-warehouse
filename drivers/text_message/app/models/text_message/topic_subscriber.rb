@@ -11,7 +11,7 @@ module TextMessage
     include HasPiiAttributes
     pii_attr :first_name
     pii_attr :last_name
-    pii_attr :phone
+    pii_attr :phone_number, as: :phone
 
     belongs_to :topic
     has_many :messages, foreign_key: :subscriber_id

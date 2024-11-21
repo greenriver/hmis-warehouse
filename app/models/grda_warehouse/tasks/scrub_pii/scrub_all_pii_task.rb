@@ -13,10 +13,12 @@ module GrdaWarehouse::Tasks::ScrubPii
 
     def perform(...)
       with_lock do
+        total = 0
         scrubber = Pii::Scrubber::ScrubModelPii.new(...)
         models.each do |model|
-          scrubber.perform(model.unscoped)
+          total += scrubber.perform(model.unscoped)
         end
+        total
       end
     end
 

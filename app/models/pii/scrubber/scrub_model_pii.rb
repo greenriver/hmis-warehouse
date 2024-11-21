@@ -23,11 +23,15 @@ module Pii::Scrubber
       model = scope.klass
       raise "#{model.name} is missing pii attribute configuration" unless model.stores_pii?
 
-      bar = new_progress_bar(scope) if @progress
+      total = scope.count
+      return total if total.zero?
+
+      bar = new_progress_bar(total) if @progress
       bar.puts model.name if @progress
       without_optimistic_locking(model) do
         process_model(model, scope, bar)
       end
+      total
     end
 
     protected
@@ -103,8 +107,7 @@ module Pii::Scrubber
       end
     end
 
-    def new_progress_bar(scope)
-      total = scope.count
+    def new_progress_bar(total)
       ProgressBar.new(total, :counter, :bar, :percentage, :rate, :eta)
     end
   end
