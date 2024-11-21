@@ -8,7 +8,7 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
   # expose role permissions. Optionally rename the permission
   [
     [:can_edit_projects, :can_edit?],
-    [:can_delete_projects, :can_delete?],
+    [:can_delete_projects, :can_destroy?],
     [:can_view_projects, :can_view?],
     [:can_view_imports],
     [:can_view_clients],

@@ -6,7 +6,6 @@
 
 module HopwaCaper
   class Enrollment < GrdaWarehouseBase
-    include SqlHelper
     self.table_name = 'hopwa_caper_enrollments'
 
     has_many :hud_reports_universe_members,

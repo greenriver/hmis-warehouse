@@ -35,7 +35,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
     it 'denies unconfigured permissions' do
       # Check permissions that weren't granted to our role
       expect(policy.can_edit?).to be false
-      expect(policy.can_delete?).to be false
+      expect(policy.can_destroy?).to be false
       expect(policy.can_view_imports?).to be false
       expect(policy.can_view_project_locations?).to be false
     end
@@ -46,7 +46,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
       expect(policy.can_view?).to be false
       expect(policy.can_view_clients?).to be false
       expect(policy.can_edit?).to be false
-      expect(policy.can_delete?).to be false
+      expect(policy.can_destroy?).to be false
       expect(policy.can_view_imports?).to be false
       expect(policy.can_view_project_locations?).to be false
     end
