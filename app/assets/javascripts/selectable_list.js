@@ -1,7 +1,7 @@
 window.App.SelectableList = class SelectableList {
   constructor(options) {
-    this.title = options.title
-    this.registerEvents()
+    this.title = options.title;
+    this.registerEvents();
   }
 
   /**
@@ -14,7 +14,7 @@ window.App.SelectableList = class SelectableList {
     $el
       .toggleClass('children-visible')
       .next('.j-children')
-      .toggleClass('d-table d-none')
+      .toggleClass('d-table d-none');
   }
 
   /**
@@ -26,24 +26,24 @@ window.App.SelectableList = class SelectableList {
    * @return
    */
   toggleElements(el, event, getParent) {
-    let $el = $(el)
+    let $el = $(el);
     if (getParent) {
-      $el = $(el).closest('.j-parent')
+      $el = $(el).closest('.j-parent');
     }
-    const nodeName = event ? event.target.nodeName : null
-    const elements = ['INPUT', 'LABEL', 'BUTTON', 'A']
+    const nodeName = event ? event.target.nodeName : null;
+    const elements = ['INPUT', 'LABEL', 'BUTTON', 'A'];
     if (elements.includes(nodeName)) {
       // Take no action for links or buttons
-      if (nodeName === 'A' || nodeName === 'BUTTON') return
+      if (nodeName === 'A' || nodeName === 'BUTTON') return;
       // Open children if children are not visible
       if (!$el.hasClass('children-visible')) {
-        this.updateState($el)
-        event.stopPropagation()
-        return false
+        this.updateState($el);
+        event.stopPropagation();
+        return false;
       }
-      return
+      return;
     }
-    this.updateState($el)
+    this.updateState($el);
   }
 
   /**
@@ -53,13 +53,13 @@ window.App.SelectableList = class SelectableList {
    * @return
    */
   checkParentAndChildren(event) {
-    const $el = $(event.currentTarget)
-    const isChecked = $el.is(':checked')
+    const $el = $(event.currentTarget);
+    const isChecked = $el.is(':checked');
     $el
       .closest('.j-parent')
       .next('.j-children')
       .find('.j-child-select')
-      .prop('checked', isChecked)
+      .prop('checked', isChecked);
   }
 
   /**
@@ -69,15 +69,15 @@ window.App.SelectableList = class SelectableList {
    * @return {type}  description
    */
   selectAllWithinScope() {
-    const { state, scope } = $(this).data()
-    let btnClass = 'not-checked checked'
-    $(this).data('state', !state)
-    if (!state) { btnClass = 'checked not-checked'}
-    $(this).toggleClass(btnClass)
+    const { state, scope } = $(this).data();
+    let btnClass = 'not-checked checked';
+    $(this).data('state', !state);
+    if (!state) { btnClass = 'checked not-checked';}
+    $(this).toggleClass(btnClass);
     $(`${scope} .j-parent`)
       .find('.j-select-children')
       .prop('checked', !state)
-      .trigger('change')
+      .trigger('change');
   }
 
   /**
@@ -86,10 +86,10 @@ window.App.SelectableList = class SelectableList {
    * @return
    */
   registerEvents() {
-    const self = this
-    $('.j-parent').on('click', function(event) { self.toggleElements(this, event, false) })
-    $('.j-parent .j-select-children').on('change', this.checkParentAndChildren)
-    $('.j-parent .j-select-children-btn').on('click', this.checkParentAndChildren)
-    $('.j-select-all').on('click', this.selectAllWithinScope)
+    const self = this;
+    $('.j-parent').on('click', function(event) { self.toggleElements(this, event, false); });
+    $('.j-parent .j-select-children').on('change', this.checkParentAndChildren);
+    $('.j-parent .j-select-children-btn').on('click', this.checkParentAndChildren);
+    $('.j-select-all').on('click', this.selectAllWithinScope);
   }
-}
+};
