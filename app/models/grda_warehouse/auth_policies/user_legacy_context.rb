@@ -71,7 +71,8 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     coc_codes = GrdaWarehouse::Hud::ProjectCoc.
       joins(:project).
       where(p_t[:id].eq(project_id)).
-      pluck(:coc_code)
+      pluck(:coc_code).
+      compact_blank
     # two queries are required because COC codes are on the app db
     access_group_ids += AccessGroup.for_coc_codes(coc_codes).pluck(:id) if coc_codes.any?
 
