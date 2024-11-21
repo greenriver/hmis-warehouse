@@ -109,7 +109,7 @@
         = link_to edit_project_path(@project), class: ['btn', 'btn-sm', 'btn-secondary'] do
           %i.icon-pencil
           Edit Project
-    - if project_policy.can_delete?
+    - if project_policy.can_destroy?
       .mb-4
         = link_to project_path(@project), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: "Deleting #{@project.ProjectName} will delete ALL associated data.  Do you want to proceed?"} do
           %i.icon-cross
