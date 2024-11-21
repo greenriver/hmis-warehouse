@@ -32,6 +32,10 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
     permissions_for_collection_ids(collection_ids)
   end
 
+  memoize def client_window_data_source_permissions(...)
+    EMPTY_SET
+  end
+
   protected
 
   memoize def system_collection_ids(group_name)
