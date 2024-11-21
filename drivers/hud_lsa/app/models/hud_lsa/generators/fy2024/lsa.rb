@@ -305,10 +305,11 @@ module HudLsa::Generators::Fy2024
             end
           end
           cleaned_output.rewind
+          s3 = AwsS3.new(bucket_name: )
           mssql_import_from_s3(
             ActiveStorage::Blob.create_and_upload!(
               io: cleaned_output,
-              filename: "lsa_id_#{file_name}",
+              filename: "lsa/tmp/lsa_id_#{file_name}",
               content_type: 'text/csv',
             ),
           )
@@ -321,11 +322,17 @@ module HudLsa::Generators::Fy2024
     end
 
     private def mssql_import_from_s3(blob)
+      # Move the S3 blob to the SQL server
+      sql = <<~SQL
+        exec msdb.dbo.rds_download_from_s3
+        @s3_arn_of_file='arn:aws:s3:::#{ActiveStorage::Blob.service.bucket.name}',
+        @overwrite_file=1;
+      SQL
+      klass.connection.execute(sql)
       sql = <<~SQL
         BULK INSERT #{klass.quoted_table_name}
-        FROM '#{blob.url}'
+        FROM 'D:\\S3\\#{blob.url.gsub("s3://", "").gsub("/", "\")}'
         WITH (
-            DATA_SOURCE = 'your_s3_integration',
             FIELDTERMINATOR = ',',
             ROWTERMINATOR = '\n',
             FIRSTROW = 2
