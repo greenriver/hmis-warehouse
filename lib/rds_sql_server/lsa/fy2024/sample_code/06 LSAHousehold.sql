@@ -656,7 +656,7 @@ set hh.ESTGeography = case when hh.ESTStatus = 0 then -1
 	insert into sys_TimePadded (HoHID, HHType, Cohort, StartDate, EndDate, Step)
 	select distinct hh.HoHID, hh.HHType, 1
 		, hhid.EntryDate	
-		, case when hhid.ExitDate is null then rpt.ReportEnd 
+		, case when hhid.ExitDate is null or dateadd(dd, 6, hhid.ExitDate) >= rpt.ReportEnd then rpt.ReportEnd 
 			else dateadd(dd, 6, hhid.ExitDate) end
 		, '6.12.2.a'
 	from tlsa_Household hh
