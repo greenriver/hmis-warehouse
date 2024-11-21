@@ -5,10 +5,17 @@
 ###
 
 class UserTrainingController < ApplicationController
+  def set_lms_info
+    @courses = current_user.required_training_courses
+    @configs = courses.flat_map(&:config).uniq
+  end
+
+  attr_reader :courses
+  attr_reader :configs
+
   def index
     lms = Talentlms::Facade.new(current_user)
-    courses = current_user.required_training_courses
-    configs = courses.flat_map(&:config).uniq
+    set_lms_info
 
     # Verifying with local data before hitting the API. This prevents unneeded API calls
     # and ensures local data is updated when new trainings have been completed.
@@ -18,15 +25,22 @@ class UserTrainingController < ApplicationController
 
       begin
         course_redirects = []
+        configs_with_required_courses = []
+        config_logins = {}
         # Make sure the user has a login setup for each config
         # Pulling this out here to prevent duplicate API calls for courses that share a configuration
         configs.each do |config|
-          lms.login(config)
+          config_logins[config.id] = lms.login(config)
         end
+
         # Check each course traininig for progress/expiration
         courses.each do |course|
           config = course.config
           course_id = course.courseid
+
+          # Skip this course. This user does not have an account in this subdomain and
+          # the subdomian has been flagged not to allow automated account creation.
+          next unless config_logins[config.id]
 
           # Ensure the user is enrolled in the course
           lms.enroll(config, course_id)
@@ -48,18 +62,30 @@ class UserTrainingController < ApplicationController
             course_url = lms.course_url(config, course_id, redirect_url, logout_talentlms_url)
 
             course_redirects << course_url
+            configs_with_required_courses << config
           end
         end
 
-        if course_redirects.present?
+        account_exists_in_all_configs = config_logins.values.all?(true)
+        number_configs_with_courses_to_complete = configs_with_required_courses.uniq.count
+
+        # If we only have one config with trainings required, send the user directly to the training portal
+        if course_redirects.present? && number_configs_with_courses_to_complete == 1
           # redirect to the course training
           redirect_to course_redirects.first, allow_other_host: true
-        else
-          # All trainings are completed
+          return
+        # If the user has an account in all configs and has no trainings left to complete, allow them to navigate the warehouse
+        elsif account_exists_in_all_configs && course_redirects.blank?
+          # All trainings are completed and the user has an account in all training configs
           redirect_to after_sign_in_path_for(current_user)
+          return
         end
+        # At least one config requires an account to be created for this user or multiple configs have been
+        # identified as requiring trainings. Send the user to the captive portal for additional training options.
+        render 'required_trainings'
       rescue RuntimeError => e
         @message = e.message
+        render 'error'
       end
     end
   end

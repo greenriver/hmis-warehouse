@@ -1522,6 +1522,8 @@ module Filters
     end
 
     def project_names(ids = project_ids)
+      return [] if ids.blank?
+
       project_options_for_select(user: user).
         values.
         flatten(1).

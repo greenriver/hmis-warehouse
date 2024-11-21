@@ -3,7 +3,7 @@ function HtmlCellRenderer () {}
 // gets called once before the renderer is used
 HtmlCellRenderer.prototype.init = function(params) {
   this.params = params;
-  this.row = params.data[params.colDef.field]
+  this.row = params.data[params.colDef.field];
   this.refresh(params);
 };
 
@@ -13,9 +13,10 @@ HtmlCellRenderer.prototype.getGui = function() {
 };
 
 // gets called whenever the user gets the cell to refresh
+// eslint-disable-next-line no-unused-vars
 HtmlCellRenderer.prototype.refresh = function(params) {
   var wrapper = document.createElement('div');
-  wrapper.className = ''
+  wrapper.className = '';
   wrapper.innerHTML = this.params.value;
   if(this.row.comments) {
     wrapper.setAttribute('data-toggle', 'tooltip');

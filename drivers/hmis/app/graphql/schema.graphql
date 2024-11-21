@@ -3354,6 +3354,11 @@ type Enrollment {
   moveInAddresses: [ClientAddress!]!
   moveInDate: ISO8601Date
   numUnitsAssignedToHousehold: Int!
+
+  """
+  Forms for individual data elements that are collected at occurrence for this Enrollment (e.g. Move-In Date)
+  """
+  occurrencePointForms: [OccurrencePointForm!]!
   openEnrollmentSummary: [EnrollmentSummary!]!
   organizationName: String!
   percentAmi: PercentAMI
@@ -4180,6 +4185,11 @@ type FormItem {
   How to display item if it is disabled
   """
   disabledDisplay: DisabledDisplay
+
+  """
+  Users who can edit this field. If null, all users can edit
+  """
+  editorUserIds: [ID!]
   enableBehavior: EnableBehavior
   enableWhen: [EnableWhen!]
 

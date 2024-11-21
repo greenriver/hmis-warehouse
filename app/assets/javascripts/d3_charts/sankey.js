@@ -5,7 +5,7 @@
 // https://observablehq.com/@d3/sankey-diagram
 App.D3Chart.Sankey = class Sankey {
 
- constructor(
+  constructor(
     chart_selector,
     {
       nodeGroup,
@@ -62,6 +62,7 @@ App.D3Chart.Sankey = class Sankey {
     let linkSource = ({ source }) => source; // given d in links, returns a node identifier string
     let linkTarget = ({ target }) => target; // given d in links, returns a node identifier string
     let linkValue = ({ value }) => value; // given d in links, returns the quantitative value
+    // eslint-disable-next-line no-unused-vars
     let targetColors = {};
     let linkPath = this.d3Sankey.sankeyLinkHorizontal(); // given d in (computed) links, returns the SVG path
     // let linkTitle = d => `${d.source.id} → ${d.target.id}\n${format(d.value)}`; // given d in (computed) links
@@ -85,6 +86,7 @@ App.D3Chart.Sankey = class Sankey {
     const G = d3.map(nodes, nodeGroup).map(this.intern);
 
     // Replace the input nodes and links with mutable objects for the simulation.
+    // eslint-disable-next-line no-undef
     nodes = d3.map(nodes, (_, i) => ({ id: N[i], layer: nodeColumns[N[i]] }));
     links = d3.map(links, (_, i) => ({ source: LS[i], target: LT[i], value: LV[i] }));
     // Ignore a group-based linkColor option if no groups are specified.
@@ -103,13 +105,14 @@ App.D3Chart.Sankey = class Sankey {
     this.sankey
       .nodeId(({ index: i }) => N[i])
       // Force nodes to specific horizontal locations
+      // eslint-disable-next-line no-unused-vars
       .nodeAlign((node, n) => {
         return node.layer;
       })
       .nodeWidth(nodeWidth)
       .nodePadding(nodePadding)
       .nodeSort((a, b) => this.node_sorter(a, b))
-      .extent([[marginLeft, marginTop], [width - marginRight, height - marginBottom]])
+      .extent([[marginLeft, marginTop], [width - marginRight, height - marginBottom]]);
     this.sankey({ nodes, links });
 
     // Compute titles and labels using layout nodes, so as to access aggregate values.
@@ -117,6 +120,7 @@ App.D3Chart.Sankey = class Sankey {
     const Tl = N;
     // const Tt = nodeTitle == null ? null : d3.map(nodes, nodeTitle);
     let linkTitle = d => `${d.source.id} → ${d.target.id}\n${d3.format(d.value)}`;
+    // eslint-disable-next-line no-unused-vars
     const Lt = d3.map(links, linkTitle);
 
     // A unique identifier for clip paths (to avoid conflicts).
@@ -132,36 +136,37 @@ App.D3Chart.Sankey = class Sankey {
       .join('rect')
       .attr('x', d => d.x0)
       .attr('y', d => {
-        d = this.tranlate_location(d)
-        return d.y0
+        d = this.tranlate_location(d);
+        return d.y0;
       })
       .attr('height', d => d.y1 - d.y0)
       .attr('width', d => d.x1 - d.x0)
       .style('cursor', 'pointer');
 
-    if (G) node.attr('fill', ({ index: i }) => this.color_for_target(G[i], nodes[i]))
+    if (G) node.attr('fill', ({ index: i }) => this.color_for_target(G[i], nodes[i]));
     //if (Tt) node.append('title').text(({ index: i }) => Tt[i]);
     node
       .on('mouseover', (d, i) => {
-        this.over(d, i, 'node')
+        this.over(d, i, 'node');
       })
       .on('mouseout', (d, i) => {
-        this.out(d, i, 'node')
+        this.out(d, i, 'node');
       })
       .on('mousemove', (d, i) => {
-        this.move(d, i, 'node')
+        this.move(d, i, 'node');
       })
       .on('click', (e, d) => {
         if (this.detail_path) {
+          // eslint-disable-next-line no-undef
           let url = new URL(this.detail_path);
           url.searchParams.append('node', d.id);
-          window.open(url.toString(), '_blank')
+          window.open(url.toString(), '_blank');
         }
-      })
+      });
 
-    let return_link = links.find(link => link.target.id == 'Returns to Homelessness')
+    let return_link = links.find(link => link.target.id == 'Returns to Homelessness');
     if (return_link) {
-      return_link.y1 = height - 50
+      return_link.y1 = height - 50;
     }
 
     const link = svg.append('g')
@@ -192,27 +197,28 @@ App.D3Chart.Sankey = class Sankey {
         : linkColor === 'source' ? ({ source: { index: i } }) => color(G[i])
           : linkColor === 'target' ? ({ target: { index: i } }) => color(G[i])
             : linkColor)
-      .attr('stroke-width', ({ width }) => Math.max(1, width))
-      // Temporarily hide all titles so we don't get overlapping tooltips
-      // .call(Lt ? path => path.append('title').text(({ index: i }) => Lt[i]) : () => { });
+      .attr('stroke-width', ({ width }) => Math.max(1, width));
+    // Temporarily hide all titles so we don't get overlapping tooltips
+    // .call(Lt ? path => path.append('title').text(({ index: i }) => Lt[i]) : () => { });
     link
       .on('mouseover', (d, i) => {
-        this.over(d, i, 'link')
+        this.over(d, i, 'link');
       })
       .on('mouseout', (d, i) => {
-        this.out(d, i, 'link')
+        this.out(d, i, 'link');
       })
       .on('mousemove', (d, i) => {
-        this.move(d, i, 'link')
+        this.move(d, i, 'link');
       })
       .on('click', (e, d) => {
         if (this.detail_path) {
+          // eslint-disable-next-line no-undef
           let url = new URL(this.detail_path);
           url.searchParams.append('source', d.source.id);
           url.searchParams.append('target', d.target.id);
-          window.open(url, '_blank')
+          window.open(url, '_blank');
         }
-      })
+      });
     // Text
     if (Tl) svg.append('g')
       .attr('font-family', 'sans-serif')
@@ -231,7 +237,7 @@ App.D3Chart.Sankey = class Sankey {
         if (nodes[i].value == 0) {
           return '';
         }
-        return Tl[i]
+        return Tl[i];
       });
     if (Tl) svg.append('g')
       .attr('font-family', 'sans-serif')
@@ -246,18 +252,18 @@ App.D3Chart.Sankey = class Sankey {
       .attr('text-anchor', 'start')
       .attr('style', 'font-weight:600;fill:black;stroke:white;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.5;')
       .html(({ index: i }) => {
-        let link = links[i]
+        let link = links[i];
         // hide items with no values
         if (link.value == 0) {
           return '';
         }
 
-        let percent = link.value / link.source.value
+        let percent = link.value / link.source.value;
         if(percent < 0.04) return '';
-        return d3.format(".0%")(percent)
+        return d3.format('.0%')(percent);
       });
-    let color = this.color
-    this.wrapper.node().appendChild(Object.assign(svg.node(), { scales: { color } }))
+    let color = this.color;
+    this.wrapper.node().appendChild(Object.assign(svg.node(), { scales: { color } }));
     // return Object.assign(svg.node(), { scales: { color } });
   } // end draw
 
@@ -268,28 +274,29 @@ App.D3Chart.Sankey = class Sankey {
   color_for_target(id, item) {
     // Hide any items where the link or node value is 0
     if(item.value == 0) {
-      return 'transparent'
+      return 'transparent';
     }
-    return this.targetColors[id] == null ? this.color(id) : this.targetColors[id]
+    return this.targetColors[id] == null ? this.color(id) : this.targetColors[id];
   }
 
   tranlate_location(d) {
     if (d.id == 'Returns to Homelessness') {
-      let diff = d.y1 - d.y0
-      d.y0 = this.height - 50 - diff * .5
-      d.y1 = this.height - 50 + diff * .5
+      let diff = d.y1 - d.y0;
+      d.y0 = this.height - 50 - diff * .5;
+      d.y1 = this.height - 50 + diff * .5;
     } else {
-      d.y0
+      d.y0;
     }
-    return d
+    return d;
   }
 
   node_sorter(a, b) {
-    let a_weight = this.nodeWeights[a.id] || 0
-    let b_weight = this.nodeWeights[b.id] || 0
-    return a_weight > b_weight
+    let a_weight = this.nodeWeights[a.id] || 0;
+    let b_weight = this.nodeWeights[b.id] || 0;
+    return a_weight > b_weight;
   }
 
+  // eslint-disable-next-line no-unused-vars
   over(event, node, type) {
     // Reset container
     this.Tooltip.html('');
@@ -306,7 +313,7 @@ App.D3Chart.Sankey = class Sankey {
       .style('background', this.background(node))
       .style('color', 'white')
       .text(this.title(node));
-    this.tooltip_details(node, table.append('tbody'))
+    this.tooltip_details(node, table.append('tbody'));
   }
 
   tooltip_details(node, tbody) {
@@ -314,52 +321,55 @@ App.D3Chart.Sankey = class Sankey {
       .append('tr');
     count_tr
       .append('td')
-      .text(this.client_word)
+      .text(this.client_word);
     count_tr
       .append('td')
-      .text(d3.format(",.1~f")(node.value))
+      .text(d3.format(',.1~f')(node.value));
     if(node.id) {
-      return
+      return;
     } else {
       let percent_tr = tbody
-        .append('tr')
+        .append('tr');
       percent_tr
         .append('td')
-        .text(`Percent ${node.source.id}`)
-      let percent = node.value / node.source.value
+        .text(`Percent ${node.source.id}`);
+      let percent = node.value / node.source.value;
       percent_tr
         .append('td')
-        .text(d3.format(".0%")(percent))
+        .text(d3.format('.0%')(percent));
     }
   }
 
   background(node) {
     if (node.id) {
-      return this.color_for_target(node.id, node)
+      return this.color_for_target(node.id, node);
     } else {
-      return `linear-gradient(0.25turn, ${this.color_for_target(node.source.id, node.source)}, ${this.color_for_target(node.target.id, node.target)})`
+      return `linear-gradient(0.25turn, ${this.color_for_target(node.source.id, node.source)}, ${this.color_for_target(node.target.id, node.target)})`;
     }
   }
 
   title(node) {
     if(node.id) {
-      return node.id
+      return node.id;
     } else {
-      return `${node.source.id} → ${node.target.id}`
+      return `${node.source.id} → ${node.target.id}`;
     }
   }
 
+  // eslint-disable-next-line no-unused-vars
   move(event, node) {
-    let domain = { 'x domain': [0, $(this.chart_selector).width()], 'y domain': [0, $(this.chart_selector).height()]  }
-    let range = { 'x range': [0, this.width], 'y range': [0, this.height] }
+    // eslint-disable-next-line no-unused-vars
+    let domain = { 'x domain': [0, $(this.chart_selector).width()], 'y domain': [0, $(this.chart_selector).height()]  };
+    // eslint-disable-next-line no-unused-vars
+    let range = { 'x range': [0, this.width], 'y range': [0, this.height] };
     let xScale = this.d3Sankey.scaleLinear();
     let yScale = this.d3Sankey.scaleLinear();
     xScale
       .domain([0, this.width])
-      .range([0, $(this.chart_selector).width()])
+      .range([0, $(this.chart_selector).width()]);
     yScale
       .domain([0, this.height])
-      .range([0, $(this.chart_selector).height()])
+      .range([0, $(this.chart_selector).height()]);
     let original_x = this.d3Sankey.pointer(event)[0];
     let original_y = this.d3Sankey.pointer(event)[1];
     let scaled_x = xScale(original_x);
@@ -368,11 +378,12 @@ App.D3Chart.Sankey = class Sankey {
     this.Tooltip
       .style('left', (scaled_x + 10) + 'px')
       .style('top', (scaled_y + 30) + 'px');
-      // .style('left', (this.d3Sankey.pointer(event, this.chart.node())[0] + 10) + 'px')
-      // .style('top', (this.d3Sankey.pointer(event, this.chart.node())[1] + 50) + 'px');
+    // .style('left', (this.d3Sankey.pointer(event, this.chart.node())[0] + 10) + 'px')
+    // .style('top', (this.d3Sankey.pointer(event, this.chart.node())[1] + 50) + 'px');
 
   }
 
+  // eslint-disable-next-line no-unused-vars
   out(event, node) {
     this.Tooltip
       .style('opacity', 0);

@@ -45,7 +45,7 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionSeven
 
       es_so_members = adults_and_hohs.where(
         a_t[:project_type].eq(4).
-          and(a_t[:date_of_engagement].lt(@report.end_date).or(a_t[:date_of_engagement].eq(nil))).
+          and(a_t[:date_of_engagement].lt(@report.end_date)).
           or(a_t[:project_type].eq(1)),
       )
       answer.add_members(es_so_members)

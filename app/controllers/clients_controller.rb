@@ -28,12 +28,12 @@ class ClientsController < ApplicationController
 
   helper_method :sort_column, :sort_direction
 
-  # TODO: START_ACL remove when ACL transition complete
-  before_action :set_legacy_implicitly_assume_authorized_access
-  # END ACL
-
   def create
     clean_params = client_create_params
+    # Enforce DateCreated and DateUpdated
+    clean_params[:DateCreated] = Time.current
+    clean_params[:DateUpdated] = Time.current
+
     clean_params[:SSN] = clean_params[:SSN]&.gsub(/\D/, '')
     existing_matches = look_for_existing_match(clean_params)
     @bypass_search = false

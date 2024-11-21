@@ -7,7 +7,10 @@
 module Bi
   class ViewMaintainer
     include ArelHelper
-
+    TodoOrDie('Remove this maintainer class and comment out any related migrations or code that references it after release-144 has been merged into stable', by: '2025-01-10')
+    # Currently included in
+    # db/warehouse/migrate/20241030133448_remove_current_living_situation_verified_by_limit_1.rb
+    # db/warehouse/migrate/20241030133450_remove_current_living_situation_verified_by_limit_3.rb
     HUD_CSV_VERSION = '2020'.freeze
     NAMESPACE = 'bi'.freeze
     PG_ROLE = 'bi'.freeze
@@ -407,7 +410,11 @@ module Bi
         $$;
       SQL
 
-      GrdaWarehouseBase.connection.execute sql
+      begin
+        GrdaWarehouseBase.connection.execute sql
+      rescue PG::UndefinedObject, PG::InsufficientPrivilege, ActiveRecord::StatementInvalid
+        # It's ok if we don't have permission, not every installation uses this
+      end
     end
 
     def safe_create_view(name, sql_definition:)
@@ -416,7 +423,11 @@ module Bi
       GrdaWarehouseBase.connection.execute sql
       sql = "GRANT SELECT ON #{name} TO #{PG_ROLE}"
 
-      GrdaWarehouseBase.connection.execute sql
+      begin
+        GrdaWarehouseBase.connection.execute sql
+      rescue PG::UndefinedObject, PG::InsufficientPrivilege, ActiveRecord::StatementInvalid
+        # It's ok if we don't have permission, not every installation uses this
+      end
     end
   end
 end
