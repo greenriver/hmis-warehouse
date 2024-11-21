@@ -502,8 +502,16 @@ module Types
 
     field :client_detail_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)'
     def client_detail_forms
-      # No authorization required, this just resolving application configuration
-      Hmis::Form::Instance.active.with_role(:CLIENT_DETAIL).published.sort_by_option(:form_title)
+      # No authorization required, this just resolves application configuration
+      Hmis::Form::Instance.active.with_role(:CLIENT_DETAIL).published.sort_by_option(:form_title).
+        includes(:definition).
+        map do |instance|
+        OpenStruct.new(
+          legacy: false,
+          definition: instance.definition,
+          data_collected_about: instance.data_collected_about || 'ALL_CLIENTS',
+        )
+      end
     end
   end
 end
