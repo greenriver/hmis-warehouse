@@ -79,7 +79,6 @@ class Hmis::Hud::CustomDataElement < Hmis::Hud::Base
   end
 
   def value
-    # todo @martha - where is this used?
     VALUE_COLUMNS.map { |f| send(f) }.compact.first
   end
 end

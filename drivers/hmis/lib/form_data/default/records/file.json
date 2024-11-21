@@ -16,6 +16,7 @@
           "type": "FILE",
           "required": true,
           "link_id": "file_blob_id",
+          "text": "Attachment",
           "mapping": {
             "field_name": "fileBlobId"
           },

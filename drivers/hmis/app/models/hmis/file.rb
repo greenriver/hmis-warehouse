@@ -82,7 +82,7 @@ class Hmis::File < GrdaWarehouse::File
     end
   end
 
-  def self.authorize_proc # todo @Martha - what parts of this need to be incorporated/updated?
+  def self.authorize_proc
     ->(entity_base, user) do
       # If the entity_base is a file, we're authorizing someone to edit an existing file.
       case entity_base

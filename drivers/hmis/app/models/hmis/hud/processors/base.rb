@@ -293,15 +293,19 @@ class Hmis::Hud::Processors::Base
     when 'file'
       case value
       when String
-        # todo @martha - is this the right place for this stuff anyway?
-        # todo @martha - how does this relate to going in the other direction? (value is a file?)
+        # If the value is a string, it should be a blob ID for a file that's just been uploaded to ActiveStorage,
+        # but doesn't yet have a File record in our database.
         blob = ActiveStorage::Blob.find_by(id: value)
         file = Hmis::File.new
         file.name = blob.filename
         file.client = @processor.send(:client_factory)
+        file.enrollment = @processor.send(:enrollment_factory)
         file.client_file.attach(blob)
+        file.user = @processor.current_user
+        file.updated_by = @processor.current_user
         file
       when Object
+        # If the value is an Object, it should be a File record in our db
         raise "unexpected value \"#{value}\"" unless value.key?('fileBlobId') && value.key?('id')
 
         Hmis::File.find(value['id'])
