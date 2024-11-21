@@ -324,13 +324,8 @@ module HudLsa::Generators::Fy2024
     private def mssql_import_from_s3(s3, path:)
       windows_path = path.gsub('/', '\\')
 
-      # -- EXEC msdb.dbo.rds_download_from_s3
-      #     --   @rds_file_path='D:\S3\openpath-development-warehouse-file-storage-ea\lsa\tmp\Client.csv',
-      #     --   @s3_arn_of_file='arn:aws:s3:::openpath-development-warehouse-file-storage-ea/lsa/tmp/Client.csv',
-      #     --   @overwrite_file=1;
-
       # Move the S3 blob to the SQL server
-      full_windows_path = "#{s3.bucket.name}\#{windows_path}"
+      full_windows_path = "#{s3.bucket.name}\\#{windows_path}"
       sql = <<~SQL
         EXEC msdb.dbo.rds_download_from_s3
         @rds_file_path='D:\S3\#{full_windows_path}',
@@ -356,7 +351,6 @@ module HudLsa::Generators::Fy2024
     end
 
     private def setup_instance_role
-
     end
 
     # This reverses some export changes we made to maintain case sensitive matching with the 2024 spec
