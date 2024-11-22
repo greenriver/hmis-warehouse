@@ -226,6 +226,22 @@ module UserConcern
       end
     end
 
+    def training_renewal_date(course)
+      return 'Never' unless course.months_to_expiration.present?
+
+      login = Talentlms::Login.find_by(user: self, config: course.config)
+      return nil unless login
+
+      completion_date = Talentlms::CompletedTraining.find_by(course: course, login: login)&.completion_date
+      return nil unless completion_date
+
+      if Talentlms::Facade.expiration_duration_period == :days
+        completion_date + course.months_to_expiration.days
+      else
+        completion_date + course.months_to_expiration.months
+      end
+    end
+
     def required_training_courses
       return Talentlms::Course.where(id: training_courses&.compact_blank) if training_courses&.compact_blank&.present?
       return Talentlms::Course.default if training_required?

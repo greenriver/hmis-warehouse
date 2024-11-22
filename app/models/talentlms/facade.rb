@@ -280,6 +280,8 @@ module Talentlms
                          logout_redirect: encoded_logout_url,
                        })
       result['goto_url']
+    rescue RuntimeError => e
+      raise e unless e.message.include?('The requested user does not exist')
     end
 
     # Generate random password for talentlms user creation

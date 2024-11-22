@@ -21,9 +21,10 @@
       %tr
         %th Course
         %th Progress
+        %th Renewal Required After
     %tbody
       - @user.required_training_courses.each do |course|
         %tr
           %td= course.name_with_subdomain
           %td= @user.training_status(course)
-    
+          %td= @user.training_renewal_date(course)
