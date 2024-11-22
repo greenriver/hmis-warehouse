@@ -14,6 +14,7 @@ App.Health.EntryTimeline = class EntryTimeline {
   }
 
   render(config) {
+    // eslint-disable-next-line no-undef
     this.chart = bb.generate(
       Object.assign(config, {
         bindto: this.element,

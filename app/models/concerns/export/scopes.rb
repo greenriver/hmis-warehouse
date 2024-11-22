@@ -74,6 +74,12 @@ module Export::Scopes
       when 1
         # no-op
       end
+      # limit enrollment coc to the cocs chosen, and any random thing that's not a valid coc
+      if @coc_codes.present?
+        e_scope = e_scope.where(EnrollmentCoC: @coc_codes).
+          or(e_scope.where(EnrollmentCoC: nil)).
+          or(e_scope.where.not(EnrollmentCoC: HudUtility2024.cocs.keys))
+      end
       e_scope.where(
         e_t[:PersonalID].eq(c_t[:PersonalID]).
           and(e_t[:data_source_id].eq(c_t[:data_source_id])),
