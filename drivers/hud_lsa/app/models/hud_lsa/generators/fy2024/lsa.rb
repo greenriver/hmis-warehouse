@@ -296,15 +296,19 @@ module HudLsa::Generators::Fy2024
           # Read the file in batches to avoid over RAM usage
           File.open(File.join(extract_path, file_name)) do |file|
             headers = file.first
+            i = 0
             file.lazy.each_slice(read_rows) do |lines|
               content = ::CSV.parse(lines.join, headers: headers)
               import_headers = content.first.headers
               next unless content.any?
 
-              csv_output << standardize_headers(import_headers) unless headers_added
+              # NOTE: we need to insert the id column, SQL Server bulk import doesn't work without it
+              csv_output << ['id'] + standardize_headers(import_headers) unless headers_added
               # this fixes dates that default to 1900-01-01 if you send an empty string
               content.map do |row|
-                csv_output << klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
+                # increment the row counter for SQL Server
+                i += 1
+                csv_output << [i] + klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
               end.compact
             end
           end
@@ -334,23 +338,30 @@ module HudLsa::Generators::Fy2024
       SQL
       klass.connection.execute(sql)
 
-      # Needs to wait until the following indicates the most-recent task_type of DOWNLOAD_FROM_S3 has a lifecycle of SUCCESS
-      # We'll probably also need to handle errors (or only wait a specified amount of time)
-      # SELECT * FROM msdb.dbo.rds_fn_task_status(NULL,0);
+      wait_for_s3_file_transfer
 
+      # NOTE: 0x0a is the hex representation of \n which SQL server only sometimes accepts
       sql = <<~SQL
         BULK INSERT #{klass.quoted_table_name}
         FROM 'D:\\S3\\#{full_windows_path}'
         WITH (
-            FIELDTERMINATOR = ',',
-            ROWTERMINATOR = '\n',
-            FIRSTROW = 2
+          FORMAT = 'CSV',
+          FIELDTERMINATOR = ',',
+          ROWTERMINATOR = '0x0a',
+          FIRSTROW = 2
         );
       SQL
       klass.connection.execute(sql)
     end
 
     private def setup_instance_role
+      # TODO
+    end
+
+    private def wait_for_s3_file_transfer
+      # Needs to wait until the following indicates the most-recent task_type of DOWNLOAD_FROM_S3 has a lifecycle of SUCCESS
+      # We'll probably also need to handle errors (or only wait a specified amount of time)
+      # SELECT * FROM msdb.dbo.rds_fn_task_status(NULL,0);
     end
 
     # This reverses some export changes we made to maintain case sensitive matching with the 2024 spec
