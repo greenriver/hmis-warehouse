@@ -49,17 +49,23 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     project_ids = GrdaWarehouse::Hud::Project.joins(:clients).merge(clients).distinct.pluck(:id)
 
     results = Set.new
-
-    # Notes:
-    # * Window data sources allow special case global access to clients for legacy-role based permission users
-    # * When a datasource is visible in the window, the `can_*_with_roi permissions are not relevant.  The window
-    # flag on the data source is an indication that a release is not required to see client data in the data source.
-    results.merge(context.client_window_data_source_permissions(client.data_source_id, release: roi_authorized?))
-
+    results.merge(window_data_source_permissions || Set.new)
     project_ids.each do |project_id|
       results.merge(context.project_role_permissions(project_id))
     end
     results.merge(context.direct_client_role_permissions(client_id))
+  end
+
+  # Notes:
+  # * windowed data sources allow special case global access to clients for legacy-role based permission users
+  # * windowed data sources can optionally require release. The `can_*_with_roi permissions are not relevant in this case
+  def window_data_source_permissions
+    case context.data_source_window_type(client.data_source_id)
+    when :window_with_roi
+      context.client_window_data_source_permissions(client.data_source_id) if roi_authorized?
+    when :window
+      context.client_window_data_source_permissions(client.data_source_id)
+    end
   end
 
   # NOTE: this will query `destination_client.roi_authorizations` which could be a source of N+1 queries if authorizing
@@ -73,7 +79,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
   #   - if the user has `can_search_client_with_roi`, we grant `can_search_own_clients` and `can_search_all_clients`
   #   - if the user has `can_view_client_enrollments_with_roi`, we grant `can_view_clients`
   # - ROI does not confer additional permissions. Additional permissions are identical to clients without an ROI, such as via direct assignment
-  def roi_authorized?
+  memoize def roi_authorized?
     return false unless client.data_source&.obey_consent?
 
     destination = client.destination_client

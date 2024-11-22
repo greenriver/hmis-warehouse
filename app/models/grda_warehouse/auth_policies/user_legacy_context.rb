@@ -33,12 +33,17 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     permissions_for_access_group_ids(access_group_ids)
   end
 
-  # Handles the case where a client is exposed due to their inclusion in a "window" data source.
-  # Window data sources are an alternate means of data sharing to expose client data without requiring explicit release
-  memoize def client_window_data_source_permissions(data_source_id, release:)
-    return legacy_permissions if window_data_source_access?(data_source_id, release: release)
+  # Global data-source (aka "windowed" data source)
+  memoize def client_window_data_source_permissions(data_source_id)
+    return legacy_permissions if data_source_id.in?(window_data_source_ids)
 
     EMPTY_SET
+  end
+
+  memoize def data_source_window_type(data_source_id)
+    return nil unless data_source_id.in?(window_data_source_ids)
+
+    ::GrdaWarehouse::Config.get(:window_access_requires_release) ? :window_with_roi : :window
   end
 
   protected
@@ -57,13 +62,6 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     return EMPTY_SET unless user.access_groups.where(id: access_group_ids).exists?
 
     legacy_permissions
-  end
-
-  # Special case for data sources that have been flagged as available in the window
-  memoize def window_data_source_access?(data_source_id, release:)
-    return false if ::GrdaWarehouse::Config.get(:window_access_requires_release) && ! release
-
-    data_source_id.in?(window_data_source_ids)
   end
 
   memoize def window_data_source_ids
