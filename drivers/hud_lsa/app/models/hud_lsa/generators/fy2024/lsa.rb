@@ -355,13 +355,21 @@ module HudLsa::Generators::Fy2024
     end
 
     private def setup_instance_role
-      # TODO
+      # @rds.client.add_role_to_db_instance(
+      #   {
+      #     db_instance_identifier: ::Rds.identifier,
+      #     feature_name: 'S3_INTEGRATION',
+      #     role_arn: 'arn:aws:iam::111122223333:role/rds-s3-integration-role',
+      #   }
+      # )
     end
 
     private def wait_for_s3_file_transfer
       # Needs to wait until the following indicates the most-recent task_type of DOWNLOAD_FROM_S3 has a lifecycle of SUCCESS
       # We'll probably also need to handle errors (or only wait a specified amount of time)
-      # SELECT * FROM msdb.dbo.rds_fn_task_status(NULL,0);
+      sql = 'SELECT * FROM msdb.dbo.rds_fn_task_status(NULL,0)'
+      rows = klass.connection.select_rows(sql)
+      # TODO: inspect rows to determine if the process has finished, loop for some amount of time
     end
 
     # This reverses some export changes we made to maintain case sensitive matching with the 2024 spec
