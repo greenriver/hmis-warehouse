@@ -227,7 +227,7 @@ module UserConcern
     end
 
     def training_renewal_date(course)
-      return nil unless course.months_to_expiration.present?
+      return 'Never' unless course.months_to_expiration.present?
 
       login = Talentlms::Login.find_by(user: self, config: course.config)
       return nil unless login
@@ -236,9 +236,9 @@ module UserConcern
       return nil unless completion_date
 
       if Talentlms::Facade.expiration_duration_period == :days
-        completion_date + course.months_to_expiration
+        completion_date + course.months_to_expiration.days
       else
-        completion_date << course.months_to_expiration
+        completion_date + course.months_to_expiration.months
       end
     end
 
