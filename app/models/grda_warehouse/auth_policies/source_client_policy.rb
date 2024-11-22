@@ -49,7 +49,12 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     project_ids = GrdaWarehouse::Hud::Project.joins(:clients).merge(clients).distinct.pluck(:id)
 
     results = Set.new
+
+    # Notes:
+    # * windowed data sources allow special case global access to clients for legacy-role based permission users
+    # * windowed data sources can optionally require release. The `can_*_with_roi permissions are not relevant in this case
     results.merge(context.client_window_data_source_permissions(client.data_source_id, release: roi_authorized?))
+
     project_ids.each do |project_id|
       results.merge(context.project_role_permissions(project_id))
     end

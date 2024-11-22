@@ -33,6 +33,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     permissions_for_access_group_ids(access_group_ids)
   end
 
+  # Global data-source (aka "windowed" data source)
   memoize def client_window_data_source_permissions(data_source_id, release:)
     return legacy_permissions if window_data_source_access?(data_source_id, release: release)
 
