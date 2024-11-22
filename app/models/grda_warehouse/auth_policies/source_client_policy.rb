@@ -51,8 +51,9 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     results = Set.new
 
     # Notes:
-    # * windowed data sources allow special case global access to clients for legacy-role based permission users
-    # * windowed data sources can optionally require release. The `can_*_with_roi permissions are not relevant in this case
+    # * Window data sources allow special case global access to clients for legacy-role based permission users
+    # * When a datasource is visible in the window, the `can_*_with_roi permissions are not relevant.  The window
+    # flag on the data source is an indication that a release is not required to see client data in the data source.
     results.merge(context.client_window_data_source_permissions(client.data_source_id, release: roi_authorized?))
 
     project_ids.each do |project_id|
