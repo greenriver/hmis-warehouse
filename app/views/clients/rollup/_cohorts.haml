@@ -14,6 +14,6 @@
             %tbody
               - cohorts.uniq.each do |cohort|
                 %tr
-                  %td= link_to_if cohort.link && cohort.active?, cohort.name, cohort_path(cohort.id)
-                  %td= yes_no(cohort.active? == true)
+                  %td= link_to_if cohort.link && cohort.active, cohort.name, cohort_path(cohort.id)
+                  %td= yes_no(cohort.active == true)
                   %td= yes_no(cohort.recent_activity)
