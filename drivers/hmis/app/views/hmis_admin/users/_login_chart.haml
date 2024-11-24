@@ -12,7 +12,7 @@
       data: {
         x: 'x',
         xFormat: '%Y-%m-%d %H:%M',
-        columns: #{raw Hmis::ActivityLog.for_chart()}
+        columns: #{Hmis::ActivityLog.for_chart().to_json.html_safe}
       },
       axis: {
         x: {
