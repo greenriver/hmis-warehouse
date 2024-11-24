@@ -33,12 +33,16 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     permissions_for_access_group_ids(access_group_ids)
   end
 
-  # Handles the case where a client is exposed due to their inclusion in a "window" data source.
-  # Window data sources are an alternate means of data sharing to expose client data without requiring explicit release
-  memoize def client_window_data_source_permissions(data_source_id, release:)
-    return legacy_permissions if window_data_source_access?(data_source_id, release: release)
+  memoize def legacy_permissions
+    user.legacy_roles.flat_map(&:granted_permissions).to_set.freeze
+  end
 
-    EMPTY_SET
+  memoize def legacy_window_access_requires_release?
+    ::GrdaWarehouse::Config.get(:window_access_requires_release)
+  end
+
+  memoize def legacy_window_data_source_ids
+    ::GrdaWarehouse::DataSource.window_data_source_ids.to_set.freeze
   end
 
   protected
@@ -47,27 +51,12 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     [AccessGroup.system_groups[group_name]&.id].compact
   end
 
-  memoize def legacy_permissions
-    user.legacy_roles.flat_map(&:granted_permissions).to_set.freeze
-  end
-
   def permissions_for_access_group_ids(access_group_ids)
     access_group_ids += system_access_group_ids(:data_sources)
     return EMPTY_SET if access_group_ids.blank?
     return EMPTY_SET unless user.access_groups.where(id: access_group_ids).exists?
 
     legacy_permissions
-  end
-
-  # Special case for data sources that have been flagged as available in the window
-  memoize def window_data_source_access?(data_source_id, release:)
-    return false if ::GrdaWarehouse::Config.get(:window_access_requires_release) && ! release
-
-    data_source_id.in?(window_data_source_ids)
-  end
-
-  memoize def window_data_source_ids
-    ::GrdaWarehouse::DataSource.window_data_source_ids.to_set
   end
 
   def data_source_access_group_ids(data_source_id)
