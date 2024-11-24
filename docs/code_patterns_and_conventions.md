@@ -83,6 +83,7 @@ For example, if your model has name, dob, and ssn cols:
     pii_attr :last_name
     pii_attr :dob
     pii_attr :ssn
+    pii_attr :description, as: :free_text, level: 2 # sensitive notes
   end
 ```
 

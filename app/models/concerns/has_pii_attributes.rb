@@ -62,7 +62,8 @@ module HasPiiAttributes
     # These fields may contain embedded PII in unstructured form
     free_text: { level: 4 }, # case notes - sensitivity varies by content
     url: { level: 4 }, # depends on content/context
-    attached_file: { level: 4 }, # depends on content/context
+    attached_file: { level: 4 },
+    json: { level: 4 },
   }.freeze
 
   class_methods do
