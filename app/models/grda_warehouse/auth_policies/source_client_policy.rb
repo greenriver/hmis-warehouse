@@ -74,7 +74,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     results
   end
 
-  # windowed data sources are a deprecated legacy client data sharing mechanic, replaced by ACLs
+  # Window data sources are a deprecated legacy client data sharing mechanic, replaced by a System Collection when using Access Controls-based permissions
   def add_legacy_data_source_permissions(results)
     # is this a user with legacy role-based perms?
     legacy_permissions = context.legacy_permissions
@@ -101,7 +101,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     end
   end
 
-  # permissions the user has directly on the client (for destination clients with no enrollments)
+  # permissions the user has directly on the client (for destination clients with no enrollments in authoritative data sources)
   def add_direct_client_permissions(results)
     results.merge(context.direct_client_role_permissions(client_id))
   end
