@@ -7,8 +7,13 @@
 module ClientFileBase
   extend ActiveSupport::Concern
   include ArelHelper
+  include HasPiiAttributes
 
   included do
+    pii_attr :note, as: :free_text
+    pii_attr :name, as: :full_name
+    pii_attr :client_file, as: :attached_file
+
     has_one_attached :client_file
 
     validates_presence_of :name

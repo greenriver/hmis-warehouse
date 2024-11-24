@@ -5,6 +5,7 @@
 ###
 
 module GrdaWarehouse::Tasks::ScrubPii
+  # Scrub personally identifiable information (PII) for selected HMIS client-related records.
   # * Selectively scrub personally identifiable information (PII) for HMIS Clients
   # * Delete client-related custom hmis data
   # * Delete versions
@@ -16,12 +17,16 @@ module GrdaWarehouse::Tasks::ScrubPii
     def perform(client_ids: nil, data_source_ids: nil, custom_scrubber: nil, progress: false)
       with_lock do
         @scrubber = Pii::Scrubber::ScrubModelPii.new(custom_scrubber: custom_scrubber, progress: progress)
+        @version_pruner = Pii::Scrubber::VersionHistoryPruner.new
 
         client_scope = GrdaWarehouse::Hud::Client.with_deleted
         client_scope = client_scope.where(id: client_ids) if client_ids
         client_scope = client_scope.where(data_source_id: data_source_ids) if data_source_ids
 
+        # scrub the client records themselves
         @scrubber.perform(client_scope)
+
+        # iterate through clients in batches and scrub related records
         client_scope.find_in_batches do |clients|
           process_client_batch(clients)
         end
@@ -34,9 +39,10 @@ module GrdaWarehouse::Tasks::ScrubPii
       client_ids = clients.map(&:id)
 
       # delete directly-related client records
-      delete_custom_data_elements(Hmis::Hud::Client, client_ids)
-      delete_versions([GrdaWarehouse::Hud::Client, Hmis::Hud::Client], client_ids)
+      delete_custom_data_elements_with_pii(Hmis::Hud::Client, client_ids)
+      @version_pruner.perform(owner: GrdaWarehouse::Hud::Client, ids: client_ids)
 
+      delete_client_files(client_ids)
       clients.group_by(&:data_source_id).map do |data_source_id, ds_clients|
         personal_ids = ds_clients.map(&:PersonalID)
         delete_hmis_client_records(personal_ids, data_source_id)
@@ -44,7 +50,7 @@ module GrdaWarehouse::Tasks::ScrubPii
       end
     end
 
-    def delete_custom_data_elements(model, ids)
+    def delete_custom_data_elements_with_pii(model, ids)
       arel = Hmis::Hud::CustomDataElementDefinition.arel_table
       conditions = [
         arel[:label].matches('%SSN%', nil, true), # case sensitive
@@ -66,7 +72,7 @@ module GrdaWarehouse::Tasks::ScrubPii
         joins(:data_element_definition).
         merge(Hmis::Hud::CustomDataElementDefinition.with_deleted.where(conditions))
 
-      delete_versions([Hmis::Hud::CustomDataElement], scope.pluck(:id))
+      @version_pruner.perform(owner: Hmis::Hud::CustomDataElement, ids: scope.pluck(:id))
       scope.delete_all
     end
 
@@ -77,7 +83,7 @@ module GrdaWarehouse::Tasks::ScrubPii
       return if enrollments.to_a.empty?
 
       enrollment_ids = enrollments.map(&:id)
-      delete_custom_data_elements(Hmis::Hud::Enrollment, enrollment_ids)
+      delete_custom_data_elements_with_pii(Hmis::Hud::Enrollment, enrollment_ids)
     end
 
     def delete_hmis_client_records(personal_ids, data_source_id)
@@ -89,22 +95,34 @@ module GrdaWarehouse::Tasks::ScrubPii
         Hmis::Hud::CustomCaseNote,
       ].each do |model|
         scope = model.with_deleted.where(data_source_id: data_source_id, PersonalID: personal_ids)
-        delete_versions([model], scope.map(&:id))
+        @version_pruner.perform(owner: model, ids: scope.map(&:id))
         scope.delete_all
       end
 
       # delete custom data elements from tables that may contain sensitive info
       [
+        Hmis::Hud::Assessment,
         Hmis::Hud::CustomAssessment,
-        # other models?
+        Hmis::Hud::CurrentLivingSituation,
+        Hmis::Hud::CustomCaseNote,
+        Hmis::Hud::CustomService,
+        Hmis::Hud::Enrollment,
+        Hmis::Hud::Event,
+        Hmis::Hud::Exit,
+        Hmis::Hud::IncomeBenefit,
+        Hmis::Hud::Service,
       ].each do |model|
         scope = model.with_deleted.where(data_source_id: data_source_id, PersonalID: personal_ids)
-        delete_custom_data_elements(model, scope.pluck(:id))
+        delete_custom_data_elements_with_pii(model, scope.pluck(:id))
       end
     end
 
-    def delete_versions(models, item_ids)
-      GrdaWarehouse::Version.where(item_type: models.map(&:sti_name), item_id: item_ids).delete_all
+    def delete_client_files(client_ids)
+      model = Hmis::File
+      scope = model.with_deleted.where(client_id: client_ids)
+      delete_custom_data_elements_with_pii(model, scope.pluck(:id))
+      @version_pruner.perform(owner: model, ids: scope.map(&:id))
+      scope.delete_all
     end
 
     def with_lock(&block)

@@ -5,7 +5,9 @@
 ###
 
 module GrdaWarehouse::Tasks::ScrubPii
-  # Scrub personally identifiable information (PII) from all warehouse and reporting tables
+  # Best-effort to scrub personally identifiable information (PII) from all warehouse and reporting tables
+  # * Suitable for sanitizing a production database for staging/development use
+  # * Delete versions
   class ScrubAllPiiTask
     def self.perform(...)
       new.perform(...)
@@ -15,8 +17,10 @@ module GrdaWarehouse::Tasks::ScrubPii
       with_lock do
         total = 0
         scrubber = Pii::Scrubber::ScrubModelPii.new(...)
+        version_pruner = Pii::Scrubber::VersionHistoryPruner.new
         models.each do |model|
           total += scrubber.perform(model.unscoped)
+          version_pruner.perform(owner: model)
         end
         total
       end
@@ -32,6 +36,7 @@ module GrdaWarehouse::Tasks::ScrubPii
         GrdaWarehouse::Contact::Base,
         GrdaWarehouse::Hmis::Staff,
         GrdaWarehouse::HmisClient,
+        Hmis::File,
         # warehouse.ClientUnencrypted, # no model?
 
         # hud records
