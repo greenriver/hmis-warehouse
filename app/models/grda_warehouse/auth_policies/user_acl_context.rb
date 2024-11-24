@@ -32,9 +32,9 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
     permissions_for_collection_ids(collection_ids)
   end
 
-  # Duck-typed for legacy role-based permissions. The ACLs support a global data-source (aka "windowed" data source) via configuration rather than special mechanics
-  def data_source_window_type(_data_source_id)
-    nil
+  # Duck-typed for legacy role-based permissions
+  def legacy_permissions
+    EMPTY_SET
   end
 
   protected
