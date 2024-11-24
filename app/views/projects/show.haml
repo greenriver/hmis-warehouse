@@ -6,8 +6,7 @@
     display: block;
   }
 = render 'breadcrumbs'
--# confidentiality status ignored because page is not visible to users who can't see confidential project names
-- content_for :title, "#{@project.name(ignore_confidential_status: true)} at #{@project.organization.name(ignore_confidential_status: true)}"
+- content_for :title, "#{@project.name(ignore_confidential_status: can_edit_projects?)} at #{@project.organization.name(ignore_confidential_status: can_edit_organizations?)}"
 %h1= content_for :title
 .row.mb-6
   .col-sm-4
@@ -110,7 +109,7 @@
         = link_to edit_project_path(@project), class: ['btn', 'btn-sm', 'btn-secondary'] do
           %i.icon-pencil
           Edit Project
-    - if project_policy.can_delete?
+    - if project_policy.can_destroy?
       .mb-4
         = link_to project_path(@project), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: "Deleting #{@project.ProjectName} will delete ALL associated data.  Do you want to proceed?"} do
           %i.icon-cross

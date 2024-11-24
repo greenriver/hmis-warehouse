@@ -1,6 +1,7 @@
 - content_for :title, 'HMIS User Administration'
 %h1= content_for :title
 = render 'hmis_admin/tabs', active_tab: :users
+= render 'login_chart'
 - @prompt = 'Search users...'
 .o-page__controls
   .o-page__search
