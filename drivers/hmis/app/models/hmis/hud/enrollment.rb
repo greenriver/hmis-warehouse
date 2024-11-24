@@ -83,6 +83,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
 
+  # Cached chronically homeless at entry
+  has_one :ch_enrollment, class_name: 'GrdaWarehouse::ChEnrollment', dependent: :destroy
+
   accepts_nested_attributes_for :move_in_addresses, allow_destroy: true
 
   before_validation :set_hud_project_id_from_project_pk_unless_wip, if: :project_pk_changed?

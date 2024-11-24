@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# persist the HUD calculation for chronic homelessness at the enrollment level
 module GrdaWarehouse
   class ChEnrollment < GrdaWarehouseBase
     include ArelHelper

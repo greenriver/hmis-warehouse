@@ -54,6 +54,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
   has_many :services, through: :enrollments # HUD Services only
   has_many :custom_services, through: :enrollments # Custom Services only
+  has_many :enrollments_with_chronic_homelessness,
+           -> { where(chronically_homeless_at_entry: true) },
+           through: :enrollments,
+           source: :ch_enrollment
 
   # History of merges into this client
   has_many :merge_histories, class_name: 'Hmis::ClientMergeHistory', primary_key: :id, foreign_key: :retained_client_id
