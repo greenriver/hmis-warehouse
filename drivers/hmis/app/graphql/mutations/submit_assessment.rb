@@ -85,11 +85,11 @@ module Mutations
         hud_values: input.hud_values,
       )
       assessment.assign_attributes(
-        user_id: hmis_user.user_id,
+        user_id: hud_user.user_id,
         assessment_date: assessment.form_processor.find_assessment_date_from_values,
-        updated_by_hud_user: hmis_user, # see comments on CustomAssessment
+        updated_by_hud_user: hud_user, # see comments on CustomAssessment
       )
-      assessment.assign_attributes(created_by_hud_user: hmis_user) unless has_already_been_submitted
+      assessment.assign_attributes(created_by_hud_user: hud_user) unless has_already_been_submitted
 
       # Validate form values based on FormDefinition
       form_validations = assessment.form_processor.collect_form_validations

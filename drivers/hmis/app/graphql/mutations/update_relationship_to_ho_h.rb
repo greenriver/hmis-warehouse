@@ -22,7 +22,7 @@ module Mutations
       if relationship_to_ho_h == 1
         # Lock to avoid duplicate request collisions. with_lock also starts a transaction.
         enrollment.project.with_lock do
-          hoh_changer = Hmis::HohChangeHandler.new(new_hoh_enrollment: enrollment, hud_user_id: hmis_user.user_id)
+          hoh_changer = Hmis::HohChangeHandler.new(new_hoh_enrollment: enrollment, hud_user: hud_user.user_id)
           validations = hoh_changer.validate(include_warnings: !confirmed)
           return { errors: validations } if validations.any?
 

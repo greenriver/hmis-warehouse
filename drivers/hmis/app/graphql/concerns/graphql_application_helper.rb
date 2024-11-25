@@ -10,8 +10,7 @@ module GraphqlApplicationHelper
     context[:true_user]
   end
 
-  # todo @martha - rename this, it's not the hmis user, it's the hud user
-  def hmis_user
+  def hud_user
     Hmis::Hud::User.from_user(current_user)
   end
 
