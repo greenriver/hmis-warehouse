@@ -87,16 +87,9 @@ module Mutations
       assessment.assign_attributes(
         user_id: hmis_user.user_id,
         assessment_date: assessment.form_processor.find_assessment_date_from_values,
-        # Use true_user rather than current_user in case of impersonation, matching load_last_user_from_versions.
-        # See comments on CustomAssessments about user, created_by, created_by_hud_user, and updated_by
-        updated_by: true_user,
+        updated_by_hud_user: hmis_user, # see comments on CustomAssessment
       )
-      unless has_already_been_submitted
-        assessment.assign_attributes(
-          created_by: true_user,
-          created_by_hud_user: true_hmis_user,
-        )
-      end
+      assessment.assign_attributes(created_by_hud_user: hmis_user) unless has_already_been_submitted
 
       # Validate form values based on FormDefinition
       form_validations = assessment.form_processor.collect_form_validations

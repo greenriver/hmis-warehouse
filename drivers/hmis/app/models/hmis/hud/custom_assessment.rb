@@ -30,12 +30,10 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   # UserID - references the HUD user as specified by the HUD spec (User table in warehouse db)
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments, optional: true
-  # [created|updated]_by_user_id - only for HMIS data, references application user (users table in app db)
-  belongs_to :created_by, foreign_key: :created_by_user_id, class_name: 'Hmis::User', optional: true
-  belongs_to :updated_by, foreign_key: :updated_by_user_id, class_name: 'Hmis::User', optional: true
-  # created_by_hud_user - references the HUD user. This is for ease of reporting in Superset,
-  # but eventually when everything is in the same DB, this should be removed in favor of created_by
-  belongs_to :created_by_hud_user, foreign_key: :created_by_hud_user_id, class_name: 'Hmis::Hud::User', optional: true, autosave: true
+  # created_by_hud_user and updated_by_hud_user ALSO refer to the HUD users table (not the application users),
+  # but they use a PK reference, not hmis_relation. These columns are for reporting.
+  belongs_to :created_by_hud_user, foreign_key: :created_by_hud_user_id, class_name: 'Hmis::Hud::User', optional: true
+  belongs_to :updated_by_hud_user, foreign_key: :created_by_hud_user_id, class_name: 'Hmis::Hud::User', optional: true
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 

@@ -44,7 +44,6 @@ class Hmis::BaseController < ActionController::Base
     raise "HMIS data source not configured: #{domain}" unless data_source_id.present?
 
     current_hmis_user.hmis_data_source_id = data_source_id
-    true_hmis_user.hmis_data_source_id = data_source_id
   end
 
   # PaperTrail whodunnit (set in ApplicationController) uses this method to determine the label to be stored

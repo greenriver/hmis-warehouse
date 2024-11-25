@@ -20,16 +20,17 @@ task migrate_assessments_20241111: [:environment] do
 
       attrs = {}
 
-      attrs[:updated_by_user_id] = (update_version.clean_true_user_id || update_version.clean_user_id) # update_version will always be present
+      # todo @martha - what a mess
+      # attrs[:updated_by_user_id] = (update_version.clean_true_user_id || update_version.clean_user_id) # update_version will always be present
 
       if create_version
-        attrs[:created_by_user_id] = (create_version.clean_true_user_id || create_version.clean_user_id)
+        # attrs[:created_by_user_id] = (create_version.clean_true_user_id || create_version.clean_user_id)
         user_ids << (create_version.clean_true_user_id || create_version.clean_user_id)
         data_source_ids << assessment.data_source_id
       end
 
       # use `update_columns` to bypass paper trail and timestamp updates
-      assessment.update_columns(**attrs)
+      # assessment.update_columns(**attrs)
 
       updated_count += 1
     end

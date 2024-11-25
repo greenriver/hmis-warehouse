@@ -10,16 +10,9 @@ module GraphqlApplicationHelper
     context[:true_user]
   end
 
+  # todo @martha - rename this, it's not the hmis user, it's the hud user
   def hmis_user
     Hmis::Hud::User.from_user(current_user)
-  end
-
-  def impersonating?
-    current_user != true_user
-  end
-  
-  def true_hmis_user
-    impersonating? ? Hmis::Hud::User.from_user(true_user) : hmis_user
   end
 
   def access_denied!(message = 'access denied')
