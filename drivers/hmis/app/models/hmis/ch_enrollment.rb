@@ -10,5 +10,10 @@ module Hmis
   class ChEnrollment < GrdaWarehouseBase
     self.table_name = 'ch_enrollments'
     belongs_to :enrollment, class_name: 'Hmis::Hud::Enrollment'
+
+    # the chronically_homeless_at_entry is poorly named
+    def chronically_homeless?
+      chronically_homeless_at_entry?
+    end
   end
 end

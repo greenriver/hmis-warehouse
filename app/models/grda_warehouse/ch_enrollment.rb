@@ -4,7 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# persist the HUD calculation for chronic homelessness at the enrollment level
+# ChEnrolment persist the HUD calculation for chronic homelessness at the enrollment level
+#
+# Details:
+# - Rows are calculated on a schedule via GrdaWarehouse::ChEnrollment.maintain!
+# - Each ChEnrollment represents the status of it's associated enrollment based on self-reported data
+# - The status is calculated as-of the current date when the ch_enrollment is generated
+# - The data that is stored will represent CH at Project Start for non-homeless projects (which is actually the same thing as CH at a Point In Time since you don't acquire homeless time being in a non-homeless project. BUT, in homeless projects, you do acquire days for every day you are there. So joining ChEnrollment is the equivalent of CH at a Point In Time for each enrollment.
 module GrdaWarehouse
   class ChEnrollment < GrdaWarehouseBase
     include ArelHelper
@@ -53,7 +59,8 @@ module GrdaWarehouse
               chronically_homeless_at_entry: chronically_homeless_at_start?(enrollment, date: date),
             }
           end
-          import(batch)
+          result = import(batch)
+          raise "failed to import ChEnrollments: #{result.inspect}" if result.failed_instances.present?
         end
     end
 
@@ -72,13 +79,14 @@ module GrdaWarehouse
             chronically_homeless_at_entry: chronically_homeless_at_start?(enrollment, date: date),
           }
         end
-        import!(
+        result = import!(
           batch,
           on_duplicate_key_update: {
             conflict_target: [:id],
             columns: [:processed_as, :chronically_homeless_at_entry],
           },
         )
+        raise "failed to import ChEnrollments: #{result.inspect}" if result.failed_instances.present?
       end
     end
 
