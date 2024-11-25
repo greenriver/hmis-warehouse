@@ -9,6 +9,8 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
     create :hud_enrollment, client: client, data_source: data_source, project: project
     client
   end
+  let(:window_data_source) { create :grda_warehouse_data_source, visible_in_window: true }
+  let(:window_client) { create(:hud_client, data_source: window_data_source) }
 
   # Permissions that will be granted through the role
   let(:permissions) do
@@ -102,6 +104,42 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
     context 'without project access' do
       include_examples 'pii permission checks without access'
     end
+
+    context 'with window data source' do
+      let(:policy) { user.policy_for(window_client) }
+
+      context 'when window access requires release' do
+        before do
+          allow(GrdaWarehouse::Config).to receive(:get).with(:window_access_requires_release).and_return(true)
+        end
+
+        context 'with release' do
+          before do
+            create(:warehouse_client, source: window_client, data_source: window_data_source)
+            create(:client_roi_authorization, destination_client: window_client.destination_client)
+          end
+          it 'grants access through window data source' do
+            expect(policy.can_view_name?).to be true
+          end
+        end
+
+        context 'without release' do
+          it 'denies access' do
+            expect(policy.can_view?).to be false
+          end
+        end
+      end
+
+      context 'when window access does not require release' do
+        before do
+          allow(GrdaWarehouse::Config).to receive(:get).with(:window_access_requires_release).and_return(false)
+        end
+
+        it 'grants access through window data source' do
+          expect(policy.can_view_name?).to be true
+        end
+      end
+    end
   end
 
   context 'with user access control permissions' do
@@ -136,6 +174,14 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
       end
 
       include_examples 'pii permission checks with access'
+    end
+
+    context 'with window data source' do
+      let(:policy) { user.policy_for(window_client) }
+
+      it 'denies access' do
+        expect(policy.can_view_name?).to be false
+      end
     end
   end
 end
