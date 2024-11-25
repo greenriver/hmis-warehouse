@@ -6,780 +6,216 @@
 
 RSpec.shared_context 'projects', shared_context: :metadata do
   describe 'Projects:' do
-    let(:question) { HudPit::Generators::Pit::Fy2024::Projects::QUESTION_NUMBER }
-    let(:column_names) do
-      {
-        'Project Name': 'B',
-        'Client Count': 'C',
-        'Household Count': 'D',
-      }
-    end
+    question = HudPit::Generators::Pit::Fy2024::Projects::QUESTION_NUMBER
+    column_names = {
+      'Project Name': 'B',
+      'Client Count': 'C',
+      'Household Count': 'D',
+    }
+    results = {
+      'Organization H - TH' => {
+        row_number: 2,
+        values: ['Organization H - TH', 17, 17],
+      },
+      'Organization Q - TH' => {
+        row_number: 3,
+        values: ['Organization Q - TH', 12, 7],
+      },
+      'Organization M - ES' => {
+        row_number: 4,
+        values: ['Organization M - ES', 34, 27],
+      },
+      'Organization I - ES' => {
+        row_number: 5,
+        values: ['Organization I - ES', 48, 41],
+      },
+      'Organization G - ES' => {
+        row_number: 6,
+        values: ['Organization G - ES', 105, 32],
+      },
+      'Organization B - TH' => {
+        row_number: 7,
+        values: ['Organization B - TH', 34, 13],
+      },
+      'Organization S - ES' => {
+        row_number: 8,
+        values: ['Organization S - ES', 25, 10],
+      },
+      'Organization M - TH' => {
+        row_number: 9,
+        values: ['Organization M - TH', 1, 1],
+      },
+      'Organization C - TH' => {
+        row_number: 10,
+        values: ['Organization C - TH', 4, 4],
+      },
+      'Organization D - TH' => {
+        row_number: 11,
+        values: ['Organization D - TH', 23, 11],
+      },
+      'Organization D - TH - 2' => {
+        row_number: 12,
+        values: ['Organization D - TH - 2', 27, 16],
+      },
+      'Organization O - TH' => {
+        row_number: 13,
+        values: ['Organization O - TH', 9, 9],
+      },
+      'Organization F - ES' => {
+        row_number: 14,
+        values: ['Organization F - ES', 43, 37],
+      },
+      'Organization E - TH' => {
+        row_number: 15,
+        values: ['Organization E - TH', 10, 9],
+      },
+      'Organization M - ES - 2' => {
+        row_number: 16,
+        values: ['Organization M - ES - 2', 13, 10],
+      },
+      'Organization A - ES' => {
+        row_number: 17,
+        values: ['Organization A - ES', 16, 16],
+      },
+      'Organization N - TH:' => {
+        row_number: 18,
+        values: ['Organization N - TH', 4, 4],
+      },
+      'Organization Z - ES' => {
+        row_number: 19,
+        values: ['Organization Z - ES', 10, 10],
+      },
+      'Organization Z - TH' => {
+        row_number: 20,
+        values: ['Organization Z - TH', 4, 4],
+      },
+      'Organization V - ES' => {
+        row_number: 21,
+        values: ['Organization V - ES', 2, 2],
+      },
+      'Organization B - TH - 2' => {
+        row_number: 22,
+        values: ['Organization B - TH - 2', 3, 3],
+      },
+      'Organization P - ES' => {
+        row_number: 23,
+        values: ['Organization P - ES', 2, 2],
+      },
+      'Organization P - ES - 2' => {
+        row_number: 24,
+        values: ['Organization P - ES - 2', 21, 18],
+      },
+      'Organization J - ES' => {
+        row_number: 25,
+        values: ['Organization J - ES', 10, 7],
+      },
+      'Organization S - ES - 2' => {
+        row_number: 26,
+        values: ['Organization S - ES - 2', 19, 7],
+      },
+      'Organization M - TH - 2' => {
+        row_number: 27,
+        values: ['Organization M - TH - 2', 4, 3],
+      },
+      'Organization Q - ES' => {
+        row_number: 28,
+        values: ['Organization Q - ES', 68, 67],
+      },
+      'Organization Z - TH - 2' => {
+        row_number: 29,
+        values: ['Organization Z - TH - 2', 7, 7],
+      },
+      'Organization J - TH' => {
+        row_number: 30,
+        values: ['Organization J - TH', 1, 1],
+      },
+      'Organization G - TH' => {
+        row_number: 31,
+        values: ['Organization G - TH', 9, 9],
+      },
+      'Organization M - TH - 3' => {
+        row_number: 32,
+        values: ['Organization M - TH - 3', 2, 2],
+      },
+      'Organization J - ES - 2' => {
+        row_number: 33,
+        values: ['Organization J - ES - 2', 2, 2],
+      },
+      'Organization K - ES' => {
+        row_number: 34,
+        values: ['Organization K - ES', 9, 9],
+      },
+      'Organization F - ES - 2' => {
+        row_number: 35,
+        values: ['Organization F - ES - 2', 2, 2],
+      },
+      'Organization K - ES - 2' => {
+        row_number: 36,
+        values: ['Organization K - ES - 2', 27, 27],
+      },
+      'Organization N - ES' => {
+        row_number: 37,
+        values: ['Organization N - ES', 1, 1],
+      },
+      'Organization C - ES' => {
+        row_number: 38,
+        values: ['Organization C - ES', 10, 10],
+      },
+      'Organization R - ES' => {
+        row_number: 39,
+        values: ['Organization R - ES', 13, 13],
+      },
+      'Organization G - SH' => {
+        row_number: 40,
+        values: ['Organization G - SH', 2, 2],
+      },
+      'Organization O - ES' => {
+        row_number: 41,
+        values: ['Organization O - ES', 23, 10],
+      },
+      'Organization D - TH - 5' => {
+        row_number: 42,
+        values: ['Organization D - TH - 5', 4, 4],
+      },
+      'Organization M - TH - 4' => {
+        row_number: 43,
+        values: ['Organization M - TH - 4', 5, 5],
+      },
+      'Organization U - TH' => {
+        row_number: 44,
+        values: ['Organization U - TH', 2, 1],
+      },
+      'Organization F - ES - 3' => {
+        row_number: 45,
+        values: ['Organization F - ES - 3', 12, 10],
+      },
+      'Organization N - SO' => {
+        row_number: 46,
+        values: ['Organization N - SO', 1, 1],
+      },
+      'Organization G - TH - 2' => {
+        row_number: 47,
+        values: ['Organization G - TH - 2', 2, 2],
+      },
+      'Organization Q - ES - 2' => {
+        row_number: 48,
+        values: ['Organization Q - ES - 2', 1, 1],
+      },
+      'Organization U - ES' => {
+        row_number: 49,
+        values: ['Organization U - ES', 9, 6],
+      },
+    }
 
-    describe 'Organization H - TH:' do
-      let(:row_number) { 2 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization H - TH')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(17)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(17)
-      end
-    end
-
-    describe 'Organization Q - TH:' do
-      let(:row_number) { 3 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization Q - TH')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(12)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(7)
-      end
-    end
-
-    describe 'Organization M - ES:' do
-      let(:row_number) { 4 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization M - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(34)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(27)
-      end
-    end
-
-    describe 'Organization I - ES:' do
-      let(:row_number) { 5 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization I - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(48)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(41)
-      end
-    end
-
-    describe 'Organization G - ES:' do
-      let(:row_number) { 6 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization G - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(105)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(32)
-      end
-    end
-
-    describe 'Organization B - TH:' do
-      let(:row_number) { 7 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization B - TH')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(34)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(13)
-      end
-    end
-
-    describe 'Organization S - ES:' do
-      let(:row_number) { 8 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization S - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(25)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(10)
-      end
-    end
-
-    describe 'Organization M - TH:' do
-      let(:row_number) { 9 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization M - TH')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(1)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(1)
-      end
-    end
-
-    describe 'Organization C - TH:' do
-      let(:row_number) { 10 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization C - TH')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(4)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(4)
-      end
-    end
-
-    describe 'Organization D - TH:' do
-      let(:row_number) { 11 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization D - TH')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(23)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(11)
-      end
-    end
-
-    describe 'Organization D - TH - 2:' do
-      let(:row_number) { 12 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization D - TH - 2')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(27)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(16)
-      end
-    end
-
-    describe 'Organization O - TH:' do
-      let(:row_number) { 13 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization O - TH')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(9)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(9)
-      end
-    end
-
-    describe 'Organization F - ES:' do
-      let(:row_number) { 14 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization F - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(43)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(37)
-      end
-    end
-
-    describe 'Organization E - TH:' do
-      let(:row_number) { 15 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization E - TH')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(10)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(9)
-      end
-    end
-
-    describe 'Organization M - ES - 2:' do
-      let(:row_number) { 16 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization M - ES - 2')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(13)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(10)
-      end
-    end
-
-    describe 'Organization A - ES:' do
-      let(:row_number) { 17 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization A - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(16)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(16)
-      end
-    end
-
-    describe 'Organization N - TH:' do
-      let(:row_number) { 18 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization N - TH')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(4)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(4)
-      end
-    end
-
-    describe 'Organization Z - ES:' do
-      let(:row_number) { 19 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization Z - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(10)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(10)
-      end
-    end
-
-    describe 'Organization Z - TH:' do
-      let(:row_number) { 20 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization Z - TH')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(4)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(4)
-      end
-    end
-
-    describe 'Organization V - ES:' do
-      let(:row_number) { 21 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization V - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(2)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(2)
-      end
-    end
-
-    describe 'Organization B - TH - 2:' do
-      let(:row_number) { 22 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization B - TH - 2')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(3)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(3)
-      end
-    end
-
-    describe 'Organization P - ES:' do
-      let(:row_number) { 23 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization P - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(2)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(2)
-      end
-    end
-
-    describe 'Organization P - ES - 2:' do
-      let(:row_number) { 24 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization P - ES - 2')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(21)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(18)
-      end
-    end
-
-    describe 'Organization J - ES:' do
-      let(:row_number) { 25 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization J - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(10)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(7)
-      end
-    end
-
-    describe 'Organization S - ES - 2:' do
-      let(:row_number) { 26 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization S - ES - 2')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(19)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(7)
-      end
-    end
-
-    describe 'Organization M - TH - 2:' do
-      let(:row_number) { 27 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization M - TH - 2')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(4)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(3)
-      end
-    end
-
-    describe 'Organization Q - ES:' do
-      let(:row_number) { 28 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization Q - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(68)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(67)
-      end
-    end
-
-    describe 'Organization Z - TH - 2:' do
-      let(:row_number) { 29 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization Z - TH - 2')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(7)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(7)
-      end
-    end
-
-    describe 'Organization J - TH:' do
-      let(:row_number) { 30 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization J - TH')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(1)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(1)
-      end
-    end
-
-    describe 'Organization G - TH:' do
-      let(:row_number) { 31 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization G - TH')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(9)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(9)
-      end
-    end
-
-    describe 'Organization M - TH - 3:' do
-      let(:row_number) { 32 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization M - TH - 3')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(2)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(2)
-      end
-    end
-
-    describe 'Organization J - ES - 2:' do
-      let(:row_number) { 33 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization J - ES - 2')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(2)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(2)
-      end
-    end
-
-    describe 'Organization K - ES:' do
-      let(:row_number) { 34 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization K - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(9)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(9)
-      end
-    end
-
-    describe 'Organization F - ES - 2:' do
-      let(:row_number) { 35 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization F - ES - 2')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(2)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(2)
-      end
-    end
-
-    describe 'Organization K - ES - 2:' do
-      let(:row_number) { 36 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization K - ES - 2')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(27)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(27)
-      end
-    end
-
-    describe 'Organization N - ES:' do
-      let(:row_number) { 37 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization N - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(1)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(1)
-      end
-    end
-
-    describe 'Organization C - ES:' do
-      let(:row_number) { 38 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization C - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(10)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(10)
-      end
-    end
-
-    describe 'Organization R - ES:' do
-      let(:row_number) { 39 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization R - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(13)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(13)
-      end
-    end
-
-    describe 'Organization G - SH:' do
-      let(:row_number) { 40 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization G - SH')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(2)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(2)
-      end
-    end
-
-    describe 'Organization O - ES:' do
-      let(:row_number) { 41 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization O - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(23)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(10)
-      end
-    end
-
-    describe 'Organization D - TH - 5:' do
-      let(:row_number) { 42 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization D - TH - 5')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(4)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(4)
-      end
-    end
-
-    describe 'Organization M - TH - 4:' do
-      let(:row_number) { 43 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization M - TH - 4')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(5)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(5)
-      end
-    end
-
-    describe 'Organization U - TH:' do
-      let(:row_number) { 44 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization U - TH')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(2)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(1)
-      end
-    end
-
-    describe 'Organization F - ES - 3:' do
-      let(:row_number) { 45 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization F - ES - 3')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(12)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(10)
-      end
-    end
-
-    describe 'Organization N - SO:' do
-      let(:row_number) { 46 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization N - SO')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(1)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(1)
-      end
-    end
-
-    describe 'Organization G - TH - 2:' do
-      let(:row_number) { 47 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization G - TH - 2')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(2)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(2)
-      end
-    end
-
-    describe 'Organization Q - ES - 2:' do
-      let(:row_number) { 48 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization Q - ES - 2')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(1)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(1)
-      end
-    end
-
-    describe 'Organization U - ES:' do
-      let(:row_number) { 49 }
-      it 'Project Name' do
-        result = cell_result(question: question, cell_name: column_names[:'Project Name'] + row_number.to_s)
-        expect(result).to eq('Organization U - ES')
-      end
-      it 'Client Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Client Count'] + row_number.to_s)
-        expect(result).to eq(9)
-      end
-      it 'Household Count' do
-        result = cell_result(question: question, cell_name: column_names[:'Household Count'] + row_number.to_s)
-        expect(result).to eq(6)
+    results.each do |category, (data)|
+      describe category do
+        column_names.keys.each_with_index do |column, index|
+          it column do
+            cell_name = column_names[column] + data[:row_number].to_s
+            result = report_result.answer(question: question, cell: cell_name).summary
+            expect(result).to eq(data[:values][index])
+          end
+        end
       end
     end
   end
@@ -787,8 +223,4 @@ end
 
 RSpec.configure do |rspec|
   rspec.include_context 'adult and child', include_shared: true
-end
-
-def cell_result(question:, cell_name:)
-  report_result.answer(question: question, cell: cell_name).summary
 end

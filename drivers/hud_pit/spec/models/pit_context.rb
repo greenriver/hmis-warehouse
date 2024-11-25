@@ -37,7 +37,7 @@ RSpec.shared_context 'datalab pit context', shared_context: :metadata do
       build_for_questions: question_numbers,
     )
     # Uncomment to get detail CSVs
-    klass.write_detail_path = 'tmp/pit_'
+    # klass.write_detail_path = 'tmp/pit_'
     @generator = klass.new(report)
     @generator.run!
 
