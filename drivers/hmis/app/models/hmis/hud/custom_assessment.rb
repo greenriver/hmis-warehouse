@@ -33,7 +33,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   # created_by_hud_user and updated_by_hud_user ALSO refer to the HUD users table (not the application users),
   # but they use a PK reference, not hmis_relation. These columns are for reporting.
   belongs_to :created_by_hud_user, foreign_key: :created_by_hud_user_id, class_name: 'Hmis::Hud::User', optional: true
-  belongs_to :updated_by_hud_user, foreign_key: :created_by_hud_user_id, class_name: 'Hmis::Hud::User', optional: true
+  belongs_to :updated_by_hud_user, foreign_key: :updated_by_hud_user_id, class_name: 'Hmis::Hud::User', optional: true
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 

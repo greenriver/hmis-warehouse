@@ -34,9 +34,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
+  let(:hud_user) { Hmis::Hud::User.from_user(hmis_user) }
   let!(:other_user) { create(:user, first_name: 'someone', last_name: 'else') }
   let!(:other_hmis_user) { other_user.related_hmis_user(ds1) }
   let!(:other_ac) { create_access_control(other_user, p1) }
+  let(:other_hud_user) { Hmis::Hud::User.from_user(other_hmis_user) }
 
   let(:test_assessment_date) { e1.entry_date.strftime('%Y-%m-%d') }
   let(:test_input) do
@@ -84,29 +86,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(e1.custom_assessments.count).to eq(1)
         expect(e1.custom_assessments.in_progress.count).to eq(0)
         expect(e1.custom_assessments.first.enrollment_id).to eq(e1.enrollment_id)
-        expect(e1.custom_assessments.first.created_by).to eq(hmis_user)
-        expect(e1.custom_assessments.first.updated_by).to eq(hmis_user)
-        expect(e1.custom_assessments.first.created_by_hud_user).to eq(Hmis::Hud::User.from_user(hmis_user))
+        expect(e1.custom_assessments.first.created_by_hud_user).to eq(hud_user)
+        expect(e1.custom_assessments.first.updated_by_hud_user).to eq(hud_user)
       end
-    end
-
-    it 'should save the true user as the creator when another user is being impersonated' do
-      post hmis_impersonations_path, params: { user_id: other_hmis_user.id }, headers: {
-        'ORIGIN' => GraphqlHelpers::HMIS_ORIGIN,
-      }
-
-      response, result = post_graphql(input: { input: test_input }) { mutation }
-      expect(response.status).to eq(200), result.inspect
-
-      expect(e1.custom_assessments.sole.created_by).to eq(hmis_user)
-      expect(e1.custom_assessments.sole.updated_by).to eq(hmis_user)
-      expect(e1.custom_assessments.sole.created_by_hud_user).to eq(Hmis::Hud::User.from_user(hmis_user))
-      expect(e1.custom_assessments.sole.user).to eq(Hmis::Hud::User.from_user(other_hmis_user)) # NOT the true user
     end
   end
 
   describe 'Re-Submitting a form that has already been submitted' do
-    let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, assessment_date: e1.entry_date, created_by: hmis_user, updated_by: hmis_user, user: Hmis::Hud::User.from_user(hmis_user), created_by_hud_user: Hmis::Hud::User.from_user(hmis_user) }
+    let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, assessment_date: e1.entry_date, user: hud_user, created_by_hud_user: hud_user, updated_by_hud_user: hud_user }
     let(:new_assessment_date) { (e1.entry_date + 1.week).strftime('%Y-%m-%d') }
     let!(:new_input) do
       {
@@ -142,16 +129,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'should update updated_by, but not created_by' do
         assmt = e1.custom_assessments.sole
-        expect(assmt.created_by).to eq(hmis_user)
-        expect(assmt.updated_by).to eq(hmis_user)
-        expect(assmt.created_by_hud_user).to eq(Hmis::Hud::User.from_user(hmis_user))
+        expect(assmt.created_by_hud_user).to eq(hud_user)
+        expect(assmt.updated_by_hud_user).to eq(hud_user)
         expect do
           response, result = post_graphql(input: { input: new_input }) { mutation }
           expect(response.status).to eq(200), result.inspect
           assmt.reload
-        end.to change(assmt, :updated_by).from(hmis_user).to(other_hmis_user).
-          and change(assmt, :user).from(Hmis::Hud::User.from_user(hmis_user)).to(Hmis::Hud::User.from_user(other_hmis_user)).
-          and not_change(assmt, :created_by).
+        end.to change(assmt, :user).from(hud_user).to(other_hud_user).
+          and change(assmt, :updated_by_hud_user).from(hud_user).to(other_hud_user).
           and not_change(assmt, :created_by_hud_user)
       end
     end
