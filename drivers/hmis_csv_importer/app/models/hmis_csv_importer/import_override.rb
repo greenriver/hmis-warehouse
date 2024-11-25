@@ -13,6 +13,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   validates :data_source, presence: true
   validates :replacement_value, presence: true
   validates :replaces_column, presence: true
+  validates :replaces_value, uniqueness: { scope: [:data_source_id, :file_name, :replaces_column, :matched_hud_key, :replaces_value], message: 'is already in use.  Another override exists with the same combination of file, matched ID, replacement column, value to replace, and replacement value, this one cannot be created at it would be a duplicate.' }
 
   scope :sorted, -> do
     order(:file_name, :replaces_column, :matched_hud_key)
