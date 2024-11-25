@@ -1560,6 +1560,7 @@ CREATE VIEW analytics.custom_assessments AS
  FROM public."CustomAssessments"
  WHERE ("DateDeleted" IS NULL);
 
+
 --
 -- Name: CustomClientAddress; Type: TABLE; Schema: public; Owner: -
 --
@@ -64368,4 +64369,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241118205043'),
 ('20241118205103'),
 ('20241118210256'),
-('20241118210556');
+('20241118210556'),
+('20241111212106');

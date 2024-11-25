@@ -20,7 +20,7 @@ task migrate_assessments_20241111: [:environment] do
 
       attrs = {}
 
-      # todo @martha - what a mess
+      # todo @martha - finish fixing upgrade script
       # attrs[:updated_by_user_id] = (update_version.clean_true_user_id || update_version.clean_user_id) # update_version will always be present
 
       if create_version
