@@ -42,26 +42,6 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     resource
   end
 
-  # a set of permissions the user has for either the project or the client which would grant them access to this client
-  memoize def resource_permissions
-    clients = GrdaWarehouse::Hud::Client.where(id: client_id)
-    # project_ids are the projects for which the client has an enrollment
-    project_ids = GrdaWarehouse::Hud::Project.joins(:clients).merge(clients).distinct.pluck(:id)
-
-    results = Set.new
-
-    # Notes:
-    # * Window data sources allow special case global access to clients for legacy-role based permission users
-    # * When a datasource is visible in the window, the `can_*_with_roi permissions are not relevant.  The window
-    # flag on the data source is an indication that a release is not required to see client data in the data source.
-    results.merge(context.client_window_data_source_permissions(client.data_source_id, release: roi_authorized?))
-
-    project_ids.each do |project_id|
-      results.merge(context.project_role_permissions(project_id))
-    end
-    results.merge(context.direct_client_role_permissions(client_id))
-  end
-
   # NOTE: this will query `destination_client.roi_authorizations` which could be a source of N+1 queries if authorizing
   # multiple clients
   #
@@ -73,7 +53,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
   #   - if the user has `can_search_client_with_roi`, we grant `can_search_own_clients` and `can_search_all_clients`
   #   - if the user has `can_view_client_enrollments_with_roi`, we grant `can_view_clients`
   # - ROI does not confer additional permissions. Additional permissions are identical to clients without an ROI, such as via direct assignment
-  def roi_authorized?
+  memoize def roi_authorized?
     return false unless client.data_source&.obey_consent?
 
     destination = client.destination_client
@@ -83,5 +63,46 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     return false if roi_authorizations.blank?
 
     roi_authorizations.any? { |a| a.matches_coc_codes?(user.coc_codes) }
+  end
+
+  # a set of permissions the user has for either the project or the client which would grant them access to this client
+  memoize def resource_permissions
+    results = Set.new
+    add_legacy_data_source_permissions(results)
+    add_project_based_permissions(results)
+    add_direct_client_permissions(results)
+    results
+  end
+
+  # Window data sources are a deprecated legacy client data sharing mechanic, replaced by a System Collection when using Access Controls-based permissions
+  def add_legacy_data_source_permissions(results)
+    # is this a user with legacy role-based perms?
+    legacy_permissions = context.legacy_permissions
+    return unless legacy_permissions.present?
+
+    # is the client in a window data source?
+    return unless context.legacy_window_data_source_ids.include?(client.data_source_id)
+
+    # check roi if the window config requires release (the "can_*_with_roi" permissions are not relevant in this case)
+    return if context.legacy_window_access_requires_release? && !roi_authorized?
+
+    results.merge(legacy_permissions)
+  end
+
+  # permissions the user has through association with the client's enrolled projects, orgs, project groups, etc.
+  def add_project_based_permissions(results)
+    enrolled_project_ids = GrdaWarehouse::Hud::Project.
+      joins(:clients).
+      merge(GrdaWarehouse::Hud::Client.where(id: client_id)).
+      distinct.
+      pluck(:id)
+    enrolled_project_ids.each do |project_id|
+      results.merge(context.project_role_permissions(project_id))
+    end
+  end
+
+  # permissions the user has directly on the client (for destination clients with no enrollments in authoritative data sources)
+  def add_direct_client_permissions(results)
+    results.merge(context.direct_client_role_permissions(client_id))
   end
 end
