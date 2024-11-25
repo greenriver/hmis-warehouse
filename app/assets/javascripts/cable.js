@@ -2,6 +2,7 @@
 //= require_self
 (function() {
   this.App || (this.App = {});
+  // eslint-disable-next-line no-undef
   App.cable = ActionCable.createConsumer();
   // ActionCable.logger.enabled = true;
   // ActionCable.ConnectionMonitor.staleThreshold = 10;

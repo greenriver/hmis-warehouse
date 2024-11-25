@@ -1,11 +1,11 @@
 $('.panel-collapsible .panel-collapse').on('show.bs.collapse hide.bs.collapse', function(e) {
-  var state = e.handleObj.type === 'show' ? 'down' : 'right'
-  var $parent = $(this).parent()
+  var state = e.handleObj.type === 'show' ? 'down' : 'right';
+  var $parent = $(this).parent();
   var arrow_icon = $parent.data('arrow-icon');
   $parent
     .find('.j-toggle-arrow')
     .removeClass()
-    .addClass(arrow_icon + '-' + state + ' j-toggle-arrow')
+    .addClass(arrow_icon + '-' + state + ' j-toggle-arrow');
   // Removing this temporarily as it is causing an infinite loop
   // $parent
   //   .find('input')
@@ -13,5 +13,5 @@ $('.panel-collapsible .panel-collapse').on('show.bs.collapse hide.bs.collapse', 
   //   .focus()
   $parent
     .find('.j-toggle-text')
-    .toggleClass(['hide', 'show'])
-})
+    .toggleClass(['hide', 'show']);
+});

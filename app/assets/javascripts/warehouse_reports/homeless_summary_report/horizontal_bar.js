@@ -20,12 +20,14 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
 
   _build_chart() {
     if ($(this.chart_selector).length > 0) {
+      // eslint-disable-next-line no-unused-vars
       const self = this;
       this.options = $(this.chart_selector).data('chart').options;
       this.categories = $(this.chart_selector).data('chart').categories;
       if (this.truncate_labels > 0) {
         // this.categories = this.categories.map(c => c.substring(0, this.truncate_labels))
         this.categories = this.categories.map(c => {
+          // eslint-disable-next-line no-undef
           separator = ' ';
           if (c.length <= this.truncate_labels) return c;
           return c.substr(0, c.lastIndexOf(' ', this.truncate_labels)) + '...';
@@ -50,6 +52,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
         columns: columns,
         type: 'bar',
         labels: {
+          // eslint-disable-next-line no-unused-vars
           format: (v, id, i, j) => {
             if (this.options.showPercentageWithValue) {
               let percentage = 0;
@@ -200,6 +203,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
   }
 };
 
+// eslint-disable-next-line no-unused-vars
 function __guard__(value, transform) {
   return typeof value !== 'undefined' && value !== null ? transform(value) : undefined;
 }

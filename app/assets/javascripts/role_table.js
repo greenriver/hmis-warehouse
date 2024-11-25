@@ -1,20 +1,20 @@
 window.App.RoleTable = class RoleTable {
   constructor({props, patch_url} = {props, patch_url:'/admin/roles'}) {
-    this.isDirty = false
+    this.isDirty = false;
     this.props = Object.assign({
       tableContainerSelector: '.j-table',
       submitContainerSelector: '.j-table__submit-container',
       tableObjectHeadingSelector: '.j-table__object',
       tableInputSelector: '.j-table__input',
       tableCancelChange: '.j-table__cancel',
-    }, props)
+    }, props);
 
-    this.isSaving = false
-    this.$tableContainer = $(this.props.tableContainerSelector)
+    this.isSaving = false;
+    this.$tableContainer = $(this.props.tableContainerSelector);
 
-    this.patch_url = patch_url
+    this.patch_url = patch_url;
 
-    this.init()
+    this.init();
   }
 
   init() {
@@ -25,7 +25,7 @@ window.App.RoleTable = class RoleTable {
       tableRowSelector='.j-table__row',
       submitActionSelector= '.j-table__submit-changes',
       tableCancelChange
-    } = this.props
+    } = this.props;
 
     // Init Datable
     this.table = $(tableSelector).DataTable({
@@ -46,78 +46,80 @@ window.App.RoleTable = class RoleTable {
     new App.ListSearch({
       inputClass: tableSearchInputSelector,
       itemClass: tableRowSelector
-    })
+    });
 
     // Register events
-    $(submitActionSelector).on('click', this.submitChanges.bind(this))
-    $(`${tableSelector} input`).on('change', this.changeDirtyState.bind(this, true))
+    $(submitActionSelector).on('click', this.submitChanges.bind(this));
+    $(`${tableSelector} input`).on('change', this.changeDirtyState.bind(this, true));
     $(tableCancelChange).on('click', () => {
-      this.isDirty = false
-      return
-    })
+      this.isDirty = false;
+      return;
+    });
     window.onbeforeunload = () => {
       if (this.isDirty) {
-        return 'Looks like there are unsaved changes. Those changes will be lost if you navigate away'
+        return 'Looks like there are unsaved changes. Those changes will be lost if you navigate away';
       }
-    }
+    };
   }
 
   submitChanges() {
-    $(this.submitActionSelector).trigger('blur')
-    if (this.isSaving) return
-    this.saving()
+    $(this.submitActionSelector).trigger('blur');
+    if (this.isSaving) return;
+    this.saving();
     const {
       tableContainerSelector,
+      // eslint-disable-next-line no-unused-vars
       tableObjectHeadingSelector,
       tableInputSelector,
-    } = this.props
+    } = this.props;
     const rolePromises =
       this.$tableContainer.data('objects')
+        // eslint-disable-next-line no-unused-vars
         .map((id, i) => {
-          const inputBaseQuery = `${tableInputSelector}[data-role=${id}] input`
-          const inputs = this.$tableContainer.find(`${inputBaseQuery}.dirty`)
+          const inputBaseQuery = `${tableInputSelector}[data-role=${id}] input`;
+          const inputs = this.$tableContainer.find(`${inputBaseQuery}.dirty`);
           if (inputs.length) {
-            inputs.add(`${tableContainerSelector} input[name=authenticity_token]`)
+            inputs.add(`${tableContainerSelector} input[name=authenticity_token]`);
             return $.ajax({
               type: 'PATCH',
               dataType: 'JSON',
               url: `${this.patch_url}/${id}`,
               data: this.$tableContainer.find(inputBaseQuery).serialize(),
-            })
+            });
           } else {
-            return null
+            return null;
           }
-        })
+        });
     Promise.all(rolePromises)
       .then(() => {
-        this.confirmSaved()
+        this.confirmSaved();
       }).catch((error) => {
-        this.confirmSaved(error)
-      })
+        this.confirmSaved(error);
+      });
   }
 
   changeDirtyState(isDirty=true, event) {
-    this.isDirty = isDirty
+    this.isDirty = isDirty;
     if (event) {
-      event.target.classList.add('dirty')
+      event.target.classList.add('dirty');
     }
     else if (!isDirty) {
-      this.$tableContainer.find('input.dirty').removeClass('dirty')
+      this.$tableContainer.find('input.dirty').removeClass('dirty');
     }
-    const $submitContainer = $(this.props.submitContainerSelector)
+    const $submitContainer = $(this.props.submitContainerSelector);
     if ($submitContainer.length) {
       if (isDirty) {
-        $submitContainer.addClass('show')
+        $submitContainer.addClass('show');
       }
       else {
-        $submitContainer.removeClass('show')
+        $submitContainer.removeClass('show');
       }
     }
   }
 
   saving() {
-    this.isSaving = true
-    $(this.submitActionSelector).attr('disabled', true)
+    this.isSaving = true;
+    $(this.submitActionSelector).attr('disabled', true);
     this.$tableContainer.prepend(`
       <div class="j-table__loading c-save-table__loading">
         <div>
@@ -132,31 +134,31 @@ window.App.RoleTable = class RoleTable {
           </div>
         <div>
       </div>
-    `)
+    `);
   }
 
   confirmSaved(error=null) {
-    this.isSaving = false
-    const $loading = this.$tableContainer.find('.j-table__loading')
-    $(this.submitActionSelector).attr('disabled', false)
+    this.isSaving = false;
+    const $loading = this.$tableContainer.find('.j-table__loading');
+    $(this.submitActionSelector).attr('disabled', false);
     if (!error) {
       // Show confirmation message
       setTimeout(() => {
-        this.changeDirtyState(false)
-        $(this.props.submitContainerSelector).removeClass('show')
-      }, 500)
+        this.changeDirtyState(false);
+        $(this.props.submitContainerSelector).removeClass('show');
+      }, 500);
       // Remove loading elements
-      this.isDirty = false
+      this.isDirty = false;
     } else {
-      console.error('Roles/permissions update failed', error)
-      const $container = $(this.props.submitContainerSelector)
+      console.error('Roles/permissions update failed', error);
+      const $container = $(this.props.submitContainerSelector);
       $container.find('.c-save-table__submit-container-error-text').html(`
         <span>
           We're having trouble saving your changes. Please try again.
         </span>
-      `)
-      $container.addClass('has-error')
+      `);
+      $container.addClass('has-error');
     }
-    setTimeout(() => { $loading.fadeOut() }, 500)
+    setTimeout(() => { $loading.fadeOut(); }, 500);
   }
-}
+};

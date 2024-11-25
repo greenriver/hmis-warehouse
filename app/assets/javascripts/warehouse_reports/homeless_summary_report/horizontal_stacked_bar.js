@@ -22,16 +22,18 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
 
   _build_chart() {
     if ($(this.chart_selector).length > 0) {
-      const self = this
+      // eslint-disable-next-line no-unused-vars
+      const self = this;
       this.options = $(this.chart_selector).data('chart').options;
       this.categories = $(this.chart_selector).data('chart').categories;
       if (this.truncate_labels > 0) {
         // this.categories = this.categories.map(c => c.substring(0, this.truncate_labels))
         this.categories = this.categories.map(c => {
-          separator = ' '
+          // eslint-disable-next-line no-undef
+          separator = ' ';
           if (c.length <= this.truncate_labels) return c;
           return c.substr(0, c.lastIndexOf(' ', this.truncate_labels)) + '...';
-        })
+        });
       }
       this.link_params = $(this.chart_selector).data('chart').params;
 
@@ -43,6 +45,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
       const _columns = JSON.parse(JSON.stringify(columns));
       this.groups = $(this.chart_selector).data('chart').groups;
       const setNames = [];
+      // eslint-disable-next-line no-unused-vars
       const columnTotals = _columns.map((col) => {
         setNames.push(col[0]);
         col.shift();
@@ -75,7 +78,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
             tick: {
               rotate: -35,
               autorotate: true,
-              format: function (x) { return x + "%"; }
+              format: function (x) { return x + '%'; }
             },
           },
           x: {
@@ -130,7 +133,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
   _colors(c, d) {
     let color;
     let key = this.categories.indexOf(d.id);
-    const colors = window.Chart.defaults.colors
+    const colors = window.Chart.defaults.colors;
     if (['All'].includes(key)) {
       color = '#288BEE';
     } else {
@@ -149,13 +152,13 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
     // https://github.com/naver/billboard.js/blob/aa91babc6d3173e58e56eef33aad7c7c051b747f/src/internals/tooltip.js#L110
 
     const tooltip_title = defaultTitleFormat(d[0].x);
-    let support = $(this.chart_selector).data('chart').support
+    let support = $(this.chart_selector).data('chart').support;
     // console.log(d, defaultValueFormat(d[0].value), support, tooltip_title)
-    let html = "<table class='bb-tooltip' style='opacity: 1;'>";
-    html += "<thead>";
+    let html = '<table class=\'bb-tooltip\' style=\'opacity: 1;\'>';
+    html += '<thead>';
     html += `<tr><th colspan='2'>${tooltip_title}</th><th>Destination Details</th></tr>`;
-    html += "</thead>";
-    html += "<tbody>";
+    html += '</thead>';
+    html += '<tbody>';
     $(d).each(i => {
       const row = d[i];
 
@@ -163,18 +166,18 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
         const bg_color = color(row.id);
         const box = `<td class='name' style='width: 110px;'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${row.name.split(/[ ,]/)[0]}</td>`;
         const value = `<td style='width: 10%; white-space: nowrap;'>${row.value} (${parseFloat((row.ratio * 100.0).toFixed(1))}%)</td>`;
-        const detailRows = support.all_detail_counts[tooltip_title][row.name].map(this.shortenDestinationDetail)
+        const detailRows = support.all_detail_counts[tooltip_title][row.name].map(this.shortenDestinationDetail);
         const details = `<td class='text-left' style='white-space: nowrap;'>${detailRows.join('<br />')}</td>`;
         html += box;
         html += value;
         html += details;
-        return html += "</tr>";
+        return html += '</tr>';
       }
     });
 
-    html += "</tbody>";
+    html += '</tbody>';
     html += '</table>';
-    $(".bb-tooltip-container").css("z-index", 1000);
+    $('.bb-tooltip-container').css('z-index', 1000);
     return html;
   }
 
@@ -188,8 +191,8 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
       destinationDetail = destinationDetail.replace(/\([^()]*\)/g, '').trim();
     }
     // Special case to shorten especially long destination detail
-    if (destinationDetail.length > 30 && destinationDetail.startsWith("Emergency shelter,")) {
-      destinationDetail = "Emergency shelter"
+    if (destinationDetail.length > 30 && destinationDetail.startsWith('Emergency shelter,')) {
+      destinationDetail = 'Emergency shelter';
     }
     return `${destinationDetail}:${count}`;
   }
@@ -235,6 +238,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
   }
 };
 
+// eslint-disable-next-line no-unused-vars
 function __guard__(value, transform) {
   return typeof value !== 'undefined' && value !== null ? transform(value) : undefined;
 }

@@ -9,11 +9,12 @@ DateCellEditor.prototype.init = function(params) {
 
   // https://jqueryui.com/datepicker/
   $(this.eInput).datepicker({
-    dateFormat: "dd/mm/yyyy",
+    dateFormat: 'dd/mm/yyyy',
     changeMonth: true,
     changeYear: true,
     autoclose: true,
     clearBtn: true
+    // eslint-disable-next-line no-unused-vars
   }).on('hide', function(e) {
     params.stopEditing();
   });

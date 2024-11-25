@@ -32,6 +32,11 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
     permissions_for_collection_ids(collection_ids)
   end
 
+  # Duck-typed for legacy role-based permissions
+  def legacy_permissions
+    EMPTY_SET
+  end
+
   protected
 
   memoize def system_collection_ids(group_name)
