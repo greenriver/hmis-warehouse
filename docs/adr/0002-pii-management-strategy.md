@@ -8,15 +8,13 @@
 
 ## Context
 
-The Open Path Warehouse and HMIS handle sensitive personally identifiable information (PII) for clients and program staff. As our system grows and privacy requirements evolve, we need a comprehensive strategy for managing PII.
+The Open Path Warehouse and HMIS handle sensitive personally identifiable information (PII) for clients and program staff with robust security measures. As our system grows and privacy requirements evolve, we are expanding our strategy for managing PII.
 
 ### Current State
 
-- PII is distributed across multiple tables and models
-- No systematic tracking of where PII exists
-- Limited ability to audit PII
-- No standardized approach to PII protection
-- Growing need for sanitized development/testing environments
+- PII is managed across multiple database tables with existing controls
+- Opportunities identified to enhance application-level PII tracking
+- Planning to expand granular PII protection capabilities
 
 ### Constraints
 
@@ -33,23 +31,22 @@ Implement a multi-phase approach to PII management:
 
 ### Phase 1: Inventory and Access Control
 
-- Improve PII access control implementation for common reports and dashboards
-- Implement systemic PII tracking mechanism in application code
+- Strengthen existing PII access controls for common reports and dashboards
+- Implement a declarative API for defining and tracking PII fields at the model level
 - Define sensitivity levels and other metadata for PII fields
-- Create inventory of data models containing PII
-- Investigate PII requirements in our BI tooling
+- Review existing models and ensure all PII fields are tracked
 
 ### Phase 2: Enhanced Tooling & Management
 
-- Implement systemic PII access control across all locations that expose level 1 PII (dashboards and reports)
-- Implement and deploy PII scrubbing for our development and testing needs
-- Support for tracking PII in key-value PII storage, such as CustomDataElements
-- Create tools to support auditing PII
+- Strengthen existing PII access controls for comprehensive coverage across all reporting interfaces
+- Implement secure data anonymization processes for non-production environments
+- Extend PII field definitions to support structured data elements (key-value stores)
+- Evaluate requirements around secure client record de-identification
 
 ### Phase 3: Data Model Refactoring
 
-- Evaluate data model refactoring to better secure PII
-- Enhance PII access controls
+- Define and implement a process to ensure regular review of PII field definitions
+- Evaluate data model optimization to enhance PII isolation, simplify management, and align with requirements
 
 ## Consequences
 
@@ -57,16 +54,16 @@ Implement a multi-phase approach to PII management:
 
 1. Clear roadmap for improving PII handling
 2. Ability to systematically enhance privacy protections
-3. Better support for compliance requirements
-4. Foundation for automated PII management
+3. Strengthens privacy protections for clients
+4. Builds a strong foundation for future growth and compliance
 5. Improved development and testing workflows
 
 ### Negative
 
-1. Significant development effort across multiple phases
+1. Significant development effort, mitigated by a phased approach designed to minimize disruption
 2. May require changes to existing data models and access patterns
 3. Additional operational complexity
-4. Performance implications of enhanced security measures
+4. Will need optimization to maintain system performance with additional security measures
 
 ## Alternatives Considered
 
@@ -79,9 +76,9 @@ Implement a multi-phase approach to PII management:
 
 **Cons:**
 
-- Doesn't address our privacy requirements
-- Continued manual handling of PII
-- Increasing technical debt
+- Reduced opportunity for privacy automation and enhancement
+- Manual processes would require more staff time
+- Growing complexity in maintaining documentation
 
 ## Additional Info
 
