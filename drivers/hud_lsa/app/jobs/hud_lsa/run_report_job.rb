@@ -17,5 +17,9 @@ module HudLsa
       report.report = report
       NotifyUser.driver_hud_report_finished(report).deliver_now if report.user_id && email
     end
+
+    def max_attempts
+      1
+    end
   end
 end

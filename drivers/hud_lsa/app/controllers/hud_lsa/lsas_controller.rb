@@ -27,6 +27,7 @@ module HudLsa
         @report.state = 'Waiting'
         @report.question_names = @report.class.questions.keys
         @report.save!
+        # FIXME: this is running 3 times no matter what, need to enqueue using DelayeJob
         HudLsa::RunReportJob.perform_later(@report.id)
 
         redirect_to(path_for_history(filter: @filter.to_h))
