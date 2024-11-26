@@ -340,12 +340,14 @@ module Types
     def hud_chronic
       return unless current_permission?(permission: :can_view_hud_chronic_status, entity: object)
 
+      # We are intentionally not checking enrollment visibility. The can_view_hud_chronic_status
+      # permission grants visibility into HUD Chronic status across all the client's enrollments
       open_enrollments = object.enrollments.open_excluding_wip.preload(:ch_enrollment, :project)
 
       # Check if there's an open enrollment at a residential project with a move in date that has occurred
       today = Date.current
       client_is_housed = open_enrollments.any? do |enrollment|
-        enrollment.project.project_type.in?(HudUtility2024.residential_project_type_ids) && (enrollment.move_in_date&.<= today)
+        enrollment.project.project_type.in?(HudUtility2024.permanent_housing_project_types) && (enrollment.move_in_date&.<= today)
       end
       return false if client_is_housed
 
