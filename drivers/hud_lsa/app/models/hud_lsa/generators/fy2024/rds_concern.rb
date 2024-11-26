@@ -75,6 +75,8 @@ module HudLsa::Generators::Fy2024::RdsConcern
     @destroy_rds
   end
 
+  # Use https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/User.SQLServer.Options.S3-integration.html
+  # for faster data imports
   memoize def rds_s3_integration_role_arn
     GrdaWarehouse::Config.get(:rds_s3_integration_role_arn)
   end
