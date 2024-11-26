@@ -45,7 +45,7 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   # config.active_storage.service = :local
   # Store files on local Amazon S3.
-  config.active_storage.service = :amazon
+  config.active_storage.service = ENV.fetch('ACTIVE_STORAGE_SERVICE', 'minio').to_sym
 
   if ENV['SMTP_SERVER']
     config.action_mailer.delivery_method = :smtp

@@ -46,7 +46,7 @@ class Rds
 
   define_method(:sqlservers) { _list&.select { |server| server.engine.match(/sqlserver/) } }
 
-  def start!
+  def start! # FIXME: if it tries again too quickly sometimes it errors, need to track that down
     status = current_state
 
     if status.in?(['available', 'starting', 'creating'])

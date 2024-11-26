@@ -10,6 +10,7 @@ if ENV['RDS_AWS_ACCESS_KEY_ID'].present? && !ENV['NO_LSA_RDS'].present?
 end
 
 require 'csv'
+require 'memery'
 # Testing notes:
 # Re-use an existing report
 # r = HudLsa::Generators::Fy2024::Lsa.last
@@ -17,6 +18,7 @@ require 'csv'
 # r.run!
 module HudLsa::Generators::Fy2024
   class Lsa < ::HudReports::ReportInstance
+    include Memery
     include TsqlImport
     include NotifierConfig
     include ActionView::Helpers::DateHelper
@@ -84,6 +86,7 @@ module HudLsa::Generators::Fy2024
         log_and_ping('LSA Report Setup')
 
         # Ensure the RDS has permission to pull files from S3
+        # note: this takes some time, so do it early
         setup_instance_role
 
         populate_hmis_tables
@@ -316,60 +319,13 @@ module HudLsa::Generators::Fy2024
           s3 = AwsS3.new(bucket_name: ActiveStorage::Blob.service.bucket.name)
           s3_upload_path = "lsa/tmp/#{id}/#{file_name}"
           s3.store(content: cleaned_output, name: s3_upload_path, content_type: 'text/csv')
-          mssql_import_from_s3(s3, path: s3_upload_path)
+          mssql_import_from_s3(s3, path: s3_upload_path, klass: klass)
         end
       end
       FileUtils.rm_rf(extract_path)
       GrdaWarehouseBase.connection.reconnect!
       ApplicationRecord.connection.reconnect!
       ReportingBase.connection.reconnect!
-    end
-
-    private def mssql_import_from_s3(s3, path:)
-      windows_path = path.gsub('/', '\\')
-
-      # Move the S3 blob to the SQL server
-      full_windows_path = "#{s3.bucket.name}\\#{windows_path}"
-      sql = <<~SQL
-        EXEC msdb.dbo.rds_download_from_s3
-        @rds_file_path='D:\S3\#{full_windows_path}',
-        @s3_arn_of_file='arn:aws:s3:::#{s3.bucket.name}/#{path}',
-        @overwrite_file=1;
-      SQL
-      klass.connection.execute(sql)
-
-      wait_for_s3_file_transfer
-
-      # NOTE: 0x0a is the hex representation of \n which SQL server only sometimes accepts
-      sql = <<~SQL
-        BULK INSERT #{klass.quoted_table_name}
-        FROM 'D:\\S3\\#{full_windows_path}'
-        WITH (
-          FORMAT = 'CSV',
-          FIELDTERMINATOR = ',',
-          ROWTERMINATOR = '0x0a',
-          FIRSTROW = 2
-        );
-      SQL
-      klass.connection.execute(sql)
-    end
-
-    private def setup_instance_role
-      # @rds.client.add_role_to_db_instance(
-      #   {
-      #     db_instance_identifier: ::Rds.identifier,
-      #     feature_name: 'S3_INTEGRATION',
-      #     role_arn: 'arn:aws:iam::111122223333:role/rds-s3-integration-role',
-      #   }
-      # )
-    end
-
-    private def wait_for_s3_file_transfer
-      # Needs to wait until the following indicates the most-recent task_type of DOWNLOAD_FROM_S3 has a lifecycle of SUCCESS
-      # We'll probably also need to handle errors (or only wait a specified amount of time)
-      sql = 'SELECT * FROM msdb.dbo.rds_fn_task_status(NULL,0)'
-      rows = klass.connection.select_rows(sql)
-      # TODO: inspect rows to determine if the process has finished, loop for some amount of time
     end
 
     # This reverses some export changes we made to maintain case sensitive matching with the 2024 spec

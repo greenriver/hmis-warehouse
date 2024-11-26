@@ -7467,7 +7467,8 @@ CREATE TABLE public.configs (
     self_report_start_date date,
     chronic_adult_only_cohort boolean DEFAULT false,
     enable_auto_deduplication boolean DEFAULT true,
-    number_lms_courses_required integer DEFAULT '-1'::integer
+    number_lms_courses_required integer DEFAULT '-1'::integer,
+    rds_s3_integration_role_arn character varying
 );
 
 
@@ -63632,6 +63633,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241118210556'),
 ('20241125132725'),
 ('20241125133759'),
-('20241125133814');
+('20241125133814'),
+('20241126143802');
 
 
