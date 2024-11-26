@@ -2,9 +2,9 @@
 
 ## Status
 
-- Current Status: Proposed
-- Date of last update: 2024-11-18
-- Decision-makers: [Project Team]
+- Current Status: Accepted
+- Date of last update: 2024-11-26
+- Decision-makers: OP engineering team
 
 ## Context
 
