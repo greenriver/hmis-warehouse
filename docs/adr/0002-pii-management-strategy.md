@@ -41,7 +41,6 @@ Implement a multi-phase approach to PII management:
 - Strengthen existing PII access controls for comprehensive coverage across all reporting interfaces
 - Implement secure data anonymization processes for non-production environments
 - Extend PII field definitions to support structured data elements (key-value stores)
-- Evaluate requirements around secure client record de-identification
 
 ### Phase 3: Data Model Refactoring
 
