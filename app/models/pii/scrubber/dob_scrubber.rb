@@ -42,7 +42,7 @@ module Pii::Scrubber
     def scramble_dob(current, fuzz_years: 5)
       return nil unless current
 
-      age_at_scrub = ((today - current) / 365.25).floor
+      age_at_scrub = age_in_years(current)
       age_bracket = (age_at_scrub / fuzz_years) * fuzz_years # Creates brackets
       bracket_end = [today - age_bracket.years, today].min
       bracket_start = today - (age_bracket + fuzz_years).years
