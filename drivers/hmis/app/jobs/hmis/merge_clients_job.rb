@@ -17,7 +17,7 @@ module Hmis
 
       self.actor = User.find(actor_id)
       self.clients = Hmis::Hud::Client.
-        preload(:names, :contact_points, :addresses).
+        preload(:names, :contact_points, :addresses, :custom_data_elements).
         find(client_ids).
         map do |client|
           # set some defaults
@@ -25,7 +25,7 @@ module Hmis
           client.DateUpdated ||= 10.years.ago.to_date
           client
         end.
-        sort_by { |client| client.DateCreated.to_datetime }
+        sort_by { |client| [client.DateCreated.to_datetime, client.id] }
 
       self.client_to_retain = clients[0]
       self.clients_needing_reference_updates = clients[1..]
@@ -298,7 +298,13 @@ module Hmis
 
     def destroy_merged_clients
       Rails.logger.info 'soft-deleting merged clients'
-      clients_needing_reference_updates.map(&:reload).map(&:destroy!)
+      ids = clients_needing_reference_updates.map(&:id)
+      scope = Hmis::Hud::Client.where(id: ids)
+      # preload associations to reduce n+1 when destroying a batch
+      preloads = Hmis::Hud::Client.reflect_on_all_associations.
+        filter { |a| a.options[:dependent] == :destroy }.
+        map(&:name)
+      scope.preload(*preloads).each(&:destroy!)
     end
   end
 end
