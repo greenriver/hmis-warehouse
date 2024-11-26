@@ -1,17 +1,18 @@
 desc 'One time data migration to populate created_by and updated_by on Custom Assessments'
 # rails driver:hmis:migrate_assessment_user_references_20241111
 task migrate_assessment_user_references_20241111: [:environment] do
-  assessments = Hmis::Hud::CustomAssessment.joins(:user).preload(:versions)
+  data_source = GrdaWarehouse::DataSource.hmis.sole
+  assessments = Hmis::Hud::CustomAssessment.where(data_source: data_source).joins(:user).preload(:versions)
   total_records = assessments.count
   updated_count = 0
 
   hud_user_local_cache = {} # Cache to store users in memory, reducing db hits
 
-  def find_or_create_hud_user(user_id, data_source, hud_user_local_cache)
+  def find_or_create_hud_user(user_id, hud_user_local_cache, data_source)
     hud_user_local_cache[user_id] ||= begin
       user = Hmis::User.find(user_id)
+      user.hmis_data_source_id = data_source.id
       hud_user = Hmis::Hud::User.from_user(user)
-      hud_user.data_source = data_source
       hud_user
     end
   end
@@ -30,14 +31,14 @@ task migrate_assessment_user_references_20241111: [:environment] do
 
       if create_version
         user_id = create_version.clean_true_user_id || create_version.clean_user_id
-        hud_user = find_or_create_hud_user(user_id, assessment.data_source, hud_user_local_cache)
-        attrs[:created_by_hud_user] = hud_user
+        hud_user = find_or_create_hud_user(user_id, hud_user_local_cache, data_source)
+        attrs[:created_by_hud_user_id] = hud_user.id
       end
 
       if update_version
         user_id = update_version.clean_true_user_id || update_version.clean_user_id
-        hud_user = find_or_create_hud_user(user_id, assessment.data_source, hud_user_local_cache)
-        attrs[:updated_by_hud_user] = hud_user
+        hud_user = find_or_create_hud_user(user_id, hud_user_local_cache, data_source)
+        attrs[:updated_by_hud_user_id] = hud_user.id
       end
 
       # use `update_columns` to bypass paper trail and timestamp updates

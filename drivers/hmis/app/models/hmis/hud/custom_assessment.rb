@@ -188,6 +188,8 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
       assessment_date: assessment_date,
       data_collection_stage: Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[form_definition.role.to_sym],
       **enrollment.slice(:data_source_id, :personal_id, :enrollment_id),
+      created_by_hud_user: user,
+      updated_by_hud_user: user,
     )
     new_assessment.build_form_processor(definition: form_definition)
     # AR doesn't recognize the built record on the has_one-through, so add it directly
