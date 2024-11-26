@@ -4,8 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'memery'
+
 module HudLsa::Generators::Fy2024::RdsConcern
   extend ActiveSupport::Concern
+  include Memery
 
   def sql_server_identifier
     "#{ENV.fetch('CLIENT')&.gsub(/[^0-9a-z]/i, '')}-#{Rails.env}-LSA-#{id}".downcase
@@ -101,7 +104,9 @@ module HudLsa::Generators::Fy2024::RdsConcern
         begin
           klass.connection.execute(sql)
           @s3_feature_enabled = true
+          log_and_ping('RDS S3 Integration to completed') # Probably don't need this long-term, tracking timing now
         rescue TinyTds::Error # FIXME: this needs to be more specific
+          log_and_ping('Waiting for RDS S3 Integration to complete') # Probably don't need this long-term, tracking timing now
           sleep(60)
         end
       end
@@ -124,6 +129,8 @@ module HudLsa::Generators::Fy2024::RdsConcern
   end
 
   private def setup_instance_role
+    return unless rds_s3_integration_enabled?
+
     @rds.client.add_role_to_db_instance(
       {
         db_instance_identifier: ::Rds.identifier,

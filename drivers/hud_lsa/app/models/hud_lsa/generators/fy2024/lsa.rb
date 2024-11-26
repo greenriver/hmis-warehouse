@@ -10,7 +10,6 @@ if ENV['RDS_AWS_ACCESS_KEY_ID'].present? && !ENV['NO_LSA_RDS'].present?
 end
 
 require 'csv'
-require 'memery'
 # Testing notes:
 # Re-use an existing report
 # r = HudLsa::Generators::Fy2024::Lsa.last
@@ -18,7 +17,6 @@ require 'memery'
 # r.run!
 module HudLsa::Generators::Fy2024
   class Lsa < ::HudReports::ReportInstance
-    include Memery
     include TsqlImport
     include NotifierConfig
     include ActionView::Helpers::DateHelper
@@ -88,6 +86,7 @@ module HudLsa::Generators::Fy2024
         # Ensure the RDS has permission to pull files from S3
         # note: this takes some time, so do it early
         setup_instance_role
+        log_and_ping('Role Instance Setup Initiated')
 
         populate_hmis_tables
         update_report_progress(percent: 30)
