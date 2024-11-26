@@ -293,39 +293,67 @@ module HudLsa::Generators::Fy2024
         # Delete any existing data
         klass.delete_all
         klass.reset_column_information
-        Tempfile.open(klass.name) do |cleaned_output|
-          csv_output = CSV.new(cleaned_output)
-          headers_added = false
-          # Read the file in batches to avoid over RAM usage
-          File.open(File.join(extract_path, file_name)) do |file|
-            headers = file.first
-            i = 0
-            file.lazy.each_slice(read_rows) do |lines|
-              content = ::CSV.parse(lines.join, headers: headers)
-              import_headers = content.first.headers
-              next unless content.any?
 
-              # NOTE: we need to insert the id column, SQL Server bulk import doesn't work without it
-              csv_output << ['id'] + standardize_headers(import_headers) unless headers_added
-              # this fixes dates that default to 1900-01-01 if you send an empty string
-              content.map do |row|
-                # increment the row counter for SQL Server
-                i += 1
-                csv_output << [i] + klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
-              end.compact
-            end
-          end
-          cleaned_output.rewind
-          s3 = AwsS3.new(bucket_name: ActiveStorage::Blob.service.bucket.name)
-          s3_upload_path = "lsa/tmp/#{id}/#{file_name}"
-          s3.store(content: cleaned_output, name: s3_upload_path, content_type: 'text/csv')
-          mssql_import_from_s3(s3, path: s3_upload_path, klass: klass)
+        if rds_s3_integration_enabled?
+          populate_hmis_table_from_s3_integration(klass: klass, extract_path: extract_path, file_name: file_name, read_rows: read_rows)
+        else
+          populate_hmis_table_via_bulk_insert(klass: klass, extract_path: extract_path, file_name: file_name, read_rows: read_rows)
         end
       end
       FileUtils.rm_rf(extract_path)
       GrdaWarehouseBase.connection.reconnect!
       ApplicationRecord.connection.reconnect!
       ReportingBase.connection.reconnect!
+    end
+
+    private def populate_hmis_table_via_bulk_insert(klass:, extract_path:, file_name:, read_rows:)
+      # Read the file in batches to avoid over RAM usage
+      File.open(File.join(extract_path, file_name)) do |file|
+        headers = file.first
+        file.lazy.each_slice(read_rows) do |lines|
+          content = ::CSV.parse(lines.join, headers: headers)
+          import_headers = content.first.headers
+          next unless content.any?
+
+          # this fixes dates that default to 1900-01-01 if you send an empty string
+          content = content.map do |row|
+            klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
+          end.compact
+          # Using TsqlImport because active_record import doesn't play nice
+          insert_batch(klass, standardize_headers(import_headers), content, batch_size: 1_000)
+        end
+      end
+    end
+
+    private def populate_hmis_table_from_s3_integration(klass:, extract_path:, file_name:, read_rows:)
+      Tempfile.open(klass.name) do |cleaned_output|
+        csv_output = CSV.new(cleaned_output)
+        headers_added = false
+        # Read the file in batches to avoid over RAM usage
+        File.open(File.join(extract_path, file_name)) do |file|
+          headers = file.first
+          i = 0
+          file.lazy.each_slice(read_rows) do |lines|
+            content = ::CSV.parse(lines.join, headers: headers)
+            import_headers = content.first.headers
+            next unless content.any?
+
+            # NOTE: we need to insert the id column, SQL Server bulk import doesn't work without it
+            csv_output << ['id'] + standardize_headers(import_headers) unless headers_added
+            # this fixes dates that default to 1900-01-01 if you send an empty string
+            content.map do |row|
+              # increment the row counter for SQL Server
+              i += 1
+              csv_output << [i] + klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
+            end.compact
+          end
+        end
+        cleaned_output.rewind
+        s3 = AwsS3.new(bucket_name: ActiveStorage::Blob.service.bucket.name)
+        s3_upload_path = "lsa/tmp/#{id}/#{file_name}"
+        s3.store(content: cleaned_output, name: s3_upload_path, content_type: 'text/csv')
+        mssql_import_from_s3(s3, path: s3_upload_path, klass: klass)
+      end
     end
 
     # This reverses some export changes we made to maintain case sensitive matching with the 2024 spec
