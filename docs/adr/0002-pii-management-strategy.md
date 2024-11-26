@@ -93,4 +93,4 @@ The phased approach allows us to:
 
 ### Related Documents
 
-- [#6730](https://github.com/open-path/Green-River/issues/6730)
+- [Epic #7030](https://github.com/open-path/Green-River/issues/7030)
