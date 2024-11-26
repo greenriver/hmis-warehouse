@@ -26,7 +26,7 @@ module
     end
 
     def ethnicity_count(type, coc_code = base_count_sym)
-      mask_small_population(ethnicity_breakdowns(coc_code)[type]&.count&.presence || 0)
+      mask_small_population(client_ids_in_ethnicity(type, coc_code)&.count&.presence || 0)
     end
 
     def ethnicity_percentage(type, coc_code = base_count_sym)

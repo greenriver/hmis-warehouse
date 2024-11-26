@@ -20,7 +20,7 @@ DropdownCellEditor.prototype.getUI = function() {
   var wrapper = document.createElement('div');
   wrapper.className = 'dropdown-wrapper';
   var list = document.createElement('ol');
-  list.className = 'dropdown-list'
+  list.className = 'dropdown-list';
   var list_item = document.createElement('li');
   $(list_item).text(this.selectedValue);
   if(this.selectedValue) {
@@ -72,7 +72,7 @@ DropdownCellEditor.prototype.getValue = function() {
 
 DropdownCellEditor.prototype.destroy = function() {
 
-}
+};
 
 // if true, then this editor will appear in a popup
 DropdownCellEditor.prototype.isPopup = function() {

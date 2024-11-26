@@ -11,6 +11,8 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
   include Memery
   attr_accessor :user
 
+  EMPTY_SET = Set.new.freeze
+
   def initialize(user)
     @user = user
     raise ArgumentError, 'cannot be acl user' if @user.using_acls?
@@ -31,17 +33,24 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     permissions_for_access_group_ids(access_group_ids)
   end
 
+  memoize def legacy_permissions
+    user.legacy_roles.flat_map(&:granted_permissions).to_set.freeze
+  end
+
+  memoize def legacy_window_access_requires_release?
+    ::GrdaWarehouse::Config.get(:window_access_requires_release)
+  end
+
+  memoize def legacy_window_data_source_ids
+    ::GrdaWarehouse::DataSource.window_data_source_ids.to_set.freeze
+  end
+
   protected
 
   memoize def system_access_group_ids(group_name)
     [AccessGroup.system_groups[group_name]&.id].compact
   end
 
-  memoize def legacy_permissions
-    user.legacy_roles.flat_map(&:granted_permissions).to_set.freeze
-  end
-
-  EMPTY_SET = Set.new.freeze
   def permissions_for_access_group_ids(access_group_ids)
     access_group_ids += system_access_group_ids(:data_sources)
     return EMPTY_SET if access_group_ids.blank?
@@ -71,7 +80,8 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     coc_codes = GrdaWarehouse::Hud::ProjectCoc.
       joins(:project).
       where(p_t[:id].eq(project_id)).
-      pluck(:coc_code)
+      pluck(:coc_code).
+      compact_blank
     # two queries are required because COC codes are on the app db
     access_group_ids += AccessGroup.for_coc_codes(coc_codes).pluck(:id) if coc_codes.any?
 

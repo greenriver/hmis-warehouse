@@ -1,14 +1,15 @@
+// eslint-disable-next-line no-undef
 App.StimulusApp.register('favorite', class extends Stimulus.Controller {
   static get targets() {
-    return ['icon']
+    return ['icon'];
   }
   static get values() {
     return {
       id: Number
-    }
+    };
   }
   static get classes() {
-    return ['favorite', 'notFavorite']
+    return ['favorite', 'notFavorite'];
   }
 
   toggleIcon(wasFavorite) {
@@ -29,16 +30,17 @@ App.StimulusApp.register('favorite', class extends Stimulus.Controller {
       url: `/api/reports/${this.idValue}/${route}`,
       method: 'PUT'
     })
-    .done((ret) => {
-      console.debug(`Successful ${route} ${this.idValue}`);
-    })
-    .fail((ret) => {
-      console.error([`Failed to ${route} ${this.idValue}`, ret]);
-      // Undo icon change
-      this.toggleIcon(!isFavorite);
-    })
+      // eslint-disable-next-line no-unused-vars
+      .done((ret) => {
+        console.debug(`Successful ${route} ${this.idValue}`);
+      })
+      .fail((ret) => {
+        console.error([`Failed to ${route} ${this.idValue}`, ret]);
+        // Undo icon change
+        this.toggleIcon(!isFavorite);
+      });
   }
 
 
 
-})
+});
