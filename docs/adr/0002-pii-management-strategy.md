@@ -1,4 +1,4 @@
-# ADR 002: PII Management Strategy
+# ADR 0002: PII Management Strategy
 
 ## Status
 
