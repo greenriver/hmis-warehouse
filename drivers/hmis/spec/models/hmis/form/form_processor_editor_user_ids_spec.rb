@@ -31,7 +31,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           "mapping": {
             "custom_field_key": 'only_1_can_edit',
           },
-          "editor_user_ids": [hmis_user.id],
+          "editor_user_ids": [hmis_user.id.to_s],
         },
       ],
     }
