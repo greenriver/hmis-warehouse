@@ -80,7 +80,7 @@ module HmisDataQualityTool
         section[:detail_columns]
       else
         # Handle CH details
-        columns = [
+        [
           :destination_client_id,
           :first_name,
           :last_name,
@@ -106,7 +106,10 @@ module HmisDataQualityTool
         report.user,
         client_ids: all_source_client_ids,
       ).pluck(:id).to_set
+      # Limit source clients to those with enrollments within the projects and range in the designated universe.
+      # NOTE: this is a change for FY2024 where the LSA no longer includes multi-year DQ checks for clients
       client_ids_at_chosen_projects = GrdaWarehouse::Hud::Enrollment.joins(:project, :client).
+        open_during_range(report.filter.range).
         merge(GrdaWarehouse::Hud::Project.where(id: report.filter.effective_project_ids)).
         pluck(c_t[:id]).to_set
       client_scope(report).find_in_batches do |batch|
@@ -284,7 +287,7 @@ module HmisDataQualityTool
       overlaps = Set.new
       homeless_enrollments.each do |h_en|
         homeless_end_date = [h_en.exit&.ExitDate, report.filter.end].compact.min
-        homeless_dates = if h_en.project&.es? && h_en.project&.bed_night_tracking?
+        homeless_dates = if h_en.project&.es? && h_en.project.bed_night_tracking?
           h_en.services.where(RecordType: 200, DateProvided: [h_en.EntryDate, homeless_end_date]).pluck(:DateProvided)
         else
           h_en.EntryDate...homeless_end_date

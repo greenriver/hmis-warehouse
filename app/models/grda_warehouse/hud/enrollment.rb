@@ -320,6 +320,33 @@ module GrdaWarehouse::Hud
       exit&.ExitDate
     end
 
+    def prior_living_situation_label
+      HudUtility2024.living_situation(living_situation)
+    end
+
+    # Returns a HUD known household type:
+    # Without Children
+    # With Children and Adults
+    # With Only Children
+    # Unknown Household Type
+    def household_type(clients = household_members)
+      member_ages = clients.map(&:DOB).
+        map { |dob| GrdaWarehouse::Hud::Client.age(date: Date.current, dob: dob) }
+
+      return 'With Only Children' if member_ages.all?(&:present?) && member_ages.all? { |age| age < 18 }
+      return 'Without Children' if member_ages.all?(&:present?) && member_ages.all? { |age| age >= 18 }
+      return 'With Children and Adults' if member_ages.reject(&:blank?).any? { |age| age >= 18 } && member_ages.reject(&:blank?).any? { |age| age < 18 }
+
+      'Unknown Household Type'
+    end
+
+    # NOTE: this causes additional queries, you may want to find these clients in a more efficient way
+    # Returns the source client records for anyone in the household
+    def household_members
+      GrdaWarehouse::Hud::Client.joins(:enrollments).
+        merge(GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source_id, household_id: household_id))
+    end
+
     # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode
     # You aren't currently housed in PH, and you've had at least a week of being housed in the last 90 days
     def new_episode?

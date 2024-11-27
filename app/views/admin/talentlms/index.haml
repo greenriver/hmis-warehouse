@@ -17,12 +17,16 @@
     %thead
       %tr
         %th Subdomain
+        %th Can Create New Accounts in TalentLMS
         %th 
     %tbody
       - @configs.each do |config|
         %tr
           %td
             = link_to config.unique_name, edit_admin_talentlm_path(config)
+          %td
+            - if config.create_new_accounts 
+              %i.icon-checkmark
           %td
             - if config.courses.count == 0 
               .float-right

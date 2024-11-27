@@ -92,6 +92,8 @@ jobs:
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5
+        env:
+          DOCKER_METADATA_SHORT_SHA_LENGTH: 7
         with:
           images: ${{ secrets.ECR_REPOSITORY_URI }}
           flavor: ${{ matrix.flavor }}

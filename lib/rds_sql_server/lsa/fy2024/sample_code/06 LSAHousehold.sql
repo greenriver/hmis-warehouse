@@ -668,7 +668,7 @@ set hh.ESTGeography = case when hh.ESTStatus = 0 then -1
 	union
 	select distinct hh.HoHID, hh.HHType, 1
 		, bn.DateProvided	
-		, dateadd(dd, 6, bn.DateProvided)
+		, case when dateadd(dd, 6, bn.DateProvided) <= rpt.ReportEnd then dateadd(dd, 6, bn.DateProvided) else rpt.ReportEnd end
 		, '6.12.2.b'
 	from tlsa_Household hh
 	inner join lsa_Report rpt on rpt.ReportStart >= hh.FirstEntry

@@ -269,15 +269,23 @@ module AllNeighborsSystemDashboard
       # Diversion is a special case, limited to the secondary project ids.
       # For all others, we'll limit to the effective project ids to prevent double counting
       when 'Diversion'
-        scope.where(project_id: @report.filter.secondary_project_ids, destination: @report.class::POSITIVE_DIVERSION_DESTINATIONS)
+        scope.where(project_id: @report.filter.secondary_project_ids)
       when 'Permanent Supportive Housing' # NOTE: these project types are specified and do not match HUD
-        scope.where(project_type: [3, 10], project_id: @report.filter.effective_project_ids)
+        scope.where(project_type: [3, 10], project_id: @report.filter.effective_project_ids).
+          # Prioritize counting clients in diversion over by project type
+          where.not(project_id: @report.filter.secondary_project_ids)
       when 'Rapid Rehousing' # NOTE: these project types are specified and do not match HUD
-        scope.where(project_type: [9, 13], project_id: @report.filter.effective_project_ids)
+        scope.where(project_type: [9, 13], project_id: @report.filter.effective_project_ids).
+          # Prioritize counting clients in diversion over by project type
+          where.not(project_id: @report.filter.secondary_project_ids)
       when 'Unsheltered', 'Unhoused Population'
-        scope.where(project_type: HudUtility2024.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids)
+        scope.where(project_type: HudUtility2024.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids).
+          # Prioritize counting clients in diversion over by project type
+          where.not(project_id: @report.filter.secondary_project_ids)
       when 'Sheltered'
-        scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids)
+        scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids).
+          # Prioritize counting clients in diversion over by project type
+          where.not(project_id: @report.filter.secondary_project_ids)
       when *household_types
         scope.where(household_type: type)
       when 'Under 18'

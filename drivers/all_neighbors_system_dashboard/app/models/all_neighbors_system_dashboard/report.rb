@@ -113,8 +113,11 @@ module AllNeighborsSystemDashboard
           exit_date = exit_date(filter, enrollment)
           diversion_enrollment = enrollment.project.id.in?(filter.secondary_project_ids)
 
-          placed_date = if diversion_enrollment && exit_type == 'Permanent'
-            exit_date
+          # Diversion is prioritized over RRH & PH (some diversion projects may be RRH projects)
+          # But we only want diversion enrollments where the client exited to a permanent destination
+          # All others should be thrown out
+          placed_date = if diversion_enrollment
+            exit_date if exit_type == 'Permanent'
           elsif enrollment.project.ph?
             move_in_date
           end
@@ -277,6 +280,18 @@ module AllNeighborsSystemDashboard
               id: filter.effective_project_ids + filter.secondary_project_ids,
             ),
         )
+    end
+
+    # for debugging
+    def enrollments_as_csv
+      return [] unless enrollments.any?
+
+      CSV.generate do |csv|
+        csv << enrollments.first.attributes.keys
+        enrollments.find_each do |enrollment|
+          csv << enrollment.attributes.values
+        end
+      end
     end
 
     def event_scope
