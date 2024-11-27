@@ -20933,7 +20933,9 @@ CREATE TABLE public.hud_report_apr_clients (
     most_recent_ed_status_at_exit integer,
     current_ed_status_at_exit integer,
     pay_for_success boolean DEFAULT false,
-    race_multi_include_race_none jsonb
+    race_multi_include_race_none jsonb,
+    hoh_move_in_date date,
+    household_move_in_date date
 );
 
 
@@ -64365,6 +64367,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241118205043'),
 ('20241118205103'),
 ('20241118210256'),
-('20241118210556');
+('20241118210556'),
+('20241122135153');
 
 
