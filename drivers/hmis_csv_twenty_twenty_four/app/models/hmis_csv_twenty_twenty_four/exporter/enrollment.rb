@@ -42,6 +42,16 @@ module HmisCsvTwentyTwentyFour::Exporter
           modified_within_range(range: (export.start_date..export.end_date))
       end
 
+      # Leaving this here temporarily, it should not be necessary as filtering is
+      # handled in app/models/concerns/export/scopes.rb
+      # Limit to the chosen CoC codes if any are specified
+      # filter = export.filter
+      # if filter.coc_codes.any?
+      #   export_scope = export_scope.where(EnrollmentCoC: filter.coc_codes).
+      #     or(e_scope.where(EnrollmentCoC: nil)).
+      #     or(e_scope.where.not(EnrollmentCoC: HudUtility2024.cocs.keys))
+      # end
+
       note_involved_user_ids(scope: export_scope, export: export)
 
       export_scope.distinct.preload(:user, :project, client: :warehouse_client_source)
