@@ -93,9 +93,10 @@ module HudReports::LengthOfStays
     private def approximate_time_to_move_in(enrollment, reporting_age, hoh_enrollment)
       # PSH/RRH w/ move in date
       # OR project type 7 (other) with Funder 35 (Pay for Success)
-      valid_ph_projects = HudUtility2024.permanent_housing_project_types - [HudUtility2024.project_type_brief('PH - OPH', true)]
+      valid_ph_project_types = HudUtility2024.permanent_housing_project_types - [HudUtility2024.project_type_brief('PH - OPH', true)]
+      valid_ph_enrollment = enrollment.project_type.in?(valid_ph_project_types)
       other_pay_for_success = enrollment.project_type.in?([HudUtility2024.project_type_brief('Other', true)]) && enrollment.project.pay_for_success?
-      move_in_date = if enrollment.project_type.in?(valid_ph_projects) || other_pay_for_success
+      move_in_date = if valid_ph_enrollment || other_pay_for_success
         appropriate_move_in_date(enrollment) || enrollment.first_date_in_program
       else
         enrollment.first_date_in_program

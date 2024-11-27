@@ -20935,7 +20935,7 @@ CREATE TABLE public.hud_report_apr_clients (
     pay_for_success boolean DEFAULT false,
     race_multi_include_race_none jsonb,
     hoh_move_in_date date,
-    household_move_in_date date
+    adjusted_move_in_date date
 );
 
 
