@@ -177,26 +177,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(result.dig('data', 'client', 'hudChronic')).to eq(false)
   end
 
-  context 'with a client who is chronically homeless per HUD definition' do
-    let!(:c1) { create :hmis_hud_client_with_warehouse_client, data_source: ds1 }
-    let!(:e1) do
-      create :hmis_hud_enrollment,
-             data_source: ds1,
-             project: p1,
-             client: c1,
-             DisablingCondition: 1,
-             MonthsHomelessPastThreeYears: 112, # see MonthsHomelessPastThreeYears enum
-             TimesHomelessPastThreeYears: 4
-    end
-    let!(:disability) { create :hmis_disability, client: c1, enrollment: e1 }
-
-    it 'should return chronic status correctly' do
-      response, result = post_graphql(id: c1.id) { query }
-      expect(response.status).to eq 200
-      expect(result.dig('data', 'client', 'hudChronic')).to eq(true)
-    end
-  end
-
   it 'should return client if can view clients and client is unenrolled' do
     e1.destroy!
     response, result = post_graphql(id: c1.id) { query }

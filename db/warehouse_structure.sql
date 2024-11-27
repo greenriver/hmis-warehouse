@@ -61528,7 +61528,7 @@ CREATE UNIQUE INDEX uidx_hopwa_caper_services ON public.hopwa_caper_services USI
 -- Name: uidx_import_overrides_rules; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_import_overrides_rules ON public.import_overrides USING btree (data_source_id, file_name, replaces_column, COALESCE(matched_hud_key, 'ALL'::character varying), COALESCE(replaces_value, 'ALL'::character varying)) WHERE (deleted_at IS NOT NULL);
+CREATE UNIQUE INDEX uidx_import_overrides_rules ON public.import_overrides USING btree (data_source_id, file_name, replaces_column, COALESCE(matched_hud_key, 'ALL'::character varying), COALESCE(replaces_value, 'ALL'::character varying)) WHERE (deleted_at IS NULL);
 
 
 --
@@ -64368,6 +64368,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241118205103'),
 ('20241118210256'),
 ('20241118210556'),
-('20241122135153');
+('20241122135153'),
+('20241125132725'),
+('20241125133759'),
+('20241125133814');
 
 
