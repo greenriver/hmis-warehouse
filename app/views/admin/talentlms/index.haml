@@ -56,8 +56,9 @@
           %th Subdomain
           %th Course Name 
           %th Course ID
-          %th= "#{length_of_time} to Expiration"
           %th Default
+          %th= "#{length_of_time} to Expiration"
+          %th Active Range
           %th
       %tbody
         - @configs.each do |config|
@@ -66,10 +67,11 @@
               %td= config.unique_name
               %td= link_to course.name.html_safe, edit_admin_talentlms_course_path(course)
               %td= course.courseid
-              %td= course.months_to_expiration
               %td
                 - if course.default 
                   %i.icon-checkmark
+              %td= course.months_to_expiration
+              %td= course.active_date_range_for_display
               %td
                 .float-right
                   = link_to admin_talentlms_course_path(course), method: :delete, data: {confirm: "Are you sure you want to delete the #{course.name} course?" }, class: 'btn btn-danger btn-sm' do

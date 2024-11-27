@@ -243,8 +243,8 @@ module UserConcern
     end
 
     def required_training_courses
-      return Talentlms::Course.where(id: training_courses&.compact_blank) if training_courses&.compact_blank&.present?
-      return Talentlms::Course.default if training_required?
+      return Talentlms::Course.active_on_date(Date.current).where(id: training_courses&.compact_blank) if training_courses&.compact_blank&.present?
+      return Talentlms::Course.active_on_date(Date.current).default if training_required?
 
       []
     end
