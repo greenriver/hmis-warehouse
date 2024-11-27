@@ -62,8 +62,10 @@ module Export::Scopes
         # This is necessary because a project that only operates in a single non-selected CoC will
         # trigger the enrollment cleanup and place those enrollments into the other CoC
         if @coc_codes.present?
-          p_scope = p_scope.joins(:project_cocs).
-            merge(GrdaWarehouse::Hud::ProjectCoc.where(CoCCode: @coc_codes))
+          p_scope = p_scope.where(
+            id: GrdaWarehouse::Hud::Project.joins(:project_cocs).
+              merge(GrdaWarehouse::Hud::ProjectCoc.where(CoCCode: @coc_codes)),
+          )
         end
         p_scope = p_scope.with_deleted if @export&.include_deleted
         p_scope.preload(:organization)
