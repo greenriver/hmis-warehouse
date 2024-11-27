@@ -7,11 +7,6 @@
 module GrPaperTrail
   class Version < ActiveRecord::Base
     include PaperTrail::VersionConcern
-
-    def name_of_whodunnit?
-      return whodunnit unless whodunnit&.to_i&.to_s == whodunnit
-
-      User.find_by(id: whodunnit)&.name
-    end
+    include GrPaperTrailConcern
   end
 end
