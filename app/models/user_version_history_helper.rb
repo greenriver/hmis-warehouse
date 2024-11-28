@@ -34,6 +34,8 @@ class UserVersionHistoryHelper
     'invited_by_type',
     'last_activity_at',
     'last_name',
+    'last_sign_in_at',
+    'last_sign_in_ip',
     'last_training_completed',
     'locked_at',
     'notify_on_anomaly_identified',
@@ -59,8 +61,14 @@ class UserVersionHistoryHelper
 
   SKIP_RGX = /\A(id|updated_at|created_at)\z/
 
+  # {"sign_in_count"=>[0, 1],
   def describe_changes(version, changes)
-    change_summary(version, changes) || change_details(changes)
+    case version.event
+    when 'create'
+      Array.wrap(change_summary_for_create(version, changes))
+    when 'update'
+      Array.wrap(change_summary_for_update(version, changes) || change_details(changes))
+    end
   end
 
   protected
@@ -71,31 +79,72 @@ class UserVersionHistoryHelper
 
       from, to = values
       "Changed #{field.humanize.titleize}: from #{render_value(field, from)} to #{render_value(field, to)}."
-    end.compact
+    end.compact.sort
   end
 
-  def change_summary(_version, changes)
-    case changes.map(&:first).sort
-    # no need to summary logins, we don't show those
+  def change_summary_for_create(version, changes)
+    if version.event == 'create'
+      if changes.dig('invitation_sent_at', 1).present?
+        ['Account created', 'Invitation sent']
+      else
+        'Account created'
+      end
+    end
+  end
+
+  # based on the version and keys, provide a user-friendly summary of the change that occurred
+  # * Note, no need to include a condition for logins, those events are excluded from history
+  def change_summary_for_update(version, changes)
+
+    summary = case changes.keys.sort
+    when [
+      'active',
+      'updated_at',
+    ]
+      if version.anonymous?
+        nil
+      elsif changes['active'] == [true, false]
+        'Account deactivated'
+      elsif changes['active'] == [false, true]
+        'Account activated'
+      end
+    when [
+      'confirmed_at',
+      'encrypted_password',
+      'invitation_accepted_at',
+      'invitation_token',
+      'password_changed_at',
+      'updated_at',
+    ]
+      version.anonymous? ? 'Invitation accepted' : nil
     when [
       'encrypted_password',
       'last_activity_at',
       'password_changed_at',
       'updated_at',
     ]
-      ['Password Reset']
+      version.anonymous? ? nil : 'Account activated'
     when [
       'reset_password_sent_at',
       'reset_password_token',
       'updated_at',
     ]
-      ['Password Reset Request']
+      'Password Reset Email Sent'
+    when [
+      'encrypted_password',
+      'password_changed_at',
+      'reset_password_sent_at',
+      'reset_password_token',
+      'updated_at',
+    ]
+      version.anonymous? ? 'Password Reset' : nil
     end
   end
 
   def render_value(field, value)
     return 'NULL' if value.nil?
 
-    field.in?(VISIBLE_FIELDS_VALUES) ? value.to_s : '<redacted>'
+    field.in?(VISIBLE_FIELDS_VALUES) ? "\"#{value}\"": '<redacted>'
   end
+
 end

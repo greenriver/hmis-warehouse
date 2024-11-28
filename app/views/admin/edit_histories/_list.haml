@@ -8,7 +8,7 @@
   system_user = User.system_user
   version_usernames = {}
   list.each do |version|
-    next if version.whodunnit == 'unauthenticated'
+    next if version.anonymous?
 
     true_user = users_by_id[version.clean_true_user_id]
     user = users_by_id[version.clean_user_id]
@@ -32,6 +32,11 @@
         %tr
           %td= version.created_at.to_fs
           %td
-            = version_usernames[version.id] || version.whodunnit.presence
+            - if version.anonymous?
+              %span.light N/A
+            - else
+              = version_usernames[version.id] || version.whodunnit.presence
           %td
-            %pre.m-0= describe_changes_to(version)&.join("\n")
+            %ul.list-unstyled
+              - describe_changes_to(version).each do |change|
+                %li= change

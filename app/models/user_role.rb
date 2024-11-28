@@ -33,9 +33,9 @@ class UserRole < ApplicationRecord
 
   def self.describe_changes(version, _changes)
     if version.event == 'create'
-      ["Added role #{version.referenced_entity_name}"]
+      ["Added role \"#{version.referenced_entity_name}\""]
     else
-      ["Removed role #{version.referenced_entity_name}"]
+      ["Removed role \"#{version.referenced_entity_name}\""]
     end
   end
 end

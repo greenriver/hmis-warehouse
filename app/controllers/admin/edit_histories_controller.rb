@@ -14,11 +14,14 @@ module Admin
     end
 
     def describe_changes_to(version)
-      klass = version.item_type.constantize
+      begin
+        klass = version.item_type.constantize
+      rescue NameError => e
+        raise e.full_message.inspect
+        Rails.logger.error(e.full_message)
+        ["Missing source class: #{version.item_type}"]
+      end
       klass.describe_changes(version, get_changes_to(version))
-    rescue NameError => e
-      Rails.logger.error(e.full_message)
-      ["Missing source class: #{version.item_type}"]
     end
     helper_method :describe_changes_to
 
@@ -30,7 +33,23 @@ module Admin
         pt_a[:item_id].eq(@user_id).and(pt_a[:item_type].in([User.sti_name, Hmis::User.sti_name])).
         or(pt_a[:referenced_user_id].eq(@user_id)),
       )
-      scope.where.not(id: scope.successful_authentications.select(:id))
+
+      # skip login activity
+      login_fields = [
+        'current_sign_in_at',
+        'current_sign_in_ip',
+        'failed_at',
+        'last_sign_in_at',
+        'last_sign_in_ip',
+        'sign_in_count',
+        'updated_at'
+      ]
+      skip_scope = GrPaperTrail::Version.for_users.
+        where(item_id: @user_id).
+        matching_object_change_fields(*login_fields)
+      scope = scope.where.not(id: skip_scope)
+
+      scope
     end
 
     def get_changes_to(version)
