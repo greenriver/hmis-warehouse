@@ -9,6 +9,7 @@ require 'memery'
 module HudLsa::Generators::Fy2024::RdsConcern
   extend ActiveSupport::Concern
   include Memery
+  include NotifierConfig
 
   def sql_server_identifier
     "#{ENV.fetch('CLIENT')&.gsub(/[^0-9a-z]/i, '')}-#{Rails.env}-LSA-#{id}".downcase
@@ -99,22 +100,28 @@ module HudLsa::Generators::Fy2024::RdsConcern
     minutes_to_wait = 15
     wait_until = Time.current + minutes_to_wait.minutes
     @s3_feature_enabled ||= false
-    if @s3_feature_enabled
-      klass.connection.execute(sql)
-    else
-      while !@s3_feature_enabled && Time.current < wait_until
-        begin
-          klass.connection.execute(sql)
-          @s3_feature_enabled = true
-          log_and_ping('RDS S3 Integration to completed') # Probably don't need this long-term, tracking timing now
-        rescue TinyTds::Error => e
-          raise unless e.message.include?('process of being enabled')
+    begin
+      if @s3_feature_enabled
+        klass.connection.execute(sql)
+      else
+        while !@s3_feature_enabled && Time.current < wait_until
+          begin
+            klass.connection.execute(sql)
+            @s3_feature_enabled = true
+            log_and_ping('RDS S3 Integration to completed') # Probably don't need this long-term, tracking timing now
+          rescue StandardError => e # Should be TinyTds::Error, but that doesn't seem to work
+            raise unless e.message.include?('process of being enabled')
 
-          log_and_ping('Waiting for RDS S3 Integration to complete') # Probably don't need this long-term, tracking timing now
-          sleep(60)
-          retry
+            log_and_ping('Waiting for RDS S3 Integration to complete') # Probably don't need this long-term, tracking timing now
+            sleep(60)
+            retry
+          end
         end
       end
+    rescue Exception => e
+      # For now, rescue anythine else and wait 10 minutes, unless we've already waited.  It'll either fail again, or maybe it just got confused.
+      log_and_ping("Unexpected error, waiting 10 minutes, and then continuing blindly: #{e.message}")
+      sleep(600) if Time.current < wait_until
     end
 
     wait_for_s3_file_transfer(file: windows_path, klass: klass)
