@@ -108,10 +108,11 @@ module HudLsa::Generators::Fy2024::RdsConcern
           @s3_feature_enabled = true
           log_and_ping('RDS S3 Integration to completed') # Probably don't need this long-term, tracking timing now
         rescue TinyTds::Error => e
-          raise unless e.full_message.include?('process of being enabled')
+          raise unless e.message.include?('process of being enabled')
 
           log_and_ping('Waiting for RDS S3 Integration to complete') # Probably don't need this long-term, tracking timing now
           sleep(60)
+          retry
         end
       end
     end
@@ -143,9 +144,9 @@ module HudLsa::Generators::Fy2024::RdsConcern
       },
     )
   rescue Aws::RDS::Errors::InvalidParameterValue => e
-    raise e unless e.full_message.include?('only one ARN associated')
+    raise e unless e.message.include?('only one ARN associated')
   rescue ActiveRecord::StatementInvalid => e
-    raise e unless e.full_message.include?('process of being enabled')
+    raise e unless e.message.include?('process of being enabled')
   end
 
   private def wait_for_s3_file_transfer(file:, klass:)
