@@ -10,12 +10,7 @@ module Admin
     before_action :set_user
 
     def show
-      pt_a = GrPaperTrail::Version.arel_table
-      edits = GrPaperTrail::Version.where(
-        pt_a[:item_id].eq(@user_id).and(pt_a[:item_type].eq('User')).
-        or(pt_a[:referenced_user_id].eq(@user_id)),
-      )
-      @versions = edits.where.not(whodunnit: nil).order(created_at: :desc)
+      @versions = version_scope.reorder(id: :desc)
     end
 
     def describe_changes_to(version)
@@ -28,6 +23,15 @@ module Admin
     helper_method :describe_changes_to
 
     private
+
+    def version_scope
+      pt_a = GrPaperTrail::Version.arel_table
+      scope = GrPaperTrail::Version.where(
+        pt_a[:item_id].eq(@user_id).and(pt_a[:item_type].in([User.sti_name, Hmis::User.sti_name])).
+        or(pt_a[:referenced_user_id].eq(@user_id)),
+      )
+      scope.where.not(id: scope.successful_authentications.select(:id))
+    end
 
     def get_changes_to(version)
       if version.changeset.blank?

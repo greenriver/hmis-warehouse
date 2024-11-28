@@ -8,28 +8,30 @@
   system_user = User.system_user
   version_usernames = {}
   list.each do |version|
-    if version.whodunnit == 'unauthenticated'
-      version_usernames[version.id] = Hmis::User.system_user
-      next
-    end
+    next if version.whodunnit == 'unauthenticated'
 
-    user = users_by_id[version.clean_true_user_id] || users_by_id[version.clean_user_id]
-    version_usernames[version.id] = user ? user&.name.presence : "User ID #{user.id}"
+    true_user = users_by_id[version.clean_true_user_id]
+    user = users_by_id[version.clean_user_id]
+    if true_user && user && true_user != user
+      username = [user.name, true_user.name].join(' impersonating ')
+    else
+      username = user&.name
+    end
+    version_usernames[version.id] = username
   end
 
 .table-responsive
   %table.table.table-striped
     %thead
       %tr
-        %th Date
+        %th Date changed
         %th Editor
         %th Changes
     %tbody
       - list.each do |version|
         %tr
           %td= version.created_at.to_fs
-          %td= version_usernames[version.id] || version.whodunnit.presence || 'Anonymous'
           %td
-            - changes = describe_changes_to(version)&.each do |change|
-              = change
-              %br
+            = version_usernames[version.id] || version.whodunnit.presence
+          %td
+            %pre.m-0= describe_changes_to(version)&.join("\n")
