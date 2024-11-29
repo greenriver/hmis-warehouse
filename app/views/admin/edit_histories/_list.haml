@@ -18,8 +18,8 @@
               %span.light N/A
           %td
             - if item.error
-              .text-danger= 'Could not load change description'
-              %p Please contact support for assistance
+              .text-danger= 'Load error'
+              %p Sorry, we couldn't load the change details for this version.
             - elsif item.changes
               %ul.list-unstyled
                 - item.changes.each do |change|

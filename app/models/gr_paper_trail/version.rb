@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# paper trail class for application-db records (users, groups, etc)
+# Note, warehouse records have a different version table/model
 module GrPaperTrail
   class Version < ActiveRecord::Base
     include PaperTrail::VersionConcern
@@ -13,39 +15,27 @@ module GrPaperTrail
     }
 
     scope :anonymous, -> {
-      where(whodunnit: ['unauthenticated', nil])
+      where(whodunnit: ['unauthenticated', nil], user_id: nil)
     }
 
     # Filters versions where object_changes includes any combination of the specified fields
     scope :matching_object_change_fields, ->(*fields) {
-      return none if fields.blank?
+      raise ArgumentError, 'Fields expected' if fields.blank?
 
       sql = "ARRAY(SELECT DISTINCT (REGEXP_MATCHES(object_changes, '^([a-z0-9_:]+):', 'gm'))[1]) <@ ARRAY[?]::text[]"
       where(sql, fields)
-    }
-
-    # versions.object_changes_has_all_keys(:updated_at, :last_sign_in_at)
-    scope :object_changes_has_all_keys, ->(*keys) {
-      versions = arel_table
-      conditions = keys.map do |key|
-        versions[:object_changes].matches("%#{key}:\n-%", nil, true) # case-sensitive match
-      end
-      where(conditions.reduce(&:and))
     }
 
     def anonymous?
       user_id.nil? && (whodunnit.blank? || whodunnit == 'unauthenticated')
     end
 
-    def impersonating?
-      [clean_true_user_id&.to_i, clean_user_id&.to_i].compact.uniq.many?
-    end
-
     def changes_with_computed_fallback
-      changeset.presence || computed_changeset
+      changeset.presence || computed_changeset.presence
     end
 
     # When impersonating a user, whodunnit is recorded as "<true_user> as <current_user>"
+    # * seems on newer records we record the true user as version.user_id
     WHODUNNIT_IMPERSONATOR_PATTERN = /^(\d+) as (\d+)$/
 
     def clean_user_id
@@ -62,13 +52,12 @@ module GrPaperTrail
 
       match = WHODUNNIT_IMPERSONATOR_PATTERN.match(whodunnit)
       match[1] if match
-
-      whodunnit.sub(WHODUNNIT_IMPERSONATOR_PATTERN, '\1').presence
     end
 
     protected
 
     # Extracted this method from the controller. It appears to be a fallback for old versions didn't include changes
+    # * Is this still needed?
     def computed_changeset
       version = self
       changed = {}

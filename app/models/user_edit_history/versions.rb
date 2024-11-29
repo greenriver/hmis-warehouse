@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# helper class to display versions for the admin user edit history page
+# helper class for the user edit history page
 class UserEditHistory::Versions
   attr_reader :user
   def initialize(user)
@@ -15,7 +15,7 @@ class UserEditHistory::Versions
 
   # Versions to display on the edit history page
   # * exclude login activity; it's too chatty for the history
-  # * include changes made to the user record (or the hmis user alias)
+  # * include changes made to the user record itself (or the hmis user alias)
   # * include changes to objects that reference this user (roles, groups, etc)
   def version_scope
     pt_a = GrPaperTrail::Version.arel_table
@@ -52,7 +52,7 @@ class UserEditHistory::Versions
       matching_object_change_fields(*login_fields)
   end
 
-  # get an efficient lookup table for the users (whodunnit) that created these versions
+  # lookup table for the users that created these versions, avoids n+1
   def build_user_lookup(versions)
     # fetch all the user records in one query
     user_ids = versions.flat_map do |version|

@@ -6,8 +6,9 @@
 
 # frozen_string_literal: true
 
+# summarize the changes from a paper trail version object for a User record
 class UserEditHistory::UserVersionChangeSummary
-  # allow list of columns on the user table we can display to an admin. Excludes credentials and sessions
+  # allow list of columns on the users table we can display to an admin. Excludes credentials and sessions
   VISIBLE_FIELDS_VALUES = [
     'active',
     'agency_id',
@@ -59,8 +60,7 @@ class UserEditHistory::UserVersionChangeSummary
     'updated_at',
   ].to_set.freeze
 
-  # Define a constant to hold all the change summary patterns
-  # Note, no need to include a condition for logins, those events are excluded from history
+  # helper class for to better organize summarization conditions
   ChangePattern = Struct.new(:value, :event, :match_keys, :match, keyword_init: true) do
     def matches?(version, changeset)
       return if event && event != version.event
@@ -70,6 +70,9 @@ class UserEditHistory::UserVersionChangeSummary
       true
     end
   end
+
+  # Holds all the change summary patterns
+  # Note, no need to include a condition for logins as those events are not displayed in the edit-history
   CHANGE_PATTERNS = [
     ChangePattern.new(
       value: 'Account created',
@@ -134,7 +137,10 @@ class UserEditHistory::UserVersionChangeSummary
     ),
   ].map(&:freeze).freeze
 
+  # summarize if possible, otherwise show full change set
   def perform(version, changeset)
+    raise ArgumentError unless version.is_a?(GrPaperTrail::Version)
+
     Array.wrap(summary(version, changeset) || details(changeset)).presence
   end
 
@@ -154,6 +160,7 @@ class UserEditHistory::UserVersionChangeSummary
     end.compact
   end
 
+  # display value, sanitizing redacted fields
   def render_changed_value(field, value)
     return 'NULL' if value.nil?
 
