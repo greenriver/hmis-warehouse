@@ -59,43 +59,80 @@ class UserEditHistory::UserVersionChangeSummary
     'updated_at',
   ].to_set.freeze
 
-  # Define a constant to hold all the change summary rules.
-  # Each rule specifies:
-  # - A set of keys to match against the change keys.
-  # - A lambda function to compute the summary if the keys match.
-  #
+  # Define a constant to hold all the change summary patterns
   # Note, no need to include a condition for logins, those events are excluded from history
-  CHANGE_SUMMARY_RULES = [
-    {
-      keys: ['active', 'updated_at'].to_set,
-      summary: ->(_version, changeset) {
-        case changeset['active']
-        when [true, false] then 'Account deactivated'
-        when [false, true] then 'Account activated'
-        end
-      }
-    },
-    {
-      keys: ['confirmed_at', 'encrypted_password', 'invitation_accepted_at', 'invitation_token', 'password_changed_at', 'updated_at'].to_set,
-      summary: ->(version, _changeset) { version.anonymous? ? 'Invitation accepted' : nil }
-    },
-    {
-      keys: ['active', 'encrypted_password', 'last_activity_at', 'password_changed_at', 'updated_at'].to_set,
-      summary: ->(version, _changeset) { version.anonymous? ? nil : 'Account reactivated' }
-    },
-    {
-      keys: ['reset_password_sent_at', 'reset_password_token', 'updated_at'].to_set,
-      summary: ->(_version, _changeset) { 'Password reset email sent' }
-    },
-    {
-      keys: ['encrypted_password', 'password_changed_at', 'reset_password_sent_at', 'reset_password_token', 'updated_at'].to_set,
-      summary: ->(version, _changeset) { version.anonymous? ? 'Password reset' : nil }
-    },
-    {
-      keys: ['encrypted_password', 'password_changed_at', 'updated_at'].to_set,
-      summary: ->(version, _changeset) { version.anonymous? ? nil : 'Password changed' }
-    }
-  ].freeze
+  ChangePattern = Struct.new(:value, :event, :match_keys, :match, keyword_init: true) do
+    def matches?(version, changeset)
+      return if event && event != version.event
+      return if match_keys && match_keys != changeset.keys.sort
+      return if match && !match.call(version, changeset)
+      true
+    end
+  end
+  CHANGE_PATTERNS = [
+    ChangePattern.new(
+      value: 'Account created',
+      event: 'create',
+      match: -> (version, changeset) { version.event == 'create' }
+    ),
+    ChangePattern.new(
+      value: 'Account deleted',
+      event: 'destroy',
+    ),
+    # seems like we special case this in the users controller. Not sure why
+    ChangePattern.new(
+      value: 'Account deactivated',
+      event: 'deactivate',
+    ),
+    ChangePattern.new(
+      value: 'Invitation Sent',
+      match_keys: ["invitation_created_at", "invitation_sent_at", "invitation_token", "updated_at"],
+      match: -> (version, changeset) { changeset.dig('invitation_sent_at', 1).present? }
+    ),
+    ChangePattern.new(
+      value: 'Account deactivated',
+      event: 'update',
+      match_keys: ['active', 'updated_at'],
+      match: -> (version, changeset) { !changeset.dig('active', 1) }
+    ),
+    ChangePattern.new(
+      value: 'Account activated',
+      event: 'update',
+      match_keys: ['active', 'updated_at'],
+      match: -> (version, changeset) { changeset.dig('active', 1) }
+    ),
+    ChangePattern.new(
+      value: 'Invitation accepted',
+      event: 'update',
+      match_keys: ['confirmed_at', 'encrypted_password', 'invitation_accepted_at', 'invitation_token', 'password_changed_at', 'updated_at'],
+      match: -> (version, _changeset) { version.anonymous? }
+    ),
+    ChangePattern.new(
+      value: 'Account reactivated',
+      event: 'update',
+      match_keys: ['active', 'encrypted_password', 'last_activity_at', 'password_changed_at', 'updated_at'],
+      match: -> (version, _changeset) { !version.anonymous? && changeset.dig('active', 1) }
+    ),
+    ChangePattern.new(
+      value: 'Password reset email sent',
+      event: 'update',
+      match_keys: ['reset_password_sent_at', 'reset_password_token', 'updated_at'],
+      match: ->(version, changeset) { changeset.dig('reset_password_token', 1).present? }
+    ),
+    ChangePattern.new(
+      value: 'Password reset from forgot-password form',
+      event: 'update',
+      match_keys: ['encrypted_password', 'password_changed_at', 'reset_password_sent_at', 'reset_password_token', 'updated_at'],
+      match: ->(version, changeset) { version.anonymous? && changeset.dig('reset_password_token', 1).blank? }
+    ),
+    ChangePattern.new(
+      value: 'Password reset by user',
+      event: 'update',
+      match_keys: ['encrypted_password', 'password_changed_at', 'updated_at'],
+      match: ->(version, changeset) { !version.anonymous? }
+    ),
+   ].map(&:freeze).freeze
+
 
   def perform(version, changeset)
     Array.wrap(summary(version, changeset) || details(changeset)).presence
@@ -105,24 +142,7 @@ class UserEditHistory::UserVersionChangeSummary
 
   # try to concisely summarize common events
   def summary(version, changeset)
-    changes = changeset
-    case version.event
-    when 'create'
-      if changeset.dig('invitation_sent_at', 1).present?
-        ['Account created', 'Invitation sent']
-      else
-        'Account created'
-      end
-    when 'destroy'
-      'Account deleted'
-    when 'deactivate'
-      # seems like we special case this in the users controller. Not sure why
-      'Account deactivated'
-    when 'update'
-      change_keys = changes.keys.to_set
-      matching_rule = CHANGE_SUMMARY_RULES.find { |rule| rule.fetch(:keys) == change_keys }
-      matching_rule ? matching_rule.fetch(:summary).call(version, changeset) : nil
-    end
+    CHANGE_PATTERNS.filter { |p| p.matches?(version, changeset) }.map(&:value)
   end
 
   def details(changeset)

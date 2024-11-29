@@ -38,7 +38,6 @@ RSpec.describe UserEditHistory::Versions do
     end
 
     it 'loads users' do
-      byebug
       display_items = versions.wrap_display_versions([version])
       expect(display_items.first.username).to eq(editor.name)
     end
