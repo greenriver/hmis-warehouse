@@ -28,8 +28,9 @@ module HudLsa
         @report.question_names = @report.class.questions.keys
         @report.save!
         # Attempting to queue with Delayed::Job instead of active job to get it to obey max_attempts
-        # HudLsa::RunReportJob.perform_later(@report.id)
-        Delayed::Job.enqueue(HudLsa::RunReportJob.new(id: @report.id))
+        HudLsa::RunReportJob.perform_later(@report.id)
+        # Delayed::Job.enqueue(HudLsa::RunReportJob.new(id: @report.id))
+        # HudLsa::RunReportJob.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).perform
 
         redirect_to(path_for_history(filter: @filter.to_h))
       else
