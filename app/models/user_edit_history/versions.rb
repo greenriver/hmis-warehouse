@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 # helper class to display versions for the admin user edit history page
-class UserEditHistory
+class UserEditHistory::Versions
 
   attr_reader :user
   def initialize(user)
@@ -31,7 +31,7 @@ class UserEditHistory
   def wrap_display_versions(versions)
     users_by_id = build_user_lookup(versions)
     versions.map do |version|
-      username = UserEditHistoryItem.new(version, users_by_id)
+      username = UserEditHistory::DisplayItem.new(version, users_by_id)
     end
   end
 

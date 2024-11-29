@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 # helper class for display the admin user edit history
-class UserEditHistoryItem
+class UserEditHistory::DisplayItem
   attr_reader :version, :username, :error, :changes
   delegate :created_at, to: :version
 

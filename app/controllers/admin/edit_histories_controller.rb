@@ -10,7 +10,7 @@ module Admin
     before_action :set_user
 
     def show
-      @history = UserEditHistory.new(@user)
+      @history = UserEditHistory::Versions.new(@user)
     end
 
     private

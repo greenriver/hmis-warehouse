@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-class UserEditHistoryChanges
+class UserEditHistory::UserVersionChangeSummary
   # allow list of columns on the user table we can display to an admin. Excludes credentials and sessions
   VISIBLE_FIELDS_VALUES = [
     'active',
@@ -112,6 +112,9 @@ class UserEditHistoryChanges
       end
     when 'destroy'
       'Account deleted'
+    when 'deactivate'
+      # seems like we special case this in the users controller. Not sure why
+      'Account deactivated'
     when 'update'
       change_keys = changes.keys.to_set
       matching_rule = CHANGE_SUMMARY_RULES.find { |rule| rule.fetch(:keys) == change_keys }

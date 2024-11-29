@@ -738,7 +738,7 @@ module UserConcern
     end
 
     def self.describe_changes(...)
-      UserEditHistoryChanges.new.perform(...)
+      UserEditHistory::UserVersionChangeSummary.new.perform(...)
     end
 
     private def viewable(model)
