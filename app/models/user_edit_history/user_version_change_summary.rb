@@ -68,8 +68,7 @@ class UserEditHistory::UserVersionChangeSummary
   CHANGE_SUMMARY_RULES = [
     {
       keys: ['active', 'updated_at'].to_set,
-      summary: ->(version, changeset) {
-        return nil if version.anonymous?
+      summary: ->(_version, changeset) {
         case changeset['active']
         when [true, false] then 'Account deactivated'
         when [false, true] then 'Account activated'
@@ -81,16 +80,20 @@ class UserEditHistory::UserVersionChangeSummary
       summary: ->(version, _changeset) { version.anonymous? ? 'Invitation accepted' : nil }
     },
     {
-      keys: ['encrypted_password', 'last_activity_at', 'password_changed_at', 'updated_at'].to_set,
-      summary: ->(version, _changeset) { version.anonymous? ? nil : 'Account activated' }
+      keys: ['active', 'encrypted_password', 'last_activity_at', 'password_changed_at', 'updated_at'].to_set,
+      summary: ->(version, _changeset) { version.anonymous? ? nil : 'Account reactivated' }
     },
     {
       keys: ['reset_password_sent_at', 'reset_password_token', 'updated_at'].to_set,
-      summary: ->(_version, _changeset) { 'Password Reset Email Sent' }
+      summary: ->(_version, _changeset) { 'Password reset email sent' }
     },
     {
       keys: ['encrypted_password', 'password_changed_at', 'reset_password_sent_at', 'reset_password_token', 'updated_at'].to_set,
-      summary: ->(version, _changeset) { version.anonymous? ? 'Password Reset' : nil }
+      summary: ->(version, _changeset) { version.anonymous? ? 'Password reset' : nil }
+    },
+    {
+      keys: ['encrypted_password', 'password_changed_at', 'updated_at'].to_set,
+      summary: ->(version, _changeset) { version.anonymous? ? nil : 'Password changed' }
     }
   ].freeze
 

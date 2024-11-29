@@ -41,11 +41,11 @@ class UserEditHistory::DisplayItem
   def compute_username(users_by_id)
     return nil if version.anonymous?
 
-    true_user = users_by_id[version.clean_true_user_id]
-    user = users_by_id[version.clean_user_id]
+    true_user = users_by_id[version.clean_true_user_id&.to_i]
+    user = users_by_id[version.clean_user_id&.to_i]
 
     if true_user && user && true_user != user
-      username = [user.name, true_user.name].join(' impersonating ')
+      username = [true_user.name, user.name].join(' impersonating ')
     else
       username = user&.name
     end

@@ -42,7 +42,7 @@ class UserEditHistory::Versions
     login_fields = [
       'current_sign_in_at',
       'current_sign_in_ip',
-      'failed_at',
+      'failed_attempts',
       'last_sign_in_at',
       'last_sign_in_ip',
       'sign_in_count',

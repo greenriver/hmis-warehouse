@@ -3,4 +3,5 @@
 - content_for :title, title
 %h1= title
 = render 'admin/audits/user_tabs'
-= render_paginated_list(scope: @history.version_scope, item_name: 'event', list_partial: 'list')
+- scope = @history.version_scope.order(created_at: :desc, id: :desc)
+= render_paginated_list(scope: scope, item_name: 'event', list_partial: 'list')
