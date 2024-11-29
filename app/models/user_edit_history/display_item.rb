@@ -20,7 +20,7 @@ class UserEditHistory::DisplayItem
     begin
       # could fail if the model referenced by item_type no longer exists
       klass = version.item_type.constantize
-    rescue NameError => e
+    rescue NameError
       @error = true
     end
 
@@ -28,7 +28,7 @@ class UserEditHistory::DisplayItem
       # * could fail to deserialize yaml
       # * could fail during computed fallback when reifying old records
       changeset = version.changes_with_computed_fallback unless @error
-    rescue
+    rescue StandardError
       @error = true
     end
 

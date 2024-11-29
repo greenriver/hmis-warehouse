@@ -1,4 +1,3 @@
-
 require 'rails_helper'
 
 RSpec.describe UserEditHistory::DisplayItem do
@@ -8,7 +7,7 @@ RSpec.describe UserEditHistory::DisplayItem do
     create(
       :gr_paper_trail_version,
       item: user,
-      whodunnit: "#{true_user.id} as #{user.id}" # impersonator
+      whodunnit: "#{true_user.id} as #{user.id}", # impersonator
     )
   end
 

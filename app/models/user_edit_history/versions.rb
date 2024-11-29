@@ -8,7 +8,6 @@
 
 # helper class to display versions for the admin user edit history page
 class UserEditHistory::Versions
-
   attr_reader :user
   def initialize(user)
     @user = user
@@ -31,7 +30,7 @@ class UserEditHistory::Versions
   def wrap_display_versions(versions)
     users_by_id = build_user_lookup(versions)
     versions.map do |version|
-      username = UserEditHistory::DisplayItem.new(version, users_by_id)
+      UserEditHistory::DisplayItem.new(version, users_by_id)
     end
   end
 
@@ -46,9 +45,9 @@ class UserEditHistory::Versions
       'last_sign_in_at',
       'last_sign_in_ip',
       'sign_in_count',
-      'updated_at'
+      'updated_at',
     ]
-    skip_scope = GrPaperTrail::Version.for_users.
+    GrPaperTrail::Version.for_users.
       where(item_id: user.id).
       matching_object_change_fields(*login_fields)
   end
@@ -57,7 +56,7 @@ class UserEditHistory::Versions
   def build_user_lookup(versions)
     # fetch all the user records in one query
     user_ids = versions.flat_map do |version|
-      [ version.clean_user_id, version.clean_true_user_id] unless version.anonymous?
+      [version.clean_user_id, version.clean_true_user_id] unless version.anonymous?
     end
 
     # retrieve all users who might have been involved

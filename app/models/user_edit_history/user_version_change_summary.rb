@@ -66,6 +66,7 @@ class UserEditHistory::UserVersionChangeSummary
       return if event && event != version.event
       return if match_keys && match_keys != changeset.keys.sort
       return if match && !match.call(version, changeset)
+
       true
     end
   end
@@ -73,7 +74,7 @@ class UserEditHistory::UserVersionChangeSummary
     ChangePattern.new(
       value: 'Account created',
       event: 'create',
-      match: -> (version, changeset) { version.event == 'create' }
+      match: ->(version, _changeset) { version.event == 'create' },
     ),
     ChangePattern.new(
       value: 'Account deleted',
@@ -86,53 +87,52 @@ class UserEditHistory::UserVersionChangeSummary
     ),
     ChangePattern.new(
       value: 'Invitation Sent',
-      match_keys: ["invitation_created_at", "invitation_sent_at", "invitation_token", "updated_at"],
-      match: -> (version, changeset) { changeset.dig('invitation_sent_at', 1).present? }
+      match_keys: ['invitation_created_at', 'invitation_sent_at', 'invitation_token', 'updated_at'],
+      match: ->(_version, changeset) { changeset.dig('invitation_sent_at', 1).present? },
     ),
     ChangePattern.new(
       value: 'Account deactivated',
       event: 'update',
       match_keys: ['active', 'updated_at'],
-      match: -> (version, changeset) { !changeset.dig('active', 1) }
+      match: ->(_version, changeset) { !changeset.dig('active', 1) },
     ),
     ChangePattern.new(
       value: 'Account activated',
       event: 'update',
       match_keys: ['active', 'updated_at'],
-      match: -> (version, changeset) { changeset.dig('active', 1) }
+      match: ->(_version, changeset) { changeset.dig('active', 1) },
     ),
     ChangePattern.new(
       value: 'Invitation accepted',
       event: 'update',
       match_keys: ['confirmed_at', 'encrypted_password', 'invitation_accepted_at', 'invitation_token', 'password_changed_at', 'updated_at'],
-      match: -> (version, _changeset) { version.anonymous? }
+      match: ->(version, _changeset) { version.anonymous? },
     ),
     ChangePattern.new(
       value: 'Account reactivated',
       event: 'update',
       match_keys: ['active', 'encrypted_password', 'last_activity_at', 'password_changed_at', 'updated_at'],
-      match: -> (version, _changeset) { !version.anonymous? && changeset.dig('active', 1) }
+      match: ->(version, _changeset) { !version.anonymous? && changeset.dig('active', 1) },
     ),
     ChangePattern.new(
       value: 'Password reset email sent',
       event: 'update',
       match_keys: ['reset_password_sent_at', 'reset_password_token', 'updated_at'],
-      match: ->(version, changeset) { changeset.dig('reset_password_token', 1).present? }
+      match: ->(_version, changeset) { changeset.dig('reset_password_token', 1).present? },
     ),
     ChangePattern.new(
       value: 'Password reset from forgot-password form',
       event: 'update',
       match_keys: ['encrypted_password', 'password_changed_at', 'reset_password_sent_at', 'reset_password_token', 'updated_at'],
-      match: ->(version, changeset) { version.anonymous? && changeset.dig('reset_password_token', 1).blank? }
+      match: ->(version, changeset) { version.anonymous? && changeset.dig('reset_password_token', 1).blank? },
     ),
     ChangePattern.new(
       value: 'Password reset by user',
       event: 'update',
       match_keys: ['encrypted_password', 'password_changed_at', 'updated_at'],
-      match: ->(version, changeset) { !version.anonymous? }
+      match: ->(version, _changeset) { !version.anonymous? },
     ),
-   ].map(&:freeze).freeze
-
+  ].map(&:freeze).freeze
 
   def perform(version, changeset)
     Array.wrap(summary(version, changeset) || details(changeset)).presence
@@ -157,6 +157,6 @@ class UserEditHistory::UserVersionChangeSummary
   def render_changed_value(field, value)
     return 'NULL' if value.nil?
 
-    field.in?(VISIBLE_FIELDS_VALUES) ? "\"#{value}\"": '<redacted>'
+    field.in?(VISIBLE_FIELDS_VALUES) ? "\"#{value}\"" : '<redacted>'
   end
 end

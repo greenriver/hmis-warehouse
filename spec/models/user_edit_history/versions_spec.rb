@@ -1,4 +1,3 @@
-
 require 'rails_helper'
 
 RSpec.describe UserEditHistory::Versions do
@@ -13,7 +12,7 @@ RSpec.describe UserEditHistory::Versions do
              object_changes: {
                'sign_in_count' => [1, 2],
                'current_sign_in_at' => [1.day.ago, Time.current],
-               'updated_at' => [1.day.ago, Time.current]
+               'updated_at' => [1.day.ago, Time.current],
              }.to_yaml)
 
       # Create non-login version
@@ -21,7 +20,7 @@ RSpec.describe UserEditHistory::Versions do
              item: user,
              object_changes: {
                'email' => ['old@example.com', 'new@example.com'],
-               'updated_at' => [1.day.ago, Time.current]
+               'updated_at' => [1.day.ago, Time.current],
              }.to_yaml)
     end
 
