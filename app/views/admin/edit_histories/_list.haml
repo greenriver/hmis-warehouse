@@ -1,25 +1,3 @@
-:ruby
-  # fetch all the user records in one query
-  user_ids = list.flat_map do |version|
-    [ version.clean_user_id, version.clean_true_user_id]
-  end
-  users_by_id = User.with_deleted.where(id: user_ids.uniq).index_by(&:id)
-
-  system_user = User.system_user
-  version_usernames = {}
-  list.each do |version|
-    next if version.anonymous?
-
-    true_user = users_by_id[version.clean_true_user_id]
-    user = users_by_id[version.clean_user_id]
-    if true_user && user && true_user != user
-      username = [user.name, true_user.name].join(' impersonating ')
-    else
-      username = user&.name
-    end
-    version_usernames[version.id] = username
-  end
-
 .table-responsive
   %table.table.table-striped
     %thead
@@ -28,15 +6,21 @@
         %th Editor
         %th Changes
     %tbody
-      - list.each do |version|
+      - @history.wrap_display_versions(list).each do |item|
         %tr
-          %td= version.created_at.to_fs
+          %td= item.created_at.to_fs
           %td
-            - if version.anonymous?
-              %span.light N/A
+            - if item.username
+              = item.username
             - else
-              = version_usernames[version.id] || version.whodunnit.presence
+              %span.light N/A
           %td
-            %ul.list-unstyled
-              - describe_changes_to(version).each do |change|
-                %li= change
+            - if item.error
+              .text-danger= 'Could not load change description'
+              %p Please contact support for assistance
+            - elsif item.changes
+              %ul.list-unstyled
+                - item.changes.each do |change|
+                  %li= change
+            - else
+              %span.light N/A

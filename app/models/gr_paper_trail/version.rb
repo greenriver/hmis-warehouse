@@ -17,29 +17,6 @@ module GrPaperTrail
       where(whodunnit: ['unauthenticated', nil])
     }
 
-    # ensure the object_changes matches item count
-    scope :with_change_count, -> (min_count, max_count=nil) {
-      max_count ||= min_count
-
-      return where(object_changes: nil) if max_count == 0
-
-      # extra line due to split on yaml
-      min_count += 1
-      max_count += 1
-      where("ARRAY_LENGTH(REGEXP_SPLIT_TO_ARRAY(object_changes, E':\\n-'), 1) BETWEEN ? AND ?", min_count, max_count)
-    }
-
-    scope :only_certain_fields, ->(*allowed_keys) {
-      where(%{
-        ARRAY(
-          SELECT DISTINCT REGEXP_MATCHES(object_changes, '([^:]+):', 'g')
-        ) <@ ARRAY[?]::text[]
-      }, allowed_keys)
-      where(%{
-
-      }, allowed_keys)
-    }
-
     # Filters versions where object_changes includes any combination of the specified fields
     scope :matching_object_change_fields, ->(*fields) {
       return none if fields.blank?
@@ -47,7 +24,6 @@ module GrPaperTrail
       sql = "ARRAY(SELECT DISTINCT (REGEXP_MATCHES(object_changes, '^([a-z0-9_:]+):', 'gm'))[1]) <@ ARRAY[?]::text[]"
       where(sql, fields)
     }
-
 
     # versions.object_changes_has_all_keys(:updated_at, :last_sign_in_at)
     scope :object_changes_has_all_keys, ->(*keys) {
@@ -58,23 +34,51 @@ module GrPaperTrail
       where(conditions.reduce(&:and))
     }
 
-    scope :successful_authentications, -> {
-      anonymous.for_users.
-        object_changes_has_all_keys('current_sign_in_at', 'last_sign_in_at', 'sign_in_count', 'updated_at').
-        with_change_count(4, 6)
-    }
-
-    scope :user_failed_attempts, -> {
-      anonymous.for_users.
-        object_changes_has_all_keys('failed_attempts', 'updated_at').
-        with_change_count(2, 2)
-    }
-
-    #["failed_attempts", "updated_at"]
-
     def anonymous?
       user_id.nil? && (whodunnit.blank? || whodunnit == 'unauthenticated')
     end
 
+    def changes_with_computed_fallback
+      changeset.presence || computed_changeset
+    end
+
+    protected
+
+    # Extracted this method from the controller. It appears to be a fallback for old versions didn't include changes
+    def computed_changeset
+      version = self
+      changed = {}
+
+      current = version.reify
+      return changed unless current
+
+      if current.present? && version.event != 'destroy'
+        if version.previous.present? && version.previous.object.present?
+          previous = version.previous.reify
+          changed_attr = (current.attributes.to_a - previous.attributes.to_a).map(&:first)
+          changed_attr.each do |name|
+            changed[name] = [previous[name], current[name]]
+          end
+        else
+          # A create - so, all attributes are new
+          current.attributes.to_a.each do |name|
+            changed[name] = [nil, current[name]]
+          end
+        end
+        # TODO: cache computed change
+        # copy_of_changed = changed.clone # Serialize can be in place, so we clone to avoid stepping on the changed map
+        # serializer = PaperTrail::AttributeSerializers::ObjectChangesAttribute.new(current.class)
+        # serializer.serialize(copy_of_changed)
+
+        # version.object_changes = copy_of_changed
+        # version.save`
+      elsif current.present?
+        # Describe a destroy as setting all attributes to nil
+        current.attributes.map(&:first).each do |name|
+          changed[name] = [current[name], nil]
+        end
+      end
+      changed
+    end
   end
 end
