@@ -12,6 +12,8 @@
           %td
             - if item.username
               = item.username
+              - if item.impersonating
+                .small= "Impersonating #{item.impersonating}"
             - else
               %span.light N/A
           %td

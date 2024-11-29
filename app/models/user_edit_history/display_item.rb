@@ -8,14 +8,15 @@
 
 # helper class for display the admin user edit history
 class UserEditHistory::DisplayItem
-  attr_reader :version, :username, :error, :changes
+  attr_reader :version, :username, :impersonating, :error, :changes
   delegate :created_at, to: :version
 
   # version is instance of GrPaperTrail::Version
   # users_by_id is preloaded user hash {id => user}
   def initialize(version, users_by_id)
     @version = version
-    @username = compute_username(users_by_id)
+    @username = compute_username(users_by_id, version.clean_true_user_id) || version.whodunnit.presence
+    @impersonating = compute_username(users_by_id, version.clean_user_id) if version.impersonating?
 
     begin
       # could fail if the model referenced by item_type no longer exists
@@ -37,19 +38,12 @@ class UserEditHistory::DisplayItem
 
   protected
 
-  # represent who made the change
-  def compute_username(users_by_id)
-    return nil if version.anonymous?
+  # true user who made the change
+  def compute_username(users_by_id, user_id)
+    return if version.anonymous?
+    return unless user_id
 
-    true_user = users_by_id[version.clean_true_user_id&.to_i]
-    user = users_by_id[version.clean_user_id&.to_i]
-
-    if true_user && user && true_user != user
-      username = [true_user.name, user.name].join(' impersonating ')
-    else
-      username = user&.name
-    end
-
-    username&.presence || version.whodunnit.presence
+    user = users_by_id[user_id.to_i]
+    user&.name || "User ID #{user_id}"
   end
 end

@@ -7,7 +7,6 @@
 module GrPaperTrail
   class Version < ActiveRecord::Base
     include PaperTrail::VersionConcern
-    include GrPaperTrailConcern
 
     scope :for_users, -> {
       where(item_type: [User.sti_name, Hmis::User.sti_name])
@@ -38,8 +37,33 @@ module GrPaperTrail
       user_id.nil? && (whodunnit.blank? || whodunnit == 'unauthenticated')
     end
 
+    def impersonating?
+      [clean_true_user_id&.to_i, clean_user_id&.to_i].compact.uniq.many?
+    end
+
     def changes_with_computed_fallback
       changeset.presence || computed_changeset
+    end
+
+    # When impersonating a user, whodunnit is recorded as "<true_user> as <current_user>"
+    WHODUNNIT_IMPERSONATOR_PATTERN = /^(\d+) as (\d+)$/
+
+    def clean_user_id
+      return if whodunnit.blank?
+      return whodunnit if whodunnit&.match?(/\A\d+\z/)
+
+      match = WHODUNNIT_IMPERSONATOR_PATTERN.match(whodunnit)
+      match[2] if match
+    end
+
+    def clean_true_user_id
+      return user_id if user_id
+      return if whodunnit.blank?
+
+      match = WHODUNNIT_IMPERSONATOR_PATTERN.match(whodunnit)
+      match[1] if match
+
+      whodunnit.sub(WHODUNNIT_IMPERSONATOR_PATTERN, '\1').presence
     end
 
     protected

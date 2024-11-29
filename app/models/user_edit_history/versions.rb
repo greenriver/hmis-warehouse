@@ -60,6 +60,7 @@ class UserEditHistory::Versions
     end
 
     # retrieve all users who might have been involved
-    User.with_deleted.where(id: user_ids.compact.uniq).index_by(&:id)
+    user_ids = user_ids.compact.map(&:to_i).uniq
+    User.with_deleted.where(id: user_ids).index_by(&:id)
   end
 end

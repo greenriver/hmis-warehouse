@@ -15,12 +15,13 @@ RSpec.describe UserEditHistory::DisplayItem do
 
   it 'handles impersonation correctly' do
     item = described_class.new(version, users_by_id)
-    expect(item.username).to eq('True User impersonating Test User')
+    expect(item.username).to eq('True User')
+    expect(item.impersonating).to eq('Test User')
   end
 
   it 'handles missing users gracefully' do
     item = described_class.new(version, {})
-    expect(item.username).to eq(version.whodunnit)
+    expect(item.username).to eq("User ID #{true_user.id}")
   end
 
   context 'when model no longer exists' do

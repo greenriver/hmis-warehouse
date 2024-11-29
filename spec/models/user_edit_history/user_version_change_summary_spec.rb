@@ -26,18 +26,16 @@ RSpec.describe UserEditHistory::UserVersionChangeSummary do
       create(:gr_paper_trail_version,
              item: user,
              event: 'update',
-             whodunnit: nil,
+             whodunnit: 'test',
              object_changes: {
                'encrypted_password' => ['old', 'new'],
                'password_changed_at' => [1.day.ago, Time.current],
-               'reset_password_sent_at' => [nil, Time.current],
-               'reset_password_token' => [nil, 'token'],
                'updated_at' => [1.day.ago, Time.current],
              }.to_yaml)
     end
 
     it 'summarizes password reset' do
-      expect(summary.perform(version, version.changeset)).to eq(['Password Reset'])
+      expect(summary.perform(version, version.changeset)).to eq(['Password reset'])
     end
   end
 end

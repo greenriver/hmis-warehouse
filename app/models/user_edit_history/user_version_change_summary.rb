@@ -112,7 +112,7 @@ class UserEditHistory::UserVersionChangeSummary
       value: 'Account reactivated',
       event: 'update',
       match_keys: ['active', 'encrypted_password', 'last_activity_at', 'password_changed_at', 'updated_at'],
-      match: ->(version, _changeset) { !version.anonymous? && changeset.dig('active', 1) },
+      match: ->(version, changeset) { !version.anonymous? && changeset.dig('active', 1) },
     ),
     ChangePattern.new(
       value: 'Password reset email sent',
@@ -127,7 +127,7 @@ class UserEditHistory::UserVersionChangeSummary
       match: ->(version, changeset) { version.anonymous? && changeset.dig('reset_password_token', 1).blank? },
     ),
     ChangePattern.new(
-      value: 'Password reset by user',
+      value: 'Password reset',
       event: 'update',
       match_keys: ['encrypted_password', 'password_changed_at', 'updated_at'],
       match: ->(version, _changeset) { !version.anonymous? },
@@ -142,7 +142,7 @@ class UserEditHistory::UserVersionChangeSummary
 
   # try to concisely summarize common events
   def summary(version, changeset)
-    CHANGE_PATTERNS.filter { |p| p.matches?(version, changeset) }.map(&:value)
+    CHANGE_PATTERNS.filter { |p| p.matches?(version, changeset) }.map(&:value).presence
   end
 
   def details(changeset)
