@@ -86,10 +86,35 @@ module HudLsa::Generators::Fy2024::RdsConcern
     rds_s3_integration_role_arn.present?
   end
 
-  private def mssql_import_from_s3(s3, path:, klass:)
+  private def mssql_import_from_s3(path:, klass:)
     windows_path = path.gsub('/', '\\')
     # Move the S3 blob to the SQL server
     full_windows_path = "D:\\S3\\#{s3.bucket.name}\\#{windows_path}"
+
+    queue_mssql_import_from_s3(path: path, full_windows_path: full_windows_path, klass: klass)
+    wait_for_s3_file_transfer(file: windows_path, klass: klass)
+
+    # NOTE: 0x0a is the hex representation of \n which SQL server only sometimes accepts
+    sql = <<~SQL
+      BULK INSERT #{klass.quoted_table_name}
+      FROM '#{full_windows_path}'
+      WITH (
+        FORMAT = 'CSV',
+        FIELDTERMINATOR = ',',
+        ROWTERMINATOR = '0x0a',
+        FIRSTROW = 2
+      );
+    SQL
+    klass.connection.execute(sql)
+  end
+
+  private def queue_mssql_import_from_s3(path:, full_windows_path:, klass:)
+    # The queue will fail until the integration completes, so try, but wait if necessary
+    minutes_to_wait = 15
+    wait_until = Time.current + minutes_to_wait.minutes
+    @s3_feature_enabled ||= false
+
+    # Move the S3 blob to the SQL server
     sql = <<-SQL
       EXEC msdb.dbo.rds_download_from_s3
       @rds_file_path='#{full_windows_path}',
@@ -97,9 +122,6 @@ module HudLsa::Generators::Fy2024::RdsConcern
       @overwrite_file=1;
     SQL
 
-    minutes_to_wait = 15
-    wait_until = Time.current + minutes_to_wait.minutes
-    @s3_feature_enabled ||= false
     begin
       if @s3_feature_enabled
         klass.connection.execute(sql)
@@ -123,21 +145,6 @@ module HudLsa::Generators::Fy2024::RdsConcern
       log_and_ping("Unexpected error, waiting 10 minutes, and then continuing blindly: #{e.message}")
       sleep(600) if Time.current < wait_until
     end
-
-    wait_for_s3_file_transfer(file: windows_path, klass: klass)
-
-    # NOTE: 0x0a is the hex representation of \n which SQL server only sometimes accepts
-    sql = <<~SQL
-      BULK INSERT #{klass.quoted_table_name}
-      FROM '#{full_windows_path}'
-      WITH (
-        FORMAT = 'CSV',
-        FIELDTERMINATOR = ',',
-        ROWTERMINATOR = '0x0a',
-        FIRSTROW = 2
-      );
-    SQL
-    klass.connection.execute(sql)
   end
 
   private def setup_instance_role
@@ -164,6 +171,7 @@ module HudLsa::Generators::Fy2024::RdsConcern
     matched = check_for_s3_file_transfer(file: file, klass: klass)
     # Check every minute to see if the file has successfully been moved
     while matched['lifecycle'] != 'SUCCESS'
+      log_and_ping("Waiting for S3 to RDS file transfer of: #{file}")
       sleep(60)
       matched = check_for_s3_file_transfer(file: file, klass: klass)
 

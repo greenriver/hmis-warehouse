@@ -287,6 +287,7 @@ module HudLsa::Generators::Fy2024
       else
         @hmis_export.unzip_to(unzip_path)
       end
+
       read_rows = 50_000
       HmisSqlServer.models_by_hud_filename.each do |file_name, klass|
         # Delete any existing data
@@ -303,6 +304,10 @@ module HudLsa::Generators::Fy2024
       GrdaWarehouseBase.connection.reconnect!
       ApplicationRecord.connection.reconnect!
       ReportingBase.connection.reconnect!
+    end
+
+    private def s3
+      @s3 ||= AwsS3.new(bucket_name: ActiveStorage::Blob.service.bucket.name)
     end
 
     private def populate_hmis_table_via_bulk_insert(klass:, extract_path:, file_name:, read_rows:)
@@ -348,10 +353,9 @@ module HudLsa::Generators::Fy2024
           end
         end
         cleaned_output.rewind
-        s3 = AwsS3.new(bucket_name: ActiveStorage::Blob.service.bucket.name)
         s3_upload_path = "lsa/tmp/#{id}/#{file_name}"
         s3.store(content: cleaned_output, name: s3_upload_path, content_type: 'text/csv')
-        mssql_import_from_s3(s3, path: s3_upload_path, klass: klass)
+        mssql_import_from_s3(path: s3_upload_path, klass: klass)
       end
     end
 

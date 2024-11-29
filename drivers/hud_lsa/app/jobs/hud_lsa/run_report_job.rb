@@ -8,6 +8,8 @@ module HudLsa
   class RunReportJob < ::BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
+    retry_on StandardError, attempts: 1
+
     def perform(report_id, email: true)
       report = HudLsa::Generators::Fy2024::Lsa.find(report_id)
       report.start_report
