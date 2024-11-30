@@ -102,9 +102,19 @@ module HudLsa::Generators::Fy2024::RdsConcern
         FORMAT = 'CSV',
         FIELDTERMINATOR = ',',
         ROWTERMINATOR = '0x0a',
-        FIRSTROW = 2
+        FIRSTROW = 2,
+        MAXERRORS = 100
       );
     SQL
+    # sql = <<~SQL
+    #   SELECT * into #{klass.quoted_table_name}
+    #   FROM OPENROWSET (
+    #     BULK '#{full_windows_path}',
+    #     FORMAT = 'CSV',
+    #     FIRSTROW = 2
+    #   ) as source;
+    # SQL
+    # binding.pry
     klass.connection.execute(sql)
   end
 
@@ -113,6 +123,15 @@ module HudLsa::Generators::Fy2024::RdsConcern
     minutes_to_wait = 15
     wait_until = Time.current + minutes_to_wait.minutes
     @s3_feature_enabled ||= false
+
+    # Enable ad-hoc distributed queries - enabled via parameter group
+    # sql = <<~SQL
+    #   EXEC sp_configure 'show advanced options', 1;
+    #   RECONFIGURE;
+    #   EXEC sp_configure 'Ad Hoc Distributed Queries', 1;
+    #   RECONFIGURE;
+    # SQL
+    # klass.connection.execute(sql)
 
     # Move the S3 blob to the SQL server
     sql = <<-SQL
