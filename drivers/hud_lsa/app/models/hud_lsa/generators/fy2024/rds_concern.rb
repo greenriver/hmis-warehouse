@@ -188,9 +188,12 @@ module HudLsa::Generators::Fy2024::RdsConcern
     # We'll probably also need to handle errors (or only wait a specified amount of time)
     matched = check_for_s3_file_transfer(file: file, klass: klass)
     # Check every minute to see if the file has successfully been moved
+    i = 0
     while matched['lifecycle'] != 'SUCCESS'
-      log_and_ping("Waiting for S3 to RDS file transfer of: #{file}")
+      # only send a note every minute, but check every 15 seconds
+      log_and_ping("Waiting for S3 to RDS file transfer of: #{file}") if i % 4 == 0
       sleep(15)
+      i += 1
       matched = check_for_s3_file_transfer(file: file, klass: klass)
 
       raise "Unable to sync #{file} to RDS, waited #{minutes_to_wait} minutes" if Time.current > wait_until

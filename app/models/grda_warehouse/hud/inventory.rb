@@ -96,7 +96,7 @@ module GrdaWarehouse::Hud
       scope
     end
 
-    TodoOrDie('Remove override_columns method and columns from the database', by: '2024-12-01')
+    TodoOrDie('Remove override_columns method and columns from the database', by: '2024-12-05')
     # If any of these are not blank, we'll consider it overridden
     def self.override_columns
       {
@@ -139,7 +139,7 @@ module GrdaWarehouse::Hud
       start_date = [range.start, computed_start_date].compact.max
       end_date = [range.end, computed_end_date].compact.min
       days = (end_date - start_date).to_i
-      return 0 if days.negative? || days.zero? || range.length.zero?
+      return 0 if days.negative? || days.zero? || range.length.zero? # rubocop:disable Style/ZeroLengthPredicate
 
       (days.to_f * count / range.length).to_i
     end
