@@ -86,26 +86,24 @@ module HudLsa::Generators::Fy2024::RdsConcern
     rds_s3_integration_role_arn.present?
   end
 
-  private def mssql_import_from_s3(path:, klass:)
-    windows_path = path.gsub('/', '\\')
+  private def mssql_import_from_s3(file_name:, klass:)
+    windows_path = s3_upload_path(file_name).gsub('/', '\\')
     # Move the S3 blob to the SQL server
-    full_windows_path = "D:\\S3\\#{s3.bucket.name}\\#{windows_path}"
-
-    queue_mssql_import_from_s3(path: path, full_windows_path: full_windows_path, klass: klass)
+    # queue_mssql_import_from_s3(file_name: file_name, klass: klass)
     wait_for_s3_file_transfer(file: windows_path, klass: klass)
 
     # NOTE: 0x0a is the hex representation of \n which SQL server only sometimes accepts
     sql = <<~SQL
       BULK INSERT #{klass.quoted_table_name}
-      FROM '#{full_windows_path}'
+      FROM '#{full_windows_path(file_name)}'
       WITH (
         FORMAT = 'CSV',
         FIELDTERMINATOR = ',',
         ROWTERMINATOR = '0x0a',
-        FIRSTROW = 2,
-        MAXERRORS = 100
+        FIRSTROW = 2
       );
     SQL
+    # An alternate method, probably not needed
     # sql = <<~SQL
     #   SELECT * into #{klass.quoted_table_name}
     #   FROM OPENROWSET (
@@ -118,12 +116,13 @@ module HudLsa::Generators::Fy2024::RdsConcern
     klass.connection.execute(sql)
   end
 
-  private def queue_mssql_import_from_s3(path:, full_windows_path:, klass:)
+  private def queue_mssql_import_from_s3(file_name:, klass:)
     # The queue will fail until the integration completes, so try, but wait if necessary
     minutes_to_wait = 15
     wait_until = Time.current + minutes_to_wait.minutes
     @s3_feature_enabled ||= false
 
+    # An alternate method, probably not needed
     # Enable ad-hoc distributed queries - enabled via parameter group
     # sql = <<~SQL
     #   EXEC sp_configure 'show advanced options', 1;
@@ -136,8 +135,8 @@ module HudLsa::Generators::Fy2024::RdsConcern
     # Move the S3 blob to the SQL server
     sql = <<-SQL
       EXEC msdb.dbo.rds_download_from_s3
-      @rds_file_path='#{full_windows_path}',
-      @s3_arn_of_file='arn:aws:s3:::#{s3.bucket.name}/#{path}',
+      @rds_file_path='#{full_windows_path(file_name)}',
+      @s3_arn_of_file='arn:aws:s3:::#{s3.bucket.name}/#{s3_upload_path(file_name)}',
       @overwrite_file=1;
     SQL
 
@@ -191,7 +190,7 @@ module HudLsa::Generators::Fy2024::RdsConcern
     # Check every minute to see if the file has successfully been moved
     while matched['lifecycle'] != 'SUCCESS'
       log_and_ping("Waiting for S3 to RDS file transfer of: #{file}")
-      sleep(60)
+      sleep(15)
       matched = check_for_s3_file_transfer(file: file, klass: klass)
 
       raise "Unable to sync #{file} to RDS, waited #{minutes_to_wait} minutes" if Time.current > wait_until
