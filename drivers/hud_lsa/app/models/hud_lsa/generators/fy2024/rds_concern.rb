@@ -148,7 +148,7 @@ module HudLsa::Generators::Fy2024::RdsConcern
           begin
             klass.connection.execute(sql)
             @s3_feature_enabled = true
-            log_and_ping('RDS S3 Integration to completed') # Probably don't need this long-term, tracking timing now
+            log_and_ping('RDS S3 Integration completed') # Probably don't need this long-term, tracking timing now
           rescue StandardError => e # Should be TinyTds::Error, but that doesn't seem to work
             raise unless e.message.include?('process of being enabled')
 
@@ -159,7 +159,7 @@ module HudLsa::Generators::Fy2024::RdsConcern
         end
       end
     rescue Exception => e
-      # For now, rescue anythine else and wait 10 minutes, unless we've already waited.  It'll either fail again, or maybe it just got confused.
+      # For now, rescue anything else and wait 10 minutes, unless we've already waited.  It'll either fail again, or maybe it just got confused.
       log_and_ping("Unexpected error, waiting 10 minutes, and then continuing blindly: #{e.message}")
       sleep(600) if Time.current < wait_until
     end
@@ -175,8 +175,11 @@ module HudLsa::Generators::Fy2024::RdsConcern
         role_arn: rds_s3_integration_role_arn,
       },
     )
+  # Don't fail if we're trying to assign the S3 integration to a database that already has it enabled
   rescue Aws::RDS::Errors::InvalidParameterValue => e
     raise e unless e.message.include?('only one ARN associated')
+  # Don't fail just because the S3 integration is taking a long time to get added, we'll give it more time
+  # to complete in queue_mssql_import_from_s3 just before we actually need it
   rescue ActiveRecord::StatementInvalid => e
     raise e unless e.message.include?('process of being enabled')
   end
