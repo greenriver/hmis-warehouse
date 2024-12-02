@@ -86,6 +86,23 @@ module Talentlms
       Talentlms::CompletedTraining.where(login_id: login.id, course_id: id).exists?
     end
 
+    def active_date_order_value
+      [
+        active? ? 0 : 1,
+        start_date ? 0 : 1,
+        start_date,
+        end_date ? 0 : 1,
+        end_date,
+      ]
+    end
+
+    def active?(date = Date.today)
+      return false if start_date.present? && start_date > date
+      return false if end_date.present? && end_date < date
+
+      true
+    end
+
     def active_date_range_for_display
       return start_date if start_date.present? && end_date.present? && start_date == end_date
       return "#{start_date} through #{end_date}" if start_date.present? && end_date.present?

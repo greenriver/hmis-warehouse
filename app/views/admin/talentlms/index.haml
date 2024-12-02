@@ -58,11 +58,12 @@
           %th Course ID
           %th Default
           %th= "#{length_of_time} to Expiration"
+          %th Active
           %th Active Range
           %th
       %tbody
         - @configs.each do |config|
-          - config.courses.each do |course|
+          - config.courses.sort_by(&:active_date_order_value).each do |course|
             %tr
               %td= config.unique_name
               %td= link_to course.name.html_safe, edit_admin_talentlms_course_path(course)
@@ -71,6 +72,9 @@
                 - if course.default 
                   %i.icon-checkmark
               %td= course.months_to_expiration
+              %td
+                - if course.active?
+                  %i.icon-checkmark
               %td= course.active_date_range_for_display
               %td
                 .float-right
