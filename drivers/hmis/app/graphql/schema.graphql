@@ -795,6 +795,10 @@ type Client {
   firstName: String
   gender: [Gender!]!
   healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
+
+  """
+  Meets the definition for HUD chronically homeless as of today (time of API request)
+  """
   hudChronic: Boolean
   id: ID!
   image: ClientImage

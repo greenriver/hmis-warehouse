@@ -27,7 +27,14 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
+
+  # UserID - references the HUD user as specified by the HUD spec (User table in warehouse db)
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments, optional: true
+  # created_by_hud_user and updated_by_hud_user ALSO refer to the HUD users table (not the application users),
+  # but they use a PK reference, not hmis_relation. These columns are for reporting.
+  belongs_to :created_by_hud_user, foreign_key: :created_by_hud_user_id, class_name: 'Hmis::Hud::User', optional: true
+  belongs_to :updated_by_hud_user, foreign_key: :updated_by_hud_user_id, class_name: 'Hmis::Hud::User', optional: true
+
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', as: :owner, dependent: :destroy
@@ -181,6 +188,8 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
       assessment_date: assessment_date,
       data_collection_stage: Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[form_definition.role.to_sym],
       **enrollment.slice(:data_source_id, :personal_id, :enrollment_id),
+      created_by_hud_user: user,
+      updated_by_hud_user: user,
     )
     new_assessment.build_form_processor(definition: form_definition)
     # AR doesn't recognize the built record on the has_one-through, so add it directly

@@ -46,6 +46,8 @@ module Admin
         :courseid,
         :months_to_expiration,
         :default,
+        :start_date,
+        :end_date,
       )
     end
   end

@@ -83,7 +83,7 @@ module HudApr::Generators::Shared::Fy2024
           age = source_client.age_on(client_start_date)
 
           hh_id = get_hh_id(last_service_history_enrollment)
-          hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
+          hoh_enrollment = hoh_enrollments[hh_id]
           household_assessment_required[hh_id] = annual_assessment_expected?(enrollment: hoh_enrollment, report_end_date: @report.end_date)
           end_date = if needs_ce_assessments?
             # Only HoHs get CE assessments, so we prefer their entry date
@@ -113,7 +113,7 @@ module HudApr::Generators::Shared::Fy2024
           last_service_history_enrollment = enrollments.last
           hh_id = get_hh_id(last_service_history_enrollment)
           # Fetch the Head of Household's enrollment, but if we don't have a head, just use ours
-          hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)] || last_service_history_enrollment
+          hoh_enrollment = hoh_enrollments[hh_id] || last_service_history_enrollment
           if needs_ce_assessments?
             ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment, hoh_enrollment)
             ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_enrollment, ce_latest_assessment)
@@ -206,7 +206,8 @@ module HudApr::Generators::Shared::Fy2024
           end
 
           chronic_source = household_chronic_status(hh_id, last_service_history_enrollment.client_id)
-          move_in_date = calculate_move_in_date(hh_id, last_service_history_enrollment)
+          adjusted_move_in_date = calculate_hh_move_in_date(hh_id, last_service_history_enrollment)
+          hoh_move_in_date = calculate_move_in_date(hh_id, hoh_enrollment)
           processed_source_clients << source_client.id
           ce_hash = {}
           options = {
@@ -307,7 +308,9 @@ module HudApr::Generators::Shared::Fy2024
             mental_health_problem_latest: disabilities_latest.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem: disabilities.detect(&:mental?).present?,
             months_homeless: enrollment.MonthsHomelessPastThreeYears,
-            move_in_date: move_in_date,
+            move_in_date: last_service_history_enrollment.move_in_date,
+            hoh_move_in_date: hoh_move_in_date,
+            adjusted_move_in_date: adjusted_move_in_date,
             name_quality: source_client.NameDataQuality,
             non_cash_benefits_from_any_source_at_annual_assessment: income_at_annual_assessment&.BenefitsFromAnySource,
             non_cash_benefits_from_any_source_at_exit: income_at_exit&.BenefitsFromAnySource,
@@ -581,7 +584,7 @@ module HudApr::Generators::Shared::Fy2024
           # enrollment.last_date_in_program ||= hoh_enrollment&.last_date_in_program
           enrolled = if enrollment.project_type.in?([3, 13]) || enrollment.enrollment.project.pay_for_success?
             # PSH/RRH OR project type 7 (other) with Funder 35 (Pay for Success)
-            move_in_date = calculate_move_in_date(enrollment.household_id, enrollment)
+            move_in_date = calculate_hh_move_in_date(enrollment.household_id, enrollment)
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
               move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
@@ -604,7 +607,7 @@ module HudApr::Generators::Shared::Fy2024
             last_date_in_program: enrollment.last_date_in_program,
             project_type: enrollment.project_type,
             project_tracking_method: enrollment.project_tracking_method,
-            move_in_date: calculate_move_in_date(enrollment.household_id, enrollment),
+            move_in_date: calculate_hh_move_in_date(enrollment.household_id, enrollment),
             relationship_to_hoh: enrollment.enrollment.relationship_to_hoh,
           }
         end
