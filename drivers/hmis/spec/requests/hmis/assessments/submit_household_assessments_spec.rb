@@ -33,6 +33,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     create :hmis_form_definition
   end
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
+  let(:hud_user) { Hmis::Hud::User.from_user(hmis_user) }
 
   before(:each) do
     hmis_login(user)
@@ -89,9 +90,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Submitting multiple saved assessments' do
     # Create 3 WIP Assessments that have saved values
-    let!(:a1) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e1, client: e1.client, data_source: ds1) }
-    let!(:a2) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e2, client: e2.client, data_source: ds1) }
-    let!(:a3) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e3, client: e3.client, data_source: ds1) }
+    let!(:a1) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e1, client: e1.client, data_source: ds1, created_by_hud_user: hud_user) }
+    let!(:a2) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e2, client: e2.client, data_source: ds1, created_by_hud_user: hud_user) }
+    let!(:a3) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e3, client: e3.client, data_source: ds1, created_by_hud_user: hud_user) }
 
     it 'should work' do
       expect(Hmis::Hud::CustomAssessment.count).to eq(3)
@@ -112,6 +113,34 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessments.size).to eq(3)
         expect(Hmis::Hud::CustomAssessment.count).to eq(3)
         expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(0)
+        expect(Hmis::Hud::CustomAssessment.pluck(:created_by_hud_user_id).uniq).to contain_exactly(hud_user.id)
+        expect(Hmis::Hud::CustomAssessment.pluck(:user_id).uniq).to contain_exactly(hud_user.user_id)
+        expect(Hmis::Hud::CustomAssessment.pluck(:updated_by_hud_user_id).uniq).to contain_exactly(hud_user.id)
+      end
+    end
+
+    context 'when the assessments are submitted by a different user than the one who first saved them' do
+      let!(:other_user) { create(:user, first_name: 'someone', last_name: 'else') }
+      let!(:other_hmis_user) { other_user.related_hmis_user(ds1) }
+      let!(:other_ac) { create_access_control(other_user, p1) }
+      let(:other_hud_user) { Hmis::Hud::User.from_user(other_hmis_user) }
+
+      before(:each) do
+        delete destroy_hmis_user_session_path
+        hmis_login(other_user)
+      end
+
+      it 'should update user and updated_by_user' do
+        input = {
+          submissions: submission_input(a1, a2, a3),
+          confirmed: false,
+        }
+        response, result = post_graphql(input: input) { mutation }
+        expect(response.status).to eq(200), result.inspect
+
+        expect(Hmis::Hud::CustomAssessment.pluck(:created_by_hud_user_id).uniq).to contain_exactly(hud_user.id) # unchanged
+        expect(Hmis::Hud::CustomAssessment.pluck(:user_id).uniq).to contain_exactly(other_hud_user.user_id)
+        expect(Hmis::Hud::CustomAssessment.pluck(:updated_by_hud_user_id).uniq).to contain_exactly(other_hud_user.id)
       end
     end
 

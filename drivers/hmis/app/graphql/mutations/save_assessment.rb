@@ -24,7 +24,8 @@ module Mutations
         hud_values: input.hud_values,
       )
       assessment.assign_attributes(
-        user_id: hmis_user.user_id,
+        user_id: hud_user.user_id,
+        updated_by_hud_user: hud_user, # see comments on CustomAssessment
         assessment_date: assessment.form_processor.find_assessment_date_from_values || assessment.assessment_date,
       )
 

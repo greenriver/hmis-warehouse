@@ -27,7 +27,7 @@ module Mutations
       if input.present?
         service_type.assign_attributes(**input.to_params) unless input.to_params.empty?
 
-        service_category = input.find_or_initialize_service_category(hmis_user.user_id, current_user.hmis_data_source_id)
+        service_category = input.find_or_initialize_service_category(hud_user.user_id, current_user.hmis_data_source_id)
         service_type.custom_service_category = service_category if service_category.present?
       else
         service_type.name = name

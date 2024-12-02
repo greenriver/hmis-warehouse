@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -1524,7 +1524,9 @@ CREATE TABLE public."CustomAssessments" (
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
     wip boolean DEFAULT false NOT NULL,
-    lock_version integer DEFAULT 0 NOT NULL
+    lock_version integer DEFAULT 0 NOT NULL,
+    created_by_hud_user_id bigint,
+    updated_by_hud_user_id bigint
 );
 
 
@@ -1552,9 +1554,11 @@ CREATE VIEW analytics.custom_assessments AS
     "DateUpdated",
     "DateDeleted",
     wip,
-    lock_version
-   FROM public."CustomAssessments"
-  WHERE ("DateDeleted" IS NULL);
+    lock_version,
+    created_by_hud_user_id,
+    updated_by_hud_user_id
+ FROM public."CustomAssessments"
+ WHERE ("DateDeleted" IS NULL);
 
 
 --
@@ -63641,6 +63645,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241125133814'),
 ('20241126143802'),
 ('20241127144123'),
-('20241127162253');
-
-
+('20241127162253'),
+('20241111212106');
