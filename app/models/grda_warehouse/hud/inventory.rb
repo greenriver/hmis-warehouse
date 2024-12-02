@@ -139,7 +139,7 @@ module GrdaWarehouse::Hud
       start_date = [range.start, computed_start_date].compact.max
       end_date = [range.end, computed_end_date].compact.min
       days = (end_date - start_date).to_i
-      return 0 if days.negative? || days.zero? || range.length.zero?
+      return 0 if days.negative? || days.zero? || range.length.zero? # rubocop:disable Style/ZeroLengthPredicate
 
       (days.to_f * count / range.length).to_i
     end
