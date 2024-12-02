@@ -6,6 +6,7 @@
 
 require 'faker'
 
+# helper for generating static / fake values for the PII scrubbers
 module Pii::Scrubber
   class ReplacementPii
     attr_accessor :max_level

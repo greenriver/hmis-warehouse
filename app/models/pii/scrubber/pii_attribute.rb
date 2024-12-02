@@ -1,4 +1,10 @@
-# wrap a PII field for scrubbing
+###
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# wrapper for a attribute to assist with PII field scrubbing
 module Pii::Scrubber
   class PiiAttribute
     attr_reader :name, :type, :level, :record
