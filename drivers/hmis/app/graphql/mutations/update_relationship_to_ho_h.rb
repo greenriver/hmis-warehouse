@@ -32,7 +32,7 @@ module Mutations
         # Set new relationship value
         enrollment.relationship_to_ho_h = relationship_to_ho_h
         # Set user HUD that most recently touched the record
-        enrollment.user_id = hmis_user.user_id
+        enrollment.user_id = hud_user.user_id
         enrollment.save!
       end
 
