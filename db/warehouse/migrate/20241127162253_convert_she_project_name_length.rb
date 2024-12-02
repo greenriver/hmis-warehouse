@@ -3,11 +3,14 @@ class ConvertSheProjectNameLength < ActiveRecord::Migration[7.0]
     drop_view :service_history
     change_column :service_history_enrollments, :project_name, :string
 
-    connection.execute(view_sql)
+    create_view :service_history
   end
 
   def down
+    drop_view :service_history
     change_column :service_history_enrollments, :project_name, :string, limit: 150
+
+    create_view :service_history
   end
 
   def view_sql
