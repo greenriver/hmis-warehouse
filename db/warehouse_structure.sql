@@ -150,8 +150,8 @@ CREATE TYPE public.record_type AS ENUM (
 
 CREATE FUNCTION public.f_unaccent(text) RETURNS text
     LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
-    AS $_$
-SELECT public.unaccent('public.unaccent', $1)  -- schema-qualify function and dictionary
+    AS $_$
+SELECT public.unaccent('public.unaccent', $1)  -- schema-qualify function and dictionary
 $_$;
 
 
@@ -161,117 +161,160 @@ $_$;
 
 CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
     LANGUAGE plpgsql
-    AS $$
-      BEGIN
-      IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
-            INSERT INTO service_history_services_2050 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
-            INSERT INTO service_history_services_2049 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
-            INSERT INTO service_history_services_2048 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
-            INSERT INTO service_history_services_2047 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
-            INSERT INTO service_history_services_2046 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
-            INSERT INTO service_history_services_2045 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
-            INSERT INTO service_history_services_2044 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
-            INSERT INTO service_history_services_2043 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
-            INSERT INTO service_history_services_2042 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
-            INSERT INTO service_history_services_2041 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
-            INSERT INTO service_history_services_2040 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
-            INSERT INTO service_history_services_2039 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
-            INSERT INTO service_history_services_2038 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
-            INSERT INTO service_history_services_2037 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
-            INSERT INTO service_history_services_2036 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
-            INSERT INTO service_history_services_2035 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
-            INSERT INTO service_history_services_2034 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
-            INSERT INTO service_history_services_2033 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
-            INSERT INTO service_history_services_2032 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
-            INSERT INTO service_history_services_2031 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
-            INSERT INTO service_history_services_2030 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
-            INSERT INTO service_history_services_2029 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
-            INSERT INTO service_history_services_2028 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
-            INSERT INTO service_history_services_2027 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
-            INSERT INTO service_history_services_2026 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
-            INSERT INTO service_history_services_2025 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
-            INSERT INTO service_history_services_2024 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
-            INSERT INTO service_history_services_2023 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
-            INSERT INTO service_history_services_2022 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
-            INSERT INTO service_history_services_2021 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
-            INSERT INTO service_history_services_2020 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
-            INSERT INTO service_history_services_2019 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
-            INSERT INTO service_history_services_2018 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
-            INSERT INTO service_history_services_2017 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
-            INSERT INTO service_history_services_2016 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
-            INSERT INTO service_history_services_2015 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
-            INSERT INTO service_history_services_2014 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
-            INSERT INTO service_history_services_2013 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
-            INSERT INTO service_history_services_2012 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
-            INSERT INTO service_history_services_2011 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
-            INSERT INTO service_history_services_2010 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
-            INSERT INTO service_history_services_2009 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
-            INSERT INTO service_history_services_2008 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
-            INSERT INTO service_history_services_2007 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
-            INSERT INTO service_history_services_2006 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
-            INSERT INTO service_history_services_2005 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
-            INSERT INTO service_history_services_2004 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
-            INSERT INTO service_history_services_2003 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
-            INSERT INTO service_history_services_2002 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
-            INSERT INTO service_history_services_2001 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
-            INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
-      ELSE
-        INSERT INTO service_history_services_remainder VALUES (NEW.*);
-        END IF;
-        RETURN NULL;
-    END;
+    AS $$
+      BEGIN
+      IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
+            INSERT INTO service_history_services_2050 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
+            INSERT INTO service_history_services_2049 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
+            INSERT INTO service_history_services_2048 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
+            INSERT INTO service_history_services_2047 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
+            INSERT INTO service_history_services_2046 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
+            INSERT INTO service_history_services_2045 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
+            INSERT INTO service_history_services_2044 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
+            INSERT INTO service_history_services_2043 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
+            INSERT INTO service_history_services_2042 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
+            INSERT INTO service_history_services_2041 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
+            INSERT INTO service_history_services_2040 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
+            INSERT INTO service_history_services_2039 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
+            INSERT INTO service_history_services_2038 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
+            INSERT INTO service_history_services_2037 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
+            INSERT INTO service_history_services_2036 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
+            INSERT INTO service_history_services_2035 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
+            INSERT INTO service_history_services_2034 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
+            INSERT INTO service_history_services_2033 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
+            INSERT INTO service_history_services_2032 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
+            INSERT INTO service_history_services_2031 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
+            INSERT INTO service_history_services_2030 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
+            INSERT INTO service_history_services_2029 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
+            INSERT INTO service_history_services_2028 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
+            INSERT INTO service_history_services_2027 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
+            INSERT INTO service_history_services_2026 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
+            INSERT INTO service_history_services_2025 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
+            INSERT INTO service_history_services_2024 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
+            INSERT INTO service_history_services_2023 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
+            INSERT INTO service_history_services_2022 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
+            INSERT INTO service_history_services_2021 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
+            INSERT INTO service_history_services_2020 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
+            INSERT INTO service_history_services_2019 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
+            INSERT INTO service_history_services_2018 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
+            INSERT INTO service_history_services_2017 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
+            INSERT INTO service_history_services_2016 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
+            INSERT INTO service_history_services_2015 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
+            INSERT INTO service_history_services_2014 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
+            INSERT INTO service_history_services_2013 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
+            INSERT INTO service_history_services_2012 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
+            INSERT INTO service_history_services_2011 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
+            INSERT INTO service_history_services_2010 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
+            INSERT INTO service_history_services_2009 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
+            INSERT INTO service_history_services_2008 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
+            INSERT INTO service_history_services_2007 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
+            INSERT INTO service_history_services_2006 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
+            INSERT INTO service_history_services_2005 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
+            INSERT INTO service_history_services_2004 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
+            INSERT INTO service_history_services_2003 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
+            INSERT INTO service_history_services_2002 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
+            INSERT INTO service_history_services_2001 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
+            INSERT INTO service_history_services_2000 VALUES (NEW.*);
+        
+      ELSE
+        INSERT INTO service_history_services_remainder VALUES (NEW.*);
+        END IF;
+        RETURN NULL;
+    END;
     $$;
+
+
+--
+-- Name: setval_max(name, name, boolean); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.setval_max(schema_name name, table_name name DEFAULT NULL::name, raise_notice boolean DEFAULT false) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+
+-- Sets all the sequences in the schema "schema_name" to the max(id) of every table (or a specific table, if name is supplied)
+-- Examples:
+--  SELECT setval_max('public');
+--  SELECT setval_max('public','mytable');
+--  SELECT setval_max('public',null,true);
+--  SELECT setval_max('public','mytable',true);
+
+DECLARE
+    row_data RECORD;
+    sql_code TEXT;
+
+BEGIN
+    IF ((SELECT COUNT(*) FROM pg_namespace WHERE nspname = schema_name) = 0) THEN
+        RAISE EXCEPTION 'The schema "%" does not exist', schema_name;
+    END IF;
+
+    FOR sql_code IN
+        SELECT 'SELECT SETVAL(' ||quote_literal(N.nspname || '.' || S.relname)|| ', MAX(' ||quote_ident(C.attname)|| ') ) FROM ' || quote_ident(N.nspname) || '.' || quote_ident(T.relname)|| ';' AS sql_code
+            FROM pg_class AS S
+            INNER JOIN pg_depend AS D ON S.oid = D.objid
+            INNER JOIN pg_class AS T ON D.refobjid = T.oid
+            INNER JOIN pg_attribute AS C ON D.refobjid = C.attrelid AND D.refobjsubid = C.attnum
+            INNER JOIN pg_namespace N ON N.oid = S.relnamespace
+            WHERE S.relkind = 'S' AND N.nspname = schema_name AND (table_name IS NULL OR T.relname = table_name)
+            ORDER BY S.relname
+    LOOP
+        IF (raise_notice) THEN
+            RAISE NOTICE 'sql_code: %', sql_code;
+        END IF;
+        EXECUTE sql_code;
+    END LOOP;
+END;
+$$;
 
 
 SET default_tablespace = '';
@@ -12716,10 +12759,10 @@ CREATE TABLE public.hmis_2024_affiliations (
     "AffiliationID" character varying,
     "ProjectID" character varying,
     "ResProjectID" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12766,10 +12809,10 @@ CREATE TABLE public.hmis_2024_assessment_questions (
     "AssessmentQuestionOrder" integer,
     "AssessmentQuestion" character varying,
     "AssessmentAnswer" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12814,10 +12857,10 @@ CREATE TABLE public.hmis_2024_assessment_results (
     "PersonalID" character varying,
     "AssessmentResultType" character varying,
     "AssessmentResult" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12864,10 +12907,10 @@ CREATE TABLE public.hmis_2024_assessments (
     "AssessmentType" integer,
     "AssessmentLevel" integer,
     "PrioritizationStatus" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12916,10 +12959,10 @@ CREATE TABLE public.hmis_2024_ce_participations (
     "ReceivesReferrals" integer,
     "CEParticipationStatusStartDate" date,
     "CEParticipationStatusEndDate" date,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -12999,10 +13042,10 @@ CREATE TABLE public.hmis_2024_clients (
     "OtherTheater" integer,
     "MilitaryBranch" integer,
     "DischargeStatus" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13054,10 +13097,10 @@ CREATE TABLE public.hmis_2024_current_living_situations (
     "LeaseOwn60Day" integer,
     "MovedTwoOrMore" integer,
     "LocationDetails" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13111,10 +13154,10 @@ CREATE TABLE public.hmis_2024_disabilities (
     "ViralLoadSource" integer,
     "AntiRetroviral" integer,
     "DataCollectionStage" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13163,10 +13206,10 @@ CREATE TABLE public.hmis_2024_employment_educations (
     "EmploymentType" integer,
     "NotEmployedReason" integer,
     "DataCollectionStage" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13271,10 +13314,10 @@ CREATE TABLE public.hmis_2024_enrollments (
     "TranslationNeeded" integer,
     "PreferredLanguage" integer,
     "PreferredLanguageDifferent" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13323,10 +13366,10 @@ CREATE TABLE public.hmis_2024_events (
     "LocationCrisisOrPHHousing" character varying,
     "ReferralResult" integer,
     "ResultDate" date,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13404,10 +13447,10 @@ CREATE TABLE public.hmis_2024_exits (
     "InPersonIndividual" integer,
     "InPersonGroup" integer,
     "CMExitReason" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13455,7 +13498,7 @@ CREATE TABLE public.hmis_2024_exports (
     "SourceContactPhone" character varying,
     "SourceContactExtension" character varying,
     "SourceContactEmail" character varying,
-    "ExportDate" timestamp(6) without time zone,
+    "ExportDate" timestamp without time zone,
     "ExportStartDate" date,
     "ExportEndDate" date,
     "SoftwareName" character varying,
@@ -13509,10 +13552,10 @@ CREATE TABLE public.hmis_2024_funders (
     "GrantID" character varying,
     "StartDate" date,
     "EndDate" date,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13564,10 +13607,10 @@ CREATE TABLE public.hmis_2024_health_and_dvs (
     "PregnancyStatus" integer,
     "DueDate" date,
     "DataCollectionStage" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13611,10 +13654,10 @@ CREATE TABLE public.hmis_2024_hmis_participations (
     "HMISParticipationType" integer,
     "HMISParticipationStatusStartDate" date,
     "HMISParticipationStatusEndDate" date,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13725,10 +13768,10 @@ CREATE TABLE public.hmis_2024_income_benefits (
     "NoRyanWhiteReason" integer,
     "ConnectionWithSOAR" integer,
     "DataCollectionStage" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13784,10 +13827,10 @@ CREATE TABLE public.hmis_2024_inventories (
     "ESBedType" integer,
     "InventoryStartDate" date,
     "InventoryEndDate" date,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13830,10 +13873,10 @@ CREATE TABLE public.hmis_2024_organizations (
     "OrganizationName" character varying,
     "VictimServiceProvider" integer,
     "OrganizationCommonName" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13882,10 +13925,10 @@ CREATE TABLE public.hmis_2024_project_cocs (
     "State" character varying,
     "Zip" character varying,
     "GeographyType" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13938,10 +13981,10 @@ CREATE TABLE public.hmis_2024_projects (
     "TargetPopulation" integer,
     "HOPWAMedAssistedLivingFac" integer,
     "PITCount" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -13951,7 +13994,8 @@ CREATE TABLE public.hmis_2024_projects (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -13993,10 +14037,10 @@ CREATE TABLE public.hmis_2024_services (
     "FAStartDate" date,
     "FAEndDate" date,
     "ReferralOutcome" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -14041,9 +14085,9 @@ CREATE TABLE public.hmis_2024_users (
     "UserPhone" character varying,
     "UserExtension" character varying,
     "UserEmail" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -14090,10 +14134,10 @@ CREATE TABLE public.hmis_2024_youth_education_statuses (
     "MostRecentEdStatus" integer,
     "CurrentEdStatus" integer,
     "DataCollectionStage" integer,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
     "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
+    "DateDeleted" timestamp without time zone,
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     importer_log_id integer NOT NULL,
@@ -14462,6 +14506,40 @@ CREATE SEQUENCE public.hmis_assessments_id_seq
 --
 
 ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.id;
+
+
+--
+-- Name: hmis_auto_exit_configs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_auto_exit_configs (
+    id bigint NOT NULL,
+    length_of_absence_days integer NOT NULL,
+    project_type integer,
+    organization_id bigint,
+    project_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_auto_exit_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_auto_exit_configs_id_seq OWNED BY public.hmis_auto_exit_configs.id;
 
 
 --
@@ -18211,7 +18289,8 @@ CREATE TABLE public.hmis_csv_2024_projects (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -20897,7 +20976,9 @@ CREATE TABLE public.hud_report_apr_clients (
     most_recent_ed_status_at_exit integer,
     current_ed_status_at_exit integer,
     pay_for_success boolean DEFAULT false,
-    race_multi_include_race_none jsonb
+    race_multi_include_race_none jsonb,
+    hoh_move_in_date date,
+    adjusted_move_in_date date
 );
 
 
@@ -22985,7 +23066,7 @@ ALTER SEQUENCE public.new_service_history_id_seq OWNED BY public.new_service_his
 --
 
 CREATE TABLE public.nightly_census_by_projects (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     date date NOT NULL,
     project_id integer NOT NULL,
     veterans integer DEFAULT 0,
@@ -26319,7 +26400,7 @@ CREATE MATERIALIZED VIEW public.service_history_services_materialized AS
     project_type,
     homeless,
     literally_homeless
-   FROM public.service_history_services
+   FROM public.service_history_services_was_for_inheritance
   WITH NO DATA;
 
 
@@ -27007,8 +27088,7 @@ CREATE TABLE public.system_pathways_enrollments (
     move_in_date date,
     days_to_move_in integer,
     chronic_at_entry boolean,
-    disabling_condition integer,
-    days_to_exit_after_move_in integer
+    disabling_condition integer
 );
 
 
@@ -27184,7 +27264,9 @@ CREATE TABLE public.talentlms_courses (
     courseid integer,
     months_to_expiration integer,
     name character varying,
-    "default" boolean DEFAULT false
+    "default" boolean DEFAULT false,
+    start_date date,
+    end_date date
 );
 
 
@@ -30274,6 +30356,13 @@ ALTER TABLE ONLY public.hmis_assessment_details ALTER COLUMN id SET DEFAULT next
 --
 
 ALTER TABLE ONLY public.hmis_assessments ALTER COLUMN id SET DEFAULT nextval('public.hmis_assessments_id_seq'::regclass);
+
+
+--
+-- Name: hmis_auto_exit_configs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_auto_exit_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_auto_exit_configs_id_seq'::regclass);
 
 
 --
@@ -33826,6 +33915,14 @@ ALTER TABLE ONLY public.hmis_assessment_details
 
 ALTER TABLE ONLY public.hmis_assessments
     ADD CONSTRAINT hmis_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_auto_exit_configs hmis_auto_exit_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_auto_exit_configs
+    ADD CONSTRAINT hmis_auto_exit_configs_pkey PRIMARY KEY (id);
 
 
 --
@@ -53913,6 +54010,20 @@ CREATE INDEX index_hmis_assessments_on_site_id ON public.hmis_assessments USING 
 
 
 --
+-- Name: index_hmis_auto_exit_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_auto_exit_configs_on_organization_id ON public.hmis_auto_exit_configs USING btree (organization_id);
+
+
+--
+-- Name: index_hmis_auto_exit_configs_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_auto_exit_configs_on_project_id ON public.hmis_auto_exit_configs USING btree (project_id);
+
+
+--
 -- Name: index_hmis_case_notes_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60451,6 +60562,13 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
+-- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
+
+
+--
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63630,8 +63748,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241118205103'),
 ('20241118210256'),
 ('20241118210556'),
+('20241122135153'),
 ('20241125132725'),
 ('20241125133759'),
-('20241125133814');
+('20241125133814'),
+('20241127144123');
 
 
