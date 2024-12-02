@@ -33,7 +33,7 @@ module GrdaWarehouse
     end
 
     def self.create_for_clients_on_date! client_ids:, date:
-      clients = GrdaWarehouse::Hud::Client.destination.where(id: client_ids)
+      clients = GrdaWarehouse::Hud::Client.destination.where(id: client_ids).preload(:processed_service_history)
       rows = clients.map do |client|
         attributes_for_client_on_date(client: client, date: date) rescue nil # rubocop:disable Style/RescueModifier
       end.compact
@@ -50,6 +50,7 @@ module GrdaWarehouse
         updated_at: Time.now,
         version: 1,
       }
+      # FIXME: how would current_user ever be defined here?
       attributes_for_client[:residential] = client.enrollments_for_rollup(en_scope: client.scope_for_residential_enrollments(current_user), user: User.setup_system_user).to_json rescue '[]' # rubocop:disable Style/RescueModifier
       attributes_for_client[:other] = client.enrollments_for_rollup(en_scope: client.scope_for_other_enrollments(current_user), user: User.setup_system_user).to_json rescue '[]' # rubocop:disable Style/RescueModifier
       attributes_for_client[:days_homeless] = client.days_homeless rescue 0 # rubocop:disable Style/RescueModifier
