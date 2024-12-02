@@ -48,8 +48,7 @@ module HudLsa::Generators::Fy2024
 
     def run!
       setup_notifier('LSA')
-      @failed = preflight_passes?
-      return unless @failed
+      return unless preflight_passes?
 
       # Disable logging so we don't fill the disk
       # ActiveRecord::Base.logger.silence do
@@ -131,7 +130,6 @@ module HudLsa::Generators::Fy2024
       return true if issue_project_ids.empty?
 
       # Prevent report.complete_report from hiding the error
-      @failed = true
       project_names = issues.values.flatten.select { |r| r[:id].in?(issue_project_ids) }.map do |r|
         "#{r[:project]} (id: #{r[:id]})"
       end.uniq
