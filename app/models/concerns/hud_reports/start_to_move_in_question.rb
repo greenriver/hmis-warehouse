@@ -21,8 +21,8 @@ module HudReports::StartToMoveInQuestion
       ).
       where(
         [
-          a_t[:move_in_date].between(@report.start_date..@report.end_date),
-          leavers_clause.and(a_t[:move_in_date].eq(nil)),
+          a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date),
+          leavers_clause.and(a_t[:adjusted_move_in_date].eq(nil)),
         ].inject(&:or),
       )
 
@@ -35,7 +35,7 @@ module HudReports::StartToMoveInQuestion
             case row_cond
             when :average
               value = 0
-              scope = relevant_members.where(col_cond).where(a_t[:move_in_date].between(@report.start_date..@report.end_date))
+              scope = relevant_members.where(col_cond).where(a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date))
               # treat null values as having 0 time in this case
               stay_lengths = scope.pluck(a_t[:time_to_move_in]).map { |len| len || 0 }
               value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any? # using round since this is an average number of days
@@ -64,14 +64,14 @@ module HudReports::StartToMoveInQuestion
       '366 to 730 days (1-2 Yrs)',
     ]
     ret = ret.to_h do |label|
-      cond = lengths.fetch(label).and(a_t[:move_in_date].between(@report.start_date..@report.end_date))
+      cond = lengths.fetch(label).and(a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date))
       [label, cond]
     end
 
     ret.merge(
-      'Total (persons moved into housing)' => a_t[:move_in_date].between(@report.start_date..@report.end_date),
+      'Total (persons moved into housing)' => a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date),
       'Average length of time to housing' => :average,
-      'Persons who were exited without move-in' => a_t[:move_in_date].eq(nil),
+      'Persons who were exited without move-in' => a_t[:hoh_move_in_date].eq(nil),
       'Total persons' => Arel.sql('1=1'),
     ).freeze
   end

@@ -20898,7 +20898,9 @@ CREATE TABLE public.hud_report_apr_clients (
     most_recent_ed_status_at_exit integer,
     current_ed_status_at_exit integer,
     pay_for_success boolean DEFAULT false,
-    race_multi_include_race_none jsonb
+    race_multi_include_race_none jsonb,
+    hoh_move_in_date date,
+    adjusted_move_in_date date
 );
 
 
@@ -27185,7 +27187,9 @@ CREATE TABLE public.talentlms_courses (
     courseid integer,
     months_to_expiration integer,
     name character varying,
-    "default" boolean DEFAULT false
+    "default" boolean DEFAULT false,
+    start_date date,
+    end_date date
 );
 
 
@@ -63631,10 +63635,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241118205103'),
 ('20241118210256'),
 ('20241118210556'),
+('20241122135153'),
 ('20241125132725'),
 ('20241125133759'),
 ('20241125133814'),
 ('20241126143802'),
+('20241127144123'),
 ('20241127162253');
 
 
