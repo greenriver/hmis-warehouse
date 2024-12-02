@@ -1801,6 +1801,25 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           expect(record.custom_data_elements.map(&:date_updated)).not_to include(old1.date_updated, old2.date_updated)
         end
 
+        it 'does not delete and replace when some values are the same, but some are different (repeats: true)' do
+          record = i1
+          old_cded = create(:hmis_custom_data_element, owner: record, value_string: 'old value', data_element_definition: cded)
+          expect(record.custom_data_elements.size).to eq(1)
+
+          hud_values = complete_hud_values.merge(
+            cded.key => [old_cded.value_string, 'new value'],
+          )
+
+          expect do
+            process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+            record.reload
+            old_cded.reload
+          end.to change(old_cded, :date_updated).and not_change(old_cded, :date_deleted)
+
+          expect(record.custom_data_elements.size).to eq(2)
+          expect(record.custom_data_elements.map(&:id)).to include(old_cded.id)
+        end
+
         [nil, HIDDEN, []].each do |value|
           it "doesnt error when receiving custom data element value #{value} (new record / existing record with no value)" do
             existing_record = i1
