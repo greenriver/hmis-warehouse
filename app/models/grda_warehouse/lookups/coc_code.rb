@@ -15,26 +15,18 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
 
   # NOTE: this is only used for generating filters, it is not to be used when calculating
   # client visibility
-  scope :viewable_by, ->(user) do
-    # any code the client could possibly have access to, and the project associated
+  scope :viewable_by, ->(user, permission: :can_view_projects) do
+    # any code the user could possibly have access to, and the project associated
     visible_coc_codes = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user)).distinct.
-      pluck(p_t[:id], GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce)
-    # Ideally we'll only show the CoC codes that the user obtained directly, or
-    # where a project only operates in one coc
-    coc_codes = visible_coc_codes.
-      group_by(&:shift).
-      transform_values(&:flatten).
-      select { |_, codes| codes.count == 1 }.
-      values.
-      uniq.flatten
-    # Sometimes a person may only have access to a few projects, and all of those projects
-    # operates in multiple CoCs.  This would leave us with no CoC Codes, which will break
-    # some reports.  In that case, just return the unique CoC Codes they have
-    coc_codes = visible_coc_codes.map(&:last).compact.uniq if coc_codes.blank? && user.coc_codes.blank?
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: permission)).distinct.
+      pluck(:CoCCode)
+    # If the user can't see any CoC Codes from the above query, it's probably that they don't have any
+    # access to view projects. We'll fix that with different permissions in the future, for now return all
+    visible_coc_codes = active.distinct.pluck(:coc_code) if visible_coc_codes.blank?
+    # Intersected with the user's since the visible_coc_codes returned all CoC codes at the projects
+    visible_coc_codes &= user.coc_codes if user.coc_codes.present?
 
-    possible_cocs = coc_codes + user.coc_codes
-    active.where(coc_code: possible_cocs)
+    active.where(coc_code: visible_coc_codes)
   end
 
   def self.options_for_select(user:)
