@@ -60,7 +60,7 @@ class Cronjob
   private
 
   def add_cron!
-    Rails.logger.info "Adding #{jobname} with capacity #{capacity_type}"
+    Rails.logger.info "Adding #{jobname} with capacity #{capacity_type} on schedule of #{schedule_expression}"
     crons.create_resource(materialized_cronjob)
   end
 

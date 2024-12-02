@@ -173,6 +173,12 @@ end
 #   [ 429, headers, ["Throttled\n"]]
 # end
 
+slack_sends = 0
+last_sent = Time.zone.now
+# Max sends to slack is once every 10 seconds per process
+slack_throttle_window_seconds = 10
+slack_max_sends = 1
+
 ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish, _request_id, payload|
   request = payload[:request]
 
@@ -203,6 +209,11 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
   # ... get a record on disk
   Rails.logger.warn JSON.generate(data)
 
+  delta = Time.zone.now - last_sent
+  next if (delta < slack_throttle_window_seconds) && slack_sends > slack_max_sends
+
+  slack_sends = 0 if delta > slack_throttle_window_seconds
+
   # ... and now try to send to somewhere useful
   if defined?(Slack::Notifier) && ENV['EXCEPTION_WEBHOOK_URL'].present?
     notifier_config = Rails.application.config_for(:exception_notifier).fetch(:slack, nil)
@@ -225,5 +236,8 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
       attachments: [attachment],
       http_options: { open_timeout: 1 },
     )
+
+    last_sent = Time.zone.now
+    slack_sends += 1
   end
 end
