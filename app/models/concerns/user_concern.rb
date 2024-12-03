@@ -744,28 +744,8 @@ module UserConcern
       true
     end
 
-    def self.describe_changes(_version, changes)
-      changes.slice(*whitelist_for_changes_display).map do |name, values|
-        "Changed #{humanize_attribute_name(name)}: from \"#{values.first}\" to \"#{values.last}\"."
-      end
-    end
-
-    def self.humanize_attribute_name(name)
-      name.humanize.titleize
-    end
-
-    def self.whitelist_for_changes_display
-      [
-        'first_name',
-        'last_name',
-        'email',
-        'phone',
-        'agency',
-        'receive_file_upload_notifications',
-        'notify_of_vispdat_completed',
-        'notify_on_anomaly_identified',
-        'receive_account_request_notifications',
-      ].freeze
+    def self.describe_changes(...)
+      UserEditHistory::UserVersionChangeSummary.new.perform(...)
     end
 
     private def viewable(model)
