@@ -14,6 +14,14 @@ module Reporting
     self.table_name = :warehouse_houseds
     include ArelHelper
 
+    include HasPiiAttributes
+    pii_attr :dob
+    pii_attr :age_at_search_start, as: :age
+    pii_attr :age_at_search_end, as: :age
+    pii_attr :age_at_search_start, as: :age
+    pii_attr :age_at_housed_date, as: :age
+    pii_attr :age_at_housing_exit, as: :age
+
     scope :viewable_by, ->(user) do
       # need to pluck project ids from the warehouse database
       where(project_id: GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).pluck(:id))
