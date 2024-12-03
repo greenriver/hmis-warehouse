@@ -1,4 +1,4 @@
-# Forms
+# Form Configuration Guidelines
 
 Here are some form "gotchas" that we, as developers and Super-Admins of the config tool, should stay aware of when configuring client forms. This documentation lives in here near the code, for now, as opposed to in the Config Tool documentation, since our hope is to smooth these details over before handing off the related admin capabilities to users.
 
