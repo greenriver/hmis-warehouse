@@ -11,7 +11,7 @@ class RemoveDeprecatedOverrides < ActiveRecord::Migration[7.0]
   def drop_cols
     [
       ['Inventory', 'coc_code_override', :string],
-      ['Inventory', 'inventory_start_date_override', :date ],
+      ['Inventory', 'inventory_start_date_override', :date],
       ['Inventory', 'inventory_end_date_override', :date],
       ['Project', 'act_as_project_type', :integer],
       ['Project', 'hud_continuum_funded', :boolean],
