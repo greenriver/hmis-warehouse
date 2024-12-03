@@ -32,6 +32,7 @@ module GrdaWarehouse
         perform_later(date: date.to_s)
     end
 
+    # client_ids: destination client ids
     def self.create_for_clients_on_date! client_ids:, date:
       clients = GrdaWarehouse::Hud::Client.destination.where(id: client_ids).preload(:processed_service_history)
       rows = clients.map do |client|
@@ -42,20 +43,20 @@ module GrdaWarehouse
     end
 
     def self.attributes_for_client_on_date client:, date:
+      now = Time.current
       attributes_for_client = {
         client_id: client.id,
         on: date,
         # are timestamps and version columns used? This table is large; perhaps they could be dropped for efficiency
-        created_at: Time.now,
-        updated_at: Time.now,
+        created_at: now,
+        updated_at: now,
         version: 1,
       }
 
-      current_user = User.setup_system_user
-      # FIXME: how would current_user ever be defined here?
-      attributes_for_client[:residential] = client.enrollments_for_rollup(en_scope: client.scope_for_residential_enrollments(current_user), user: current_user).to_json
-      attributes_for_client[:other] = client.enrollments_for_rollup(en_scope: client.scope_for_other_enrollments(current_user), user: current_user).to_json
-      attributes_for_client[:days_homeless] = client.days_homeless rescue 0 # rubocop:disable Style/RescueModifier
+      user = User.setup_system_user
+      attributes_for_client[:residential] = client.enrollments_for_rollup(en_scope: client.scope_for_residential_enrollments(user), user: user).to_json
+      attributes_for_client[:other] = client.enrollments_for_rollup(en_scope: client.scope_for_other_enrollments(user), user: user).to_json
+      attributes_for_client[:days_homeless] = client.days_homeless
       return attributes_for_client
     end
   end
