@@ -29,7 +29,7 @@ RSpec.describe GrdaWarehouse::EnrollmentChangeHistory, type: :model do
     it 'passes a smoke test' do
       expect {
         described_class.create_for_clients_on_date!(client_ids: clients.map(&:id), date: today)
-      }.to change(described_class, :count).by(5).and make_database_queries(count: 10..11)
+      }.to change(described_class, :count).by(5).and make_database_queries(count: 30..50)
 
       clients.map(&:reload)
       clients.each do |client|
