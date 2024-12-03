@@ -413,6 +413,15 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     published? || retired?
   end
 
+  def supports_save_in_progress?
+    walk_definition_nodes(as_open_struct: true) do |item|
+      # Saving assessments with File item types isn't supported
+      return false if item.type == 'FILE'
+    end
+
+    true
+  end
+
   def self.owner_class_for_role(role)
     return Hmis::Hud::CustomAssessment if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 
