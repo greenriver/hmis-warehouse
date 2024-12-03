@@ -23,7 +23,8 @@ module Hmis::Hud::Processors
       elsif attribute_name == 'file_blob_id'
         return if attribute_value.nil?
 
-        blob = ActiveStorage::Blob.find_by(id: attribute_value)
+        # TODO(#7054) - accept either unsigned or signed blob ID for now, for backwards compatibility
+        blob = ActiveStorage::Blob.find_by(id: attribute_value) || ActiveStorage::Blob.find_signed(attribute_value)
         @processor.send(factory_name).name ||= blob.filename
         @processor.send(factory_name).client_file.attach(blob)
       else
