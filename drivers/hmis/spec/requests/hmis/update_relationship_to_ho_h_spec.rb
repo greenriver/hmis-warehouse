@@ -202,7 +202,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     response, result = post_graphql(input: input) { mutation }
 
     aggregate_failures 'checking response' do
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
       errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
       expect(enrollment).to be_present
@@ -219,7 +219,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     response, result = post_graphql(input: test_input.merge(confirmed: false)) { mutation }
 
     aggregate_failures 'checking response' do
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
       errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
       expect(enrollment).to be nil
@@ -236,7 +236,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     response, result = post_graphql(input: test_input.merge(confirmed: false)) { mutation }
 
     aggregate_failures 'checking response' do
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
       errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
       expect(enrollment).to be nil
@@ -254,7 +254,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     response, result = post_graphql(input: test_input.merge(confirmed: false)) { mutation }
 
     aggregate_failures 'checking response' do
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
       errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
       expect(enrollment).to be nil
@@ -272,7 +272,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     response, result = post_graphql(input: test_input.merge(confirmed: false)) { mutation }
 
     aggregate_failures 'checking response' do
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
       errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
       expect(enrollment).to be nil

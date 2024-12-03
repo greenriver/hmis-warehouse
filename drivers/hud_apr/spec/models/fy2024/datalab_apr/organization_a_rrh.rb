@@ -305,20 +305,6 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22f',
-        skip: [
-          'D2', # expected '5.0000' (5), got '12.0000' (12)
-          'H2', # expected '86.0000' (86), got '97.0000' (97)
-          'I2', # expected '17.0000' (17), got '18.0000' (18)
-          'D3', # expected '7.0000' (7), got '0.0000' (0)
-          'H3', # expected '20.0000' (20), got '9.0000' (9)
-          'I3', # expected '5.0000' (5), got '4.0000' (4)
-          'D4', # expected '18.6000' (18.6000), got '158.5000' (158.5)
-          'H4', # expected '15.0800' (15.0814), got '17.5500' (17.5464)
-          'I4', # expected '1.5900' (1.5882), got '21.8300' (21.8333)
-          'D5', # expected '0.0000' (0.0000), got '46.5000' (46.5)
-          'H5', # expected '1.5000' (1.5000), got '1.0000' (1.0)
-          'I5', # expected '0.0000' (0.0000), got '0.5000' (0.5)
-        ],
       )
     end
 
@@ -327,24 +313,11 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
         skip: [
-          'B2', # expected '1.0000' (1), got '2.0000' (2)
-          'D2', # expected '8.0000' (8), got '16.0000' (16)
-          'H2', # expected '105.0000' (105), got '130.0000' (130)
-          'I2', # expected '20.0000' (20), got '28.0000' (28)
-          'J2', # expected '7.0000' (7), got '8.0000' (8)
-          'D3', # expected '0.0000' (0), got '3.0000' (3)
-          'H3', # expected '0.0000' (0), got '8.0000' (8)
-          'I3', # expected '0.0000' (0), got '4.0000' (4)
-          'J3', # expected '0.0000' (0), got '2.0000' (2)
-          'B4', # expected '259.0000' (259.0000), got '154.0000' (154.0)
-          'D4', # expected '171.0000' (171.0000), got '240.5000' (240.5)
-          'H4', # expected '177.2100' (177.2095), got '167.4200' (167.4154)
-          'I4', # expected '98.2500' (98.2500), got '471.0400' (471.0357)
-          'J4', # expected '88.8600' (88.8571), got '82.3800' (82.375)
-          'B5', # expected '259.0000' (259.0000), got '154.0000' (154.0)
-          'D5', # expected '39.5000' (39.5000), got '150.0000' (150.0)
-          'H5', # expected '105.0000' (105.0000), got '95.5000' (95.5)
-          'I5', # expected '70.0000' (70.0000), got '73.0000' (73.0)
+          'B3', # expected '0.0000' (0), got '1.0000' (1)
+          'D3', # expected '0.0000' (0), got '8.0000' (8)
+          'H3', # expected '0.0000' (0), got '25.0000' (25)
+          'I3', # expected '0.0000' (0), got '8.0000' (8)
+          'J3', # expected '0.0000' (0), got '1.0000' (1)
         ],
       )
     end
@@ -567,14 +540,6 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27l',
-        skip: [
-          'B10', # expected '0.0000' (0), got '1.0000' (1)
-          'D10', # expected '0.0000' (0), got '1.0000' (1)
-          'B12', # expected '8.0000' (8), got '9.0000' (9)
-          'D12', # expected '2.0000' (2), got '3.0000' (3)
-          'B13', # expected '3.0000' (3), got '2.0000' (2)
-          'D13', # expected '1.0000' (1), got '0.0000' (0)
-        ],
       )
     end
 

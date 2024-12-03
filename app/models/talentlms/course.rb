@@ -14,6 +14,9 @@ module Talentlms
     belongs_to :config, class_name: 'Talentlms::Config'
 
     validates :courseid, presence: true
+    validates :config_id, presence: true
+    validates :name, presence: true
+    validate :check_course_dates
     validate :check_configuration_is_valid
 
     attr_encrypted :api_key, key: ENV['ENCRYPTION_KEY'][0..31]
@@ -23,6 +26,20 @@ module Talentlms
 
     scope :default, -> do
       where(default: true)
+    end
+
+    scope :active_on_date, ->(date) do
+      a_t = Talentlms::Course.arel_table
+      where(a_t[:start_date].eq(nil).or(a_t[:start_date].lteq(date)).and(a_t[:end_date].eq(nil).or(a_t[:end_date].gteq(date))))
+    end
+
+    # Validator to make sure course dates are valid
+    def check_course_dates
+      return unless start_date.present? && end_date.present?
+      return unless start_date > end_date
+
+      errors.add(:start_date, 'Start date must be before the end date.')
+      errors.add(:end_date, 'End date must be after start date.')
     end
 
     # Validator to check this configuration is valid.
@@ -67,6 +84,32 @@ module Talentlms
       return unless login # Login does not exist, user has not completed training
 
       Talentlms::CompletedTraining.where(login_id: login.id, course_id: id).exists?
+    end
+
+    def active_date_order_value
+      [
+        active? ? 0 : 1,
+        start_date ? 0 : 1,
+        start_date,
+        end_date ? 0 : 1,
+        end_date,
+      ]
+    end
+
+    def active?(date = Date.today)
+      return false if start_date.present? && start_date > date
+      return false if end_date.present? && end_date < date
+
+      true
+    end
+
+    def active_date_range_for_display
+      return start_date if start_date.present? && end_date.present? && start_date == end_date
+      return "#{start_date} through #{end_date}" if start_date.present? && end_date.present?
+      return "After #{start_date}" if start_date.present?
+      return "Before #{end_date}" if end_date.present?
+
+      'Always'
     end
   end
 end

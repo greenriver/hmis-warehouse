@@ -1,5 +1,7 @@
-= f.input :config_id, as: :select_two, label: 'Subdomain', collection: Talentlms::Config.collection_for_form, selected: @course&.config&.id
-= f.input :name
-= f.input :courseid, label: 'Course ID'
+= f.input :config_id, as: :select_two, label: 'Subdomain', collection: Talentlms::Config.collection_for_form, selected: @course&.config&.id, required: true
+= f.input :name, required: true
+= f.input :courseid, label: 'Course ID', required: true
+= f.input :start_date, label: 'Course Start Date', as: :date_picker, hint: 'The date a course will begin to be required (Leave blank to not enforce a start date)'
+= f.input :end_date, label: 'Course End Date', as: :date_picker, hint: 'The date a course will end being required (Leave blank to not enforce an end date)'
 = f.input :months_to_expiration, label: "#{Talentlms::Facade.expiration_duration_label} Until Required Recertification", hint: 'Leave blank if recertification is not required'
 = f.input :default
