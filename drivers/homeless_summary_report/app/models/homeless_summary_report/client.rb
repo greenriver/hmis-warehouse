@@ -8,6 +8,10 @@ module HomelessSummaryReport
   class Client < GrdaWarehouseBase
     acts_as_paranoid
 
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+
     has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :report
 

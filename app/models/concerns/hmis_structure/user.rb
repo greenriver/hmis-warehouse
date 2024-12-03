@@ -7,6 +7,7 @@
 module HmisStructure::User
   extend ActiveSupport::Concern
   include ::HmisStructure::Base
+  include HasPiiAttributes
 
   included do
     self.hud_key = :UserID
@@ -15,6 +16,11 @@ module HmisStructure::User
     def name
       "#{user_first_name} #{user_last_name}"
     end
+
+    pii_attr :user_first_name, as: :first_name
+    pii_attr :user_last_name, as: :last_name
+    pii_attr :user_phone, as: :phone
+    pii_attr :user_email, as: :email
   end
 
   module ClassMethods

@@ -52,3 +52,4 @@ Rails.autoloaders.main.inflector.inflect('update_project_coc' => 'UpdateProjectC
 Rails.autoloaders.main.inflector.inflect('delete_project_coc' => 'DeleteProjectCoc')
 Rails.autoloaders.main.inflector.inflect('force_project_enrollment_coc' => 'ForceProjectEnrollmentCoc')
 Rails.autoloaders.main.inflector.inflect('force_valid_enrollment_coc' => 'ForceValidEnrollmentCoc')
+Rails.autoloaders.main.inflector.inflect('dob_scrubber' => 'DobScrubber')

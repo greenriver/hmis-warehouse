@@ -16,7 +16,7 @@ module Mutations
       context[:current_user]
     end
 
-    def hmis_user
+    def hud_user
       Hmis::Hud::User.from_user(current_user)
     end
 

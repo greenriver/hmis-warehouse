@@ -7,6 +7,13 @@
 module ProjectPassFail
   class Client < GrdaWarehouseBase
     self.table_name = :project_pass_fails_clients
+
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :dob
+    pii_attr :ssn
+
     belongs_to :project_pass_fail, inverse_of: :clients
     belongs_to :project, inverse_of: :clients, optional: true
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
