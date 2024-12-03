@@ -9,6 +9,12 @@ module MaReports::MonthlyPerformance
     self.table_name = :ma_monthly_performance_enrollments
     acts_as_paranoid
 
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :city, as: :geo_locality
+    pii_attr :reporting_age, as: :age
+
     has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
 
     scope :open_between, ->(range) do
