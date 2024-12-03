@@ -177,9 +177,9 @@ module HudApr::Generators::Shared::Fy2024
       ps_rrh_w_move_in = universe.members.where(
         # Generates (project_type in 3, 13 or pay_for_success = true) AND ...
         a_t[:project_type].in([3, 13]).or(a_t[:pay_for_success].eq(true)).
-          and(a_t[:move_in_date].not_eq(nil).
-          and(a_t[:move_in_date].lteq(@report.end_date))).
-          and(a_t[:last_date_in_program].eq(nil).or(a_t[:last_date_in_program].gteq(a_t[:move_in_date]))),
+          and(a_t[:adjusted_move_in_date].not_eq(nil).
+          and(a_t[:adjusted_move_in_date].lteq(@report.end_date))).
+          and(a_t[:last_date_in_program].eq(nil).or(a_t[:last_date_in_program].gteq(a_t[:adjusted_move_in_date]))),
       )
       row_seven_cells.each do |cell|
         answer = @report.answer(question: table_name, cell: cell[:cell])

@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -1524,7 +1524,9 @@ CREATE TABLE public."CustomAssessments" (
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
     wip boolean DEFAULT false NOT NULL,
-    lock_version integer DEFAULT 0 NOT NULL
+    lock_version integer DEFAULT 0 NOT NULL,
+    created_by_hud_user_id bigint,
+    updated_by_hud_user_id bigint
 );
 
 
@@ -1552,9 +1554,11 @@ CREATE VIEW analytics.custom_assessments AS
     "DateUpdated",
     "DateDeleted",
     wip,
-    lock_version
-   FROM public."CustomAssessments"
-  WHERE ("DateDeleted" IS NULL);
+    lock_version,
+    created_by_hud_user_id,
+    updated_by_hud_user_id
+ FROM public."CustomAssessments"
+ WHERE ("DateDeleted" IS NULL);
 
 
 --
@@ -7467,7 +7471,8 @@ CREATE TABLE public.configs (
     self_report_start_date date,
     chronic_adult_only_cohort boolean DEFAULT false,
     enable_auto_deduplication boolean DEFAULT true,
-    number_lms_courses_required integer DEFAULT '-1'::integer
+    number_lms_courses_required integer DEFAULT '-1'::integer,
+    rds_s3_integration_role_arn character varying
 );
 
 
@@ -20897,7 +20902,9 @@ CREATE TABLE public.hud_report_apr_clients (
     most_recent_ed_status_at_exit integer,
     current_ed_status_at_exit integer,
     pay_for_success boolean DEFAULT false,
-    race_multi_include_race_none jsonb
+    race_multi_include_race_none jsonb,
+    hoh_move_in_date date,
+    adjusted_move_in_date date
 );
 
 
@@ -25211,7 +25218,7 @@ CREATE TABLE public.service_history_enrollments (
     destination integer,
     head_of_household_id character varying(50),
     household_id character varying(50),
-    project_name character varying(150),
+    project_name character varying,
     project_type smallint,
     project_tracking_method integer,
     organization_id character varying(50),
@@ -27184,7 +27191,9 @@ CREATE TABLE public.talentlms_courses (
     courseid integer,
     months_to_expiration integer,
     name character varying,
-    "default" boolean DEFAULT false
+    "default" boolean DEFAULT false,
+    start_date date,
+    end_date date
 );
 
 
@@ -63630,8 +63639,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241118205103'),
 ('20241118210256'),
 ('20241118210556'),
+('20241122135153'),
 ('20241125132725'),
 ('20241125133759'),
-('20241125133814');
-
-
+('20241125133814'),
+('20241126143802'),
+('20241127144123'),
+('20241127162253'),
+('20241111212106');

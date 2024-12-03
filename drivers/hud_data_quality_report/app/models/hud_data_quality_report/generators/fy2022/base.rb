@@ -42,7 +42,7 @@ module HudDataQualityReport::Generators::Fy2022
           age = source_client.age_on(client_start_date)
 
           hh_id = get_hh_id(last_service_history_enrollment)
-          hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
+          hoh_enrollment = hoh_enrollments[hh_id]
           household_assessment_required[hh_id] = annual_assessment_expected?(enrollment: hoh_enrollment, report_end_date: @report.end_date)
           date = [
             @report.start_date,
@@ -75,7 +75,7 @@ module HudDataQualityReport::Generators::Fy2022
 
           hh_id = get_hh_id(last_service_history_enrollment)
           # Fetch the Head of Household's enrollment, but if we don't have a head, just use ours
-          hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)] || last_service_history_enrollment
+          hoh_enrollment = hoh_enrollments[hh_id] || last_service_history_enrollment
 
           income_at_start = enrollment.income_benefits_at_entry
           income_at_annual_assessment = annual_assessment(enrollment, hoh_enrollment.first_date_in_program)
