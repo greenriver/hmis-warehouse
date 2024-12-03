@@ -88,6 +88,7 @@ jobs:
         ports:
           - 3333:3333
         env:
+          TZ: "America/New_York"
           PORT: 3333
           CONNECTION_TIMEOUT: 600000
 
