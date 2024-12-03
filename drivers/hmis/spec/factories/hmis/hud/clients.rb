@@ -18,7 +18,7 @@ FactoryBot.define do
     skip_validations { [:all] }
     FirstName { 'Bob' }
     LastName { 'Ross' }
-    DOB { '1999-12-01' }
+    DOB { (Date.current - 24.years).to_fs(:db) }
     transient do
       with_enrollment_at { nil }
     end
@@ -36,7 +36,7 @@ FactoryBot.define do
     NameDataQuality { 1 }
     SSN { Faker::IdNumber.valid.gsub(/[^0-9]/, '') }
     SSNDataQuality { 1 }
-    DOB { '1999-12-01' }
+    DOB { (Date.current - 24.years).to_fs(:db) }
     DOBDataQuality { 1 }
     VeteranStatus { [0, 1, 8, 9, 99].sample }
     DateCreated { DateTime.current }

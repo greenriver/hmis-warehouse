@@ -9,6 +9,9 @@ module MaYyaReport
     self.table_name = :ma_yya_report_clients
     acts_as_paranoid
 
+    include HasPiiAttributes
+    pii_attr :age
+
     has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
   end
 end

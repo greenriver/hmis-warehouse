@@ -13,6 +13,10 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
   has_paper_trail(meta: { client_id: ->(r) { r.client&.id } })
 
+  include HasPiiAttributes
+  pii_attr :value, as: :free_text, level: 2
+  pii_attr :notes, as: :free_text, level: 2
+
   # Based on https://build.fhir.org/valueset-contact-point-use.html
   USE_VALUES = [
     :home,
