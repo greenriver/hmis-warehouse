@@ -177,15 +177,6 @@ module Types
       Hmis::File.viewable_by(current_user).find_by(id: id)
     end
 
-    # don't paginate since we don't expect many records passed (todo @martha - discuss, maybe not ideal)
-    field :file_blobs, [Uploads::DirectUploadType], null: true do
-      argument :ids, [ID], required: true
-    end
-    def file_blobs(ids:)
-      # todo @martha PERMISSION LEAK
-      ActiveStorage::Blob.find(ids)
-    end
-
     field :record_form_definition, Types::Forms::FormDefinition, 'Get the most relevant Form Definition to use for record viewing/editing', null: true do
       argument :role, Types::Forms::Enums::RecordFormRole, required: true
       argument :project_id, ID, required: false, description: 'Optional Project to select the relevant form, and to apply rule filtering (e.g. show/hide questions based on Project applicability)'

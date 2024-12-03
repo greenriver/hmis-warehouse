@@ -8946,7 +8946,6 @@ type Query {
   esgFundingReport(clientIds: [ID!]!): [EsgFundingService!]!
   externalFormSubmission(id: ID!): ExternalFormSubmission
   file(id: ID!): File
-  fileBlobs(ids: [ID!]!): [DirectUpload!]
   formDefinition(id: ID!): FormDefinition
   formIdentifier(identifier: String!): FormIdentifier
   formIdentifiers(filters: FormIdentifierFilterOptions, limit: Int, offset: Int): FormIdentifiersPaginated!
