@@ -338,6 +338,7 @@ class Hmis::Hud::Processors::Base
     # value could be either nil, a saved File object, or a string blob ID
     return value unless value.is_a?(String)
 
+    # TODO @MARTHA - once signed blob ID is in use, adapt this to use that
     already_saved_file = Hmis::File.find_by_blob_id(value)
     return already_saved_file if already_saved_file.present?
 
