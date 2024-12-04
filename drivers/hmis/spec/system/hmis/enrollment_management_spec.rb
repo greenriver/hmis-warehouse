@@ -91,7 +91,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
       before(:each) do
         make_household(enrollment_factory: :hmis_hud_wip_enrollment)
         fill_in 'Search Clients', with: c1.last_name
-        click_link c1.brief_name
+        find("a[aria-label='View Enrollment - #{c1.brief_name}']").trigger(:click)
         click_link 'Household'
         click_link 'Manage Household'
       end
@@ -149,7 +149,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
         # now we have to go back and find the enrollment again to see prev members
         click_link 'Enrollments', match: :first
         assert_text(c1.brief_name)
-        click_link c1.brief_name, match: :first
+        first("a[aria-label='View Enrollment - #{c1.brief_name}']").trigger(:click)
         click_link 'Household'
         click_link 'Manage Household'
 

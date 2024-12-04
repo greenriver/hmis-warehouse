@@ -68,7 +68,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
         expect(e2.intake_assessment).to be_nil
 
         fill_in 'Search Clients', with: c1.last_name
-        click_link c1.brief_name
+        find("a[aria-label='View Enrollment - #{c1.brief_name}']").trigger(:click)
         click_link 'Assessments'
         click_link 'Finish Intake'
 
