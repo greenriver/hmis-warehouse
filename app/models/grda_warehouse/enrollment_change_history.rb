@@ -4,6 +4,19 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# GrdaWarehouse::EnrollmentChangeHistory
+#
+# Audit system that tracks changes to enrollment data over time to support data quality monitoring and troubleshooting.
+#
+# Answers questions like:
+# - "client had an enrollment here last month, but now it's gone?"
+# - "enrollment had 300 days of service and now only has 10, why?"
+#
+# Notes
+# - Access to these records is restricted by explicit permission
+# - Records are generated asynchronously in batches
+# - Records retained for 6 months (configurable via RETENTION_DURATION)
+
 module GrdaWarehouse
   class EnrollmentChangeHistory < GrdaWarehouseBase
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
@@ -53,6 +66,7 @@ module GrdaWarehouse
         version: 1,
       }
 
+      # System User is correct here
       user = User.setup_system_user
       attributes_for_client[:residential] = client.enrollments_for_rollup(en_scope: client.scope_for_residential_enrollments(user), user: user).to_json
       attributes_for_client[:other] = client.enrollments_for_rollup(en_scope: client.scope_for_other_enrollments(user), user: user).to_json

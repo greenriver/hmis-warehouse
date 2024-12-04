@@ -1,11 +1,10 @@
-
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::EnrollmentChangeHistory, type: :model do
   describe '.create_for_clients_on_date!' do
-    let(:today ) { Date.current }
-    let!(:data_source) { create :grda_warehouse_data_source, authoritative: true}
-    let!(:wh_data_source) { create :grda_warehouse_data_source, source_type: nil, authoritative: false}
+    let(:today) { Date.current }
+    let!(:data_source) { create :grda_warehouse_data_source, authoritative: true }
+    let!(:wh_data_source) { create :grda_warehouse_data_source, source_type: nil, authoritative: false }
     let!(:organization) { create :hud_organization, data_source: data_source }
     let!(:project) do
       create(
@@ -16,11 +15,11 @@ RSpec.describe GrdaWarehouse::EnrollmentChangeHistory, type: :model do
       )
     end
 
-    let(:days_homeless) {30}
+    let(:days_homeless) { 30 }
     let!(:source_clients) do
       3.times.map do
         source_client = create :hud_client, data_source_id: data_source.id
-        enrollment = create :hud_enrollment, client: source_client, data_source: data_source, project: project, entry_date: today - days_homeless.days
+        create :hud_enrollment, client: source_client, data_source: data_source, project: project, entry_date: today - days_homeless.days
         client = create(:hud_client, data_source: wh_data_source)
         create :warehouse_client, source_id: source_client.id, destination_id: client.id, data_source: data_source
         source_client
@@ -33,10 +32,10 @@ RSpec.describe GrdaWarehouse::EnrollmentChangeHistory, type: :model do
     it 'passes a smoke test' do
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.all.each(&:rebuild_service_history!)
 
-      expect {
-        described_class.create_for_clients_on_date!(client_ids: destination_clients.map(&:id), date: today )
-      }.to change(described_class, :count).by(3).
-      and make_database_queries(count: 60)
+      expect do
+        described_class.create_for_clients_on_date!(client_ids: destination_clients.map(&:id), date: today)
+      end.to change(described_class, :count).by(3).
+        and make_database_queries(count: 60)
 
       # destination_clients.map(&:reload)
       destination_clients.each do |client|
