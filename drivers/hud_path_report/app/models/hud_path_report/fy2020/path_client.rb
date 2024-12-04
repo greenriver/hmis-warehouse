@@ -8,6 +8,12 @@ module HudPathReport::Fy2020
   class PathClient < ::HudReports::ReportClientBase
     self.table_name = 'hud_report_path_clients'
 
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :dob
+    pii_attr :age
+
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
 
     def self.detail_headers
