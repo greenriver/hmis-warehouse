@@ -845,7 +845,7 @@ module ReportGenerators::Pit::Fy2018
 
     def sh_cols
       @sh_cols ||= {
-        project_type: act_as_project_overlay,
+        project_type: she_s[:project_type].as('client_id'),
         client_id: she_t[:client_id].as('client_id'),
         enrollment_group_id: she_t[:enrollment_group_id].as('enrollment_group_id'),
         age: shs_t[:age].as('age'),
@@ -858,10 +858,6 @@ module ReportGenerators::Pit::Fy2018
         parenting_juvenile: she_t[:parenting_juvenile].as('parenting_juvenile'),
         children_only: she_t[:children_only].as('children_only'),
       }
-    end
-
-    def act_as_project_overlay
-      nf('COALESCE', [p_t[:act_as_project_type], shs_t[:project_type]]).as('project_type')
     end
 
     def client_columns
