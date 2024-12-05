@@ -7,6 +7,12 @@
 class GrdaWarehouse::HmisClient < GrdaWarehouseBase
   include NotifierConfig
 
+  include HasPiiAttributes
+  pii_attr :assigned_staff_name, as: :full_name
+  pii_attr :case_manager_name, as: :full_name
+  pii_attr :counselor_name, as: :full_name
+  pii_attr :outreach_counselor_name, as: :full_name
+
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
   has_one :destination_client, through: :client
   serialize :case_manager_attributes, Hash

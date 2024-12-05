@@ -11,6 +11,10 @@ module SimpleReports
     self.table_name = 'simple_report_universe_members'
     include RailsDrivers::Extensions
 
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+
     belongs_to :report_cell, class_name: 'SimpleReports::ReportCell'
     belongs_to :universe_membership, polymorphic: true, inverse_of: :simple_reports_universe_members, optional: true
 

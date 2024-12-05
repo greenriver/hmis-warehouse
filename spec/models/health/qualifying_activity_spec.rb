@@ -25,7 +25,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     let!(:referral_ds) { create :referral_ds }
 
     before(:each) do
-      travel_to(Date.current - 2.years) # Enrollment durations depend on time if there is no disenrollment date
+      travel_to(Date.new(2022, 12, 1)) # Enrollment durations depend on time if there is no disenrollment date
       referral_args = {
         first_name: 'First',
         last_name: 'Last',
