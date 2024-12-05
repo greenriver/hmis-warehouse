@@ -64,8 +64,7 @@ module Hmis::Hud::Processors
         when Integer, Float, nil
           bool_attribute_value = amount_attribute_value&.positive? ? 1 : 0
         else
-          # we expect a currency
-          Sentry.capture_message("Unexpected value \"#{amount_attribute_value}\" received for #{amount_attribute_name}")
+          # the client may send non-numeric values
           bool_attribute_value = 0
         end
       when 'NO'
