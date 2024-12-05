@@ -60,7 +60,14 @@ module Hmis::Hud::Processors
       case @hud_values['IncomeBenefit.incomeFromAnySource']
       when 'YES'
         # If overall income was 1 (yes), then this specific income field must be 1 or 0 (yes or no)
-        bool_attribute_value = amount_attribute_value&.positive? ? 1 : 0
+        case amount_attribute_value
+        when Integer, Float, nil
+          bool_attribute_value = amount_attribute_value&.positive? ? 1 : 0
+        else
+          # we expect a currency
+          Sentry.capture_message("Unexpected value \"#{amount_attribute_value}\" received for #{amount_attribute_name}")
+          bool_attribute_value = 0
+        end
       when 'NO'
         # If overall income was 0 (no), then this specific income field is 0 (no)
         amount_attribute_value = nil

@@ -441,6 +441,21 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     @assessment_date_item ||= link_id_item_hash.values.find(&:assessment_date)
   end
 
+  # Currency is an integer or float
+  CURRENCY_RGX = /\A-?[1-9]\d*\z|\A-?[1-9]\d*\.\d+\z|\A-?0\.\d+\z/
+  INTEGER_RGX = /\A-?[1-9]\d*\z/
+
+  def validate_input_format(item, value)
+    return unless value.present?
+
+    case item.type
+    when 'INTEGER'
+      ['not a valid integer'] unless value.to_s.strip =~ INTEGER_RGX
+    when 'CURRENCY'
+      ['is not a valid currency'] unless value.to_s.strip =~ CURRENCY_RGX
+    end
+  end
+
   # validate form_values provides against the definition
   #   * errors & warnings on missing required fields
   #   * check if the input ids match the definition
@@ -465,6 +480,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       is_missing = value.nil? || (value.respond_to?(:empty?) && value.empty?)
       is_data_not_collected = value == 'DATA_NOT_COLLECTED'
       field_name = item.mapping&.field_name || item.mapping&.custom_field_key
+
+      # validate format by field type
+      validate_input_format(item, value)&.each do |error_message|
+        errors.add field_name || :base, message: error_message, **error_context
+      end
+
       # Validate required status
       if item.required && is_missing
         errors.add field_name || :base, :required, **error_context
