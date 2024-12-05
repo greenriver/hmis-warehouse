@@ -443,10 +443,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   # Currency is an integer or float
   CURRENCY_RGX = /\A-?[1-9]\d*\z|\A-?[1-9]\d*\.\d+\z|\A-?0\.\d+\z/
-  INTEGER_RGX = /\A-?[1-9]\d*\z/
+  INTEGER_RGX = /\A-?[1-9]\d*\z|\A0\z/
 
   def validate_input_format(item, value)
     return unless value.present?
+    # special case values?
+    return if value == 'DATA_NOT_COLLECTED'
+    return if value == '_HIDDEN'
 
     case item.type
     when 'INTEGER'
