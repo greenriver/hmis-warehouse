@@ -27,6 +27,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:fd1) { create :hmis_form_definition }
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
 
+  let(:hud_user) { Hmis::Hud::User.from_user(hmis_user) }
+  let!(:other_user) { create(:user, first_name: 'someone', last_name: 'else') }
+  let!(:other_hmis_user) { other_user.related_hmis_user(ds1) }
+  let!(:other_ac) { create_access_control(other_user, p1) }
+  let(:other_hud_user) { Hmis::Hud::User.from_user(other_hmis_user) }
+
   before(:each) do
     hmis_login(user)
   end
@@ -98,6 +104,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(Hmis::Hud::CustomAssessment.count).to eq(1)
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(1)
       expect(Hmis::Hud::CustomAssessment.viewable_by(hmis_user).count).to eq(1)
+      expect(Hmis::Hud::CustomAssessment.first.created_by_hud_user).to eq(hud_user)
     end
 
     # WIP assessment should appear on enrollment query
@@ -110,7 +117,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'update an existing WIP assessment successfully' do
     # Create new WIP assessment
-    response, result = post_graphql(input: { input: test_input }) { mutation }
+    _, result = post_graphql(input: { input: test_input }) { mutation }
     assessment_id = result.dig('data', 'saveAssessment', 'assessment', 'id')
     errors = result.dig('data', 'saveAssessment', 'errors')
     expect(errors).to be_empty
@@ -141,6 +148,33 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       )
       expect(Hmis::Hud::CustomAssessment.count).to eq(1)
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(1)
+    end
+  end
+
+  context 'when WIP assessment is updated by a different user' do
+    let!(:assessment) { create :hmis_wip_custom_assessment, data_source: ds1, enrollment: e1, assessment_date: e1.entry_date, user: hud_user, created_by_hud_user: hud_user, updated_by_hud_user: hud_user }
+
+    before(:each) do
+      delete destroy_hmis_user_session_path
+      hmis_login(other_user)
+    end
+
+    it 'should update updated_by, but not created_by' do
+      new_information_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
+      input = test_input.merge(
+        {
+          assessment_id: assessment.id,
+          values: { 'linkid_date' => new_information_date },
+          hud_values: { 'assessmentDate' => new_information_date },
+        },
+      )
+      expect do
+        response, result = post_graphql(input: { input: input }) { mutation }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'saveAssessment', 'errors')).to be_empty
+        assessment.reload
+      end.to change(assessment, :updated_by_hud_user).from(hud_user).to(other_hud_user).
+        and not_change(assessment, :created_by_hud_user)
     end
   end
 

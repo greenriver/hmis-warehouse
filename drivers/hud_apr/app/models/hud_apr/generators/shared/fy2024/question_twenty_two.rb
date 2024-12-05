@@ -188,7 +188,7 @@ module HudApr::Generators::Shared::Fy2024
     def time_prior_to_housing_universe
       # 0 (ES-EE); 1 (EE-NbN); 2 (TH); 3 (PSH); 7 (Other) with 2.06 Funding
       # Source of HUD: Pay for Success (35); 8 (SH); 9 (PH); 13 (RRH)
-      universe.members.where(a_t[:project_type].in([0, 1, 2, 3, 8, 9, 13]).or(a_t[:pay_for_success].eq(true)))
+      universe.members.where(a_t[:project_type].in([0, 1, 2, 3, 8, 9, 13]).or(a_t[:project_type].in([7]).and(a_t[:pay_for_success].eq(true))))
     end
 
     def q22f_start_to_move_in_by_race_and_ethnicity
@@ -203,7 +203,7 @@ module HudApr::Generators::Shared::Fy2024
       time_by_race_and_ethnicity_question(
         question: 'Q22g',
         move_in_col: a_t[:approximate_time_to_move_in],
-        members: time_prior_to_housing_universe,
+        members: time_prior_to_housing_universe.where(a_t[:date_to_street].not_eq(nil)),
       )
     end
 
@@ -214,8 +214,8 @@ module HudApr::Generators::Shared::Fy2024
       relevant_members = universe.members.where(a_t[:project_type].in([3, 13]).or(a_t[:pay_for_success].eq(true)))
       relevant_members.where(
         [
-          a_t[:move_in_date].between(@report.start_date..@report.end_date),
-          leavers_clause.and(a_t[:move_in_date].eq(nil)),
+          a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date),
+          leavers_clause.and(a_t[:adjusted_move_in_date].eq(nil)),
         ].inject(&:or),
       )
     end
@@ -307,14 +307,14 @@ module HudApr::Generators::Shared::Fy2024
 
     private def q22e_lengths
       move_in_date_condition = [
-        [a_t[:last_date_in_program], a_t[:move_in_date]].all?(&:present?) && a_t[:last_date_in_program].lt(a_t[:move_in_date]), nil
+        [a_t[:last_date_in_program], a_t[:adjusted_move_in_date]].all?(&:present?) && a_t[:last_date_in_program].lt(a_t[:adjusted_move_in_date]), nil
       ]
       move_in_field = a_t[:approximate_time_to_move_in]
       # PSH/RRH w/ move in date
       # OR project type 7 (other) with Funder 35 (Pay for Success)
       move_in_projects = HudUtility2024.residential_project_type_numbers_by_code[:ph]
       move_in_for_psh = a_t[:project_type].not_in(move_in_projects).and(a_t[:pay_for_success].eq(false)).
-        or(a_t[:project_type].in(move_in_projects).or(a_t[:pay_for_success].eq(true)).and(acase(move_in_date_condition, elsewise: a_t[:move_in_date]).not_eq(nil)).and(a_t[:move_in_date].lteq(@report.end_date)))
+        or(a_t[:project_type].in(move_in_projects).or(a_t[:pay_for_success].eq(true)).and(acase(move_in_date_condition, elsewise: a_t[:adjusted_move_in_date]).not_eq(nil)).and(a_t[:adjusted_move_in_date].lteq(@report.end_date)))
       lengths = lengths(field: move_in_field)
       ret = [
         '7 days or less',
@@ -333,18 +333,18 @@ module HudApr::Generators::Shared::Fy2024
         'Total (persons moved into housing)' => a_t[:approximate_time_to_move_in].not_eq(nil).
           and(a_t[:project_type].not_in(move_in_projects).
             or(a_t[:project_type].in(move_in_projects).
-              and(acase(move_in_date_condition, elsewise: a_t[:move_in_date]).not_eq(nil)).and(a_t[:move_in_date].lteq(@report.end_date).and(a_t[:date_to_street].lteq(a_t[:move_in_date]))))),
+              and(acase(move_in_date_condition, elsewise: a_t[:adjusted_move_in_date]).not_eq(nil)).and(a_t[:adjusted_move_in_date].lteq(@report.end_date).and(a_t[:date_to_street].lteq(a_t[:adjusted_move_in_date]))))),
         'Not yet moved into housing' => a_t[:project_type].not_in(move_in_projects).
           and(a_t[:date_to_street].not_eq(nil).
             and(a_t[:date_to_street].lteq(a_t[:first_date_in_program])).
             and(a_t[:approximate_time_to_move_in].eq(nil))).
           or(a_t[:project_type].in(move_in_projects).
-            and(acase(move_in_date_condition, elsewise: a_t[:move_in_date]).eq(nil).or(a_t[:move_in_date].gt(@report.end_date)))),
+            and(acase(move_in_date_condition, elsewise: a_t[:adjusted_move_in_date]).eq(nil).or(a_t[:adjusted_move_in_date].gt(@report.end_date)))),
         'Data not collected' => a_t[:project_type].not_in(move_in_projects).
           and(a_t[:date_to_street].eq(nil).or(a_t[:date_to_street].gt(a_t[:first_date_in_program]))).
           or(a_t[:project_type].in(move_in_projects).
-            and(a_t[:move_in_date].lteq(@report.end_date).
-              and(a_t[:date_to_street].eq(nil).or(a_t[:date_to_street].gt(a_t[:move_in_date]))))),
+            and(a_t[:adjusted_move_in_date].lteq(@report.end_date).
+              and(a_t[:date_to_street].eq(nil).or(a_t[:date_to_street].gt(a_t[:adjusted_move_in_date]))))),
         'Total persons' => Arel.sql('1=1'),
       )
     end
@@ -378,22 +378,27 @@ module HudApr::Generators::Shared::Fy2024
         group_scope = members.where(group.fetch(:cond))
         letter = col_letters.fetch(idx)
 
+        move_in_clause = a_t[:adjusted_move_in_date].not_eq(nil).and(move_in_col.not_eq(nil))
+
+        exit_scope = group_scope.where(a_t[:adjusted_move_in_date].eq(nil))
+        exit_scope = exit_scope.where(a_t[:last_date_in_program].not_eq(nil)) if question == 'Q22f'
+
         sheet.update_cell_members(
           cell: "#{letter}2",
-          members: group_scope.where(move_in_col.not_eq(nil)),
+          members: group_scope.where(move_in_clause),
         )
         sheet.update_cell_members(
           cell: "#{letter}3",
-          members: group_scope.where(move_in_col.eq(nil)),
+          members: exit_scope,
         )
         sheet.update_cell_value(
           cell: "#{letter}4",
-          value: group_scope.pluck(Arel.sql("AVG(#{move_in_col.to_sql})")).first&.to_f&.round(4),
+          value: group_scope.where(move_in_clause).pluck(Arel.sql("AVG(#{move_in_col.to_sql})")).first&.to_f&.round(4),
         )
         sheet.update_cell_value(
           cell: "#{letter}5",
           # median in pg
-          value: group_scope.pluck(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{move_in_col.to_sql})")).first&.to_f,
+          value: group_scope.where(move_in_clause).pluck(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{move_in_col.to_sql})")).first&.to_f,
         )
       end
     end

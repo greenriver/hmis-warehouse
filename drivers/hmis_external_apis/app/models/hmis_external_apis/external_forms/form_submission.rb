@@ -13,6 +13,10 @@ module HmisExternalApis::ExternalForms
     has_one :client, through: :enrollment
     has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', as: :owner, dependent: :destroy
 
+    include HasPiiAttributes
+    pii_attr :raw_data, as: :json, level: 1
+    pii_attr :notes, as: :free_text
+
     validate :validate_status_change
     private def validate_status_change
       return unless status_changed? && status.present? && status_was.present?

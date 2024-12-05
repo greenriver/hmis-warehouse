@@ -261,23 +261,16 @@ RSpec.shared_context 'datalab organization s es caper', shared_context: :metadat
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
         skip: [
-          'B2', # expected '0.0000' (0), got '1.0000' (1)
-          'D2', # expected '0.0000' (0), got '66.0000' (66)
-          'H2', # expected '0.0000' (0), got '62.0000' (62)
-          'I2', # expected '0.0000' (0), got '10.0000' (10)
-          'J2', # expected '0.0000' (0), got '18.0000' (18)
-          'B3', # expected '1.0000' (1), got '0.0000' (0)
-          'D3', # expected '66.0000' (66), got '2.0000' (2)
-          'H3', # expected '62.0000' (62), got '1.0000' (1)
-          'I3', # expected '10.0000' (10), got '0.0000' (0)
-          'J3', # expected '18.0000' (18), got '0.0000' (0)
-          'D4', # expected '0.0000' (0.0000), got '52.9800' (52.9848)
-          'H4', # expected '0.0000' (0.0000), got '64.4200' (64.4194)
-          'I4', # expected '0.0000' (0.0000), got '23.2000' (23.2)
-          'J4', # expected '0.0000' (0.0000), got '55.7200' (55.7222)
-          'D5', # expected '0.0000' (0.0000), got '6.0000' (6.0)
-          'H5', # expected '0.0000' (0.0000), got '21.0000' (21.0)
-          'J5', # expected '0.0000' (0.0000), got '10.0000' (10.0)
+          'D2', # expected '0.0000' (0), got '9.0000' (9)
+          'H2', # expected '0.0000' (0), got '4.0000' (4)
+          'J2', # expected '0.0000' (0), got '1.0000' (1)
+          'D3', # expected '66.0000' (66), got '57.0000' (57)
+          'H3', # expected '62.0000' (62), got '58.0000' (58)
+          'J3', # expected '18.0000' (18), got '17.0000' (17)
+          'D4', # expected '0.0000' (0.0000), got '2.0000' (2.0)
+          'H4', # expected '0.0000' (0.0000), got '26.0000' (26.0)
+          'J4', # expected '0.0000' (0.0000), got '6.0000' (6.0)
+          'J5', # expected '0.0000' (0.0000), got '6.0000' (6.0)
         ],
       )
     end

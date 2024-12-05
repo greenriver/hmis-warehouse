@@ -6,6 +6,8 @@
 
 module  HudPit::Generators::Pit::Fy2024
   class Generator < ::HudReports::GeneratorBase
+    cattr_accessor :write_detail_path
+
     def self.fiscal_year
       'FY 2024'
     end

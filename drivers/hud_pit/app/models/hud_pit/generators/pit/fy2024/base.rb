@@ -141,6 +141,8 @@ module HudPit::Generators::Pit::Fy2024
             race_none: source_client.RaceNone,
             veteran: source_client.VeteranStatus,
             chronically_homeless: enrollment.chronically_homeless_at_start?(date: @generator.filter.on),
+            # Since 2022, we are using the HoH CH at project start as a proxy for the household chronic status
+            # For a more complete HH status, we could calculate each adult of HoH memeber's CH status and look for any chronic members
             chronically_homeless_household: hoh_enrollment&.chronically_homeless_at_start?(date: @generator.filter.on),
             substance_use: disabilities_latest.detect(&:substance?)&.DisabilityResponse&.present?,
             substance_use_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.substance? }&.DisabilityResponse.present?,
