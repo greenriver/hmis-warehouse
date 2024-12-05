@@ -10,7 +10,7 @@ module Types
   class HmisSchema::OccurrencePointForm < Types::BaseObject
     field :id, ID, null: false, extras: [:parent]
     # Which clients this data should be collected for
-    field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, null: false
+    field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, null: false, default_value: 'ALL_CLIENTS'
     # Form used for Viewing/Creating/Editing records
     field :definition, Types::Forms::FormDefinition, null: false, extras: [:parent]
 
@@ -25,10 +25,6 @@ module Types
       definition = object.definition
       definition.filter_context = { project: parent_project(parent) }
       definition
-    end
-
-    def data_collected_about
-      object.data_collected_about || 'ALL_CLIENTS'
     end
 
     private def parent_project(parent)
