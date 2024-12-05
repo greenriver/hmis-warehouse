@@ -10,7 +10,7 @@ module Types
   class HmisSchema::OccurrencePointForm < Types::BaseObject
     field :id, ID, null: false, extras: [:parent]
     # Which clients this data should be collected for
-    field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, null: false
+    field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, null: false, default_value: 'ALL_CLIENTS'
     # Form used for Viewing/Creating/Editing records
     field :definition, Types::Forms::FormDefinition, null: false, extras: [:parent]
 
