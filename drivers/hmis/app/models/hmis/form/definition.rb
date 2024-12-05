@@ -414,10 +414,11 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def supports_save_in_progress?
-    walk_definition_nodes(as_open_struct: true) do |item|
-      # Saving assessments with File item types isn't supported
-      return false if item.type == 'FILE'
-    end
+    # Only Assessments can be saved as WIP
+    return false unless ASSESSMENT_FORM_ROLES.include?(role.to_sym)
+
+    # If the assessment contains a File collection item, it cannot be saved as WIP (#6208)
+    return false if link_id_item_hash.values.find { |item| ['FILE', 'IMAGE'].include?(item.type) }
 
     true
   end
