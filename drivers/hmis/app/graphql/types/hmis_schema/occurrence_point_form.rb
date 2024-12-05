@@ -27,6 +27,10 @@ module Types
       definition
     end
 
+    def data_collected_about
+      object.data_collected_about || 'ALL_CLIENTS'
+    end
+
     private def parent_project(parent)
       if parent.is_a?(Hmis::Hud::Project)
         parent
