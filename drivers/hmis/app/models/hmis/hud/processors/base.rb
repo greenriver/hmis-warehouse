@@ -305,11 +305,6 @@ class Hmis::Hud::Processors::Base
       case value
       when String
         value
-      when Object
-        # If the value is an Object, it should be a File record in our db
-        raise "unexpected value \"#{value}\"" unless value.key?('fileBlobId') && value.key?('id')
-
-        Hmis::File.find(value['id'])
       else
         raise "unexpected value \"#{value}\""
       end
@@ -335,26 +330,32 @@ class Hmis::Hud::Processors::Base
   end
 
   def process_blob_id_to_file(value)
-    # value could be either nil, a saved File object, or a string blob ID
-    return value unless value.is_a?(String)
+    return value unless value
 
-    # TODO @MARTHA - once signed blob ID is in use, adapt this to use that
-    already_saved_file = Hmis::File.find_by_blob_id(value)
-    return already_saved_file if already_saved_file.present?
+    if value.to_i.to_s == value.to_s
+      # If value is a string representation of an integer, then it should be the ID of an existing File record.
+      # This is a file we've seen and saved before.
+      Hmis::File.find(value)
+    else
+      # Otherwise, it should be a signed blob ID of a recently-uploaded file. We need to create the File record.
+      blob = ActiveStorage::Blob.find_signed(value)
 
-    blob = ActiveStorage::Blob.find_by(id: value)
-    raise "could not find file blob #{value}" unless blob
+      raise "could not find file blob #{value}" unless blob
 
-    enrollment = @processor.send(:enrollment_factory)
-    raise "cannot save file #{value} without enrollment" unless enrollment
+      # Check if a File for this blob already exists (this likely won't happen, but just in case)
+      return Hmis::File.find(blob.attachments.first.record_id) unless blob.attachments.empty?
 
-    file = Hmis::File.new
-    file.name = blob.filename
-    file.client = @processor.send(:client_factory)
-    file.enrollment = enrollment
-    file.client_file.attach(blob)
-    file.user = @processor.current_user
-    file.updated_by = @processor.current_user
-    file
+      enrollment = @processor.send(:enrollment_factory)
+      raise "cannot save file for blob #{value} without enrollment" unless enrollment
+
+      file = Hmis::File.new
+      file.name = blob.filename
+      file.client = @processor.send(:client_factory)
+      file.enrollment = enrollment
+      file.client_file.attach(blob)
+      file.user = @processor.current_user
+      file.updated_by = @processor.current_user
+      file
+    end
   end
 end

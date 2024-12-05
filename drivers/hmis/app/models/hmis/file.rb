@@ -36,11 +36,6 @@ class Hmis::File < GrdaWarehouse::File
   belongs_to :updated_by, class_name: 'Hmis::User', optional: true
   has_one :custom_data_element, class_name: 'Hmis::Hud::CustomDataElement', foreign_key: 'value_file_id', inverse_of: :value_file
 
-  def self.find_by_blob_id(blob_id)
-    attachment = ActiveStorage::Attachment.find_by(blob_id: blob_id)
-    attachment ? Hmis::File.find(attachment.record_id) : nil
-  end
-
   scope :with_owner, ->(user) do
     where(user_id: user.id)
   end

@@ -28,6 +28,7 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   belongs_to :form_definition, primary_key: 'identifier', foreign_key: 'form_definition_identifier', class_name: 'Hmis::Form::Definition', optional: true
 
   validates_format_of :key, with: /\A[a-zA-Z0-9_-]*\z/
+  validates :field_type, inclusion: { in: FIELD_TYPES }, allow_blank: false
 
   scope :for_type, ->(owner_type) do
     where(owner_type: owner_type)
