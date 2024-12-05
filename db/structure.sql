@@ -2903,72 +2903,6 @@ ALTER SEQUENCE public.tokens_id_seq OWNED BY public.tokens.id;
 
 
 --
--- Name: translation_keys; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.translation_keys (
-    id integer NOT NULL,
-    key character varying DEFAULT ''::character varying NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
-);
-
-
---
--- Name: translation_keys_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.translation_keys_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: translation_keys_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.translation_keys_id_seq OWNED BY public.translation_keys.id;
-
-
---
--- Name: translation_texts; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.translation_texts (
-    id integer NOT NULL,
-    text text,
-    locale character varying,
-    translation_key_id integer NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: translation_texts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.translation_texts_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: translation_texts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.translation_texts_id_seq OWNED BY public.translation_texts.id;
-
-
---
 -- Name: translations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3801,20 +3735,6 @@ ALTER TABLE ONLY public.tokens ALTER COLUMN id SET DEFAULT nextval('public.token
 
 
 --
--- Name: translation_keys id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.translation_keys ALTER COLUMN id SET DEFAULT nextval('public.translation_keys_id_seq'::regclass);
-
-
---
--- Name: translation_texts id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.translation_texts ALTER COLUMN id SET DEFAULT nextval('public.translation_texts_id_seq'::regclass);
-
-
---
 -- Name: translations id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4281,22 +4201,6 @@ ALTER TABLE ONLY public.task_queues
 
 ALTER TABLE ONLY public.tokens
     ADD CONSTRAINT tokens_pkey PRIMARY KEY (id);
-
-
---
--- Name: translation_keys translation_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.translation_keys
-    ADD CONSTRAINT translation_keys_pkey PRIMARY KEY (id);
-
-
---
--- Name: translation_texts translation_texts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.translation_texts
-    ADD CONSTRAINT translation_texts_pkey PRIMARY KEY (id);
 
 
 --
@@ -4906,20 +4810,6 @@ CREATE INDEX index_tokens_on_updated_at ON public.tokens USING btree (updated_at
 
 
 --
--- Name: index_translation_keys_on_key; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_translation_keys_on_key ON public.translation_keys USING btree (key);
-
-
---
--- Name: index_translation_texts_on_translation_key_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_translation_texts_on_translation_key_id ON public.translation_texts USING btree (translation_key_id);
-
-
---
 -- Name: index_translations_on_key; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5272,6 +5162,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241021194355'),
 ('20241028193644'),
 ('20241101132053'),
-('20241101132207');
+('20241101132207'),
+('20241203185952'),
+('20241205185449');
 
 
