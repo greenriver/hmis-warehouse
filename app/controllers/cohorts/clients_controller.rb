@@ -160,6 +160,8 @@ module Cohorts
       end
       @client_notes = cohort_client_notes(@clients)
       @removal_reasons = removal_reasons(@clients)
+      # Clients is an array of hashes
+      @clients.uniq!
       Rails.logger.info "CLIENTS: #{@clients.count}"
     end
 
