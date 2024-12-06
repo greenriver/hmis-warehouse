@@ -26,6 +26,7 @@ gem 'activerecord', '>= 6.1.7.3' # for CVE-2023-22796
 gem 'active_record_extended'
 gem 'active_median'
 gem 'strong_migrations'
+gem 'fx' # supports functions and triggers in our db schema
 
 # style-inliner https://github.com/premailer/premailer
 gem 'premailer'
