@@ -30,6 +30,8 @@ module Hmis::Hud::Processors
           ActiveStorage::Blob.find_signed(attribute_value)
         end
 
+        return unless blob # this is invalid and will be rejected by model validations
+
         @processor.send(factory_name).name ||= blob.filename
         @processor.send(factory_name).client_file.attach(blob)
       else

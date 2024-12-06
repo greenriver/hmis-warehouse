@@ -351,7 +351,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def build_client_headshot_file(image_blob_id, current_user)
     # TODO(#6208) - accept either unsigned or signed blob ID for now, for backwards compatibility
-    # binding.pry
     current_image_blob = if image_blob_id.to_i.to_s == image_blob_id.to_s
       ActiveStorage::Blob.find_by(id: image_blob_id)
     else
