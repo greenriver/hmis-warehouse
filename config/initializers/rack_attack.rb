@@ -173,7 +173,7 @@ end
 #   [ 429, headers, ["Throttled\n"]]
 # end
 
-class SlackSendMonitorClass < Struct.new(:sends, :last_sent, :throttle_window_seconds, :max_sends, :lifetime_sends, :lifetime_attempts)
+SlackSendMonitorClass = Struct.new(:sends, :last_sent, :throttle_window_seconds, :max_sends, :lifetime_sends, :lifetime_attempts) do
   def init
     self.sends = 0
     self.last_sent = Time.zone.now
@@ -186,17 +186,17 @@ class SlackSendMonitorClass < Struct.new(:sends, :last_sent, :throttle_window_se
   end
 
   def percent_sent
-    return 0.0 if self.lifetime_attempts == 0
+    return 0.0 if lifetime_attempts == 0
 
-    (self.lifetime_sends.to_f / self.lifetime_attempts * 100).round(1)
+    (lifetime_sends.to_f / lifetime_attempts * 100).round(1)
   end
 
   def needs_throttling?
-    (delta < self.throttle_window_seconds) && self.sends > self.max_sends
+    (delta < throttle_window_seconds) && sends > max_sends
   end
 
   def needs_reset?
-    self.delta > self.throttle_window_seconds
+    delta > throttle_window_seconds
   end
 
   def delta
