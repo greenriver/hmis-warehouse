@@ -173,11 +173,14 @@ end
 #   [ 429, headers, ["Throttled\n"]]
 # end
 
-slack_sends = 0
-last_sent = Time.zone.now
+SlackSendMonitor = Struct.new(:sends, :last_sent, :throttle_window_seconds, :max_sends, :lifetime_sends, :lifetime_attempts).new
+SlackSendMonitor.sends = 0
+SlackSendMonitor.last_sent = Time.zone.now
 # Max sends to slack is once every 10 seconds per process
-slack_throttle_window_seconds = 10
-slack_max_sends = 1
+SlackSendMonitor.throttle_window_seconds = 10
+SlackSendMonitor.max_sends = 1
+SlackSendMonitor.lifetime_sends = 0
+SlackSendMonitor.lifetime_attempts = 0
 
 ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish, _request_id, payload|
   request = payload[:request]
@@ -209,10 +212,17 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
   # ... get a record on disk
   Rails.logger.warn JSON.generate(data)
 
-  delta = Time.zone.now - last_sent
-  next if (delta < slack_throttle_window_seconds) && slack_sends > slack_max_sends
+  now = Time.zone.now
+  delta = now - SlackSendMonitor.last_sent
+  SlackSendMonitor.lifetime_attempts += 1
+  next if (delta < SlackSendMonitor.throttle_window_seconds) && SlackSendMonitor.sends > SlackSendMonitor.max_sends
 
-  slack_sends = 0 if delta > slack_throttle_window_seconds
+  SlackSendMonitor.sends = 0 if delta > SlackSendMonitor.throttle_window_seconds
+
+  Rails.logger.info do
+    pct = ((SlackSendMonitor.lifetime_sends.to_f / SlackSendMonitor.lifetime_attempts) * 100).round(1)
+    "Slack sending percentage is #{pct}%"
+  end
 
   # ... and now try to send to somewhere useful
   if defined?(Slack::Notifier) && ENV['EXCEPTION_WEBHOOK_URL'].present?
@@ -236,8 +246,10 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
       attachments: [attachment],
       http_options: { open_timeout: 1 },
     )
-
-    last_sent = Time.zone.now
-    slack_sends += 1
   end
+
+  # mark a send even if it's not enabled above to facilitate testing
+  SlackSendMonitor.last_sent = now
+  SlackSendMonitor.sends += 1
+  SlackSendMonitor.lifetime_sends += 1
 end
