@@ -162,7 +162,7 @@ module BostonProjectScorecard
     end
 
     def title
-      Translation.translate('MA-500 Boston Continuum of Care FY2022 Renewal Project Scoring Tool')
+      Translation.translate('FY2022 Renewal Project Scoring Tool')
     end
 
     def url

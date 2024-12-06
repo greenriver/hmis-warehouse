@@ -84,6 +84,13 @@ module Reporting::DataQualityReports
   class Enrollment < ReportingBase
     include ArelHelper
 
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :dob
+    pii_attr :age
+    pii_attr :ssn
+
     COMPLETE = [1, 2].freeze
     REFUSED = [8, 9].freeze
     YES_NO = [0, 1].freeze
@@ -261,7 +268,7 @@ module Reporting::DataQualityReports
     end
 
     def calculate_name_missing first_name:, last_name:
-      (first_name.blank? || last_name.blank?)
+      first_name.blank? || last_name.blank?
     end
 
     def calculate_name_partial name_quality:
@@ -425,7 +432,7 @@ module Reporting::DataQualityReports
       veteran == 99
     end
 
-    def set_ethnicity_completeness ethnicity: # rubocop:disable Naming/AccessorMethodName
+    def set_ethnicity_completeness ethnicity:
       if calculate_ethnicity_refused(ethnicity: ethnicity)
         self.ethnicity_refused = true
         return
@@ -610,7 +617,7 @@ module Reporting::DataQualityReports
       prior_living_situation == 99
     end
 
-    def set_income_at_entry_completeness income_at_entry: # rubocop:disable Naming/AccessorMethodName
+    def set_income_at_entry_completeness income_at_entry:
       if calculate_income_at_entry_refused(
         income_at_entry: income_at_entry,
         head_of_household: head_of_household,
@@ -801,14 +808,14 @@ module Reporting::DataQualityReports
       income_for_types(types: earned_income_types, income_record: income_at_entry)
     end
 
-    def calculate_income_at_entry_non_employment_cash income_at_entry:,  entry_date:, head_of_household:
+    def calculate_income_at_entry_non_employment_cash income_at_entry:, entry_date:, head_of_household:
       return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
       return unless income_at_entry.present?
 
       income_for_types(types: non_employment_cash_income_types, income_record: income_at_entry)
     end
 
-    def calculate_income_at_entry_overall income_at_entry:,  entry_date:, head_of_household:
+    def calculate_income_at_entry_overall income_at_entry:, entry_date:, head_of_household:
       return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
       return unless income_at_entry.present?
 
@@ -858,7 +865,7 @@ module Reporting::DataQualityReports
       )
     end
 
-    def calculate_income_at_penultimate_non_employment_cash income_record:,  entry_date:, head_of_household:, report_end: # rubocop:disable Lint/UnusedMethodArgument
+    def calculate_income_at_penultimate_non_employment_cash income_record:, entry_date:, head_of_household:, report_end: # rubocop:disable Lint/UnusedMethodArgument
       return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
       return unless income_record.present?
 

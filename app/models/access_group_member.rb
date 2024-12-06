@@ -26,9 +26,9 @@ class AccessGroupMember < ApplicationRecord
 
   def self.describe_changes(version, _changes)
     if version.event == 'create'
-      ["Added group #{version.referenced_entity_name}"]
+      ["Added group \"#{version.referenced_entity_name}\""]
     else
-      ["Removed group #{version.referenced_entity_name}"]
+      ["Removed group \"#{version.referenced_entity_name}\""]
     end
   end
 end
