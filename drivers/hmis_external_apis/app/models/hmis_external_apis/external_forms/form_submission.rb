@@ -12,6 +12,7 @@ module HmisExternalApis::ExternalForms
     belongs_to :enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
     has_one :client, through: :enrollment
     has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', as: :owner, dependent: :destroy
+    has_one :clh_location, through: :form_processor
 
     include HasPiiAttributes
     pii_attr :raw_data, as: :json, level: 1

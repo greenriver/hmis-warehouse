@@ -224,7 +224,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       # (rather than in ensure_id validation hook) so that it gets set
       # correctly as the Enrollment.personal_id too.
       owner.client || owner.build_client(personal_id: Hmis::Hud::Base.generate_uuid)
-    when Hmis::Hud::CustomAssessment
+    when Hmis::Hud::CustomAssessment, Hmis::Hud::CurrentLivingSituation
       # An assessment can modify the client that it's associated with
       owner.client
     when HmisExternalApis::ExternalForms::FormSubmission
@@ -360,6 +360,17 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   def clh_location_factory(create: true)
     return clh_location if clh_location.present? || !create
+
+    # client = case owner
+    # when HmisExternalApis::ExternalForms::FormSubmission
+    #   client_factory # use factory which can create client
+    # when Hmis::Hud::CustomAssessment
+    #   owner.client
+    # when Hmis::Hud::CurrentLivingSituation
+    #   owner.client
+    # else
+    #   raise "Invalid owner type for Geo Location: #{owner.class}"
+    # end
 
     self.clh_location = client_factory.client_location_histories.build
   end

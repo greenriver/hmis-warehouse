@@ -25,6 +25,7 @@ module Types
     field :enrollment_id, ID, null: true, description: 'Enrollment that was generated from this submission, if any'
     field :client_id, ID, null: true, description: 'Client that was generated from this submission, if any'
     field :summary_fields, [HmisSchema::KeyValue], null: false, description: 'Key/value responses for certain summary-level form questions'
+    field :geolocation, Types::HmisSchema::Geolocation, null: true, description: 'Client Location where the submission was recorded'
 
     def definition
       load_ar_association(object, :definition)
@@ -36,6 +37,10 @@ module Types
       # a client, and then a user manually updates the client's name in HMIS, the form review UI should still display
       # the client name that was originally submitted with the form.
       object.form_values
+    end
+
+    def geolocation
+      load_ar_association(object, :clh_location)
     end
 
     # "Summary" fields are a subset of the form's fields that are displayed on the external forms review table.

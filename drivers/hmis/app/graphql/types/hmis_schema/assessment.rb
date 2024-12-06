@@ -46,6 +46,7 @@ module Types
     field :definition, Types::Forms::FormDefinition, null: false, description: 'Definition to use for viewing the assessment. If upgradedDefinitionForEditing is nil, then it should also be used for editing.'
     field :upgraded_definition_for_editing, Types::Forms::FormDefinition, null: true, description: 'Most recent published Definition to use for editing the assessment. Only present if the original form definition was retired.'
     field :wip_values, JsonObject, null: true
+    field :geolocation, Types::HmisSchema::Geolocation, null: true, description: 'Client Location where the assessment was performed'
 
     def wip_values
       return unless object.in_progress?
@@ -134,6 +135,10 @@ module Types
 
     def enrollment
       load_ar_association(object, :enrollment)
+    end
+
+    def geolocation
+      load_ar_association(form_processor, :clh_location)
     end
 
     protected

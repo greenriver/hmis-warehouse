@@ -277,6 +277,11 @@ type Assessment {
   enrollment: Enrollment!
   event: Event
   exit: Exit
+
+  """
+  Client Location where the assessment was performed
+  """
+  geolocation: Geolocation
   healthAndDv: HealthAndDv
   id: ID!
   inProgress: Boolean!
@@ -1760,6 +1765,11 @@ type CurrentLivingSituation {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
+
+  """
+  Client Location where the Current Living Situation was recorded
+  """
+  geolocation: Geolocation
   id: ID!
   informationDate: ISO8601Date
   leaseOwn60Day: NoYesReasonsForMissingData
@@ -3900,6 +3910,11 @@ type ExternalFormSubmission {
   Enrollment that was generated from this submission, if any
   """
   enrollmentId: ID
+
+  """
+  Client Location where the submission was recorded
+  """
+  geolocation: Geolocation
   id: ID!
   notes: String
   spam: Boolean
@@ -4949,6 +4964,23 @@ enum GeographyType {
   (1) Urban
   """
   URBAN
+}
+
+type Geolocation {
+  collectedBy: String
+  coordinates: GeolocationCoordinates
+  createdAt: ISO8601DateTime!
+  id: ID!
+  locatedAt: ISO8601DateTime
+  locatedOn: ISO8601Date
+  processedAt: ISO8601DateTime
+  updatedAt: ISO8601DateTime!
+}
+
+type GeolocationCoordinates {
+  id: ID!
+  latitude: String
+  longitude: String
 }
 
 """

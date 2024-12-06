@@ -20,7 +20,7 @@ module Hmis::Hud::Processors
 
       raise ArgumentError, "Unexpected attribute for Geolocation: #{attribute_name}" unless attribute_name == 'coordinates'
 
-      attribute_value = JSON.parse(value, symbolize_names: true)
+      attribute_value = clean_coordinate_value(value)
       latitude = attribute_value[:latitude]
       longitude = attribute_value[:longitude]
       not_collected_reason = attribute_value[:notCollectedReason]
@@ -32,6 +32,16 @@ module Hmis::Hud::Processors
       @processor.send(factory_name).assign_attributes(lat: latitude, lon: longitude)
     end
 
+    def clean_coordinate_value(value)
+      if value.is_a?(String)
+        JSON.parse(value, symbolize_names: true)
+      elsif value.is_a?(Hash)
+        value.symbolize_keys
+      else
+        raise ArgumentError, 'Geolocation coordinates in unexpected format'
+      end
+    end
+
     def assign_metadata
       clh = @processor.send(factory_name, create: false)
       return if clh&.destroyed?
@@ -41,7 +51,7 @@ module Hmis::Hud::Processors
       when HmisExternalApis::ExternalForms::FormSubmission
         [owner.submitted_at.to_date, owner.submitted_at]
       when Hmis::Hud::CurrentLivingSituation
-        [nil, owner.InformationDate]
+        [nil, owner.InformationDate] # is this wrong? i think it should be the reverse
       when Hmis::Hud::CustomAssessment
         [nil, owner.AssessmentDate]
       else
