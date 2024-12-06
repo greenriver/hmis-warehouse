@@ -188,9 +188,7 @@ module GrdaWarehouse::Hud
     end
 
     def coc_funded?
-      return self.ContinuumProject == 1 if hud_continuum_funded.nil?
-
-      hud_continuum_funded
+      self.ContinuumProject == 1
     end
 
     # NOTE: Careful, this returns duplicates as it joins inventories.
