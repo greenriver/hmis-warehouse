@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_11_01_132207) do
+ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
   enable_extension "hstore"
@@ -1017,6 +1017,24 @@ ActiveRecord::Schema[7.0].define(version: 2024_11_01_132207) do
   add_foreign_key "two_factors_memorized_devices", "users"
   add_foreign_key "user_roles", "roles", on_delete: :cascade
   add_foreign_key "user_roles", "users", on_delete: :cascade
+  create_function :prevent_modification, sql_definition: <<-'SQL'
+      CREATE OR REPLACE FUNCTION public.prevent_modification()
+       RETURNS trigger
+       LANGUAGE plpgsql
+      AS $function$
+      BEGIN
+        RETURN NULL;
+      END;
+      $function$
+  SQL
+
+
+  create_trigger :no_modify_hmis_user_client_activity_log_summaries, sql_definition: <<-SQL
+      CREATE TRIGGER no_modify_hmis_user_client_activity_log_summaries INSTEAD OF DELETE OR UPDATE ON public.hmis_user_client_activity_log_summaries FOR EACH ROW EXECUTE FUNCTION prevent_modification()
+  SQL
+  create_trigger :no_modify_hmis_user_enrollment_activity_log_summaries, sql_definition: <<-SQL
+      CREATE TRIGGER no_modify_hmis_user_enrollment_activity_log_summaries INSTEAD OF DELETE OR UPDATE ON public.hmis_user_enrollment_activity_log_summaries FOR EACH ROW EXECUTE FUNCTION prevent_modification()
+  SQL
 
   create_view "hmis_user_client_activity_log_summaries", sql_definition: <<-SQL
       SELECT concat(hmis_activity_logs_clients.client_id, ':', hmis_activity_logs.user_id) AS id,
