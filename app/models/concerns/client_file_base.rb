@@ -16,7 +16,8 @@ module ClientFileBase
 
     has_one_attached :client_file
 
-    # Name is really always required, this conditional just makes the client_file validation take precedence.
+    # The file_exists_and_not_too_large validation checks that the client_file exists, so we can rely on that and only validate presence of name if the file has a client_file attachment.
+    # This avoids an awkward double-error "Name can't be blank" if the file is not uploaded or has expired.
     validates_presence_of :name, if: -> { client_file.attached? }
     validate :file_exists_and_not_too_large
     validate :note_if_other
@@ -50,7 +51,7 @@ module ClientFileBase
     end
 
     def file_exists_and_not_too_large
-      errors.add :client_file, full_message: 'No uploaded file found. The upload may have expired; please try reloading the page and retrying the upload.' if (client_file.byte_size || 0) < 100
+      errors.add :client_file, full_message: 'No uploaded file found.' if (client_file.byte_size || 0) < 100
       errors.add :client_file, full_message: 'File size should be less than 4 MB' if (client_file.byte_size || 0) > 4.megabytes
     end
 
