@@ -4,6 +4,7 @@ AllCops:
   SuggestExtensions: false
   Exclude:
     - 'db/**/*'
+    - 'db/*_schema.rb
     - 'config/*'
     - 'config/environments/**/*.rb'
     - 'config/initializers/**/*.rb'
