@@ -74,7 +74,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   it 'processes newly submitted file' do
     assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: definition, assessment_date: Date.yesterday)
     assessment.form_processor.hud_values = {
-      'file_upload' => blob1.id.to_s,
+      'file_upload' => blob1.signed_id.to_s,
       'unrelated' => 'Some string',
     }
 
@@ -93,7 +93,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   it 'processes re-submit when file value has not changed' do
     assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: definition, assessment_date: Date.yesterday)
     assessment.form_processor.hud_values = {
-      'file_upload' => blob1.id.to_s,
+      'file_upload' => blob1.signed_id.to_s,
       'unrelated' => 'first value',
     }
     assessment.form_processor.run!(user: hmis_user)
@@ -102,7 +102,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
     expect do
       assessment.reload.form_processor.hud_values = {
-        'file_upload' => blob1.id.to_s,
+        'file_upload' => blob1.signed_id.to_s,
         'unrelated' => 'second value!',
       }
       assessment.form_processor.run!(user: hmis_user)
@@ -120,7 +120,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   it 'adds a file to an existing assessment' do
     assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: definition, assessment_date: Date.yesterday)
     assessment.form_processor.hud_values = {
-      'file_upload' => blob1.id.to_s,
+      'file_upload' => blob1.signed_id.to_s,
       'unrelated' => 'first value',
     }
     assessment.form_processor.run!(user: hmis_user)
@@ -129,7 +129,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
     expect do
       assessment.reload.form_processor.hud_values = {
-        'file_upload' => [blob1.id.to_s, blob2.id.to_s],
+        'file_upload' => [blob1.signed_id.to_s, blob2.signed_id.to_s],
         'unrelated' => 'first value',
       }
       assessment.form_processor.run!(user: hmis_user)
@@ -151,7 +151,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   it 'removes a previously uploaded file' do
     assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: definition, assessment_date: Date.yesterday)
     assessment.form_processor.hud_values = {
-      'file_upload' => [blob1.id.to_s, blob2.id.to_s],
+      'file_upload' => [blob1.signed_id.to_s, blob2.signed_id.to_s],
       'unrelated' => 'first value',
     }
     expect do
@@ -165,7 +165,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
     expect do
       assessment.reload.form_processor.hud_values = {
-        'file_upload' => [blob1.id.to_s], # remove one file
+        'file_upload' => [blob1.signed_id.to_s], # remove one file
         'unrelated' => 'first value',
       }
       assessment.form_processor.run!(user: hmis_user)
