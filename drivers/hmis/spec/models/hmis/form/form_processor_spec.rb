@@ -1828,16 +1828,16 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           )
           process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
 
-          expect(record.custom_data_elements.size).to eq(2)
-          expect(record.custom_data_elements.map(&:value_string)).to contain_exactly('foo', 'foo')
+          expect(record.custom_data_elements.size).to eq(1)
+          expect(record.custom_data_elements.map(&:value_string)).to contain_exactly('foo')
 
           hud_values = complete_hud_values.merge(
             cded.key => ['foo', 'foo', 'foo', 'bar'],
           )
           process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
 
-          # expect(record.custom_data_elements.size).to eq(4)
-          # expect(record.custom_data_elements.map(&:value_string)).to contain_exactly('foo', 'foo', 'foo', 'bar')
+          expect(record.custom_data_elements.size).to eq(2)
+          expect(record.custom_data_elements.map(&:value_string)).to contain_exactly('foo', 'bar')
         end
 
         [nil, HIDDEN, []].each do |value|

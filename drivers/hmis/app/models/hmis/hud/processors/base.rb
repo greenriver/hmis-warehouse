@@ -244,7 +244,7 @@ class Hmis::Hud::Processors::Base
     if cded.repeats
       Array.wrap(value).map do |val|
         normalize_single_custom_field_value(cded, val)
-      end.compact.presence
+      end.compact.uniq.presence
     # Else normalize the single element, and ensure its not an array
     else
       raise "Custom field '#{cded.key}' can't be an array" if value.is_a?(Array)
