@@ -17380,26 +17380,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
        JOIN "Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Services"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
     WHERE ("Services"."DateDeleted" IS NULL);
   SQL
-  create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
-      SELECT id,
-      service_history_enrollment_id,
-      record_type,
-      date,
-      age,
-      service_type,
-      client_id,
-      project_type,
-      homeless,
-      literally_homeless
-     FROM service_history_services_was_for_inheritance;
-  SQL
-  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
-  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
-  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
-  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
-
   create_view "todd_stats", sql_definition: <<-SQL
       SELECT relname,
       round((
@@ -17493,6 +17473,26 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
       service_history_enrollments.head_of_household
      FROM service_history_enrollments;
   SQL
+  create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
+      SELECT id,
+      service_history_enrollment_id,
+      record_type,
+      date,
+      age,
+      service_type,
+      client_id,
+      project_type,
+      homeless,
+      literally_homeless
+     FROM service_history_services;
+  SQL
+  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
+  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
+  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
+  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
+
 
   create_trigger :service_history_service_insert_trigger, sql_definition: <<-SQL
       CREATE TRIGGER service_history_service_insert_trigger BEFORE INSERT ON public.service_history_services_was_for_inheritance FOR EACH ROW EXECUTE FUNCTION service_history_service_insert_trigger()
