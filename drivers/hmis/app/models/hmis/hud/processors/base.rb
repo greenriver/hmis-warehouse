@@ -304,6 +304,7 @@ class Hmis::Hud::Processors::Base
     when 'file'
       case value
       when String
+        # value string should be either a File ID, or a signed ActiveStorage blob ID.
         value
       else
         raise "unexpected value \"#{value}\""
@@ -319,17 +320,17 @@ class Hmis::Hud::Processors::Base
     raise "unexpected value for date \"#{string}\""
   end
 
-  def process_files(cded, value)
+  private def process_files(cded, value)
     if cded.repeats?
       Array.wrap(value).map do |val|
-        process_blob_id_to_file(val)
+        process_id_to_file(val)
       end
     else
-      process_blob_id_to_file(value)
+      process_id_to_file(value)
     end
   end
 
-  def process_blob_id_to_file(value)
+  private def process_id_to_file(value)
     return value unless value
 
     if value.to_i.to_s == value.to_s
