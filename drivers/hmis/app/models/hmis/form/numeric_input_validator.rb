@@ -35,6 +35,8 @@ class Hmis::Form::NumericInputValidator
   end
 
   def validate_bounds(item, value)
+    return [] if item.bounds.blank?
+
     item.bounds.each_with_object([]) do |bound, errors|
       next unless bound.severity == 'error'
 
