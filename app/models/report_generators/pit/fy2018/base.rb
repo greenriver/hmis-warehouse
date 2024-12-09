@@ -845,7 +845,7 @@ module ReportGenerators::Pit::Fy2018
 
     def sh_cols
       @sh_cols ||= {
-        project_type: she_s[:project_type].as('client_id'),
+        project_type: shs_t[:project_type].as('project_type'),
         client_id: she_t[:client_id].as('client_id'),
         enrollment_group_id: she_t[:enrollment_group_id].as('enrollment_group_id'),
         age: shs_t[:age].as('age'),
