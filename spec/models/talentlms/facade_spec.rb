@@ -20,7 +20,12 @@ RSpec.describe Talentlms::Facade, type: :model do
     training_role.add(user)
     user
   end
-  let!(:config) { create :talent_config }
+  let!(:config) do
+    # We need to skip validation on save so we can setup the stubs prior to validation running on this object.
+    config = Talentlms::Config.new(subdomain: 'test', api_key: '1234')
+    config.save(validate: false)
+    config
+  end
   let!(:course1) { create :default_course, courseid: 1, config: config, name: 'Course1' }
   let!(:course2) { create :default_course, courseid: 2, config: config, name: 'Course2' }
   let!(:lms_login) { create :talentlms_login, user: user, config: config, login: DEFAULT_LMS_USERNAME }
@@ -82,6 +87,7 @@ RSpec.describe Talentlms::Facade, type: :model do
 
       login = Talentlms::Login.where(user: user).first
       expect([login.login, login.lms_user_id]).to eq([DEFAULT_LMS_USERNAME, DEFAULT_LMS_USER_ID])
+      expect(user.talent_lms_email).to eq(DEFAULT_LMS_EMAIL)
 
       lms.sync_lms_account(config, lms_login)
       login = Talentlms::Login.where(user: user).first
