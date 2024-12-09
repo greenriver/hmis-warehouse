@@ -5,7 +5,7 @@ Dotenv.load('.env', '.env.local')
 
 namespace :warehouse do
   # DB related, provides warehouse:db:migrate etc.
-  namespace :db do |ns|
+  namespace :db do |_ns|
     task :drop do
       Rake::Task['db:drop'].invoke
     end

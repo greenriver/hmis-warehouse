@@ -98,14 +98,7 @@ Dir.chdir APP_ROOT do
   else
     puts "\n== Preparing Warehouse Database =="
     run_or_exit('bundle exec rake db:create:warehouse') unless DONT_CREATE_DATABASES
-
-    # DB has objects that can't be tracked with schema.rb: types, materialized views, and triggers
-    if ENV['RAILS_ENV'] == 'test'
-      run_or_exit 'bundle exec rake warehouse:db:schema:conditional_load'
-    else
-      run_or_exit 'bundle exec rake warehouse:db:schema:conditional_load'
-    end
-
+    run_or_exit 'bundle exec rake warehouse:db:schema:conditional_load'
     run_or_exit 'bundle exec rake db:migrate:warehouse'
   end
 
