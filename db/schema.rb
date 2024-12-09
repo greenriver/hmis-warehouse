@@ -815,22 +815,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["updated_at"], name: "index_tokens_on_updated_at"
   end
 
-  create_table "translation_keys", id: :serial, force: :cascade do |t|
-    t.string "key", default: "", null: false
-    t.datetime "created_at", precision: nil
-    t.datetime "updated_at", precision: nil
-    t.index ["key"], name: "index_translation_keys_on_key"
-  end
-
-  create_table "translation_texts", id: :serial, force: :cascade do |t|
-    t.text "text"
-    t.string "locale"
-    t.integer "translation_key_id", null: false
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
-    t.index ["translation_key_id"], name: "index_translation_texts_on_translation_key_id"
-  end
-
   create_table "translations", force: :cascade do |t|
     t.string "key"
     t.string "text"
