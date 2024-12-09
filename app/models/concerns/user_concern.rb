@@ -300,7 +300,7 @@ module UserConcern
     end
 
     def two_factor_label
-      label = Translation.translate('Boston DND HMIS Warehouse')
+      label = Translation.translate('Open Path HMIS Warehouse')
       Rails.env.production? ? label : "#{label} [#{Rails.env}]"
     end
 
