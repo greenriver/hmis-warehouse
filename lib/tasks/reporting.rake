@@ -1,15 +1,16 @@
-task spec: ['reporting:db:test:prepare']
+task spec: ["reporting:db:test:prepare"]
 
 require 'dotenv'
 Dotenv.load('.env', '.env.local')
 
 namespace :reporting do
-  desc 'Run Project Data Quality Reports'
+
+  desc "Run Project Data Quality Reports"
   task run_project_data_quality_reports: [:environment] do
     GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.process!
   end
 
-  desc 'Run Ad-Hoc Upload processing'
+  desc "Run Ad-Hoc Upload processing"
   task run_ad_hoc_processing: [:environment] do
     GrdaWarehouse::AdHocBatch.process!
   end
@@ -50,88 +51,71 @@ namespace :reporting do
   end
 
   # DB related, provides reporting:db:migrate etc.
-  namespace :db do |_ns|
+  namespace :db do |ns|
+
     task :drop do
-      Rake::Task['db:drop'].invoke
+      Rake::Task["db:drop"].invoke
     end
 
     task :create do
-      Rake::Task['db:create'].invoke
+      Rake::Task["db:create"].invoke
     end
 
     task :setup do
-      Rake::Task['db:setup'].invoke
+      Rake::Task["db:setup"].invoke
     end
 
     task :migrate do
-      Rake::Task['db:migrate'].invoke
+      Rake::Task["db:migrate"].invoke
     end
 
     namespace :migrate do
       task :redo do
-        Rake::Task['db:migrate:redo'].invoke
+        Rake::Task["db:migrate:redo"].invoke
       end
       task :up do
-        Rake::Task['db:migrate:up'].invoke
+        Rake::Task["db:migrate:up"].invoke
       end
       task :down do
-        Rake::Task['db:migrate:down'].invoke
+        Rake::Task["db:migrate:down"].invoke
       end
     end
 
     task :rollback do
-      Rake::Task['db:rollback'].invoke
+      Rake::Task["db:rollback"].invoke
     end
 
     task :seed do
-      Rake::Task['db:seed'].invoke
+      Rake::Task["db:seed"].invoke
     end
 
     task :version do
-      Rake::Task['db:version'].invoke
+      Rake::Task["db:version"].invoke
     end
 
     namespace :schema do
       task :load do
-        Rake::Task['db:schema:load'].invoke
+        Rake::Task["db:schema:load"].invoke
       end
 
       task :dump do
-        Rake::Task['db:schema:dump'].invoke
+        Rake::Task["db:schema:dump"].invoke
       end
 
-      desc 'Conditionally load the database schema'
-      task :conditional_load, [] => [:environment] do |_t, _args|
-        if ReportingBase.connection.table_exists?(:schema_migrations)
-          puts 'Refusing to load the reporting database schema since there are tables present. This is not an error.'
+      desc "Conditionally load the database schema"
+      task :conditional_load, [] => [:environment] do |t, args|
+        connection = ReportingBase.connection
+        if connection.table_exists?(:schema_migrations)
+          puts "Refusing to load the database schema since there are tables present in #{connection.current_database}. This is not an error."
         else
           Rake::Task['db:schema:load:reporting'].invoke
         end
       end
     end
 
-    namespace :schema do
-      task :load do
-        Rake::Task['db:schema:load'].invoke
-      end
-
-      task :dump do
-        Rake::Task['db:schema:dump'].invoke
-      end
-
-      desc 'Conditionally load the database structure'
-      task :conditional_load, [] => [:environment] do |_t, _args|
-        if ReportingBase.connection.table_exists?(:schema_migrations)
-          puts 'Refusing to load the reporting database structure since there are tables present. This is not an error.'
-        else
-          ReportingBase.connection.execute(File.read('db/reporting_structure.sql'))
-        end
-      end
-    end
-
     namespace :test do
       task :prepare do
-        Rake::Task['db:test:prepare'].invoke
+        Rake::Task["db:test:prepare"].invoke
       end
     end
   end
