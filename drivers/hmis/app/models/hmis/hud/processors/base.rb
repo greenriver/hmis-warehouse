@@ -181,7 +181,7 @@ class Hmis::Hud::Processors::Base
       to_remove = existing_cdes.reject(&is_in_submitted)
 
       cde_attributes = [
-        # If value(s) haven't changed, just update the User and timestamps
+        # For value(s) that haven't changed, just update the User and timestamps
         unchanged.map { |cde| { id: cde.id, user: @processor.hud_user } },
         # Add new value(s)
         new_values.map { |new_value| { value_field_name => new_value, **attrs } },
