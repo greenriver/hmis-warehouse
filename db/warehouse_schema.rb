@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
+ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
   enable_extension "hstore"
@@ -16676,10 +16676,32 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
 
           $function$
   SQL
+  create_function :prevent_modification, sql_definition: <<-'SQL'
+      CREATE OR REPLACE FUNCTION public.prevent_modification()
+       RETURNS trigger
+       LANGUAGE plpgsql
+      AS $function$
+      BEGIN
+        RETURN NULL;
+      END;
+      $function$
+  SQL
 
 
   create_trigger :service_history_service_insert_trigger, sql_definition: <<-SQL
       CREATE TRIGGER service_history_service_insert_trigger BEFORE INSERT ON public.service_history_services_was_for_inheritance FOR EACH ROW EXECUTE FUNCTION service_history_service_insert_trigger()
+  SQL
+  create_trigger :no_modify_client_searchable_names, sql_definition: <<-SQL
+      CREATE TRIGGER no_modify_client_searchable_names INSTEAD OF DELETE OR UPDATE ON public.client_searchable_names FOR EACH ROW EXECUTE FUNCTION prevent_modification()
+  SQL
+  create_trigger :no_modify_hmis_households, sql_definition: <<-SQL
+      CREATE TRIGGER no_modify_hmis_households INSTEAD OF DELETE OR UPDATE ON public.hmis_households FOR EACH ROW EXECUTE FUNCTION prevent_modification()
+  SQL
+  create_trigger :no_modify_project_access_group_members, sql_definition: <<-SQL
+      CREATE TRIGGER no_modify_project_access_group_members INSTEAD OF DELETE OR UPDATE ON public.project_access_group_members FOR EACH ROW EXECUTE FUNCTION prevent_modification()
+  SQL
+  create_trigger :no_modify_project_collection_members, sql_definition: <<-SQL
+      CREATE TRIGGER no_modify_project_collection_members INSTEAD OF DELETE OR UPDATE ON public.project_collection_members FOR EACH ROW EXECUTE FUNCTION prevent_modification()
   SQL
 
   create_view "Site", sql_definition: <<-SQL
