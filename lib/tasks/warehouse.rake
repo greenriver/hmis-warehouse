@@ -67,11 +67,11 @@ namespace :warehouse do
 
     namespace :structure do
       task :load do
-        Rake::Task['db:structure:load'].invoke
+        Rake::Task['db:schema:load'].invoke
       end
 
       task :dump do
-        Rake::Task['db:structure:dump'].invoke
+        Rake::Task['db:schema:dump'].invoke
       end
 
       desc 'Conditionally load the database structure'

@@ -16,7 +16,7 @@ namespace :db do
       if ApplicationRecord.connection.table_exists?(:schema_migrations)
         puts "Refusing to load the database structure since there are tables present. This is not an error."
       else
-        Rake::Task['db:structure:load'].invoke
+        Rake::Task['db:schema:load'].invoke
       end
     end
   end

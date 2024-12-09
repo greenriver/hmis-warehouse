@@ -247,7 +247,7 @@ namespace :health do
         if HealthBase.connection.table_exists?(:schema_migrations)
           puts 'Refusing to load the health database structure since there are tables present. This is not an error.'
         else
-          Rake::Task['db:structure:load:health'].invoke
+          Rake::Task['db:schema:load:health'].invoke
         end
       end
     end
