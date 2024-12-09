@@ -65,7 +65,7 @@ namespace :warehouse do
       end
     end
 
-    namespace :structure do
+    namespace :schema do
       task :load do
         Rake::Task['db:schema:load'].invoke
       end
