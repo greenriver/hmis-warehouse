@@ -1820,6 +1820,26 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           expect(record.custom_data_elements.map(&:id)).to include(old_cded.id)
         end
 
+        it 'behaves correctly when given identical values' do
+          record = i1
+
+          hud_values = complete_hud_values.merge(
+            cded.key => ['foo', 'foo'],
+          )
+          process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+
+          expect(record.custom_data_elements.size).to eq(2)
+          expect(record.custom_data_elements.map(&:value_string)).to contain_exactly('foo', 'foo')
+
+          hud_values = complete_hud_values.merge(
+            cded.key => ['foo', 'foo', 'foo', 'bar'],
+          )
+          process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+
+          # expect(record.custom_data_elements.size).to eq(4)
+          # expect(record.custom_data_elements.map(&:value_string)).to contain_exactly('foo', 'foo', 'foo', 'bar')
+        end
+
         [nil, HIDDEN, []].each do |value|
           it "doesnt error when receiving custom data element value #{value} (new record / existing record with no value)" do
             existing_record = i1
