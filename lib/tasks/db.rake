@@ -10,7 +10,7 @@ namespace :db do
     end
   end
 
-  namespace :structure do
+  namespace :schema do
     desc "Conditionally load the database structure"
     task :conditional_load, [] => [:environment] do |t, args|
       if ApplicationRecord.connection.table_exists?(:schema_migrations)
