@@ -17,6 +17,17 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
   enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
 
+  create_function :prevent_modification, sql_definition: <<-'SQL'
+      CREATE OR REPLACE FUNCTION public.prevent_modification()
+       RETURNS trigger
+       LANGUAGE plpgsql
+      AS $function$
+      BEGIN
+        RETURN NULL;
+      END;
+      $function$
+  SQL
+
   create_table "access_control_uploads", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "status"
@@ -1021,17 +1032,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
        JOIN hmis_activity_logs_enrollments ON ((hmis_activity_logs_enrollments.activity_log_id = hmis_activity_logs.id)))
     GROUP BY hmis_activity_logs_enrollments.enrollment_id, hmis_activity_logs_enrollments.project_id, hmis_activity_logs.user_id;
   SQL
-  create_function :prevent_modification, sql_definition: <<-'SQL'
-      CREATE OR REPLACE FUNCTION public.prevent_modification()
-       RETURNS trigger
-       LANGUAGE plpgsql
-      AS $function$
-      BEGIN
-        RETURN NULL;
-      END;
-      $function$
-  SQL
-
 
   create_trigger :no_modify_hmis_user_client_activity_log_summaries, sql_definition: <<-SQL
       CREATE TRIGGER no_modify_hmis_user_client_activity_log_summaries INSTEAD OF DELETE OR UPDATE ON public.hmis_user_client_activity_log_summaries FOR EACH ROW EXECUTE FUNCTION prevent_modification()
