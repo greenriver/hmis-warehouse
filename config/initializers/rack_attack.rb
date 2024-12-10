@@ -173,6 +173,39 @@ end
 #   [ 429, headers, ["Throttled\n"]]
 # end
 
+SlackSendMonitorClass = Struct.new(:sends, :last_sent, :throttle_window_seconds, :max_sends, :lifetime_sends, :lifetime_attempts) do
+  def init
+    self.sends = 0
+    self.last_sent = Time.zone.now
+    # Max sends to slack is once every 10 seconds per process
+    self.throttle_window_seconds = 10
+    self.max_sends = 1
+    self.lifetime_sends = 0
+    self.lifetime_attempts = 0
+    self
+  end
+
+  def percent_sent
+    return 0.0 if lifetime_attempts == 0
+
+    (lifetime_sends.to_f / lifetime_attempts * 100).round(1)
+  end
+
+  def needs_throttling?
+    (delta < throttle_window_seconds) && sends > max_sends
+  end
+
+  def needs_reset?
+    delta > throttle_window_seconds
+  end
+
+  def delta
+    Time.zone.now - SlackSendMonitor.last_sent
+  end
+end
+
+SlackSendMonitor = SlackSendMonitorClass.new.init
+
 ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish, _request_id, payload|
   request = payload[:request]
 
@@ -203,6 +236,13 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
   # ... get a record on disk
   Rails.logger.warn JSON.generate(data)
 
+  SlackSendMonitor.lifetime_attempts += 1
+  next if SlackSendMonitor.needs_throttling?
+
+  SlackSendMonitor.sends = 0 if SlackSendMonitor.needs_reset?
+
+  Rails.logger.debug { "Slack sending percentage is #{SlackSendMonitor.percent_sent}%" }
+
   # ... and now try to send to somewhere useful
   if defined?(Slack::Notifier) && ENV['EXCEPTION_WEBHOOK_URL'].present?
     notifier_config = Rails.application.config_for(:exception_notifier).fetch(:slack, nil)
@@ -226,4 +266,9 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
       http_options: { open_timeout: 1 },
     )
   end
+
+  # mark a send even if it's not enabled above to facilitate testing
+  SlackSendMonitor.last_sent = Time.zone.now
+  SlackSendMonitor.sends += 1
+  SlackSendMonitor.lifetime_sends += 1
 end
