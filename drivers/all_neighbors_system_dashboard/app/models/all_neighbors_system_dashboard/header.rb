@@ -14,7 +14,7 @@ module AllNeighborsSystemDashboard
     def tabs
       [
         { name: 'Housing Placements' },
-        { name: 'Time To Obtain Housing' },
+        # { name: 'Time To Obtain Housing' }, # disabled per-request 12/9/2024
         { name: 'Returns To Homelessness' },
         # { name: 'Unhoused Population' },
       ].map { |tab| tab.merge({ id: tab[:name].gsub(' ', '').underscore }) }
