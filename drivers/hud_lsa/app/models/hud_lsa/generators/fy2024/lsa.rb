@@ -9,6 +9,8 @@ if ENV['RDS_AWS_ACCESS_KEY_ID'].present? && !ENV['NO_LSA_RDS'].present?
   load 'lib/rds_sql_server/sql_server_base.rb'
 end
 
+require 'csv'
+require 'memery'
 # Testing notes:
 # Re-use an existing report
 # r = HudLsa::Generators::Fy2024::Lsa.last
@@ -16,6 +18,7 @@ end
 # r.run!
 module HudLsa::Generators::Fy2024
   class Lsa < ::HudReports::ReportInstance
+    include Memery
     include TsqlImport
     include NotifierConfig
     include ActionView::Helpers::DateHelper
@@ -45,8 +48,7 @@ module HudLsa::Generators::Fy2024
 
     def run!
       setup_notifier('LSA')
-      @failed = preflight_passes?
-      return unless @failed
+      return unless preflight_passes?
 
       # Disable logging so we don't fill the disk
       # ActiveRecord::Base.logger.silence do
@@ -81,6 +83,11 @@ module HudLsa::Generators::Fy2024
         update_report_progress(percent: 29)
         setup_lsa_report
         log_and_ping('LSA Report Setup')
+
+        # Ensure the RDS has permission to pull files from S3
+        # note: this takes some time, so do it early
+        setup_instance_role
+        log_and_ping('Role Instance Setup Initiated')
 
         populate_hmis_tables
         update_report_progress(percent: 30)
@@ -123,7 +130,6 @@ module HudLsa::Generators::Fy2024
       return true if issue_project_ids.empty?
 
       # Prevent report.complete_report from hiding the error
-      @failed = true
       project_names = issues.values.flatten.select { |r| r[:id].in?(issue_project_ids) }.map do |r|
         "#{r[:project]} (id: #{r[:id]})"
       end.uniq
@@ -270,43 +276,159 @@ module HudLsa::Generators::Fy2024
 
     def populate_hmis_tables
       load 'lib/rds_sql_server/lsa/fy2024/hmis_sql_server.rb' # provides thin wrappers to all HMIS tables
-      extract_path = if test?
-        source = Rails.root.join('drivers/hud_lsa/spec/fixtures/files/lsa/fy2024/sample_hmis_export/')
-        existing = Dir.glob(File.join(unzip_path, '*.csv'))
-        FileUtils.rm(existing) if existing
-        Dir.glob(File.join(source, '*.csv')).each do |f|
-          FileUtils.cp_r(f, unzip_path)
-        end
-        unzip_path
+      if rds_s3_integration_enabled?
+        populate_hmis_tables_from_s3_interaction
       else
-        @hmis_export.unzip_to(unzip_path)
+        HmisSqlServer.models_by_hud_filename.each do |file_name, klass|
+          # Delete any existing data
+          klass.delete_all
+          klass.reset_column_information
+          populate_hmis_table_via_bulk_insert(klass: klass, file_name: file_name)
+        end
       end
-      read_rows = 50_000
+
+      FileUtils.rm_rf(extract_path)
+      GrdaWarehouseBase.connection.reconnect!
+      ApplicationRecord.connection.reconnect!
+      ReportingBase.connection.reconnect!
+    end
+
+    memoize private def extract_path
+      return @hmis_export.unzip_to(unzip_path) unless test?
+
+      source = Rails.root.join('drivers/hud_lsa/spec/fixtures/files/lsa/fy2024/sample_hmis_export/')
+      existing = Dir.glob(File.join(unzip_path, '*.csv'))
+      FileUtils.rm(existing) if existing
+      Dir.glob(File.join(source, '*.csv')).each do |f|
+        FileUtils.cp_r(f, unzip_path)
+      end
+      unzip_path
+    end
+
+    # 1. Store all the files in S3
+    # 2. Queue all the transfers from S3 -> RDS host (this takes a couple minutes per file, but might be faster if they can run sequentially)
+    # 3. Run each import
+    # 4. Remove the files from S3
+    private def populate_hmis_tables_from_s3_interaction
+      HmisSqlServer.models_by_hud_filename.each do |file_name, klass|
+        send_file_to_s3(file_name: file_name, klass: klass)
+      end
+      HmisSqlServer.models_by_hud_filename.each do |file_name, klass|
+        queue_mssql_import_from_s3(file_name: file_name, klass: klass)
+      end
       HmisSqlServer.models_by_hud_filename.each do |file_name, klass|
         # Delete any existing data
         klass.delete_all
         klass.reset_column_information
+        mssql_import_from_s3(file_name: file_name, klass: klass)
+      end
+      HmisSqlServer.models_by_hud_filename.each do |file_name, _|
+        remove_intermediate_files_from_s3(file_name: file_name)
+      end
+    end
+
+    private def read_rows
+      50_000
+    end
+
+    private def s3_upload_path(file_name)
+      "lsa/tmp/#{id}/#{file_name}"
+    end
+
+    private def full_windows_path(file_name)
+      windows_path = s3_upload_path(file_name).gsub('/', '\\')
+      # Move the S3 blob to the SQL server
+      "D:\\S3\\#{s3.bucket.name}\\#{windows_path}"
+    end
+
+    private def send_file_to_s3(file_name:, klass:)
+      Tempfile.open(klass.name) do |cleaned_output|
+        csv_output = CSV.new(cleaned_output)
+        headers_added = false
         # Read the file in batches to avoid over RAM usage
         File.open(File.join(extract_path, file_name)) do |file|
           headers = file.first
+          i = 0
           file.lazy.each_slice(read_rows) do |lines|
             content = ::CSV.parse(lines.join, headers: headers)
             import_headers = content.first.headers
             next unless content.any?
 
+            # NOTE: we need to insert the id column, SQL Server bulk import doesn't work without it
+            csv_output << ['id'] + standardize_headers(import_headers) unless headers_added
+            headers_added = true
             # this fixes dates that default to 1900-01-01 if you send an empty string
-            content = content.map do |row|
-              klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
+            content.map do |row|
+              # increment the row counter for SQL Server
+              i += 1
+              csv_output << [i] + klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
             end.compact
-            # Using TsqlImport because active_record import doesn't play nice
-            insert_batch(klass, standardize_headers(import_headers), content, batch_size: 1_000)
           end
         end
+        cleaned_output.rewind
+        s3.store(content: cleaned_output, name: s3_upload_path(file_name), content_type: 'text/csv')
       end
-      FileUtils.rm_rf(extract_path)
-      GrdaWarehouseBase.connection.reconnect!
-      ApplicationRecord.connection.reconnect!
-      ReportingBase.connection.reconnect!
+    end
+
+    private def remove_intermediate_files_from_s3(file_name:)
+      s3.delete(key: s3_upload_path(file_name))
+    end
+
+    private def s3
+      @s3 ||= AwsS3.new(bucket_name: ActiveStorage::Blob.service.bucket.name)
+    end
+
+    private def populate_hmis_table_via_bulk_insert(klass:, file_name:)
+      # Read the file in batches to avoid over RAM usage
+      File.open(File.join(extract_path, file_name)) do |file|
+        headers = file.first
+        file.lazy.each_slice(read_rows) do |lines|
+          content = ::CSV.parse(lines.join, headers: headers)
+          import_headers = content.first.headers
+          next unless content.any?
+
+          # this fixes dates that default to 1900-01-01 if you send an empty string
+          content = content.map do |row|
+            klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
+          end.compact
+          # Using TsqlImport because active_record import doesn't play nice
+          insert_batch(klass, standardize_headers(import_headers), content, batch_size: 1_000)
+        end
+      end
+    end
+
+    private def populate_hmis_table_from_s3_integration(klass:, file_name:)
+      Tempfile.open(klass.name) do |cleaned_output|
+        csv_output = CSV.new(cleaned_output)
+        headers_added = false
+        # Read the file in batches to avoid over RAM usage
+        File.open(File.join(extract_path, file_name)) do |file|
+          headers = file.first
+          i = 0
+          file.lazy.each_slice(read_rows) do |lines|
+            content = ::CSV.parse(lines.join, headers: headers)
+            import_headers = content.first.headers
+            next unless content.any?
+
+            # NOTE: we need to insert the id column, SQL Server bulk import doesn't work without it
+            csv_output << ['id'] + standardize_headers(import_headers) unless headers_added
+            headers_added = true
+            # this fixes dates that default to 1900-01-01 if you send an empty string
+            content.map do |row|
+              # increment the row counter for SQL Server
+              i += 1
+              csv_output << [i] + klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
+            end.compact
+          end
+        end
+        cleaned_output.rewind
+        s3_upload_path = "lsa/tmp/#{id}/#{file_name}"
+        s3.store(content: cleaned_output, name: s3_upload_path, content_type: 'text/csv')
+        mssql_import_from_s3(path: s3_upload_path, klass: klass)
+        # TODO
+        # remove file from s3
+        # s3.delete(key: s3_upload_path)
+      end
     end
 
     # This reverses some export changes we made to maintain case sensitive matching with the 2024 spec
