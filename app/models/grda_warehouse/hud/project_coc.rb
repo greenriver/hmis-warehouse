@@ -103,7 +103,7 @@ module GrdaWarehouse::Hud
       scope
     end
 
-    TodoOrDie('Remove override_columns method and columns from the database', by: '2024-12-12')
+    TodoOrDie('Remove override_columns method and columns from the database', by: '2025-01-23')
     # If any of these are not blank, we'll consider it overridden
     def self.override_columns
       {

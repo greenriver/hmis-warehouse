@@ -1,6 +1,6 @@
 # config/initializers/cookie_rotator.rb
 Rails.application.config.after_initialize do
-  TodoOrDie('Remove support for rails 6.1 cookies', by: '2024-12-12')
+  TodoOrDie('Remove support for rails 6.1 cookies', by: '2025-01-23')
   Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
     authenticated_encrypted_cookie_salt = Rails.application.config.action_dispatch.authenticated_encrypted_cookie_salt
     signed_cookie_salt = Rails.application.config.action_dispatch.signed_cookie_salt
