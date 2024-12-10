@@ -21,7 +21,7 @@ module Types
     field :url, String, null: true
     field :name, String, null: false
     field :tags, [String], null: false
-    field :file_blob_id, ID, null: true
+    field :file_blob_id, ID, null: true, deprecation_reason: 'Removing unused blob ID' # TODO(#6208) remove
     field :own_file, Boolean, null: false
     field :redacted, Boolean, null: false
 
