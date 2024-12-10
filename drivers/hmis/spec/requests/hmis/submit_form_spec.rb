@@ -157,8 +157,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             **mock_form_values_for_definition(definition) do |values|
               if role == :FILE
                 # FIXME make this not depend on specific Link IDs in the file form
-                values[:values]['file_blob_id'] = blob.id.to_s
-                values[:hud_values]['fileBlobId'] = blob.id.to_s
+                values[:values]['file_blob_id'] = blob.signed_id
+                values[:hud_values]['fileBlobId'] = blob.signed_id
               end
               values
             end,

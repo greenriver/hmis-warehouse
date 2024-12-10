@@ -1243,7 +1243,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     describe 'with imageBlobId' do
       let!(:file) { File.open('drivers/hmis/spec/fixtures/files/client_photo_00001.jpg') }
       let(:blob) { ActiveStorage::Blob.create_and_upload!(io: file, filename: 'client_photo_00001.jpg', content_type: 'image/jpeg') }
-      let(:hud_values) { complete_hud_values.merge('imageBlobId' => blob.id.to_s) }
+      let(:hud_values) { complete_hud_values.merge('imageBlobId' => blob.signed_id) }
 
       it 'creates a ClientFile tagged as a client headshot' do
         client = Hmis::Hud::Client.new(data_source: ds1, user: u1)
@@ -1998,7 +1998,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         ],
         'enrollmentId' => e1.id.to_s,
         'confidential' => true,
-        'fileBlobId' => blob.id.to_s,
+        'fileBlobId' => blob.signed_id,
       }
     end
 
