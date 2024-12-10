@@ -152,14 +152,14 @@ class Hmis::Hud::Processors::Base
     # Normalize the input value
     value = normalize_custom_field_value(cded, value)
 
+    # Existing CustomDataElement records for this record with this definition
+    existing_cdes = existing_custom_data_elements[cded.id] || []
+
     # `file` is the only field type that saves an additional record, so do some special-case processing
-    value = process_files(cded, value) if cded.field_type == 'file'
+    value = process_files(cded, value, existing_cdes) if cded.field_type == 'file'
 
     # Infer the field name on the CustomDataElement
     value_field_name = "value_#{cded.field_type}"
-
-    # Existing CustomDataElement records for this record with this definition
-    existing_cdes = existing_custom_data_elements[cded.id] || []
 
     # If this custom field only allows 1 value and there already is one, update it.
     if !cded.repeats && existing_cdes.any?
@@ -320,22 +320,24 @@ class Hmis::Hud::Processors::Base
     raise "unexpected value for date \"#{string}\""
   end
 
-  private def process_files(cded, value)
+  private def process_files(cded, value, existing_cdes)
     if cded.repeats?
       Array.wrap(value).map do |val|
-        process_id_to_file(val)
+        process_id_to_file(val, existing_cdes)
       end
     else
-      process_id_to_file(value)
+      process_id_to_file(value, existing_cdes)
     end
   end
 
-  private def process_id_to_file(value)
+  private def process_id_to_file(value, existing_cdes)
     return value unless value
 
     if value.to_i.to_s == value.to_s
       # If value is a string representation of an integer, then it should be the ID of an existing File record.
-      # This is a file we've seen and saved before.
+      # Check that this existing file is already associated with this processor.
+      raise 'Access denied' unless existing_cdes.pluck(:value_file_id).include?(value.to_i)
+
       Hmis::File.find(value)
     else
       # Otherwise, it should be a signed blob ID of a recently-uploaded file. We need to create the File record.

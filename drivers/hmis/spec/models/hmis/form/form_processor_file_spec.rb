@@ -102,7 +102,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
     expect do
       assessment.reload.form_processor.hud_values = {
-        'file_upload' => blob1.signed_id.to_s,
+        'file_upload' => saved_file_record.id.to_s,
         'unrelated' => 'second value!',
       }
       assessment.form_processor.run!(user: hmis_user)
@@ -129,7 +129,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
     expect do
       assessment.reload.form_processor.hud_values = {
-        'file_upload' => [blob1.signed_id.to_s, blob2.signed_id.to_s],
+        'file_upload' => [saved_file_record.id.to_s, blob2.signed_id.to_s],
         'unrelated' => 'first value',
       }
       assessment.form_processor.run!(user: hmis_user)
@@ -165,7 +165,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
     expect do
       assessment.reload.form_processor.hud_values = {
-        'file_upload' => [blob1.signed_id.to_s], # remove one file
+        'file_upload' => [saved_file1.id.to_s], # remove one file
         'unrelated' => 'first value',
       }
       assessment.form_processor.run!(user: hmis_user)
@@ -182,5 +182,22 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     file_cdeds = Hmis::Hud::CustomDataElement.of_type(file_cded)
     expect(file_cdeds.count).to eq(1)
     expect(file_cdeds.sole.value_file).to eq(saved_file1)
+  end
+
+  context 'with existing file record' do
+    let(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
+    let!(:existing_file_record) { create :file, client: c2, blob: blob1, user_id: hmis_user.id }
+
+    it 'does not allow saving by file ID if not associated with this CustomAssessment already' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: definition, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'file_upload' => [existing_file_record.id.to_s],
+      }
+      expect do
+        assessment.form_processor.run!(user: hmis_user)
+        assessment.save_not_in_progress
+      end.to raise_error(RuntimeError, /Access denied/).
+        and not_change(Hmis::Hud::CustomDataElement, :count)
+    end
   end
 end
