@@ -27,7 +27,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
       oktaPath: okta_enabled ? '/hmis/users/auth/okta' : nil,
       logoPath: logo_path.present? ? ActionController::Base.helpers.asset_path(logo_path) : nil,
       warehouseUrl: "https://#{hostname}",
-      warehouseName: Translation.translate('Boston DND Warehouse'),
+      warehouseName: Translation.translate('Open Path HMIS Warehouse'),
       appName: Translation.translate('Open Path HMIS'), # TODO: app name should be configurable per data source
       resetPasswordUrl: "https://#{hostname}/users/password/new",
       unlockAccountUrl: "https://#{hostname}/users/unlock/new",
