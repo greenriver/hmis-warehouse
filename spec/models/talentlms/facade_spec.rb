@@ -1,4 +1,9 @@
 require 'rails_helper'
+require 'vcr'
+
+VCR.configure do |c|
+  c.ignore_hosts 'test.talentlms.com'
+end
 
 RSpec.describe Talentlms::Facade, type: :model do
   before(:all) do
@@ -23,6 +28,7 @@ RSpec.describe Talentlms::Facade, type: :model do
   let!(:config) do
     # We need to skip validation on save so we can setup the stubs prior to validation running on this object.
     config = Talentlms::Config.new(subdomain: 'test', api_key: '1234')
+    setup_default_config_stubs(config: config)
     config.save(validate: false)
     config
   end
@@ -30,10 +36,6 @@ RSpec.describe Talentlms::Facade, type: :model do
   let!(:course2) { create :default_course, courseid: 2, config: config, name: 'Course2' }
   let!(:lms_login) { create :talentlms_login, user: user, config: config, login: DEFAULT_LMS_USERNAME }
   let!(:lms) { Talentlms::Facade.new(user) }
-
-  before do
-    setup_stubs(config: config)
-  end
 
   describe 'local_login' do
     it 'pulls from local if it exists' do
@@ -304,7 +306,7 @@ RSpec.describe Talentlms::Facade, type: :model do
   end
 
   # ----------------------------- Stub Defaults -----------------------------
-  def setup_stubs(config:)
+  def setup_default_config_stubs(config:)
     allow(config).to receive(:get).with(
       anything,
     ).and_return(
