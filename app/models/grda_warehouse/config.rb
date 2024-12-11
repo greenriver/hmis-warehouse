@@ -315,6 +315,7 @@ module GrdaWarehouse
         :self_report_start_date,
         :chronic_adult_only_cohort,
         :enable_auto_deduplication,
+        :rds_s3_integration_role_arn,
         client_details: [],
       ]
     end
