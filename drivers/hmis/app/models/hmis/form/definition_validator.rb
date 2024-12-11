@@ -271,13 +271,15 @@ class Hmis::Form::DefinitionValidator
         cded_type = cded.field_type
 
         case item_type
-        when 'GROUP', 'OBJECT', 'FILE', 'IMAGE'
+        when 'GROUP', 'OBJECT'
           # We don't expect these types to have custom field mappings. If they do, raise an error
           raise "Item #{link_id} has type #{item_type}, so it should not have a custom_field_key"
         when 'DISPLAY'
           # DISPLAY types should really be in the above category too,
           # but we have existing cases that store an autofill value
           next
+        when 'FILE', 'IMAGE'
+          raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless cded_type == 'file'
         when 'STRING', 'TEXT', 'TIME_OF_DAY', 'CHOICE', 'OPEN_CHOICE'
           raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['string', 'text'].include?(cded_type)
         when 'BOOLEAN'

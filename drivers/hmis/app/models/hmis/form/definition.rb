@@ -413,6 +413,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     published? || retired?
   end
 
+  def supports_save_in_progress?
+    # Only Assessments can be saved as WIP
+    return false unless ASSESSMENT_FORM_ROLES.include?(role.to_sym)
+
+    # If the assessment contains a File collection item, it cannot be saved as WIP (#6208)
+    return false if link_id_item_hash.values.find { |item| ['FILE', 'IMAGE'].include?(item.type) }
+
+    true
+  end
+
   def self.owner_class_for_role(role)
     return Hmis::Hud::CustomAssessment if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 
@@ -645,6 +655,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       'integer'
     when 'CURRENCY'
       'float'
+    when 'FILE', 'IMAGE'
+      'file'
     else
       raise "unable to determine cded type for #{item_type}"
     end
