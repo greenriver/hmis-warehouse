@@ -2865,7 +2865,7 @@ type DirectUpload {
   """
   Created blob record ID
   """
-  blobId: ID!
+  blobId: ID! @deprecated(reason: "Deprecated in favor of signed_blob_id")
   filename: String!
 
   """
@@ -4030,7 +4030,7 @@ type File {
   enrollment: Enrollment
   enrollmentId: ID
   expirationDate: ISO8601Date
-  fileBlobId: ID
+  fileBlobId: ID @deprecated(reason: "Removing unused blob ID")
   id: ID!
   name: String!
   ownFile: Boolean!

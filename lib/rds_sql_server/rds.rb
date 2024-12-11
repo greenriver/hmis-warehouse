@@ -143,7 +143,23 @@ class Rds
     end
 
     # FIXME: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/SQLServer.Concepts.General.SSL.Using.html#SQLServer.Concepts.General.SSL.Forcing
-    @response = client.create_db_instance(
+    begin
+      @response = create_db_on_aws
+    rescue Aws::RDS::Errors::DBInstanceAlreadyExists
+      # Sometimes the database is in the process of being deleted and the delayed job
+      # is too fast.  We'll wait, and attempt to create it one more time after 10 minutes
+      # if it is the process of being deleted
+      status = current_state
+      if status == 'deleting'
+        sleep(600)
+        @response = create_db_on_aws
+      end
+      # if we weren't deleting, just assume it'll be fine
+    end
+  end
+
+  private def create_db_on_aws
+    client.create_db_instance(
       db_instance_class: DB_INSTANCE_CLASS,
       db_instance_identifier: identifier,
       allocated_storage: 100, # 20GB is minimum required, 100 so we don't run out of space
