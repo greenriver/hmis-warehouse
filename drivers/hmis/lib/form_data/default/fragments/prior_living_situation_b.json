@@ -87,7 +87,6 @@
         {
           "type": "DISPLAY",
           "link_id": "q_3_917B_A",
-          "read_only": true,
           "text": "Client stayed 90+ days in an institutional setting. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
           "readonly_text": "Client does not meet the HUD definition of chronic at entry.",
           "enable_behavior": "ALL",

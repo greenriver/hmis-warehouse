@@ -7,8 +7,6 @@
 # Module for SQL-related helper methods. Assumes a PostgreSQL database.
 # Perhaps there's a way to do this with the active_record_extended gem but I couldn't find it
 module SqlHelper
-  extend ActiveSupport::Concern
-
   # Quotes an array of elements for use in SQL queries.
   #
   # @param array [Array] The array of elements to be quoted.
@@ -24,9 +22,14 @@ module SqlHelper
   #   # => "'{\"foo\",\"bar\"}'::text[]"
   #
   module_function def quote_sql_array(array, type:)
+    type = type&.to_s
+    raise ArgumentError, "Invalid type: '#{type}'" unless type.in?([nil, 'integer', 'text', 'varchar'])
+    raise ArgumentError, 'Array argument required' unless array.is_a?(Array)
+
     connection = ActiveRecord::Base.connection
     quoted_elements = array.map do |element|
-      case element.presence
+      element = element.presence
+      case element
       when String, Symbol
         "\"#{connection.quote_string(element.to_s)}\""
       when Integer

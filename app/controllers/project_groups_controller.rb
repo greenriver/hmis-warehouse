@@ -16,6 +16,16 @@ class ProjectGroupsController < ApplicationController
     @pagy, @project_groups = pagy(@project_groups)
   end
 
+  private def any_invisible_projects?
+    # Alert if there are projects in the project group that the user can't access, for now, let them proceed,
+    # but note that there will be data loss
+    previously_selected_project_ids = @project_group.projects.pluck(:id)
+    viewable_project_ids = GrdaWarehouse::Hud::Project.viewable_by(current_user).pluck(:id)
+
+    (previously_selected_project_ids - viewable_project_ids).any?
+  end
+  helper_method :any_invisible_projects?
+
   def new
     @project_group = project_group_source.new
     set_access

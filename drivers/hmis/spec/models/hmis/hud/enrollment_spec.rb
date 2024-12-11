@@ -227,4 +227,40 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end
     end
   end
+
+  describe 'enrollment data collection features' do
+    # see the system test drivers/hmis/spec/system/hmis/data_collection_features_spec.rb for more comprehensive tests
+
+    context 'when there are rules of varying specificity applying to different clients' do
+      let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 4 }
+      let!(:definition) { create :hmis_form_definition, title: 'CLS', role: 'CURRENT_LIVING_SITUATION', identifier: 'custom_cls' }
+      # Rule 1 is more specific for this project, but doesn't apply to non-HOH enrollment
+      let!(:rule1) { create :hmis_form_instance, entity: p1, data_collected_about: 'HOH', role: 'CURRENT_LIVING_SITUATION', definition_identifier: 'custom_cls' }
+      # Rule 2 is less specific for the project, but does applies to the non-HOH enrollment
+      let!(:rule2) { create :hmis_form_instance, entity: nil, project_type: p1.project_type, role: 'CURRENT_LIVING_SITUATION', definition_identifier: 'custom_cls' }
+
+      let!(:hoh_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 1.month.ago, household_id: 'household1', relationship_to_hoh: 1 }
+      let!(:spouse_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 1.month.ago, household_id: 'household1', relationship_to_hoh: 3 }
+
+      it 'should return the more specific rule for the HoH' do
+        expect(hoh_enrollment.data_collection_features).to include(
+          have_attributes(
+            'role' => 'CURRENT_LIVING_SITUATION',
+            'instance' => rule1,
+            'data_collected_about' => 'HOH',
+          ),
+        )
+      end
+
+      it 'should return the less specific rule for the spouse' do
+        expect(spouse_enrollment.data_collection_features).to include(
+          have_attributes(
+            'role' => 'CURRENT_LIVING_SITUATION',
+            'instance' => rule2,
+            'data_collected_about' => 'ALL_CLIENTS',
+          ),
+        )
+      end
+    end
+  end
 end
