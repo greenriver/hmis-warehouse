@@ -230,7 +230,7 @@ module Types
 
     def files(**args)
       # Exclude files that have been uploaded by custom assessments
-      resolve_files(object.files.left_joins(:custom_data_element).merge(Hmis::Hud::CustomDataElement.where(id: nil)), **args)
+      resolve_files(object.files.where.missing(:custom_data_element), **args)
     end
 
     def pronouns
