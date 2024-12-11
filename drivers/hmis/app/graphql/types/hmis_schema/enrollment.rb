@@ -225,6 +225,8 @@ module Types
     # should not be queried in batch
     field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Forms for individual data elements that are collected at occurrence for this Enrollment (e.g. Move-In Date)'
 
+    field :geolocations, [Types::HmisSchema::Geolocation], null: false, description: 'Client Locations that have been collected during this Enrollment'
+
     audit_history_field(
       :audit_history,
       # Fields should match our DB casing, consult schema to determine appropriate casing
@@ -256,6 +258,12 @@ module Types
 
       # there should never be more than 1 referral posting for a given enrollment
       load_ar_association(object, :source_postings).min_by(&:id)
+    end
+
+    def geolocations
+      return unless current_permission?(permission: :can_view_enrollment_location_map, entity: project)
+
+      load_ar_association(object, :clh_locations)
     end
 
     def audit_history(filters: nil)

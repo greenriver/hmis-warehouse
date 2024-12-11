@@ -13,21 +13,25 @@ module Hmis::Hud::Processors
       nil
     end
 
+    def relation_name
+      :clh_location
+    end
+
     def process(field, value)
-      return @processor.send(factory_name).destroy if value.nil? || value.empty?
-
       attribute_name = ar_attribute_name(field)
-
+      # The only expected attribute name is 'coordinates'
       raise ArgumentError, "Unexpected attribute for Geolocation: #{attribute_name}" unless attribute_name == 'coordinates'
+
+      # if 'Geolocation.coordinates: nil' was submitted, destroy the clh location record
+      return destroy_record if value.nil? || value.empty?
 
       attribute_value = clean_coordinate_value(value)
       latitude = attribute_value[:latitude]
       longitude = attribute_value[:longitude]
       not_collected_reason = attribute_value[:notCollectedReason]
 
-      raise ArgumentError, 'Geolocation coordinates in unexpected format' unless (latitude && longitude) || not_collected_reason
-
-      return @processor.send(factory_name).destroy if not_collected_reason
+      return destroy_record if not_collected_reason # not collected reason is returned from external PIT form
+      return destroy_record if latitude.nil? && longitude.nil?
 
       @processor.send(factory_name).assign_attributes(lat: latitude, lon: longitude)
     end
@@ -51,11 +55,11 @@ module Hmis::Hud::Processors
       when HmisExternalApis::ExternalForms::FormSubmission
         [owner.submitted_at.to_date, owner.submitted_at]
       when Hmis::Hud::CurrentLivingSituation
-        [nil, owner.InformationDate] # is this wrong? i think it should be the reverse
+        [owner.InformationDate, nil] # we don't have a datetime for exact time located
       when Hmis::Hud::CustomAssessment
-        [nil, owner.AssessmentDate]
+        [owner.AssessmentDate, nil] # we don't have a datetime for exact time located
       else
-        raise 'unable to determine located_on date for client location'
+        raise "owner type not supported for geolocation collection: #{owner.class}"
       end
 
       clh&.assign_attributes(
@@ -68,6 +72,11 @@ module Hmis::Hud::Processors
     end
 
     def information_date(_)
+    end
+
+    # This record type can be conditionally collected on CustomAssessments/CLS
+    def dependent_destroyable?
+      true
     end
   end
 end

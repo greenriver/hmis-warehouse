@@ -85,6 +85,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # Cached chronically homeless at entry
   has_one :ch_enrollment, class_name: 'Hmis::ChEnrollment', dependent: :destroy
+  # Client geolocations, which may have been collected on a Current Living Situation, Custom Assessment, or External PIT form
+  has_many :clh_locations, class_name: 'ClientLocationHistory::Location', as: :source, dependent: :destroy
 
   accepts_nested_attributes_for :move_in_addresses, allow_destroy: true
 

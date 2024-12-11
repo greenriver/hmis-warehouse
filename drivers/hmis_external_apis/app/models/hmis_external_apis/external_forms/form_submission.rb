@@ -6,12 +6,13 @@
 
 module HmisExternalApis::ExternalForms
   class FormSubmission < ::HmisExternalApis::HmisExternalApisBase
+    include ::Hmis::Hud::Concerns::FormSubmittable
     self.table_name = 'hmis_external_form_submissions'
+
     belongs_to :definition, class_name: 'Hmis::Form::Definition'
     # Enrollment that was generated as a result of processing this form submission. Only applicable for certain external forms, like the PIT.
     belongs_to :enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
     has_one :client, through: :enrollment
-    has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', as: :owner, dependent: :destroy
     has_one :clh_location, through: :form_processor
 
     include HasPiiAttributes
@@ -24,8 +25,6 @@ module HmisExternalApis::ExternalForms
 
       errors.add(:status, :invalid, full_message: 'Cannot change status from Reviewed to New') if status_was == 'reviewed' && status == 'new'
     end
-
-    include ::Hmis::Hud::Concerns::FormSubmittable
 
     # The recaptcha spam score is a float between 0 (likely spam) and 1.0 (likely real)
     # For now we will start with 0.5 as the threshold, maybe we will adjust in future

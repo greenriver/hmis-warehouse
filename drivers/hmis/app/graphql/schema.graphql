@@ -3336,6 +3336,11 @@ type Enrollment {
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
   formerWardChildWelfare: NoYesReasonsForMissingData
   formerWardJuvenileJustice: NoYesReasonsForMissingData
+
+  """
+  Client Locations that have been collected during this Enrollment
+  """
+  geolocations: [Geolocation!]!
   healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
   hh5Plus: NoYesMissing
   hohLeaseholder: NoYesMissing
@@ -9116,6 +9121,7 @@ type QueryAccess {
   canViewClients: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
+  canViewEnrollmentLocationMap: Boolean!
   canViewFullSsn: Boolean!
   canViewHudChronicStatus: Boolean!
   canViewLimitedEnrollmentDetails: Boolean!

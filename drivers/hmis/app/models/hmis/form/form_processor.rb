@@ -361,17 +361,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   def clh_location_factory(create: true)
     return clh_location if clh_location.present? || !create
 
-    # client = case owner
-    # when HmisExternalApis::ExternalForms::FormSubmission
-    #   client_factory # use factory which can create client
-    # when Hmis::Hud::CustomAssessment
-    #   owner.client
-    # when Hmis::Hud::CurrentLivingSituation
-    #   owner.client
-    # else
-    #   raise "Invalid owner type for Geo Location: #{owner.class}"
-    # end
-
     self.clh_location = client_factory.client_location_histories.build
   end
 
@@ -398,6 +387,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       HealthAndDv: Hmis::Hud::Processors::HealthAndDvProcessor,
       IncomeBenefit: Hmis::Hud::Processors::IncomeBenefitProcessor,
       Exit: Hmis::Hud::Processors::ExitProcessor,
+      Geolocation: Hmis::Hud::Processors::GeolocationProcessor,
       # Form Records
       Client: Hmis::Hud::Processors::ClientProcessor,
       Service: Hmis::Hud::Processors::ServiceProcessor,
@@ -421,7 +411,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
       # External forms
       FormSubmission: Hmis::Hud::Processors::ExternalFormSubmissionProcessor,
-      Geolocation: Hmis::Hud::Processors::GeolocationProcessor,
     }.freeze
   end
 
@@ -485,6 +474,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       :current_living_situation,
       :ce_assessment,
       :ce_event,
+      :clh_location,
     ].each { |assoc| send(assoc)&.destroy! }.compact
   end
 
