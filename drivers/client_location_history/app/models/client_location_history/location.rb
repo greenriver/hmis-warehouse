@@ -13,18 +13,7 @@ module ClientLocationHistory
     # this relation isn't used; use polymorphic `source` above
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
 
-    before_create :ensure_grda_warehouse_source # HMIS FormProcessor relies on this
-    before_update :ensure_grda_warehouse_source # HMIS FormProcessor relies on this
-
     MARKER_COLOR = '#72A0C1'.freeze
-
-    private def ensure_grda_warehouse_source
-      # This somewhat hacky solution gets around the fact that during HMIS Form Processing, we haven't yet saved the
-      # Enrollment being generated, so we don't yet have an ID with which to get the Warehouse enrollment.
-      return unless source_type&.starts_with? 'Hmis::Hud::'
-
-      self.source_type = source_type.sub('Hmis::Hud::', 'GrdaWarehouse::Hud::')
-    end
 
     def as_point
       [lat, lon]
@@ -80,5 +69,7 @@ module ClientLocationHistory
       most_recent[:label] << '<strong>Most-recent contact</strong>'.html_safe
       markers
     end
+
+    include RailsDrivers::Extensions
   end
 end

@@ -4972,14 +4972,24 @@ enum GeographyType {
 }
 
 type Geolocation {
-  collectedBy: String
   coordinates: GeolocationCoordinates
-  createdAt: ISO8601DateTime!
   id: ID!
-  locatedAt: ISO8601DateTime
+
+  """
+  Date the location was collected, usually sourced from Assessment Date or
+  Information Date of the form where it was collected
+  """
   locatedOn: ISO8601Date
-  processedAt: ISO8601DateTime
-  updatedAt: ISO8601DateTime!
+
+  """
+  Associated Assessment record, if this location was collected on an assessment
+  """
+  sourceAssessment: Assessment
+
+  """
+  Associated Current Living Situation record, if this location was collected on a CurrentLivingSituation form
+  """
+  sourceCurrentLivingSituation: CurrentLivingSituation
 }
 
 type GeolocationCoordinates {

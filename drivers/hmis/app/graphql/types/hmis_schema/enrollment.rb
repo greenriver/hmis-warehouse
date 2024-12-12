@@ -263,7 +263,8 @@ module Types
     def geolocations
       return unless current_permission?(permission: :can_view_enrollment_location_map, entity: project)
 
-      load_ar_association(object, :clh_locations)
+      # Must map to warehouse record because locations use polymorphic source with GrdaWarehouse::Hud::Enrollment type
+      object.as_warehouse.enrollment_location_histories
     end
 
     def audit_history(filters: nil)
