@@ -36,6 +36,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             geolocations {
               id
               collectedByProjectName
+              locatedOn
+              collectedByProjectName
               coordinates {
                 latitude
                 longitude
@@ -78,8 +80,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         locations = perform_mutation
 
         expect(locations).to contain_exactly(
-          a_hash_including('id' => cls_location.id.to_s, 'sourceCurrentLivingSituation' => a_hash_including('id' => cls.id.to_s)),
-          a_hash_including('id' => assessment_location.id.to_s, 'sourceAssessment' => a_hash_including('id' => assessment.id.to_s)),
+          a_hash_including(
+            'id' => cls_location.id.to_s,
+            'locatedOn' => cls_location.located_on.strftime('%Y-%m-%d'),
+            'sourceAssessment' => nil,
+            'sourceCurrentLivingSituation' => a_hash_including('id' => cls.id.to_s),
+          ),
+          a_hash_including(
+            'id' => assessment_location.id.to_s,
+            'locatedOn' => assessment_location.located_on.strftime('%Y-%m-%d'),
+            'sourceAssessment' => a_hash_including('id' => assessment.id.to_s),
+            'sourceCurrentLivingSituation' => nil,
+          ),
         )
       end
     end

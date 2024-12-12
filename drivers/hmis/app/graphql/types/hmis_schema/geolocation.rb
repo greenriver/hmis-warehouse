@@ -11,7 +11,7 @@ module Types
     field :id, ID, null: false
     field :coordinates, HmisSchema::GeolocationCoordinates, null: true
     field :collected_by_project_name, String, null: true, method: :collected_by
-    field :located_on, GraphQL::Types::ISO8601Date, null: true, description: 'Date the location was collected, usually sourced from Assessment Date or Information Date of the form where it was collected'
+    field :located_on, GraphQL::Types::ISO8601Date, null: false, description: 'Date the location was collected, usually sourced from Assessment Date or Information Date of the form where it was collected'
     field :source_current_living_situation, HmisSchema::CurrentLivingSituation, null: true, description: 'Associated Current Living Situation record, if this location was collected on a CurrentLivingSituation form'
     field :source_assessment, HmisSchema::Assessment, null: true, description: 'Associated Assessment record, if this location was collected on an assessment'
 
@@ -26,7 +26,7 @@ module Types
     def located_on
       # We should have `located_on` if this location was processed from an HMIS form or HMIS External form.
       # All these date fields are optional, though, so coalesce (and use created_at if all are nil).
-      [object.located_on, object.located_at.to_date, object.processed_at.to_date, object.created_at.to_date].compact.first
+      [object.located_on, object.located_at&.to_date, object.processed_at&.to_date, object.created_at&.to_date].compact.first
     end
 
     # coordinates need to be nested under another object because form processing uses 'Geolocation.coordinates',
