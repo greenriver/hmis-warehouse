@@ -12,7 +12,9 @@ module ClientLocationHistory
     belongs_to :place, class_name: 'GrdaWarehouse::Place', primary_key: [:lat, :lon], foreign_key: [:lat, :lon], optional: true
     # this relation isn't used; use polymorphic `source` above
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
-    before_create :ensure_grda_warehouse_source
+
+    before_create :ensure_grda_warehouse_source # HMIS FormProcessor relies on this
+    before_update :ensure_grda_warehouse_source # HMIS FormProcessor relies on this
 
     MARKER_COLOR = '#72A0C1'.freeze
 

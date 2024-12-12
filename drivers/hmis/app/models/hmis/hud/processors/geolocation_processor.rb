@@ -48,7 +48,8 @@ module Hmis::Hud::Processors
 
     def assign_metadata
       clh = @processor.send(factory_name, create: false)
-      return if clh&.destroyed?
+      return unless clh
+      return if clh.marked_for_destruction?
 
       owner = @processor.owner_factory
       located_on, located_at = case owner
@@ -62,12 +63,16 @@ module Hmis::Hud::Processors
         raise "owner type not supported for geolocation collection: #{owner.class}"
       end
 
-      clh&.assign_attributes(
+      # If Latitude or Longitude have changed (or are new), set attributes about location context.
+      if clh.lat_changed? || clh.lon_changed?
+        clh.located_at = located_at
+        clh.located_on = located_on
+        clh.processed_at = Time.current
+      end
+
+      clh.assign_attributes(
         source: @processor.enrollment_factory,
         collected_by: @processor.enrollment_factory.project.name,
-        located_on: located_on,
-        located_at: located_at,
-        processed_at: Time.current,
       )
     end
 
