@@ -130,4 +130,56 @@ RSpec.describe model, type: :model do
       end
     end
   end
+
+  describe 'importer' do
+    let!(:imports) { create_list :grda_warehouse_upload, 12, data_source_id: ds1.id, user_id: User.system_user.id, percent_complete: 100, completed_at: 2.years.ago }
+
+    describe 'when expecting one file' do
+      let!(:import_config) { create :grda_warehouse_hmis_import_config, file_count: 1, data_source_id: ds1.id }
+      it 'is not stalled when there are no prior imports in the past 6 months' do
+        expect(ds1.stalled?).to eq(nil)
+      end
+
+      it 'is stalled when the last import was over 24 hours ago' do
+        imports.each.with_index { |import, i| import.update(completed_at: (i + 1).days.ago - 2.minutes) }
+        expect(ds1.stalled?).to_not eq(nil)
+      end
+
+      it 'is not stalled when there was an import yesterday' do
+        imports.each.with_index { |import, i| import.update(completed_at: i.days.ago + 2.minutes) }
+        expect(ds1.stalled?).to eq(nil)
+      end
+
+      it 'is stalled when the last import was 26 hours ago' do
+        imports.each.with_index do |import, i|
+          time = i.days.ago - 26.hours
+          import.update(completed_at: time)
+        end
+        expect(ds1.stalled?).to_not eq(nil)
+      end
+    end
+
+    describe 'when expecting multiple file' do
+      let!(:import_config) { create :grda_warehouse_hmis_import_config, file_count: 3, data_source_id: ds1.id }
+      it 'is not stalled when there are no prior imports in the past 6 months' do
+        expect(ds1.stalled?).to eq(nil)
+      end
+
+      it 'is stalled when there was a partial import yesterday' do
+        # Move one file into the expected range
+        imports.each.with_index { |import, i| import.update(completed_at: i.days.ago) }
+        expect(ds1.stalled?).to_not eq(nil)
+      end
+
+      it 'is stalled when there was a full import recently, but nothing in the past 24 hours' do
+        imports.first(3).each { |import| import.update(completed_at: 25.hours.ago) }
+        expect(ds1.stalled?).to_not eq(nil)
+      end
+
+      it 'is not stalled when there was a full import within the last 24 hours' do
+        imports.first(3).each { |import| import.update(completed_at: 23.hours.ago) }
+        expect(ds1.stalled?).to eq(nil)
+      end
+    end
+  end
 end
