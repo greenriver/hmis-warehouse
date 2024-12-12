@@ -4977,10 +4977,9 @@ type Geolocation {
   id: ID!
 
   """
-  Date the location was collected, usually sourced from Assessment Date or
-  Information Date of the form where it was collected
+  Timestamp when the location was collected
   """
-  locatedOn: ISO8601Date!
+  locatedAt: ISO8601DateTime!
 
   """
   Associated Assessment record, if this location was collected on an assessment

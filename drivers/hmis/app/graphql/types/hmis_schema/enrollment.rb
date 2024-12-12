@@ -260,6 +260,7 @@ module Types
       load_ar_association(object, :source_postings).min_by(&:id)
     end
 
+    # N+1, not performant for queries on collections
     def geolocations
       return [] unless current_permission?(permission: :can_view_enrollment_location_map, entity: project)
 

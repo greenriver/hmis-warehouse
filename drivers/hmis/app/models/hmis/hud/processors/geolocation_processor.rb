@@ -51,23 +51,29 @@ module Hmis::Hud::Processors
       return unless clh
       return if clh.marked_for_destruction?
 
+      processed_at = Time.current
+
       owner = @processor.owner_factory
-      located_on, located_at = case owner
-      when HmisExternalApis::ExternalForms::FormSubmission
-        [owner.submitted_at.to_date, owner.submitted_at]
-      when Hmis::Hud::CurrentLivingSituation
-        [owner.InformationDate, nil] # we don't have a datetime for exact time located
-      when Hmis::Hud::CustomAssessment
-        [owner.AssessmentDate, nil] # we don't have a datetime for exact time located
-      else
-        raise "owner type not supported for geolocation collection: #{owner.class}"
-      end
 
       # If Latitude or Longitude have changed (or are new), set attributes about location context.
       if clh.lat_changed? || clh.lon_changed?
-        clh.located_at = located_at
-        clh.located_on = located_on
-        clh.processed_at = Time.current
+        located_on, located_at = case owner
+        when HmisExternalApis::ExternalForms::FormSubmission
+          [owner.submitted_at.to_date, owner.submitted_at]
+        when Hmis::Hud::CurrentLivingSituation
+          [owner.InformationDate, processed_at]
+        when Hmis::Hud::CustomAssessment
+          # Use processing time (now) for located_at time. This could be wrong
+          # if the location was recorded and then the assessment was saved as WIP for a while before submission.
+          # However there's no way for us to know that, so just use the processing time.
+          [owner.AssessmentDate, processed_at]
+        else
+          raise "owner type not supported for geolocation collection: #{owner.class}"
+        end
+
+        clh.located_on = located_on # Date
+        clh.located_at = located_at # DateTime (newer, added for HMIS)
+        clh.processed_at = processed_at
       end
 
       clh.assign_attributes(
