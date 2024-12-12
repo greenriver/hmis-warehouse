@@ -109,7 +109,7 @@ module HudLsa::Generators::Fy2023
         update_report_progress(percent: 100)
         log_and_ping('LSA Complete')
       ensure
-        # remove_temporary_rds
+        remove_temporary_rds
         FileUtils.rm_rf(unzip_path)
       end
       finish_report
