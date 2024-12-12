@@ -10,12 +10,12 @@ module Types
   class HmisSchema::Geolocation < Types::BaseObject
     field :id, ID, null: false
     field :coordinates, HmisSchema::GeolocationCoordinates, null: true
+    field :collected_by_project_name, String, null: true, method: :collected_by
     field :located_on, GraphQL::Types::ISO8601Date, null: true, description: 'Date the location was collected, usually sourced from Assessment Date or Information Date of the form where it was collected'
     field :source_current_living_situation, HmisSchema::CurrentLivingSituation, null: true, description: 'Associated Current Living Situation record, if this location was collected on a CurrentLivingSituation form'
     field :source_assessment, HmisSchema::Assessment, null: true, description: 'Associated Assessment record, if this location was collected on an assessment'
 
     # Not needed currently, but may want some of these later
-    # field :collected_by_project_name, String, null: true, method: :collected_by
     # field :located_at, GraphQL::Types::ISO8601DateTime, null: true
     # field :processed_at, GraphQL::Types::ISO8601DateTime, null: true
     # field :created_at, GraphQL::Types::ISO8601DateTime, null: false

@@ -261,7 +261,7 @@ module Types
     end
 
     def geolocations
-      return unless current_permission?(permission: :can_view_enrollment_location_map, entity: project)
+      return [] unless current_permission?(permission: :can_view_enrollment_location_map, entity: project)
 
       # Must map to warehouse record because locations use polymorphic source with GrdaWarehouse::Hud::Enrollment type
       object.as_warehouse.enrollment_location_histories

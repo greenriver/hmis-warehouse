@@ -4972,6 +4972,7 @@ enum GeographyType {
 }
 
 type Geolocation {
+  collectedByProjectName: String
   coordinates: GeolocationCoordinates
   id: ID!
 
