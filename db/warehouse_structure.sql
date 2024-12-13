@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -1824,7 +1824,8 @@ CREATE TABLE public."CustomDataElements" (
     "UserID" character varying(32) NOT NULL,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    value_file_id bigint
 );
 
 
@@ -63674,6 +63675,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241125133814'),
 ('20241126143802'),
 ('20241127144123'),
-('20241127162253');
-
-
+('20241127162253'),
+('20241106163541');

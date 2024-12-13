@@ -1243,7 +1243,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     describe 'with imageBlobId' do
       let!(:file) { File.open('drivers/hmis/spec/fixtures/files/client_photo_00001.jpg') }
       let(:blob) { ActiveStorage::Blob.create_and_upload!(io: file, filename: 'client_photo_00001.jpg', content_type: 'image/jpeg') }
-      let(:hud_values) { complete_hud_values.merge('imageBlobId' => blob.id.to_s) }
+      let(:hud_values) { complete_hud_values.merge('imageBlobId' => blob.signed_id) }
 
       it 'creates a ClientFile tagged as a client headshot' do
         client = Hmis::Hud::Client.new(data_source: ds1, user: u1)
@@ -1801,6 +1801,45 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           expect(record.custom_data_elements.map(&:date_updated)).not_to include(old1.date_updated, old2.date_updated)
         end
 
+        it 'does not delete and replace when some values are the same, but some are different (repeats: true)' do
+          record = i1
+          old_cded = create(:hmis_custom_data_element, owner: record, value_string: 'old value', data_element_definition: cded)
+          expect(record.custom_data_elements.size).to eq(1)
+
+          hud_values = complete_hud_values.merge(
+            cded.key => [old_cded.value_string, 'new value'],
+          )
+
+          expect do
+            process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+            record.reload
+            old_cded.reload
+          end.to change(old_cded, :date_updated).and not_change(old_cded, :date_deleted)
+
+          expect(record.custom_data_elements.size).to eq(2)
+          expect(record.custom_data_elements.map(&:id)).to include(old_cded.id)
+        end
+
+        it 'behaves correctly when given identical values' do
+          record = i1
+
+          hud_values = complete_hud_values.merge(
+            cded.key => ['foo', 'foo'],
+          )
+          process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+
+          expect(record.custom_data_elements.size).to eq(1)
+          expect(record.custom_data_elements.map(&:value_string)).to contain_exactly('foo')
+
+          hud_values = complete_hud_values.merge(
+            cded.key => ['foo', 'foo', 'foo', 'bar'],
+          )
+          process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+
+          expect(record.custom_data_elements.size).to eq(2)
+          expect(record.custom_data_elements.map(&:value_string)).to contain_exactly('foo', 'bar')
+        end
+
         [nil, HIDDEN, []].each do |value|
           it "doesnt error when receiving custom data element value #{value} (new record / existing record with no value)" do
             existing_record = i1
@@ -1959,7 +1998,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         ],
         'enrollmentId' => e1.id.to_s,
         'confidential' => true,
-        'fileBlobId' => blob.id.to_s,
+        'fileBlobId' => blob.signed_id,
       }
     end
 
