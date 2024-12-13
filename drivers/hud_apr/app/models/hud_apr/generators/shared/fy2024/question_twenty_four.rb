@@ -122,7 +122,7 @@ module HudApr::Generators::Shared::Fy2024
       language_rows = []
       grouped_members = relevant_members.preload(:universe_membership).group_by { |m| m.universe_membership.preferred_language }
       grouped_members.each_pair do |code, members|
-        if code
+        if code.present? && code != 21
           language_rows << [code.to_i, members]
         else
           different_language_members = members
