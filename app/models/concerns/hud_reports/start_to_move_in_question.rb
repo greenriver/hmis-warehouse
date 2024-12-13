@@ -68,11 +68,12 @@ module HudReports::StartToMoveInQuestion
       [label, cond]
     end
 
+    # Make sure totals only include time to move in dates within the ranges being reported on
     ret.merge(
-      'Total (persons moved into housing)' => a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date),
+      'Total (persons moved into housing)' => a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date).and(a_t[:time_to_move_in].between(0..730)),
       'Average length of time to housing' => :average,
       'Persons who were exited without move-in' => a_t[:hoh_move_in_date].eq(nil),
-      'Total persons' => Arel.sql('1=1'),
+      'Total persons' => a_t[:time_to_move_in].between(0..730).or(a_t[:hoh_move_in_date].eq(nil)),
     ).freeze
   end
 end
