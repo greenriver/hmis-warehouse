@@ -509,7 +509,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       # limit look back to 6 months to improve performance, but to potentially highlight missing data
       where(user_id: User.system_user.id, completed_at: 6.months.ago..Time.current).
       order(completed_at: :desc, created_at: :desc).
-      select(:id, :data_source_id, :user_id, :completed_at).
+      select(:id, :data_source_id, :user_id, :completed_at, :created_at).
       distinct.
       first(hmis_import_config.file_count)
     # We didn't find any uploads in the last 6 months, assume this isn't connected yet
