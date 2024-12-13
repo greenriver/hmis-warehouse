@@ -109,6 +109,7 @@ module Types
       can :delete_enrollments
       can :split_households
       can :audit_enrollments
+      can :view_enrollment_location_map
     end
 
     # FULL ACCESS FIELDS. All fields below this line require `can_view_enrollment_details` perm, because they use the overridden 'field' class method.

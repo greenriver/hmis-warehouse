@@ -3423,6 +3423,7 @@ type EnrollmentAccess {
   canEditEnrollments: Boolean!
   canSplitHouseholds: Boolean!
   canViewEnrollmentDetails: Boolean!
+  canViewEnrollmentLocationMap: Boolean!
   id: ID!
 }
 
