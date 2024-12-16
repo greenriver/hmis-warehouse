@@ -230,6 +230,7 @@ services:
       #   DB_DATA_VOLUME=./dev/db_data
       - ${DB_DATA_VOLUME:-dbdata_pg16}:/var/lib/postgresql/data
       - ./tmp/dumps:/tmp/dumps
+      - ./db:/mnt
     ports:
       - 5432
     expose:
