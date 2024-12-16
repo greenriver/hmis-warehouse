@@ -3405,9 +3405,9 @@ CREATE TABLE public."Inventory" (
     "OtherBedInventory" integer,
     "TargetPopulation" integer,
     "ESBedType" integer,
-    coc_code_override character varying,
-    inventory_start_date_override date,
-    inventory_end_date_override date,
+    deleted_coc_code_override character varying,
+    deleted_inventory_start_date_override date,
+    deleted_inventory_end_date_override date,
     manual_entry boolean DEFAULT false
 );
 
@@ -3448,9 +3448,6 @@ CREATE VIEW analytics.inventories AS
     "OtherBedInventory",
     "TargetPopulation",
     "ESBedType",
-    coc_code_override,
-    inventory_start_date_override,
-    inventory_end_date_override,
     manual_entry
    FROM public."Inventory"
   WHERE ("DateDeleted" IS NULL);
@@ -3656,7 +3653,7 @@ CREATE TABLE public."ProjectCoC" (
     "ExportID" character varying,
     data_source_id integer,
     id integer NOT NULL,
-    hud_coc_code character varying,
+    deleted_hud_coc_code character varying,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "Geocode" character varying(6),
@@ -3666,9 +3663,9 @@ CREATE TABLE public."ProjectCoC" (
     "City" character varying,
     "State" character varying(2),
     "Zip" character varying(5),
-    geography_type_override integer,
-    geocode_override character varying(6),
-    zip_override character varying,
+    deleted_geography_type_override integer,
+    deleted_geocode_override character varying(6),
+    deleted_zip_override character varying,
     manual_entry boolean DEFAULT false
 );
 
@@ -3688,7 +3685,6 @@ CREATE VIEW analytics.project_cocs AS
     "ExportID",
     data_source_id,
     id,
-    hud_coc_code,
     source_hash,
     pending_date_deleted,
     "Geocode",
@@ -3698,9 +3694,6 @@ CREATE VIEW analytics.project_cocs AS
     "City",
     "State",
     "Zip",
-    geography_type_override,
-    geocode_override,
-    zip_override,
     manual_entry
    FROM public."ProjectCoC"
   WHERE ("DateDeleted" IS NULL);
@@ -3786,8 +3779,8 @@ CREATE TABLE public."Project" (
     "ExportID" character varying,
     data_source_id integer,
     id integer NOT NULL,
-    act_as_project_type integer,
-    hud_continuum_funded boolean,
+    deleted_act_as_project_type integer,
+    deleted_hud_continuum_funded boolean,
     confidential boolean DEFAULT false NOT NULL,
     computed_project_type integer,
     "OperatingStartDate" date,
@@ -3798,17 +3791,17 @@ CREATE TABLE public."Project" (
     source_hash character varying,
     housing_type_override integer,
     uses_move_in_date boolean DEFAULT false NOT NULL,
-    operating_start_date_override date,
+    deleted_operating_start_date_override date,
     pending_date_deleted timestamp without time zone,
     "HMISParticipatingProject" integer,
     active_homeless_status_override boolean DEFAULT false,
     include_in_days_homeless_override boolean DEFAULT false,
     extrapolate_contacts boolean DEFAULT false NOT NULL,
     combine_enrollments boolean DEFAULT false,
-    hmis_participating_project_override integer,
-    target_population_override integer,
-    tracking_method_override integer,
-    operating_end_date_override date,
+    deleted_hmis_participating_project_override integer,
+    deleted_target_population_override integer,
+    deleted_tracking_method_override integer,
+    deleted_operating_end_date_override date,
     "HOPWAMedAssistedLivingFac" integer,
     description character varying,
     contact_information character varying,
@@ -3838,8 +3831,6 @@ CREATE VIEW analytics.projects AS
     "ExportID",
     data_source_id,
     id,
-    act_as_project_type,
-    hud_continuum_funded,
     confidential,
     computed_project_type,
     "OperatingStartDate",
@@ -3848,19 +3839,13 @@ CREATE VIEW analytics.projects AS
     "HousingType",
     local_planning_group,
     source_hash,
-    housing_type_override,
     uses_move_in_date,
-    operating_start_date_override,
     pending_date_deleted,
     "HMISParticipatingProject",
     active_homeless_status_override,
     include_in_days_homeless_override,
     extrapolate_contacts,
     combine_enrollments,
-    hmis_participating_project_override,
-    target_population_override,
-    tracking_method_override,
-    operating_end_date_override,
     "HOPWAMedAssistedLivingFac",
     description,
     contact_information,
@@ -60339,13 +60324,6 @@ CREATE INDEX project_export_id ON public."Project" USING btree ("ExportID");
 
 
 --
--- Name: project_project_override_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX project_project_override_index ON public."Project" USING btree (COALESCE(act_as_project_type, "ProjectType"));
-
-
---
 -- Name: project_tracking_method_rsh_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63674,6 +63652,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241125133814'),
 ('20241126143802'),
 ('20241127144123'),
-('20241127162253');
+('20241127162253'),
+('20241203154140'),
+('20241203154146');
 
 
