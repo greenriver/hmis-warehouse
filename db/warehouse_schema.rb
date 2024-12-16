@@ -272,7 +272,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
       $function$
   SQL
 
-  create_table "Affiliation", id: :serial, force: :cascade do |t|
+  create_table "Affiliation", force: :cascade do |t|
     t.string "AffiliationID"
     t.string "ProjectID"
     t.string "ResProjectID"
@@ -293,7 +293,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Affiliation_on_pending_date_deleted"
   end
 
-  create_table "Assessment", id: :serial, force: :cascade do |t|
+  create_table "Assessment", force: :cascade do |t|
     t.string "AssessmentID", limit: 32, null: false
     t.string "EnrollmentID", null: false
     t.string "PersonalID", null: false
@@ -316,7 +316,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Assessment_on_pending_date_deleted"
   end
 
-  create_table "AssessmentQuestions", id: :serial, force: :cascade do |t|
+  create_table "AssessmentQuestions", force: :cascade do |t|
     t.string "AssessmentQuestionID", limit: 32, null: false
     t.string "AssessmentID", limit: 32, null: false
     t.string "EnrollmentID", null: false
@@ -338,7 +338,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_AssessmentQuestions_on_pending_date_deleted"
   end
 
-  create_table "AssessmentResults", id: :serial, force: :cascade do |t|
+  create_table "AssessmentResults", force: :cascade do |t|
     t.string "AssessmentResultID", limit: 32, null: false
     t.string "AssessmentID", limit: 32, null: false
     t.string "EnrollmentID", null: false
@@ -382,7 +382,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id", "CEParticipationID"], name: "ds_ceparticipation_idx", unique: true
   end
 
-  create_table "Client", id: :serial, force: :cascade do |t|
+  create_table "Client", force: :cascade do |t|
     t.string "PersonalID", null: false
     t.string "FirstName", limit: 150
     t.string "MiddleName", limit: 150
@@ -670,7 +670,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "ClientUnencrypted_pending_date_deleted_idx"
   end
 
-  create_table "CurrentLivingSituation", id: :serial, force: :cascade do |t|
+  create_table "CurrentLivingSituation", force: :cascade do |t|
     t.string "CurrentLivingSitID", limit: 32, null: false
     t.string "EnrollmentID", null: false
     t.string "PersonalID", null: false
@@ -909,7 +909,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id"], name: "index_CustomServices_on_data_source_id"
   end
 
-  create_table "Disabilities", id: :serial, force: :cascade do |t|
+  create_table "Disabilities", force: :cascade do |t|
     t.string "DisabilitiesID"
     t.string "EnrollmentID"
     t.string "PersonalID"
@@ -954,7 +954,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Disabilities_on_pending_date_deleted"
   end
 
-  create_table "EmploymentEducation", id: :serial, force: :cascade do |t|
+  create_table "EmploymentEducation", force: :cascade do |t|
     t.string "EmploymentEducationID"
     t.string "EnrollmentID"
     t.string "PersonalID"
@@ -985,7 +985,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_EmploymentEducation_on_pending_date_deleted"
   end
 
-  create_table "Enrollment", id: :serial, force: :cascade do |t|
+  create_table "Enrollment", force: :cascade do |t|
     t.string "EnrollmentID", limit: 50, null: false
     t.string "PersonalID", null: false
     t.string "ProjectID", limit: 50
@@ -1144,7 +1144,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["service_history_processing_job_id"], name: "index_Enrollment_on_service_history_processing_job_id"
   end
 
-  create_table "EnrollmentCoC", id: :serial, force: :cascade do |t|
+  create_table "EnrollmentCoC", force: :cascade do |t|
     t.string "EnrollmentCoCID"
     t.string "EnrollmentID"
     t.string "ProjectID"
@@ -1172,7 +1172,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_EnrollmentCoC_on_pending_date_deleted"
   end
 
-  create_table "Event", id: :serial, force: :cascade do |t|
+  create_table "Event", force: :cascade do |t|
     t.string "EventID", limit: 32, null: false
     t.string "EnrollmentID", null: false
     t.string "PersonalID", null: false
@@ -1197,7 +1197,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Event_on_pending_date_deleted"
   end
 
-  create_table "Exit", id: :serial, force: :cascade do |t|
+  create_table "Exit", force: :cascade do |t|
     t.string "ExitID", null: false
     t.string "EnrollmentID"
     t.string "PersonalID"
@@ -1272,7 +1272,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Exit_on_pending_date_deleted"
   end
 
-  create_table "Export", id: :serial, force: :cascade do |t|
+  create_table "Export", force: :cascade do |t|
     t.string "ExportID"
     t.string "SourceID"
     t.string "SourceName"
@@ -1300,7 +1300,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id"], name: "index_Export_on_data_source_id"
   end
 
-  create_table "Funder", id: :serial, force: :cascade do |t|
+  create_table "Funder", force: :cascade do |t|
     t.string "FunderID"
     t.string "ProjectID"
     t.string "Funder"
@@ -1327,7 +1327,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Funder_on_pending_date_deleted"
   end
 
-  create_table "Geography", id: :serial, force: :cascade do |t|
+  create_table "Geography", force: :cascade do |t|
     t.string "GeographyID"
     t.string "ProjectID"
     t.string "CoCCode", limit: 50
@@ -1380,7 +1380,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id", "HMISParticipationID"], name: "ds_hmisparticipation_idx", unique: true
   end
 
-  create_table "HealthAndDV", id: :serial, force: :cascade do |t|
+  create_table "HealthAndDV", force: :cascade do |t|
     t.string "HealthAndDVID"
     t.string "EnrollmentID"
     t.string "PersonalID"
@@ -1419,7 +1419,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_HealthAndDV_on_pending_date_deleted"
   end
 
-  create_table "IncomeBenefits", id: :serial, force: :cascade do |t|
+  create_table "IncomeBenefits", force: :cascade do |t|
     t.string "IncomeBenefitsID"
     t.string "EnrollmentID"
     t.string "PersonalID"
@@ -1524,7 +1524,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_IncomeBenefits_on_pending_date_deleted"
   end
 
-  create_table "Inventory", id: :serial, force: :cascade do |t|
+  create_table "Inventory", force: :cascade do |t|
     t.string "InventoryID"
     t.string "ProjectID"
     t.string "CoCCode", limit: 50
@@ -1566,7 +1566,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Inventory_on_pending_date_deleted"
   end
 
-  create_table "Organization", id: :serial, force: :cascade do |t|
+  create_table "Organization", force: :cascade do |t|
     t.string "OrganizationID", limit: 50
     t.string "OrganizationName"
     t.string "OrganizationCommonName"
@@ -1591,7 +1591,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Organization_on_pending_date_deleted"
   end
 
-  create_table "Project", id: :serial, force: :cascade do |t|
+  create_table "Project", force: :cascade do |t|
     t.string "ProjectID", limit: 50
     t.string "OrganizationID", limit: 50
     t.string "ProjectName"
@@ -1640,7 +1640,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Project_on_pending_date_deleted"
   end
 
-  create_table "ProjectCoC", id: :serial, force: :cascade do |t|
+  create_table "ProjectCoC", force: :cascade do |t|
     t.string "ProjectCoCID", limit: 50
     t.string "ProjectID"
     t.string "CoCCode", limit: 50
@@ -1671,7 +1671,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_ProjectCoC_on_pending_date_deleted"
   end
 
-  create_table "Services", id: :serial, force: :cascade do |t|
+  create_table "Services", force: :cascade do |t|
     t.string "ServicesID"
     t.string "EnrollmentID"
     t.string "PersonalID"
@@ -1708,7 +1708,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Services_on_pending_date_deleted"
   end
 
-  create_table "User", id: :serial, force: :cascade do |t|
+  create_table "User", force: :cascade do |t|
     t.string "UserID", limit: 32, null: false
     t.string "UserFirstName"
     t.string "UserLastName"
@@ -1759,7 +1759,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["key", "etag"], name: "index_ac_hmis_projects_import_attempts_on_key_and_etag", unique: true
   end
 
-  create_table "ad_hoc_batches", id: :serial, force: :cascade do |t|
+  create_table "ad_hoc_batches", force: :cascade do |t|
     t.integer "ad_hoc_data_source_id"
     t.string "description", null: false
     t.integer "uploaded_count"
@@ -1781,7 +1781,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["updated_at"], name: "index_ad_hoc_batches_on_updated_at"
   end
 
-  create_table "ad_hoc_clients", id: :serial, force: :cascade do |t|
+  create_table "ad_hoc_clients", force: :cascade do |t|
     t.integer "ad_hoc_data_source_id"
     t.integer "client_id"
     t.jsonb "matching_client_ids"
@@ -1799,7 +1799,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["updated_at"], name: "index_ad_hoc_clients_on_updated_at"
   end
 
-  create_table "ad_hoc_data_sources", id: :serial, force: :cascade do |t|
+  create_table "ad_hoc_data_sources", force: :cascade do |t|
     t.string "name", null: false
     t.string "short_name"
     t.string "description"
@@ -1814,7 +1814,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_ad_hoc_data_sources_on_user_id"
   end
 
-  create_table "administrative_events", id: :serial, force: :cascade do |t|
+  create_table "administrative_events", force: :cascade do |t|
     t.integer "user_id", null: false
     t.date "date", null: false
     t.string "title", null: false
@@ -1825,7 +1825,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["deleted_at"], name: "index_administrative_events_on_deleted_at"
   end
 
-  create_table "anomalies", id: :serial, force: :cascade do |t|
+  create_table "anomalies", force: :cascade do |t|
     t.integer "client_id"
     t.integer "submitted_by"
     t.string "description"
@@ -1891,7 +1891,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["enrollment_id"], name: "index_ansd_events_on_enrollment_id"
   end
 
-  create_table "api_client_data_source_ids", id: :serial, force: :cascade do |t|
+  create_table "api_client_data_source_ids", force: :cascade do |t|
     t.string "warehouse_id"
     t.string "id_in_data_source"
     t.integer "site_id_in_data_source"
@@ -1914,7 +1914,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["response_code"], name: "index_assessment_answer_lookups_on_response_code"
   end
 
-  create_table "available_file_tags", id: :serial, force: :cascade do |t|
+  create_table "available_file_tags", force: :cascade do |t|
     t.string "name"
     t.string "group"
     t.string "included_info"
@@ -1934,7 +1934,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.boolean "ce_self_report_certification", default: false, null: false
   end
 
-  create_table "bo_configs", id: :serial, force: :cascade do |t|
+  create_table "bo_configs", force: :cascade do |t|
     t.integer "data_source_id"
     t.string "user"
     t.string "encrypted_pass"
@@ -2065,7 +2065,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "cas_availabilities", id: :serial, force: :cascade do |t|
+  create_table "cas_availabilities", force: :cascade do |t|
     t.integer "client_id", null: false
     t.datetime "available_at", precision: nil, null: false
     t.datetime "unavailable_at", precision: nil
@@ -2096,7 +2096,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["program_id"], name: "index_cas_ce_assessments_on_program_id"
   end
 
-  create_table "cas_enrollments", id: :serial, force: :cascade do |t|
+  create_table "cas_enrollments", force: :cascade do |t|
     t.integer "client_id"
     t.integer "enrollment_id"
     t.date "entry_date"
@@ -2108,7 +2108,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["enrollment_id"], name: "index_cas_enrollments_on_enrollment_id"
   end
 
-  create_table "cas_houseds", id: :serial, force: :cascade do |t|
+  create_table "cas_houseds", force: :cascade do |t|
     t.integer "client_id", null: false
     t.integer "cas_client_id", null: false
     t.integer "match_id", null: false
@@ -2117,7 +2117,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["client_id"], name: "index_cas_houseds_on_client_id"
   end
 
-  create_table "cas_non_hmis_client_histories", id: :serial, force: :cascade do |t|
+  create_table "cas_non_hmis_client_histories", force: :cascade do |t|
     t.integer "cas_client_id", null: false
     t.date "available_on", null: false
     t.date "unavailable_on"
@@ -2150,7 +2150,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["program_id"], name: "index_cas_referral_events_on_program_id"
   end
 
-  create_table "cas_reports", id: :serial, force: :cascade do |t|
+  create_table "cas_reports", force: :cascade do |t|
     t.integer "client_id", null: false
     t.integer "match_id", null: false
     t.integer "decision_id", null: false
@@ -2194,7 +2194,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["client_id", "match_id", "decision_id"], name: "index_cas_reports_on_client_id_and_match_id_and_decision_id", unique: true
   end
 
-  create_table "cas_vacancies", id: :serial, force: :cascade do |t|
+  create_table "cas_vacancies", force: :cascade do |t|
     t.integer "program_id", null: false
     t.integer "sub_program_id", null: false
     t.string "program_name"
@@ -2208,7 +2208,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["sub_program_id"], name: "index_cas_vacancies_on_sub_program_id"
   end
 
-  create_table "ce_assessments", id: :serial, force: :cascade do |t|
+  create_table "ce_assessments", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "client_id", null: false
     t.string "type", null: false
@@ -2389,7 +2389,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["report_id"], name: "index_ce_performance_results_on_report_id"
   end
 
-  create_table "census_by_project_types", id: :serial, force: :cascade do |t|
+  create_table "census_by_project_types", force: :cascade do |t|
     t.integer "ProjectType", null: false
     t.date "date", null: false
     t.boolean "veteran", default: false, null: false
@@ -2434,7 +2434,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["year", "dataset", "name"], name: "index_census_variables_on_year_and_dataset_and_name", unique: true
   end
 
-  create_table "censuses", id: :serial, force: :cascade do |t|
+  create_table "censuses", force: :cascade do |t|
     t.integer "data_source_id", null: false
     t.integer "ProjectType", null: false
     t.string "OrganizationID", null: false
@@ -2459,7 +2459,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["enrollment_id", "processed_as"], name: "ch_enrollments_e_id_pro"
   end
 
-  create_table "children", id: :serial, force: :cascade do |t|
+  create_table "children", force: :cascade do |t|
     t.string "first_name"
     t.string "last_name"
     t.date "dob"
@@ -2469,7 +2469,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["family_id"], name: "index_children_on_family_id"
   end
 
-  create_table "chronics", id: :serial, force: :cascade do |t|
+  create_table "chronics", force: :cascade do |t|
     t.date "date", null: false
     t.integer "client_id", null: false
     t.integer "days_in_last_three_years"
@@ -2527,7 +2527,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["source_type", "source_id"], name: "index_client_contacts_on_source_type_and_source_id"
   end
 
-  create_table "client_matches", id: :serial, force: :cascade do |t|
+  create_table "client_matches", force: :cascade do |t|
     t.integer "source_client_id", null: false
     t.integer "destination_client_id", null: false
     t.integer "updated_by_id"
@@ -2543,7 +2543,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["updated_by_id"], name: "index_client_matches_on_updated_by_id"
   end
 
-  create_table "client_merge_histories", id: :serial, force: :cascade do |t|
+  create_table "client_merge_histories", force: :cascade do |t|
     t.integer "merged_into", null: false
     t.integer "merged_from", null: false
     t.datetime "created_at", precision: nil, null: false
@@ -2553,7 +2553,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["updated_at"], name: "index_client_merge_histories_on_updated_at"
   end
 
-  create_table "client_notes", id: :serial, force: :cascade do |t|
+  create_table "client_notes", force: :cascade do |t|
     t.integer "client_id", null: false
     t.integer "user_id", null: false
     t.string "type", null: false
@@ -2582,7 +2582,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["destination_client_id"], name: "index_client_roi_authorizations_on_destination_client_id", unique: true
   end
 
-  create_table "client_split_histories", id: :serial, force: :cascade do |t|
+  create_table "client_split_histories", force: :cascade do |t|
     t.integer "split_into", null: false
     t.integer "split_from", null: false
     t.datetime "created_at", precision: nil, null: false
@@ -2615,7 +2615,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["goal_id"], name: "index_coc_pit_counts_on_goal_id"
   end
 
-  create_table "cohort_client_changes", id: :serial, force: :cascade do |t|
+  create_table "cohort_client_changes", force: :cascade do |t|
     t.integer "cohort_client_id", null: false
     t.integer "cohort_id", null: false
     t.integer "user_id", null: false
@@ -2626,7 +2626,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["changed_at"], name: "index_cohort_client_changes_on_changed_at"
   end
 
-  create_table "cohort_client_notes", id: :serial, force: :cascade do |t|
+  create_table "cohort_client_notes", force: :cascade do |t|
     t.integer "cohort_client_id", null: false
     t.text "note"
     t.datetime "created_at", precision: nil, null: false
@@ -2638,7 +2638,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["deleted_at"], name: "index_cohort_client_notes_on_deleted_at"
   end
 
-  create_table "cohort_clients", id: :serial, force: :cascade do |t|
+  create_table "cohort_clients", force: :cascade do |t|
     t.integer "cohort_id", null: false
     t.integer "client_id", null: false
     t.datetime "created_at", precision: nil, null: false
@@ -2874,7 +2874,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["deleted_at"], name: "index_cohort_clients_on_deleted_at"
   end
 
-  create_table "cohort_column_options", id: :serial, force: :cascade do |t|
+  create_table "cohort_column_options", force: :cascade do |t|
     t.string "cohort_column", null: false
     t.integer "weight"
     t.string "value"
@@ -2896,7 +2896,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["cohort_id"], name: "index_cohort_tabs_on_cohort_id"
   end
 
-  create_table "cohorts", id: :serial, force: :cascade do |t|
+  create_table "cohorts", force: :cascade do |t|
     t.string "name", null: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -2937,7 +2937,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["project_group_id"], name: "index_cohorts_on_project_group_id"
   end
 
-  create_table "configs", id: :serial, force: :cascade do |t|
+  create_table "configs", force: :cascade do |t|
     t.boolean "project_type_override", default: true, null: false
     t.boolean "eto_api_available", default: false, null: false
     t.string "cas_available_method", default: "cas_flag", null: false
@@ -3034,7 +3034,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.string "rds_s3_integration_role_arn"
   end
 
-  create_table "contacts", id: :serial, force: :cascade do |t|
+  create_table "contacts", force: :cascade do |t|
     t.string "type", null: false
     t.integer "entity_id", null: false
     t.string "email", null: false
@@ -3233,7 +3233,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["updated_at"], name: "index_custom_imports_files_on_updated_at"
   end
 
-  create_table "dashboard_export_reports", id: :serial, force: :cascade do |t|
+  create_table "dashboard_export_reports", force: :cascade do |t|
     t.integer "file_id"
     t.integer "user_id"
     t.integer "job_id"
@@ -3244,7 +3244,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "completed_at", precision: nil
   end
 
-  create_table "data_monitorings", id: :serial, force: :cascade do |t|
+  create_table "data_monitorings", force: :cascade do |t|
     t.integer "resource_id", null: false
     t.date "census"
     t.date "calculated_on"
@@ -3260,7 +3260,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["type"], name: "index_data_monitorings_on_type"
   end
 
-  create_table "data_sources", id: :serial, force: :cascade do |t|
+  create_table "data_sources", force: :cascade do |t|
     t.string "name"
     t.string "file_path"
     t.datetime "last_imported_at", precision: nil
@@ -3295,7 +3295,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["source_type", "source_id"], name: "index_datasets_on_source"
   end
 
-  create_table "direct_financial_assistances", id: :serial, force: :cascade do |t|
+  create_table "direct_financial_assistances", force: :cascade do |t|
     t.integer "client_id"
     t.integer "user_id"
     t.date "provided_on"
@@ -3391,7 +3391,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id"], name: "index_eccovia_fetches_on_data_source_id"
   end
 
-  create_table "enrollment_change_histories", id: :serial, force: :cascade do |t|
+  create_table "enrollment_change_histories", force: :cascade do |t|
     t.integer "client_id", null: false
     t.date "on", null: false
     t.jsonb "residential"
@@ -3403,7 +3403,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["client_id"], name: "index_enrollment_change_histories_on_client_id"
   end
 
-  create_table "enrollment_extras", id: :serial, force: :cascade do |t|
+  create_table "enrollment_extras", force: :cascade do |t|
     t.integer "enrollment_id", null: false
     t.integer "vispdat_grand_total"
     t.date "vispdat_added_at"
@@ -3439,7 +3439,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["hud_enrollment_id", "entry_date", "vispdat_ended_at", "project_name", "agency_name", "community", "data_source_id"], name: "idx_tpc_uniqueness", unique: true
   end
 
-  create_table "eto_api_configs", id: :serial, force: :cascade do |t|
+  create_table "eto_api_configs", force: :cascade do |t|
     t.integer "data_source_id", null: false
     t.jsonb "touchpoint_fields"
     t.jsonb "demographic_fields"
@@ -3457,7 +3457,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id"], name: "index_eto_api_configs_on_data_source_id"
   end
 
-  create_table "eto_client_lookups", id: :serial, force: :cascade do |t|
+  create_table "eto_client_lookups", force: :cascade do |t|
     t.integer "data_source_id", null: false
     t.integer "client_id", null: false
     t.string "enterprise_guid", null: false
@@ -3469,14 +3469,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id"], name: "index_eto_client_lookups_on_data_source_id"
   end
 
-  create_table "eto_subject_response_lookups", id: :serial, force: :cascade do |t|
+  create_table "eto_subject_response_lookups", force: :cascade do |t|
     t.integer "data_source_id", null: false
     t.integer "subject_id", null: false
     t.integer "response_id", null: false
     t.index ["subject_id"], name: "index_eto_subject_response_lookups_on_subject_id"
   end
 
-  create_table "eto_touch_point_lookups", id: :serial, force: :cascade do |t|
+  create_table "eto_touch_point_lookups", force: :cascade do |t|
     t.integer "data_source_id", null: false
     t.integer "client_id", null: false
     t.integer "subject_id", null: false
@@ -3488,14 +3488,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id"], name: "index_eto_touch_point_lookups_on_data_source_id"
   end
 
-  create_table "eto_touch_point_response_times", id: :serial, force: :cascade do |t|
+  create_table "eto_touch_point_response_times", force: :cascade do |t|
     t.integer "touch_point_unique_identifier", null: false
     t.integer "response_unique_identifier", null: false
     t.datetime "response_last_updated", precision: nil, null: false
     t.integer "subject_unique_identifier", null: false
   end
 
-  create_table "exports", id: :serial, force: :cascade do |t|
+  create_table "exports", force: :cascade do |t|
     t.string "export_id"
     t.integer "user_id"
     t.date "start_date"
@@ -3613,7 +3613,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["requested_at"], name: "index_external_request_logs_on_requested_at"
   end
 
-  create_table "fake_data", id: :serial, force: :cascade do |t|
+  create_table "fake_data", force: :cascade do |t|
     t.string "environment", null: false
     t.text "map"
     t.datetime "created_at", precision: nil, null: false
@@ -3651,7 +3651,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["accurate_on", "geography", "geography_level", "measure"], name: "idx_fed_census_acc_on_geo_measure"
   end
 
-  create_table "files", id: :serial, force: :cascade do |t|
+  create_table "files", force: :cascade do |t|
     t.string "type", null: false
     t.string "file"
     t.string "content_type"
@@ -3776,7 +3776,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["transaction_id", "data_source_id"], name: "tx_id_ds_id_ft_idx", unique: true
   end
 
-  create_table "generate_service_history_batch_logs", id: :serial, force: :cascade do |t|
+  create_table "generate_service_history_batch_logs", force: :cascade do |t|
     t.integer "generate_service_history_log_id"
     t.integer "to_process"
     t.integer "updated"
@@ -3786,7 +3786,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
-  create_table "generate_service_history_log", id: :serial, force: :cascade do |t|
+  create_table "generate_service_history_log", force: :cascade do |t|
     t.datetime "started_at", precision: nil
     t.datetime "completed_at", precision: nil
     t.integer "to_delete"
@@ -3809,7 +3809,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["source_id", "source_type"], name: "gs_source_id_source_type_uniq", unique: true
   end
 
-  create_table "grades", id: :serial, force: :cascade do |t|
+  create_table "grades", force: :cascade do |t|
     t.string "type", null: false
     t.string "grade", null: false
     t.integer "percentage_low"
@@ -3823,7 +3823,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["type"], name: "index_grades_on_type"
   end
 
-  create_table "group_viewable_entities", id: :serial, force: :cascade do |t|
+  create_table "group_viewable_entities", force: :cascade do |t|
     t.integer "access_group_id", null: false
     t.integer "entity_id", null: false
     t.string "entity_type", null: false
@@ -4055,7 +4055,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_health_emergency_vaccinations_on_user_id"
   end
 
-  create_table "helps", id: :serial, force: :cascade do |t|
+  create_table "helps", force: :cascade do |t|
     t.string "controller_path", null: false
     t.string "action_name", null: false
     t.string "external_url"
@@ -7832,7 +7832,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["definition_id"], name: "index_hmis_assessment_details_on_definition_id"
   end
 
-  create_table "hmis_assessments", id: :serial, force: :cascade do |t|
+  create_table "hmis_assessments", force: :cascade do |t|
     t.integer "assessment_id", null: false
     t.integer "site_id", null: false
     t.string "site_name"
@@ -7896,7 +7896,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["created_by_id"], name: "index_hmis_client_alerts_on_created_by_id"
   end
 
-  create_table "hmis_client_attributes_defined_text", id: :serial, force: :cascade do |t|
+  create_table "hmis_client_attributes_defined_text", force: :cascade do |t|
     t.integer "client_id"
     t.integer "data_source_id"
     t.string "consent_form_status"
@@ -7926,7 +7926,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["retained_client_id"], name: "index_hmis_client_merge_histories_on_retained_client_id"
   end
 
-  create_table "hmis_clients", id: :serial, force: :cascade do |t|
+  create_table "hmis_clients", force: :cascade do |t|
     t.integer "client_id"
     t.text "response"
     t.datetime "created_at", precision: nil, null: false
@@ -11446,7 +11446,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["substance_use_disorder_id"], name: "index_hmis_form_processors_on_substance_use_disorder_id"
   end
 
-  create_table "hmis_forms", id: :serial, force: :cascade do |t|
+  create_table "hmis_forms", force: :cascade do |t|
     t.integer "client_id"
     t.text "api_response"
     t.string "name"
@@ -11591,7 +11591,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["value"], name: "index_hmis_scan_card_codes_on_value", unique: true
   end
 
-  create_table "hmis_staff", id: :serial, force: :cascade do |t|
+  create_table "hmis_staff", force: :cascade do |t|
     t.integer "site_id"
     t.string "first_name"
     t.string "last_name"
@@ -11626,7 +11626,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_hmis_staff_assignments_on_user_id"
   end
 
-  create_table "hmis_staff_x_clients", id: :serial, force: :cascade do |t|
+  create_table "hmis_staff_x_clients", force: :cascade do |t|
     t.integer "staff_id"
     t.integer "client_id"
     t.integer "relationship_id"
@@ -12059,7 +12059,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_housing_resolution_plans_on_user_id"
   end
 
-  create_table "hud_chronics", id: :serial, force: :cascade do |t|
+  create_table "hud_chronics", force: :cascade do |t|
     t.date "date"
     t.integer "client_id"
     t.integer "months_in_last_three_years"
@@ -12075,7 +12075,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["client_id"], name: "index_hud_chronics_on_client_id"
   end
 
-  create_table "hud_create_logs", id: :serial, force: :cascade do |t|
+  create_table "hud_create_logs", force: :cascade do |t|
     t.string "hud_key", null: false
     t.string "personal_id", null: false
     t.string "type", null: false
@@ -12870,7 +12870,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["universe_membership_type", "universe_membership_id"], name: "index_universe_type_and_id"
   end
 
-  create_table "identify_duplicates_log", id: :serial, force: :cascade do |t|
+  create_table "identify_duplicates_log", force: :cascade do |t|
     t.datetime "started_at", precision: nil
     t.datetime "completed_at", precision: nil
     t.integer "to_match"
@@ -12880,7 +12880,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
-  create_table "import_logs", id: :serial, force: :cascade do |t|
+  create_table "import_logs", force: :cascade do |t|
     t.integer "data_source_id"
     t.string "files"
     t.text "import_errors"
@@ -13311,7 +13311,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["service_history_enrollment_id"], name: "index_ma_yya_report_clients_on_service_history_enrollment_id"
   end
 
-  create_table "new_service_history", id: :serial, force: :cascade do |t|
+  create_table "new_service_history", force: :cascade do |t|
     t.integer "client_id", null: false
     t.integer "data_source_id"
     t.date "date", null: false
@@ -13353,7 +13353,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["record_type", "date", "data_source_id", "organization_id", "project_id", "project_type", "project_tracking_method"], name: "index_sh_date_ds_org_proj_proj_type"
   end
 
-  create_table "nightly_census_by_projects", id: :serial, force: :cascade do |t|
+  create_table "nightly_census_by_projects", force: :cascade do |t|
     t.date "date", null: false
     t.integer "project_id", null: false
     t.integer "veterans", default: 0
@@ -13377,7 +13377,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["project_id"], name: "index_nightly_census_by_projects_on_project_id"
   end
 
-  create_table "non_hmis_uploads", id: :serial, force: :cascade do |t|
+  create_table "non_hmis_uploads", force: :cascade do |t|
     t.integer "data_source_id"
     t.integer "user_id"
     t.integer "delayed_job_id"
@@ -13728,7 +13728,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["report_id"], name: "index_pm_results_on_report_id"
   end
 
-  create_table "project_data_quality", id: :serial, force: :cascade do |t|
+  create_table "project_data_quality", force: :cascade do |t|
     t.integer "project_id"
     t.string "type"
     t.date "start"
@@ -13748,7 +13748,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["project_id"], name: "index_project_data_quality_on_project_id"
   end
 
-  create_table "project_groups", id: :serial, force: :cascade do |t|
+  create_table "project_groups", force: :cascade do |t|
     t.string "name", null: false
     t.datetime "created_at", precision: nil
     t.datetime "updated_at", precision: nil
@@ -13860,7 +13860,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["updated_at"], name: "index_project_pass_fails_projects_on_updated_at"
   end
 
-  create_table "project_project_groups", id: :serial, force: :cascade do |t|
+  create_table "project_project_groups", force: :cascade do |t|
     t.integer "project_group_id"
     t.integer "project_id"
     t.datetime "created_at", precision: nil
@@ -14300,13 +14300,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["project_type"], name: "project_type_rsh_index"
   end
 
-  create_table "recurring_hmis_export_links", id: :serial, force: :cascade do |t|
+  create_table "recurring_hmis_export_links", force: :cascade do |t|
     t.integer "hmis_export_id"
     t.integer "recurring_hmis_export_id"
     t.date "exported_at"
   end
 
-  create_table "recurring_hmis_exports", id: :serial, force: :cascade do |t|
+  create_table "recurring_hmis_exports", force: :cascade do |t|
     t.integer "every_n_days"
     t.string "reporting_range"
     t.integer "reporting_range_days"
@@ -14358,7 +14358,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["slug"], name: "index_remote_credentials_on_slug", unique: true
   end
 
-  create_table "report_definitions", id: :serial, force: :cascade do |t|
+  create_table "report_definitions", force: :cascade do |t|
     t.string "report_group"
     t.text "url"
     t.text "name"
@@ -14372,7 +14372,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "deleted_at", precision: nil
   end
 
-  create_table "report_tokens", id: :serial, force: :cascade do |t|
+  create_table "report_tokens", force: :cascade do |t|
     t.integer "report_id", null: false
     t.integer "contact_id", null: false
     t.string "token", null: false
@@ -14384,7 +14384,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["report_id"], name: "index_report_tokens_on_report_id"
   end
 
-  create_table "secure_files", id: :serial, force: :cascade do |t|
+  create_table "secure_files", force: :cascade do |t|
     t.string "name"
     t.string "file"
     t.string "content_type"
@@ -15979,7 +15979,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["project_id"], name: "index_system_pathways_enrollments_on_project_id"
   end
 
-  create_table "taggings", id: :serial, force: :cascade do |t|
+  create_table "taggings", force: :cascade do |t|
     t.integer "tag_id"
     t.integer "taggable_id"
     t.string "taggable_type"
@@ -15998,7 +15998,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["tagger_id"], name: "index_taggings_on_tagger_id"
   end
 
-  create_table "tags", id: :serial, force: :cascade do |t|
+  create_table "tags", force: :cascade do |t|
     t.string "name"
     t.integer "taggings_count", default: 0
     t.index ["name"], name: "index_tags_on_name", unique: true
@@ -16119,7 +16119,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_tx_research_exports_on_user_id"
   end
 
-  create_table "uploads", id: :serial, force: :cascade do |t|
+  create_table "uploads", force: :cascade do |t|
     t.integer "data_source_id"
     t.integer "user_id"
     t.string "file", null: false
@@ -16153,7 +16153,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_user_client_permissions_on_user_id"
   end
 
-  create_table "user_clients", id: :serial, force: :cascade do |t|
+  create_table "user_clients", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "client_id", null: false
     t.boolean "confidential", default: false, null: false
@@ -16168,7 +16168,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_user_clients_on_user_id"
   end
 
-  create_table "user_viewable_entities", id: :serial, force: :cascade do |t|
+  create_table "user_viewable_entities", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "entity_id", null: false
     t.string "entity_type", null: false
@@ -16187,7 +16187,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_va_check_histories_on_user_id"
   end
 
-  create_table "verification_sources", id: :serial, force: :cascade do |t|
+  create_table "verification_sources", force: :cascade do |t|
     t.integer "client_id"
     t.string "location"
     t.datetime "created_at", precision: nil
@@ -16220,7 +16220,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["project_id"], name: "index_versions_on_project_id"
   end
 
-  create_table "vispdats", id: :serial, force: :cascade do |t|
+  create_table "vispdats", force: :cascade do |t|
     t.integer "client_id"
     t.string "nickname"
     t.integer "language_answer"
@@ -16332,7 +16332,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_vispdats_on_user_id"
   end
 
-  create_table "warehouse_client_service_history", id: :serial, force: :cascade do |t|
+  create_table "warehouse_client_service_history", force: :cascade do |t|
     t.integer "client_id", null: false
     t.integer "data_source_id"
     t.date "date", null: false
@@ -16379,7 +16379,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["record_type"], name: "index_warehouse_client_service_history_on_record_type"
   end
 
-  create_table "warehouse_clients", id: :serial, force: :cascade do |t|
+  create_table "warehouse_clients", force: :cascade do |t|
     t.string "id_in_source", null: false
     t.integer "data_source_id"
     t.datetime "proposed_at", precision: nil
@@ -16401,7 +16401,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["source_id"], name: "index_warehouse_clients_on_source_id", unique: true
   end
 
-  create_table "warehouse_clients_processed", id: :serial, force: :cascade do |t|
+  create_table "warehouse_clients_processed", force: :cascade do |t|
     t.integer "client_id"
     t.string "routine"
     t.datetime "created_at", precision: nil, null: false
@@ -16447,7 +16447,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["routine"], name: "index_warehouse_clients_processed_on_routine"
   end
 
-  create_table "warehouse_reports", id: :serial, force: :cascade do |t|
+  create_table "warehouse_reports", force: :cascade do |t|
     t.json "parameters"
     t.json "data"
     t.string "type"
@@ -16462,7 +16462,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "deleted_at", precision: nil
   end
 
-  create_table "weather", id: :serial, force: :cascade do |t|
+  create_table "weather", force: :cascade do |t|
     t.string "url", null: false
     t.text "body", null: false
     t.datetime "created_at", precision: nil, null: false
@@ -16470,14 +16470,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["url"], name: "index_weather_on_url"
   end
 
-  create_table "whitelisted_projects_for_clients", id: :serial, force: :cascade do |t|
+  create_table "whitelisted_projects_for_clients", force: :cascade do |t|
     t.integer "data_source_id", null: false
     t.string "ProjectID", null: false
     t.datetime "created_at", precision: nil
     t.datetime "updated_at", precision: nil
   end
 
-  create_table "youth_case_managements", id: :serial, force: :cascade do |t|
+  create_table "youth_case_managements", force: :cascade do |t|
     t.integer "client_id"
     t.integer "user_id"
     t.date "engaged_on"
@@ -16492,7 +16492,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["deleted_at"], name: "index_youth_case_managements_on_deleted_at"
   end
 
-  create_table "youth_exports", id: :serial, force: :cascade do |t|
+  create_table "youth_exports", force: :cascade do |t|
     t.integer "user_id", null: false
     t.jsonb "options"
     t.jsonb "headers"
@@ -16508,7 +16508,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_youth_exports_on_user_id"
   end
 
-  create_table "youth_follow_ups", id: :serial, force: :cascade do |t|
+  create_table "youth_follow_ups", force: :cascade do |t|
     t.integer "client_id"
     t.integer "user_id"
     t.date "contacted_on"
@@ -16524,7 +16524,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["deleted_at"], name: "index_youth_follow_ups_on_deleted_at"
   end
 
-  create_table "youth_intakes", id: :serial, force: :cascade do |t|
+  create_table "youth_intakes", force: :cascade do |t|
     t.integer "client_id"
     t.integer "user_id"
     t.string "type"
@@ -16573,7 +16573,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["updated_at"], name: "index_youth_intakes_on_updated_at"
   end
 
-  create_table "youth_referrals", id: :serial, force: :cascade do |t|
+  create_table "youth_referrals", force: :cascade do |t|
     t.integer "client_id"
     t.integer "user_id"
     t.date "referred_on"

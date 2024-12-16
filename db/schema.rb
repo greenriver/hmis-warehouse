@@ -49,13 +49,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["user_group_id"], name: "index_access_controls_on_user_group_id"
   end
 
-  create_table "access_group_members", id: :serial, force: :cascade do |t|
+  create_table "access_group_members", force: :cascade do |t|
     t.integer "access_group_id"
     t.integer "user_id"
     t.datetime "deleted_at", precision: nil
   end
 
-  create_table "access_groups", id: :serial, force: :cascade do |t|
+  create_table "access_groups", force: :cascade do |t|
     t.string "name"
     t.integer "user_id"
     t.string "coc_codes", default: [], array: true
@@ -110,7 +110,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "activity_logs", id: :serial, force: :cascade do |t|
+  create_table "activity_logs", force: :cascade do |t|
     t.string "item_model"
     t.integer "item_id"
     t.string "title"
@@ -133,7 +133,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["user_id"], name: "index_activity_logs_on_user_id"
   end
 
-  create_table "agencies", id: :serial, force: :cascade do |t|
+  create_table "agencies", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -179,7 +179,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.integer "housing_status_at_exit"
   end
 
-  create_table "clients_unduplicated", id: :serial, force: :cascade do |t|
+  create_table "clients_unduplicated", force: :cascade do |t|
     t.string "client_unique_id", null: false
     t.integer "unduplicated_client_id", null: false
     t.integer "dc_id"
@@ -210,7 +210,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["name"], name: "index_consent_limits_on_name"
   end
 
-  create_table "delayed_jobs", id: :serial, force: :cascade do |t|
+  create_table "delayed_jobs", force: :cascade do |t|
     t.integer "priority", default: 0, null: false
     t.integer "attempts", default: 0, null: false
     t.text "handler", null: false
@@ -225,7 +225,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["priority", "run_at"], name: "delayed_jobs_priority"
   end
 
-  create_table "glacier_archives", id: :serial, force: :cascade do |t|
+  create_table "glacier_archives", force: :cascade do |t|
     t.integer "glacier_vault_id", null: false
     t.text "upload_id", null: false
     t.text "archive_id"
@@ -245,7 +245,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["upload_id"], name: "index_glacier_archives_on_upload_id", unique: true
   end
 
-  create_table "glacier_vaults", id: :serial, force: :cascade do |t|
+  create_table "glacier_vaults", force: :cascade do |t|
     t.string "name", null: false
     t.datetime "vault_created_at", precision: nil
     t.datetime "last_upload_attempt_at", precision: nil
@@ -395,7 +395,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.text "description"
   end
 
-  create_table "imports", id: :serial, force: :cascade do |t|
+  create_table "imports", force: :cascade do |t|
     t.string "file"
     t.string "source"
     t.float "percent_complete"
@@ -408,13 +408,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["deleted_at"], name: "index_imports_on_deleted_at"
   end
 
-  create_table "letsencrypt_plugin_challenges", id: :serial, force: :cascade do |t|
+  create_table "letsencrypt_plugin_challenges", force: :cascade do |t|
     t.text "response"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
   end
 
-  create_table "letsencrypt_plugin_settings", id: :serial, force: :cascade do |t|
+  create_table "letsencrypt_plugin_settings", force: :cascade do |t|
     t.text "private_key"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -429,7 +429,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "login_activities", id: :serial, force: :cascade do |t|
+  create_table "login_activities", force: :cascade do |t|
     t.string "scope"
     t.string "strategy"
     t.string "identity"
@@ -449,7 +449,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["ip"], name: "index_login_activities_on_ip"
   end
 
-  create_table "messages", id: :serial, force: :cascade do |t|
+  create_table "messages", force: :cascade do |t|
     t.integer "user_id"
     t.string "from", null: false
     t.string "subject", null: false
@@ -461,7 +461,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
-  create_table "nicknames", id: :serial, force: :cascade do |t|
+  create_table "nicknames", force: :cascade do |t|
     t.string "name"
     t.integer "nickname_id"
   end
@@ -520,7 +520,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["user_id", "provider"], name: "index_oauth_identities_on_user_id_and_provider", unique: true
   end
 
-  create_table "old_passwords", id: :serial, force: :cascade do |t|
+  create_table "old_passwords", force: :cascade do |t|
     t.string "encrypted_password", null: false
     t.string "password_archivable_type", null: false
     t.integer "password_archivable_id", null: false
@@ -549,7 +549,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["database", "captured_at"], name: "index_pghero_space_stats_on_database_and_captured_at"
   end
 
-  create_table "report_results", id: :serial, force: :cascade do |t|
+  create_table "report_results", force: :cascade do |t|
     t.integer "report_id"
     t.integer "import_id"
     t.float "percent_complete"
@@ -572,7 +572,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["report_id"], name: "index_report_results_on_report_id"
   end
 
-  create_table "report_results_summaries", id: :serial, force: :cascade do |t|
+  create_table "report_results_summaries", force: :cascade do |t|
     t.string "name", null: false
     t.string "type", null: false
     t.datetime "created_at", precision: nil, null: false
@@ -580,7 +580,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.integer "weight", default: 0, null: false
   end
 
-  create_table "reports", id: :serial, force: :cascade do |t|
+  create_table "reports", force: :cascade do |t|
     t.string "name", null: false
     t.string "type", null: false
     t.datetime "created_at", precision: nil, null: false
@@ -591,7 +591,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["report_results_summary_id"], name: "index_reports_on_report_results_summary_id"
   end
 
-  create_table "roles", id: :serial, force: :cascade do |t|
+  create_table "roles", force: :cascade do |t|
     t.string "name", null: false
     t.string "verb"
     t.datetime "created_at", precision: nil, null: false
@@ -766,7 +766,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["name"], name: "index_roles_on_name"
   end
 
-  create_table "similarity_metrics", id: :serial, force: :cascade do |t|
+  create_table "similarity_metrics", force: :cascade do |t|
     t.string "type", null: false
     t.float "mean", default: 0.0, null: false
     t.float "standard_deviation", default: 0.0, null: false
@@ -778,7 +778,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["type"], name: "index_similarity_metrics_on_type", unique: true
   end
 
-  create_table "taggings", id: :serial, force: :cascade do |t|
+  create_table "taggings", force: :cascade do |t|
     t.integer "tag_id"
     t.string "taggable_type"
     t.integer "taggable_id"
@@ -797,7 +797,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["tagger_id"], name: "index_taggings_on_tagger_id"
   end
 
-  create_table "tags", id: :serial, force: :cascade do |t|
+  create_table "tags", force: :cascade do |t|
     t.string "name"
     t.integer "taggings_count", default: 0
     t.index ["name"], name: "index_tags_on_name", unique: true
@@ -813,7 +813,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "tokens", id: :serial, force: :cascade do |t|
+  create_table "tokens", force: :cascade do |t|
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.string "token", null: false
@@ -846,12 +846,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["user_id"], name: "index_two_factors_memorized_devices_on_user_id"
   end
 
-  create_table "unique_names", id: :serial, force: :cascade do |t|
+  create_table "unique_names", force: :cascade do |t|
     t.string "name"
     t.string "double_metaphone"
   end
 
-  create_table "uploads", id: :serial, force: :cascade do |t|
+  create_table "uploads", force: :cascade do |t|
     t.integer "data_source_id"
     t.string "file", null: false
     t.float "percent_complete"
@@ -887,7 +887,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.text "description"
   end
 
-  create_table "user_roles", id: :serial, force: :cascade do |t|
+  create_table "user_roles", force: :cascade do |t|
     t.integer "role_id"
     t.integer "user_id"
     t.datetime "created_at", precision: nil, null: false
@@ -897,7 +897,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["user_id"], name: "index_user_roles_on_user_id"
   end
 
-  create_table "users", id: :serial, force: :cascade do |t|
+  create_table "users", force: :cascade do |t|
     t.string "last_name", null: false
     t.string "email", null: false
     t.string "encrypted_password", default: "", null: false
@@ -975,7 +975,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["unlock_token"], name: "index_users_on_unlock_token", unique: true
   end
 
-  create_table "versions", id: :serial, force: :cascade do |t|
+  create_table "versions", force: :cascade do |t|
     t.string "item_type", null: false
     t.integer "item_id", null: false
     t.string "event", null: false
@@ -991,7 +991,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145314) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
-  create_table "warehouse_alerts", id: :serial, force: :cascade do |t|
+  create_table "warehouse_alerts", force: :cascade do |t|
     t.integer "user_id"
     t.string "html"
     t.datetime "created_at", precision: nil, null: false

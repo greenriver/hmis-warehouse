@@ -14,7 +14,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
-  create_table "accountable_care_organizations", id: :serial, force: :cascade do |t|
+  create_table "accountable_care_organizations", force: :cascade do |t|
     t.string "name"
     t.string "short_name"
     t.integer "mco_pid"
@@ -26,7 +26,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.string "vpr_name"
   end
 
-  create_table "agencies", id: :serial, force: :cascade do |t|
+  create_table "agencies", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", precision: nil
     t.datetime "updated_at", precision: nil
@@ -34,7 +34,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.string "acceptable_domains"
   end
 
-  create_table "agency_patient_referrals", id: :serial, force: :cascade do |t|
+  create_table "agency_patient_referrals", force: :cascade do |t|
     t.integer "agency_id", null: false
     t.integer "patient_referral_id", null: false
     t.boolean "claimed", default: false, null: false
@@ -43,7 +43,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.datetime "deleted_at", precision: nil
   end
 
-  create_table "agency_users", id: :serial, force: :cascade do |t|
+  create_table "agency_users", force: :cascade do |t|
     t.integer "agency_id", null: false
     t.integer "user_id", null: false
   end
@@ -59,7 +59,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["patient_id"], name: "index_any_careplans_on_patient_id"
   end
 
-  create_table "appointments", id: :serial, force: :cascade do |t|
+  create_table "appointments", force: :cascade do |t|
     t.string "appointment_type"
     t.text "notes"
     t.string "doctor"
@@ -100,17 +100,17 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["patient_id"], name: "index_ca_assessments_on_patient_id"
   end
 
-  create_table "careplan_equipment", id: :serial, force: :cascade do |t|
+  create_table "careplan_equipment", force: :cascade do |t|
     t.integer "careplan_id"
     t.integer "equipment_id"
   end
 
-  create_table "careplan_services", id: :serial, force: :cascade do |t|
+  create_table "careplan_services", force: :cascade do |t|
     t.integer "careplan_id"
     t.integer "service_id"
   end
 
-  create_table "careplans", id: :serial, force: :cascade do |t|
+  create_table "careplans", force: :cascade do |t|
     t.integer "patient_id"
     t.integer "user_id"
     t.date "sdh_enroll_date"
@@ -176,7 +176,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["user_id"], name: "index_careplans_on_user_id"
   end
 
-  create_table "claims", id: :serial, force: :cascade do |t|
+  create_table "claims", force: :cascade do |t|
     t.integer "user_id"
     t.date "max_date"
     t.integer "job_id"
@@ -198,7 +198,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["deleted_at"], name: "index_claims_on_deleted_at"
   end
 
-  create_table "claims_amount_paid_location_month", id: :serial, force: :cascade do |t|
+  create_table "claims_amount_paid_location_month", force: :cascade do |t|
     t.string "medicaid_id", null: false
     t.integer "year"
     t.integer "month"
@@ -214,7 +214,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["medicaid_id"], name: "index_claims_amount_paid_location_month_on_medicaid_id"
   end
 
-  create_table "claims_claim_volume_location_month", id: :serial, force: :cascade do |t|
+  create_table "claims_claim_volume_location_month", force: :cascade do |t|
     t.string "medicaid_id", null: false
     t.integer "year"
     t.integer "month"
@@ -230,7 +230,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["medicaid_id"], name: "index_claims_claim_volume_location_month_on_medicaid_id"
   end
 
-  create_table "claims_ed_nyu_severity", id: :serial, force: :cascade do |t|
+  create_table "claims_ed_nyu_severity", force: :cascade do |t|
     t.string "medicaid_id", null: false
     t.string "category"
     t.float "indiv_pct"
@@ -708,7 +708,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["service_start_date"], name: "index_claims_reporting_rx_claims_on_service_start_date"
   end
 
-  create_table "claims_roster", id: :serial, force: :cascade do |t|
+  create_table "claims_roster", force: :cascade do |t|
     t.string "medicaid_id", null: false
     t.string "last_name"
     t.string "first_name"
@@ -741,7 +741,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["medicaid_id"], name: "index_claims_roster_on_medicaid_id"
   end
 
-  create_table "claims_top_conditions", id: :serial, force: :cascade do |t|
+  create_table "claims_top_conditions", force: :cascade do |t|
     t.string "medicaid_id", null: false
     t.integer "rank"
     t.string "description"
@@ -752,7 +752,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["medicaid_id"], name: "index_claims_top_conditions_on_medicaid_id"
   end
 
-  create_table "claims_top_ip_conditions", id: :serial, force: :cascade do |t|
+  create_table "claims_top_ip_conditions", force: :cascade do |t|
     t.string "medicaid_id", null: false
     t.integer "rank"
     t.string "description"
@@ -763,7 +763,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["medicaid_id"], name: "index_claims_top_ip_conditions_on_medicaid_id"
   end
 
-  create_table "claims_top_providers", id: :serial, force: :cascade do |t|
+  create_table "claims_top_providers", force: :cascade do |t|
     t.string "medicaid_id", null: false
     t.integer "rank"
     t.string "provider_name"
@@ -774,7 +774,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["medicaid_id"], name: "index_claims_top_providers_on_medicaid_id"
   end
 
-  create_table "comprehensive_health_assessments", id: :serial, force: :cascade do |t|
+  create_table "comprehensive_health_assessments", force: :cascade do |t|
     t.integer "patient_id"
     t.integer "user_id"
     t.integer "health_file_id"
@@ -822,7 +822,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["team_nurse_care_manager_id"], name: "index_coordination_teams_on_team_nurse_care_manager_id"
   end
 
-  create_table "cp_member_files", id: :serial, force: :cascade do |t|
+  create_table "cp_member_files", force: :cascade do |t|
     t.string "type"
     t.string "file"
     t.string "content"
@@ -832,7 +832,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.datetime "updated_at", precision: nil
   end
 
-  create_table "cps", id: :serial, force: :cascade do |t|
+  create_table "cps", force: :cascade do |t|
     t.string "pid"
     t.string "sl"
     t.string "mmis_enrollment_name"
@@ -860,7 +860,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.string "cp_assignment_plan"
   end
 
-  create_table "data_sources", id: :serial, force: :cascade do |t|
+  create_table "data_sources", force: :cascade do |t|
     t.string "name"
     t.datetime "deleted_at", precision: nil
     t.datetime "created_at", precision: nil
@@ -889,7 +889,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["user_id"], name: "index_document_exports_on_user_id"
   end
 
-  create_table "ed_ip_visit_files", id: :serial, force: :cascade do |t|
+  create_table "ed_ip_visit_files", force: :cascade do |t|
     t.string "type"
     t.string "file"
     t.string "content"
@@ -919,7 +919,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["medicaid_id"], name: "index_ed_ip_visits_on_medicaid_id"
   end
 
-  create_table "eligibility_inquiries", id: :serial, force: :cascade do |t|
+  create_table "eligibility_inquiries", force: :cascade do |t|
     t.date "service_date", null: false
     t.string "inquiry"
     t.string "result"
@@ -934,7 +934,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["batch_id"], name: "index_eligibility_inquiries_on_batch_id"
   end
 
-  create_table "eligibility_responses", id: :serial, force: :cascade do |t|
+  create_table "eligibility_responses", force: :cascade do |t|
     t.integer "eligibility_inquiry_id"
     t.string "response"
     t.datetime "created_at", precision: nil
@@ -990,7 +990,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
-  create_table "enrollment_rosters", id: :serial, force: :cascade do |t|
+  create_table "enrollment_rosters", force: :cascade do |t|
     t.integer "roster_file_id"
     t.string "member_id"
     t.string "performance_year"
@@ -1030,7 +1030,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.string "tpl_coverage_cat"
   end
 
-  create_table "enrollments", id: :serial, force: :cascade do |t|
+  create_table "enrollments", force: :cascade do |t|
     t.integer "user_id"
     t.string "content"
     t.string "original_filename"
@@ -1045,7 +1045,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.jsonb "audit_actions", default: {}
   end
 
-  create_table "epic_careplans", id: :serial, force: :cascade do |t|
+  create_table "epic_careplans", force: :cascade do |t|
     t.string "patient_id"
     t.string "id_in_source"
     t.string "encounter_id"
@@ -1060,7 +1060,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.integer "data_source_id"
   end
 
-  create_table "epic_case_note_qualifying_activities", id: :serial, force: :cascade do |t|
+  create_table "epic_case_note_qualifying_activities", force: :cascade do |t|
     t.string "patient_id"
     t.string "id_in_source"
     t.string "epic_case_note_source_id"
@@ -1075,7 +1075,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.integer "data_source_id"
   end
 
-  create_table "epic_case_notes", id: :serial, force: :cascade do |t|
+  create_table "epic_case_notes", force: :cascade do |t|
     t.string "patient_id", null: false
     t.string "id_in_source", null: false
     t.datetime "contact_date", precision: nil
@@ -1097,7 +1097,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
-  create_table "epic_chas", id: :serial, force: :cascade do |t|
+  create_table "epic_chas", force: :cascade do |t|
     t.string "patient_id"
     t.string "id_in_source"
     t.string "encounter_id"
@@ -1127,7 +1127,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.integer "data_source_id"
   end
 
-  create_table "epic_goals", id: :serial, force: :cascade do |t|
+  create_table "epic_goals", force: :cascade do |t|
     t.string "patient_id", null: false
     t.string "entered_by"
     t.string "title"
@@ -1150,7 +1150,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["patient_id"], name: "index_epic_housing_statuses_on_patient_id"
   end
 
-  create_table "epic_patients", id: :serial, force: :cascade do |t|
+  create_table "epic_patients", force: :cascade do |t|
     t.string "id_in_source", null: false
     t.string "first_name"
     t.string "middle_name"
@@ -1180,7 +1180,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["medicaid_id"], name: "index_epic_patients_on_medicaid_id"
   end
 
-  create_table "epic_qualifying_activities", id: :serial, force: :cascade do |t|
+  create_table "epic_qualifying_activities", force: :cascade do |t|
     t.string "patient_id", null: false
     t.string "id_in_source", null: false
     t.string "patient_encounter_id"
@@ -1195,7 +1195,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.integer "data_source_id"
   end
 
-  create_table "epic_ssms", id: :serial, force: :cascade do |t|
+  create_table "epic_ssms", force: :cascade do |t|
     t.string "patient_id"
     t.string "id_in_source"
     t.string "encounter_id"
@@ -1210,7 +1210,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.integer "data_source_id"
   end
 
-  create_table "epic_team_members", id: :serial, force: :cascade do |t|
+  create_table "epic_team_members", force: :cascade do |t|
     t.string "patient_id", null: false
     t.string "id_in_source"
     t.string "name"
@@ -1248,7 +1248,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.string "staff"
   end
 
-  create_table "equipment", id: :serial, force: :cascade do |t|
+  create_table "equipment", force: :cascade do |t|
     t.string "item"
     t.string "provider"
     t.integer "quantity"
@@ -1498,7 +1498,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["assessment_id"], name: "index_hca_sud_treatments_on_assessment_id"
   end
 
-  create_table "health_files", id: :serial, force: :cascade do |t|
+  create_table "health_files", force: :cascade do |t|
     t.string "type", null: false
     t.string "file"
     t.string "content_type"
@@ -1719,7 +1719,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["user_id"], name: "index_health_flexible_service_vprs_on_user_id"
   end
 
-  create_table "health_goals", id: :serial, force: :cascade do |t|
+  create_table "health_goals", force: :cascade do |t|
     t.integer "user_id"
     t.string "type"
     t.integer "number"
@@ -1863,7 +1863,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.boolean "active", default: false
   end
 
-  create_table "loaded_ed_ip_visits", id: :serial, force: :cascade do |t|
+  create_table "loaded_ed_ip_visits", force: :cascade do |t|
     t.integer "ed_ip_visit_file_id", null: false
     t.string "medicaid_id"
     t.string "last_name"
@@ -1894,7 +1894,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["updated_at"], name: "index_loaded_ed_ip_visits_on_updated_at"
   end
 
-  create_table "medications", id: :serial, force: :cascade do |t|
+  create_table "medications", force: :cascade do |t|
     t.date "start_date"
     t.date "ordered_date"
     t.text "name"
@@ -1907,7 +1907,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["patient_id"], name: "index_medications_on_patient_id"
   end
 
-  create_table "member_status_report_patients", id: :serial, force: :cascade do |t|
+  create_table "member_status_report_patients", force: :cascade do |t|
     t.integer "member_status_report_id"
     t.string "medicaid_id", limit: 12
     t.string "member_first_name", limit: 100
@@ -1946,7 +1946,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["deleted_at"], name: "index_member_status_report_patients_on_deleted_at"
   end
 
-  create_table "member_status_reports", id: :serial, force: :cascade do |t|
+  create_table "member_status_reports", force: :cascade do |t|
     t.integer "user_id"
     t.integer "job_id"
     t.datetime "started_at", precision: nil
@@ -2025,7 +2025,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.string "timestamp"
   end
 
-  create_table "participation_forms", id: :serial, force: :cascade do |t|
+  create_table "participation_forms", force: :cascade do |t|
     t.integer "patient_id"
     t.date "signature_on"
     t.integer "case_manager_id"
@@ -2041,13 +2041,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["reviewed_by_id"], name: "index_participation_forms_on_reviewed_by_id"
   end
 
-  create_table "patient_referral_imports", id: :serial, force: :cascade do |t|
+  create_table "patient_referral_imports", force: :cascade do |t|
     t.string "file_name", null: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
   end
 
-  create_table "patient_referrals", id: :serial, force: :cascade do |t|
+  create_table "patient_referrals", force: :cascade do |t|
     t.string "first_name"
     t.string "last_name"
     t.date "birthdate"
@@ -2120,7 +2120,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["patient_id", "current"], name: "index_patient_referrals_on_patient_id_and_current"
   end
 
-  create_table "patients", id: :serial, force: :cascade do |t|
+  create_table "patients", force: :cascade do |t|
     t.string "id_in_source", null: false
     t.string "first_name"
     t.string "middle_name"
@@ -2291,7 +2291,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["careplan_id"], name: "index_pctp_needs_on_careplan_id"
   end
 
-  create_table "premium_payments", id: :serial, force: :cascade do |t|
+  create_table "premium_payments", force: :cascade do |t|
     t.integer "user_id"
     t.text "content"
     t.string "original_filename"
@@ -2304,7 +2304,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["deleted_at"], name: "index_premium_payments_on_deleted_at"
   end
 
-  create_table "problems", id: :serial, force: :cascade do |t|
+  create_table "problems", force: :cascade do |t|
     t.date "onset_date"
     t.date "last_assessed"
     t.text "name"
@@ -2317,7 +2317,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.integer "data_source_id", default: 6, null: false
   end
 
-  create_table "qualifying_activities", id: :serial, force: :cascade do |t|
+  create_table "qualifying_activities", force: :cascade do |t|
     t.string "mode_of_contact"
     t.string "mode_of_contact_other"
     t.string "reached_client"
@@ -2354,7 +2354,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["source_type"], name: "index_qualifying_activities_on_source_type"
   end
 
-  create_table "release_forms", id: :serial, force: :cascade do |t|
+  create_table "release_forms", force: :cascade do |t|
     t.integer "patient_id"
     t.integer "user_id"
     t.date "signature_on"
@@ -2372,7 +2372,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["user_id"], name: "index_release_forms_on_user_id"
   end
 
-  create_table "rosters", id: :serial, force: :cascade do |t|
+  create_table "rosters", force: :cascade do |t|
     t.integer "roster_file_id"
     t.string "member_id"
     t.string "nam_first"
@@ -2439,7 +2439,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.integer "scheduled_hour"
   end
 
-  create_table "sdh_case_management_notes", id: :serial, force: :cascade do |t|
+  create_table "sdh_case_management_notes", force: :cascade do |t|
     t.integer "user_id"
     t.integer "patient_id"
     t.datetime "created_at", precision: nil
@@ -2462,7 +2462,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["health_file_id"], name: "index_sdh_case_management_notes_on_health_file_id"
   end
 
-  create_table "self_sufficiency_matrix_forms", id: :serial, force: :cascade do |t|
+  create_table "self_sufficiency_matrix_forms", force: :cascade do |t|
     t.integer "patient_id"
     t.integer "user_id"
     t.string "point_completed"
@@ -2513,7 +2513,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.integer "health_file_id"
   end
 
-  create_table "services", id: :serial, force: :cascade do |t|
+  create_table "services", force: :cascade do |t|
     t.string "service_type"
     t.string "provider"
     t.string "hours"
@@ -2528,7 +2528,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.string "status"
   end
 
-  create_table "signable_documents", id: :serial, force: :cascade do |t|
+  create_table "signable_documents", force: :cascade do |t|
     t.integer "signable_id", null: false
     t.string "signable_type", null: false
     t.boolean "primary", default: true, null: false
@@ -2550,7 +2550,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["signable_id", "signable_type"], name: "index_signable_documents_on_signable_id_and_signable_type"
   end
 
-  create_table "signature_requests", id: :serial, force: :cascade do |t|
+  create_table "signature_requests", force: :cascade do |t|
     t.string "type", null: false
     t.integer "patient_id", null: false
     t.integer "careplan_id", null: false
@@ -2571,7 +2571,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["type"], name: "index_signature_requests_on_type"
   end
 
-  create_table "soap_configs", id: :serial, force: :cascade do |t|
+  create_table "soap_configs", force: :cascade do |t|
     t.string "name"
     t.string "user"
     t.string "encrypted_pass"
@@ -2582,7 +2582,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.string "production_url"
   end
 
-  create_table "ssm_exports", id: :serial, force: :cascade do |t|
+  create_table "ssm_exports", force: :cascade do |t|
     t.integer "user_id", null: false
     t.jsonb "options"
     t.jsonb "headers"
@@ -2606,7 +2606,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["patient_id"], name: "index_status_dates_on_patient_id"
   end
 
-  create_table "team_members", id: :serial, force: :cascade do |t|
+  create_table "team_members", force: :cascade do |t|
     t.string "type", null: false
     t.string "first_name", null: false
     t.string "last_name", null: false
@@ -2624,7 +2624,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["type"], name: "index_team_members_on_type"
   end
 
-  create_table "teams", id: :serial, force: :cascade do |t|
+  create_table "teams", force: :cascade do |t|
     t.integer "patient_id"
     t.datetime "deleted_at", precision: nil
     t.datetime "created_at", precision: nil
@@ -2816,7 +2816,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["case_id"], name: "index_tracing_staffs_on_case_id"
   end
 
-  create_table "transaction_acknowledgements", id: :serial, force: :cascade do |t|
+  create_table "transaction_acknowledgements", force: :cascade do |t|
     t.integer "user_id"
     t.text "content"
     t.string "original_filename"
@@ -2826,7 +2826,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["deleted_at"], name: "index_transaction_acknowledgements_on_deleted_at"
   end
 
-  create_table "user_care_coordinators", id: :serial, force: :cascade do |t|
+  create_table "user_care_coordinators", force: :cascade do |t|
     t.integer "user_id"
     t.integer "care_coordinator_id"
     t.datetime "created_at", precision: nil, null: false
@@ -2861,7 +2861,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["updated_at"], name: "index_vaccinations_on_updated_at"
   end
 
-  create_table "versions", id: :serial, force: :cascade do |t|
+  create_table "versions", force: :cascade do |t|
     t.string "item_type", null: false
     t.integer "item_id", null: false
     t.string "event", null: false
@@ -2874,7 +2874,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_07_185011) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
-  create_table "visits", id: :serial, force: :cascade do |t|
+  create_table "visits", force: :cascade do |t|
     t.string "department"
     t.string "visit_type"
     t.string "provider"

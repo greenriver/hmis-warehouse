@@ -56,7 +56,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_02_232754) do
                     INSERT INTO warehouse_partitioned_monthly_reports_non_veterans VALUES (NEW.*);
                  ELSIF  ( NEW.type = 'VeteransSubPop::Reporting::MonthlyReports::Veterans' ) THEN
                     INSERT INTO warehouse_partitioned_monthly_reports_veterans VALUES (NEW.*);
-                
+
               ELSE
                 INSERT INTO warehouse_partitioned_monthly_reports_unknown VALUES (NEW.*);
                 END IF;
@@ -65,7 +65,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_02_232754) do
             $function$
   SQL
 
-  create_table "warehouse_data_quality_report_enrollments", id: :serial, force: :cascade do |t|
+  create_table "warehouse_data_quality_report_enrollments", force: :cascade do |t|
     t.integer "report_id"
     t.integer "client_id"
     t.integer "project_id"
@@ -205,7 +205,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_02_232754) do
     t.index ["report_id", "active", "exited", "head_of_household", "enrolled"], name: "pdq_rep_act_ext_head_enr"
   end
 
-  create_table "warehouse_data_quality_report_project_groups", id: :serial, force: :cascade do |t|
+  create_table "warehouse_data_quality_report_project_groups", force: :cascade do |t|
     t.integer "report_id"
     t.integer "unit_inventory"
     t.integer "bed_inventory"
@@ -219,7 +219,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_02_232754) do
     t.index ["report_id"], name: "pdq_p_groups_report_id"
   end
 
-  create_table "warehouse_data_quality_report_projects", id: :serial, force: :cascade do |t|
+  create_table "warehouse_data_quality_report_projects", force: :cascade do |t|
     t.integer "report_id"
     t.integer "project_id"
     t.string "project_name"
@@ -244,7 +244,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_02_232754) do
     t.index ["report_id", "project_id"], name: "pdq_projects_report_id_project_id"
   end
 
-  create_table "warehouse_houseds", id: :serial, force: :cascade do |t|
+  create_table "warehouse_houseds", force: :cascade do |t|
     t.date "search_start"
     t.date "search_end"
     t.date "housed_date"
@@ -293,7 +293,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_02_232754) do
     t.index ["search_start"], name: "index_warehouse_houseds_on_search_start"
   end
 
-  create_table "warehouse_monthly_client_ids", id: :serial, force: :cascade do |t|
+  create_table "warehouse_monthly_client_ids", force: :cascade do |t|
     t.string "report_type", null: false
     t.integer "client_id", null: false
     t.index ["report_type", "client_id"], name: "index_warehouse_monthly_client_ids_on_report_type_and_client_id"
@@ -1010,7 +1010,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_02_232754) do
     t.check_constraint "type::text = 'Reporting::MonthlyReports::YouthFamilies'::text", name: "warehouse_partitioned_monthly_reports_youth_families_type_check"
   end
 
-  create_table "warehouse_returns", id: :serial, force: :cascade do |t|
+  create_table "warehouse_returns", force: :cascade do |t|
     t.integer "service_history_enrollment_id", null: false
     t.string "record_type", null: false
     t.integer "age"
