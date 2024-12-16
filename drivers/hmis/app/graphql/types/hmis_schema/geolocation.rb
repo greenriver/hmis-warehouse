@@ -9,7 +9,7 @@
 module Types
   class HmisSchema::Geolocation < Types::BaseObject
     field :id, ID, null: false
-    field :coordinates, HmisSchema::GeolocationCoordinates, null: true
+    field :coordinates, HmisSchema::GeolocationCoordinates, null: false
     field :collected_by_project_name, String, null: true, method: :collected_by
     field :located_at, GraphQL::Types::ISO8601DateTime, null: false, description: 'Timestamp when the location was collected'
     field :source_current_living_situation, HmisSchema::CurrentLivingSituation, null: true, description: 'Associated Current Living Situation record, if this location was collected on a CurrentLivingSituation form'

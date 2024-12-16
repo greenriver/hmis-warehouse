@@ -138,7 +138,10 @@ module Types
     end
 
     def geolocation
-      load_ar_association(form_processor, :clh_location)
+      location = load_ar_association(form_processor, :clh_location)
+      return unless location&.lat_lon_present? # ignore location missing lat/lon (not expected, but allowed by DB)
+
+      location
     end
 
     protected

@@ -9,8 +9,9 @@
 module Types
   class HmisSchema::GeolocationCoordinates < Types::BaseObject
     field :id, ID, null: false
-    field :latitude, String, null: true, method: :lat
-    field :longitude, String, null: true, method: :lon
+    # non-nullable because clh_locations with null lat/lon should be filtered out before resolving
+    field :latitude, String, null: false, method: :lat
+    field :longitude, String, null: false, method: :lon
   end
   # backed by ClientLocationHistory::Location
 end

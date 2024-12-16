@@ -4974,7 +4974,7 @@ enum GeographyType {
 
 type Geolocation {
   collectedByProjectName: String
-  coordinates: GeolocationCoordinates
+  coordinates: GeolocationCoordinates!
   id: ID!
 
   """
@@ -4995,8 +4995,8 @@ type Geolocation {
 
 type GeolocationCoordinates {
   id: ID!
-  latitude: String
-  longitude: String
+  latitude: String!
+  longitude: String!
 }
 
 """

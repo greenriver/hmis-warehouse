@@ -15,6 +15,13 @@ module ClientLocationHistory
 
     MARKER_COLOR = '#72A0C1'.freeze
 
+    # Locations where both `lat` and `lon` are present
+    scope :valid, -> { where.not(lat: nil).and(where.not(lon: nil)) }
+
+    def lat_lon_present?
+      lat.present? && lon.present?
+    end
+
     def as_point
       [lat, lon]
     end

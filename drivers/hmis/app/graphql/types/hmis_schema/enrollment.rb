@@ -266,7 +266,7 @@ module Types
       return [] unless current_permission?(permission: :can_view_enrollment_location_map, entity: project)
 
       # Must map to warehouse record because locations use polymorphic source with GrdaWarehouse::Hud::Enrollment type
-      object.as_warehouse.enrollment_location_histories
+      object.as_warehouse.enrollment_location_histories.valid
     end
 
     def audit_history(filters: nil)

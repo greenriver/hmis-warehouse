@@ -92,6 +92,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ),
         )
       end
+
+      it 'excludes invalid locations' do
+        cls_location.update!(lat: nil)
+
+        locations = perform_mutation
+
+        expect(locations).to contain_exactly(
+          a_hash_including('id' => assessment_location.id.to_s), # cls_location is excluded
+        )
+      end
     end
   end
 end

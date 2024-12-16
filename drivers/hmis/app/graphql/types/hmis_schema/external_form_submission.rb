@@ -40,7 +40,10 @@ module Types
     end
 
     def geolocation
-      load_ar_association(object, :clh_location)
+      location = load_ar_association(object, :clh_location)
+      return unless location&.lat_lon_present? # ignore location missing lat/lon (not expected, but allowed by DB)
+
+      location
     end
 
     # "Summary" fields are a subset of the form's fields that are displayed on the external forms review table.
