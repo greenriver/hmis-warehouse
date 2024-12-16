@@ -10,10 +10,10 @@ module Types
   class HmisSchema::Geolocation < Types::BaseObject
     field :id, ID, null: false
     field :coordinates, HmisSchema::GeolocationCoordinates, null: false
-    field :collected_by_project_name, String, null: true, method: :collected_by
+    field :project_name, String, null: true, method: :collected_by, description: 'Name of the Project that collected the location'
+    field :collected_by, Application::User, null: true, description: 'User who collected the location'
     field :located_at, GraphQL::Types::ISO8601DateTime, null: false, description: 'Timestamp when the location was collected'
-    field :source_current_living_situation, HmisSchema::CurrentLivingSituation, null: true, description: 'Associated Current Living Situation record, if this location was collected on a CurrentLivingSituation form'
-    field :source_assessment, HmisSchema::Assessment, null: true, description: 'Associated Assessment record, if this location was collected on an assessment'
+    field :source_form_name, String, null: true, description: 'Name of the form that collected this location'
 
     # backed by ClientLocationHistory::Location
 
@@ -29,18 +29,32 @@ module Types
       object
     end
 
-    def source_assessment
-      form_processor_owner if form_processor_owner.is_a?(Hmis::Hud::CustomAssessment)
+    def source_form_name
+      return unless form_processor
+
+      case form_processor.owner_type
+      when Hmis::Hud::CurrentLivingSituation.sti_name
+        'Current Living Situation'
+      when Hmis::Hud::CustomAssessment.sti_name
+        load_ar_association(form_processor, :definition)&.title || 'Assessment'
+      when HmisExternalApis::ExternalForms::FormSubmission.sti_name
+        load_ar_association(form_processor, :definition)&.title || 'External Form'
+      end
     end
 
-    def source_current_living_situation
-      form_processor_owner if form_processor_owner.is_a?(Hmis::Hud::CurrentLivingSituation)
+    # User who collected the location. We don't actually have this, so we just look at who created
+    # the form that collected the location. This could be wrong if the location was added later by someone else.
+    # It would be better to add a column to clh_locations to store the user who collected the location.
+    def collected_by
+      return unless form_processor
+
+      load_created_by_user_from_versions(form_processor)
     end
 
     private
 
-    def form_processor_owner
-      object.form_processor&.owner
+    def form_processor
+      load_ar_association(object, :form_processor)
     end
   end
 end

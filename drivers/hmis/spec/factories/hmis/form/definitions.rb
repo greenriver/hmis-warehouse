@@ -876,6 +876,7 @@ FactoryBot.define do
   factory :hmis_current_living_situation_form_definition, parent: :hmis_form_definition do
     identifier { 'hmis_current_living_situation_form_definition' }
     role { :CURRENT_LIVING_SITUATION }
+    title { 'Current Living Situation Form' }
     definition do
       JSON.parse(<<~JSON)
         {

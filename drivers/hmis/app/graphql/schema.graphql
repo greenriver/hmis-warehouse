@@ -4973,7 +4973,10 @@ enum GeographyType {
 }
 
 type Geolocation {
-  collectedByProjectName: String
+  """
+  User who collected the location
+  """
+  collectedBy: ApplicationUser
   coordinates: GeolocationCoordinates!
   id: ID!
 
@@ -4983,14 +4986,14 @@ type Geolocation {
   locatedAt: ISO8601DateTime!
 
   """
-  Associated Assessment record, if this location was collected on an assessment
+  Name of the Project that collected the location
   """
-  sourceAssessment: Assessment
+  projectName: String
 
   """
-  Associated Current Living Situation record, if this location was collected on a CurrentLivingSituation form
+  Name of the form that collected this location
   """
-  sourceCurrentLivingSituation: CurrentLivingSituation
+  sourceFormName: String
 }
 
 type GeolocationCoordinates {

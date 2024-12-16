@@ -19,14 +19,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     # ClientLocationHistory::Location that has Enrollment as a source
     let!(:cls_location) { create(:clh_location, source: e1.as_warehouse, client_id: c1.id, collected_by: p1.project_name, located_on: 1.week.ago) }
     # FormProcessor linking together the CLS and the Location
-    let!(:cls_form_processor) { create(:hmis_form_processor, owner: cls, clh_location: cls_location) }
+    let!(:cls_definition) { create(:hmis_current_living_situation_form_definition) }
+    let!(:cls_form_processor) { create(:hmis_form_processor, owner: cls, clh_location: cls_location, definition: cls_definition) }
 
     # CustomAssessment
     let!(:assessment) { create(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1) }
     # ClientLocationHistory::Location that has Enrollment as a source
     let!(:assessment_location) { create(:clh_location, source: e1.as_warehouse, client_id: c1.id, collected_by: p1.project_name, located_on: 1.month.ago) }
     # FormProcessor linking together the CustomAssessment and the Location
-    let!(:assessment_form_processor) { assessment.form_processor.update!(clh_location: assessment_location) }
+    let!(:assessment_definition) { create(:custom_assessment_with_custom_fields) }
+    let!(:assessment_form_processor) { assessment.form_processor.update!(clh_location: assessment_location, definition: assessment_definition) }
 
     let(:query) do
       <<~GRAPHQL
@@ -35,18 +37,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             id
             geolocations {
               id
-              collectedByProjectName
               locatedAt
-              collectedByProjectName
+              projectName
+              sourceFormName
               coordinates {
                 latitude
                 longitude
-              }
-              sourceCurrentLivingSituation {
-                id
-              }
-              sourceAssessment {
-                id
               }
             }
           }
@@ -82,13 +78,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(locations).to contain_exactly(
           a_hash_including(
             'id' => cls_location.id.to_s,
-            'sourceAssessment' => nil,
-            'sourceCurrentLivingSituation' => a_hash_including('id' => cls.id.to_s),
+            'sourceFormName' => 'Current Living Situation',
+            'projectName' => p1.project_name,
           ),
           a_hash_including(
             'id' => assessment_location.id.to_s,
-            'sourceAssessment' => a_hash_including('id' => assessment.id.to_s),
-            'sourceCurrentLivingSituation' => nil,
+            'sourceFormName' => assessment_definition.title,
+            'projectName' => p1.project_name,
           ),
         )
       end
