@@ -10,10 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
+ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
   enable_extension "hstore"
+  enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -40,116 +41,236 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
        RETURNS trigger
        LANGUAGE plpgsql
       AS $function$
+
             BEGIN
+
             IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
+
                   INSERT INTO service_history_services_2050 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
+
                   INSERT INTO service_history_services_2049 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
+
                   INSERT INTO service_history_services_2048 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
+
                   INSERT INTO service_history_services_2047 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
+
                   INSERT INTO service_history_services_2046 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
+
                   INSERT INTO service_history_services_2045 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
+
                   INSERT INTO service_history_services_2044 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
+
                   INSERT INTO service_history_services_2043 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
+
                   INSERT INTO service_history_services_2042 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
+
                   INSERT INTO service_history_services_2041 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
+
                   INSERT INTO service_history_services_2040 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
+
                   INSERT INTO service_history_services_2039 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
+
                   INSERT INTO service_history_services_2038 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
+
                   INSERT INTO service_history_services_2037 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
+
                   INSERT INTO service_history_services_2036 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
+
                   INSERT INTO service_history_services_2035 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
+
                   INSERT INTO service_history_services_2034 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
+
                   INSERT INTO service_history_services_2033 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
+
                   INSERT INTO service_history_services_2032 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
+
                   INSERT INTO service_history_services_2031 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
+
                   INSERT INTO service_history_services_2030 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
+
                   INSERT INTO service_history_services_2029 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
+
                   INSERT INTO service_history_services_2028 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
+
                   INSERT INTO service_history_services_2027 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
+
                   INSERT INTO service_history_services_2026 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
+
                   INSERT INTO service_history_services_2025 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
+
                   INSERT INTO service_history_services_2024 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
+
                   INSERT INTO service_history_services_2023 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
+
                   INSERT INTO service_history_services_2022 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
+
                   INSERT INTO service_history_services_2021 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
+
                   INSERT INTO service_history_services_2020 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
+
                   INSERT INTO service_history_services_2019 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
+
                   INSERT INTO service_history_services_2018 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
+
                   INSERT INTO service_history_services_2017 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
+
                   INSERT INTO service_history_services_2016 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
+
                   INSERT INTO service_history_services_2015 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
+
                   INSERT INTO service_history_services_2014 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
+
                   INSERT INTO service_history_services_2013 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
+
                   INSERT INTO service_history_services_2012 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
+
                   INSERT INTO service_history_services_2011 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
+
                   INSERT INTO service_history_services_2010 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
+
                   INSERT INTO service_history_services_2009 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
+
                   INSERT INTO service_history_services_2008 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
+
                   INSERT INTO service_history_services_2007 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
+
                   INSERT INTO service_history_services_2006 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
+
                   INSERT INTO service_history_services_2005 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
+
                   INSERT INTO service_history_services_2004 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
+
                   INSERT INTO service_history_services_2003 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
+
                   INSERT INTO service_history_services_2002 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
+
                   INSERT INTO service_history_services_2001 VALUES (NEW.*);
+
                ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
+
                   INSERT INTO service_history_services_2000 VALUES (NEW.*);
 
+
+
             ELSE
+
               INSERT INTO service_history_services_remainder VALUES (NEW.*);
+
               END IF;
+
               RETURN NULL;
+
           END;
+
           $function$
+  SQL
+  create_function :prevent_modification, sql_definition: <<-'SQL'
+      CREATE OR REPLACE FUNCTION public.prevent_modification()
+       RETURNS trigger
+       LANGUAGE plpgsql
+      AS $function$
+      BEGIN
+        RETURN NULL;
+      END;
+      $function$
   SQL
 
   create_table "Affiliation", id: :serial, force: :cascade do |t|
@@ -572,12 +693,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.datetime "pending_date_deleted", precision: nil
     t.string "source_hash"
     t.integer "CLSSubsidyType"
-    t.bigint "verified_by_project_id"
+    t.integer "verified_by_project_id"
     t.index ["CurrentLivingSitID", "data_source_id"], name: "cur_liv_sit_cur_id_ds_id"
     t.index ["CurrentLivingSitID", "data_source_id"], name: "cur_liv_sit_sit_id_ds_id", unique: true
     t.index ["PersonalID", "EnrollmentID", "data_source_id", "CurrentLivingSitID"], name: "cur_liv_sit_p_id_en_id_ds_id_cur_id"
     t.index ["pending_date_deleted"], name: "index_CurrentLivingSituation_on_pending_date_deleted"
-    t.index ["verified_by_project_id"], name: "index_CurrentLivingSituation_on_verified_by_project_id"
   end
 
   create_table "CustomAssessments", force: :cascade do |t|
@@ -593,10 +713,16 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.datetime "DateDeleted", precision: nil
     t.boolean "wip", default: false, null: false
     t.integer "lock_version", default: 0, null: false
+    t.string "form_definition_identifier"
+    t.bigint "created_by_user_id"
+    t.bigint "updated_by_user_id"
     t.bigint "created_by_hud_user_id"
     t.bigint "updated_by_hud_user_id"
     t.index ["created_by_hud_user_id"], name: "index_CustomAssessments_on_created_by_hud_user_id"
+    t.index ["created_by_user_id"], name: "index_CustomAssessments_on_created_by_user_id"
+    t.index ["form_definition_identifier"], name: "index_CustomAssessments_on_form_definition_identifier"
     t.index ["updated_by_hud_user_id"], name: "index_CustomAssessments_on_updated_by_hud_user_id"
+    t.index ["updated_by_user_id"], name: "index_CustomAssessments_on_updated_by_user_id"
   end
 
   create_table "CustomCaseNote", force: :cascade do |t|
@@ -700,6 +826,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.datetime "DateDeleted", precision: nil
     t.boolean "show_in_summary", default: false, null: false, comment: "Whether to show this custom field in summary views such as in a table row when viewing a Service/CLS/Note"
     t.string "form_definition_identifier"
+    t.bigint "hmis_supplemental_data_set_id"
     t.index ["custom_service_type_id"], name: "index_CustomDataElementDefinitions_on_custom_service_type_id"
     t.index ["form_definition_identifier"], name: "idx_CustomDataElementDefinitions_1"
     t.index ["key"], name: "index_CustomDataElementDefinitions_on_key"
@@ -998,29 +1125,17 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.string "VAMCStation"
     t.integer "lock_version", default: 0, null: false
     t.bigint "project_pk"
-    t.index ["DateCreated"], name: "Enrollment_d381"
     t.index ["DateCreated"], name: "enrollment_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Enrollment_on_DateDeleted_and_data_source_id"
-    t.index ["DateDeleted"], name: "Enrollment_f3a2"
     t.index ["DateDeleted"], name: "index_Enrollment_on_DateDeleted"
-    t.index ["DateUpdated"], name: "Enrollment_42d5"
     t.index ["DateUpdated"], name: "enrollment_date_updated"
     t.index ["EnrollmentID", "PersonalID", "data_source_id"], name: "en_en_id_p_id_ds_id", unique: true
-    t.index ["EnrollmentID", "PersonalID"], name: "Enrollment_c548"
-    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "Enrollment_34e3"
-    t.index ["EnrollmentID"], name: "Enrollment_4337"
     t.index ["EnrollmentID"], name: "index_Enrollment_on_EnrollmentID"
     t.index ["EntryDate"], name: "index_Enrollment_on_EntryDate"
-    t.index ["ExportID"], name: "Enrollment_634d"
     t.index ["ExportID"], name: "enrollment_export_id"
-    t.index ["HouseholdID"], name: "Enrollment_5328"
     t.index ["MoveInDate"], name: "index_Enrollment_on_MoveInDate"
-    t.index ["PersonalID"], name: "Enrollment_603f"
     t.index ["PersonalID"], name: "index_Enrollment_on_PersonalID"
-    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "Enrollment_3085"
-    t.index ["ProjectID", "HouseholdID"], name: "Enrollment_2735"
     t.index ["ProjectID", "data_source_id"], name: "index_Enrollment_on_ProjectID_and_data_source_id", where: "(\"DateDeleted\" IS NULL)"
-    t.index ["ProjectID"], name: "Enrollment_42af"
     t.index ["ProjectID"], name: "index_Enrollment_on_ProjectID"
     t.index ["data_source_id", "HouseholdID", "ProjectID"], name: "idx_enrollment_ds_id_hh_id_p_id"
     t.index ["data_source_id", "PersonalID"], name: "index_Enrollment_on_data_source_id_and_PersonalID"
@@ -1047,7 +1162,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.string "HouseholdID", limit: 32
     t.string "source_hash"
     t.datetime "pending_date_deleted", precision: nil
-    t.index ["CoCCode"], name: "coc_code_test"
     t.index ["DateCreated"], name: "enrollment_coc_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_EnrollmentCoC_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "enrollment_coc_date_updated"
@@ -1443,6 +1557,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "TargetPopulation"
     t.integer "ESBedType"
     t.boolean "manual_entry", default: false
+    t.date "inventory_end_date_override"
+    t.date "inventory_start_date_override"
+    t.string "coc_code_override"
     t.index ["DateCreated"], name: "inventory_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Inventory_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "inventory_date_updated"
@@ -1515,6 +1632,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.string "description"
     t.string "contact_information"
     t.integer "RRHSubType"
+    t.integer "tracking_method_override"
+    t.integer "target_population_override"
+    t.integer "hmis_participating_project_override"
+    t.date "operating_end_date_override"
+    t.date "operating_start_date_override"
+    t.integer "housing_type_override:"
+    t.boolean "hud_continuum_funded"
+    t.integer "act_as_project_type"
+    t.index "COALESCE(act_as_project_type, \"ProjectType\")", name: "project_project_override_index"
     t.index ["DateCreated"], name: "project_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Project_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "project_date_updated"
@@ -1547,6 +1673,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.string "State", limit: 2
     t.string "Zip", limit: 5
     t.boolean "manual_entry", default: false
+    t.string "zip_override"
+    t.string "geocode_override"
+    t.integer "geography_type_override"
+    t.string "hud_coc_code"
     t.index "lower((\"City\")::text)", name: "project_cocs_city_lower"
     t.index ["DateCreated"], name: "project_coc_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_ProjectCoC_on_DateDeleted_and_data_source_id"
@@ -3291,7 +3421,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
   end
 
   create_table "enrollment_extras", id: :serial, force: :cascade do |t|
-    t.integer "enrollment_id"
+    t.integer "enrollment_id", null: false
     t.integer "vispdat_grand_total"
     t.date "vispdat_added_at"
     t.date "vispdat_started_at"
@@ -5656,7 +5786,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.index ["DateUpdated"], name: "hmis2022enrollments_SvKn"
     t.index ["DateUpdated"], name: "hmis2022enrollments_bIh3"
     t.index ["DateUpdated"], name: "hmis2022enrollments_tVoY"
-    t.index ["EnrollmentID", "PersonalID", "importer_log_id", "data_source_id"], name: "en_tt"
     t.index ["EnrollmentID", "PersonalID"], name: "hmis2022enrollments_6d0L"
     t.index ["EnrollmentID", "PersonalID"], name: "hmis2022enrollments_Dclz"
     t.index ["EnrollmentID", "PersonalID"], name: "hmis2022enrollments_Mz76"
@@ -5856,7 +5985,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.index ["DateUpdated"], name: "hmis2022exits_noAP"
     t.index ["DateUpdated"], name: "hmis2022exits_vL1k"
     t.index ["EnrollmentID", "PersonalID", "importer_log_id", "data_source_id"], name: "hmis_2022_exit_e_id_compound"
-    t.index ["EnrollmentID", "PersonalID", "importer_log_id", "data_source_id"], name: "tt"
     t.index ["EnrollmentID"], name: "hmis2022exits_Af3i"
     t.index ["EnrollmentID"], name: "hmis2022exits_Cl49"
     t.index ["EnrollmentID"], name: "hmis2022exits_EVIM"
@@ -6576,10 +6704,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.string "AffiliationID"
     t.string "ProjectID"
     t.string "ResProjectID"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6602,10 +6730,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "AssessmentQuestionOrder"
     t.string "AssessmentQuestion"
     t.string "AssessmentAnswer"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6628,10 +6756,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.string "PersonalID"
     t.string "AssessmentResultType"
     t.string "AssessmentResult"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6655,10 +6783,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "AssessmentType"
     t.integer "AssessmentLevel"
     t.integer "PrioritizationStatus"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6686,10 +6814,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "ReceivesReferrals"
     t.date "CEParticipationStatusStartDate"
     t.date "CEParticipationStatusEndDate"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6748,10 +6876,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "OtherTheater"
     t.integer "MilitaryBranch"
     t.integer "DischargeStatus"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6783,10 +6911,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "LeaseOwn60Day"
     t.integer "MovedTwoOrMore"
     t.string "LocationDetails"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6821,10 +6949,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "ViralLoadSource"
     t.integer "AntiRetroviral"
     t.integer "DataCollectionStage"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6854,10 +6982,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "EmploymentType"
     t.integer "NotEmployedReason"
     t.integer "DataCollectionStage"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6941,10 +7069,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "TranslationNeeded"
     t.integer "PreferredLanguage"
     t.string "PreferredLanguageDifferent"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6993,10 +7121,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.string "LocationCrisisOrPHHousing"
     t.integer "ReferralResult"
     t.date "ResultDate"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7053,10 +7181,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "InPersonIndividual"
     t.integer "InPersonGroup"
     t.integer "CMExitReason"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7089,7 +7217,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.string "SourceContactPhone"
     t.string "SourceContactExtension"
     t.string "SourceContactEmail"
-    t.datetime "ExportDate"
+    t.datetime "ExportDate", precision: nil
     t.date "ExportStartDate"
     t.date "ExportEndDate"
     t.string "SoftwareName"
@@ -7119,10 +7247,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.string "GrantID"
     t.date "StartDate"
     t.date "EndDate"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7154,10 +7282,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "PregnancyStatus"
     t.date "DueDate"
     t.integer "DataCollectionStage"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7180,10 +7308,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "HMISParticipationType"
     t.date "HMISParticipationStatusStartDate"
     t.date "HMISParticipationStatusEndDate"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7273,10 +7401,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "NoRyanWhiteReason"
     t.integer "ConnectionWithSOAR"
     t.integer "DataCollectionStage"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7314,10 +7442,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "ESBedType"
     t.date "InventoryStartDate"
     t.date "InventoryEndDate"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7340,10 +7468,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.string "OrganizationName"
     t.integer "VictimServiceProvider"
     t.string "OrganizationCommonName"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7370,10 +7498,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.string "State"
     t.string "Zip"
     t.integer "GeographyType"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7405,10 +7533,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "TargetPopulation"
     t.integer "HOPWAMedAssistedLivingFac"
     t.integer "PITCount"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7419,6 +7547,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
     t.boolean "should_import", default: true
+    t.boolean "expired"
     t.index ["DateUpdated"], name: "hmis2024projects_42d5"
     t.index ["ProjectID", "data_source_id"], name: "hmis_2024_projects-92c5"
     t.index ["ProjectID"], name: "hmis2024projects_42af"
@@ -7439,10 +7568,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.date "FAStartDate"
     t.date "FAEndDate"
     t.integer "ReferralOutcome"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7472,9 +7601,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.string "UserPhone"
     t.string "UserExtension"
     t.string "UserEmail"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
-    t.datetime "DateDeleted"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7499,10 +7628,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "MostRecentEdStatus"
     t.integer "CurrentEdStatus"
     t.integer "DataCollectionStage"
-    t.datetime "DateCreated"
-    t.datetime "DateUpdated"
+    t.datetime "DateCreated", precision: nil
+    t.datetime "DateUpdated", precision: nil
     t.string "UserID"
-    t.datetime "DateDeleted"
+    t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -10670,6 +10799,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
     t.integer "loader_id", null: false
+    t.boolean "expired"
     t.index ["ProjectID", "data_source_id"], name: "hmis_csv_2024_projects-92c5"
     t.index ["ProjectID"], name: "hmiscsv2024projects_42af"
   end
@@ -10861,14 +10991,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "overlapping_nbn"
     t.integer "overlapping_pre_move_in"
     t.integer "overlapping_post_move_in"
-    t.boolean "ch_at_most_recent_entry", default: false
-    t.boolean "ch_at_any_entry", default: false
     t.integer "veteran_status"
     t.string "ssn"
     t.integer "ssn_data_quality"
     t.integer "name_data_quality"
     t.integer "ethnicity"
     t.integer "reporting_age"
+    t.boolean "ch_at_most_recent_entry", default: false
+    t.boolean "ch_at_any_entry", default: false
     t.integer "woman"
     t.integer "man"
     t.integer "culturally_specific"
@@ -10956,7 +11086,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at", precision: nil
     t.integer "project_type"
-    t.boolean "ch_at_entry", default: false
     t.integer "project_id"
     t.string "household_type"
     t.integer "household_min_age"
@@ -10982,19 +11111,20 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.boolean "cash_income_as_expected_at_entry", default: false
     t.boolean "cash_income_as_expected_at_annual", default: false
     t.boolean "cash_income_as_expected_at_exit", default: false
-    t.integer "ncb_from_any_source_at_entry_remove"
-    t.integer "ncb_from_any_source_at_annual_remove"
-    t.integer "ncb_from_any_source_at_exit_remove"
+    t.boolean "ncb_from_any_source_at_entry_remove", default: false
+    t.boolean "ncb_from_any_source_at_annual_remove", default: false
+    t.boolean "ncb_from_any_source_at_exit_remove", default: false
     t.boolean "ncb_as_expected_at_entry", default: false
     t.boolean "ncb_as_expected_at_annual", default: false
     t.boolean "ncb_as_expected_at_exit", default: false
-    t.integer "insurance_from_any_source_at_entry_remove"
-    t.integer "insurance_from_any_source_at_annual_remove"
-    t.integer "insurance_from_any_source_at_exit_remove"
+    t.boolean "insurance_from_any_source_at_entry_remove", default: false
+    t.boolean "insurance_from_any_source_at_annual_remove", default: false
+    t.boolean "insurance_from_any_source_at_exit_remove", default: false
     t.boolean "insurance_as_expected_at_entry", default: false
     t.boolean "insurance_as_expected_at_annual", default: false
     t.boolean "insurance_as_expected_at_exit", default: false
     t.boolean "disability_at_entry_collected", default: false
+    t.boolean "ch_at_entry", default: false
     t.integer "previous_street_es_sh"
     t.datetime "entry_date_entered_at", precision: nil
     t.datetime "exit_date_entered_at", precision: nil
@@ -11270,6 +11400,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.datetime "deleted_at", precision: nil
     t.jsonb "backup_definition"
     t.boolean "managed_in_version_control", default: false
+    t.index ["identifier", "role", "version", "status"], name: "index_unique_identifiers_per_role", unique: true
     t.index ["identifier", "version"], name: "uidx_hmis_form_definitions_identifier", unique: true, where: "(deleted_at IS NULL)"
     t.index ["identifier"], name: "uidx_hmis_form_definitions_one_draft_per_identifier", unique: true, where: "(((status)::text = 'draft'::text) AND (deleted_at IS NULL))"
     t.index ["identifier"], name: "uidx_hmis_form_definitions_one_published_per_identifier", unique: true, where: "(((status)::text = 'published'::text) AND (deleted_at IS NULL))"
@@ -11312,9 +11443,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.integer "current_living_situation_id"
     t.bigint "ce_assessment_id"
     t.bigint "ce_event_id"
-    t.jsonb "backup_values"
     t.string "owner_type", null: false
     t.bigint "owner_id", null: false
+    t.jsonb "backup_values"
     t.bigint "clh_location_id"
     t.index ["ce_assessment_id"], name: "index_hmis_form_processors_on_ce_assessment_id"
     t.index ["ce_event_id"], name: "index_hmis_form_processors_on_ce_event_id"
@@ -13239,7 +13370,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.index ["record_type", "date", "data_source_id", "organization_id", "project_id", "project_type", "project_tracking_method"], name: "index_sh_date_ds_org_proj_proj_type"
   end
 
-  create_table "nightly_census_by_projects", force: :cascade do |t|
+  create_table "nightly_census_by_projects", id: :serial, force: :cascade do |t|
     t.date "date", null: false
     t.integer "project_id", null: false
     t.integer "veterans", default: 0
@@ -13278,18 +13409,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.datetime "completed_at", precision: nil
     t.datetime "deleted_at", precision: nil
     t.index ["deleted_at"], name: "index_non_hmis_uploads_on_deleted_at"
-  end
-
-  create_table "organization_47_tes", id: false, force: :cascade do |t|
-    t.integer "source_id"
-  end
-
-  create_table "organization_48_tes", id: false, force: :cascade do |t|
-    t.integer "source_id"
-  end
-
-  create_table "organization_49_tes", id: false, force: :cascade do |t|
-    t.integer "source_id"
   end
 
   create_table "performance_measurement_goals", force: :cascade do |t|
@@ -14779,9 +14898,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
     t.boolean "final_enrollment", default: false, null: false
     t.date "move_in_date"
     t.integer "days_to_move_in"
+    t.integer "days_to_exit_after_move_in"
     t.boolean "chronic_at_entry"
     t.integer "disabling_condition"
-    t.integer "days_to_exit_after_move_in"
     t.index ["client_id", "report_id"], name: "c_r_system_pathways_enrollments_idx"
     t.index ["enrollment_id"], name: "index_system_pathways_enrollments_on_enrollment_id"
     t.index ["project_id"], name: "index_system_pathways_enrollments_on_project_id"
@@ -15507,6 +15626,24 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
        LEFT JOIN census_variables vars ON (((vals.census_variable_id = vars.id) AND (vars.internal_name IS NOT NULL))))
        LEFT JOIN census_groups g ON ((((vars.census_group)::text = (g.name)::text) AND (vars.year = g.year) AND ((vars.dataset)::text = (g.dataset)::text))));
   SQL
+  create_view "client_chronicity_periods", sql_definition: <<-SQL
+      SELECT dc.id AS client_id,
+      LEAST(enr."EntryDate", dsb."InformationDate") AS chronic_start,
+      COALESCE(ex."ExitDate", NULL::date) AS chronic_end
+     FROM ((((("Client" dc
+       JOIN warehouse_clients wc ON ((wc.destination_id = dc.id)))
+       JOIN "Client" sc ON (((sc.id = wc.source_id) AND (sc."DateDeleted" IS NULL))))
+       JOIN "Enrollment" enr ON ((((enr."PersonalID")::text = (sc."PersonalID")::text) AND (enr.data_source_id = sc.data_source_id) AND (enr."DateDeleted" IS NULL))))
+       JOIN "Disabilities" dsb ON ((((dsb."EnrollmentID")::text = (enr."EnrollmentID")::text) AND (dsb.data_source_id = enr.data_source_id) AND (dsb."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ex ON ((((ex."EnrollmentID")::text = (enr."EnrollmentID")::text) AND (ex.data_source_id = enr.data_source_id) AND (ex."DateDeleted" IS NULL))))
+    WHERE ((dc.data_source_id = 1) AND (dc."DateDeleted" IS NULL) AND ((enr."DisablingCondition" = 1) OR ((dsb."DisabilityResponse" = ANY (ARRAY[1, 2, 3])) AND ((dsb."DisabilityType" = ANY (ARRAY[6, 8])) OR (dsb."IndefiniteAndImpairs" = 1)))))
+  UNION ALL
+   SELECT "Client".id AS client_id,
+      "Client".disability_verified_on AS chronic_start,
+      NULL::date AS chronic_end
+     FROM "Client"
+    WHERE (("Client".disability_verified_on IS NOT NULL) AND ("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id = 1));
+  SQL
   create_view "client_searchable_names", sql_definition: <<-SQL
       SELECT "Client".id AS client_id,
       "Client".search_name_full AS full_name,
@@ -16118,6 +16255,49 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
        JOIN "Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Services"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
     WHERE ("Services"."DateDeleted" IS NULL);
   SQL
+  create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
+      SELECT id,
+      service_history_enrollment_id,
+      record_type,
+      date,
+      age,
+      service_type,
+      client_id,
+      project_type,
+      homeless,
+      literally_homeless
+     FROM service_history_services_was_for_inheritance;
+  SQL
+  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
+  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
+  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
+  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
+
+  create_view "todd_stats", sql_definition: <<-SQL
+      SELECT relname,
+      round((
+          CASE
+              WHEN ((n_live_tup + n_dead_tup) = 0) THEN (0)::double precision
+              ELSE ((n_dead_tup)::double precision / ((n_dead_tup + n_live_tup))::double precision)
+          END * (100.0)::double precision)) AS "Frag %",
+      n_live_tup AS "Live rows",
+      n_dead_tup AS "Dead rows",
+      n_mod_since_analyze AS "Rows modified since analyze",
+          CASE
+              WHEN (COALESCE(last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_vacuum
+              ELSE COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
+          END AS last_vacuum,
+          CASE
+              WHEN (COALESCE(last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_analyze
+              ELSE COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
+          END AS last_analyze,
+      (vacuum_count + autovacuum_count) AS vacuum_count,
+      (analyze_count + autoanalyze_count) AS analyze_count
+     FROM pg_stat_all_tables
+    WHERE (schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
+  SQL
   create_view "service_history", sql_definition: <<-SQL
       SELECT service_history_services.id,
       service_history_services.client_id,
@@ -16188,51 +16368,20 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
       service_history_enrollments.head_of_household
      FROM service_history_enrollments;
   SQL
-  create_view "todd_stats", sql_definition: <<-SQL
-      SELECT relname,
-      round((
-          CASE
-              WHEN ((n_live_tup + n_dead_tup) = 0) THEN (0)::double precision
-              ELSE ((n_dead_tup)::double precision / ((n_dead_tup + n_live_tup))::double precision)
-          END * (100.0)::double precision)) AS "Frag %",
-      n_live_tup AS "Live rows",
-      n_dead_tup AS "Dead rows",
-      n_mod_since_analyze AS "Rows modified since analyze",
-          CASE
-              WHEN (COALESCE(last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_vacuum
-              ELSE COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
-          END AS last_vacuum,
-          CASE
-              WHEN (COALESCE(last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_analyze
-              ELSE COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
-          END AS last_analyze,
-      (vacuum_count + autovacuum_count) AS vacuum_count,
-      (analyze_count + autoanalyze_count) AS analyze_count
-     FROM pg_stat_all_tables
-    WHERE (schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
-  SQL
-  create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
-      SELECT id,
-      service_history_enrollment_id,
-      record_type,
-      date,
-      age,
-      service_type,
-      client_id,
-      project_type,
-      homeless,
-      literally_homeless
-     FROM service_history_services;
-  SQL
-  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
-  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
-  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
-  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
-
 
   create_trigger :service_history_service_insert_trigger, sql_definition: <<-SQL
       CREATE TRIGGER service_history_service_insert_trigger BEFORE INSERT ON public.service_history_services_was_for_inheritance FOR EACH ROW EXECUTE FUNCTION service_history_service_insert_trigger()
+  SQL
+  create_trigger :no_modify_client_searchable_names, sql_definition: <<-SQL
+      CREATE TRIGGER no_modify_client_searchable_names INSTEAD OF DELETE OR UPDATE ON public.client_searchable_names FOR EACH ROW EXECUTE FUNCTION prevent_modification()
+  SQL
+  create_trigger :no_modify_hmis_households, sql_definition: <<-SQL
+      CREATE TRIGGER no_modify_hmis_households INSTEAD OF DELETE OR UPDATE ON public.hmis_households FOR EACH ROW EXECUTE FUNCTION prevent_modification()
+  SQL
+  create_trigger :no_modify_project_access_group_members, sql_definition: <<-SQL
+      CREATE TRIGGER no_modify_project_access_group_members INSTEAD OF DELETE OR UPDATE ON public.project_access_group_members FOR EACH ROW EXECUTE FUNCTION prevent_modification()
+  SQL
+  create_trigger :no_modify_project_collection_members, sql_definition: <<-SQL
+      CREATE TRIGGER no_modify_project_collection_members INSTEAD OF DELETE OR UPDATE ON public.project_collection_members FOR EACH ROW EXECUTE FUNCTION prevent_modification()
   SQL
 end

@@ -14,6 +14,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164805) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
   enable_extension "hstore"
+  enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
 
   create_function :prevent_modification, sql_definition: <<-'SQL'
@@ -335,34 +336,34 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164805) do
     t.boolean "can_manage_own_client_files", default: false, null: false
     t.boolean "can_view_any_nonconfidential_client_files", default: false, null: false
     t.boolean "can_view_any_confidential_client_files", default: false, null: false
-    t.boolean "can_manage_client_files", default: false, null: false
     t.boolean "can_audit_clients", default: false, null: false
     t.boolean "can_delete_clients", default: false, null: false
-    t.boolean "can_delete_assessments", default: false
-    t.boolean "can_view_project", default: false
+    t.boolean "can_delete_assessments", default: false, null: false
+    t.boolean "can_view_unenrolled_clients", default: false
     t.boolean "can_manage_incoming_referrals", default: false
     t.boolean "can_manage_outgoing_referrals", default: false
     t.boolean "can_manage_denied_referrals", default: false
-    t.boolean "can_impersonate_users", default: false
-    t.boolean "can_audit_users", default: false
-    t.boolean "can_view_client_name", default: false
-    t.boolean "can_view_client_contact_info", default: false
-    t.boolean "can_view_client_photo", default: false
-    t.boolean "can_view_hud_chronic_status", default: false
-    t.boolean "can_view_limited_enrollment_details", default: false
-    t.boolean "can_view_open_enrollment_summary", default: false
     t.boolean "can_enroll_clients", default: false
-    t.boolean "can_audit_enrollments", default: false
+    t.boolean "can_view_open_enrollment_summary", default: false
+    t.boolean "can_view_project", default: false
+    t.boolean "can_view_hud_chronic_status", default: false
     t.boolean "can_merge_clients", default: false
     t.boolean "can_split_households", default: false
     t.boolean "can_transfer_enrollments", default: false
-    t.boolean "can_manage_forms", default: false
+    t.boolean "can_impersonate_users", default: false
+    t.boolean "can_view_limited_enrollment_details", default: false
+    t.boolean "can_audit_users", default: false
+    t.boolean "can_audit_enrollments", default: false
     t.boolean "can_configure_data_collection", default: false
-    t.boolean "can_administrate_config", default: false
     t.boolean "can_manage_scan_cards", default: false
     t.boolean "can_view_client_alerts", default: false
     t.boolean "can_manage_client_alerts", default: false
     t.boolean "can_manage_external_form_submissions", default: false
+    t.boolean "can_view_client_contact_info", default: false
+    t.boolean "can_view_client_name", default: false
+    t.boolean "can_view_client_photo", default: false
+    t.boolean "can_manage_forms", default: false
+    t.boolean "can_administrate_config", default: false
     t.boolean "can_view_units", default: false
     t.boolean "can_manage_units", default: false
   end
@@ -736,9 +737,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164805) do
     t.boolean "can_search_own_clients", default: false
     t.boolean "can_view_confidential_project_names", default: false
     t.boolean "can_report_on_confidential_projects", default: false
-    t.boolean "can_edit_assigned_project_groups", default: false
     t.boolean "can_view_chronic_tab", default: false
-    t.boolean "can_view_confidential_enrollment_details", default: false
+    t.boolean "can_edit_assigned_project_groups", default: false
     t.boolean "can_configure_cohorts", default: false
     t.boolean "can_add_cohort_clients", default: false
     t.boolean "can_manage_cohort_data", default: false
@@ -748,19 +748,19 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164805) do
     t.boolean "can_manage_inactive_cohort_clients", default: false
     t.boolean "can_view_deleted_cohort_clients", default: false
     t.boolean "can_view_cohort_client_changes_report", default: false
-    t.boolean "system", default: false, null: false
     t.boolean "can_approve_careplan", default: false
     t.boolean "can_manage_inbound_api_configurations", default: false
+    t.boolean "system", default: false, null: false
     t.boolean "can_view_client_enrollments_with_roi", default: false
-    t.boolean "can_edit_collections", default: false
     t.boolean "can_search_clients_with_roi", default: false
-    t.boolean "can_see_confidential_files", default: false
-    t.boolean "can_edit_own_client_notes", default: false
-    t.boolean "can_publish_reports", default: false
     t.boolean "can_edit_theme", default: false
+    t.boolean "can_edit_collections", default: false
+    t.boolean "can_see_confidential_files", default: false
+    t.boolean "can_publish_reports", default: false
+    t.datetime "deleted_at", precision: nil
+    t.boolean "can_edit_own_client_notes", default: false
     t.boolean "can_view_client_name", default: false
     t.boolean "can_view_client_photo", default: false
-    t.datetime "deleted_at", precision: nil
     t.boolean "can_view_project_locations", default: false
     t.boolean "can_view_supplemental_client_data", default: false
     t.boolean "can_edit_cohort_columns", default: false
@@ -867,16 +867,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164805) do
     t.datetime "deleted_at", precision: nil
     t.integer "user_id"
     t.index ["deleted_at"], name: "index_uploads_on_deleted_at"
-  end
-
-  create_table "user_access_controls", force: :cascade do |t|
-    t.bigint "access_control_id"
-    t.bigint "user_id"
-    t.datetime "deleted_at", precision: nil
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["access_control_id"], name: "index_user_access_controls_on_access_control_id"
-    t.index ["user_id"], name: "index_user_access_controls_on_user_id"
   end
 
   create_table "user_group_members", force: :cascade do |t|
