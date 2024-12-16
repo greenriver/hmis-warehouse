@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
+ActiveRecord::Schema[7.0].define(version: 2024_12_03_154146) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
   enable_extension "hstore"
@@ -40,239 +40,119 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
        RETURNS trigger
        LANGUAGE plpgsql
       AS $function$
-
             BEGIN
-
             IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
-
                   INSERT INTO service_history_services_2050 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
-
                   INSERT INTO service_history_services_2049 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
-
                   INSERT INTO service_history_services_2048 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
-
                   INSERT INTO service_history_services_2047 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
-
                   INSERT INTO service_history_services_2046 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
-
                   INSERT INTO service_history_services_2045 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
-
                   INSERT INTO service_history_services_2044 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
-
                   INSERT INTO service_history_services_2043 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
-
                   INSERT INTO service_history_services_2042 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
-
                   INSERT INTO service_history_services_2041 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
-
                   INSERT INTO service_history_services_2040 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
-
                   INSERT INTO service_history_services_2039 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
-
                   INSERT INTO service_history_services_2038 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
-
                   INSERT INTO service_history_services_2037 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
-
                   INSERT INTO service_history_services_2036 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
-
                   INSERT INTO service_history_services_2035 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
-
                   INSERT INTO service_history_services_2034 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
-
                   INSERT INTO service_history_services_2033 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
-
                   INSERT INTO service_history_services_2032 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
-
                   INSERT INTO service_history_services_2031 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
-
                   INSERT INTO service_history_services_2030 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
-
                   INSERT INTO service_history_services_2029 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
-
                   INSERT INTO service_history_services_2028 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
-
                   INSERT INTO service_history_services_2027 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
-
                   INSERT INTO service_history_services_2026 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
-
                   INSERT INTO service_history_services_2025 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
-
                   INSERT INTO service_history_services_2024 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
-
                   INSERT INTO service_history_services_2023 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
-
                   INSERT INTO service_history_services_2022 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
-
                   INSERT INTO service_history_services_2021 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
-
                   INSERT INTO service_history_services_2020 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
-
                   INSERT INTO service_history_services_2019 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
-
                   INSERT INTO service_history_services_2018 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
-
                   INSERT INTO service_history_services_2017 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
-
                   INSERT INTO service_history_services_2016 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
-
                   INSERT INTO service_history_services_2015 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
-
                   INSERT INTO service_history_services_2014 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
-
                   INSERT INTO service_history_services_2013 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
-
                   INSERT INTO service_history_services_2012 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
-
                   INSERT INTO service_history_services_2011 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
-
                   INSERT INTO service_history_services_2010 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
-
                   INSERT INTO service_history_services_2009 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
-
                   INSERT INTO service_history_services_2008 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
-
                   INSERT INTO service_history_services_2007 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
-
                   INSERT INTO service_history_services_2006 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
-
                   INSERT INTO service_history_services_2005 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
-
                   INSERT INTO service_history_services_2004 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
-
                   INSERT INTO service_history_services_2003 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
-
                   INSERT INTO service_history_services_2002 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
-
                   INSERT INTO service_history_services_2001 VALUES (NEW.*);
-
                ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
-
                   INSERT INTO service_history_services_2000 VALUES (NEW.*);
 
-
-
             ELSE
-
               INSERT INTO service_history_services_remainder VALUES (NEW.*);
-
               END IF;
-
               RETURN NULL;
-
           END;
-
           $function$
   SQL
-  create_function :prevent_modification, sql_definition: <<-'SQL'
-      CREATE OR REPLACE FUNCTION public.prevent_modification()
-       RETURNS trigger
-       LANGUAGE plpgsql
-      AS $function$
-      BEGIN
-        RETURN NULL;
-      END;
-      $function$
-  SQL
 
-  create_table "Affiliation", force: :cascade do |t|
+  create_table "Affiliation", id: :serial, force: :cascade do |t|
     t.string "AffiliationID"
     t.string "ProjectID"
     t.string "ResProjectID"
@@ -293,7 +173,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Affiliation_on_pending_date_deleted"
   end
 
-  create_table "Assessment", force: :cascade do |t|
+  create_table "Assessment", id: :serial, force: :cascade do |t|
     t.string "AssessmentID", limit: 32, null: false
     t.string "EnrollmentID", null: false
     t.string "PersonalID", null: false
@@ -316,7 +196,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Assessment_on_pending_date_deleted"
   end
 
-  create_table "AssessmentQuestions", force: :cascade do |t|
+  create_table "AssessmentQuestions", id: :serial, force: :cascade do |t|
     t.string "AssessmentQuestionID", limit: 32, null: false
     t.string "AssessmentID", limit: 32, null: false
     t.string "EnrollmentID", null: false
@@ -338,7 +218,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_AssessmentQuestions_on_pending_date_deleted"
   end
 
-  create_table "AssessmentResults", force: :cascade do |t|
+  create_table "AssessmentResults", id: :serial, force: :cascade do |t|
     t.string "AssessmentResultID", limit: 32, null: false
     t.string "AssessmentID", limit: 32, null: false
     t.string "EnrollmentID", null: false
@@ -382,7 +262,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id", "CEParticipationID"], name: "ds_ceparticipation_idx", unique: true
   end
 
-  create_table "Client", force: :cascade do |t|
+  create_table "Client", id: :serial, force: :cascade do |t|
     t.string "PersonalID", null: false
     t.string "FirstName", limit: 150
     t.string "MiddleName", limit: 150
@@ -670,7 +550,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "ClientUnencrypted_pending_date_deleted_idx"
   end
 
-  create_table "CurrentLivingSituation", force: :cascade do |t|
+  create_table "CurrentLivingSituation", id: :serial, force: :cascade do |t|
     t.string "CurrentLivingSitID", limit: 32, null: false
     t.string "EnrollmentID", null: false
     t.string "PersonalID", null: false
@@ -692,11 +572,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "pending_date_deleted", precision: nil
     t.string "source_hash"
     t.integer "CLSSubsidyType"
-    t.integer "verified_by_project_id"
+    t.bigint "verified_by_project_id"
     t.index ["CurrentLivingSitID", "data_source_id"], name: "cur_liv_sit_cur_id_ds_id"
     t.index ["CurrentLivingSitID", "data_source_id"], name: "cur_liv_sit_sit_id_ds_id", unique: true
     t.index ["PersonalID", "EnrollmentID", "data_source_id", "CurrentLivingSitID"], name: "cur_liv_sit_p_id_en_id_ds_id_cur_id"
     t.index ["pending_date_deleted"], name: "index_CurrentLivingSituation_on_pending_date_deleted"
+    t.index ["verified_by_project_id"], name: "index_CurrentLivingSituation_on_verified_by_project_id"
   end
 
   create_table "CustomAssessments", force: :cascade do |t|
@@ -712,16 +593,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "DateDeleted", precision: nil
     t.boolean "wip", default: false, null: false
     t.integer "lock_version", default: 0, null: false
-    t.string "form_definition_identifier"
-    t.bigint "created_by_user_id"
-    t.bigint "updated_by_user_id"
     t.bigint "created_by_hud_user_id"
     t.bigint "updated_by_hud_user_id"
     t.index ["created_by_hud_user_id"], name: "index_CustomAssessments_on_created_by_hud_user_id"
-    t.index ["created_by_user_id"], name: "index_CustomAssessments_on_created_by_user_id"
-    t.index ["form_definition_identifier"], name: "index_CustomAssessments_on_form_definition_identifier"
     t.index ["updated_by_hud_user_id"], name: "index_CustomAssessments_on_updated_by_hud_user_id"
-    t.index ["updated_by_user_id"], name: "index_CustomAssessments_on_updated_by_user_id"
   end
 
   create_table "CustomCaseNote", force: :cascade do |t|
@@ -825,7 +700,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "DateDeleted", precision: nil
     t.boolean "show_in_summary", default: false, null: false, comment: "Whether to show this custom field in summary views such as in a table row when viewing a Service/CLS/Note"
     t.string "form_definition_identifier"
-    t.bigint "hmis_supplemental_data_set_id"
     t.index ["custom_service_type_id"], name: "index_CustomDataElementDefinitions_on_custom_service_type_id"
     t.index ["form_definition_identifier"], name: "idx_CustomDataElementDefinitions_1"
     t.index ["key"], name: "index_CustomDataElementDefinitions_on_key"
@@ -909,7 +783,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id"], name: "index_CustomServices_on_data_source_id"
   end
 
-  create_table "Disabilities", force: :cascade do |t|
+  create_table "Disabilities", id: :serial, force: :cascade do |t|
     t.string "DisabilitiesID"
     t.string "EnrollmentID"
     t.string "PersonalID"
@@ -954,7 +828,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Disabilities_on_pending_date_deleted"
   end
 
-  create_table "EmploymentEducation", force: :cascade do |t|
+  create_table "EmploymentEducation", id: :serial, force: :cascade do |t|
     t.string "EmploymentEducationID"
     t.string "EnrollmentID"
     t.string "PersonalID"
@@ -985,7 +859,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_EmploymentEducation_on_pending_date_deleted"
   end
 
-  create_table "Enrollment", force: :cascade do |t|
+  create_table "Enrollment", id: :serial, force: :cascade do |t|
     t.string "EnrollmentID", limit: 50, null: false
     t.string "PersonalID", null: false
     t.string "ProjectID", limit: 50
@@ -1124,17 +998,29 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.string "VAMCStation"
     t.integer "lock_version", default: 0, null: false
     t.bigint "project_pk"
+    t.index ["DateCreated"], name: "Enrollment_d381"
     t.index ["DateCreated"], name: "enrollment_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Enrollment_on_DateDeleted_and_data_source_id"
+    t.index ["DateDeleted"], name: "Enrollment_f3a2"
     t.index ["DateDeleted"], name: "index_Enrollment_on_DateDeleted"
+    t.index ["DateUpdated"], name: "Enrollment_42d5"
     t.index ["DateUpdated"], name: "enrollment_date_updated"
     t.index ["EnrollmentID", "PersonalID", "data_source_id"], name: "en_en_id_p_id_ds_id", unique: true
+    t.index ["EnrollmentID", "PersonalID"], name: "Enrollment_c548"
+    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "Enrollment_34e3"
+    t.index ["EnrollmentID"], name: "Enrollment_4337"
     t.index ["EnrollmentID"], name: "index_Enrollment_on_EnrollmentID"
     t.index ["EntryDate"], name: "index_Enrollment_on_EntryDate"
+    t.index ["ExportID"], name: "Enrollment_634d"
     t.index ["ExportID"], name: "enrollment_export_id"
+    t.index ["HouseholdID"], name: "Enrollment_5328"
     t.index ["MoveInDate"], name: "index_Enrollment_on_MoveInDate"
+    t.index ["PersonalID"], name: "Enrollment_603f"
     t.index ["PersonalID"], name: "index_Enrollment_on_PersonalID"
+    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "Enrollment_3085"
+    t.index ["ProjectID", "HouseholdID"], name: "Enrollment_2735"
     t.index ["ProjectID", "data_source_id"], name: "index_Enrollment_on_ProjectID_and_data_source_id", where: "(\"DateDeleted\" IS NULL)"
+    t.index ["ProjectID"], name: "Enrollment_42af"
     t.index ["ProjectID"], name: "index_Enrollment_on_ProjectID"
     t.index ["data_source_id", "HouseholdID", "ProjectID"], name: "idx_enrollment_ds_id_hh_id_p_id"
     t.index ["data_source_id", "PersonalID"], name: "index_Enrollment_on_data_source_id_and_PersonalID"
@@ -1144,7 +1030,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["service_history_processing_job_id"], name: "index_Enrollment_on_service_history_processing_job_id"
   end
 
-  create_table "EnrollmentCoC", force: :cascade do |t|
+  create_table "EnrollmentCoC", id: :serial, force: :cascade do |t|
     t.string "EnrollmentCoCID"
     t.string "EnrollmentID"
     t.string "ProjectID"
@@ -1161,6 +1047,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.string "HouseholdID", limit: 32
     t.string "source_hash"
     t.datetime "pending_date_deleted", precision: nil
+    t.index ["CoCCode"], name: "coc_code_test"
     t.index ["DateCreated"], name: "enrollment_coc_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_EnrollmentCoC_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "enrollment_coc_date_updated"
@@ -1172,7 +1059,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_EnrollmentCoC_on_pending_date_deleted"
   end
 
-  create_table "Event", force: :cascade do |t|
+  create_table "Event", id: :serial, force: :cascade do |t|
     t.string "EventID", limit: 32, null: false
     t.string "EnrollmentID", null: false
     t.string "PersonalID", null: false
@@ -1197,7 +1084,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Event_on_pending_date_deleted"
   end
 
-  create_table "Exit", force: :cascade do |t|
+  create_table "Exit", id: :serial, force: :cascade do |t|
     t.string "ExitID", null: false
     t.string "EnrollmentID"
     t.string "PersonalID"
@@ -1272,7 +1159,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Exit_on_pending_date_deleted"
   end
 
-  create_table "Export", force: :cascade do |t|
+  create_table "Export", id: :serial, force: :cascade do |t|
     t.string "ExportID"
     t.string "SourceID"
     t.string "SourceName"
@@ -1300,7 +1187,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id"], name: "index_Export_on_data_source_id"
   end
 
-  create_table "Funder", force: :cascade do |t|
+  create_table "Funder", id: :serial, force: :cascade do |t|
     t.string "FunderID"
     t.string "ProjectID"
     t.string "Funder"
@@ -1327,7 +1214,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Funder_on_pending_date_deleted"
   end
 
-  create_table "Geography", force: :cascade do |t|
+  create_table "Geography", id: :serial, force: :cascade do |t|
     t.string "GeographyID"
     t.string "ProjectID"
     t.string "CoCCode", limit: 50
@@ -1380,7 +1267,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id", "HMISParticipationID"], name: "ds_hmisparticipation_idx", unique: true
   end
 
-  create_table "HealthAndDV", force: :cascade do |t|
+  create_table "HealthAndDV", id: :serial, force: :cascade do |t|
     t.string "HealthAndDVID"
     t.string "EnrollmentID"
     t.string "PersonalID"
@@ -1419,7 +1306,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_HealthAndDV_on_pending_date_deleted"
   end
 
-  create_table "IncomeBenefits", force: :cascade do |t|
+  create_table "IncomeBenefits", id: :serial, force: :cascade do |t|
     t.string "IncomeBenefitsID"
     t.string "EnrollmentID"
     t.string "PersonalID"
@@ -1524,7 +1411,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_IncomeBenefits_on_pending_date_deleted"
   end
 
-  create_table "Inventory", force: :cascade do |t|
+  create_table "Inventory", id: :serial, force: :cascade do |t|
     t.string "InventoryID"
     t.string "ProjectID"
     t.string "CoCCode", limit: 50
@@ -1566,7 +1453,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Inventory_on_pending_date_deleted"
   end
 
-  create_table "Organization", force: :cascade do |t|
+  create_table "Organization", id: :serial, force: :cascade do |t|
     t.string "OrganizationID", limit: 50
     t.string "OrganizationName"
     t.string "OrganizationCommonName"
@@ -1591,7 +1478,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Organization_on_pending_date_deleted"
   end
 
-  create_table "Project", force: :cascade do |t|
+  create_table "Project", id: :serial, force: :cascade do |t|
     t.string "ProjectID", limit: 50
     t.string "OrganizationID", limit: 50
     t.string "ProjectName"
@@ -1640,7 +1527,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Project_on_pending_date_deleted"
   end
 
-  create_table "ProjectCoC", force: :cascade do |t|
+  create_table "ProjectCoC", id: :serial, force: :cascade do |t|
     t.string "ProjectCoCID", limit: 50
     t.string "ProjectID"
     t.string "CoCCode", limit: 50
@@ -1671,7 +1558,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_ProjectCoC_on_pending_date_deleted"
   end
 
-  create_table "Services", force: :cascade do |t|
+  create_table "Services", id: :serial, force: :cascade do |t|
     t.string "ServicesID"
     t.string "EnrollmentID"
     t.string "PersonalID"
@@ -1708,7 +1595,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["pending_date_deleted"], name: "index_Services_on_pending_date_deleted"
   end
 
-  create_table "User", force: :cascade do |t|
+  create_table "User", id: :serial, force: :cascade do |t|
     t.string "UserID", limit: 32, null: false
     t.string "UserFirstName"
     t.string "UserLastName"
@@ -1759,7 +1646,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["key", "etag"], name: "index_ac_hmis_projects_import_attempts_on_key_and_etag", unique: true
   end
 
-  create_table "ad_hoc_batches", force: :cascade do |t|
+  create_table "ad_hoc_batches", id: :serial, force: :cascade do |t|
     t.integer "ad_hoc_data_source_id"
     t.string "description", null: false
     t.integer "uploaded_count"
@@ -1781,7 +1668,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["updated_at"], name: "index_ad_hoc_batches_on_updated_at"
   end
 
-  create_table "ad_hoc_clients", force: :cascade do |t|
+  create_table "ad_hoc_clients", id: :serial, force: :cascade do |t|
     t.integer "ad_hoc_data_source_id"
     t.integer "client_id"
     t.jsonb "matching_client_ids"
@@ -1799,7 +1686,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["updated_at"], name: "index_ad_hoc_clients_on_updated_at"
   end
 
-  create_table "ad_hoc_data_sources", force: :cascade do |t|
+  create_table "ad_hoc_data_sources", id: :serial, force: :cascade do |t|
     t.string "name", null: false
     t.string "short_name"
     t.string "description"
@@ -1814,7 +1701,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_ad_hoc_data_sources_on_user_id"
   end
 
-  create_table "administrative_events", force: :cascade do |t|
+  create_table "administrative_events", id: :serial, force: :cascade do |t|
     t.integer "user_id", null: false
     t.date "date", null: false
     t.string "title", null: false
@@ -1825,7 +1712,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["deleted_at"], name: "index_administrative_events_on_deleted_at"
   end
 
-  create_table "anomalies", force: :cascade do |t|
+  create_table "anomalies", id: :serial, force: :cascade do |t|
     t.integer "client_id"
     t.integer "submitted_by"
     t.string "description"
@@ -1891,7 +1778,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["enrollment_id"], name: "index_ansd_events_on_enrollment_id"
   end
 
-  create_table "api_client_data_source_ids", force: :cascade do |t|
+  create_table "api_client_data_source_ids", id: :serial, force: :cascade do |t|
     t.string "warehouse_id"
     t.string "id_in_data_source"
     t.integer "site_id_in_data_source"
@@ -1914,7 +1801,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["response_code"], name: "index_assessment_answer_lookups_on_response_code"
   end
 
-  create_table "available_file_tags", force: :cascade do |t|
+  create_table "available_file_tags", id: :serial, force: :cascade do |t|
     t.string "name"
     t.string "group"
     t.string "included_info"
@@ -1934,7 +1821,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.boolean "ce_self_report_certification", default: false, null: false
   end
 
-  create_table "bo_configs", force: :cascade do |t|
+  create_table "bo_configs", id: :serial, force: :cascade do |t|
     t.integer "data_source_id"
     t.string "user"
     t.string "encrypted_pass"
@@ -2065,7 +1952,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "cas_availabilities", force: :cascade do |t|
+  create_table "cas_availabilities", id: :serial, force: :cascade do |t|
     t.integer "client_id", null: false
     t.datetime "available_at", precision: nil, null: false
     t.datetime "unavailable_at", precision: nil
@@ -2096,7 +1983,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["program_id"], name: "index_cas_ce_assessments_on_program_id"
   end
 
-  create_table "cas_enrollments", force: :cascade do |t|
+  create_table "cas_enrollments", id: :serial, force: :cascade do |t|
     t.integer "client_id"
     t.integer "enrollment_id"
     t.date "entry_date"
@@ -2108,7 +1995,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["enrollment_id"], name: "index_cas_enrollments_on_enrollment_id"
   end
 
-  create_table "cas_houseds", force: :cascade do |t|
+  create_table "cas_houseds", id: :serial, force: :cascade do |t|
     t.integer "client_id", null: false
     t.integer "cas_client_id", null: false
     t.integer "match_id", null: false
@@ -2117,7 +2004,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["client_id"], name: "index_cas_houseds_on_client_id"
   end
 
-  create_table "cas_non_hmis_client_histories", force: :cascade do |t|
+  create_table "cas_non_hmis_client_histories", id: :serial, force: :cascade do |t|
     t.integer "cas_client_id", null: false
     t.date "available_on", null: false
     t.date "unavailable_on"
@@ -2150,7 +2037,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["program_id"], name: "index_cas_referral_events_on_program_id"
   end
 
-  create_table "cas_reports", force: :cascade do |t|
+  create_table "cas_reports", id: :serial, force: :cascade do |t|
     t.integer "client_id", null: false
     t.integer "match_id", null: false
     t.integer "decision_id", null: false
@@ -2194,7 +2081,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["client_id", "match_id", "decision_id"], name: "index_cas_reports_on_client_id_and_match_id_and_decision_id", unique: true
   end
 
-  create_table "cas_vacancies", force: :cascade do |t|
+  create_table "cas_vacancies", id: :serial, force: :cascade do |t|
     t.integer "program_id", null: false
     t.integer "sub_program_id", null: false
     t.string "program_name"
@@ -2208,7 +2095,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["sub_program_id"], name: "index_cas_vacancies_on_sub_program_id"
   end
 
-  create_table "ce_assessments", force: :cascade do |t|
+  create_table "ce_assessments", id: :serial, force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "client_id", null: false
     t.string "type", null: false
@@ -2389,7 +2276,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["report_id"], name: "index_ce_performance_results_on_report_id"
   end
 
-  create_table "census_by_project_types", force: :cascade do |t|
+  create_table "census_by_project_types", id: :serial, force: :cascade do |t|
     t.integer "ProjectType", null: false
     t.date "date", null: false
     t.boolean "veteran", default: false, null: false
@@ -2434,7 +2321,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["year", "dataset", "name"], name: "index_census_variables_on_year_and_dataset_and_name", unique: true
   end
 
-  create_table "censuses", force: :cascade do |t|
+  create_table "censuses", id: :serial, force: :cascade do |t|
     t.integer "data_source_id", null: false
     t.integer "ProjectType", null: false
     t.string "OrganizationID", null: false
@@ -2459,7 +2346,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["enrollment_id", "processed_as"], name: "ch_enrollments_e_id_pro"
   end
 
-  create_table "children", force: :cascade do |t|
+  create_table "children", id: :serial, force: :cascade do |t|
     t.string "first_name"
     t.string "last_name"
     t.date "dob"
@@ -2469,7 +2356,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["family_id"], name: "index_children_on_family_id"
   end
 
-  create_table "chronics", force: :cascade do |t|
+  create_table "chronics", id: :serial, force: :cascade do |t|
     t.date "date", null: false
     t.integer "client_id", null: false
     t.integer "days_in_last_three_years"
@@ -2527,7 +2414,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["source_type", "source_id"], name: "index_client_contacts_on_source_type_and_source_id"
   end
 
-  create_table "client_matches", force: :cascade do |t|
+  create_table "client_matches", id: :serial, force: :cascade do |t|
     t.integer "source_client_id", null: false
     t.integer "destination_client_id", null: false
     t.integer "updated_by_id"
@@ -2543,7 +2430,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["updated_by_id"], name: "index_client_matches_on_updated_by_id"
   end
 
-  create_table "client_merge_histories", force: :cascade do |t|
+  create_table "client_merge_histories", id: :serial, force: :cascade do |t|
     t.integer "merged_into", null: false
     t.integer "merged_from", null: false
     t.datetime "created_at", precision: nil, null: false
@@ -2553,7 +2440,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["updated_at"], name: "index_client_merge_histories_on_updated_at"
   end
 
-  create_table "client_notes", force: :cascade do |t|
+  create_table "client_notes", id: :serial, force: :cascade do |t|
     t.integer "client_id", null: false
     t.integer "user_id", null: false
     t.string "type", null: false
@@ -2582,7 +2469,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["destination_client_id"], name: "index_client_roi_authorizations_on_destination_client_id", unique: true
   end
 
-  create_table "client_split_histories", force: :cascade do |t|
+  create_table "client_split_histories", id: :serial, force: :cascade do |t|
     t.integer "split_into", null: false
     t.integer "split_from", null: false
     t.datetime "created_at", precision: nil, null: false
@@ -2615,7 +2502,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["goal_id"], name: "index_coc_pit_counts_on_goal_id"
   end
 
-  create_table "cohort_client_changes", force: :cascade do |t|
+  create_table "cohort_client_changes", id: :serial, force: :cascade do |t|
     t.integer "cohort_client_id", null: false
     t.integer "cohort_id", null: false
     t.integer "user_id", null: false
@@ -2626,7 +2513,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["changed_at"], name: "index_cohort_client_changes_on_changed_at"
   end
 
-  create_table "cohort_client_notes", force: :cascade do |t|
+  create_table "cohort_client_notes", id: :serial, force: :cascade do |t|
     t.integer "cohort_client_id", null: false
     t.text "note"
     t.datetime "created_at", precision: nil, null: false
@@ -2638,7 +2525,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["deleted_at"], name: "index_cohort_client_notes_on_deleted_at"
   end
 
-  create_table "cohort_clients", force: :cascade do |t|
+  create_table "cohort_clients", id: :serial, force: :cascade do |t|
     t.integer "cohort_id", null: false
     t.integer "client_id", null: false
     t.datetime "created_at", precision: nil, null: false
@@ -2874,7 +2761,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["deleted_at"], name: "index_cohort_clients_on_deleted_at"
   end
 
-  create_table "cohort_column_options", force: :cascade do |t|
+  create_table "cohort_column_options", id: :serial, force: :cascade do |t|
     t.string "cohort_column", null: false
     t.integer "weight"
     t.string "value"
@@ -2896,7 +2783,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["cohort_id"], name: "index_cohort_tabs_on_cohort_id"
   end
 
-  create_table "cohorts", force: :cascade do |t|
+  create_table "cohorts", id: :serial, force: :cascade do |t|
     t.string "name", null: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -2937,7 +2824,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["project_group_id"], name: "index_cohorts_on_project_group_id"
   end
 
-  create_table "configs", force: :cascade do |t|
+  create_table "configs", id: :serial, force: :cascade do |t|
     t.boolean "project_type_override", default: true, null: false
     t.boolean "eto_api_available", default: false, null: false
     t.string "cas_available_method", default: "cas_flag", null: false
@@ -3034,7 +2921,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.string "rds_s3_integration_role_arn"
   end
 
-  create_table "contacts", force: :cascade do |t|
+  create_table "contacts", id: :serial, force: :cascade do |t|
     t.string "type", null: false
     t.integer "entity_id", null: false
     t.string "email", null: false
@@ -3233,7 +3120,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["updated_at"], name: "index_custom_imports_files_on_updated_at"
   end
 
-  create_table "dashboard_export_reports", force: :cascade do |t|
+  create_table "dashboard_export_reports", id: :serial, force: :cascade do |t|
     t.integer "file_id"
     t.integer "user_id"
     t.integer "job_id"
@@ -3244,7 +3131,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "completed_at", precision: nil
   end
 
-  create_table "data_monitorings", force: :cascade do |t|
+  create_table "data_monitorings", id: :serial, force: :cascade do |t|
     t.integer "resource_id", null: false
     t.date "census"
     t.date "calculated_on"
@@ -3260,7 +3147,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["type"], name: "index_data_monitorings_on_type"
   end
 
-  create_table "data_sources", force: :cascade do |t|
+  create_table "data_sources", id: :serial, force: :cascade do |t|
     t.string "name"
     t.string "file_path"
     t.datetime "last_imported_at", precision: nil
@@ -3295,7 +3182,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["source_type", "source_id"], name: "index_datasets_on_source"
   end
 
-  create_table "direct_financial_assistances", force: :cascade do |t|
+  create_table "direct_financial_assistances", id: :serial, force: :cascade do |t|
     t.integer "client_id"
     t.integer "user_id"
     t.date "provided_on"
@@ -3391,7 +3278,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id"], name: "index_eccovia_fetches_on_data_source_id"
   end
 
-  create_table "enrollment_change_histories", force: :cascade do |t|
+  create_table "enrollment_change_histories", id: :serial, force: :cascade do |t|
     t.integer "client_id", null: false
     t.date "on", null: false
     t.jsonb "residential"
@@ -3403,8 +3290,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["client_id"], name: "index_enrollment_change_histories_on_client_id"
   end
 
-  create_table "enrollment_extras", force: :cascade do |t|
-    t.integer "enrollment_id", null: false
+  create_table "enrollment_extras", id: :serial, force: :cascade do |t|
+    t.integer "enrollment_id"
     t.integer "vispdat_grand_total"
     t.date "vispdat_added_at"
     t.date "vispdat_started_at"
@@ -3439,7 +3326,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["hud_enrollment_id", "entry_date", "vispdat_ended_at", "project_name", "agency_name", "community", "data_source_id"], name: "idx_tpc_uniqueness", unique: true
   end
 
-  create_table "eto_api_configs", force: :cascade do |t|
+  create_table "eto_api_configs", id: :serial, force: :cascade do |t|
     t.integer "data_source_id", null: false
     t.jsonb "touchpoint_fields"
     t.jsonb "demographic_fields"
@@ -3457,7 +3344,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id"], name: "index_eto_api_configs_on_data_source_id"
   end
 
-  create_table "eto_client_lookups", force: :cascade do |t|
+  create_table "eto_client_lookups", id: :serial, force: :cascade do |t|
     t.integer "data_source_id", null: false
     t.integer "client_id", null: false
     t.string "enterprise_guid", null: false
@@ -3469,14 +3356,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id"], name: "index_eto_client_lookups_on_data_source_id"
   end
 
-  create_table "eto_subject_response_lookups", force: :cascade do |t|
+  create_table "eto_subject_response_lookups", id: :serial, force: :cascade do |t|
     t.integer "data_source_id", null: false
     t.integer "subject_id", null: false
     t.integer "response_id", null: false
     t.index ["subject_id"], name: "index_eto_subject_response_lookups_on_subject_id"
   end
 
-  create_table "eto_touch_point_lookups", force: :cascade do |t|
+  create_table "eto_touch_point_lookups", id: :serial, force: :cascade do |t|
     t.integer "data_source_id", null: false
     t.integer "client_id", null: false
     t.integer "subject_id", null: false
@@ -3488,14 +3375,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["data_source_id"], name: "index_eto_touch_point_lookups_on_data_source_id"
   end
 
-  create_table "eto_touch_point_response_times", force: :cascade do |t|
+  create_table "eto_touch_point_response_times", id: :serial, force: :cascade do |t|
     t.integer "touch_point_unique_identifier", null: false
     t.integer "response_unique_identifier", null: false
     t.datetime "response_last_updated", precision: nil, null: false
     t.integer "subject_unique_identifier", null: false
   end
 
-  create_table "exports", force: :cascade do |t|
+  create_table "exports", id: :serial, force: :cascade do |t|
     t.string "export_id"
     t.integer "user_id"
     t.date "start_date"
@@ -3613,7 +3500,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["requested_at"], name: "index_external_request_logs_on_requested_at"
   end
 
-  create_table "fake_data", force: :cascade do |t|
+  create_table "fake_data", id: :serial, force: :cascade do |t|
     t.string "environment", null: false
     t.text "map"
     t.datetime "created_at", precision: nil, null: false
@@ -3651,7 +3538,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["accurate_on", "geography", "geography_level", "measure"], name: "idx_fed_census_acc_on_geo_measure"
   end
 
-  create_table "files", force: :cascade do |t|
+  create_table "files", id: :serial, force: :cascade do |t|
     t.string "type", null: false
     t.string "file"
     t.string "content_type"
@@ -3776,7 +3663,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["transaction_id", "data_source_id"], name: "tx_id_ds_id_ft_idx", unique: true
   end
 
-  create_table "generate_service_history_batch_logs", force: :cascade do |t|
+  create_table "generate_service_history_batch_logs", id: :serial, force: :cascade do |t|
     t.integer "generate_service_history_log_id"
     t.integer "to_process"
     t.integer "updated"
@@ -3786,7 +3673,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
-  create_table "generate_service_history_log", force: :cascade do |t|
+  create_table "generate_service_history_log", id: :serial, force: :cascade do |t|
     t.datetime "started_at", precision: nil
     t.datetime "completed_at", precision: nil
     t.integer "to_delete"
@@ -3809,7 +3696,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["source_id", "source_type"], name: "gs_source_id_source_type_uniq", unique: true
   end
 
-  create_table "grades", force: :cascade do |t|
+  create_table "grades", id: :serial, force: :cascade do |t|
     t.string "type", null: false
     t.string "grade", null: false
     t.integer "percentage_low"
@@ -3823,7 +3710,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["type"], name: "index_grades_on_type"
   end
 
-  create_table "group_viewable_entities", force: :cascade do |t|
+  create_table "group_viewable_entities", id: :serial, force: :cascade do |t|
     t.integer "access_group_id", null: false
     t.integer "entity_id", null: false
     t.string "entity_type", null: false
@@ -4055,7 +3942,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_health_emergency_vaccinations_on_user_id"
   end
 
-  create_table "helps", force: :cascade do |t|
+  create_table "helps", id: :serial, force: :cascade do |t|
     t.string "controller_path", null: false
     t.string "action_name", null: false
     t.string "external_url"
@@ -5769,6 +5656,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["DateUpdated"], name: "hmis2022enrollments_SvKn"
     t.index ["DateUpdated"], name: "hmis2022enrollments_bIh3"
     t.index ["DateUpdated"], name: "hmis2022enrollments_tVoY"
+    t.index ["EnrollmentID", "PersonalID", "importer_log_id", "data_source_id"], name: "en_tt"
     t.index ["EnrollmentID", "PersonalID"], name: "hmis2022enrollments_6d0L"
     t.index ["EnrollmentID", "PersonalID"], name: "hmis2022enrollments_Dclz"
     t.index ["EnrollmentID", "PersonalID"], name: "hmis2022enrollments_Mz76"
@@ -5968,6 +5856,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["DateUpdated"], name: "hmis2022exits_noAP"
     t.index ["DateUpdated"], name: "hmis2022exits_vL1k"
     t.index ["EnrollmentID", "PersonalID", "importer_log_id", "data_source_id"], name: "hmis_2022_exit_e_id_compound"
+    t.index ["EnrollmentID", "PersonalID", "importer_log_id", "data_source_id"], name: "tt"
     t.index ["EnrollmentID"], name: "hmis2022exits_Af3i"
     t.index ["EnrollmentID"], name: "hmis2022exits_Cl49"
     t.index ["EnrollmentID"], name: "hmis2022exits_EVIM"
@@ -6687,10 +6576,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.string "AffiliationID"
     t.string "ProjectID"
     t.string "ResProjectID"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6713,10 +6602,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "AssessmentQuestionOrder"
     t.string "AssessmentQuestion"
     t.string "AssessmentAnswer"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6739,10 +6628,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.string "PersonalID"
     t.string "AssessmentResultType"
     t.string "AssessmentResult"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6766,10 +6655,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "AssessmentType"
     t.integer "AssessmentLevel"
     t.integer "PrioritizationStatus"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6797,10 +6686,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "ReceivesReferrals"
     t.date "CEParticipationStatusStartDate"
     t.date "CEParticipationStatusEndDate"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6859,10 +6748,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "OtherTheater"
     t.integer "MilitaryBranch"
     t.integer "DischargeStatus"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6894,10 +6783,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "LeaseOwn60Day"
     t.integer "MovedTwoOrMore"
     t.string "LocationDetails"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6932,10 +6821,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "ViralLoadSource"
     t.integer "AntiRetroviral"
     t.integer "DataCollectionStage"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -6965,10 +6854,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "EmploymentType"
     t.integer "NotEmployedReason"
     t.integer "DataCollectionStage"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7052,10 +6941,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "TranslationNeeded"
     t.integer "PreferredLanguage"
     t.string "PreferredLanguageDifferent"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7104,10 +6993,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.string "LocationCrisisOrPHHousing"
     t.integer "ReferralResult"
     t.date "ResultDate"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7164,10 +7053,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "InPersonIndividual"
     t.integer "InPersonGroup"
     t.integer "CMExitReason"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7200,7 +7089,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.string "SourceContactPhone"
     t.string "SourceContactExtension"
     t.string "SourceContactEmail"
-    t.datetime "ExportDate", precision: nil
+    t.datetime "ExportDate"
     t.date "ExportStartDate"
     t.date "ExportEndDate"
     t.string "SoftwareName"
@@ -7230,10 +7119,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.string "GrantID"
     t.date "StartDate"
     t.date "EndDate"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7265,10 +7154,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "PregnancyStatus"
     t.date "DueDate"
     t.integer "DataCollectionStage"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7291,10 +7180,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "HMISParticipationType"
     t.date "HMISParticipationStatusStartDate"
     t.date "HMISParticipationStatusEndDate"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7384,10 +7273,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "NoRyanWhiteReason"
     t.integer "ConnectionWithSOAR"
     t.integer "DataCollectionStage"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7425,10 +7314,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "ESBedType"
     t.date "InventoryStartDate"
     t.date "InventoryEndDate"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7451,10 +7340,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.string "OrganizationName"
     t.integer "VictimServiceProvider"
     t.string "OrganizationCommonName"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7481,10 +7370,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.string "State"
     t.string "Zip"
     t.integer "GeographyType"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7516,10 +7405,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "TargetPopulation"
     t.integer "HOPWAMedAssistedLivingFac"
     t.integer "PITCount"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7530,7 +7419,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
     t.boolean "should_import", default: true
-    t.boolean "expired"
     t.index ["DateUpdated"], name: "hmis2024projects_42d5"
     t.index ["ProjectID", "data_source_id"], name: "hmis_2024_projects-92c5"
     t.index ["ProjectID"], name: "hmis2024projects_42af"
@@ -7551,10 +7439,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.date "FAStartDate"
     t.date "FAEndDate"
     t.integer "ReferralOutcome"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7584,9 +7472,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.string "UserPhone"
     t.string "UserExtension"
     t.string "UserEmail"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7611,10 +7499,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "MostRecentEdStatus"
     t.integer "CurrentEdStatus"
     t.integer "DataCollectionStage"
-    t.datetime "DateCreated", precision: nil
-    t.datetime "DateUpdated", precision: nil
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
     t.string "UserID"
-    t.datetime "DateDeleted", precision: nil
+    t.datetime "DateDeleted"
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
@@ -7832,7 +7720,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["definition_id"], name: "index_hmis_assessment_details_on_definition_id"
   end
 
-  create_table "hmis_assessments", force: :cascade do |t|
+  create_table "hmis_assessments", id: :serial, force: :cascade do |t|
     t.integer "assessment_id", null: false
     t.integer "site_id", null: false
     t.string "site_name"
@@ -7896,7 +7784,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["created_by_id"], name: "index_hmis_client_alerts_on_created_by_id"
   end
 
-  create_table "hmis_client_attributes_defined_text", force: :cascade do |t|
+  create_table "hmis_client_attributes_defined_text", id: :serial, force: :cascade do |t|
     t.integer "client_id"
     t.integer "data_source_id"
     t.string "consent_form_status"
@@ -7926,7 +7814,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["retained_client_id"], name: "index_hmis_client_merge_histories_on_retained_client_id"
   end
 
-  create_table "hmis_clients", force: :cascade do |t|
+  create_table "hmis_clients", id: :serial, force: :cascade do |t|
     t.integer "client_id"
     t.text "response"
     t.datetime "created_at", precision: nil, null: false
@@ -10782,7 +10670,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
     t.integer "loader_id", null: false
-    t.boolean "expired"
     t.index ["ProjectID", "data_source_id"], name: "hmis_csv_2024_projects-92c5"
     t.index ["ProjectID"], name: "hmiscsv2024projects_42af"
   end
@@ -10974,14 +10861,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "overlapping_nbn"
     t.integer "overlapping_pre_move_in"
     t.integer "overlapping_post_move_in"
+    t.boolean "ch_at_most_recent_entry", default: false
+    t.boolean "ch_at_any_entry", default: false
     t.integer "veteran_status"
     t.string "ssn"
     t.integer "ssn_data_quality"
     t.integer "name_data_quality"
     t.integer "ethnicity"
     t.integer "reporting_age"
-    t.boolean "ch_at_most_recent_entry", default: false
-    t.boolean "ch_at_any_entry", default: false
     t.integer "woman"
     t.integer "man"
     t.integer "culturally_specific"
@@ -11069,6 +10956,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at", precision: nil
     t.integer "project_type"
+    t.boolean "ch_at_entry", default: false
     t.integer "project_id"
     t.string "household_type"
     t.integer "household_min_age"
@@ -11094,20 +10982,19 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.boolean "cash_income_as_expected_at_entry", default: false
     t.boolean "cash_income_as_expected_at_annual", default: false
     t.boolean "cash_income_as_expected_at_exit", default: false
-    t.boolean "ncb_from_any_source_at_entry_remove", default: false
-    t.boolean "ncb_from_any_source_at_annual_remove", default: false
-    t.boolean "ncb_from_any_source_at_exit_remove", default: false
+    t.integer "ncb_from_any_source_at_entry_remove"
+    t.integer "ncb_from_any_source_at_annual_remove"
+    t.integer "ncb_from_any_source_at_exit_remove"
     t.boolean "ncb_as_expected_at_entry", default: false
     t.boolean "ncb_as_expected_at_annual", default: false
     t.boolean "ncb_as_expected_at_exit", default: false
-    t.boolean "insurance_from_any_source_at_entry_remove", default: false
-    t.boolean "insurance_from_any_source_at_annual_remove", default: false
-    t.boolean "insurance_from_any_source_at_exit_remove", default: false
+    t.integer "insurance_from_any_source_at_entry_remove"
+    t.integer "insurance_from_any_source_at_annual_remove"
+    t.integer "insurance_from_any_source_at_exit_remove"
     t.boolean "insurance_as_expected_at_entry", default: false
     t.boolean "insurance_as_expected_at_annual", default: false
     t.boolean "insurance_as_expected_at_exit", default: false
     t.boolean "disability_at_entry_collected", default: false
-    t.boolean "ch_at_entry", default: false
     t.integer "previous_street_es_sh"
     t.datetime "entry_date_entered_at", precision: nil
     t.datetime "exit_date_entered_at", precision: nil
@@ -11383,7 +11270,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "deleted_at", precision: nil
     t.jsonb "backup_definition"
     t.boolean "managed_in_version_control", default: false
-    t.index ["identifier", "role", "version", "status"], name: "index_unique_identifiers_per_role", unique: true
     t.index ["identifier", "version"], name: "uidx_hmis_form_definitions_identifier", unique: true, where: "(deleted_at IS NULL)"
     t.index ["identifier"], name: "uidx_hmis_form_definitions_one_draft_per_identifier", unique: true, where: "(((status)::text = 'draft'::text) AND (deleted_at IS NULL))"
     t.index ["identifier"], name: "uidx_hmis_form_definitions_one_published_per_identifier", unique: true, where: "(((status)::text = 'published'::text) AND (deleted_at IS NULL))"
@@ -11426,9 +11312,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.integer "current_living_situation_id"
     t.bigint "ce_assessment_id"
     t.bigint "ce_event_id"
+    t.jsonb "backup_values"
     t.string "owner_type", null: false
     t.bigint "owner_id", null: false
-    t.jsonb "backup_values"
     t.bigint "clh_location_id"
     t.index ["ce_assessment_id"], name: "index_hmis_form_processors_on_ce_assessment_id"
     t.index ["ce_event_id"], name: "index_hmis_form_processors_on_ce_event_id"
@@ -11446,7 +11332,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["substance_use_disorder_id"], name: "index_hmis_form_processors_on_substance_use_disorder_id"
   end
 
-  create_table "hmis_forms", force: :cascade do |t|
+  create_table "hmis_forms", id: :serial, force: :cascade do |t|
     t.integer "client_id"
     t.text "api_response"
     t.string "name"
@@ -11591,7 +11477,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["value"], name: "index_hmis_scan_card_codes_on_value", unique: true
   end
 
-  create_table "hmis_staff", force: :cascade do |t|
+  create_table "hmis_staff", id: :serial, force: :cascade do |t|
     t.integer "site_id"
     t.string "first_name"
     t.string "last_name"
@@ -11626,7 +11512,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_hmis_staff_assignments_on_user_id"
   end
 
-  create_table "hmis_staff_x_clients", force: :cascade do |t|
+  create_table "hmis_staff_x_clients", id: :serial, force: :cascade do |t|
     t.integer "staff_id"
     t.integer "client_id"
     t.integer "relationship_id"
@@ -12059,7 +11945,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_housing_resolution_plans_on_user_id"
   end
 
-  create_table "hud_chronics", force: :cascade do |t|
+  create_table "hud_chronics", id: :serial, force: :cascade do |t|
     t.date "date"
     t.integer "client_id"
     t.integer "months_in_last_three_years"
@@ -12075,7 +11961,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["client_id"], name: "index_hud_chronics_on_client_id"
   end
 
-  create_table "hud_create_logs", force: :cascade do |t|
+  create_table "hud_create_logs", id: :serial, force: :cascade do |t|
     t.string "hud_key", null: false
     t.string "personal_id", null: false
     t.string "type", null: false
@@ -12870,7 +12756,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["universe_membership_type", "universe_membership_id"], name: "index_universe_type_and_id"
   end
 
-  create_table "identify_duplicates_log", force: :cascade do |t|
+  create_table "identify_duplicates_log", id: :serial, force: :cascade do |t|
     t.datetime "started_at", precision: nil
     t.datetime "completed_at", precision: nil
     t.integer "to_match"
@@ -12880,7 +12766,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
-  create_table "import_logs", force: :cascade do |t|
+  create_table "import_logs", id: :serial, force: :cascade do |t|
     t.integer "data_source_id"
     t.string "files"
     t.text "import_errors"
@@ -13311,7 +13197,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["service_history_enrollment_id"], name: "index_ma_yya_report_clients_on_service_history_enrollment_id"
   end
 
-  create_table "new_service_history", force: :cascade do |t|
+  create_table "new_service_history", id: :serial, force: :cascade do |t|
     t.integer "client_id", null: false
     t.integer "data_source_id"
     t.date "date", null: false
@@ -13377,7 +13263,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["project_id"], name: "index_nightly_census_by_projects_on_project_id"
   end
 
-  create_table "non_hmis_uploads", force: :cascade do |t|
+  create_table "non_hmis_uploads", id: :serial, force: :cascade do |t|
     t.integer "data_source_id"
     t.integer "user_id"
     t.integer "delayed_job_id"
@@ -13392,6 +13278,18 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "completed_at", precision: nil
     t.datetime "deleted_at", precision: nil
     t.index ["deleted_at"], name: "index_non_hmis_uploads_on_deleted_at"
+  end
+
+  create_table "organization_47_tes", id: false, force: :cascade do |t|
+    t.integer "source_id"
+  end
+
+  create_table "organization_48_tes", id: false, force: :cascade do |t|
+    t.integer "source_id"
+  end
+
+  create_table "organization_49_tes", id: false, force: :cascade do |t|
+    t.integer "source_id"
   end
 
   create_table "performance_measurement_goals", force: :cascade do |t|
@@ -13728,7 +13626,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["report_id"], name: "index_pm_results_on_report_id"
   end
 
-  create_table "project_data_quality", force: :cascade do |t|
+  create_table "project_data_quality", id: :serial, force: :cascade do |t|
     t.integer "project_id"
     t.string "type"
     t.date "start"
@@ -13748,7 +13646,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["project_id"], name: "index_project_data_quality_on_project_id"
   end
 
-  create_table "project_groups", force: :cascade do |t|
+  create_table "project_groups", id: :serial, force: :cascade do |t|
     t.string "name", null: false
     t.datetime "created_at", precision: nil
     t.datetime "updated_at", precision: nil
@@ -13860,7 +13758,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["updated_at"], name: "index_project_pass_fails_projects_on_updated_at"
   end
 
-  create_table "project_project_groups", force: :cascade do |t|
+  create_table "project_project_groups", id: :serial, force: :cascade do |t|
     t.integer "project_group_id"
     t.integer "project_id"
     t.datetime "created_at", precision: nil
@@ -14300,13 +14198,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["project_type"], name: "project_type_rsh_index"
   end
 
-  create_table "recurring_hmis_export_links", force: :cascade do |t|
+  create_table "recurring_hmis_export_links", id: :serial, force: :cascade do |t|
     t.integer "hmis_export_id"
     t.integer "recurring_hmis_export_id"
     t.date "exported_at"
   end
 
-  create_table "recurring_hmis_exports", force: :cascade do |t|
+  create_table "recurring_hmis_exports", id: :serial, force: :cascade do |t|
     t.integer "every_n_days"
     t.string "reporting_range"
     t.integer "reporting_range_days"
@@ -14358,7 +14256,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["slug"], name: "index_remote_credentials_on_slug", unique: true
   end
 
-  create_table "report_definitions", force: :cascade do |t|
+  create_table "report_definitions", id: :serial, force: :cascade do |t|
     t.string "report_group"
     t.text "url"
     t.text "name"
@@ -14372,7 +14270,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "deleted_at", precision: nil
   end
 
-  create_table "report_tokens", force: :cascade do |t|
+  create_table "report_tokens", id: :serial, force: :cascade do |t|
     t.integer "report_id", null: false
     t.integer "contact_id", null: false
     t.string "token", null: false
@@ -14384,7 +14282,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["report_id"], name: "index_report_tokens_on_report_id"
   end
 
-  create_table "secure_files", force: :cascade do |t|
+  create_table "secure_files", id: :serial, force: :cascade do |t|
     t.string "name"
     t.string "file"
     t.string "content_type"
@@ -14443,7 +14341,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["record_type", "date", "data_source_id", "organization_id", "project_id", "project_type", "project_tracking_method"], name: "index_she_date_ds_org_proj_proj_type"
   end
 
-  create_table "service_history_services", primary_key: ["id", "date"], force: :cascade do |t|
+  create_table "service_history_services", primary_key: ["id", "date"], options: "PARTITION BY RANGE (date)", force: :cascade do |t|
     t.bigserial "id", null: false
     t.integer "service_history_enrollment_id", null: false
     t.string "record_type", limit: 50, null: false
@@ -14455,1096 +14353,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["date", "service_history_enrollment_id"], name: "service_history_services_part_date_service_history_enrollme_idx", unique: true
-  end
-
-  create_table "service_history_services_2000", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2000_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2000_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2000_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2000_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2000_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2000_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2000_date_project_type"
-    t.index ["service_history_enrollment_id", "date"], name: "test_shs", unique: true
-    t.index ["service_history_enrollment_id"], name: "index_shs_2000_en_id_only"
-  end
-
-  create_table "service_history_services_2001", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2001_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2001_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2001_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2001_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2001_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2001_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2001_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2001_en_id_only"
-  end
-
-  create_table "service_history_services_2002", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2002_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2002_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2002_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2002_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2002_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2002_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2002_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2002_en_id_only"
-  end
-
-  create_table "service_history_services_2003", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2003_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2003_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2003_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2003_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2003_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2003_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2003_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2003_en_id_only"
-  end
-
-  create_table "service_history_services_2004", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2004_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2004_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2004_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2004_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2004_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2004_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2004_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2004_en_id_only"
-  end
-
-  create_table "service_history_services_2005", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2005_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2005_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2005_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2005_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2005_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2005_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2005_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2005_en_id_only"
-  end
-
-  create_table "service_history_services_2006", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2006_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2006_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2006_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2006_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2006_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2006_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2006_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2006_en_id_only"
-  end
-
-  create_table "service_history_services_2007", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2007_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2007_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2007_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2007_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2007_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2007_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2007_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2007_en_id_only"
-  end
-
-  create_table "service_history_services_2008", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2008_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2008_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2008_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2008_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2008_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2008_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2008_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2008_en_id_only"
-  end
-
-  create_table "service_history_services_2009", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2009_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2009_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2009_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2009_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2009_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2009_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2009_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2009_en_id_only"
-  end
-
-  create_table "service_history_services_2010", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2010_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2010_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2010_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2010_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2010_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2010_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2010_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2010_en_id_only"
-  end
-
-  create_table "service_history_services_2011", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2011_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2011_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2011_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2011_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2011_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2011_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2011_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2011_en_id_only"
-  end
-
-  create_table "service_history_services_2012", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2012_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2012_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2012_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2012_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2012_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2012_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2012_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2012_en_id_only"
-  end
-
-  create_table "service_history_services_2013", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2013_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2013_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2013_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2013_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2013_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2013_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2013_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2013_en_id_only"
-  end
-
-  create_table "service_history_services_2014", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2014_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2014_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2014_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2014_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2014_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2014_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2014_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2014_en_id_only"
-  end
-
-  create_table "service_history_services_2015", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2015_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2015_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2015_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2015_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2015_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2015_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2015_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2015_en_id_only"
-  end
-
-  create_table "service_history_services_2016", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2016_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2016_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2016_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2016_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2016_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2016_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2016_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2016_en_id_only"
-  end
-
-  create_table "service_history_services_2017", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2017_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2017_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2017_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2017_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2017_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2017_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2017_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2017_en_id_only"
-  end
-
-  create_table "service_history_services_2018", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2018_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2018_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2018_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2018_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2018_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2018_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2018_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2018_en_id_only"
-  end
-
-  create_table "service_history_services_2019", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2019_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2019_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2019_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2019_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2019_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2019_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2019_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2019_en_id_only"
-  end
-
-  create_table "service_history_services_2020", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2020_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2020_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2020_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2020_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2020_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2020_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2020_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2020_en_id_only"
-  end
-
-  create_table "service_history_services_2021", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2021_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2021_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2021_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2021_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2021_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2021_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2021_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2021_en_id_only"
-  end
-
-  create_table "service_history_services_2022", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2022_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2022_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2022_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2022_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2022_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2022_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2022_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2022_en_id_only"
-  end
-
-  create_table "service_history_services_2023", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2023_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2023_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2023_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2023_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2023_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2023_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2023_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2023_en_id_only"
-  end
-
-  create_table "service_history_services_2024", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2024_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2024_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2024_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2024_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2024_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2024_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2024_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2024_en_id_only"
-  end
-
-  create_table "service_history_services_2025", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2025_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2025_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2025_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2025_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2025_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2025_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2025_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2025_en_id_only"
-  end
-
-  create_table "service_history_services_2026", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2026_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2026_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2026_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2026_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2026_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2026_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2026_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2026_en_id_only"
-  end
-
-  create_table "service_history_services_2027", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2027_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2027_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2027_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2027_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2027_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2027_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2027_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2027_en_id_only"
-  end
-
-  create_table "service_history_services_2028", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2028_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2028_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2028_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2028_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2028_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2028_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2028_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2028_en_id_only"
-  end
-
-  create_table "service_history_services_2029", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2029_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2029_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2029_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2029_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2029_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2029_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2029_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2029_en_id_only"
-  end
-
-  create_table "service_history_services_2030", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2030_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2030_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2030_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2030_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2030_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2030_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2030_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2030_en_id_only"
-  end
-
-  create_table "service_history_services_2031", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2031_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2031_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2031_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2031_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2031_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2031_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2031_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2031_en_id_only"
-  end
-
-  create_table "service_history_services_2032", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2032_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2032_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2032_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2032_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2032_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2032_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2032_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2032_en_id_only"
-  end
-
-  create_table "service_history_services_2033", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2033_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2033_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2033_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2033_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2033_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2033_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2033_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2033_en_id_only"
-  end
-
-  create_table "service_history_services_2034", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2034_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2034_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2034_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2034_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2034_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2034_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2034_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2034_en_id_only"
-  end
-
-  create_table "service_history_services_2035", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2035_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2035_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2035_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2035_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2035_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2035_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2035_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2035_en_id_only"
-  end
-
-  create_table "service_history_services_2036", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2036_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2036_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2036_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2036_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2036_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2036_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2036_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2036_en_id_only"
-  end
-
-  create_table "service_history_services_2037", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2037_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2037_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2037_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2037_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2037_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2037_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2037_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2037_en_id_only"
-  end
-
-  create_table "service_history_services_2038", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2038_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2038_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2038_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2038_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2038_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2038_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2038_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2038_en_id_only"
-  end
-
-  create_table "service_history_services_2039", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2039_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2039_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2039_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2039_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2039_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2039_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2039_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2039_en_id_only"
-  end
-
-  create_table "service_history_services_2040", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2040_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2040_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2040_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2040_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2040_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2040_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2040_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2040_en_id_only"
-  end
-
-  create_table "service_history_services_2041", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2041_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2041_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2041_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2041_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2041_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2041_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2041_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2041_en_id_only"
-  end
-
-  create_table "service_history_services_2042", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2042_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2042_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2042_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2042_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2042_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2042_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2042_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2042_en_id_only"
-  end
-
-  create_table "service_history_services_2043", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2043_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2043_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2043_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2043_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2043_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2043_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2043_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2043_en_id_only"
-  end
-
-  create_table "service_history_services_2044", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2044_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2044_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2044_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2044_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2044_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2044_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2044_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2044_en_id_only"
-  end
-
-  create_table "service_history_services_2045", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2045_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2045_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2045_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2045_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2045_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2045_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2045_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2045_en_id_only"
-  end
-
-  create_table "service_history_services_2046", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2046_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2046_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2046_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2046_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2046_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2046_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2046_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2046_en_id_only"
-  end
-
-  create_table "service_history_services_2047", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2047_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2047_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2047_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2047_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2047_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2047_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2047_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2047_en_id_only"
-  end
-
-  create_table "service_history_services_2048", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2048_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2048_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2048_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2048_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2048_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2048_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2048_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2048_en_id_only"
-  end
-
-  create_table "service_history_services_2049", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2049_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2049_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2049_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2049_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2049_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2049_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2049_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2049_en_id_only"
-  end
-
-  create_table "service_history_services_2050", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["client_id", "date", "record_type"], name: "index_shs_2050_date_client_id"
-    t.index ["client_id", "service_history_enrollment_id"], name: "index_shs_2050_c_id_en_id"
-    t.index ["client_id"], name: "index_shs_2050_client_id_only"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_2050_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_2050_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_2050_on_id", unique: true
-    t.index ["project_type", "date", "record_type"], name: "index_shs_2050_date_project_type"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2050_en_id_only"
-  end
-
-  create_table "service_history_services_remainder", primary_key: ["id", "date"], force: :cascade do |t|
-    t.bigint "id", default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id", null: false
-    t.string "record_type", limit: 50, null: false
-    t.date "date", null: false
-    t.integer "age", limit: 2
-    t.integer "service_type", limit: 2
-    t.integer "client_id"
-    t.integer "project_type", limit: 2
-    t.boolean "homeless"
-    t.boolean "literally_homeless"
-    t.index ["date", "client_id"], name: "index_shs_1900_date_client_id"
-    t.index ["date", "project_type"], name: "index_shs_1900_date_project_type"
-    t.index ["date", "service_history_enrollment_id"], name: "index_shs_1900_date_en_id", unique: true
-    t.index ["date"], name: "index_shs_1900_date_brin", using: :brin
-    t.index ["id"], name: "index_service_history_services_remainder_on_id", unique: true
   end
 
   create_table "service_history_services_was_for_inheritance", id: :bigint, default: -> { "nextval('service_history_services_id_seq'::regclass)" }, force: :cascade do |t|
@@ -15971,15 +14779,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.boolean "final_enrollment", default: false, null: false
     t.date "move_in_date"
     t.integer "days_to_move_in"
-    t.integer "days_to_exit_after_move_in"
     t.boolean "chronic_at_entry"
     t.integer "disabling_condition"
+    t.integer "days_to_exit_after_move_in"
     t.index ["client_id", "report_id"], name: "c_r_system_pathways_enrollments_idx"
     t.index ["enrollment_id"], name: "index_system_pathways_enrollments_on_enrollment_id"
     t.index ["project_id"], name: "index_system_pathways_enrollments_on_project_id"
   end
 
-  create_table "taggings", force: :cascade do |t|
+  create_table "taggings", id: :serial, force: :cascade do |t|
     t.integer "tag_id"
     t.integer "taggable_id"
     t.string "taggable_type"
@@ -15998,7 +14806,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["tagger_id"], name: "index_taggings_on_tagger_id"
   end
 
-  create_table "tags", force: :cascade do |t|
+  create_table "tags", id: :serial, force: :cascade do |t|
     t.string "name"
     t.integer "taggings_count", default: 0
     t.index ["name"], name: "index_tags_on_name", unique: true
@@ -16119,7 +14927,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_tx_research_exports_on_user_id"
   end
 
-  create_table "uploads", force: :cascade do |t|
+  create_table "uploads", id: :serial, force: :cascade do |t|
     t.integer "data_source_id"
     t.integer "user_id"
     t.string "file", null: false
@@ -16153,7 +14961,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_user_client_permissions_on_user_id"
   end
 
-  create_table "user_clients", force: :cascade do |t|
+  create_table "user_clients", id: :serial, force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "client_id", null: false
     t.boolean "confidential", default: false, null: false
@@ -16168,7 +14976,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_user_clients_on_user_id"
   end
 
-  create_table "user_viewable_entities", force: :cascade do |t|
+  create_table "user_viewable_entities", id: :serial, force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "entity_id", null: false
     t.string "entity_type", null: false
@@ -16187,7 +14995,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_va_check_histories_on_user_id"
   end
 
-  create_table "verification_sources", force: :cascade do |t|
+  create_table "verification_sources", id: :serial, force: :cascade do |t|
     t.integer "client_id"
     t.string "location"
     t.datetime "created_at", precision: nil
@@ -16220,7 +15028,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["project_id"], name: "index_versions_on_project_id"
   end
 
-  create_table "vispdats", force: :cascade do |t|
+  create_table "vispdats", id: :serial, force: :cascade do |t|
     t.integer "client_id"
     t.string "nickname"
     t.integer "language_answer"
@@ -16332,7 +15140,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_vispdats_on_user_id"
   end
 
-  create_table "warehouse_client_service_history", force: :cascade do |t|
+  create_table "warehouse_client_service_history", id: :serial, force: :cascade do |t|
     t.integer "client_id", null: false
     t.integer "data_source_id"
     t.date "date", null: false
@@ -16379,7 +15187,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["record_type"], name: "index_warehouse_client_service_history_on_record_type"
   end
 
-  create_table "warehouse_clients", force: :cascade do |t|
+  create_table "warehouse_clients", id: :serial, force: :cascade do |t|
     t.string "id_in_source", null: false
     t.integer "data_source_id"
     t.datetime "proposed_at", precision: nil
@@ -16401,7 +15209,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["source_id"], name: "index_warehouse_clients_on_source_id", unique: true
   end
 
-  create_table "warehouse_clients_processed", force: :cascade do |t|
+  create_table "warehouse_clients_processed", id: :serial, force: :cascade do |t|
     t.integer "client_id"
     t.string "routine"
     t.datetime "created_at", precision: nil, null: false
@@ -16447,7 +15255,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["routine"], name: "index_warehouse_clients_processed_on_routine"
   end
 
-  create_table "warehouse_reports", force: :cascade do |t|
+  create_table "warehouse_reports", id: :serial, force: :cascade do |t|
     t.json "parameters"
     t.json "data"
     t.string "type"
@@ -16462,7 +15270,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.datetime "deleted_at", precision: nil
   end
 
-  create_table "weather", force: :cascade do |t|
+  create_table "weather", id: :serial, force: :cascade do |t|
     t.string "url", null: false
     t.text "body", null: false
     t.datetime "created_at", precision: nil, null: false
@@ -16470,14 +15278,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["url"], name: "index_weather_on_url"
   end
 
-  create_table "whitelisted_projects_for_clients", force: :cascade do |t|
+  create_table "whitelisted_projects_for_clients", id: :serial, force: :cascade do |t|
     t.integer "data_source_id", null: false
     t.string "ProjectID", null: false
     t.datetime "created_at", precision: nil
     t.datetime "updated_at", precision: nil
   end
 
-  create_table "youth_case_managements", force: :cascade do |t|
+  create_table "youth_case_managements", id: :serial, force: :cascade do |t|
     t.integer "client_id"
     t.integer "user_id"
     t.date "engaged_on"
@@ -16492,7 +15300,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["deleted_at"], name: "index_youth_case_managements_on_deleted_at"
   end
 
-  create_table "youth_exports", force: :cascade do |t|
+  create_table "youth_exports", id: :serial, force: :cascade do |t|
     t.integer "user_id", null: false
     t.jsonb "options"
     t.jsonb "headers"
@@ -16508,7 +15316,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["user_id"], name: "index_youth_exports_on_user_id"
   end
 
-  create_table "youth_follow_ups", force: :cascade do |t|
+  create_table "youth_follow_ups", id: :serial, force: :cascade do |t|
     t.integer "client_id"
     t.integer "user_id"
     t.date "contacted_on"
@@ -16524,7 +15332,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["deleted_at"], name: "index_youth_follow_ups_on_deleted_at"
   end
 
-  create_table "youth_intakes", force: :cascade do |t|
+  create_table "youth_intakes", id: :serial, force: :cascade do |t|
     t.integer "client_id"
     t.integer "user_id"
     t.string "type"
@@ -16573,7 +15381,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
     t.index ["updated_at"], name: "index_youth_intakes_on_updated_at"
   end
 
-  create_table "youth_referrals", force: :cascade do |t|
+  create_table "youth_referrals", id: :serial, force: :cascade do |t|
     t.integer "client_id"
     t.integer "user_id"
     t.date "referred_on"
@@ -16627,58 +15435,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
   add_foreign_key "inbound_api_configurations", "internal_systems"
   add_foreign_key "project_pass_fails_clients", "project_pass_fails", on_delete: :cascade
   add_foreign_key "project_pass_fails_projects", "project_pass_fails", on_delete: :cascade
-  add_foreign_key "service_history_services_2000", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2001", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2002", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2003", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2004", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2005", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2006", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2007", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2008", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2009", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2010", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2011", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2012", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2013", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2014", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2015", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2016", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2017", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2018", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2019", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2020", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2021", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2022", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2023", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2024", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2025", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2026", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2027", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2028", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2029", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2030", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2031", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2032", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2033", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2034", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2035", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2036", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2037", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2038", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2039", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2040", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2041", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2042", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2043", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2044", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2045", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2046", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2047", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2048", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2049", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2050", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_remainder", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_was_for_inheritance", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "talentlms_completed_trainings", "talentlms_courses", column: "course_id"
   add_foreign_key "talentlms_courses", "talentlms_configs", column: "config_id"
@@ -16750,24 +15506,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
        LEFT JOIN census_values vals ON (((locs.full_geoid)::text = (vals.full_geoid)::text)))
        LEFT JOIN census_variables vars ON (((vals.census_variable_id = vars.id) AND (vars.internal_name IS NOT NULL))))
        LEFT JOIN census_groups g ON ((((vars.census_group)::text = (g.name)::text) AND (vars.year = g.year) AND ((vars.dataset)::text = (g.dataset)::text))));
-  SQL
-  create_view "client_chronicity_periods", sql_definition: <<-SQL
-      SELECT dc.id AS client_id,
-      LEAST(enr."EntryDate", dsb."InformationDate") AS chronic_start,
-      COALESCE(ex."ExitDate", NULL::date) AS chronic_end
-     FROM ((((("Client" dc
-       JOIN warehouse_clients wc ON ((wc.destination_id = dc.id)))
-       JOIN "Client" sc ON (((sc.id = wc.source_id) AND (sc."DateDeleted" IS NULL))))
-       JOIN "Enrollment" enr ON ((((enr."PersonalID")::text = (sc."PersonalID")::text) AND (enr.data_source_id = sc.data_source_id) AND (enr."DateDeleted" IS NULL))))
-       JOIN "Disabilities" dsb ON ((((dsb."EnrollmentID")::text = (enr."EnrollmentID")::text) AND (dsb.data_source_id = enr.data_source_id) AND (dsb."DateDeleted" IS NULL))))
-       LEFT JOIN "Exit" ex ON ((((ex."EnrollmentID")::text = (enr."EnrollmentID")::text) AND (ex.data_source_id = enr.data_source_id) AND (ex."DateDeleted" IS NULL))))
-    WHERE ((dc.data_source_id = 1) AND (dc."DateDeleted" IS NULL) AND ((enr."DisablingCondition" = 1) OR ((dsb."DisabilityResponse" = ANY (ARRAY[1, 2, 3])) AND ((dsb."DisabilityType" = ANY (ARRAY[6, 8])) OR (dsb."IndefiniteAndImpairs" = 1)))))
-  UNION ALL
-   SELECT "Client".id AS client_id,
-      "Client".disability_verified_on AS chronic_start,
-      NULL::date AS chronic_end
-     FROM "Client"
-    WHERE (("Client".disability_verified_on IS NOT NULL) AND ("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id = 1));
   SQL
   create_view "client_searchable_names", sql_definition: <<-SQL
       SELECT "Client".id AS client_id,
@@ -17380,49 +16118,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
        JOIN "Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Services"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
     WHERE ("Services"."DateDeleted" IS NULL);
   SQL
-  create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
-      SELECT id,
-      service_history_enrollment_id,
-      record_type,
-      date,
-      age,
-      service_type,
-      client_id,
-      project_type,
-      homeless,
-      literally_homeless
-     FROM service_history_services_was_for_inheritance;
-  SQL
-  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
-  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
-  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
-  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
-
-  create_view "todd_stats", sql_definition: <<-SQL
-      SELECT relname,
-      round((
-          CASE
-              WHEN ((n_live_tup + n_dead_tup) = 0) THEN (0)::double precision
-              ELSE ((n_dead_tup)::double precision / ((n_dead_tup + n_live_tup))::double precision)
-          END * (100.0)::double precision)) AS "Frag %",
-      n_live_tup AS "Live rows",
-      n_dead_tup AS "Dead rows",
-      n_mod_since_analyze AS "Rows modified since analyze",
-          CASE
-              WHEN (COALESCE(last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_vacuum
-              ELSE COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
-          END AS last_vacuum,
-          CASE
-              WHEN (COALESCE(last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_analyze
-              ELSE COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
-          END AS last_analyze,
-      (vacuum_count + autovacuum_count) AS vacuum_count,
-      (analyze_count + autoanalyze_count) AS analyze_count
-     FROM pg_stat_all_tables
-    WHERE (schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
-  SQL
   create_view "service_history", sql_definition: <<-SQL
       SELECT service_history_services.id,
       service_history_services.client_id,
@@ -17493,20 +16188,51 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_06_145315) do
       service_history_enrollments.head_of_household
      FROM service_history_enrollments;
   SQL
+  create_view "todd_stats", sql_definition: <<-SQL
+      SELECT relname,
+      round((
+          CASE
+              WHEN ((n_live_tup + n_dead_tup) = 0) THEN (0)::double precision
+              ELSE ((n_dead_tup)::double precision / ((n_dead_tup + n_live_tup))::double precision)
+          END * (100.0)::double precision)) AS "Frag %",
+      n_live_tup AS "Live rows",
+      n_dead_tup AS "Dead rows",
+      n_mod_since_analyze AS "Rows modified since analyze",
+          CASE
+              WHEN (COALESCE(last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_vacuum
+              ELSE COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
+          END AS last_vacuum,
+          CASE
+              WHEN (COALESCE(last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_analyze
+              ELSE COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
+          END AS last_analyze,
+      (vacuum_count + autovacuum_count) AS vacuum_count,
+      (analyze_count + autoanalyze_count) AS analyze_count
+     FROM pg_stat_all_tables
+    WHERE (schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
+  SQL
+  create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
+      SELECT id,
+      service_history_enrollment_id,
+      record_type,
+      date,
+      age,
+      service_type,
+      client_id,
+      project_type,
+      homeless,
+      literally_homeless
+     FROM service_history_services;
+  SQL
+  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
+  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
+  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
+  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
+
 
   create_trigger :service_history_service_insert_trigger, sql_definition: <<-SQL
       CREATE TRIGGER service_history_service_insert_trigger BEFORE INSERT ON public.service_history_services_was_for_inheritance FOR EACH ROW EXECUTE FUNCTION service_history_service_insert_trigger()
-  SQL
-  create_trigger :no_modify_client_searchable_names, sql_definition: <<-SQL
-      CREATE TRIGGER no_modify_client_searchable_names INSTEAD OF DELETE OR UPDATE ON public.client_searchable_names FOR EACH ROW EXECUTE FUNCTION prevent_modification()
-  SQL
-  create_trigger :no_modify_hmis_households, sql_definition: <<-SQL
-      CREATE TRIGGER no_modify_hmis_households INSTEAD OF DELETE OR UPDATE ON public.hmis_households FOR EACH ROW EXECUTE FUNCTION prevent_modification()
-  SQL
-  create_trigger :no_modify_project_access_group_members, sql_definition: <<-SQL
-      CREATE TRIGGER no_modify_project_access_group_members INSTEAD OF DELETE OR UPDATE ON public.project_access_group_members FOR EACH ROW EXECUTE FUNCTION prevent_modification()
-  SQL
-  create_trigger :no_modify_project_collection_members, sql_definition: <<-SQL
-      CREATE TRIGGER no_modify_project_collection_members INSTEAD OF DELETE OR UPDATE ON public.project_collection_members FOR EACH ROW EXECUTE FUNCTION prevent_modification()
   SQL
 end
