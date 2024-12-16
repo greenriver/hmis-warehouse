@@ -20,8 +20,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis service setup'
   include_context 'file upload setup'
 
-  TIME_FMT = '%Y-%m-%d %T.%3N'.freeze
-
   let(:today) { Date.current }
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:c2) { create :hmis_hud_client_complete, data_source: ds1 }
