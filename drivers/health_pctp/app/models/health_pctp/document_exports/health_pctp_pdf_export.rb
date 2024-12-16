@@ -80,16 +80,16 @@ module HealthPctp::DocumentExports
           footer_template: footer_html,
         )
 
-        pdf = CombinePDF.new
-        pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(coverpage_html, options: options_no_header), allow_optional_content: true)
-        pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(html, options: options), allow_optional_content: true)
-        pdf << CombinePDF.parse(careplan.health_file.content, allow_optional_content: true) if careplan.health_file.present?
+        pdf = []
+        pdf << PdfGenerator.new.render_pdf(coverpage_html, options: options_no_header)
+        pdf << PdfGenerator.new.render_pdf(html, options: options)
+        pdf << careplan.health_file.content if careplan.health_file.present?
 
         file_name = "#{Translation.translate('Care Plan / Patient-Centered Treatment Plan')} #{DateTime.current.to_fs(:db)}"
         PdfGenerator.new.perform(
           html: '',
           file_name: file_name,
-          pdf_data: pdf.to_pdf,
+          pdf_data: Pdfunite.join(pdf) { |obj| obj },
         ) do |io|
           self.pdf_file = io
         end
