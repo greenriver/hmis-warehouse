@@ -8,7 +8,6 @@
     "ExportID",
     data_source_id,
     id,
-    hud_coc_code,
     source_hash,
     pending_date_deleted,
     "Geocode",
@@ -18,9 +17,6 @@
     "City",
     "State",
     "Zip",
-    geography_type_override,
-    geocode_override,
-    zip_override,
     manual_entry
    FROM public."ProjectCoC"
   WHERE ("DateDeleted" IS NULL)
