@@ -1,5 +1,11 @@
 class ConvertIntegerPksToBigint < ActiveRecord::Migration[7.0]
   def up
+    safety_assured {_up}
+  end
+
+  protected
+
+  def up
     # Create the function to generate migration SQL
     execute <<-SQL
       CREATE OR REPLACE FUNCTION generate_pk_migration()
@@ -30,7 +36,8 @@ class ConvertIntegerPksToBigint < ActiveRecord::Migration[7.0]
               AND tc.constraint_type = 'PRIMARY KEY'
               AND c.data_type = 'integer'
           ) LOOP
-              result := result || format('SELECT ''Processing ' || %L || '''; ', r.table_name);
+              -- Add progress message
+              RAISE NOTICE 'Processing table: %', r.table_name;
 
               -- Drop existing primary key constraint
               result := result || format('ALTER TABLE %I.%I DROP CONSTRAINT %I_pkey; ',
@@ -57,18 +64,11 @@ class ConvertIntegerPksToBigint < ActiveRecord::Migration[7.0]
     SQL
 
     # Execute the generated migration SQL
-    execute "BEGIN;"
     execute "SELECT generate_pk_migration() AS migration_sql" do |result|
       execute(result.first['migration_sql']) if result.first['migration_sql'].present?
     end
-    execute "COMMIT;"
 
     # Clean up the function
     execute "DROP FUNCTION IF EXISTS generate_pk_migration();"
-  end
-
-  def down
-    raise ActiveRecord::IrreversibleMigration,
-      "Converting bigint primary keys back to integer is unsafe as it may cause data loss"
   end
 end
