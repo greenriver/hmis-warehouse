@@ -22,7 +22,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   # Related records that were created/updated from this form
   # Note: these do not have dependent:destroy because we need to be able to clean up forms without
-  # deleting records during migration. Deletion of related records happens with `destroy_dependent_records!`
+  # deleting records during migration. Deletion of related records happens with `destroy_related_records!`
   belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true, autosave: true
   belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true, autosave: true
   belongs_to :physical_disability, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
