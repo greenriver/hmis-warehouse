@@ -27,7 +27,15 @@ class RemoveDeprecatedOverrides < ActiveRecord::Migration[7.0]
       ['ProjectCoC', 'zip_override', :string],
     ].each do |table, field, _type|
       # remove_column table, field, type, if_exists: true
-      rename_column table, field, "deleted_#{field}" if column_exists?(table, field)
+      reversible do |dir|
+        deleted_field = "deleted_#{field}"
+        dir.up do
+          rename_column table, field, deleted_field if column_exists?(table, field)
+        end
+        dir.down do
+          rename_column table, deleted_field, field if column_exists?(table, deleted_field)
+        end
+      end
     end
   end
 
