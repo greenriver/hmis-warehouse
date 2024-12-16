@@ -23,15 +23,15 @@ module Hmis::Hud::Processors
       raise ArgumentError, "Unexpected attribute for Geolocation: #{attribute_name}" unless attribute_name == 'coordinates'
 
       # if 'Geolocation.coordinates: nil' was submitted, destroy the clh location record
-      return destroy_record if value.nil? || value.empty?
+      return destroy_record unless value.present?
 
-      attribute_value = clean_coordinate_value(value)
+      attribute_value = clean_coordinate_value(value).compact_blank
       latitude = attribute_value[:latitude]
       longitude = attribute_value[:longitude]
       not_collected_reason = attribute_value[:notCollectedReason]
 
       return destroy_record if not_collected_reason # not collected reason is returned from external PIT form
-      return destroy_record if latitude.nil? && longitude.nil?
+      return destroy_record unless latitude && longitude
 
       @processor.send(factory_name).assign_attributes(lat: latitude, lon: longitude)
     end
