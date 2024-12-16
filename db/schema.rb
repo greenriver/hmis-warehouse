@@ -10,11 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_12_05_185449) do
+ActiveRecord::Schema[7.0].define(version: 2024_12_16_164805) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
   enable_extension "hstore"
   enable_extension "plpgsql"
+
+  create_function :prevent_modification, sql_definition: <<-'SQL'
+      CREATE OR REPLACE FUNCTION public.prevent_modification()
+       RETURNS trigger
+       LANGUAGE plpgsql
+      AS $function$
+      BEGIN
+        RETURN NULL;
+      END;
+      $function$
+  SQL
 
   create_table "access_control_uploads", force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -1030,5 +1041,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_05_185449) do
      FROM (hmis_activity_logs
        JOIN hmis_activity_logs_enrollments ON ((hmis_activity_logs_enrollments.activity_log_id = hmis_activity_logs.id)))
     GROUP BY hmis_activity_logs_enrollments.enrollment_id, hmis_activity_logs_enrollments.project_id, hmis_activity_logs.user_id;
+  SQL
+
+  create_trigger :no_modify_hmis_user_client_activity_log_summaries, sql_definition: <<-SQL
+      CREATE TRIGGER no_modify_hmis_user_client_activity_log_summaries INSTEAD OF DELETE OR UPDATE ON public.hmis_user_client_activity_log_summaries FOR EACH ROW EXECUTE FUNCTION prevent_modification()
+  SQL
+  create_trigger :no_modify_hmis_user_enrollment_activity_log_summaries, sql_definition: <<-SQL
+      CREATE TRIGGER no_modify_hmis_user_enrollment_activity_log_summaries INSTEAD OF DELETE OR UPDATE ON public.hmis_user_enrollment_activity_log_summaries FOR EACH ROW EXECUTE FUNCTION prevent_modification()
   SQL
 end
