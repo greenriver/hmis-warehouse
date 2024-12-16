@@ -73,6 +73,64 @@ RSpec.describe Talentlms::Facade, type: :model do
     end
   end
 
+  describe 'active_user?' do
+    it 'returns true if user is active and no api_response data is included' do
+      expect(lms.active_user?(config, lms_login)).to be_truthy
+    end
+
+    it 'returns true if user is active in provided api response' do
+      api_stub_response = lms.get_lms_account_data(config, lms_login)
+      expect(lms.active_user?(nil, nil, api_stub_response)).to be_truthy
+    end
+
+    it 'returns false if user is not active' do
+      stub_so_api_user_is_inactive(config: config)
+      expect(lms.active_user?(config, lms_login)).to be_falsey
+    end
+
+    it 'returns false if user is active in provided api response' do
+      stub_so_api_user_is_inactive(config: config)
+      api_stub_response = lms.get_lms_account_data(config, lms_login)
+      expect(lms.active_user?(nil, nil, api_stub_response)).to be_falsey
+    end
+  end
+
+  describe 'get_lms_account_data' do
+    it 'returns api data when no login data is sent' do
+      expected = {
+        'email' => DEFAULT_LMS_EMAIL,
+        'login' => DEFAULT_LMS_USERNAME,
+        'id' => DEFAULT_LMS_USER_ID,
+        'status' => 'active',
+      }
+      response = lms.get_lms_account_data(config, nil)
+      expect(response).to eq(expected)
+    end
+
+    it 'returns api data when local data exists that does not match api data' do
+      stub_so_api_user_does_not_matches_local_user(config: config)
+      expected = {
+        'email' => UPDATED_LMS_EMAIL,
+        'login' => UPDATED_LMS_USERNAME,
+        'id' => UPDATED_LMS_USER_ID,
+        'status' => 'active',
+      }
+      response = lms.get_lms_account_data(config, lms_login)
+      expect(response).to eq(expected)
+    end
+
+    it 'returns api data when local data exists that matches api data' do
+      expected = {
+        'email' => DEFAULT_LMS_EMAIL,
+        'login' => DEFAULT_LMS_USERNAME,
+        'id' => DEFAULT_LMS_USER_ID,
+        'status' => 'active',
+      }
+      response = lms.get_lms_account_data(config, lms_login)
+      expect(response).to eq(expected)
+    end
+  end
+
   describe 'sync_lms_account' do
     it 'local data remains the same when user data matches api data' do
       login = Talentlms::Login.where(user: user).first
@@ -360,6 +418,7 @@ RSpec.describe Talentlms::Facade, type: :model do
         'email' => DEFAULT_LMS_EMAIL,
         'login' => DEFAULT_LMS_USERNAME,
         'id' => DEFAULT_LMS_USER_ID,
+        'status' => 'active',
       },
     )
 
@@ -371,6 +430,7 @@ RSpec.describe Talentlms::Facade, type: :model do
         'email' => DEFAULT_LMS_EMAIL,
         'login' => DEFAULT_LMS_USERNAME,
         'id' => DEFAULT_LMS_USER_ID,
+        'status' => 'active',
       },
     )
   end
@@ -395,6 +455,21 @@ RSpec.describe Talentlms::Facade, type: :model do
         'email' => UPDATED_LMS_EMAIL,
         'login' => UPDATED_LMS_USERNAME,
         'id' => UPDATED_LMS_USER_ID,
+        'status' => 'active',
+      },
+    )
+  end
+
+  def stub_so_api_user_is_inactive(config:)
+    allow(config).to receive(:post).with(
+      'users',
+      anything,
+    ).and_return(
+      {
+        'email' => UPDATED_LMS_EMAIL,
+        'login' => UPDATED_LMS_USERNAME,
+        'id' => UPDATED_LMS_USER_ID,
+        'status' => 'This is anything but "active"',
       },
     )
   end

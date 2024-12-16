@@ -30,6 +30,10 @@
     %p 
       Domain:
       = link_to config.domain, "https://#{config.domain}"
+      - if ! lms.active_user?(config)
+        .font-italic
+          %i.icon-warning
+          No active account found in this domain
     .table-responsive
       %table.table.table-striped
         %thead
