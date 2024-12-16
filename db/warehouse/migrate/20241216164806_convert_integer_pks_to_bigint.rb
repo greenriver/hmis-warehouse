@@ -1,9 +1,23 @@
 class ConvertIntegerPksToBigint < ActiveRecord::Migration[7.0]
   def up
+    return unless runnable?
+
     safety_assured {_up}
   end
 
+  def down
+    return unless runnable?
+
+    raise ActiveRecord::IrreversibleMigration,
+      "Converting bigint primary keys back to integer is unsafe as it may cause data loss"
+  end
+
   protected
+
+  def runnable?
+    # we handle this manually in production and staging
+    Rails.env.development? || Rails.env.test?
+  end
 
   def up
     # Create the function to generate migration SQL
