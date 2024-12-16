@@ -11,14 +11,16 @@ module CustomImportsBostonCommunityOfOrigin::GrdaWarehouse::Hud
     included do
       has_one :client_location, class_name: 'ClientLocationHistory::Location', as: :source
 
+      # Where LastPermanentZIP is present, OR the data source is HMIS.
+      # HMIS Enrollments are included so that they don't get deleted in the below "orphaned locations" cleanup.
+      # This scope should probably only be used for maintain_location_histories.
       scope :with_location_data, -> do
-        where.not(LastPermanentZIP: nil)
+        where.not(LastPermanentZIP: nil).or(where(data_source_id: GrdaWarehouse::DataSource.hmis.select(:id)))
       end
 
       def self.maintain_location_histories
         # Remove orphaned locations
         ClientLocationHistory::Location.where(source_type: 'GrdaWarehouse::Hud::Enrollment').
-          where.not(enrollment_id: nil). # hacky way to exclude HMIS-collected locations. HMIS doesn't set enrollment_id, only polymorphic source.
           where.not(source_id: with_location_data.select(:id)).delete_all
 
         # LastPermanentZIP is only required for VA enrollments, and may be removed in the future,
