@@ -12,7 +12,7 @@
           %th{style: 'width: 20%;'} Status
           %th{style: 'width: 40%;'} Limits
           %th Included Questions
-          %th Delete
+          %th Actions
       %tbody
         - @reports.each do |report|
           %tr
@@ -38,6 +38,9 @@
               - unless report.running?
                 = link_to path_for_report(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: 'Are you sure you want to delete this report?' }  do
                   %i.icon-cross
+              .clone.mt-2
+                = link_to "#{path_for_new}?#{{filter: report.options}.to_query}", class: 'btn btn-sm btn-secondary btn-icon-only' do
+                  %i.icon-copy
   = render 'common/pagination_bottom', item_name: 'report'
 - else
   %p.none-found No reports found
