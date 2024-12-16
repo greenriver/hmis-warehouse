@@ -67,13 +67,15 @@ module HudReports::StartToMoveInQuestion
       cond = lengths.fetch(label).and(a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date))
       [label, cond]
     end
+    # This is the largest amount of days being reported on so we can set a limit in the total.
+    max_days_in_query = 730
 
     # Make sure totals only include time to move in dates within the ranges being reported on
     ret.merge(
-      'Total (persons moved into housing)' => a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date).and(a_t[:time_to_move_in].between(0..730)),
+      'Total (persons moved into housing)' => a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date).and(a_t[:time_to_move_in].between(0..max_days_in_query)),
       'Average length of time to housing' => :average,
       'Persons who were exited without move-in' => a_t[:hoh_move_in_date].eq(nil),
-      'Total persons' => a_t[:time_to_move_in].between(0..730).or(a_t[:hoh_move_in_date].eq(nil)),
+      'Total persons' => a_t[:time_to_move_in].between(0..max_days_in_query).or(a_t[:hoh_move_in_date].eq(nil)),
     ).freeze
   end
 end

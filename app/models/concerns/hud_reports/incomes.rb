@@ -210,8 +210,7 @@ module HudReports::Incomes
                   and(
                     # Responses of 8 & 9 are expected to have total income nil.
                     # These are filtered out to prevent duplicates. They are captured in a different row.
-                    a_t["income_from_any_source_at_#{suffix}"].not_eq(8).
-                    and(a_t["income_from_any_source_at_#{suffix}"].not_eq(9)),
+                    a_t["income_from_any_source_at_#{suffix}"].not_in([8, 9]),
                   ),
                 )),
           },
