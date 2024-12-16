@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -3405,6 +3405,9 @@ CREATE TABLE public."Inventory" (
     "OtherBedInventory" integer,
     "TargetPopulation" integer,
     "ESBedType" integer,
+    deleted_coc_code_override character varying,
+    deleted_inventory_start_date_override date,
+    deleted_inventory_end_date_override date,
     manual_entry boolean DEFAULT false
 );
 
@@ -3650,6 +3653,7 @@ CREATE TABLE public."ProjectCoC" (
     "ExportID" character varying,
     data_source_id integer,
     id integer NOT NULL,
+    deleted_hud_coc_code character varying,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "Geocode" character varying(6),
@@ -3659,6 +3663,9 @@ CREATE TABLE public."ProjectCoC" (
     "City" character varying,
     "State" character varying(2),
     "Zip" character varying(5),
+    deleted_geography_type_override integer,
+    deleted_geocode_override character varying(6),
+    deleted_zip_override character varying,
     manual_entry boolean DEFAULT false
 );
 
@@ -3772,6 +3779,8 @@ CREATE TABLE public."Project" (
     "ExportID" character varying,
     data_source_id integer,
     id integer NOT NULL,
+    deleted_act_as_project_type integer,
+    deleted_hud_continuum_funded boolean,
     confidential boolean DEFAULT false NOT NULL,
     computed_project_type integer,
     "OperatingStartDate" date,
@@ -3782,12 +3791,17 @@ CREATE TABLE public."Project" (
     source_hash character varying,
     housing_type_override integer,
     uses_move_in_date boolean DEFAULT false NOT NULL,
+    deleted_operating_start_date_override date,
     pending_date_deleted timestamp without time zone,
     "HMISParticipatingProject" integer,
     active_homeless_status_override boolean DEFAULT false,
     include_in_days_homeless_override boolean DEFAULT false,
     extrapolate_contacts boolean DEFAULT false NOT NULL,
     combine_enrollments boolean DEFAULT false,
+    deleted_hmis_participating_project_override integer,
+    deleted_target_population_override integer,
+    deleted_tracking_method_override integer,
+    deleted_operating_end_date_override date,
     "HOPWAMedAssistedLivingFac" integer,
     description character varying,
     contact_information character varying,
