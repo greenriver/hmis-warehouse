@@ -81,17 +81,9 @@ module MaYyaReport
       report_start_date = filter.start
       report_end_date = filter.end
 
-      g_population = a_t[:reported_previous_period].eq(false).
-        and(a_t[:head_of_household].eq(true)).
-        and(
-          a_t[:at_risk_of_homelessness].eq(true).
-            and(Arel.sql(
-                  json_contains(:subsequent_current_living_situations,
-                                [215, 206, 207, 225, 204, 205, 329, 314, 332, 336, 335, 435, 410, 421, 411]),
-                )),
-        ).
-        or(a_t[:currently_homeless].eq(true).and(a_t[:rehoused_on].between(report_start_date..report_end_date)).
-          and(a_t[:subsequent_current_living_situations].not_eq([])))
+      # G. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing (YTD should be unduplicated and match F2a)
+      g_population = a_t[:currently_homeless].eq(true).
+        and(a_t[:rehoused_on].between(report_start_date..report_end_date))
 
       {
         A1a: a_t[:referral_source].eq(7).and(a_t[:currently_homeless].eq(true)),
@@ -162,7 +154,9 @@ module MaYyaReport
                 json_contains_text(:flex_funds, 'Other'),
               )),
 
-        TotalYYAServed: a_t[:currently_homeless].eq(true).or(a_t[:at_risk_of_homelessness].eq(true)),
+        # NOTE: currently_homeless and at_risk_of_homelessness are mutually exclusive
+        TotalYYAServedHomeless: a_t[:currently_homeless].eq(true),
+        TotalYYAServedPrevention: a_t[:at_risk_of_homelessness].eq(true),
 
         # No longer included in FY2024 spec, leaving until we confirm it is no longer necessary
         # C1: nil,
@@ -217,8 +211,7 @@ module MaYyaReport
                 json_contains(:subsequent_current_living_situations, HudUtility2024.permanent_situations(as: :current) + HudUtility2024.temporary_situations(as: :current) + HudUtility2024.institutional_situations(as: :current) - [302]), # Excludes 302: Transitional housing for homeless persons (including homeless youth)
               )),
 
-        F2a: a_t[:currently_homeless].eq(true).
-          and(a_t[:rehoused_on].between(report_start_date..report_end_date)), # "Report Once" should handled because reporting periods don't overlap
+        F2a: g_population, # "Report Once" should handled because reporting periods don't overlap
         F2b: a_t[:currently_homeless].eq(true).
           and(a_t[:rehoused_on].between(report_start_date..report_end_date)).
           and(a_t[:subsequent_current_living_situations].not_eq([])),
@@ -251,8 +244,10 @@ module MaYyaReport
 
     def label(key)
       case key
-      when :TotalYYAServed
-        'Total YYA Served'
+      when :TotalYYAServedHomeless
+        'Total YYA Served: Homeless/Rehousing'
+      when :TotalYYAServedPrevention
+        'Total YYA Served: Prevention'
       else
         key.to_s.underscore.titleize
       end
@@ -260,7 +255,7 @@ module MaYyaReport
 
     private def lgbtq_query
       # Report defines LGBTQ as:
-      #   SexualOrientiation = gay(2), lesbian(3), bisexual(4), questioning(5), OR
+      #   SexualOrientation = gay(2), lesbian(3), bisexual(4), questioning(5), OR
       #   Gender = transgender(5)
       a_t[:sexual_orientation].in([2, 3, 4, 5]).or(a_t[:gender].eq(5))
     end
@@ -376,6 +371,8 @@ module MaYyaReport
         A5l: 'Number of YYA who received assistance with Cell phone costs',
         A5m: 'Number of YYA who received assistance with Food/groceries',
         A5n: 'Number of YYA who received assistance with Other costs',
+        TotalYYAServedHomeless: 'Number of unduplicated YYA served (update each quarter)',
+        TotalYYAServedPrevention: 'Number of unduplicated YYA served (update each quarter)',
         # C1: 'Number of Pilot Program  students receiving Transitional Housing & Case Management services',
         # C3: 'Number of College students not officially enrolled in the campus pilot program that are receiving services',
         D1a: 'Number of YYA served who were Under 18',
