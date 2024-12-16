@@ -188,6 +188,22 @@ RSpec.describe 'geolocation processing', type: :model do
         expect(form_processor.clh_location.processed_at).to be_present
         expect(record.clh_location).to be_present
       end
+
+      it 'location should not be deleted during clean-up' do
+        hud_values = {
+          'informationDate' => today.strftime('%Y-%m-%d'),
+          'Geolocation.coordinates' => { 'latitude': 40.0001, 'longitude': -75.0002 },
+        }
+        form_processor.hud_values = hud_values
+        form_processor.run!(user: hmis_user)
+        expect do
+          form_processor.save!
+        end.to change(ClientLocationHistory::Location, :count).by(1)
+
+        expect do
+          GrdaWarehouse::Hud::Enrollment.maintain_location_histories
+        end.not_to change(ClientLocationHistory::Location, :count)
+      end
     end
 
     describe 'when re-processing existing CurrentLivingSituation' do
