@@ -35,12 +35,12 @@
                 - else
                   = link_to question_label, path_for_question_result(question, report: report), class: 'btn btn-secondary btn-sm mb-2 ml-2', data: { toggle: :tooltip, title: @generator.describe_table(question), html: 'true' }
             %td
+              - filter = report.options
+              - items = [{ link_to: { path: "#{path_for_new}?#{{filter: filter}.to_query}"}, class: ['btn', 'btn-sm', 'btn-secondary'], icon: :copy, label: 'New report from this universe'}]
               - unless report.running?
-                = link_to path_for_report(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: 'Are you sure you want to delete this report?' }  do
-                  %i.icon-cross
-              .clone.mt-2
-                = link_to "#{path_for_new}?#{{filter: report.options}.to_query}", class: 'btn btn-sm btn-secondary btn-icon-only' do
-                  %i.icon-copy
+                - items << { link_to: { path: path_for_report(report), method: :delete, data: {confirm: "Are you sure you want to delete this report?"}}, class: ['btn', 'btn-sm', 'btn-danger'], label: 'Delete report'}
+              = render 'common/action_menu_or_button', items: items
+
   = render 'common/pagination_bottom', item_name: 'report'
 - else
   %p.none-found No reports found
