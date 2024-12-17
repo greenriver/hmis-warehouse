@@ -2032,6 +2032,7 @@ Allowed values for CustomDataElementDefinition.type
 enum CustomDataElementType {
   boolean
   date
+  file
   float
   integer
   json
@@ -2048,6 +2049,7 @@ type CustomDataElementValue {
   user: ApplicationUser
   valueBoolean: Boolean
   valueDate: ISO8601Date
+  valueFile: File
   valueFloat: Float
   valueInteger: Int
   valueJson: JsonObject
@@ -2862,10 +2864,6 @@ enum Destination {
 Represents direct upload credentials
 """
 type DirectUpload {
-  """
-  Created blob record ID
-  """
-  blobId: ID! @deprecated(reason: "Deprecated in favor of signed_blob_id")
   filename: String!
 
   """
@@ -4036,7 +4034,6 @@ type File {
   enrollment: Enrollment
   enrollmentId: ID
   expirationDate: ISO8601Date
-  fileBlobId: ID @deprecated(reason: "Removing unused blob ID")
   id: ID!
   name: String!
   ownFile: Boolean!
@@ -4081,6 +4078,7 @@ type FormDefinition {
   rawDefinition: JsonObject!
   role: FormRole!
   status: FormStatus!
+  supportsSaveInProgress: Boolean!
   system: Boolean!
   title: String!
   updatedBy: ApplicationUser

@@ -380,15 +380,11 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
 
     # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recnAJsqhnXlGmmZG
     # Not counting children with HoH or adult in CH calculation
-    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recT9z9YkbQtWwAmm
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recT9z9YkbQtWwAmm
     it 'Q25b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q25b',
-        skip: [
-          'B4', # expected '323.0000' (323), got '322.0000' (322)
-          'D4', # expected '70.0000' (70), got '69.0000' (69)
-        ],
       )
     end
 

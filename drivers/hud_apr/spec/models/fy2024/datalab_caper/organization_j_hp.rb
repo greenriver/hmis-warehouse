@@ -324,14 +324,6 @@ RSpec.shared_context 'datalab organization j hp caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q24a',
-        skip: [
-          'B6', # expected '26.0000' (26), got '0.0000' (0)
-          'C6', # expected '2.0000' (2), got '0.0000' (0)
-          'D6', # expected '24.0000' (24), got '0.0000' (0)
-          'B7', # expected '24.0000' (24), got '0.0000' (0)
-          'C7', # expected '1.0000' (1), got '0.0000' (0)
-          'D7', # expected '23.0000' (23), got '0.0000' (0)
-        ],
       )
     end
 
