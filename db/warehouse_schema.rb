@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
+ActiveRecord::Schema[7.0].define(version: 2024_12_16_202228) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
   enable_extension "hstore"
@@ -282,7 +282,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.string "source_hash"
     t.datetime "pending_date_deleted", precision: nil
     t.index ["AffiliationID", "data_source_id"], name: "index_Affiliation_on_AffiliationID_and_data_source_id", unique: true
@@ -308,7 +308,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 32, null: false
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "pending_date_deleted", precision: nil
     t.string "source_hash"
     t.boolean "synthetic", default: false
@@ -331,7 +331,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 32, null: false
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "pending_date_deleted", precision: nil
     t.string "source_hash"
     t.index ["AssessmentID", "data_source_id", "PersonalID", "EnrollmentID", "AssessmentQuestionID"], name: "assessment_q_a_id_ds_id_p_id_en_id_aq_id"
@@ -351,7 +351,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 32, null: false
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "pending_date_deleted", precision: nil
     t.string "source_hash"
     t.index ["AssessmentID", "data_source_id", "PersonalID", "EnrollmentID", "AssessmentResultID"], name: "assessment_r_a_id_ds_id_p_id_en_id_ar_id"
@@ -375,7 +375,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "DateDeleted", precision: nil
     t.string "UserID"
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.date "pending_date_deleted"
     t.string "source_hash"
     t.index ["CEParticipationID"], name: "index_CEParticipation_on_CEParticipationID"
@@ -421,7 +421,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "disability_verified_on", precision: nil
     t.datetime "housing_assistance_network_released_on", precision: nil
     t.boolean "sync_with_cas", default: false, null: false
@@ -442,14 +442,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.boolean "api_update_in_process", default: false, null: false
     t.datetime "api_update_started_at", precision: nil
     t.datetime "api_last_updated_at", precision: nil
-    t.integer "creator_id"
+    t.bigint "creator_id"
     t.boolean "cspech_eligible", default: false
     t.date "consent_form_signed_on"
     t.integer "vispdat_prioritization_days_homeless"
     t.boolean "generate_history_pdf", default: false
     t.boolean "congregate_housing", default: false
     t.boolean "sober_housing", default: false
-    t.integer "consent_form_id"
+    t.bigint "consent_form_id"
     t.integer "rrh_assessment_score"
     t.boolean "ssvf_eligible", default: false, null: false
     t.boolean "rrh_desired", default: false, null: false
@@ -586,7 +586,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "disability_verified_on", precision: nil
     t.datetime "housing_assistance_network_released_on", precision: nil
     t.boolean "sync_with_cas", default: false, null: false
@@ -607,14 +607,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.boolean "api_update_in_process", default: false, null: false
     t.datetime "api_update_started_at", precision: nil
     t.datetime "api_last_updated_at", precision: nil
-    t.integer "creator_id"
+    t.bigint "creator_id"
     t.boolean "cspech_eligible", default: false
     t.date "consent_form_signed_on"
     t.integer "vispdat_prioritization_days_homeless"
     t.boolean "generate_history_pdf", default: false
     t.boolean "congregate_housing", default: false
     t.boolean "sober_housing", default: false
-    t.integer "consent_form_id"
+    t.bigint "consent_form_id"
     t.integer "rrh_assessment_score"
     t.boolean "ssvf_eligible", default: false, null: false
     t.boolean "rrh_desired", default: false, null: false
@@ -689,11 +689,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 32, null: false
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "pending_date_deleted", precision: nil
     t.string "source_hash"
     t.integer "CLSSubsidyType"
-    t.integer "verified_by_project_id"
+    t.bigint "verified_by_project_id"
     t.index ["CurrentLivingSitID", "data_source_id"], name: "cur_liv_sit_cur_id_ds_id"
     t.index ["CurrentLivingSitID", "data_source_id"], name: "cur_liv_sit_sit_id_ds_id", unique: true
     t.index ["PersonalID", "EnrollmentID", "data_source_id", "CurrentLivingSitID"], name: "cur_liv_sit_p_id_en_id_ds_id_cur_id"
@@ -707,7 +707,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 32, null: false
     t.date "AssessmentDate", null: false
     t.integer "DataCollectionStage", null: false, comment: "One of the HMIS 5.03.1, or 99 for local use"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "DateCreated", precision: nil, null: false
     t.datetime "DateUpdated", precision: nil, null: false
     t.datetime "DateDeleted", precision: nil
@@ -756,7 +756,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "AddressID", null: false
     t.string "PersonalID", null: false
     t.string "UserID", limit: 32, null: false
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "DateCreated", precision: nil, null: false
     t.datetime "DateUpdated", precision: nil, null: false
     t.datetime "DateDeleted", precision: nil
@@ -770,7 +770,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "PersonalID", null: false
     t.string "UserID", limit: 32, null: false
     t.date "InformationDate", null: false
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "DateCreated", precision: nil, null: false
     t.datetime "DateUpdated", precision: nil, null: false
     t.datetime "DateDeleted", precision: nil
@@ -784,7 +784,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "ContactPointID", null: false
     t.string "PersonalID", null: false
     t.string "UserID", limit: 32, null: false
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "DateCreated", precision: nil, null: false
     t.datetime "DateUpdated", precision: nil, null: false
     t.datetime "DateDeleted", precision: nil
@@ -802,7 +802,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "CustomClientNameID", null: false
     t.string "PersonalID", null: false
     t.string "UserID", limit: 32, null: false
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "DateCreated", precision: nil, null: false
     t.datetime "DateUpdated", precision: nil, null: false
     t.datetime "DateDeleted", precision: nil
@@ -819,7 +819,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "key", null: false, comment: "Machine-readable key for this type of data element. Will be used by the FormDefinition that collects/displays it."
     t.string "label", null: false, comment: "Human-readable label to use when displaying this type of data element."
     t.boolean "repeats", default: false, null: false, comment: "Whether multiple values are allowed per record."
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.string "UserID", limit: 32, null: false
     t.datetime "DateCreated", precision: nil, null: false
     t.datetime "DateUpdated", precision: nil, null: false
@@ -845,7 +845,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.text "value_text"
     t.date "value_date"
     t.jsonb "value_json"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.string "UserID", limit: 32, null: false
     t.datetime "DateCreated", precision: nil, null: false
     t.datetime "DateUpdated", precision: nil, null: false
@@ -859,7 +859,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "ProjectID", null: false
     t.string "UserID", limit: 32, null: false
     t.date "InformationDate", null: false
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "DateCreated", precision: nil, null: false
     t.datetime "DateUpdated", precision: nil, null: false
     t.datetime "DateDeleted", precision: nil
@@ -868,7 +868,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   create_table "CustomServiceCategories", force: :cascade do |t|
     t.string "name", null: false, comment: "Name of service category (eg Financial Assistance)"
     t.string "UserID", limit: 32, null: false
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "DateCreated", precision: nil, null: false
     t.datetime "DateUpdated", precision: nil, null: false
     t.datetime "DateDeleted", precision: nil
@@ -880,7 +880,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "hud_record_type", comment: "Only applicable if this is a HUD service"
     t.integer "hud_type_provided", comment: "Only applicable if this is a HUD service"
     t.string "UserID", limit: 32, null: false
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "DateCreated", precision: nil, null: false
     t.datetime "DateUpdated", precision: nil, null: false
     t.datetime "DateDeleted", precision: nil
@@ -894,7 +894,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "PersonalID", null: false
     t.string "UserID", limit: 32, null: false
     t.date "DateProvided", null: false
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.bigint "custom_service_type_id", comment: "Reference to the type of service rendered"
     t.string "service_name", comment: "Name of service rendered (for export)"
     t.datetime "DateCreated", precision: nil, null: false
@@ -934,7 +934,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.string "source_hash"
     t.datetime "pending_date_deleted", precision: nil
     t.integer "AntiRetroviral"
@@ -971,7 +971,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.string "source_hash"
     t.datetime "pending_date_deleted", precision: nil
     t.index ["DateCreated"], name: "employment_education_date_created"
@@ -1071,7 +1071,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.integer "LOSUnderThreshold"
     t.integer "PreviousStreetESSH"
     t.integer "UrgentReferral"
@@ -1158,7 +1158,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.string "HouseholdID", limit: 32
     t.string "source_hash"
     t.datetime "pending_date_deleted", precision: nil
@@ -1189,7 +1189,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 32, null: false
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "pending_date_deleted", precision: nil
     t.string "source_hash"
     t.boolean "synthetic", default: false
@@ -1227,7 +1227,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.integer "ExchangeForSex"
     t.integer "ExchangeForSexPastThreeMonths"
     t.integer "CountOfExchangeForSex"
@@ -1290,7 +1290,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "ExportPeriodType"
     t.integer "ExportDirective"
     t.integer "HashStatus"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.integer "SourceType"
     t.date "effective_export_end_date"
     t.string "source_hash"
@@ -1313,7 +1313,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.string "source_hash"
     t.datetime "pending_date_deleted", precision: nil
     t.string "OtherFunder"
@@ -1343,7 +1343,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.date "InformationDate"
     t.string "Address2"
     t.integer "GeographyType"
@@ -1373,7 +1373,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "DateDeleted", precision: nil
     t.string "UserID"
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.date "pending_date_deleted"
     t.string "source_hash"
     t.index ["HMISParticipationID"], name: "index_HMISParticipation_on_HMISParticipationID"
@@ -1400,7 +1400,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.string "source_hash"
     t.datetime "pending_date_deleted", precision: nil
     t.integer "LifeValue"
@@ -1469,7 +1469,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "OtherBenefitsSource"
     t.string "OtherBenefitsSourceIdentify"
     t.integer "InsuranceFromAnySource"
-    t.integer "Medicaid"
+    t.bigint "Medicaid"
     t.integer "NoMedicaidReason"
     t.integer "Medicare"
     t.integer "NoMedicareReason"
@@ -1495,7 +1495,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.integer "IndianHealthServices"
     t.integer "NoIndianHealthServicesReason"
     t.integer "OtherInsurance"
@@ -1547,7 +1547,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.string "source_hash"
     t.datetime "pending_date_deleted", precision: nil
     t.integer "CHVetBedInventory"
@@ -1579,7 +1579,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.boolean "dmh", default: false, null: false
     t.string "source_hash"
     t.datetime "pending_date_deleted", precision: nil
@@ -1611,7 +1611,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.boolean "confidential", default: false, null: false
     t.integer "computed_project_type"
     t.date "OperatingStartDate"
@@ -1662,7 +1662,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.string "source_hash"
     t.datetime "pending_date_deleted", precision: nil
     t.string "Geocode", limit: 6
@@ -1704,7 +1704,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.string "source_hash"
     t.datetime "pending_date_deleted", precision: nil
     t.string "MovingOnOtherType"
@@ -1736,7 +1736,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "DateUpdated", precision: nil
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "pending_date_deleted", precision: nil
     t.string "source_hash"
     t.index ["UserEmail", "data_source_id"], name: "users_ds_email_idx"
@@ -1758,7 +1758,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 32, null: false
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID", limit: 32
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.date "pending_date_deleted"
     t.string "source_hash"
     t.boolean "synthetic", default: false
@@ -1777,7 +1777,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "ad_hoc_batches", id: :serial, force: :cascade do |t|
-    t.integer "ad_hoc_data_source_id"
+    t.bigint "ad_hoc_data_source_id"
     t.string "description", null: false
     t.integer "uploaded_count"
     t.integer "matched_count"
@@ -1792,17 +1792,17 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "size"
     t.string "content_type"
     t.binary "content"
-    t.integer "user_id"
+    t.bigint "user_id"
     t.index ["created_at"], name: "index_ad_hoc_batches_on_created_at"
     t.index ["deleted_at"], name: "index_ad_hoc_batches_on_deleted_at"
     t.index ["updated_at"], name: "index_ad_hoc_batches_on_updated_at"
   end
 
   create_table "ad_hoc_clients", id: :serial, force: :cascade do |t|
-    t.integer "ad_hoc_data_source_id"
-    t.integer "client_id"
+    t.bigint "ad_hoc_data_source_id"
+    t.bigint "client_id"
     t.jsonb "matching_client_ids"
-    t.integer "batch_id"
+    t.bigint "batch_id"
     t.string "first_name"
     t.string "middle_name"
     t.string "last_name"
@@ -1832,7 +1832,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "administrative_events", id: :serial, force: :cascade do |t|
-    t.integer "user_id", null: false
+    t.bigint "user_id", null: false
     t.date "date", null: false
     t.string "title", null: false
     t.string "description"
@@ -1843,7 +1843,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "anomalies", id: :serial, force: :cascade do |t|
-    t.integer "client_id"
+    t.bigint "client_id"
     t.integer "submitted_by"
     t.string "description"
     t.string "status", null: false
@@ -1882,7 +1882,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "deleted_at", precision: nil
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "destination_client_id"
+    t.bigint "destination_client_id"
     t.integer "relationship_to_hoh"
     t.date "placed_date"
     t.bigint "project_id"
@@ -1912,8 +1912,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "warehouse_id"
     t.string "id_in_data_source"
     t.integer "site_id_in_data_source"
-    t.integer "data_source_id"
-    t.integer "client_id"
+    t.bigint "data_source_id"
+    t.bigint "client_id"
     t.date "last_contact"
     t.boolean "temporary_high_priority", default: false, null: false
     t.index ["client_id"], name: "index_api_client_data_source_ids_on_client_id"
@@ -1927,7 +1927,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "response_text"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.index ["response_code"], name: "index_assessment_answer_lookups_on_response_code"
   end
 
@@ -1952,7 +1952,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "bo_configs", id: :serial, force: :cascade do |t|
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.string "user"
     t.string "encrypted_pass"
     t.string "encrypted_pass_iv"
@@ -1963,8 +1963,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "subject_response_lookup_cuid"
     t.string "site_touch_point_map_cuid"
     t.string "disability_verification_cuid"
-    t.integer "disability_touch_point_id"
-    t.integer "disability_touch_point_question_id"
+    t.bigint "disability_touch_point_id"
+    t.bigint "disability_touch_point_question_id"
   end
 
   create_table "boston_project_scorecard_reports", force: :cascade do |t|
@@ -2083,7 +2083,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "cas_availabilities", id: :serial, force: :cascade do |t|
-    t.integer "client_id", null: false
+    t.bigint "client_id", null: false
     t.datetime "available_at", precision: nil, null: false
     t.datetime "unavailable_at", precision: nil
     t.boolean "part_of_a_family", default: false, null: false
@@ -2114,8 +2114,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "cas_enrollments", id: :serial, force: :cascade do |t|
-    t.integer "client_id"
-    t.integer "enrollment_id"
+    t.bigint "client_id"
+    t.bigint "enrollment_id"
     t.date "entry_date"
     t.date "exit_date"
     t.datetime "created_at", precision: nil, null: false
@@ -2126,16 +2126,16 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "cas_houseds", id: :serial, force: :cascade do |t|
-    t.integer "client_id", null: false
-    t.integer "cas_client_id", null: false
-    t.integer "match_id", null: false
+    t.bigint "client_id", null: false
+    t.bigint "cas_client_id", null: false
+    t.bigint "match_id", null: false
     t.date "housed_on", null: false
     t.boolean "inactivated", default: false
     t.index ["client_id"], name: "index_cas_houseds_on_client_id"
   end
 
   create_table "cas_non_hmis_client_histories", id: :serial, force: :cascade do |t|
-    t.integer "cas_client_id", null: false
+    t.bigint "cas_client_id", null: false
     t.date "available_on", null: false
     t.date "unavailable_on"
     t.boolean "part_of_a_family", default: false, null: false
@@ -2168,9 +2168,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "cas_reports", id: :serial, force: :cascade do |t|
-    t.integer "client_id", null: false
-    t.integer "match_id", null: false
-    t.integer "decision_id", null: false
+    t.bigint "client_id", null: false
+    t.bigint "match_id", null: false
+    t.bigint "decision_id", null: false
     t.integer "decision_order", null: false
     t.string "match_step", null: false
     t.string "decision_status", null: false
@@ -2198,12 +2198,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "sub_program_name"
     t.string "terminal_status"
     t.string "match_route"
-    t.integer "cas_client_id"
+    t.bigint "cas_client_id"
     t.date "client_move_in_date"
     t.string "source_data_source"
     t.string "event_contact"
     t.string "event_contact_agency"
-    t.integer "vacancy_id"
+    t.bigint "vacancy_id"
     t.string "housing_type"
     t.boolean "ineligible_in_warehouse", default: false, null: false
     t.string "actor_type"
@@ -2212,8 +2212,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "cas_vacancies", id: :serial, force: :cascade do |t|
-    t.integer "program_id", null: false
-    t.integer "sub_program_id", null: false
+    t.bigint "program_id", null: false
+    t.bigint "sub_program_id", null: false
     t.string "program_name"
     t.string "sub_program_name"
     t.string "program_type"
@@ -2226,8 +2226,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "ce_assessments", id: :serial, force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "client_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "client_id", null: false
     t.string "type", null: false
     t.datetime "submitted_at", precision: nil
     t.datetime "created_at", precision: nil, null: false
@@ -2236,7 +2236,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.boolean "active", default: true
     t.integer "score", default: 0
     t.integer "priority_score", default: 0
-    t.integer "assessor_id", null: false
+    t.bigint "assessor_id", null: false
     t.string "location"
     t.string "client_email"
     t.boolean "military_duty", default: false
@@ -2350,7 +2350,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.date "housing_enrollment_move_in_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "ce_apr_client_id"
+    t.bigint "ce_apr_client_id"
     t.date "dob"
     t.date "move_in_date"
     t.string "period"
@@ -2372,7 +2372,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.boolean "lgbtq_household_members", default: false, null: false
     t.boolean "client_lgbtq", default: false, null: false
     t.boolean "dv_survivor", default: false, null: false
-    t.integer "destination_client_id"
+    t.bigint "destination_client_id"
     t.index ["ce_apr_id"], name: "index_ce_performance_clients_on_ce_apr_id"
     t.index ["client_id"], name: "index_ce_performance_clients_on_client_id"
     t.index ["report_id"], name: "index_ce_performance_clients_on_report_id"
@@ -2452,7 +2452,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "censuses", id: :serial, force: :cascade do |t|
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.integer "ProjectType", null: false
     t.string "OrganizationID", null: false
     t.string "ProjectID", null: false
@@ -2480,7 +2480,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "first_name"
     t.string "last_name"
     t.date "dob"
-    t.integer "family_id"
+    t.bigint "family_id"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.index ["family_id"], name: "index_children_on_family_id"
@@ -2488,7 +2488,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
 
   create_table "chronics", id: :serial, force: :cascade do |t|
     t.date "date", null: false
-    t.integer "client_id", null: false
+    t.bigint "client_id", null: false
     t.integer "days_in_last_three_years"
     t.integer "months_in_last_three_years"
     t.boolean "individual"
@@ -2545,9 +2545,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "client_matches", id: :serial, force: :cascade do |t|
-    t.integer "source_client_id", null: false
-    t.integer "destination_client_id", null: false
-    t.integer "updated_by_id"
+    t.bigint "source_client_id", null: false
+    t.bigint "destination_client_id", null: false
+    t.bigint "updated_by_id"
     t.integer "lock_version"
     t.integer "defer_count"
     t.string "status", null: false
@@ -2571,8 +2571,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "client_notes", id: :serial, force: :cascade do |t|
-    t.integer "client_id", null: false
-    t.integer "user_id", null: false
+    t.bigint "client_id", null: false
+    t.bigint "user_id", null: false
     t.string "type", null: false
     t.text "note"
     t.datetime "created_at", precision: nil
@@ -2633,9 +2633,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "cohort_client_changes", id: :serial, force: :cascade do |t|
-    t.integer "cohort_client_id", null: false
-    t.integer "cohort_id", null: false
-    t.integer "user_id", null: false
+    t.bigint "cohort_client_id", null: false
+    t.bigint "cohort_id", null: false
+    t.bigint "user_id", null: false
     t.string "change"
     t.datetime "changed_at", precision: nil, null: false
     t.string "reason"
@@ -2644,20 +2644,20 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "cohort_client_notes", id: :serial, force: :cascade do |t|
-    t.integer "cohort_client_id", null: false
+    t.bigint "cohort_client_id", null: false
     t.text "note"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "deleted_at", precision: nil
-    t.integer "user_id", null: false
+    t.bigint "user_id", null: false
     t.jsonb "recipients", default: []
     t.index ["cohort_client_id"], name: "index_cohort_client_notes_on_cohort_client_id"
     t.index ["deleted_at"], name: "index_cohort_client_notes_on_deleted_at"
   end
 
   create_table "cohort_clients", id: :serial, force: :cascade do |t|
-    t.integer "cohort_id", null: false
-    t.integer "client_id", null: false
+    t.bigint "cohort_id", null: false
+    t.bigint "client_id", null: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "deleted_at", precision: nil
@@ -2929,7 +2929,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.boolean "show_on_client_dashboard", default: true, null: false
     t.boolean "visible_in_cas", default: true, null: false
     t.string "assessment_trigger"
-    t.integer "tag_id"
+    t.bigint "tag_id"
     t.integer "threshold_row_1"
     t.string "threshold_color_1"
     t.string "threshold_label_1"
@@ -3029,7 +3029,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.boolean "adult_only_cohort", default: false, null: false
     t.boolean "youth_no_child_cohort", default: false, null: false
     t.boolean "youth_and_child_cohort", default: false, null: false
-    t.integer "cas_sync_project_group_id"
+    t.bigint "cas_sync_project_group_id"
     t.string "majority_sheltered_calculation", default: "current_living_situation"
     t.date "system_cohort_processing_date"
     t.integer "system_cohort_date_window", default: 1
@@ -3039,7 +3039,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "supplemental_enrollment_importer", default: "GrdaWarehouse::Tasks::EnrollmentExtrasImport"
     t.string "verified_homeless_history_method", default: "visible_in_window"
     t.boolean "youth_hoh_cohort", default: false, null: false
-    t.integer "youth_hoh_cohort_project_group_id"
+    t.bigint "youth_hoh_cohort_project_group_id"
     t.boolean "chronic_tab_justifications", default: true
     t.boolean "chronic_tab_roi"
     t.integer "filter_date_span_years", default: 1, null: false
@@ -3053,7 +3053,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
 
   create_table "contacts", id: :serial, force: :cascade do |t|
     t.string "type", null: false
-    t.integer "entity_id", null: false
+    t.bigint "entity_id", null: false
     t.string "email", null: false
     t.string "first_name"
     t.string "last_name"
@@ -3068,7 +3068,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "name"
-    t.integer "csg_engage_agency_id"
+    t.bigint "csg_engage_agency_id"
   end
 
   create_table "csg_engage_program_mappings", force: :cascade do |t|
@@ -3251,9 +3251,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "dashboard_export_reports", id: :serial, force: :cascade do |t|
-    t.integer "file_id"
-    t.integer "user_id"
-    t.integer "job_id"
+    t.bigint "file_id"
+    t.bigint "user_id"
+    t.bigint "job_id"
     t.string "coc_code"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -3262,7 +3262,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "data_monitorings", id: :serial, force: :cascade do |t|
-    t.integer "resource_id", null: false
+    t.bigint "resource_id", null: false
     t.date "census"
     t.date "calculated_on"
     t.date "calculate_after"
@@ -3313,8 +3313,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "direct_financial_assistances", id: :serial, force: :cascade do |t|
-    t.integer "client_id"
-    t.integer "user_id"
+    t.bigint "client_id"
+    t.bigint "user_id"
     t.date "provided_on"
     t.string "type_provided"
     t.datetime "created_at", precision: nil, null: false
@@ -3409,7 +3409,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "enrollment_change_histories", id: :serial, force: :cascade do |t|
-    t.integer "client_id", null: false
+    t.bigint "client_id", null: false
     t.date "on", null: false
     t.jsonb "residential"
     t.jsonb "other"
@@ -3421,7 +3421,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "enrollment_extras", id: :serial, force: :cascade do |t|
-    t.integer "enrollment_id", null: false
+    t.bigint "enrollment_id", null: false
     t.integer "vispdat_grand_total"
     t.date "vispdat_added_at"
     t.date "vispdat_started_at"
@@ -3430,7 +3430,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "created_at", precision: nil
     t.datetime "updated_at", precision: nil
     t.bigint "file_id"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.string "client_id"
     t.string "client_uid"
     t.string "hud_enrollment_id"
@@ -3457,7 +3457,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "eto_api_configs", id: :serial, force: :cascade do |t|
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.jsonb "touchpoint_fields"
     t.jsonb "demographic_fields"
     t.jsonb "demographic_fields_with_attributes"
@@ -3475,11 +3475,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "eto_client_lookups", id: :serial, force: :cascade do |t|
-    t.integer "data_source_id", null: false
-    t.integer "client_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "client_id", null: false
     t.string "enterprise_guid", null: false
-    t.integer "site_id", null: false
-    t.integer "subject_id", null: false
+    t.bigint "site_id", null: false
+    t.bigint "subject_id", null: false
     t.datetime "last_updated", precision: nil
     t.integer "participant_site_identifier"
     t.index ["client_id"], name: "index_eto_client_lookups_on_client_id"
@@ -3487,20 +3487,20 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "eto_subject_response_lookups", id: :serial, force: :cascade do |t|
-    t.integer "data_source_id", null: false
-    t.integer "subject_id", null: false
-    t.integer "response_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "subject_id", null: false
+    t.bigint "response_id", null: false
     t.index ["subject_id"], name: "index_eto_subject_response_lookups_on_subject_id"
   end
 
   create_table "eto_touch_point_lookups", id: :serial, force: :cascade do |t|
-    t.integer "data_source_id", null: false
-    t.integer "client_id", null: false
-    t.integer "subject_id", null: false
-    t.integer "assessment_id", null: false
-    t.integer "response_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "client_id", null: false
+    t.bigint "subject_id", null: false
+    t.bigint "assessment_id", null: false
+    t.bigint "response_id", null: false
     t.datetime "last_updated", precision: nil
-    t.integer "site_id"
+    t.bigint "site_id"
     t.index ["client_id"], name: "index_eto_touch_point_lookups_on_client_id"
     t.index ["data_source_id"], name: "index_eto_touch_point_lookups_on_data_source_id"
   end
@@ -3514,7 +3514,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
 
   create_table "exports", id: :serial, force: :cascade do |t|
     t.string "export_id"
-    t.integer "user_id"
+    t.bigint "user_id"
     t.date "start_date"
     t.date "end_date"
     t.integer "period_type"
@@ -3529,7 +3529,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "content_type"
     t.binary "content"
     t.string "file"
-    t.integer "delayed_job_id"
+    t.bigint "delayed_job_id"
     t.string "version"
     t.boolean "confidential", default: false, null: false
     t.datetime "started_at", precision: nil
@@ -3673,8 +3673,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "file"
     t.string "content_type"
     t.binary "content"
-    t.integer "client_id"
-    t.integer "user_id"
+    t.bigint "client_id"
+    t.bigint "user_id"
     t.datetime "created_at", precision: nil
     t.datetime "updated_at", precision: nil
     t.datetime "deleted_at", precision: nil
@@ -3682,7 +3682,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "name"
     t.boolean "visible_in_window"
     t.string "migrated_username"
-    t.integer "vispdat_id"
+    t.bigint "vispdat_id"
     t.date "consent_form_signed_on"
     t.boolean "consent_form_confirmed"
     t.float "size"
@@ -3696,7 +3696,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.boolean "confidential", default: false, null: false
     t.bigint "updated_by_id"
     t.bigint "data_source_id"
-    t.integer "consent_revoked_by_user_id"
+    t.bigint "consent_revoked_by_user_id"
     t.index ["data_source_id"], name: "index_files_on_data_source_id"
     t.index ["enrollment_id"], name: "index_files_on_enrollment_id"
     t.index ["type"], name: "index_files_on_type"
@@ -3705,9 +3705,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "financial_clients", force: :cascade do |t|
-    t.integer "external_client_id", null: false
-    t.integer "client_id", comment: "Reference to a destination client"
-    t.integer "data_source_id", null: false
+    t.bigint "external_client_id", null: false
+    t.bigint "client_id", comment: "Reference to a destination client"
+    t.bigint "data_source_id", null: false
     t.string "client_first_name"
     t.string "client_last_name"
     t.string "address_line_1"
@@ -3757,8 +3757,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "financial_providers", force: :cascade do |t|
-    t.integer "provider_id", null: false
-    t.integer "data_source_id", null: false
+    t.bigint "provider_id", null: false
+    t.bigint "data_source_id", null: false
     t.string "agency_name", null: false
     t.string "address_line_1"
     t.string "address_line_2"
@@ -3780,13 +3780,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "financial_transactions", force: :cascade do |t|
-    t.integer "transaction_id", null: false
-    t.integer "data_source_id", null: false
+    t.bigint "transaction_id", null: false
+    t.bigint "data_source_id", null: false
     t.string "transaction_status", null: false
     t.datetime "transaction_date", precision: nil, null: false
     t.datetime "paid_date", precision: nil
-    t.integer "external_client_id", null: false
-    t.integer "provider_id", null: false
+    t.bigint "external_client_id", null: false
+    t.bigint "provider_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at", precision: nil
@@ -3794,11 +3794,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "generate_service_history_batch_logs", id: :serial, force: :cascade do |t|
-    t.integer "generate_service_history_log_id"
+    t.bigint "generate_service_history_log_id"
     t.integer "to_process"
     t.integer "updated"
     t.integer "patched"
-    t.integer "delayed_job_id"
+    t.bigint "delayed_job_id"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
   end
@@ -3820,7 +3820,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.bigint "source_id"
     t.date "date"
     t.string "title"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.string "category"
     t.index ["client_id"], name: "index_generic_services_on_client_id"
     t.index ["source_id", "source_type"], name: "gs_source_id_source_type_uniq", unique: true
@@ -3841,8 +3841,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "group_viewable_entities", id: :serial, force: :cascade do |t|
-    t.integer "access_group_id", null: false
-    t.integer "entity_id", null: false
+    t.bigint "access_group_id", null: false
+    t.bigint "entity_id", null: false
     t.string "entity_type", null: false
     t.datetime "deleted_at", precision: nil
     t.bigint "collection_id"
@@ -3900,9 +3900,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "health_emergency_ama_restrictions", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "client_id", null: false
-    t.integer "agency_id"
+    t.bigint "user_id", null: false
+    t.bigint "client_id", null: false
+    t.bigint "agency_id"
     t.string "restricted"
     t.string "note"
     t.datetime "created_at", precision: nil, null: false
@@ -3911,7 +3911,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.text "notes"
     t.string "emergency_type"
     t.datetime "notification_at", precision: nil
-    t.integer "notification_batch_id"
+    t.bigint "notification_batch_id"
     t.index ["agency_id"], name: "index_health_emergency_ama_restrictions_on_agency_id"
     t.index ["client_id"], name: "index_health_emergency_ama_restrictions_on_client_id"
     t.index ["created_at"], name: "index_health_emergency_ama_restrictions_on_created_at"
@@ -3920,9 +3920,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "health_emergency_clinical_triages", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "client_id", null: false
-    t.integer "agency_id"
+    t.bigint "user_id", null: false
+    t.bigint "client_id", null: false
+    t.bigint "agency_id"
     t.string "test_requested"
     t.string "location"
     t.datetime "created_at", precision: nil, null: false
@@ -3939,9 +3939,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
 
   create_table "health_emergency_isolations", force: :cascade do |t|
     t.string "type", null: false
-    t.integer "user_id", null: false
-    t.integer "client_id", null: false
-    t.integer "agency_id"
+    t.bigint "user_id", null: false
+    t.bigint "client_id", null: false
+    t.bigint "agency_id"
     t.datetime "isolation_requested_at", precision: nil
     t.string "location"
     t.date "started_on"
@@ -3982,9 +3982,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "health_emergency_tests", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "client_id", null: false
-    t.integer "agency_id"
+    t.bigint "user_id", null: false
+    t.bigint "client_id", null: false
+    t.bigint "agency_id"
     t.string "test_requested"
     t.string "location"
     t.date "tested_on"
@@ -3995,7 +3995,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.text "notes"
     t.string "emergency_type"
     t.datetime "notification_at", precision: nil
-    t.integer "notification_batch_id"
+    t.bigint "notification_batch_id"
     t.index ["agency_id"], name: "index_health_emergency_tests_on_agency_id"
     t.index ["client_id"], name: "index_health_emergency_tests_on_client_id"
     t.index ["created_at"], name: "index_health_emergency_tests_on_created_at"
@@ -4004,9 +4004,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "health_emergency_triages", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "client_id", null: false
-    t.integer "agency_id"
+    t.bigint "user_id", null: false
+    t.bigint "client_id", null: false
+    t.bigint "agency_id"
     t.string "location"
     t.string "exposure"
     t.string "symptoms"
@@ -4027,8 +4027,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
 
   create_table "health_emergency_uploaded_tests", force: :cascade do |t|
     t.bigint "batch_id"
-    t.integer "client_id"
-    t.integer "test_id"
+    t.bigint "client_id"
+    t.bigint "test_id"
     t.string "first_name"
     t.string "last_name"
     t.date "dob"
@@ -4049,9 +4049,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "health_emergency_vaccinations", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "client_id", null: false
-    t.integer "agency_id"
+    t.bigint "user_id", null: false
+    t.bigint "client_id", null: false
+    t.bigint "agency_id"
     t.date "vaccinated_on", null: false
     t.string "vaccinated_at"
     t.date "follow_up_on"
@@ -4062,7 +4062,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "deleted_at", precision: nil
-    t.integer "health_vaccination_id"
+    t.bigint "health_vaccination_id"
     t.string "preferred_language", default: "en"
     t.text "notification_status"
     t.index ["agency_id"], name: "index_health_emergency_vaccinations_on_agency_id"
@@ -4095,11 +4095,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4182,11 +4182,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4256,11 +4256,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4291,11 +4291,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4318,11 +4318,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4348,11 +4348,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4404,11 +4404,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4444,11 +4444,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4484,11 +4484,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4520,11 +4520,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4554,11 +4554,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4648,11 +4648,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4694,11 +4694,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4756,11 +4756,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4796,11 +4796,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "ExportPeriodType"
     t.integer "ExportDirective"
     t.integer "HashStatus"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4824,11 +4824,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4861,11 +4861,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -4928,7 +4928,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "OtherBenefitsSource"
     t.string "OtherBenefitsSourceIdentify"
     t.integer "InsuranceFromAnySource"
-    t.integer "Medicaid"
+    t.bigint "Medicaid"
     t.integer "NoMedicaidReason"
     t.integer "Medicare"
     t.integer "NoMedicareReason"
@@ -4959,11 +4959,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5002,11 +5002,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5031,11 +5031,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5063,11 +5063,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5102,11 +5102,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5137,11 +5137,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5175,11 +5175,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "DateUpdated", precision: nil
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5200,11 +5200,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5232,11 +5232,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5267,11 +5267,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5304,11 +5304,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5384,11 +5384,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5455,11 +5455,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5519,11 +5519,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5578,11 +5578,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5635,11 +5635,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5762,11 +5762,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5878,11 +5878,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -5960,11 +5960,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6034,11 +6034,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "ExportPeriodType"
     t.integer "ExportDirective"
     t.integer "HashStatus"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6065,11 +6065,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6121,11 +6121,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6211,7 +6211,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "OtherBenefitsSource"
     t.string "OtherBenefitsSourceIdentify"
     t.integer "InsuranceFromAnySource"
-    t.integer "Medicaid"
+    t.bigint "Medicaid"
     t.integer "NoMedicaidReason"
     t.integer "Medicare"
     t.integer "NoMedicareReason"
@@ -6244,11 +6244,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6327,11 +6327,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6376,11 +6376,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6415,11 +6415,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6473,11 +6473,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6529,11 +6529,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6624,11 +6624,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "DateUpdated", precision: nil
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6661,11 +6661,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6709,11 +6709,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6735,11 +6735,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6761,11 +6761,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6788,11 +6788,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6819,11 +6819,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6881,11 +6881,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6916,11 +6916,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6954,11 +6954,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -6987,11 +6987,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7074,11 +7074,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7126,11 +7126,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7186,11 +7186,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7227,11 +7227,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "ExportDirective"
     t.integer "HashStatus"
     t.string "ImplementationID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7252,11 +7252,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7287,11 +7287,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7313,11 +7313,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7375,7 +7375,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "OtherBenefitsSource"
     t.string "OtherBenefitsSourceIdentify"
     t.integer "InsuranceFromAnySource"
-    t.integer "Medicaid"
+    t.bigint "Medicaid"
     t.integer "NoMedicaidReason"
     t.integer "Medicare"
     t.integer "NoMedicareReason"
@@ -7406,11 +7406,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7447,11 +7447,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7473,11 +7473,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7503,11 +7503,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7538,11 +7538,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7573,11 +7573,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7605,11 +7605,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "DateUpdated", precision: nil
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7633,11 +7633,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7733,11 +7733,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7812,11 +7812,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id", null: false
     t.datetime "pre_processed_at", precision: nil, null: false
     t.string "source_hash"
-    t.integer "source_id", null: false
+    t.bigint "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at", precision: nil
     t.datetime "clean_at", precision: nil
@@ -7850,14 +7850,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "hmis_assessments", id: :serial, force: :cascade do |t|
-    t.integer "assessment_id", null: false
-    t.integer "site_id", null: false
+    t.bigint "assessment_id", null: false
+    t.bigint "site_id", null: false
     t.string "site_name"
     t.string "name", null: false
     t.boolean "fetch", default: false, null: false
     t.boolean "active", default: true, null: false
     t.datetime "last_fetched_at", precision: nil
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.boolean "confidential", default: false, null: false
     t.boolean "exclude_from_window", default: false, null: false
     t.boolean "details_in_window_with_release", default: false, null: false
@@ -7914,8 +7914,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "hmis_client_attributes_defined_text", id: :serial, force: :cascade do |t|
-    t.integer "client_id"
-    t.integer "data_source_id"
+    t.bigint "client_id"
+    t.bigint "data_source_id"
     t.string "consent_form_status"
     t.datetime "consent_form_updated_at", precision: nil
     t.string "source_id"
@@ -7944,7 +7944,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "hmis_clients", id: :serial, force: :cascade do |t|
-    t.integer "client_id"
+    t.bigint "client_id"
     t.text "response"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -7956,7 +7956,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "counselor_name"
     t.text "counselor_attributes"
     t.string "outreach_counselor_name"
-    t.integer "subject_id"
+    t.bigint "subject_id"
     t.jsonb "processed_fields"
     t.date "consent_confirmed_on"
     t.date "consent_expires_on"
@@ -7974,9 +7974,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["AffiliationID", "data_source_id"], name: "hmis_csv_2020_affiliations-F2ar"
     t.index ["ExportID"], name: "hmis_csv_2020_affiliations-ofln"
   end
@@ -7995,9 +7995,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["AssessmentID"], name: "hmis_csv_2020_assessment_questions-U6Dk"
     t.index ["AssessmentQuestionID", "data_source_id"], name: "hmis_csv_2020_assessment_questions-ZGxE"
     t.index ["ExportID"], name: "hmis_csv_2020_assessment_questions-Xt6t"
@@ -8015,9 +8015,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["AssessmentID"], name: "hmis_csv_2020_assessment_results-NEN7"
     t.index ["AssessmentResultID", "data_source_id"], name: "hmis_csv_2020_assessment_results-Rkod"
     t.index ["ExportID"], name: "hmis_csv_2020_assessment_results-NLC4"
@@ -8038,9 +8038,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["AssessmentDate"], name: "hmis_csv_2020_assessments-GRoC"
     t.index ["AssessmentID", "data_source_id"], name: "hmis_csv_2020_assessments-y7s0"
     t.index ["AssessmentID"], name: "hmis_csv_2020_assessments-W4vL"
@@ -8086,9 +8086,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DOB"], name: "hmis_csv_2020_clients-FQ7O"
     t.index ["DateCreated"], name: "hmis_csv_2020_clients-2cnC"
     t.index ["DateUpdated"], name: "hmis_csv_2020_clients-wlPc"
@@ -8119,9 +8119,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["CurrentLivingSitID", "data_source_id"], name: "hmis_csv_2020_current_living_situations-jzq2"
     t.index ["CurrentLivingSitID"], name: "hmis_csv_2020_current_living_situations-EGfX"
     t.index ["CurrentLivingSituation"], name: "hmis_csv_2020_current_living_situations-Vh4Y"
@@ -8152,9 +8152,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmis_csv_2020_disabilities-ohpt"
     t.index ["DateUpdated"], name: "hmis_csv_2020_disabilities-4Nml"
     t.index ["DisabilitiesID", "data_source_id"], name: "hmis_csv_2020_disabilities-anqe"
@@ -8181,9 +8181,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmis_csv_2020_employment_educations-bTVG"
     t.index ["DateUpdated"], name: "hmis_csv_2020_employment_educations-4yxa"
     t.index ["EmploymentEducationID", "data_source_id"], name: "hmis_csv_2020_employment_educations-3UVX"
@@ -8208,9 +8208,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["CoCCode"], name: "hmis_csv_2020_enrollment_cocs-RyqL"
     t.index ["DateCreated"], name: "hmis_csv_2020_enrollment_cocs-dizj"
     t.index ["DateDeleted"], name: "hmis_csv_2020_enrollment_cocs-ManB"
@@ -8295,9 +8295,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmis_csv_2020_enrollments-djbw"
     t.index ["DateUpdated"], name: "hmis_csv_2020_enrollments-qD0O"
     t.index ["EnrollmentID", "PersonalID"], name: "hmis_csv_2020_enrollments-8UEw"
@@ -8334,9 +8334,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["EnrollmentID"], name: "hmis_csv_2020_events-niJ9"
     t.index ["EventDate"], name: "hmis_csv_2020_events-G60G"
     t.index ["EventID", "data_source_id"], name: "hmis_csv_2020_events-BBvn"
@@ -8389,9 +8389,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmis_csv_2020_exits-B03u"
     t.index ["DateDeleted"], name: "hmis_csv_2020_exits-9oMc"
     t.index ["DateUpdated"], name: "hmis_csv_2020_exits-u5YR"
@@ -8421,9 +8421,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "ExportPeriodType"
     t.string "ExportDirective"
     t.string "HashStatus"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["ExportID", "data_source_id"], name: "hmis_csv_2020_exports-K9wp"
     t.index ["ExportID"], name: "hmis_csv_2020_exports-iweG"
     t.index ["loader_id"], name: "index_hmis_csv_2020_exports_on_loader_id"
@@ -8442,9 +8442,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmis_csv_2020_funders-IC4k"
     t.index ["DateUpdated"], name: "hmis_csv_2020_funders-Ix1m"
     t.index ["ExportID"], name: "hmis_csv_2020_funders-PEzG"
@@ -8472,9 +8472,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmis_csv_2020_health_and_dvs-TUWh"
     t.index ["DateUpdated"], name: "hmis_csv_2020_health_and_dvs-y2fn"
     t.index ["EnrollmentID"], name: "hmis_csv_2020_health_and_dvs-zvlJ"
@@ -8563,9 +8563,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmis_csv_2020_income_benefits-lVjn"
     t.index ["DateUpdated"], name: "hmis_csv_2020_income_benefits-YyfJ"
     t.index ["EnrollmentID"], name: "hmis_csv_2020_income_benefits-6HMy"
@@ -8599,9 +8599,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmis_csv_2020_inventories-eYpq"
     t.index ["DateUpdated"], name: "hmis_csv_2020_inventories-NeSc"
     t.index ["ExportID"], name: "hmis_csv_2020_inventories-wdcK"
@@ -8621,9 +8621,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["ExportID"], name: "hmis_csv_2020_organizations-LqQF"
     t.index ["OrganizationID", "data_source_id"], name: "hmis_csv_2020_organizations-cRJF"
     t.index ["OrganizationID"], name: "hmis_csv_2020_organizations-tyIy"
@@ -8646,9 +8646,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmis_csv_2020_project_cocs-fRQZ"
     t.index ["DateUpdated"], name: "hmis_csv_2020_project_cocs-wP5S"
     t.index ["ExportID"], name: "hmis_csv_2020_project_cocs-336L"
@@ -8678,9 +8678,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmis_csv_2020_projects-m4tQ"
     t.index ["DateUpdated"], name: "hmis_csv_2020_projects-MNAC"
     t.index ["ExportID"], name: "hmis_csv_2020_projects-f4DP"
@@ -8706,9 +8706,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmis_csv_2020_services-Nlyp"
     t.index ["DateProvided"], name: "hmis_csv_2020_services-i7KB"
     t.index ["DateUpdated"], name: "hmis_csv_2020_services-MSYV"
@@ -8737,9 +8737,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "DateUpdated"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["ExportID"], name: "hmis_csv_2020_users-Vflk"
     t.index ["UserID", "data_source_id"], name: "hmis_csv_2020_users-Y4OW"
     t.index ["UserID"], name: "hmis_csv_2020_users-3tXl"
@@ -8755,9 +8755,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["AffiliationID", "data_source_id"], name: "hmis_csv_2022_affiliations-6457"
     t.index ["ExportID"], name: "hmiscsv2022affiliations_6QZN"
     t.index ["ExportID"], name: "hmiscsv2022affiliations_IYWP"
@@ -8781,9 +8781,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["AssessmentID"], name: "hmiscsv2022assessmentquestions_9OKb"
     t.index ["AssessmentID"], name: "hmiscsv2022assessmentquestions_Ce5I"
     t.index ["AssessmentID"], name: "hmiscsv2022assessmentquestions_Wboq"
@@ -8809,9 +8809,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["AssessmentID"], name: "hmiscsv2022assessmentresults_FEyR"
     t.index ["AssessmentID"], name: "hmiscsv2022assessmentresults_WyDM"
     t.index ["AssessmentID"], name: "hmiscsv2022assessmentresults_deg4"
@@ -8839,9 +8839,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["AssessmentDate"], name: "hmiscsv2022assessments_2PIZ"
     t.index ["AssessmentDate"], name: "hmiscsv2022assessments_53fu"
     t.index ["AssessmentDate"], name: "hmiscsv2022assessments_Rg8h"
@@ -8912,9 +8912,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DOB"], name: "hmiscsv2022clients_1B2M"
     t.index ["DOB"], name: "hmiscsv2022clients_DlZc"
     t.index ["DOB"], name: "hmiscsv2022clients_ZIZI"
@@ -8978,9 +8978,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["CurrentLivingSitID", "data_source_id"], name: "hmis_csv_2022_current_living_situations-cf31"
     t.index ["CurrentLivingSitID"], name: "hmiscsv2022currentlivingsituations_G53q"
     t.index ["CurrentLivingSitID"], name: "hmiscsv2022currentlivingsituations_L04m"
@@ -9036,9 +9036,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmiscsv2022disabilities_0FAj"
     t.index ["DateCreated"], name: "hmiscsv2022disabilities_6NwA"
     t.index ["DateCreated"], name: "hmiscsv2022disabilities_HfAi"
@@ -9088,9 +9088,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmiscsv2022employmenteducations_LI7n"
     t.index ["DateCreated"], name: "hmiscsv2022employmenteducations_bJWx"
     t.index ["DateCreated"], name: "hmiscsv2022employmenteducations_cugU"
@@ -9138,9 +9138,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["CoCCode"], name: "hmiscsv2022enrollmentcocs_SbfY"
     t.index ["CoCCode"], name: "hmiscsv2022enrollmentcocs_WRnl"
     t.index ["CoCCode"], name: "hmiscsv2022enrollmentcocs_axDz"
@@ -9258,9 +9258,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmiscsv2022enrollments_N5Wd"
     t.index ["DateCreated"], name: "hmiscsv2022enrollments_SIaS"
     t.index ["DateCreated"], name: "hmiscsv2022enrollments_rufY"
@@ -9367,9 +9367,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["EnrollmentID"], name: "hmiscsv2022events_RRPj"
     t.index ["EnrollmentID"], name: "hmiscsv2022events_gFxo"
     t.index ["EnrollmentID"], name: "hmiscsv2022events_jBzv"
@@ -9442,9 +9442,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmiscsv2022exits_7kNM"
     t.index ["DateCreated"], name: "hmiscsv2022exits_Sweu"
     t.index ["DateCreated"], name: "hmiscsv2022exits_YPuW"
@@ -9508,9 +9508,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "ExportPeriodType"
     t.string "ExportDirective"
     t.string "HashStatus"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["ExportID"], name: "hmiscsv2022exports_4A4m"
     t.index ["ExportID"], name: "hmiscsv2022exports_786V"
     t.index ["ExportID"], name: "hmiscsv2022exports_7cpb"
@@ -9532,9 +9532,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmiscsv2022funders_FasV"
     t.index ["DateCreated"], name: "hmiscsv2022funders_KCdj"
     t.index ["DateCreated"], name: "hmiscsv2022funders_Zyir"
@@ -9582,9 +9582,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmiscsv2022healthanddvs_3s5V"
     t.index ["DateCreated"], name: "hmiscsv2022healthanddvs_HnGC"
     t.index ["DateCreated"], name: "hmiscsv2022healthanddvs_I9SQ"
@@ -9699,9 +9699,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmiscsv2022incomebenefits_FnDI"
     t.index ["DateCreated"], name: "hmiscsv2022incomebenefits_OVW3"
     t.index ["DateCreated"], name: "hmiscsv2022incomebenefits_mM7W"
@@ -9775,9 +9775,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmiscsv2022inventories_HoVQ"
     t.index ["DateCreated"], name: "hmiscsv2022inventories_h8H6"
     t.index ["DateCreated"], name: "hmiscsv2022inventories_hcBa"
@@ -9818,9 +9818,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["ExportID"], name: "hmiscsv2022organizations_FjV6"
     t.index ["ExportID"], name: "hmiscsv2022organizations_PW7F"
     t.index ["ExportID"], name: "hmiscsv2022organizations_Q2CY"
@@ -9851,9 +9851,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmiscsv2022projectcocs_0mWW"
     t.index ["DateCreated"], name: "hmiscsv2022projectcocs_Jfub"
     t.index ["DateCreated"], name: "hmiscsv2022projectcocs_QHMr"
@@ -9903,9 +9903,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.string "PITCount"
     t.index ["DateCreated"], name: "hmiscsv2022projects_BNpw"
     t.index ["DateCreated"], name: "hmiscsv2022projects_BcGz"
@@ -9953,9 +9953,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateCreated"], name: "hmiscsv2022services_Bo1g"
     t.index ["DateCreated"], name: "hmiscsv2022services_LD3i"
     t.index ["DateCreated"], name: "hmiscsv2022services_cOsh"
@@ -10041,9 +10041,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "DateUpdated"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["ExportID"], name: "hmiscsv2022users_9lCp"
     t.index ["ExportID"], name: "hmiscsv2022users_MWOa"
     t.index ["ExportID"], name: "hmiscsv2022users_ZsWm"
@@ -10072,9 +10072,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["EnrollmentID"], name: "hmiscsv2022youtheducationstatuses_9dk3"
     t.index ["EnrollmentID"], name: "hmiscsv2022youtheducationstatuses_WARO"
     t.index ["EnrollmentID"], name: "hmiscsv2022youtheducationstatuses_hkeS"
@@ -10112,9 +10112,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["AffiliationID", "data_source_id"], name: "hmis_csv_2024_affiliations-6457"
   end
 
@@ -10132,9 +10132,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["AssessmentID"], name: "hmiscsv2024assessmentquestions_da04"
     t.index ["AssessmentQuestionID", "data_source_id"], name: "hmis_csv_2024_assessment_questions-0cd3"
     t.index ["ExportID"], name: "hmiscsv2024assessmentquestions_634d"
@@ -10152,9 +10152,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["ExportID"], name: "hmiscsv2024assessmentresults_634d"
   end
 
@@ -10172,9 +10172,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["AssessmentDate"], name: "hmiscsv2024assessments_4fa0"
     t.index ["AssessmentID", "data_source_id"], name: "hmis_csv_2024_assessments-df76"
     t.index ["AssessmentID"], name: "hmiscsv2024assessments_da04"
@@ -10197,9 +10197,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["CEParticipationID", "data_source_id"], name: "hmis_csv_2024_ce_participations-5c6f"
     t.index ["CEParticipationID"], name: "hmiscsv2024ceparticipations_5a29"
     t.index ["ExportID"], name: "hmiscsv2024ceparticipations_634d"
@@ -10253,9 +10253,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["ExportID"], name: "hmiscsv2024clients_634d"
     t.index ["PersonalID", "data_source_id"], name: "hmis_csv_2024_clients-230f"
     t.index ["PersonalID"], name: "hmiscsv2024clients_603f"
@@ -10281,9 +10281,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["CurrentLivingSitID", "data_source_id"], name: "hmis_csv_2024_current_living_situations-cf31"
     t.index ["CurrentLivingSitID"], name: "hmiscsv2024currentlivingsituations_c1ef"
     t.index ["CurrentLivingSituation"], name: "hmiscsv2024currentlivingsituations_d718"
@@ -10311,9 +10311,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DisabilitiesID", "data_source_id"], name: "hmis_csv_2024_disabilities-7712"
     t.index ["DisabilitiesID"], name: "hmiscsv2024disabilities_1873"
     t.index ["EnrollmentID"], name: "hmiscsv2024disabilities_4337"
@@ -10337,9 +10337,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["EmploymentEducationID", "data_source_id"], name: "hmis_csv_2024_employment_educations-3032"
     t.index ["EmploymentEducationID"], name: "hmiscsv2024employmenteducations_350e"
     t.index ["ExportID"], name: "hmiscsv2024employmenteducations_634d"
@@ -10417,9 +10417,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateDeleted", "EntryDate", "EnrollmentID", "HouseholdID", "ProjectID", "RelationshipToHoH"], name: "hmiscsv2024enrollments_c830"
     t.index ["DateDeleted", "RelationshipToHoH", "EnrollmentID", "PersonalID", "EntryDate", "HouseholdID", "DisablingCondition"], name: "hmiscsv2024enrollments_8d5c"
     t.index ["DateDeleted"], name: "hmiscsv2024enrollments_f3a2"
@@ -10458,9 +10458,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["EnrollmentID"], name: "hmiscsv2024events_4337"
     t.index ["EventDate"], name: "hmiscsv2024events_ab19"
     t.index ["EventID"], name: "hmiscsv2024events_5251"
@@ -10512,9 +10512,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateDeleted", "EnrollmentID", "ExitDate"], name: "hmiscsv2024exits_f3a2"
     t.index ["DateUpdated"], name: "hmiscsv2024exits_42d5"
     t.index ["ExitDate", "Destination", "EnrollmentID"], name: "hmiscsv2024exits_13dc"
@@ -10544,9 +10544,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "ExportDirective"
     t.string "HashStatus"
     t.string "ImplementationID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
   end
 
   create_table "hmis_csv_2024_funders", force: :cascade do |t|
@@ -10562,9 +10562,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["ExportID"], name: "hmiscsv2024funders_634d"
     t.index ["FunderID", "data_source_id"], name: "hmis_csv_2024_funders-4ad5"
     t.index ["FunderID"], name: "hmiscsv2024funders_4657"
@@ -10589,9 +10589,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["ExportID"], name: "hmiscsv2024healthanddvs_634d"
     t.index ["HealthAndDVID", "data_source_id"], name: "hmis_csv_2024_health_and_dvs-e384"
     t.index ["HealthAndDVID"], name: "hmiscsv2024healthanddvs_1329"
@@ -10608,9 +10608,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["ExportID"], name: "hmiscsv2024hmisparticipations_634d"
     t.index ["HMISParticipationID", "data_source_id"], name: "hmis_csv_2024_hmis_participations-0f0d"
     t.index ["ProjectID"], name: "hmiscsv2024hmisparticipations_42af"
@@ -10694,9 +10694,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["Earned", "DataCollectionStage"], name: "hmiscsv2024incomebenefits_16c2"
     t.index ["ExportID"], name: "hmiscsv2024incomebenefits_634d"
     t.index ["IncomeBenefitsID", "data_source_id"], name: "hmis_csv_2024_income_benefits-200d"
@@ -10727,9 +10727,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["ExportID"], name: "hmiscsv2024inventories_634d"
     t.index ["InventoryID", "data_source_id"], name: "hmis_csv_2024_inventories-86c0"
     t.index ["InventoryID"], name: "hmiscsv2024inventories_9529"
@@ -10745,9 +10745,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["OrganizationID", "data_source_id"], name: "hmis_csv_2024_organizations-7580"
     t.index ["OrganizationID"], name: "hmiscsv2024organizations_b19d"
   end
@@ -10768,9 +10768,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["ExportID"], name: "hmiscsv2024projectcocs_634d"
     t.index ["ProjectCoCID", "data_source_id"], name: "hmis_csv_2024_project_cocs-3966"
     t.index ["ProjectCoCID"], name: "hmiscsv2024projectcocs_787b"
@@ -10796,9 +10796,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.boolean "expired"
     t.index ["ProjectID", "data_source_id"], name: "hmis_csv_2024_projects-92c5"
     t.index ["ProjectID"], name: "hmiscsv2024projects_42af"
@@ -10823,9 +10823,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["DateDeleted"], name: "hmiscsv2024services_f3a2"
     t.index ["DateProvided"], name: "hmiscsv2024services_3444"
     t.index ["EnrollmentID", "RecordType", "DateDeleted", "DateProvided"], name: "hmiscsv2024services_9c1a"
@@ -10847,9 +10847,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "DateUpdated"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["ExportID"], name: "hmiscsv2024users_634d"
     t.index ["UserID"], name: "hmiscsv2024users_57c7"
   end
@@ -10868,9 +10868,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.string "DateDeleted"
     t.string "ExportID"
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "loaded_at", precision: nil, null: false
-    t.integer "loader_id", null: false
+    t.bigint "loader_id", null: false
     t.index ["ExportID"], name: "hmiscsv2024youtheducationstatuses_634d"
     t.index ["InformationDate"], name: "hmiscsv2024youtheducationstatuses_fabe"
     t.index ["YouthEducationStatusID", "data_source_id"], name: "hmis_csv_2024_youth_education_statuses-a32f"
@@ -10878,7 +10878,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "hmis_csv_import_errors", force: :cascade do |t|
-    t.integer "importer_log_id", null: false
+    t.bigint "importer_log_id", null: false
     t.string "message"
     t.string "details"
     t.string "source_type", null: false
@@ -10888,7 +10888,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "hmis_csv_import_validations", force: :cascade do |t|
-    t.integer "importer_log_id", null: false
+    t.bigint "importer_log_id", null: false
     t.string "type", null: false
     t.string "source_id", null: false
     t.string "source_type", null: false
@@ -10900,21 +10900,21 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "hmis_csv_importer_logs", force: :cascade do |t|
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.jsonb "summary"
     t.string "status"
     t.datetime "started_at", precision: nil
     t.datetime "completed_at", precision: nil
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.integer "upload_id"
+    t.bigint "upload_id"
     t.index ["created_at"], name: "index_hmis_csv_importer_logs_on_created_at"
     t.index ["data_source_id"], name: "index_hmis_csv_importer_logs_on_data_source_id"
     t.index ["updated_at"], name: "index_hmis_csv_importer_logs_on_updated_at"
   end
 
   create_table "hmis_csv_load_errors", force: :cascade do |t|
-    t.integer "loader_log_id", null: false
+    t.bigint "loader_log_id", null: false
     t.string "file_name", null: false
     t.string "message"
     t.string "details"
@@ -10923,15 +10923,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "hmis_csv_loader_logs", force: :cascade do |t|
-    t.integer "data_source_id", null: false
-    t.integer "importer_log_id"
+    t.bigint "data_source_id", null: false
+    t.bigint "importer_log_id"
     t.jsonb "summary"
     t.string "status"
     t.datetime "started_at", precision: nil
     t.datetime "completed_at", precision: nil
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.integer "upload_id"
+    t.bigint "upload_id"
     t.index ["created_at"], name: "index_hmis_csv_loader_logs_on_created_at"
     t.index ["data_source_id"], name: "index_hmis_csv_loader_logs_on_data_source_id"
     t.index ["importer_log_id"], name: "index_hmis_csv_loader_logs_on_importer_log_id"
@@ -10944,9 +10944,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.bigint "client_id", null: false
     t.bigint "report_id", null: false
     t.string "project_name"
-    t.integer "destination_client_id"
+    t.bigint "destination_client_id"
     t.string "hmis_assessment_id"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.integer "assessment_type"
     t.integer "assessment_level"
     t.integer "prioritization_status"
@@ -10965,11 +10965,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   create_table "hmis_dqt_clients", force: :cascade do |t|
     t.bigint "client_id", null: false
     t.bigint "report_id", null: false
-    t.integer "destination_client_id"
+    t.bigint "destination_client_id"
     t.string "first_name"
     t.string "last_name"
     t.string "personal_id"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.date "dob"
     t.integer "dob_data_quality"
     t.integer "male"
@@ -11034,9 +11034,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.bigint "client_id", null: false
     t.bigint "report_id", null: false
     t.string "project_name"
-    t.integer "destination_client_id"
+    t.bigint "destination_client_id"
     t.string "hmis_current_living_situation_id"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.integer "situation"
     t.date "information_date"
     t.date "project_operating_start_date"
@@ -11045,7 +11045,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at", precision: nil
-    t.integer "project_id"
+    t.bigint "project_id"
     t.string "first_name"
     t.string "last_name"
     t.string "personal_id"
@@ -11061,10 +11061,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.bigint "report_id", null: false
     t.string "personal_id"
     t.string "project_name"
-    t.integer "destination_client_id"
+    t.bigint "destination_client_id"
     t.string "hmis_enrollment_id"
     t.string "exit_id"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.date "entry_date"
     t.date "move_in_date"
     t.date "exit_date"
@@ -11086,7 +11086,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at", precision: nil
     t.integer "project_type"
-    t.integer "project_id"
+    t.bigint "project_id"
     t.string "household_type"
     t.integer "household_min_age"
     t.boolean "ch_details_expected", default: false
@@ -11174,9 +11174,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.bigint "client_id", null: false
     t.bigint "report_id", null: false
     t.string "project_name"
-    t.integer "destination_client_id"
+    t.bigint "destination_client_id"
     t.string "hmis_event_id"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.integer "event"
     t.date "event_date"
     t.date "project_operating_start_date"
@@ -11251,7 +11251,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.bigint "report_id", null: false
     t.string "project_name"
     t.string "hmis_inventory_id"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.integer "project_type"
     t.date "project_operating_start_date"
     t.date "project_operating_end_date"
@@ -11330,7 +11330,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "referral_result"
     t.text "denial_note"
     t.datetime "status_note_updated_at", precision: nil
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.index ["identifier"], name: "uidx_hmis_external_referral_posting_identifier", unique: true
     t.index ["project_id"], name: "index_hmis_external_referral_postings_on_project_id"
     t.index ["referral_id", "referral_request_id"], name: "uidx_hmis_external_referral_postings_1", unique: true
@@ -11412,8 +11412,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "definition_identifier", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "custom_service_type_id"
-    t.integer "custom_service_category_id"
+    t.bigint "custom_service_type_id"
+    t.bigint "custom_service_category_id"
     t.integer "funder"
     t.integer "project_type"
     t.string "other_funder"
@@ -11434,13 +11434,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.bigint "mental_health_disorder_id"
     t.bigint "substance_use_disorder_id"
     t.bigint "exit_id"
-    t.integer "custom_assessment_id"
-    t.integer "definition_id"
+    t.bigint "custom_assessment_id"
+    t.bigint "definition_id"
     t.jsonb "values"
     t.jsonb "hud_values"
-    t.integer "youth_education_status_id"
-    t.integer "employment_education_id"
-    t.integer "current_living_situation_id"
+    t.bigint "youth_education_status_id"
+    t.bigint "employment_education_id"
+    t.bigint "current_living_situation_id"
     t.bigint "ce_assessment_id"
     t.bigint "ce_event_id"
     t.string "owner_type", null: false
@@ -11464,21 +11464,21 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "hmis_forms", id: :serial, force: :cascade do |t|
-    t.integer "client_id"
+    t.bigint "client_id"
     t.text "api_response"
     t.string "name"
     t.text "answers"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.integer "response_id"
-    t.integer "subject_id"
+    t.bigint "response_id"
+    t.bigint "subject_id"
     t.datetime "collected_at", precision: nil
     t.string "staff"
     t.string "assessment_type"
     t.string "collection_location"
-    t.integer "assessment_id"
-    t.integer "data_source_id", null: false
-    t.integer "site_id"
+    t.bigint "assessment_id"
+    t.bigint "data_source_id", null: false
+    t.bigint "site_id"
     t.datetime "vispdat_score_updated_at", precision: nil
     t.float "vispdat_total_score"
     t.float "vispdat_youth_score"
@@ -11609,7 +11609,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "hmis_staff", id: :serial, force: :cascade do |t|
-    t.integer "site_id"
+    t.bigint "site_id"
     t.string "first_name"
     t.string "last_name"
     t.string "middle_initial"
@@ -11619,7 +11619,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "ssn"
     t.string "source_class"
     t.string "source_id"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
   end
 
   create_table "hmis_staff_assignment_relationships", force: :cascade do |t|
@@ -11644,9 +11644,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "hmis_staff_x_clients", id: :serial, force: :cascade do |t|
-    t.integer "staff_id"
-    t.integer "client_id"
-    t.integer "relationship_id"
+    t.bigint "staff_id"
+    t.bigint "client_id"
+    t.bigint "relationship_id"
     t.string "source_class"
     t.string "source_id"
     t.index ["staff_id", "client_id", "relationship_id"], name: "index_staff_x_client_s_id_c_id_r_id", unique: true
@@ -11697,9 +11697,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at", precision: nil
     t.string "user_id", null: false
-    t.integer "unit_type_id"
+    t.bigint "unit_type_id"
     t.integer "unit_size"
-    t.integer "project_id", null: false
+    t.bigint "project_id", null: false
   end
 
   create_table "homeless_summary_report_clients", force: :cascade do |t|
@@ -12078,7 +12078,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
 
   create_table "hud_chronics", id: :serial, force: :cascade do |t|
     t.date "date"
-    t.integer "client_id"
+    t.bigint "client_id"
     t.integer "months_in_last_three_years"
     t.boolean "individual"
     t.integer "age"
@@ -12098,7 +12098,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "type", null: false
     t.datetime "imported_at", precision: nil, null: false
     t.date "effective_date", null: false
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.index ["effective_date"], name: "index_hud_create_logs_on_effective_date"
     t.index ["imported_at"], name: "index_hud_create_logs_on_imported_at"
   end
@@ -12168,9 +12168,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.boolean "mental_health_problem"
     t.boolean "substance_abuse"
     t.boolean "indefinite_and_impairs"
-    t.integer "client_id"
-    t.integer "data_source_id"
-    t.integer "report_instance_id"
+    t.bigint "client_id"
+    t.bigint "data_source_id"
+    t.bigint "report_instance_id"
     t.integer "destination"
     t.date "income_date_at_start"
     t.integer "income_from_any_source_at_start"
@@ -12241,7 +12241,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.jsonb "household_members"
     t.boolean "parenting_juvenile"
     t.datetime "deleted_at", precision: nil
-    t.integer "destination_client_id"
+    t.bigint "destination_client_id"
     t.boolean "annual_assessment_in_window"
     t.string "chronically_homeless_detail"
     t.date "ce_assessment_date"
@@ -12255,9 +12255,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "gender_multi"
     t.integer "bed_nights"
     t.jsonb "pit_enrollments", default: []
-    t.integer "source_enrollment_id"
+    t.bigint "source_enrollment_id"
     t.integer "los_under_threshold"
-    t.integer "project_id"
+    t.bigint "project_id"
     t.datetime "client_created_at", precision: nil
     t.string "personal_id"
     t.string "race_multi"
@@ -12308,10 +12308,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "hud_report_dq_clients", force: :cascade do |t|
-    t.integer "client_id"
-    t.integer "data_source_id"
-    t.integer "report_instance_id"
-    t.integer "destination_client_id"
+    t.bigint "client_id"
+    t.bigint "data_source_id"
+    t.bigint "report_instance_id"
+    t.bigint "destination_client_id"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "deleted_at", precision: nil
@@ -12444,8 +12444,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "report_instance_id", null: false
-    t.integer "data_source_id", null: false
+    t.bigint "report_instance_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at", precision: nil
@@ -12477,8 +12477,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "report_instance_id", null: false
-    t.integer "data_source_id", null: false
+    t.bigint "report_instance_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at", precision: nil
@@ -12497,8 +12497,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "report_instance_id", null: false
-    t.integer "data_source_id", null: false
+    t.bigint "report_instance_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at", precision: nil
@@ -12523,8 +12523,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "report_instance_id", null: false
-    t.integer "data_source_id", null: false
+    t.bigint "report_instance_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at", precision: nil
@@ -12554,8 +12554,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID"
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "report_instance_id", null: false
-    t.integer "data_source_id", null: false
+    t.bigint "report_instance_id", null: false
+    t.bigint "data_source_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at", precision: nil
@@ -12644,7 +12644,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.string "gender_multi"
-    t.integer "destination_client_id"
+    t.bigint "destination_client_id"
     t.string "personal_id"
     t.string "race_multi"
     t.boolean "newly_enrolled_client", default: false
@@ -12667,7 +12667,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.bigint "report_instance_id"
     t.string "first_name"
     t.string "last_name"
-    t.integer "destination_client_id"
+    t.bigint "destination_client_id"
     t.integer "age"
     t.date "dob"
     t.string "household_type"
@@ -12701,7 +12701,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "hiv_aids_indefinite_impairing"
     t.integer "mental_illness"
     t.integer "mental_illness_indefinite_impairing"
-    t.integer "project_id"
+    t.bigint "project_id"
     t.integer "project_type"
     t.string "project_name"
     t.integer "project_hmis_pit_count"
@@ -12737,9 +12737,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "hud_report_spm_clients", force: :cascade do |t|
-    t.integer "client_id", null: false
-    t.integer "data_source_id", null: false
-    t.integer "report_instance_id", null: false
+    t.bigint "client_id", null: false
+    t.bigint "data_source_id", null: false
+    t.bigint "report_instance_id", null: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "deleted_at", precision: nil
@@ -12794,12 +12794,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.boolean "m7_head_of_household", default: false, null: false
     t.integer "m7_reporting_age"
     t.jsonb "m7b_history"
-    t.integer "m2_project_id"
-    t.integer "m3_project_id"
-    t.integer "m4_project_id"
-    t.integer "m5_project_id"
-    t.integer "m7a1_project_id"
-    t.integer "m7b_project_id"
+    t.bigint "m2_project_id"
+    t.bigint "m3_project_id"
+    t.bigint "m4_project_id"
+    t.bigint "m5_project_id"
+    t.bigint "m7a1_project_id"
+    t.bigint "m7b_project_id"
     t.string "personal_id"
     t.string "data_lab_public_id"
     t.string "source_client_personal_ids"
@@ -12817,7 +12817,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "first_name"
     t.string "last_name"
     t.string "personal_id"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.date "start_of_homelessness"
     t.date "entry_date"
     t.date "exit_date"
@@ -12898,7 +12898,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "import_logs", id: :serial, force: :cascade do |t|
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.string "files"
     t.text "import_errors"
     t.string "summary"
@@ -12906,7 +12906,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.string "zip"
-    t.integer "upload_id"
+    t.bigint "upload_id"
     t.text "encrypted_import_errors"
     t.string "encrypted_import_errors_iv"
     t.string "type", default: "GrdaWarehouse::ImportLog"
@@ -13032,7 +13032,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "OtherBenefitsSource"
     t.string "OtherBenefitsSourceIdentify"
     t.integer "InsuranceFromAnySource"
-    t.integer "Medicaid"
+    t.bigint "Medicaid"
     t.integer "NoMedicaidReason"
     t.integer "Medicare"
     t.integer "NoMedicareReason"
@@ -13329,8 +13329,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "new_service_history", id: :serial, force: :cascade do |t|
-    t.integer "client_id", null: false
-    t.integer "data_source_id"
+    t.bigint "client_id", null: false
+    t.bigint "data_source_id"
     t.date "date", null: false
     t.date "first_date_in_program", null: false
     t.date "last_date_in_program"
@@ -13372,7 +13372,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
 
   create_table "nightly_census_by_projects", id: :serial, force: :cascade do |t|
     t.date "date", null: false
-    t.integer "project_id", null: false
+    t.bigint "project_id", null: false
     t.integer "veterans", default: 0
     t.integer "non_veterans", default: 0
     t.integer "children", default: 0
@@ -13395,9 +13395,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "non_hmis_uploads", id: :serial, force: :cascade do |t|
-    t.integer "data_source_id"
-    t.integer "user_id"
-    t.integer "delayed_job_id"
+    t.bigint "data_source_id"
+    t.bigint "user_id"
+    t.bigint "delayed_job_id"
     t.string "file", null: false
     t.float "percent_complete"
     t.json "import_errors"
@@ -13511,7 +13511,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.bigint "client_id"
     t.bigint "project_id"
     t.datetime "deleted_at", precision: nil
-    t.integer "report_id"
+    t.bigint "report_id"
     t.string "for_question"
     t.string "period"
     t.integer "household_type", comment: "2.07.4"
@@ -13539,7 +13539,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "reporting_destination"
     t.integer "reporting_days_to_return"
     t.boolean "reporting_increased_income", default: false, null: false
-    t.integer "reporting_pit_project_id"
+    t.bigint "reporting_pit_project_id"
     t.integer "reporting_pit_project_type"
     t.boolean "reporting_served_on_pit_date", default: false, null: false
     t.boolean "reporting_served_in_so", default: false, null: false
@@ -13572,7 +13572,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "comparison_destination"
     t.integer "comparison_days_to_return"
     t.boolean "comparison_increased_income", default: false, null: false
-    t.integer "comparison_pit_project_id"
+    t.bigint "comparison_pit_project_id"
     t.integer "comparison_pit_project_type"
     t.boolean "comparison_served_on_pit_date", default: false, null: false
     t.boolean "comparison_served_in_so", default: false, null: false
@@ -13598,8 +13598,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "deleted_at", precision: nil
-    t.integer "reporting_spm_id"
-    t.integer "comparison_spm_id"
+    t.bigint "reporting_spm_id"
+    t.bigint "comparison_spm_id"
     t.integer "reporting_days_homeless_es_sh_th_ph"
     t.boolean "reporting_income_stayer"
     t.boolean "comparison_income_stayer"
@@ -13711,7 +13711,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.float "comparison_ave_bed_capacity_per_night"
     t.float "comparison_ave_clients_per_night"
     t.datetime "deleted_at", precision: nil
-    t.integer "project_id"
+    t.bigint "project_id"
     t.string "period"
     t.index ["deleted_at"], name: "index_pm_projects_on_deleted_at"
     t.index ["project_id", "report_id"], name: "index_pm_projects_on_project_id_and_report_id"
@@ -13734,7 +13734,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "deleted_at", precision: nil
     t.integer "comparison_primary_value"
     t.boolean "system_level", default: false, null: false
-    t.integer "project_id"
+    t.bigint "project_id"
     t.float "goal"
     t.float "goal_progress"
     t.integer "reporting_numerator"
@@ -13746,7 +13746,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "project_data_quality", id: :serial, force: :cascade do |t|
-    t.integer "project_id"
+    t.bigint "project_id"
     t.string "type"
     t.date "start"
     t.date "end"
@@ -13758,9 +13758,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "created_at", precision: nil
     t.datetime "updated_at", precision: nil
     t.text "processing_errors"
-    t.integer "project_group_id"
+    t.bigint "project_group_id"
     t.json "support"
-    t.integer "requestor_id"
+    t.bigint "requestor_id"
     t.boolean "notify_contacts", default: false
     t.index ["project_id"], name: "index_project_data_quality_on_project_id"
   end
@@ -13878,8 +13878,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "project_project_groups", id: :serial, force: :cascade do |t|
-    t.integer "project_group_id"
-    t.integer "project_id"
+    t.bigint "project_group_id"
+    t.bigint "project_id"
     t.datetime "created_at", precision: nil
     t.datetime "updated_at", precision: nil
     t.datetime "deleted_at", precision: nil
@@ -13945,7 +13945,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.boolean "project_less_than_two"
     t.string "geographic_location"
     t.bigint "apr_id"
-    t.integer "spm_id"
+    t.bigint "spm_id"
     t.index ["apr_id"], name: "index_project_scorecard_reports_on_apr_id"
     t.index ["project_group_id"], name: "index_project_scorecard_reports_on_project_group_id"
     t.index ["project_id"], name: "index_project_scorecard_reports_on_project_id"
@@ -14233,7 +14233,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "UserID", limit: 100
     t.datetime "DateDeleted", precision: nil
     t.string "ExportID"
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.integer "id"
     t.integer "LOSUnderThreshold"
     t.integer "PreviousStreetESSH"
@@ -14280,8 +14280,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "CoCPrioritized"
     t.integer "TargetScreenReqd"
     t.integer "HOHLeaseholder"
-    t.integer "demographic_id"
-    t.integer "client_id"
+    t.bigint "demographic_id"
+    t.bigint "client_id"
     t.index ["EntryDate"], name: "entrydate_ret_index"
     t.index ["client_id"], name: "client_id_ret_index"
     t.index ["id"], name: "id_ret_index", unique: true
@@ -14289,8 +14289,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
 
   create_table "recent_service_history", id: false, force: :cascade do |t|
     t.bigint "id"
-    t.integer "client_id"
-    t.integer "data_source_id"
+    t.bigint "client_id"
+    t.bigint "data_source_id"
     t.date "date"
     t.date "first_date_in_program"
     t.date "last_date_in_program"
@@ -14299,10 +14299,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "destination"
     t.string "head_of_household_id", limit: 50
     t.string "household_id", limit: 50
-    t.integer "project_id"
+    t.bigint "project_id"
     t.integer "project_type", limit: 2
     t.integer "project_tracking_method"
-    t.integer "organization_id"
+    t.bigint "organization_id"
     t.integer "housing_status_at_entry"
     t.integer "housing_status_at_exit"
     t.integer "service_type", limit: 2
@@ -14318,8 +14318,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "recurring_hmis_export_links", id: :serial, force: :cascade do |t|
-    t.integer "hmis_export_id"
-    t.integer "recurring_hmis_export_id"
+    t.bigint "hmis_export_id"
+    t.bigint "recurring_hmis_export_id"
     t.date "exported_at"
   end
 
@@ -14327,7 +14327,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "every_n_days"
     t.string "reporting_range"
     t.integer "reporting_range_days"
-    t.integer "user_id"
+    t.bigint "user_id"
     t.string "project_ids"
     t.datetime "created_at", precision: nil
     t.datetime "updated_at", precision: nil
@@ -14390,8 +14390,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "report_tokens", id: :serial, force: :cascade do |t|
-    t.integer "report_id", null: false
-    t.integer "contact_id", null: false
+    t.bigint "report_id", null: false
+    t.bigint "contact_id", null: false
     t.string "token", null: false
     t.datetime "expires_at", precision: nil, null: false
     t.datetime "accessed_at", precision: nil
@@ -14407,16 +14407,16 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "content_type"
     t.binary "content"
     t.integer "size"
-    t.integer "sender_id"
-    t.integer "recipient_id"
+    t.bigint "sender_id"
+    t.bigint "recipient_id"
     t.datetime "created_at", precision: nil
     t.datetime "updated_at", precision: nil
     t.datetime "deleted_at", precision: nil
   end
 
   create_table "service_history_enrollments", force: :cascade do |t|
-    t.integer "client_id", null: false
-    t.integer "data_source_id"
+    t.bigint "client_id", null: false
+    t.bigint "data_source_id"
     t.date "date", null: false
     t.date "first_date_in_program", null: false
     t.date "last_date_in_program"
@@ -14462,12 +14462,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
 
   create_table "service_history_services", primary_key: ["id", "date"], options: "PARTITION BY RANGE (date)", force: :cascade do |t|
     t.bigserial "id", null: false
-    t.integer "service_history_enrollment_id", null: false
+    t.bigint "service_history_enrollment_id", null: false
     t.string "record_type", limit: 50, null: false
     t.date "date", null: false
     t.integer "age", limit: 2
     t.integer "service_type", limit: 2
-    t.integer "client_id"
+    t.bigint "client_id"
     t.integer "project_type", limit: 2
     t.boolean "homeless"
     t.boolean "literally_homeless"
@@ -14475,12 +14475,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "service_history_services_was_for_inheritance", id: :bigint, default: -> { "nextval('service_history_services_id_seq'::regclass)" }, force: :cascade do |t|
-    t.integer "service_history_enrollment_id", null: false
+    t.bigint "service_history_enrollment_id", null: false
     t.string "record_type", limit: 50, null: false
     t.date "date", null: false
     t.integer "age", limit: 2
     t.integer "service_type", limit: 2
-    t.integer "client_id"
+    t.bigint "client_id"
     t.integer "project_type", limit: 2
     t.boolean "homeless"
     t.boolean "literally_homeless"
@@ -14683,7 +14683,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   create_table "shape_towns", force: :cascade do |t|
     t.string "statefp"
     t.integer "fy"
-    t.integer "town_id"
+    t.bigint "town_id"
     t.string "town"
     t.decimal "shape_area"
     t.decimal "shape_len"
@@ -14907,10 +14907,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "taggings", id: :serial, force: :cascade do |t|
-    t.integer "tag_id"
-    t.integer "taggable_id"
+    t.bigint "tag_id"
+    t.bigint "taggable_id"
     t.string "taggable_type"
-    t.integer "tagger_id"
+    t.bigint "tagger_id"
     t.string "tagger_type"
     t.string "context", limit: 128
     t.datetime "created_at", precision: nil
@@ -14950,7 +14950,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
 
   create_table "talentlms_courses", force: :cascade do |t|
     t.bigint "config_id"
-    t.integer "courseid"
+    t.bigint "courseid"
     t.integer "months_to_expiration"
     t.string "name"
     t.boolean "default", default: false
@@ -14964,7 +14964,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "login"
     t.string "encrypted_password"
     t.string "encrypted_password_iv"
-    t.integer "lms_user_id"
+    t.bigint "lms_user_id"
     t.bigint "config_id"
     t.index ["config_id"], name: "index_talentlms_logins_on_config_id"
     t.index ["user_id"], name: "index_talentlms_logins_on_user_id"
@@ -14977,7 +14977,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "sent_at", precision: nil
     t.string "sent_to"
     t.string "content"
-    t.integer "source_id"
+    t.bigint "source_id"
     t.string "source_type"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -15000,7 +15000,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "deleted_at", precision: nil
-    t.integer "client_id"
+    t.bigint "client_id"
     t.index ["created_at"], name: "index_text_message_topic_subscribers_on_created_at"
     t.index ["topic_id"], name: "index_text_message_topic_subscribers_on_topic_id"
     t.index ["updated_at"], name: "index_text_message_topic_subscribers_on_updated_at"
@@ -15047,8 +15047,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "uploads", id: :serial, force: :cascade do |t|
-    t.integer "data_source_id"
-    t.integer "user_id"
+    t.bigint "data_source_id"
+    t.bigint "user_id"
     t.string "file", null: false
     t.float "percent_complete"
     t.string "unzipped_path"
@@ -15062,7 +15062,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "started_at", precision: nil
     t.datetime "completed_at", precision: nil
     t.datetime "deleted_at", precision: nil
-    t.integer "delayed_job_id"
+    t.bigint "delayed_job_id"
     t.boolean "deidentified", default: false
     t.boolean "project_whitelist", default: false
     t.text "encrypted_content"
@@ -15071,8 +15071,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "user_client_permissions", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "client_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "client_id", null: false
     t.boolean "viewable", default: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -15081,8 +15081,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "user_clients", id: :serial, force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "client_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "client_id", null: false
     t.boolean "confidential", default: false, null: false
     t.string "relationship"
     t.datetime "created_at", precision: nil, null: false
@@ -15096,8 +15096,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "user_viewable_entities", id: :serial, force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "entity_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "entity_id", null: false
     t.string "entity_type", null: false
     t.datetime "deleted_at", precision: nil
     t.index ["user_id", "entity_id", "entity_type", "deleted_at"], name: "one_entity_per_type_per_user_allows_delete", unique: true
@@ -15115,7 +15115,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "verification_sources", id: :serial, force: :cascade do |t|
-    t.integer "client_id"
+    t.bigint "client_id"
     t.string "location"
     t.datetime "created_at", precision: nil
     t.datetime "updated_at", precision: nil
@@ -15148,7 +15148,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "vispdats", id: :serial, force: :cascade do |t|
-    t.integer "client_id"
+    t.bigint "client_id"
     t.string "nickname"
     t.integer "language_answer"
     t.boolean "hiv_release"
@@ -15215,7 +15215,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "migrated_filed_by"
     t.boolean "migrated", default: false, null: false
     t.boolean "housing_release_confirmed", default: false
-    t.integer "user_id"
+    t.bigint "user_id"
     t.integer "priority_score"
     t.boolean "active", default: false
     t.string "type", default: "GrdaWarehouse::Vispdat::Individual"
@@ -15260,8 +15260,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "warehouse_client_service_history", id: :serial, force: :cascade do |t|
-    t.integer "client_id", null: false
-    t.integer "data_source_id"
+    t.bigint "client_id", null: false
+    t.bigint "data_source_id"
     t.date "date", null: false
     t.date "first_date_in_program", null: false
     t.date "last_date_in_program"
@@ -15308,7 +15308,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
 
   create_table "warehouse_clients", id: :serial, force: :cascade do |t|
     t.string "id_in_source", null: false
-    t.integer "data_source_id"
+    t.bigint "data_source_id"
     t.datetime "proposed_at", precision: nil
     t.datetime "reviewed_at", precision: nil
     t.string "reviewd_by"
@@ -15317,9 +15317,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "deleted_at", precision: nil
-    t.integer "source_id"
-    t.integer "destination_id"
-    t.integer "client_match_id"
+    t.bigint "source_id"
+    t.bigint "destination_id"
+    t.bigint "client_match_id"
     t.string "source_hash"
     t.index ["data_source_id"], name: "index_warehouse_clients_on_data_source_id"
     t.index ["deleted_at"], name: "index_warehouse_clients_on_deleted_at"
@@ -15329,7 +15329,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "warehouse_clients_processed", id: :serial, force: :cascade do |t|
-    t.integer "client_id"
+    t.bigint "client_id"
     t.string "routine"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -15385,7 +15385,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.integer "client_count"
     t.json "support"
     t.string "token"
-    t.integer "user_id"
+    t.bigint "user_id"
     t.datetime "deleted_at", precision: nil
   end
 
@@ -15398,15 +15398,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "whitelisted_projects_for_clients", id: :serial, force: :cascade do |t|
-    t.integer "data_source_id", null: false
+    t.bigint "data_source_id", null: false
     t.string "ProjectID", null: false
     t.datetime "created_at", precision: nil
     t.datetime "updated_at", precision: nil
   end
 
   create_table "youth_case_managements", id: :serial, force: :cascade do |t|
-    t.integer "client_id"
-    t.integer "user_id"
+    t.bigint "client_id"
+    t.bigint "user_id"
     t.date "engaged_on"
     t.text "activity"
     t.datetime "created_at", precision: nil, null: false
@@ -15420,7 +15420,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "youth_exports", id: :serial, force: :cascade do |t|
-    t.integer "user_id", null: false
+    t.bigint "user_id", null: false
     t.jsonb "options"
     t.jsonb "headers"
     t.jsonb "rows"
@@ -15436,8 +15436,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "youth_follow_ups", id: :serial, force: :cascade do |t|
-    t.integer "client_id"
-    t.integer "user_id"
+    t.bigint "client_id"
+    t.bigint "user_id"
     t.date "contacted_on"
     t.string "housing_status"
     t.string "zip_code"
@@ -15447,13 +15447,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
     t.string "action"
     t.date "action_on"
     t.date "required_on"
-    t.integer "case_management_id"
+    t.bigint "case_management_id"
     t.index ["deleted_at"], name: "index_youth_follow_ups_on_deleted_at"
   end
 
   create_table "youth_intakes", id: :serial, force: :cascade do |t|
-    t.integer "client_id"
-    t.integer "user_id"
+    t.bigint "client_id"
+    t.bigint "user_id"
     t.string "type"
     t.boolean "other_staff_completed_intake", default: false, null: false
     t.date "client_dob"
@@ -15501,8 +15501,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   end
 
   create_table "youth_referrals", id: :serial, force: :cascade do |t|
-    t.integer "client_id"
-    t.integer "user_id"
+    t.bigint "client_id"
+    t.bigint "user_id"
     t.date "referred_on"
     t.string "referred_to"
     t.datetime "created_at", precision: nil, null: false
@@ -15563,29 +15563,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
   add_foreign_key "warehouse_clients", "data_sources"
   add_foreign_key "warehouse_clients_processed", "Client", column: "client_id"
 
-  create_view "Site", sql_definition: <<-SQL
-      SELECT "GeographyID",
-      "ProjectID",
-      "CoCCode",
-      "PrincipalSite",
-      "Geocode",
-      "Address1",
-      "City",
-      "State",
-      "ZIP",
-      "DateCreated",
-      "DateUpdated",
-      "UserID",
-      "DateDeleted",
-      "ExportID",
-      data_source_id,
-      id,
-      "InformationDate",
-      "Address2",
-      "GeographyType",
-      source_hash
-     FROM "Geography";
-  SQL
   create_view "bi_lookups_ethnicities", sql_definition: <<-SQL
       SELECT id,
       value,
@@ -15625,6 +15602,112 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
        LEFT JOIN census_values vals ON (((locs.full_geoid)::text = (vals.full_geoid)::text)))
        LEFT JOIN census_variables vars ON (((vals.census_variable_id = vars.id) AND (vars.internal_name IS NOT NULL))))
        LEFT JOIN census_groups g ON ((((vars.census_group)::text = (g.name)::text) AND (vars.year = g.year) AND ((vars.dataset)::text = (g.dataset)::text))));
+  SQL
+  create_view "index_stats", sql_definition: <<-SQL
+      WITH table_stats AS (
+           SELECT psut.relname,
+              psut.n_live_tup,
+              ((1.0 * (psut.idx_scan)::numeric) / (GREATEST((1)::bigint, (psut.seq_scan + psut.idx_scan)))::numeric) AS index_use_ratio
+             FROM pg_stat_user_tables psut
+            ORDER BY psut.n_live_tup DESC
+          ), table_io AS (
+           SELECT psiut.relname,
+              sum(psiut.heap_blks_read) AS table_page_read,
+              sum(psiut.heap_blks_hit) AS table_page_hit,
+              (sum(psiut.heap_blks_hit) / GREATEST((1)::numeric, (sum(psiut.heap_blks_hit) + sum(psiut.heap_blks_read)))) AS table_hit_ratio
+             FROM pg_statio_user_tables psiut
+            GROUP BY psiut.relname
+            ORDER BY (sum(psiut.heap_blks_read)) DESC
+          ), index_io AS (
+           SELECT psiui.relname,
+              psiui.indexrelname,
+              sum(psiui.idx_blks_read) AS idx_page_read,
+              sum(psiui.idx_blks_hit) AS idx_page_hit,
+              ((1.0 * sum(psiui.idx_blks_hit)) / GREATEST(1.0, (sum(psiui.idx_blks_hit) + sum(psiui.idx_blks_read)))) AS idx_hit_ratio
+             FROM pg_statio_user_indexes psiui
+            GROUP BY psiui.relname, psiui.indexrelname
+            ORDER BY (sum(psiui.idx_blks_read)) DESC
+          )
+   SELECT ts.relname,
+      ts.n_live_tup,
+      ts.index_use_ratio,
+      ti.table_page_read,
+      ti.table_page_hit,
+      ti.table_hit_ratio,
+      ii.indexrelname,
+      ii.idx_page_read,
+      ii.idx_page_hit,
+      ii.idx_hit_ratio
+     FROM ((table_stats ts
+       LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
+       LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
+    ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
+  SQL
+  create_view "todd_stats", sql_definition: <<-SQL
+      SELECT relname,
+      round((
+          CASE
+              WHEN ((n_live_tup + n_dead_tup) = 0) THEN (0)::double precision
+              ELSE ((n_dead_tup)::double precision / ((n_dead_tup + n_live_tup))::double precision)
+          END * (100.0)::double precision)) AS "Frag %",
+      n_live_tup AS "Live rows",
+      n_dead_tup AS "Dead rows",
+      n_mod_since_analyze AS "Rows modified since analyze",
+          CASE
+              WHEN (COALESCE(last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_vacuum
+              ELSE COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
+          END AS last_vacuum,
+          CASE
+              WHEN (COALESCE(last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_analyze
+              ELSE COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
+          END AS last_analyze,
+      (vacuum_count + autovacuum_count) AS vacuum_count,
+      (analyze_count + autoanalyze_count) AS analyze_count
+     FROM pg_stat_all_tables
+    WHERE (schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
+  SQL
+  create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
+      SELECT id,
+      service_history_enrollment_id,
+      record_type,
+      date,
+      age,
+      service_type,
+      client_id,
+      project_type,
+      homeless,
+      literally_homeless
+     FROM service_history_services_was_for_inheritance;
+  SQL
+  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
+  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
+  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
+  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
+
+  create_view "Site", sql_definition: <<-SQL
+      SELECT "GeographyID",
+      "ProjectID",
+      "CoCCode",
+      "PrincipalSite",
+      "Geocode",
+      "Address1",
+      "City",
+      "State",
+      "ZIP",
+      "DateCreated",
+      "DateUpdated",
+      "UserID",
+      "DateDeleted",
+      "ExportID",
+      data_source_id,
+      id,
+      "InformationDate",
+      "Address2",
+      "GeographyType",
+      source_hash
+     FROM "Geography";
   SQL
   create_view "client_chronicity_periods", sql_definition: <<-SQL
       SELECT dc.id AS client_id,
@@ -15778,46 +15861,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
       "CustomServices".data_source_id
      FROM "CustomServices"
     WHERE ("CustomServices"."DateDeleted" IS NULL);
-  SQL
-  create_view "index_stats", sql_definition: <<-SQL
-      WITH table_stats AS (
-           SELECT psut.relname,
-              psut.n_live_tup,
-              ((1.0 * (psut.idx_scan)::numeric) / (GREATEST((1)::bigint, (psut.seq_scan + psut.idx_scan)))::numeric) AS index_use_ratio
-             FROM pg_stat_user_tables psut
-            ORDER BY psut.n_live_tup DESC
-          ), table_io AS (
-           SELECT psiut.relname,
-              sum(psiut.heap_blks_read) AS table_page_read,
-              sum(psiut.heap_blks_hit) AS table_page_hit,
-              (sum(psiut.heap_blks_hit) / GREATEST((1)::numeric, (sum(psiut.heap_blks_hit) + sum(psiut.heap_blks_read)))) AS table_hit_ratio
-             FROM pg_statio_user_tables psiut
-            GROUP BY psiut.relname
-            ORDER BY (sum(psiut.heap_blks_read)) DESC
-          ), index_io AS (
-           SELECT psiui.relname,
-              psiui.indexrelname,
-              sum(psiui.idx_blks_read) AS idx_page_read,
-              sum(psiui.idx_blks_hit) AS idx_page_hit,
-              ((1.0 * sum(psiui.idx_blks_hit)) / GREATEST(1.0, (sum(psiui.idx_blks_hit) + sum(psiui.idx_blks_read)))) AS idx_hit_ratio
-             FROM pg_statio_user_indexes psiui
-            GROUP BY psiui.relname, psiui.indexrelname
-            ORDER BY (sum(psiui.idx_blks_read)) DESC
-          )
-   SELECT ts.relname,
-      ts.n_live_tup,
-      ts.index_use_ratio,
-      ti.table_page_read,
-      ti.table_page_hit,
-      ti.table_hit_ratio,
-      ii.indexrelname,
-      ii.idx_page_read,
-      ii.idx_page_hit,
-      ii.idx_hit_ratio
-     FROM ((table_stats ts
-       LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
-       LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
-    ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
   SQL
   create_view "project_access_group_members", sql_definition: <<-SQL
       SELECT targets.project_id,
@@ -16255,49 +16298,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
        JOIN "Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Services"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
     WHERE ("Services"."DateDeleted" IS NULL);
   SQL
-  create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
-      SELECT id,
-      service_history_enrollment_id,
-      record_type,
-      date,
-      age,
-      service_type,
-      client_id,
-      project_type,
-      homeless,
-      literally_homeless
-     FROM service_history_services_was_for_inheritance;
-  SQL
-  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
-  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
-  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
-  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
-
-  create_view "todd_stats", sql_definition: <<-SQL
-      SELECT relname,
-      round((
-          CASE
-              WHEN ((n_live_tup + n_dead_tup) = 0) THEN (0)::double precision
-              ELSE ((n_dead_tup)::double precision / ((n_dead_tup + n_live_tup))::double precision)
-          END * (100.0)::double precision)) AS "Frag %",
-      n_live_tup AS "Live rows",
-      n_dead_tup AS "Dead rows",
-      n_mod_since_analyze AS "Rows modified since analyze",
-          CASE
-              WHEN (COALESCE(last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_vacuum
-              ELSE COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
-          END AS last_vacuum,
-          CASE
-              WHEN (COALESCE(last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_analyze
-              ELSE COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
-          END AS last_analyze,
-      (vacuum_count + autovacuum_count) AS vacuum_count,
-      (analyze_count + autoanalyze_count) AS analyze_count
-     FROM pg_stat_all_tables
-    WHERE (schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
-  SQL
   create_view "service_history", sql_definition: <<-SQL
       SELECT service_history_services.id,
       service_history_services.client_id,
@@ -16371,17 +16371,5 @@ ActiveRecord::Schema[7.0].define(version: 2024_12_16_164806) do
 
   create_trigger :service_history_service_insert_trigger, sql_definition: <<-SQL
       CREATE TRIGGER service_history_service_insert_trigger BEFORE INSERT ON public.service_history_services_was_for_inheritance FOR EACH ROW EXECUTE FUNCTION service_history_service_insert_trigger()
-  SQL
-  create_trigger :no_modify_client_searchable_names, sql_definition: <<-SQL
-      CREATE TRIGGER no_modify_client_searchable_names INSTEAD OF DELETE OR UPDATE ON public.client_searchable_names FOR EACH ROW EXECUTE FUNCTION prevent_modification()
-  SQL
-  create_trigger :no_modify_hmis_households, sql_definition: <<-SQL
-      CREATE TRIGGER no_modify_hmis_households INSTEAD OF DELETE OR UPDATE ON public.hmis_households FOR EACH ROW EXECUTE FUNCTION prevent_modification()
-  SQL
-  create_trigger :no_modify_project_access_group_members, sql_definition: <<-SQL
-      CREATE TRIGGER no_modify_project_access_group_members INSTEAD OF DELETE OR UPDATE ON public.project_access_group_members FOR EACH ROW EXECUTE FUNCTION prevent_modification()
-  SQL
-  create_trigger :no_modify_project_collection_members, sql_definition: <<-SQL
-      CREATE TRIGGER no_modify_project_collection_members INSTEAD OF DELETE OR UPDATE ON public.project_collection_members FOR EACH ROW EXECUTE FUNCTION prevent_modification()
   SQL
 end
