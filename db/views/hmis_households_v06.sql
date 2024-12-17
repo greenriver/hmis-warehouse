@@ -75,6 +75,3 @@ GROUP BY
   tmp1."HouseholdID",
   tmp1."ProjectID",
   tmp1."data_source_id";
-
-CREATE RULE attempt_hmis_households_del AS ON DELETE TO hmis_households DO INSTEAD NOTHING;
-CREATE RULE attempt_hmis_households_up AS ON UPDATE TO hmis_households DO INSTEAD NOTHING;
