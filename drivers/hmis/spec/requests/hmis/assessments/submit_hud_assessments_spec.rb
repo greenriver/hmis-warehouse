@@ -18,12 +18,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
 
-  TIME_FMT = '%Y-%m-%d %T.%3N'.freeze
-
   let(:today) { Date.current }
+  let(:yesterday) { today - 1.day }
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago, date_updated: Time.current - 6.hours }
 
   before(:each) do
     hmis_login(user)
@@ -112,7 +111,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     [:INTAKE, :UPDATE, :ANNUAL, :EXIT].each do |role|
       it "#{role}: sets and updates assessment date and entry/exit dates as appropriate" do
         definition = Hmis::Form::Definition.find_by(role: role)
-        e1.update(entry_date: 2.weeks.ago)
         enrollment_date_updated = e1.date_updated
 
         # Create the initial assessment (submit)
@@ -134,30 +132,34 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expected_exit_date: role == :EXIT ? initial_assessment_date : nil,
         )
         # DateUpdate on the Enrollment should have changed
-        expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).not_to eq(enrollment_date_updated.strftime(TIME_FMT))
+        expect(assessment.enrollment.date_updated.to_fs(:db)).not_to eq(enrollment_date_updated.to_fs(:db))
         enrollment_date_updated = assessment.enrollment.date_updated
 
         # Update the assessment (submit)
-        new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
+        new_assessment_date = yesterday.strftime('%Y-%m-%d')
         input = {
           assessment_id: assessment.id,
           enrollment_id: assessment.enrollment.id,
           form_definition_id: definition.id,
           **build_minimum_values(definition, assessment_date: new_assessment_date),
         }
-        _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
-        errors = result.dig('data', 'submitAssessment', 'errors')
-        expect(errors).to be_empty
 
-        assessment.reload
-        expect_assessment_dates(
-          assessment,
-          expected_assessment_date: new_assessment_date,
-          expected_entry_date: role == :INTAKE ? new_assessment_date : e1.entry_date,
-          expected_exit_date: role == :EXIT ? new_assessment_date : nil,
-        )
-        # DateUpdate on the Enrollment should have changed
-        expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).not_to eq(enrollment_date_updated.strftime(TIME_FMT))
+        # Jump ahead to make sure DateUpdated changes
+        Timecop.travel(Time.current + 5.minutes) do
+          _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+          errors = result.dig('data', 'submitAssessment', 'errors')
+          expect(errors).to be_empty
+
+          assessment.reload
+          expect_assessment_dates(
+            assessment,
+            expected_assessment_date: new_assessment_date,
+            expected_entry_date: role == :INTAKE ? new_assessment_date : e1.entry_date,
+            expected_exit_date: role == :EXIT ? new_assessment_date : nil,
+          )
+          # DateUpdated on the Enrollment should have changed
+          expect(assessment.enrollment.date_updated.to_fs(:db)).not_to eq(enrollment_date_updated.to_fs(:db))
+        end
       end
     end
   end
@@ -166,7 +168,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     [:INTAKE, :UPDATE, :ANNUAL, :EXIT].each do |role|
       it "#{role}: sets and updates assessment date and entry/exit dates as appropriate" do
         definition = Hmis::Form::Definition.find_by(role: role)
-        e1.update(entry_date: 2.weeks.ago)
         enrollment_date_updated = e1.date_updated
 
         # Create the initial assessment (save as WIP)
@@ -187,10 +188,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expected_entry_date: e1.entry_date,
           expected_exit_date: nil,
         )
-        expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).to eq(enrollment_date_updated.strftime(TIME_FMT))
+        expect(assessment.enrollment.date_updated.to_fs(:db)).to eq(enrollment_date_updated.to_fs(:db))
 
         # Update the assessment (submit)
-        new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
+        new_assessment_date = yesterday.strftime('%Y-%m-%d')
         input = {
           assessment_id: assessment.id,
           enrollment_id: assessment.enrollment.id,
@@ -208,28 +209,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expected_entry_date: role == :INTAKE ? new_assessment_date : e1.entry_date,
           expected_exit_date: role == :EXIT ? new_assessment_date : nil,
         )
-        expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).not_to eq(enrollment_date_updated.strftime(TIME_FMT))
+        expect(assessment.enrollment.date_updated.to_fs(:db)).not_to eq(enrollment_date_updated.to_fs(:db))
 
         # Update the assessment again (submit)
-        new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
+        new_assessment_date = yesterday.strftime('%Y-%m-%d')
         input = {
           assessment_id: assessment.id,
           enrollment_id: assessment.enrollment.id,
           form_definition_id: definition.id,
           **build_minimum_values(definition, assessment_date: new_assessment_date),
         }
-        _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
-        errors = result.dig('data', 'submitAssessment', 'errors')
-        expect(errors).to be_empty
+        # Jump ahead to make sure DateUpdated changes
+        Timecop.travel(Time.current + 5.minutes) do
+          _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+          errors = result.dig('data', 'submitAssessment', 'errors')
+          expect(errors).to be_empty
 
-        assessment = Hmis::Hud::CustomAssessment.find(assessment_id)
-        expect_assessment_dates(
-          assessment,
-          expected_assessment_date: new_assessment_date,
-          expected_entry_date: role == :INTAKE ? new_assessment_date : e1.entry_date,
-          expected_exit_date: role == :EXIT ? new_assessment_date : nil,
-        )
-        expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).not_to eq(enrollment_date_updated.strftime(TIME_FMT))
+          assessment = Hmis::Hud::CustomAssessment.find(assessment_id)
+          expect_assessment_dates(
+            assessment,
+            expected_assessment_date: new_assessment_date,
+            expected_entry_date: role == :INTAKE ? new_assessment_date : e1.entry_date,
+            expected_exit_date: role == :EXIT ? new_assessment_date : nil,
+          )
+          expect(assessment.enrollment.date_updated.to_fs(:db)).not_to eq(enrollment_date_updated.to_fs(:db))
+        end
       end
     end
   end
@@ -240,7 +244,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'Can update the Exit Date when submitting a NEW Exit assessment on an Enrollment that has already been exited (edge case)' do
     definition = Hmis::Form::Definition.find_by(role: :EXIT)
-    new_exit_date = Date.yesterday.strftime('%Y-%m-%d')
+    new_exit_date = yesterday.strftime('%Y-%m-%d')
     input = {
       enrollment_id: exited_enrollment.id,
       form_definition_id: definition.id,
@@ -267,7 +271,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     )
     expect do
       definition = Hmis::Form::Definition.find_by(role: :EXIT)
-      new_exit_date = Date.yesterday.strftime('%Y-%m-%d')
+      new_exit_date = yesterday.strftime('%Y-%m-%d')
       input = {
         enrollment_id: exited_enrollment.id,
         form_definition_id: definition.id,
