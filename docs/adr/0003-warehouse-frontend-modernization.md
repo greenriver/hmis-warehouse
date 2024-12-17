@@ -10,18 +10,18 @@
 
 The warehouse currently uses Bootstrap 4.x as the primary component library and jQuery/Stimulus for client-side behaviors. This presents several challenges and opportunities for modernization:
 
-Current Challenges:
+**Current Challenges:**
 - Bootstrap 4.x has reached end-of-life and is no longer maintained
 - Codebase contains significant repeated code due to limited component reuse
+- Interface is somewhat inconsistent due to lack of re-usable components
 - Large number of forms and CRUD interfaces need ongoing support
 - Accessibility requirements need to be addressed systematically
+- Currently using several approaches to asset management (sprockets and jsbundling)
+- CSS and javascript lacks consistent architecture
 
-Technical Environment:
+**Technical Environment:**
 - Need to maintain and improve large number of existing interfaces in the warehouse
-- Rails 8 is recommends "Hotwire" which seems to be:
-  - Turbo Drive/Frames for responsive page loads
-  - Websockets/ActionCable for real-time updates
-  - Stimulus as a framework
+- Rails 8 recommends using 'Hotwire,' a suite of tools including Turbo Drive/Frames for responsive page loads, Websockets/ActionCable for real-time updates, and Stimulus as a JavaScript framework.
 - HMIS interfaces are implemented React/MUI on the HMIS
 - Complete re-implementation of rails interfaces in React would be cost-prohibitive
 - View components are not currently utilized but represent a potential solution to improve modularity
@@ -31,10 +31,10 @@ Technical Environment:
 Proposed multi-tiered approach to frontend modernization:
 
 1. **Upgrade to Bootstrap 5** as the primary UI component library
-   - Currently supported and maintained
+   - Bootstrap 5 is currently supported and maintained
    - Leverages team familiarity with Bootstrap ecosystem
-   - Built-in accessibility features
    - Compatible with many existing Bootstrap 4.x patterns
+   - Migration will involve auditing and updating existing templates and custom styles, particularly where Bootstrap 4.x-specific classes are used.
 
 2. **Implement View Components** for common UI patterns
    - Create reusable components for menus, tables, other common UI elements
@@ -43,16 +43,18 @@ Proposed multi-tiered approach to frontend modernization:
    - Gradually adopt these components during feature development
    - Create generic wrappers for Bootstrap components
 
-3. **Standardize on Stimulus for Custom Behaviors**
-   - Use Stimulus for organizing component-specific JavaScript
-   - Create reusable Stimulus controllers for common patterns
-   - Integrate with Turbo and view components
+3. **Standardize on Stimulus for JS Custom Behaviors**
+   - Continue to standardize on Stimulus for organizing component-specific JavaScript
+   - Ensure stimulus is upgraded to the most recent major version
+   - Integrate Stimulus with Turbo and view components
    - Continue using jQuery where it makes sense (DOM manipulation, AJAX, Bootstrap integration)
 
 4. **CSS Architecture Strategy**
    - Leverage Bootstrap 5 utilities as the primary styling mechanism
    - Use View Component namespacing for CSS scoping
 
+5. **Asset Management**
+   - Complete migration from sprockets to jsbundling (or rails 8 default propshaft)
 
 ## Consequences
 
@@ -69,7 +71,7 @@ Proposed multi-tiered approach to frontend modernization:
 **Negative:**
    - Less flexible than utility-first approaches such as tailwind
    - Continued dependency on Bootstrap
-   - Learning curve for developers less familiar with Stimulus
+   - Initial development time to upgrade bootstrap
    - Initial development time to create view components
 
 ## Alternatives Considered
