@@ -12,6 +12,7 @@
 .well
   = simple_form_for @site_configs, url: update_site_config_admin_talentlms_path(@site_configs), method: :post, remote: true do |f|
     = f.input :number_lms_courses_required, as: :select_two, collection: GrdaWarehouse::Config.available_number_lms_courses_required,  input_html: {class: :jRemoteSubmit}, label: 'TalentLMS Courses Completion Requirement'
+    = f.input :default_lms_email_to_warehouse_email, input_html: {class: :jRemoteSubmit}, label: 'Use warehouse email by default', hint: "When the TalentLMS email field is blank for a user, default to using the user's warehouse email address"
 .h2 
   Subdomians
 .well
@@ -26,6 +27,7 @@
         %tr
           %th Subdomain
           %th Can Create New Accounts in TalentLMS
+          %th Allow Automatic Course Redirect
           %th 
       %tbody
         - @configs.each do |config|
@@ -34,6 +36,9 @@
               = link_to config.unique_name, edit_admin_talentlm_path(config)
             %td
               - if config.create_new_accounts 
+                %i.icon-checkmark
+            %td
+              - if config.allow_automatic_redirect_to_course 
                 %i.icon-checkmark
             %td
               - if config.courses.count == 0 
@@ -93,13 +98,13 @@
           url: form.attr('action'),
           success: function(e) {
             console.debug('success')
-            var html = '<div class="jAjaxSave alert alert-success">Course completion requirement saved successfully.</div>';
+            var html = '<div class="jAjaxSave alert alert-success">TalentLMS configuration saved successfully.</div>';
             $('.utility').html(html);
             $('.jAjaxSave').delay(5000).fadeOut(250);
           },
           error: function(e) {
             console.debug('fail')
-            var html = '<div class="jAjaxSave alert alert-danger">Failed to save course completion requirement.</div>';
+            var html = '<div class="jAjaxSave alert alert-danger">Failed to save TalentLMS configuration.</div>';
             $('.utility').html(html);
             $('.jAjaxSave').delay(5000).fadeOut(250);
           }
