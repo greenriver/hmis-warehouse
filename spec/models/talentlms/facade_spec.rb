@@ -88,7 +88,7 @@ RSpec.describe Talentlms::Facade, type: :model do
       expect(lms.active_user?(config, lms_login)).to be_falsey
     end
 
-    it 'returns false if user is active in provided api response' do
+    it 'returns false if user is not active in provided api response' do
       stub_so_api_user_is_inactive(config: config)
       api_stub_response = lms.get_lms_account_data(config, lms_login)
       expect(lms.active_user?(nil, nil, api_stub_response)).to be_falsey
