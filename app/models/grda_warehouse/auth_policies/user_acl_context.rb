@@ -32,9 +32,8 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
     permissions_for_collection_ids(collection_ids)
   end
 
-  # Duck-typed for legacy role-based permissions. For Access Control, a Window Data Sources collection is maintained
-  # and should be added to Access Controls as necessary to achieve the previous behavior
-  def client_window_data_source_permissions(...)
+  # Duck-typed for legacy role-based permissions
+  def legacy_permissions
     EMPTY_SET
   end
 

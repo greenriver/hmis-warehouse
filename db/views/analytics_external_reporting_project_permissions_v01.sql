@@ -1,0 +1,1 @@
+SELECT * FROM external_reporting_project_permissions
