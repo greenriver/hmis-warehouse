@@ -19,6 +19,7 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
     :text,
     :date,
     :json,
+    :file,
   ].freeze
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
@@ -26,6 +27,7 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   has_many :values, class_name: 'Hmis::Hud::CustomDataElement', inverse_of: :data_element_definition, foreign_key: :data_element_definition_id
   belongs_to :form_definition, primary_key: 'identifier', foreign_key: 'form_definition_identifier', class_name: 'Hmis::Form::Definition', optional: true
 
+  validates :field_type, inclusion: { in: FIELD_TYPES.map(&:to_s) }, allow_blank: false
   validates_format_of :key, with: /\A[a-zA-Z0-9_-]*\z/
 
   scope :for_type, ->(owner_type) do

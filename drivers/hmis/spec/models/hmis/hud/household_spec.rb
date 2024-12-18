@@ -17,8 +17,11 @@ RSpec.describe Hmis::Hud::Household, type: :model do
 
   include_context 'hmis base setup'
 
+  let(:today) { Date.current }
+  let(:yesterday) { today - 1.day }
+
   describe 'basic tests' do
-    let!(:e1) { create(:hmis_hud_enrollment, project: p1, client: c1, user: u1, data_source: ds1, household_id: '123', entry_date: Date.current) }
+    let!(:e1) { create(:hmis_hud_enrollment, project: p1, client: c1, user: u1, data_source: ds1, household_id: '123', entry_date: today) }
 
     it 'has the right associations' do
       hh = Hmis::Hud::Household.first
@@ -31,19 +34,19 @@ RSpec.describe Hmis::Hud::Household, type: :model do
 
     describe 'scope tests' do
       let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Test', last_name: 'User' }
-      let!(:e2) { create :hmis_hud_enrollment, project: p1, client: c2, user: u1, data_source: ds1, household_id: '456', entry_date: Date.yesterday }
+      let!(:e2) { create :hmis_hud_enrollment, project: p1, client: c2, user: u1, data_source: ds1, household_id: '456', entry_date: yesterday }
 
       it 'should handle text search correctly' do
         expect(Hmis::Hud::Household.client_matches_search_term('user')).to contain_exactly(Hmis::Hud::Household.find_by(HouseholdID: e2.household_id))
       end
 
       it 'should handle open on correctly' do
-        e3 = create(:hmis_hud_enrollment, project: p1, user: u1, data_source: ds1, household_id: '789', entry_date: Date.current - 1.week, client: c2)
-        create(:hmis_hud_exit, data_source: ds1, enrollment: e3, client: c2, exit_date: Date.yesterday)
+        e3 = create(:hmis_hud_enrollment, project: p1, user: u1, data_source: ds1, household_id: '789', entry_date: today - 1.week, client: c2)
+        create(:hmis_hud_exit, data_source: ds1, enrollment: e3, client: c2, exit_date: yesterday)
 
-        expect(Hmis::Hud::Household.open_on_date(Date.current)).to contain_exactly(e1.household, e2.household)
-        expect(Hmis::Hud::Household.open_on_date(Date.yesterday)).to contain_exactly(e2.household, e3.household)
-        expect(Hmis::Hud::Household.open_on_date(Date.current - 3.days)).to contain_exactly(e3.household)
+        expect(Hmis::Hud::Household.open_on_date(today)).to contain_exactly(e1.household, e2.household)
+        expect(Hmis::Hud::Household.open_on_date(yesterday)).to contain_exactly(e2.household, e3.household)
+        expect(Hmis::Hud::Household.open_on_date(today - 3.days)).to contain_exactly(e3.household)
       end
 
       it 'should handle enrollment limit correctly' do
@@ -76,12 +79,12 @@ RSpec.describe Hmis::Hud::Household, type: :model do
     let!(:client_d) { create :hmis_hud_client, first_name: 'D', last_name: 'W', data_source: ds1, user: u1 }
 
     # A and D are enrolled together, A is the HoH
-    let!(:e_a) { create(:hmis_hud_enrollment, project: p1, client: client_a, user: u1, data_source: ds1, household_id: '1', RelationshipToHoH: 1, entry_date: Date.current) }
-    let!(:e_d) { create(:hmis_hud_enrollment, project: p1, client: client_d, user: u1, data_source: ds1, household_id: '1', RelationshipToHoH: 2, entry_date: Date.current) }
+    let!(:e_a) { create(:hmis_hud_enrollment, project: p1, client: client_a, user: u1, data_source: ds1, household_id: '1', RelationshipToHoH: 1, entry_date: today) }
+    let!(:e_d) { create(:hmis_hud_enrollment, project: p1, client: client_d, user: u1, data_source: ds1, household_id: '1', RelationshipToHoH: 2, entry_date: today) }
 
     # B and C are enrolled together, B is the HoH
-    let!(:e_b) { create(:hmis_hud_enrollment, project: p1, client: client_b, user: u1, data_source: ds1, household_id: '2', RelationshipToHoH: 1, entry_date: Date.current) }
-    let!(:e_c) { create(:hmis_hud_enrollment, project: p1, client: client_c, user: u1, data_source: ds1, household_id: '2', RelationshipToHoH: 2, entry_date: Date.current) }
+    let!(:e_b) { create(:hmis_hud_enrollment, project: p1, client: client_b, user: u1, data_source: ds1, household_id: '2', RelationshipToHoH: 1, entry_date: today) }
+    let!(:e_c) { create(:hmis_hud_enrollment, project: p1, client: client_c, user: u1, data_source: ds1, household_id: '2', RelationshipToHoH: 2, entry_date: today) }
 
     it 'should sort by head of household first name' do
       ordered = Hmis::Hud::Household.sort_by_option(:hoh_first_name_a_to_z)

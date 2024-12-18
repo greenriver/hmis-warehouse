@@ -18,5 +18,6 @@ module Types
     field :value_text, String, null: true
     field :value_date, GraphQL::Types::ISO8601Date, null: true
     field :value_json, Types::JsonObject, null: true
+    field :value_file, HmisSchema::File, null: true
   end
 end

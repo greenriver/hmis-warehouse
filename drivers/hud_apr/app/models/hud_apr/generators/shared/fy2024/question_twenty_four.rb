@@ -122,7 +122,7 @@ module HudApr::Generators::Shared::Fy2024
       language_rows = []
       grouped_members = relevant_members.preload(:universe_membership).group_by { |m| m.universe_membership.preferred_language }
       grouped_members.each_pair do |code, members|
-        if code
+        if code.present? && code != 21
           language_rows << [code.to_i, members]
         else
           different_language_members = members
@@ -167,9 +167,9 @@ module HudApr::Generators::Shared::Fy2024
         'Able to maintain the housing they had at project start--Only with financial assistance other than a subsidy' => a_t[:housing_assessment].eq(1).
           and(a_t[:subsidy_information].eq(4)),
         'Moved to new housing unit--With on-going subsidy' => a_t[:housing_assessment].eq(2).
-          and(a_t[:subsidy_information].eq(3)),
+          and(a_t[:subsidy_information].eq(11)),
         'Moved to new housing unit--Without an on-going subsidy' => a_t[:housing_assessment].eq(2).
-          and(a_t[:subsidy_information].eq(1)),
+          and(a_t[:subsidy_information].eq(12)),
         'Moved in with family/friends on a temporary basis' => a_t[:housing_assessment].eq(3),
         'Moved in with family/friends on a permanent basis' => a_t[:housing_assessment].eq(4),
         'Moved to a transitional or temporary housing facility or program' => a_t[:housing_assessment].eq(5),
@@ -178,7 +178,7 @@ module HudApr::Generators::Shared::Fy2024
         'Deceased' => a_t[:housing_assessment].eq(10),
         label_for(:dkptr) => a_t[:housing_assessment].in([8, 9]),
         'Data not collected (no exit interview completed)' => a_t[:housing_assessment].eq(99).or(leavers_clause.and(a_t[:housing_assessment].eq(nil))),
-        'Total' => leavers_clause,
+        'Total' => a_t[:housing_assessment].eq(99).or(leavers_clause),
       }.freeze
     end
 

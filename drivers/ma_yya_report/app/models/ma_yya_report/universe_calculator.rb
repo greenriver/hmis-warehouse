@@ -37,7 +37,7 @@ module MaYyaReport
             service_history_enrollment_id: enrollment.id,
             entry_date: enrollment.first_date_in_program,
             referral_source: enrollment.enrollment.ReferralSource,
-            currently_homeless: currently_homeless?(enrollment_cls),
+            currently_homeless: currently_homeless?(enrollment_cls), # on entry date
             at_risk_of_homelessness: at_risk_of_homelessness?(enrollment_cls),
             initial_contact: initial_contact(enrollments_by_client_id[client_id]),
             direct_assistance: direct_assistance?(enrollments_by_client_id[client_id]),
@@ -146,7 +146,7 @@ module MaYyaReport
       return client.RaceNone if client.RaceNone.in?([8, 9, 99])
 
       race_fields = client.race_fields.excluding(6) # Exclude HispanicLatinaeo from race value
-      return 99 if race_fields.size.zero?
+      return 99 if race_fields.empty?
       return 10 if race_fields.size > 1 # Multi-racial
 
       return race_code[*race_fields]
@@ -181,16 +181,22 @@ module MaYyaReport
       end.compact
     end
 
+    # The earliest CLS indicating the client was housed that occurred after
+    # the entry date into the enrollment
     private def rehoused_on(enrollment)
       enrollment.current_living_situations.
+        order(InformationDate: :asc).
         detect do |cls|
           cls.CurrentLivingSituation.in?([435, 410, 421, 411]) &&
           cls.InformationDate > enrollment.EntryDate
         end&.InformationDate
     end
 
+    # The CLSs occurring within the report range
+    # and at least 90 days after entry
     private def subsequent_current_living_situations(enrollment)
       enrollment.current_living_situations.
+        order(InformationDate: :asc).
         select do |cls|
         cls.InformationDate.between?(@filter.start_date, @filter.end_date) &&
           cls.InformationDate >= enrollment.EntryDate + 90.days

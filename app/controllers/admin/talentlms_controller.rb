@@ -59,6 +59,7 @@ module Admin
     def site_config_params
       params.require(:grda_warehouse_config).permit(
         :number_lms_courses_required,
+        :default_lms_email_to_warehouse_email,
       )
     end
 
@@ -67,6 +68,7 @@ module Admin
         :subdomain,
         :api_key,
         :create_new_accounts,
+        :allow_automatic_redirect_to_course,
       )
     end
   end

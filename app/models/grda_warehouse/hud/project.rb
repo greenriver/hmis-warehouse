@@ -145,12 +145,6 @@ module GrdaWarehouse::Hud
       es_nbn?
     end
 
-    # DEPRECATED_FY2024 - remove this once the transition 2024 is complete
-    # Make some tests work
-    def es_nbn_pre_2024?
-      tracking_method_to_use == 3 && project_type_to_use == 1
-    end
-
     scope :confidential, -> do
       joins(:organization).where(p_t[:confidential].eq(true).or(o_t[:confidential].eq(true)))
     end
@@ -194,9 +188,7 @@ module GrdaWarehouse::Hud
     end
 
     def coc_funded?
-      return self.ContinuumProject == 1 if hud_continuum_funded.nil?
-
-      hud_continuum_funded
+      self.ContinuumProject == 1
     end
 
     # NOTE: Careful, this returns duplicates as it joins inventories.
@@ -343,29 +335,6 @@ module GrdaWarehouse::Hud
       else
         viewable_by(user)
       end
-    end
-
-    scope :overridden, -> do
-      scope = where(Arel.sql('1=0'))
-      override_columns.each_key do |col|
-        scope = scope.or(where.not(col => nil))
-      end
-      scope
-    end
-
-    # TODO: This should be removed when all overrides have been removed
-    TodoOrDie('Remove override_columns method and columns from the database', by: '2025-01-23')
-    # If any of these are not blank, we'll consider it overridden
-    def self.override_columns
-      {
-        act_as_project_type: :ProjectType,
-        hud_continuum_funded: :ContinuumProject,
-        housing_type_override: :HousingType,
-        operating_start_date_override: :OperatingStartDate,
-        operating_end_date_override: :OperatingEndDate,
-        hmis_participating_project_override: :HMISParticipatingProject,
-        target_population_override: :TargetPopulation,
-      }
     end
 
     def self.can_see_all_projects?(user)
@@ -875,11 +844,6 @@ module GrdaWarehouse::Hud
       return false unless HudUtility2024.performance_reporting[:other].include?(project_type)
 
       funders.map(&:pay_for_success?).any?
-    end
-
-    # DEPRECATED_FY2024 no longer used in FY2024
-    def tracking_method_to_use
-      tracking_method_override.presence || self.TrackingMethod
     end
 
     def human_readable_project_type
