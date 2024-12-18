@@ -49,7 +49,7 @@ RSpec.feature 'Data collection features', type: :system do
         expect(table_row).to include(spouse.first_name)
         expect(table_row).to include('Safe Haven')
 
-        click_link spouse.first_name
+        click_link 'View CLS'
         assert_current_path("/client/#{spouse.id}/enrollments/#{spouse_enrollment.id}/current-living-situations")
       end
 
@@ -70,7 +70,7 @@ RSpec.feature 'Data collection features', type: :system do
 
         assert_no_text 'Add Current Living Situation'
 
-        find('tbody').first('tr').trigger(:click)
+        click_button 'View CLS'
         assert_text 'View Current Living Situation'
         assert_no_text 'Not Found'
         assert_text 'Current Living Situation Safe Haven'
@@ -141,7 +141,7 @@ RSpec.feature 'Data collection features', type: :system do
 
       assert_no_text 'Add Case Note'
 
-      find('tbody').first('tr').trigger(:click)
+      click_button 'View Case Note'
       click_button 'Edit'
       fill_in 'Note', with: 'An updated legacy custom case note'
       click_button 'Save'
