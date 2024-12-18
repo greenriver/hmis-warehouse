@@ -71,6 +71,8 @@ module Health
             disenroll_patient(transaction, referral, file_date)
             disenrolled_patients += 1
           end
+        rescue Health::MedicaidIdConflict
+          errors << conflict_message(transaction)
         end
 
         enrollment.changes.each do |transaction|
@@ -139,7 +141,6 @@ module Health
             update_patient_referrals(referral.patient, transaction)
             updated_patients += 1
           end
-
         rescue Health::MedicaidIdConflict
           # The conflict prevents us from knowing the audit action
           errors << conflict_message(transaction)

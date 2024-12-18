@@ -277,6 +277,11 @@ type Assessment {
   enrollment: Enrollment!
   event: Event
   exit: Exit
+
+  """
+  Client Location where the assessment was performed
+  """
+  geolocation: Geolocation
   healthAndDv: HealthAndDv
   id: ID!
   inProgress: Boolean!
@@ -1760,6 +1765,11 @@ type CurrentLivingSituation {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
+
+  """
+  Client Location where the Current Living Situation was recorded
+  """
+  geolocation: Geolocation
   id: ID!
   informationDate: ISO8601Date
   leaseOwn60Day: NoYesReasonsForMissingData
@@ -3324,6 +3334,11 @@ type Enrollment {
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
   formerWardChildWelfare: NoYesReasonsForMissingData
   formerWardJuvenileJustice: NoYesReasonsForMissingData
+
+  """
+  Client Locations that have been collected during this Enrollment
+  """
+  geolocations: [Geolocation!]!
   healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
   hh5Plus: NoYesMissing
   hohLeaseholder: NoYesMissing
@@ -3406,6 +3421,7 @@ type EnrollmentAccess {
   canEditEnrollments: Boolean!
   canSplitHouseholds: Boolean!
   canViewEnrollmentDetails: Boolean!
+  canViewEnrollmentLocationMap: Boolean!
   id: ID!
 }
 
@@ -3898,6 +3914,11 @@ type ExternalFormSubmission {
   Enrollment that was generated from this submission, if any
   """
   enrollmentId: ID
+
+  """
+  Client Location where the submission was recorded
+  """
+  geolocation: Geolocation
   id: ID!
   notes: String
   spam: Boolean
@@ -4947,6 +4968,36 @@ enum GeographyType {
   (1) Urban
   """
   URBAN
+}
+
+type Geolocation {
+  """
+  User who collected the location
+  """
+  collectedBy: ApplicationUser
+  coordinates: GeolocationCoordinates!
+  id: ID!
+
+  """
+  Timestamp when the location was collected
+  """
+  locatedAt: ISO8601DateTime!
+
+  """
+  Name of the Project that collected the location
+  """
+  projectName: String
+
+  """
+  Name of the form that collected this location
+  """
+  sourceFormName: String
+}
+
+type GeolocationCoordinates {
+  id: ID!
+  latitude: String!
+  longitude: String!
 }
 
 """
@@ -9082,6 +9133,7 @@ type QueryAccess {
   canViewClients: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
+  canViewEnrollmentLocationMap: Boolean!
   canViewFullSsn: Boolean!
   canViewHudChronicStatus: Boolean!
   canViewLimitedEnrollmentDetails: Boolean!

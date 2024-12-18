@@ -14,7 +14,6 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
     let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
     let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
     let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-    let(:time_fmt) { '%Y-%m-%d %T.%3N'.freeze }
 
     # Full record set for Entry and Annual
     let!(:records_by_data_collaction_stage) do
@@ -74,9 +73,9 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
           # User should be the most recent updated
           expect(assessment.user).to eq(expected_records.max_by(&:date_updated).user)
           # Date created should be MIN from records
-          expect(assessment.date_created.strftime(time_fmt)).to eq(expected_records.map(&:date_created).min.strftime(time_fmt))
+          expect(assessment.date_created.to_fs(:db)).to eq(expected_records.map(&:date_created).min.to_fs(:db))
           # Date updated should be MAX from records
-          expect(assessment.date_updated.strftime(time_fmt)).to eq(expected_records.map(&:date_updated).max.strftime(time_fmt))
+          expect(assessment.date_updated.to_fs(:db)).to eq(expected_records.map(&:date_updated).max.to_fs(:db))
 
           related_records = [
             :health_and_dv,
