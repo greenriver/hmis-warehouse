@@ -4,8 +4,16 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Refactor:
+# Pull all import overrides Pull Project and Organization where we can
+# Left outer join to related record (might need to be done per table)
+# Treat this more as a table
+# Fetch visible project ids and limit what you can see when the override can be associated with a project
+require 'memery'
+
 module OverrideSummary
   class Report
+    include Memery
     include ActionView::Helpers::NumberHelper
     include ArelHelper
 
@@ -31,7 +39,7 @@ module OverrideSummary
     # @return filtered scope
     def report_scope
       scope = report_scope_source
-      scope = scope.viewable_by(@filter.user)
+      scope = scope.viewable_by(filter.user)
       scope
     end
 
@@ -39,21 +47,81 @@ module OverrideSummary
       GrdaWarehouse::Hud::Project
     end
 
-    def data
-      @data ||= {}.tap do |by_project|
-        all_projects.each do |project|
-          project_name = project.name_and_type(ignore_confidential_status: true)
-          organization_name = project.organization.OrganizationName
-          by_project[organization_name] ||= {}
-          by_project[organization_name][project_name] ||= { project: project }
-          by_project[organization_name][project_name][:projects] ||= []
-          by_project[organization_name][project_name][:projects] << project if projects.key?(project.id)
-          by_project[organization_name][project_name][:inventories] = inventories[project] || []
-          by_project[organization_name][project_name][:project_cocs] = project_cocs[project] || []
-          by_project[organization_name][project_name][:funders] = funders[project] || []
-          by_project[organization_name][project_name][:affiliations] = affiliations[project] || []
+    memoize def data
+      lookups = HmisCsvImporter::ImportOverride.available_classes
+      # Attempt to do as few queries as we can to fetch the projects
+      intermediate_data = data_by_file
+      intermediate_data.each do |file_name, d|
+        # Ignore any overrides to Export.csv, they'll never be related toa project
+        next if file_name == 'Export.csv'
+        # Ignore any overrides to User.csv, they'll never be related toa project
+        next if file_name == 'User.csv'
+
+        # Throw out any overrides that don't match a specific record (they'll match any project)
+        d.each do |data_source_id, overrides|
+          ids = overrides.keys.reject(&:blank?)
+
+          # Fetch the related project names and add them to the projects key
+          model = lookups[file_name][:model]
+          scope = model.where(model.hud_key => ids, data_source_id: data_source_id)
+          # Special case Organizations and Projects
+          case file_name
+          when 'Organization.csv'
+            scope.left_outer_joins(:projects).find_each do |item|
+              item.projects.each do |project|
+                intermediate_data[file_name][data_source_id][item[model.hud_key]][:projects] << [
+                  item[model.hud_key],
+                  project.name(filter.user),
+                  project.id,
+                ]
+              end
+            end
+          when 'Project.csv'
+            scope.find_each do |item|
+              project_name = [
+                item[model.hud_key],
+                item.name(filter.user),
+                item.id,
+              ]
+              intermediate_data[file_name][data_source_id][item[model.hud_key]][:projects] << project_name
+            end
+          else
+            scope.left_outer_joins(:project).find_each do |item|
+              intermediate_data[file_name][data_source_id][item[model.hud_key]][:projects] << [
+                item[model.hud_key],
+                item.project.name(filter.user),
+                item.project.id,
+              ]
+            end
+          end
         end
       end
+      intermediate_data
+    end
+
+    def data_by_file
+      {}.tap do |d|
+        visible_overrides.find_each do |override|
+          d[override.file_name] ||= {}
+          d[override.file_name][override.data_source_id] ||= {}
+          d[override.file_name][override.data_source_id][override.matched_hud_key] ||= { overrides: [], projects: [] }
+          d[override.file_name][override.data_source_id][override.matched_hud_key][:overrides] << override
+          d[override.file_name][override.data_source_id][override.matched_hud_key][:projects] << 'Any' if override.matched_hud_key.blank?
+        end
+      end
+    end
+
+    # Overrides are visible to the user if they:
+    # 1. Are in a data source for which the user has the`can_edit_projects` permission on at least one project
+    memoize private def visible_overrides
+      HmisCsvImporter::ImportOverride.joins(:data_source).
+        merge(relevant_data_sources)
+    end
+
+    memoize private def relevant_data_sources
+      return GrdaWarehouse::DataSource.none unless filter.user.can_edit_projects?
+
+      GrdaWarehouse::DataSource.viewable_by(filter.user, permission: :can_edit_projects)
     end
 
     def manual_data
@@ -107,52 +175,21 @@ module OverrideSummary
     end
 
     private def all_projects
-      @all_projects = (projects.values + project_cocs.keys + inventories.keys + funders.keys + affiliations.keys).uniq.sort_by do |p|
+      data = [
+        projects.values,
+        project_cocs.keys,
+        inventories.keys,
+        funders.keys,
+        affiliations.keys,
+        enrollments.keys,
+        clients.keys,
+      ]
+      @all_projects = data.flatten.uniq.sort_by do |p|
         [
           p.organization.OrganizationName,
           p.ProjectName,
         ]
       end
-    end
-
-    private def projects
-      @projects ||= GrdaWarehouse::Hud::Project.
-        joins(:import_overrides).
-        merge(report_scope).
-        preload(:organization, :import_overrides).
-        index_by(&:id)
-    end
-
-    private def project_cocs
-      @project_cocs ||= GrdaWarehouse::Hud::ProjectCoc.
-        preload(:import_overrides).
-        joins(:project, :import_overrides).
-        merge(report_scope).
-        group_by(&:project)
-    end
-
-    private def inventories
-      @inventories ||= GrdaWarehouse::Hud::Inventory.
-        preload(:import_overrides).
-        joins(:project, :import_overrides).
-        merge(report_scope).
-        group_by(&:project)
-    end
-
-    private def funders
-      @funders ||= GrdaWarehouse::Hud::Funder.
-        preload(:import_overrides).
-        joins(:project, :import_overrides).
-        merge(report_scope).
-        group_by(&:project)
-    end
-
-    private def affiliations
-      @affiliations ||= GrdaWarehouse::Hud::Affiliation.
-        preload(:import_overrides).
-        joins(:project, :import_overrides).
-        merge(report_scope).
-        group_by(&:project)
     end
   end
 end
