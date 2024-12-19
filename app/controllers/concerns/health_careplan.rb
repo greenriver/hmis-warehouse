@@ -62,7 +62,7 @@ module HealthCareplan
         wait_until: 'networkidle0',
         print_background: true,
       }
-      Pdfunite.join(Grover.new(wrap_in_html(coversheet), **grover_options).to_pdf) { |obj| obj }
+      PdfGenerator.merge_inline_pdfs(Grover.new(wrap_in_html(coversheet), **grover_options).to_pdf)
     end
 
     def careplan_pdf_full
@@ -99,7 +99,7 @@ module HealthCareplan
         wait_until: 'networkidle0',
         print_background: true,
       }
-      Pdfunite.join(Grover.new(wrap_in_html(full_careplan), **grover_options).to_pdf) { |obj| obj }
+      PdfGenerator.merge_inline_pdfs(Grover.new(wrap_in_html(full_careplan), **grover_options).to_pdf)
     end
 
     def careplan_pdf_pctp
@@ -138,7 +138,7 @@ module HealthCareplan
         print_background: true,
       }
 
-      Pdfunite.join(Grover.new(wrap_in_html(pctp), **grover_options).to_pdf) { |obj| obj }
+      PdfGenerator.merge_inline_pdfs(Grover.new(wrap_in_html(pctp), **grover_options).to_pdf)
     end
 
     private def wrap_in_html(content)
@@ -154,7 +154,7 @@ module HealthCareplan
       # If we already have a document with a signature, use that to try and avoid massive duplication
       if (health_file_id = @careplan.most_appropriate_pdf_id)
         if (health_file = Health::HealthFile.find(health_file_id))
-          return Pdfunite.join(health_file.content) { |obj| obj }
+          return PdfGenerator.merge_inline_pdfs(health_file.content)
         end
       end
 
@@ -188,10 +188,10 @@ module HealthCareplan
 
       pdf << careplan_pdf_full
 
-      pdf << Pdfunite.join(@careplan.health_file.content) { |obj| obj } if @careplan.health_file.present?
-      pdf << Pdfunite.join(@cha.health_file.content) { |obj| obj } if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
-      pdf << Pdfunite.join(@form.health_file.content) { |obj| obj } if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
-      Pdfunite.join(pdf) { |obj| obj }
+      pdf << PdfGenerator.merge_inline_pdfs(@careplan.health_file.content) if @careplan.health_file.present?
+      pdf << PdfGenerator.merge_inline_pdfs(@cha.health_file.content) if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
+      pdf << PdfGenerator.merge_inline_pdfs(@form.health_file.content) if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
+      PdfGenerator.merge_inline_pdfs(pdf)
     end
   end
 end

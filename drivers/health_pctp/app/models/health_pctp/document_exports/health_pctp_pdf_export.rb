@@ -89,7 +89,7 @@ module HealthPctp::DocumentExports
         PdfGenerator.new.perform(
           html: '',
           file_name: file_name,
-          pdf_data: Pdfunite.join(pdf) { |obj| obj },
+          pdf_data: PdfGenerator.merge_inline_pdfs(pdf),
         ) do |io|
           self.pdf_file = io
         end
