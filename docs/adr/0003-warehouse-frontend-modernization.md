@@ -18,11 +18,12 @@ The warehouse currently uses Bootstrap 4.x as the primary component library and 
 - Accessibility requirements need to be addressed systematically
 - Currently using several approaches to asset management (sprockets and jsbundling)
 - CSS and javascript lacks consistent architecture
+- UX is often suboptimal due to expensive requests causing long page loads 
 
 **Technical Environment:**
 - Need to maintain and improve large number of existing interfaces in the warehouse
 - Rails 8 recommends using 'Hotwire,' a suite of tools including Turbo Drive/Frames for responsive page loads, Websockets/ActionCable for real-time updates, and Stimulus as a JavaScript framework.
-- HMIS interfaces are implemented React/MUI on the HMIS
+- HMIS interfaces are implemented in React/MUI on the HMIS
 - Complete re-implementation of rails interfaces in React would be cost-prohibitive
 - View components are not currently utilized but represent a potential solution to improve modularity
 
@@ -41,7 +42,7 @@ Proposed multi-tiered approach to frontend modernization:
    - Focus on high-value, frequently used components first
    - Standardize and document these components as preferred patterns
    - Gradually adopt these components during feature development
-   - Create generic wrappers for Bootstrap components
+   - Create generic wrappers for Bootstrap components to ease future component lib updates
 
 3. **Standardize on Stimulus for JS Custom Behaviors**
    - Continue to standardize on Stimulus for organizing component-specific JavaScript
@@ -55,6 +56,10 @@ Proposed multi-tiered approach to frontend modernization:
 
 5. **Asset Management**
    - Complete migration from sprockets to jsbundling (or rails 8 default propshaft)
+  
+6. **Modern UX**
+   - Investigate increase adoption of turbo to make the app more responsive
+   - Make better use of async page loading via actioncable to take expensive operations out of the request cycle
 
 ## Consequences
 
@@ -64,9 +69,8 @@ Proposed multi-tiered approach to frontend modernization:
    - Clear upgrade path documented by Bootstrap team
    - Can reuse existing components and patterns with minimal changes
    - Strong focus on backward compatibility in Bootstrap 5
-   - Stimulus provides more structured approach to JavaScript
+   - Stimulus provides more structured andapproach to JavaScript
    - Better alignment with Rails ecosystem and future direction
-   - Improved testability through Stimulus controllers
 
 **Negative:**
    - Less flexible than utility-first approaches such as tailwind
