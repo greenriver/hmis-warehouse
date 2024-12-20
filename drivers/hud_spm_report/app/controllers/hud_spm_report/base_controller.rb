@@ -11,7 +11,7 @@ module HudSpmReport
     def available_report_versions
       {
         'FY 2020' => { slug: :fy2020, active: false },
-        'FY 2023 (current)' => { slug: :fy2023, active: true },
+        'FY 2023/2024 (current)' => { slug: :fy2023, active: true },
       }.freeze
     end
     helper_method :available_report_versions
