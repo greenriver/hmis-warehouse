@@ -16,6 +16,10 @@ class PdfGenerator
     true
   end
 
+  def self.render_pdf(...)
+    new.render_pdf(...)
+  end
+
   def render_pdf(html, options: {})
     grover_options = {
       display_url: root_url,

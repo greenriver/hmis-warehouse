@@ -81,8 +81,8 @@ module HealthPctp::DocumentExports
         )
 
         pdf = []
-        pdf << PdfGenerator.new.render_pdf(coverpage_html, options: options_no_header)
-        pdf << PdfGenerator.new.render_pdf(html, options: options)
+        pdf << PdfGenerator.render_pdf(coverpage_html, options: options_no_header)
+        pdf << PdfGenerator.render_pdf(html, options: options)
         pdf << careplan.health_file.content if careplan.health_file.present?
 
         file_name = "#{Translation.translate('Care Plan / Patient-Centered Treatment Plan')} #{DateTime.current.to_fs(:db)}"
