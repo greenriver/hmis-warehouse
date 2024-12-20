@@ -66,6 +66,8 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
+    aasm (5.5.0)
+      concurrent-ruby (~> 1.0)
     actioncable (7.0.8.7)
       actionpack (= 7.0.8.7)
       activesupport (= 7.0.8.7)
@@ -385,6 +387,9 @@ GEM
     delayed_job_active_record (4.1.8)
       activerecord (>= 3.0, < 8.0)
       delayed_job (>= 3.0, < 5)
+    dentaku (3.5.4)
+      bigdecimal
+      concurrent-ruby
     deprecation_toolkit (2.2.0)
       activesupport (>= 6.1)
     derailed_benchmarks (2.1.2)
@@ -1075,6 +1080,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  aasm
   active_median
   active_record_distinct_on
   active_record_extended
@@ -1145,6 +1151,7 @@ DEPENDENCIES
   db-query-matchers
   delayed_job
   delayed_job_active_record
+  dentaku
   deprecation_toolkit
   derailed_benchmarks
   devise (~> 4.8)

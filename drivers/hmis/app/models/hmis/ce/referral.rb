@@ -1,0 +1,41 @@
+# A referral of an individual client to an opportunity
+module Hmis::Ce
+  class Referral < GrdaWarehouseBase
+    include AASM
+    belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
+    belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance'
+    has_many :notes, class_name: 'Hmis::Ce::ReferralNote'
+    belongs_to :client, class_name: 'Hmis::Hud::Client'
+    belongs_to :referred_by, class_name: 'Hmis::User'
+
+    # FIXME: permissions
+    scope :viewable_by, ->(_user) { all }
+
+    aasm column: 'status' do
+      state :initialized, initial: true
+      state :in_progress
+      state :accepted
+      state :rejected
+
+      event :start do
+        transitions from: :initialized, to: :in_progress
+      end
+      event :accept do
+        transitions from: :in_progress, to: :accepted
+      end
+      event :reject do
+        transitions from: :in_progress, to: :rejected
+      end
+      # event :stall do
+      #   transitions from: :active, to: :stalled
+      # end
+    end
+
+    def workflow_engine
+      @workflow_engine ||= Hmis::WorkflowExecution::Engine.new(
+        workflow_instance,
+        message_handler: Hmis::Ce::ReferralMessageHandler.new(self),
+      )
+    end
+  end
+end

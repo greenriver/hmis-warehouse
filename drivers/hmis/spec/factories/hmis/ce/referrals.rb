@@ -1,0 +1,8 @@
+FactoryBot.define do
+  factory :hmis_ce_referral, class: 'Hmis::Ce::Referral' do
+    association(:opportunity, factory: :hmis_ce_opportunity)
+    association(:workflow_instance, factory: :hmis_workflow_instance)
+    association(:client, factory: :hmis_hud_client)
+    association(:referred_by, factory: :hmis_user)
+  end
+end
