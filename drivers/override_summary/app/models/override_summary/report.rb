@@ -50,8 +50,7 @@ module OverrideSummary
     memoize def data
       lookups = HmisCsvImporter::ImportOverride.available_classes
       # Attempt to do as few queries as we can to fetch the projects
-      intermediate_data = data_by_file
-      intermediate_data.each do |file_name, d|
+      data_by_file.each do |file_name, d|
         # Ignore any overrides to Export.csv, they'll never be related toa project
         next if file_name == 'Export.csv'
         # Ignore any overrides to User.csv, they'll never be related toa project
@@ -69,7 +68,7 @@ module OverrideSummary
           when 'Organization.csv'
             scope.left_outer_joins(:projects).find_each do |item|
               item.projects.each do |project|
-                intermediate_data[file_name][data_source_id][item[model.hud_key]][:projects] << [
+                data_by_file[file_name][data_source_id][item[model.hud_key]][:projects] << [
                   item[model.hud_key],
                   project.name(filter.user),
                   project.id,
@@ -83,11 +82,11 @@ module OverrideSummary
                 item.name(filter.user),
                 item.id,
               ]
-              intermediate_data[file_name][data_source_id][item[model.hud_key]][:projects] << project_name
+              data_by_file[file_name][data_source_id][item[model.hud_key]][:projects] << project_name
             end
           else
             scope.left_outer_joins(:project).find_each do |item|
-              intermediate_data[file_name][data_source_id][item[model.hud_key]][:projects] << [
+              data_by_file[file_name][data_source_id][item[model.hud_key]][:projects] << [
                 item[model.hud_key],
                 item.project.name(filter.user),
                 item.project.id,
@@ -96,17 +95,17 @@ module OverrideSummary
           end
         end
       end
-      intermediate_data
+      data_by_file
     end
 
     def data_by_file
-      {}.tap do |d|
+      @data_by_file ||= {}.tap do |d|
         visible_overrides.find_each do |override|
           d[override.file_name] ||= {}
           d[override.file_name][override.data_source_id] ||= {}
           d[override.file_name][override.data_source_id][override.matched_hud_key] ||= { overrides: [], projects: [] }
           d[override.file_name][override.data_source_id][override.matched_hud_key][:overrides] << override
-          d[override.file_name][override.data_source_id][override.matched_hud_key][:projects] << 'Any' if override.matched_hud_key.blank?
+          d[override.file_name][override.data_source_id][override.matched_hud_key][:projects] = ['Any'] if override.matched_hud_key.blank?
         end
       end
     end

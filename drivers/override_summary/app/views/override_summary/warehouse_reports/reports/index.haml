@@ -10,6 +10,31 @@
     = render 'report_downloads/report_download', export: nil, excel_download_path: override_summary_warehouse_reports_reports_path({format: :xlsx})
 
 - if r_data.present?
+  - r_data.each do |file_name, records|
+    %h2= file_name
+    %table.table
+      %tbody
+        %tr
+          %th Replaces
+          %th With
+          %th When
+          %th Why
+          %th In Data Source
+          %th Created By
+          %th Created On
+          %th Expires
+        - records.each do |data_source_id, group|
+          - group.values.each do |data|
+            - data[:overrides].each do |override|
+              %tr
+                %td= override.replaces_column
+                %td= override.describe_with
+                %td= override.describe_when
+                %td= override.description
+                %td= data_source_id
+                %td= override.created_by
+                %td= override.created_at
+                %td= override.expires_on
   = debug r_data
   -# - r_data.each do |organization_name, projects|
   -#   .panel-group.panel-collapsible{ id: organization_name.parameterize }
