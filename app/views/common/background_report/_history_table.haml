@@ -29,7 +29,7 @@
                 - items = [{ link_to: { path: "#{report.index_path}?#{{filters: filter}.to_query}"}, class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'], icon: :copy, label: 'New report from this universe'}]
                 - unless report.running?
                   - items << { link_to: { path: report.show_path, method: :delete, data: {confirm: "Are you sure you want to delete this report?"}}, class: ['btn', 'btn-sm', 'btn-danger', 'btn-icon-only'], label: 'Delete report'}
-                = render 'common/action_menu_or_button', items: items
+                = action_menu_or_button(items: items)
     = render 'common/pagination_bottom', item_name: 'report'
   - else
     .none-found No reports found.
