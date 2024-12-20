@@ -16,7 +16,7 @@ module Types
     def steps
       instance = object.workflow_instance
       steps_by_node_id = instance.steps.index_by(&:node_id)
-      instance.template.graph.walk.filter(&:interactive?).map do |node|
+      instance.template.graph.walk.filter(&:task?).map do |node|
         steps_by_node_id[node.id] || instance.steps.new(node: node).freeze
       end
     end

@@ -10,7 +10,7 @@ module Hmis::WorkflowDefinition
     scope :entrypoints, -> { where(type: 'Hmis::WorkflowDefinition::StartEvent') }
 
     def entrypoint? = false
-    def interactive? = false
+    def task? = false
 
     # [
     #   { event: 'step_completed', message: 'send_notification', params: params },

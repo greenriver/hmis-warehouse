@@ -5,6 +5,6 @@ module Hmis::WorkflowDefinition
 
     validates :name, presence: true
 
-    def interactive? = true
+    def task? = true
   end
 end

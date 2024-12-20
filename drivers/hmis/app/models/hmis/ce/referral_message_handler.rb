@@ -7,13 +7,14 @@ module Hmis::Ce
 
     # route the message to the appropriate handler method
     def call(message)
+      # need to set move-in date on enrollment also
       case message.type
       when 'start_referral'
         referral.start!
       when 'accept_referral'
-        referral.accept
+        accept_referral(message)
       when 'reject_referral'
-        referral.reject
+        referral.reject!
       when 'send_notification'
         send_notification(message)
       when 'create_ce_event'
@@ -24,6 +25,11 @@ module Hmis::Ce
     end
 
     protected
+
+    def accept_referral(message)
+      referral.accept!
+      # enroll client, set move-in date
+    end
 
     def create_ce_event(message)
       # TBD

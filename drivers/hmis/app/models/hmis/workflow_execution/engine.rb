@@ -32,11 +32,31 @@ module Hmis::WorkflowExecution
       traverse_node(step.node, gateway_type: 'inclusive')
     end
 
+    # user (admin) rolls-back completion
+    def undo_complete_step!(step)
+      raise ArgumentError, "cannot rollback step" unless undo_complete_step_available?(step)
+
+      next_tasks_steps(step).each(&:disable!)
+      step.undo_completion!
+    end
+
+    def undo_complete_step_available?(step)
+      step.may_undo_completion?
+      next_tasks_steps(step).all?(&:may_disable?)
+    end
+
     # def cancel_step!(step)
     #   step.cancel!
     # end
 
     protected
+
+    # get all tasks nodes under step but treat those task nodes as leaves and stop searching (bounded depth-first search)
+    def next_tasks_steps(step)
+      nodes = template.graph.walk(entrypoints: [step.node], stop_when: ->(node) { node.task } )
+      steps_by_node_id = instance.steps.index_by(&:node_id)
+      nodes.map { |node| steps_by_node_id[node.id] }.compact
+    end
 
     def send_message(...)
       message = Hmis::WorkflowExecution::Message.new(...)
@@ -98,12 +118,13 @@ module Hmis::WorkflowExecution
     end
 
     def calculator
-      @calculator ||= Dentaku::Calculator.new.tap do |obj|
+      Dentaku::Calculator.new.tap do |obj|
         obj.store(**all_submitted_values)
       end
     end
 
     def all_submitted_values
+      instance.steps.reset
       steps_by_node_id = instance.steps.index_by(&:node_id)
       template.graph.walk.each.with_object({}) do |node, result|
         step = steps_by_node_id[node.id]

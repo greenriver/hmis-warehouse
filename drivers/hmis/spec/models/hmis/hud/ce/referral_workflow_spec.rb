@@ -13,6 +13,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     create(
       :hmis_workflow_definition_start_event,
       template: template,
+      name: 'start referral',
       trigger_config: [
         {
           event: 'start_workflow',
@@ -26,6 +27,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     create(
       :hmis_workflow_definition_end_event,
       template: template,
+      name: 'accept referral',
       trigger_config: [
         {
           event: 'end_workflow',
@@ -39,6 +41,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     create(
       :hmis_workflow_definition_end_event,
       template: template,
+      name: 'reject referral',
       trigger_config: [
         {
           event: 'end_workflow',
@@ -48,13 +51,24 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     )
   end
 
+  describe 'Workflow with no steps' do
+    before do
+      start_event.connect_to!(accept_referral)
+    end
+    it 'Completes immediately' do
+      engine = referral.workflow_engine
+      engine.start_workflow!(user: user)
+      expect(referral).to be_accepted
+    end
+  end
+
   describe 'Branching workflow' do
     let(:client_acceptance_task) do
-      create(:hmis_workflow_definition_task, template: template)
+      create(:hmis_workflow_definition_task, template: template, name: 'client acceptance task')
     end
 
     let(:client_acceptance_gateway) do
-      create(:hmis_workflow_definition_gateway, template: template, gateway_type: 'exclusive')
+      create(:hmis_workflow_definition_gateway, template: template, gateway_type: 'exclusive', name: 'client acceptance gw')
     end
 
     before do
@@ -94,19 +108,19 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
   describe 'Parallel tasks' do
     let(:background_check_task) do
-      create(:hmis_workflow_definition_task, template: template)
+      create(:hmis_workflow_definition_task, template: template, name: 'background check task')
     end
 
     let(:income_check_task) do
-      create(:hmis_workflow_definition_task, template: template)
+      create(:hmis_workflow_definition_task, template: template, name: 'income check task')
     end
 
     let(:start_verification_gateway) do
-      create(:hmis_workflow_definition_gateway, template: template, gateway_type: 'inclusive')
+      create(:hmis_workflow_definition_gateway, template: template, gateway_type: 'inclusive', name: 'start verification gw')
     end
 
     let(:complete_verification_gateway) do
-      create(:hmis_workflow_definition_gateway, template: template, gateway_type: 'join')
+      create(:hmis_workflow_definition_gateway, template: template, gateway_type: 'join', name: 'complete verification gw')
     end
 
     before do
@@ -116,7 +130,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
         [income_check_task, 'income_check_passed = 1'],
       ].each do |task, pass_condition|
         start_verification_gateway.connect_to!(task)
-        task_gateway = create(:hmis_workflow_definition_gateway, template: template, gateway_type: 'exclusive')
+        task_gateway = create(:hmis_workflow_definition_gateway, template: template, gateway_type: 'exclusive', name: "#{task.name} gw")
         task.connect_to!(task_gateway)
         task_gateway.connect_to!(complete_verification_gateway, condition: pass_condition)
         task_gateway.connect_to!(reject_referral) # default fail condition

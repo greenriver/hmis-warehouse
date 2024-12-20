@@ -5,24 +5,34 @@ module Hmis::WorkflowExecution
     belongs_to :instance, class_name: 'Hmis::WorkflowExecution::Instance'
     belongs_to :node, class_name: 'Hmis::WorkflowDefinition::Node'
 
+    # note, step status is not intended to be manipulated outside of the workflow engine
     aasm column: 'status' do
       state :unavailable, initial: true
       state :available
       state :in_progress
       state :completed
 
+      # node can be started by a user
       event :enable do
         transitions from: :unavailable, to: :available
       end
 
+      # node can be disabled due to previous step being un-completed
+      event :disable do
+        transitions from: :available, to: :unavailable
+      end
+
+      # task is started
       event :start do
         transitions from: :available, to: :in_progress
       end
 
+      # task is canceled by user
       event :cancel do
         transitions from: :in_progress, to: :available
       end
 
+      # task is completed by a user
       event :complete do
         transitions from: :in_progress, to: :completed
       end
