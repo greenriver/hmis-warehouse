@@ -5,6 +5,7 @@ module Hmis::Ce
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
     belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance'
     has_many :notes, class_name: 'Hmis::Ce::ReferralNote'
+    has_many :participants, class_name: 'Hmis::Ce::ReferralParticipant'
     belongs_to :client, class_name: 'Hmis::Hud::Client'
     belongs_to :referred_by, class_name: 'Hmis::User'
 
@@ -35,6 +36,7 @@ module Hmis::Ce
       @workflow_engine ||= Hmis::WorkflowExecution::Engine.new(
         workflow_instance,
         message_handler: Hmis::Ce::ReferralMessageHandler.new(self),
+        assignment_handler: Hmis::Ce::ReferralTaskAssignmentHandler.new(self),
       )
     end
   end

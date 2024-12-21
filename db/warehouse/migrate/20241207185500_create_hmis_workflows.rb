@@ -8,11 +8,18 @@ class CreateHmisWorkflows < ActiveRecord::Migration[7.0]
       t.timestamps
     end
 
+    create_table :wfd_swimlanes do |t|
+      t.references :template, null: false, foreign_key: { to_table: :wfd_templates }
+      t.string :name, null: false
+      t.timestamps
+    end
+
     create_table :wfd_nodes do |t|
       t.references :template, null: false, foreign_key: { to_table: :wfd_templates }
       t.string :type, null: false # For STI
       t.jsonb :trigger_config # when to send notifications, create ce events, state changes, api calls
       t.string :name
+      t.references :swimlane, foreign_key: { to_table: :wfd_swimlanes }
       # task nodes have forms
       t.references :form_definition, foreign_key: { to_table: :hmis_form_definitions }
       # gateway nodes have types
@@ -48,6 +55,24 @@ class CreateHmisWorkflows < ActiveRecord::Migration[7.0]
       t.json :submitted_values
 
       t.index [:instance_id, :node_id], unique: true
+
+      t.timestamps
+    end
+
+    create_table :wfe_step_assignments do |t|
+      t.references :step, null: false, foreign_key: { to_table: :wfe_steps }
+      t.references :user, null: false, index: false # no fk due to db boundary
+      t.index [:user_id, :step_id], unique: true
+
+      t.timestamps
+    end
+
+    create_table :wfe_audit_events do |t|
+      t.references :instance, null: false, foreign_key: { to_table: :wfe_instances }
+      t.references :step, null: true, foreign_key: { to_table: :wfe_steps }
+      t.references :user, null: true, index: false # no fk due to db boundary
+      t.string :event_type, null: false
+      t.json :event_data, null: true
 
       t.timestamps
     end

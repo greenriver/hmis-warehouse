@@ -24,6 +24,7 @@ class Hmis::User < ApplicationRecord
   has_many :roles, through: :access_controls
   has_many :activity_logs, class_name: 'Hmis::ActivityLog'
   has_many :staff_assignments, class_name: 'Hmis::StaffAssignment'
+  has_many :workflow_step_assignments, class_name: 'Hmis::WorkflowExecution::StepAssignment'
 
   has_recent :clients, 'Hmis::Hud::Client'
   has_recent :projects, 'Hmis::Hud::Project'

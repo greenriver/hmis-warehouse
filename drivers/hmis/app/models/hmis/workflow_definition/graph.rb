@@ -1,4 +1,6 @@
-# graph helpers
+# Provides graph traversal and analysis capabilities for workflow templates.
+# Used for validating workflow structure and determining execution paths.
+# Does not consider conditions or other conditions on flows.
 module Hmis::WorkflowDefinition
   class Graph
     attr_reader :nodes

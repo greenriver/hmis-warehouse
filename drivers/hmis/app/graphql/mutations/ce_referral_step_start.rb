@@ -11,9 +11,11 @@ module Mutations
 
     def resolve(referral_id:, step_id:)
       referral = Hmis::Ce::Referral.viewable_by(current_user).find(referral_id)
-      engine = referral.workflow_engine
-      step = engine.steps.active.find(step_id)
-      engine.start_step!(step, user: current_user)
+      referral.opportunity.with_lock do
+        engine = referral.workflow_engine
+        step = engine.steps.active.find(step_id)
+        engine.start_step!(step, user: current_user)
+      end
       { step: step }
     end
   end

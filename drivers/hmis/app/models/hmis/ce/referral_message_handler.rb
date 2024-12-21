@@ -19,6 +19,10 @@ module Hmis::Ce
         send_notification(message)
       when 'create_ce_event'
         create_ce_event(message)
+      when 'create_wip_enrollment'
+        create_wip_enrollment(message)
+      when 'set_move_in_date'
+        set_move_in_date(message)
       else
         raise "Got unhandled message type #{message.type}"
       end
@@ -26,9 +30,27 @@ module Hmis::Ce
 
     protected
 
+    def create_unit_assignment(message)
+      # tbd
+    end
+
+    def create_wip_enrollment(_message)
+      raise 'TBD'
+      # enrollment = referral.project.enrollments.wip.create!(client: referral.client)
+      # referral.update!(target_enrollment: enrollment)
+    end
+
     def accept_referral(_message)
       referral.accept!
-      # enroll client, set move-in date
+      referral.opportunity.close!
+      # TBD enroll client, set move-in date, assign to unit if needed
+      # enrollment = referral.target_enrollment
+      # if enrollment.nil?
+      #   referral.target_enrollment ||= referral.project.enrollments.create!(client: referral.client)
+      #   referral.update!(target_enrollment: enrollment)
+      # else
+      #   enrollment.mark-non-wip
+      # end
     end
 
     def create_ce_event(message)

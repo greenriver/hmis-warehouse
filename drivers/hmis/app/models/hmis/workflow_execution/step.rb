@@ -1,9 +1,13 @@
+# Represents an individual task instance within a workflow execution.
+# Tracks the state, assignments, and completion data for a specific
+# task node.
 module Hmis::WorkflowExecution
   class Step < GrdaWarehouseBase
     include AASM
 
     belongs_to :instance, class_name: 'Hmis::WorkflowExecution::Instance'
     belongs_to :node, class_name: 'Hmis::WorkflowDefinition::Node'
+    has_many :assignments, class_name: 'Hmis::WorkflowExecution::StepAssignment', dependent: :destroy
 
     # note, step status is not intended to be manipulated outside of the workflow engine
     aasm column: 'status' do

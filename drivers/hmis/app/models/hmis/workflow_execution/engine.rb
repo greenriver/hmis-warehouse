@@ -1,13 +1,16 @@
 require 'dentaku'
 
+# Manages the execution of workflow instances, handling state transitions,
+# task assignments, and message processing according to the workflow template.
 module Hmis::WorkflowExecution
   class Engine
-    attr_reader :template, :instance, :message_handler
+    attr_reader :template, :instance, :message_handler, :assignment_handler
 
-    def initialize(workflow_instance, message_handler:)
+    def initialize(workflow_instance, message_handler:, assignment_handler:)
       @instance = workflow_instance
       @template = workflow_instance.template
       @message_handler = message_handler
+      @assignment_handler = assignment_handler
     end
 
     def active_steps
@@ -18,17 +21,20 @@ module Hmis::WorkflowExecution
       template.nodes.entrypoints.each do |node|
         visit_node(node)
       end
+      log_event('start_workflow', user: user)
     end
 
     def start_step!(step, user:)
       step.start!
       process_triggers(step.node, 'start_step')
+      log_event('start_step', user: user, step: step)
     end
 
     def complete_step!(step, user:, submitted_values:)
       step.submitted_values = submitted_values
       step.complete!
       process_triggers(step.node, 'complete_step')
+      log_event('complete_step', user: user, step: step, event_data: submitted_values)
       traverse_node(step.node, gateway_type: 'inclusive')
     end
 
@@ -37,6 +43,7 @@ module Hmis::WorkflowExecution
       raise ArgumentError, 'cannot rollback step' unless may_undo_complete_step?(step)
 
       next_task_steps(step).each(&:disable!)
+      log_event('undo_complete_step', user: user, step: step)
       step.undo_complete_step!
     end
 
@@ -53,7 +60,7 @@ module Hmis::WorkflowExecution
 
     # get all tasks nodes under step but treat those task nodes as leaves and stop searching (bounded depth-first search)
     def next_task_steps(step)
-      nodes = template.graph.walk(entrypoint_ids: [step.node_id], stop_when: ->(node) { node.task? })
+      nodes = template.graph.walk(entrypoint_ids: [step.node_id], stop_when: lambda(&:task?))
       steps_by_node_id = instance.steps.index_by(&:node_id)
       nodes.map { |node| steps_by_node_id[node.id] }.compact
     end
@@ -65,12 +72,13 @@ module Hmis::WorkflowExecution
 
     def process_triggers(node, event_type)
       node.triggers.each do |trigger|
-        next unless event_type == trigger['event']
+        next unless event_type == trigger.event
 
         send_message(
-          type: trigger['message'],
-          params: trigger['params'],
+          type: trigger.message,
+          params: trigger.params,
         )
+        log_event('message_sent', event_data: trigger.to_h)
       end
     end
 
@@ -98,6 +106,7 @@ module Hmis::WorkflowExecution
       when Hmis::WorkflowDefinition::Task
         step = instance.steps.new(node: node)
         step.enable!
+        assign_task!(step)
       when Hmis::WorkflowDefinition::Gateway
         traverse_node(node, gateway_type: node.gateway_type)
       when Hmis::WorkflowDefinition::StartEvent
@@ -107,6 +116,12 @@ module Hmis::WorkflowExecution
         process_triggers(node, 'end_workflow')
       else
         raise "Got unhandled node #{node.class.name}"
+      end
+    end
+
+    def assign_task!(step)
+      assignment_handler.call(step.node).each do |user|
+        step.assignments.create!(user: user)
       end
     end
 
@@ -130,6 +145,10 @@ module Hmis::WorkflowExecution
         step = steps_by_node_id[node.id]
         result.merge!(step.submitted_values) if step&.completed?
       end
+    end
+
+    def log_event(event_type, user: nil, event_data: nil, step: nil)
+      instance.audit_events.create!(event_type: event_type, user: user, event_data: event_data, step: step)
     end
   end
 end

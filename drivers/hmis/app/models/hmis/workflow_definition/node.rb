@@ -1,4 +1,5 @@
-# STI base class for configuration
+# STI Base class for all workflow nodes (tasks, events, gateways).
+# Nodes are the building blocks of a workflow template and represent points where work is performed, decisions are made, or events occur.
 module Hmis::WorkflowDefinition
   class Node < GrdaWarehouseBase
     belongs_to :template, class_name: 'Hmis::WorkflowDefinition::Template'
@@ -38,7 +39,7 @@ module Hmis::WorkflowDefinition
       trigger_config.each_with_index do |item, index|
         next if item.is_a?(Hash) && item['event'].present? && item['message'].present?
 
-        errors.add(:config_data, "item at index #{index} ss invalid")
+        errors.add(:config_data, "item at index #{index} is invalid: #{item.inspect}")
       end
     end
   end

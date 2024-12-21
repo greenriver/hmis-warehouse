@@ -10,8 +10,10 @@ module Mutations
 
     def resolve(opportunity_id:)
       opportunity = Hmis::Ce::Opportunity.viewable_by(current_user).find(opportunity_id)
-      opportunity.transaction do
+      opportunity.with_lock do
         instance = opportunity.workflow_template.instances.create!
+        instance.participants.create(user: current_user, role: 'case_manager')
+
         referral = opportunity.referrals.create!(workflow_instance: instance)
         referral.workflow_engine.start_workflow!
       end

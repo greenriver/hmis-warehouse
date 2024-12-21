@@ -137,7 +137,7 @@ gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
 gem 'sprockets', '~> 4.0'
-gem "sprockets-rails"
+gem 'sprockets-rails'
 gem 'babel-transpiler'
 # gem 'sprockets-es6'
 gem 'jquery-ui-rails', github: 'jquery-ui-rails/jquery-ui-rails', tag: 'v7.0.0'

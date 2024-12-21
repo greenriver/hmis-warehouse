@@ -63,8 +63,11 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
   end
 
   describe 'Branching workflow' do
+    let(:case_manager) { create(:hmis_user) }
+    let(:case_manager_swimlane) { template.swimlanes.create(name: 'Case Managers') }
+
     let(:client_acceptance_task) do
-      create(:hmis_workflow_definition_task, template: template, name: 'client acceptance task')
+      create(:hmis_workflow_definition_task, template: template, name: 'client acceptance task', swimlane: case_manager_swimlane)
     end
 
     let(:client_acceptance_gateway) do
@@ -72,6 +75,8 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     end
 
     before do
+      referral.participants.create!(user: case_manager, swimlane: case_manager_swimlane)
+
       # setup the flow
       start_event.connect_to!(client_acceptance_task)
       client_acceptance_task.connect_to!(client_acceptance_gateway)
@@ -91,6 +96,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
         current_step = engine.active_steps.sole
         expect(current_step.node).to eq(client_acceptance_task)
+        expect(current_step.assignments.sole&.user).to eq(case_manager)
 
         engine.start_step!(current_step, user: user)
         expect(current_step).to be_in_progress
@@ -201,9 +207,9 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       engine.complete_step!(current_step, user: user, submitted_values: {})
     end
 
-    # FIXME - should be it's own graph_spec.rb
-    it 'walks workflow nodes' do
-      nodes = template.graph.walk(entrypoint_ids: [client_acceptance_task.id], stop_when: ->(node) { node.task? }).filter(&:task?).to_a
+    # FIXME - should probably be extracted own graph_spec.rb
+    it 'walks workflow nodes down parallel paths' do
+      nodes = template.graph.walk(entrypoint_ids: [client_acceptance_task.id], stop_when: lambda(&:task?)).filter(&:task?).to_a
       expect(nodes).to eq([provider_acceptance_task, income_check_task])
     end
 
