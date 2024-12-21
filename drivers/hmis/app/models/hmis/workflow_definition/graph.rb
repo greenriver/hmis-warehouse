@@ -7,35 +7,33 @@ module Hmis::WorkflowDefinition
       @nodes = nodes
     end
 
+    # entrypoints allows starting with the descendants of specific node. Defaults to graph entrypoints
     # stop_when allows us to perform a bounded depth-first search:
     # matches = graph.walk(start_node, stop_when: ->(node) { node.type == 'task' })
     #
-    def walk(entrypoints: nil, stop_when: nil, &block)
-      return enum_for(:walk) unless block_given?
+    def walk(entrypoint_ids: nil, stop_when: nil)
+      Enumerator.new do |yielder|
+        visited = Set.new
+        stack = nodes.filter(&:entrypoint?) if entrypoint_ids.nil?
+        stack = nodes.filter { |n| n.id.in?(entrypoint_ids) } if entrypoint_ids
+        skip_ids = entrypoint_ids&.to_set || []
 
-      visited = Set.new
-      entrypoints ||= nodes.filter(&:entrypoint?)
-      entrypoints.each do |node|
-        walk_from_node(node, visited, stop_when, &block) unless visited.include?(node.id)
-      end
+        while stack.any?
+          node = stack.pop
+          next if visited.include?(node)
+
+          yielder << node unless node.id.in?(skip_ids)
+          visited.add(node) unless node.id.in?(skip_ids) # don't return entrypoints if from args
+
+          # careful, this logic is a bit ugly/fragile
+          if node.id.in?(skip_ids) || (stop_when.nil? || !stop_when.call(node))
+            children = node.outflows.sort_by(&:position).map(&:target_node)
+            stack.concat(children.reverse) # preserve order of children in stack)
+          end
+        end
+      end.lazy
     end
 
     # could add helpers for validation such as graph.acyclic?
-
-    protected
-
-    def walk_from_node(node, visited, stop_when, &block)
-      return if visited.include?(node.id)
-
-      visited.add(node.id)
-      yield node
-
-      # Don't traverse further if stop condition is met
-      return if stop_when&.call(node)
-
-      node.outflows.each do |child|
-        walk_from_node(child.target_node, visited, stop_when, &block)
-      end
-    end
   end
 end

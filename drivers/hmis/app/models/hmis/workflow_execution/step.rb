@@ -36,6 +36,10 @@ module Hmis::WorkflowExecution
       event :complete do
         transitions from: :in_progress, to: :completed
       end
+
+      event :undo_complete_step do
+        transitions from: :completed, to: :in_progress
+      end
     end
   end
 end

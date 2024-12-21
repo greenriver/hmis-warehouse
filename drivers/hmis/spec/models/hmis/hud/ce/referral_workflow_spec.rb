@@ -7,6 +7,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
   let(:opportunity) { create(:hmis_ce_opportunity, workflow_template: template) }
   let(:instance) { opportunity.workflow_template.instances.create! }
   let(:referral) { create(:hmis_ce_referral, opportunity: opportunity, workflow_instance: instance, referred_by: user) }
+  let(:engine) { referral.workflow_engine }
 
   # common nodes
   let(:start_event) do
@@ -56,7 +57,6 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       start_event.connect_to!(accept_referral)
     end
     it 'Completes immediately' do
-      engine = referral.workflow_engine
       engine.start_workflow!(user: user)
       expect(referral).to be_accepted
     end
@@ -84,8 +84,6 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       [{ 'client_accepted': 0 }, 'rejected'],
     ].each do |task_data, expected_end_status|
       it "completes with \"#{expected_end_status}\" status when #{task_data.inspect}" do
-        engine = referral.workflow_engine
-
         expect do
           engine.start_workflow!(user: user)
         end.to change(engine.active_steps, :count).from(0).to(1)
@@ -139,8 +137,6 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     end
 
     it 'completes' do
-      engine = referral.workflow_engine
-
       expect do
         engine.start_workflow!(user: user)
       end.to change(engine.active_steps, :count).from(0).to(2)
@@ -160,6 +156,82 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       expect(engine.active_steps.count).to be_zero
       expected_end_status = 'accepted'
       expect(referral.status).to eq(expected_end_status)
+    end
+  end
+
+  describe 'A Multi-task workflow' do
+    let(:client_acceptance_task) do
+      create(:hmis_workflow_definition_task, template: template, name: 'client acceptance task')
+    end
+
+    let(:provider_acceptance_task) do
+      create(:hmis_workflow_definition_task, template: template, name: 'provider acceptance task')
+    end
+
+    let(:income_check_task) do
+      create(:hmis_workflow_definition_task, template: template, name: 'income check task')
+    end
+
+    let(:enrollment_task) do
+      create(:hmis_workflow_definition_task, template: template, name: 'income check task')
+    end
+
+    before do
+      # setup the flow
+      start_event.connect_to!(client_acceptance_task)
+      gw1 = create(:hmis_workflow_definition_gateway, template: template, gateway_type: 'inclusive', name: 'gw1')
+      gw2 = create(:hmis_workflow_definition_gateway, template: template, gateway_type: 'join', name: 'gw2')
+
+      client_acceptance_task.connect_to!(gw1)
+      gw1.connect_to!(provider_acceptance_task)
+      gw1.connect_to!(income_check_task)
+
+      provider_acceptance_task.connect_to!(gw2)
+      income_check_task.connect_to!(gw2)
+
+      gw2.connect_to!(enrollment_task)
+      enrollment_task.connect_to!(accept_referral)
+    end
+
+    before do
+      # partially complete the workflow
+      engine.start_workflow!(user: user)
+      current_step = engine.active_steps.sole
+      engine.start_step!(current_step, user: user)
+      engine.complete_step!(current_step, user: user, submitted_values: {})
+    end
+
+    # FIXME - should be it's own graph_spec.rb
+    it 'walks workflow nodes' do
+      nodes = template.graph.walk(entrypoint_ids: [client_acceptance_task.id], stop_when: ->(node) { node.task? }).filter(&:task?).to_a
+      expect(nodes).to eq([provider_acceptance_task, income_check_task])
+    end
+
+    describe 'when only the first step is completed' do
+      it 'the first step can be rolled back' do
+        first_task_step = instance.steps.where(node: client_acceptance_task).sole
+        expect(first_task_step).to be_completed
+        expect(engine.may_undo_complete_step?(first_task_step)).to eq(true)
+        expect do
+          engine.undo_complete_step!(first_task_step, user: user)
+        end.to change(first_task_step, :status).from('completed').to('in_progress')
+      end
+    end
+
+    describe 'when the following step is completed' do
+      before do
+        current_step = engine.active_steps.where(node: provider_acceptance_task).sole
+        engine.start_step!(current_step, user: user)
+        engine.complete_step!(current_step, user: user, submitted_values: {})
+      end
+
+      it 'the first step can not be rolled back' do
+        first_task_step = instance.steps.where(node: client_acceptance_task).sole
+        second_task_step = instance.steps.where(node: provider_acceptance_task).sole
+        expect(first_task_step).to be_completed
+        expect(second_task_step).to be_completed
+        expect(engine.may_undo_complete_step?(first_task_step)).to eq(false)
+      end
     end
   end
 end

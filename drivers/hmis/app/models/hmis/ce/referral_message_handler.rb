@@ -26,7 +26,7 @@ module Hmis::Ce
 
     protected
 
-    def accept_referral(message)
+    def accept_referral(_message)
       referral.accept!
       # enroll client, set move-in date
     end
