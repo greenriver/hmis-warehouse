@@ -13,8 +13,6 @@ module Types
     field :headers, String,
           'HTTP request headers (JSON-encoded)',
           null: false
-    # TODO(#6208) remove
-    field :blob_id, ID, 'Created blob record ID', null: false, deprecation_reason: 'Deprecated in favor of signed_blob_id'
     field :signed_blob_id, ID,
           'Created blob record signed ID',
           null: false

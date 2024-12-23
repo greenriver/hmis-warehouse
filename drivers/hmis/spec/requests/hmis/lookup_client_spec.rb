@@ -80,7 +80,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               name
               confidential
               redacted
-              fileBlobId
               tags
               updatedBy {
                 id
@@ -262,7 +261,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'redacted' => true,
             'name' => 'Confidential File',
             'confidential' => true,
-            'fileBlobId' => nil,
             'tags' => [],
             'updatedBy' => nil,
             'uploadedBy' => nil,

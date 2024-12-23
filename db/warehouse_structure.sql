@@ -699,29 +699,52 @@ CREATE TABLE public."Client" (
 
 
 --
--- Name: clients; Type: VIEW; Schema: analytics; Owner: -
+-- Name: client_piis; Type: VIEW; Schema: analytics; Owner: -
 --
 
-CREATE VIEW analytics.clients AS
- SELECT "PersonalID",
+CREATE VIEW analytics.client_piis AS
+ SELECT id,
+    data_source_id,
+    "PersonalID",
     "FirstName",
     "MiddleName",
     "LastName",
     "NameSuffix",
-    "NameDataQuality",
     "SSN",
+    "DOB"
+   FROM public."Client"
+  WHERE ("DateDeleted" IS NULL);
+
+
+--
+-- Name: clients; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.clients AS
+ SELECT id,
+    data_source_id,
+    "PersonalID",
+    "NameDataQuality",
     "SSNDataQuality",
-    "DOB",
     "DOBDataQuality",
     "AmIndAKNative",
     "Asian",
     "BlackAfAmerican",
-    "NativeHIOtherPacific",
+    "HispanicLatinaeo",
+    "MidEastNAfrican",
+    "NativeHIPacific",
     "White",
     "RaceNone",
-    "Ethnicity",
-    "Gender",
-    "OtherGender",
+    "AdditionalRaceEthnicity",
+    "Woman",
+    "Man",
+    "NonBinary",
+    "CulturallySpecific",
+    "Transgender",
+    "Questioning",
+    "DifferentIdentity",
+    "GenderNone",
+    "DifferentIdentityText",
     "VeteranStatus",
     "YearEnteredService",
     "YearSeparated",
@@ -739,107 +762,7 @@ CREATE VIEW analytics.clients AS
     "DateUpdated",
     "UserID",
     "DateDeleted",
-    "ExportID",
-    data_source_id,
-    id,
-    disability_verified_on,
-    housing_assistance_network_released_on,
-    sync_with_cas,
-    dmh_eligible,
-    va_eligible,
-    hues_eligible,
-    hiv_positive,
-    housing_release_status,
-    chronically_homeless_for_cas,
-    us_citizen,
-    asylee,
-    ineligible_immigrant,
-    lifetime_sex_offender,
-    meth_production_conviction,
-    family_member,
-    child_in_household,
-    ha_eligible,
-    api_update_in_process,
-    api_update_started_at,
-    api_last_updated_at,
-    creator_id,
-    cspech_eligible,
-    consent_form_signed_on,
-    vispdat_prioritization_days_homeless,
-    generate_history_pdf,
-    congregate_housing,
-    sober_housing,
-    consent_form_id,
-    rrh_assessment_score,
-    ssvf_eligible,
-    rrh_desired,
-    youth_rrh_desired,
-    rrh_assessment_contact_info,
-    rrh_assessment_collected_at,
-    source_hash,
-    generate_manual_history_pdf,
-    requires_wheelchair_accessibility,
-    required_number_of_bedrooms,
-    required_minimum_occupancy,
-    requires_elevator_access,
-    neighborhood_interests,
-    verified_veteran_status,
-    interested_in_set_asides,
-    consent_expires_on,
-    pending_date_deleted,
-    cas_match_override,
-    vash_eligible,
-    consented_coc_codes,
-    income_maximization_assistance_requested,
-    income_total_monthly,
-    pending_subsidized_housing_placement,
-    pathways_domestic_violence,
-    rrh_th_desired,
-    sro_ok,
-    pathways_other_accessibility,
-    pathways_disabled_housing,
-    evicted,
-    dv_rrh_desired,
-    health_prioritized,
-    demographic_dirty,
-    "encrypted_FirstName",
-    "encrypted_FirstName_iv",
-    "encrypted_MiddleName",
-    "encrypted_MiddleName_iv",
-    "encrypted_LastName",
-    "encrypted_LastName_iv",
-    "encrypted_SSN",
-    "encrypted_SSN_iv",
-    "encrypted_NameSuffix",
-    "encrypted_NameSuffix_iv",
-    soundex_first,
-    soundex_last,
-    "Female",
-    "Male",
-    "GenderOther",
-    "Transgender",
-    "Questioning",
-    "GenderNone",
-    "NativeHIPacific",
-    "NoSingleGender",
-    tc_hat_additional_days_homeless,
-    pronouns,
-    sexual_orientation,
-    health_housing_navigator_id,
-    encampment_decomissioned,
-    va_verified_veteran,
-    "HispanicLatinaeo",
-    "MidEastNAfrican",
-    "AdditionalRaceEthnicity",
-    "Woman",
-    "Man",
-    "NonBinary",
-    "CulturallySpecific",
-    "DifferentIdentity",
-    "DifferentIdentityText",
-    search_name_full,
-    search_name_last,
-    lock_version
+    "ExportID"
    FROM public."Client"
   WHERE ("DateDeleted" IS NULL);
 
@@ -1824,7 +1747,8 @@ CREATE TABLE public."CustomDataElements" (
     "UserID" character varying(32) NOT NULL,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    value_file_id bigint
 );
 
 
@@ -51948,6 +51872,13 @@ CREATE INDEX "index_CustomDataElements_on_owner" ON public."CustomDataElements" 
 
 
 --
+-- Name: index_CustomDataElements_on_value_file_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomDataElements_on_value_file_id" ON public."CustomDataElements" USING btree (value_file_id);
+
+
+--
 -- Name: index_CustomServiceTypes_on_custom_service_category_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63783,6 +63714,14 @@ ALTER TABLE ONLY public.service_history_services_2028
 
 
 --
+-- Name: CustomDataElements fk_rails_7daa69c69f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomDataElements"
+    ADD CONSTRAINT fk_rails_7daa69c69f FOREIGN KEY (value_file_id) REFERENCES public.files(id);
+
+
+--
 -- Name: service_history_services_2038 fk_rails_7eb4e58ed1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -64533,6 +64472,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241031145454'),
 ('20241101134230'),
 ('20241101160422'),
+('20241106163541'),
 ('20241110005806'),
 ('20241110005807'),
 ('20241111143412'),
@@ -64603,6 +64543,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241203154140'),
 ('20241203154146'),
 ('20241207185500'),
-('20241207185501');
+('20241207185501'),
+('20241213204702'),
+('20241213204837');
 
 

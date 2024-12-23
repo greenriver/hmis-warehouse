@@ -58,6 +58,9 @@ module HudConcerns::Client
         end
         # Per the data standards, only look to RaceNone if we don't have a more specific response
         gm << self.RaceNone if gm.empty? && self.RaceNone.in?([8, 9, 99])
+        # set to '99' (Data not collected). This should only occur if the field is missing or we have data that doesn't
+        # match a known race code, including codes for Client doesn't know, Prefers not to answer, and Data not collected
+        gm << HudUtility2024.race_field_name_to_id[:RaceNone] if gm.empty?
       end
     end
 
@@ -70,6 +73,9 @@ module HudConcerns::Client
         end
         # Always include RaceNone data
         gm << self.RaceNone if self.RaceNone.in?([8, 9, 99])
+        # set to '99' (Data not collected). This should only occur if the field is missing or we have data that doesn't
+        # match a known race code, including codes for Client doesn't know, Prefers not to answer, and Data not collected
+        gm << HudUtility2024.race_field_name_to_id[:RaceNone] if gm.empty?
       end
     end
 
