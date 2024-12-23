@@ -4,11 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Refactor:
-# Pull all import overrides Pull Project and Organization where we can
-# Left outer join to related record (might need to be done per table)
-# Treat this more as a table
-# Fetch visible project ids and limit what you can see when the override can be associated with a project
 require 'memery'
 
 module OverrideSummary
@@ -121,6 +116,7 @@ module OverrideSummary
       GrdaWarehouse::DataSource.viewable_by(filter.user, permission: :can_edit_projects)
     end
 
+    # Download also includes any data that was created directly in the warehouse of the following types
     def manual_data
       @manual_data ||= {}.tap do |md|
         funders = GrdaWarehouse::Hud::Funder.where(manual_entry: true).
@@ -168,24 +164,6 @@ module OverrideSummary
           end
           md['Project CoC - Manual Records'] = data
         end
-      end
-    end
-
-    private def all_projects
-      data = [
-        projects.values,
-        project_cocs.keys,
-        inventories.keys,
-        funders.keys,
-        affiliations.keys,
-        enrollments.keys,
-        clients.keys,
-      ]
-      @all_projects = data.flatten.uniq.sort_by do |p|
-        [
-          p.organization.OrganizationName,
-          p.ProjectName,
-        ]
       end
     end
   end

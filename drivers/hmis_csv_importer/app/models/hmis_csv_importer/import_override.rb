@@ -9,6 +9,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   has_paper_trail
   acts_as_paranoid
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  # NOTE: this crosses database boundaries, so can't be used in a join
   belongs_to :creator, class_name: 'User', foreign_key: :created_by, optional: true
 
   validates :data_source, presence: true
@@ -21,7 +22,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   end
 
   scope :expired, -> do
-    where(expires_on: ..Time.zone.today.tomorrow)
+    where(expires_on: ..Time.zone.today.yesterday)
   end
 
   def self.file_name_keys
@@ -68,6 +69,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     applied_overrides.any?
   end
 
+  # This is run daily and deletes any records where the expires_on date is in the past
   def self.remove_expired!
     expired.destroy_all
   end
@@ -131,6 +133,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     "#{replaces_column} has been #{with_clause} #{when_clause}."
   end
 
+  # returns a markdown description of the override suitable for the override summary report
   def describe_overall
     # build a more human readable description of what will happen when the override is applied.
     with_clause = describe_with

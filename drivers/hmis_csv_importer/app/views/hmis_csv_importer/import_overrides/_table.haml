@@ -1,3 +1,4 @@
+- markdown = Redcarpet::Markdown.new(::TranslatedHtml)
 %table.table.table-striped
   %thead
     %tr
@@ -17,9 +18,8 @@
         %td
           = override.file_name
           %br
-          %small
-            %strong Created
-            = override.describe_created
+          .mt-2.created-by
+            %small= markdown.render(override.describe_created).html_safe
           - projects = override.project
           - if projects.any? && show_associated_project
             .associated-projects
