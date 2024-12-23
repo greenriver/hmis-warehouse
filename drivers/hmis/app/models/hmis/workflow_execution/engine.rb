@@ -35,7 +35,7 @@ module Hmis::WorkflowExecution
       step.complete!
       process_triggers(step.node, 'complete_step')
       log_event('complete_step', user: user, step: step, event_data: submitted_values)
-      traverse_node(step.node, gateway_type: 'inclusive')
+      traverse_node(step.node)
     end
 
     # user (admin) rolls-back completion
@@ -82,23 +82,24 @@ module Hmis::WorkflowExecution
       end
     end
 
-    def traverse_node(node, gateway_type:)
-      case gateway_type
-      when 'inclusive'
-        # continue with all outflows
-        node.outflows.sort_by(&:position).each do |flow|
-          visit_node(flow.target_node) if evaluate_condition(flow.condition)
-        end
-      when 'exclusive'
-        # continue with only one outflow
-        outflow = node.outflows.sort_by(&:position).detect { |flow| evaluate_condition(flow.condition) }
-        visit_node(outflow.target_node) if outflow
-      when 'join'
-        # wait for all inflows to be complete
-        traverse_node(node, gateway_type: 'inclusive') if node.inflows.all? { |flow| evaluate_condition(flow.condition) }
-      else
-        raise ArgumentError, "#{gateway_type} not supported"
+    def traverse_node(node)
+      return if node.endpoint?
+
+      if node.join_inflows?
+        return unless node.inflows.all? { |flow| evaluate_condition(flow.condition) }
       end
+
+      outflows = node.outflows.sort_by(&:position)
+      if node.exclusive_outflows?
+        outflows = Array(outflows.detect { |flow| evaluate_condition(flow.condition) })
+      else
+        outflows = outflows.filter { |flow| evaluate_condition(flow.condition) }
+      end
+
+      raise "Node (#{node.id}) blocks flow. It should have a default outflow" if outflows.empty?
+
+      process_triggers(node, 'pass_gateway') if node.gateway?
+      outflows.each { |flow| visit_node(flow.target_node) }
     end
 
     def visit_node(node)
@@ -108,10 +109,10 @@ module Hmis::WorkflowExecution
         step.enable!
         assign_task!(step)
       when Hmis::WorkflowDefinition::Gateway
-        traverse_node(node, gateway_type: node.gateway_type)
+        traverse_node(node)
       when Hmis::WorkflowDefinition::StartEvent
         process_triggers(node, 'start_workflow')
-        traverse_node(node, gateway_type: 'inclusive')
+        traverse_node(node)
       when Hmis::WorkflowDefinition::EndEvent
         process_triggers(node, 'end_workflow')
       else

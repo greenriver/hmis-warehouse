@@ -10,8 +10,15 @@ module Hmis::WorkflowDefinition
 
     scope :entrypoints, -> { where(type: 'Hmis::WorkflowDefinition::StartEvent') }
 
+    # helpers to avoid node.is_a?(WidgetType)
     def entrypoint? = false
+    def endpoint? = false
     def task? = false
+    def gateway? = false
+    def join_inflows? = false
+    def exclusive_outflows? = false
+
+
 
     # [
     #   { event: 'step_completed', message: 'send_notification', params: params },
