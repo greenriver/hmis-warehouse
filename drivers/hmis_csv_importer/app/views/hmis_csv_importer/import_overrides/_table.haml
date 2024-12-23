@@ -6,6 +6,7 @@
       %th With
       %th When
       %th Why
+      %th Expires
       - if defined?(can_apply_override) && can_apply_override
         %th
       - if editable
@@ -15,6 +16,10 @@
       %tr
         %td
           = override.file_name
+          %br
+          %small
+            %strong Created
+            = override.describe_created
           - projects = override.project
           - if projects.any? && show_associated_project
             .associated-projects
@@ -30,6 +35,7 @@
         %td= override.describe_with
         %td= override.describe_when
         %td= override.description
+        %td= override.describe_expiration
         - if defined?(can_apply_override) && can_apply_override
           %td
             = link_to apply_hmis_csv_importer_data_source_import_override_path(data_source, override), method: :patch, class: 'btn btn-sm btn-info', data: { confirm: "Are you sure you want to apply this override?  It will immediately update the matched warehouse records so that #{override.replaces_column} is set to #{override.describe_with}."} do

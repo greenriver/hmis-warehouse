@@ -18,6 +18,7 @@ module OverrideSummary
     include ArelHelper
 
     attr_reader :filter
+    attr_accessor :override_ids # to support pagination
 
     def initialize(filter)
       @filter = filter
@@ -47,6 +48,23 @@ module OverrideSummary
       GrdaWarehouse::Hud::Project
     end
 
+    # Overrides are visible to the user if they:
+    # 1. Are in a data source for which the user has the`can_edit_projects` permission on at least one project
+    def visible_overrides
+      HmisCsvImporter::ImportOverride.joins(:data_source).
+        preload(:data_source, :creator).
+        merge(relevant_data_sources)
+    end
+
+    # Used for pagination.  Because calculation of use etc, is fairly expensive,
+    # Call pagy on @report.visible_overrides, then set the `override_ids` on the report
+    # and call override_scope within the report to only load data for the selected records
+    def override_scope
+      return visible_overrides unless override_ids&.any?
+
+      visible_overrides.where(id: override_ids)
+    end
+
     memoize def data
       lookups = HmisCsvImporter::ImportOverride.available_classes
       # Attempt to do as few queries as we can to fetch the projects
@@ -68,29 +86,16 @@ module OverrideSummary
           when 'Organization.csv'
             scope.left_outer_joins(:projects).find_each do |item|
               item.projects.each do |project|
-                data_by_file[file_name][data_source_id][item[model.hud_key]][:projects] << [
-                  item[model.hud_key],
-                  project.name(filter.user),
-                  project.id,
-                ]
+                data_by_file[file_name][data_source_id][item[model.hud_key]][:projects] << project
               end
             end
           when 'Project.csv'
             scope.find_each do |item|
-              project_name = [
-                item[model.hud_key],
-                item.name(filter.user),
-                item.id,
-              ]
-              data_by_file[file_name][data_source_id][item[model.hud_key]][:projects] << project_name
+              data_by_file[file_name][data_source_id][item[model.hud_key]][:projects] << item
             end
           else
             scope.left_outer_joins(:project).find_each do |item|
-              data_by_file[file_name][data_source_id][item[model.hud_key]][:projects] << [
-                item[model.hud_key],
-                item.project.name(filter.user),
-                item.project.id,
-              ]
+              data_by_file[file_name][data_source_id][item[model.hud_key]][:projects] << item.project
             end
           end
         end
@@ -100,7 +105,7 @@ module OverrideSummary
 
     def data_by_file
       @data_by_file ||= {}.tap do |d|
-        visible_overrides.find_each do |override|
+        override_scope.find_each do |override|
           d[override.file_name] ||= {}
           d[override.file_name][override.data_source_id] ||= {}
           d[override.file_name][override.data_source_id][override.matched_hud_key] ||= { overrides: [], projects: [] }
@@ -110,14 +115,7 @@ module OverrideSummary
       end
     end
 
-    # Overrides are visible to the user if they:
-    # 1. Are in a data source for which the user has the`can_edit_projects` permission on at least one project
-    memoize private def visible_overrides
-      HmisCsvImporter::ImportOverride.joins(:data_source).
-        merge(relevant_data_sources)
-    end
-
-    memoize private def relevant_data_sources
+    private def relevant_data_sources
       return GrdaWarehouse::DataSource.none unless filter.user.can_edit_projects?
 
       GrdaWarehouse::DataSource.viewable_by(filter.user, permission: :can_edit_projects)

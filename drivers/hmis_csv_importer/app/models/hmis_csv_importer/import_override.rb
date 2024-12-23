@@ -9,6 +9,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   has_paper_trail
   acts_as_paranoid
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  belongs_to :creator, class_name: 'User', foreign_key: :created_by, optional: true
 
   validates :data_source, presence: true
   validates :replacement_value, presence: true
@@ -17,6 +18,10 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
 
   scope :sorted, -> do
     order(:file_name, :replaces_column, :matched_hud_key)
+  end
+
+  scope :expired, -> do
+    where(expires_on: ..Time.zone.today.tomorrow)
   end
 
   def self.file_name_keys
@@ -46,6 +51,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
       :replaces_value,
       :replacement_value,
       :description,
+      :expires_on,
     ]
   end
 
@@ -60,6 +66,10 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
 
     applied_overrides = overrides.to_a.select { |override| override.applies?(row) }
     applied_overrides.any?
+  end
+
+  def self.remove_expired!
+    expired.destroy_all
   end
 
   # Accepts either an object based on GrdaWarehouse::Hud::Base, or a has of attributes with string keys
@@ -121,6 +131,18 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     "#{replaces_column} has been #{with_clause} #{when_clause}."
   end
 
+  def describe_overall
+    # build a more human readable description of what will happen when the override is applied.
+    with_clause = describe_with
+    with_clause = 'will be **removed**' if with_clause.nil?
+    with_clause = "will be replaced with **#{with_clause}**" unless describe_with.nil?
+
+    when_clause = "where **#{describe_when}**"
+    when_clause = 'for **all records** in the data source' if describe_when == 'always'
+
+    "In #{file_name}, **#{replaces_column}** will be #{with_clause} #{when_clause}."
+  end
+
   def describe_with
     replacement_value == ':NULL:' ? nil : replacement_value
   end
@@ -131,6 +153,23 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     return "#{associated_class.hud_key} is #{matched_hud_key}" if matched_hud_key.present?
 
     "#{replaces_column} is #{replaces_value_language}" if replaces_value_language.present?
+  end
+
+  def describe_expiration
+    return 'Indefinite' if expires_on.blank?
+
+    expires_on
+  end
+
+  def describe_created
+    text = 'Created'
+    return "#{text} on _#{created_at&.to_date}_" unless created_by.present?
+
+    "#{text} by _#{creator.name_with_email}_ on _#{created_at.to_date}_"
+  end
+
+  def incorrect_warning
+    'This override may be stale or incorrect.'
   end
 
   def associated_class
