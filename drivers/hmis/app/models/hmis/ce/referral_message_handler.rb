@@ -10,9 +10,9 @@ module Hmis::Ce
       # need to set move-in date on enrollment also
       case message.type
       when 'start_referral'
-        referral.start!
+        start_referral
       when 'accept_referral'
-        accept_referral(message)
+        accept_referral
       when 'reject_referral'
         referral.reject!
       when 'send_notification'
@@ -30,17 +30,12 @@ module Hmis::Ce
 
     protected
 
-    def create_unit_assignment(message)
-      # tbd
+    def start_referral
+      referral.start!
+      referral.opportunity.lock!
     end
 
-    def create_wip_enrollment(_message)
-      raise 'TBD'
-      # enrollment = referral.project.enrollments.wip.create!(client: referral.client)
-      # referral.update!(target_enrollment: enrollment)
-    end
-
-    def accept_referral(_message)
+    def accept_referral
       referral.accept!
       referral.opportunity.close!
       # TBD enroll client, set move-in date, assign to unit if needed
@@ -51,6 +46,16 @@ module Hmis::Ce
       # else
       #   enrollment.mark-non-wip
       # end
+    end
+
+    def create_unit_assignment(message)
+      # tbd
+    end
+
+    def create_wip_enrollment(_message)
+      raise 'TBD'
+      # enrollment = referral.project.enrollments.wip.create!(client: referral.client)
+      # referral.update!(target_enrollment: enrollment)
     end
 
     def create_ce_event(message)

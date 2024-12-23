@@ -5,17 +5,29 @@ module Hmis::Ce
     include AASM
 
     belongs_to :project, class_name: 'Hmis::Hud::Project'
-    belongs_to :workflow_template, class_name: 'Hmis::WorkflowDefinition::Template'
+    belongs_to :workflow_template,
+      -> { published },
+      foreign_key: 'workflow_template_identifier',
+      primary_key: 'identifier',
+      class_name: 'Hmis::WorkflowDefinition::Template'
+
     has_many :referrals, class_name: 'Hmis::Ce::Referral', dependent: :restrict_with_exception
 
     validates :name, presence: true
 
     aasm column: 'status' do
       state :open, initial: true
+      state :locked
       state :closed
 
       event :close do
-        transitions from: :open, to: :closed
+        transitions from: [:open, :locked], to: :closed
+      end
+      event :lock do
+        transitions from: :open, to: :locked
+      end
+      event :unlock do
+        transitions from: :locked, to: :open
       end
     end
 

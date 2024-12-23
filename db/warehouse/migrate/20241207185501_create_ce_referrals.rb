@@ -3,7 +3,7 @@ class CreateCeReferrals < ActiveRecord::Migration[7.0]
     # Opportunities (vacancies or services within projects)
     create_table(:ce_opportunities) do |t|
       t.references :project, null: false # what project provides this opportunity?
-      t.references :workflow_template, null: false, foreign_key: { to_table: :wfd_templates }
+      t.string :workflow_template_identifier, null: false # use an identifier to allow
       t.string :name, null: false
       t.string :status, null: false
       t.jsonb :requirements_config # Specific requirements for this opportunity

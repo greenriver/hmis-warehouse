@@ -6092,7 +6092,7 @@ ALTER SEQUENCE public.ce_assessments_id_seq OWNED BY public.ce_assessments.id;
 CREATE TABLE public.ce_opportunities (
     id bigint NOT NULL,
     project_id bigint NOT NULL,
-    workflow_template_id bigint NOT NULL,
+    workflow_template_identifier character varying NOT NULL,
     name character varying NOT NULL,
     status character varying NOT NULL,
     requirements_config jsonb,
@@ -28243,7 +28243,10 @@ ALTER SEQUENCE public.wfd_swimlanes_id_seq OWNED BY public.wfd_swimlanes.id;
 
 CREATE TABLE public.wfd_templates (
     id bigint NOT NULL,
+    identifier character varying NOT NULL,
     name character varying NOT NULL,
+    version integer NOT NULL,
+    status character varying NOT NULL,
     description text,
     owner_type character varying,
     owner_id bigint,
@@ -52943,13 +52946,6 @@ CREATE INDEX index_ce_opportunities_on_project_id ON public.ce_opportunities USI
 
 
 --
--- Name: index_ce_opportunities_on_workflow_template_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_opportunities_on_workflow_template_id ON public.ce_opportunities USING btree (workflow_template_id);
-
-
---
 -- Name: index_ce_performance_ce_aprs_on_ce_apr_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60370,6 +60366,13 @@ CREATE INDEX index_talentlms_logins_on_user_id ON public.talentlms_logins USING 
 
 
 --
+-- Name: index_templates_on_identifier_published; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_templates_on_identifier_published ON public.wfd_templates USING btree (identifier) WHERE ((status)::text = 'published'::text);
+
+
+--
 -- Name: index_text_message_messages_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63679,14 +63682,6 @@ ALTER TABLE ONLY public.service_history_services_2002
 
 ALTER TABLE ONLY public.service_history_services_2026
     ADD CONSTRAINT fk_rails_7963d447f9 FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
-
-
---
--- Name: ce_opportunities fk_rails_7b1eed78fd; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_opportunities
-    ADD CONSTRAINT fk_rails_7b1eed78fd FOREIGN KEY (workflow_template_id) REFERENCES public.wfd_templates(id);
 
 
 --

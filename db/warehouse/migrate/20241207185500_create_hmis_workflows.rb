@@ -1,9 +1,14 @@
 class CreateHmisWorkflows < ActiveRecord::Migration[7.0]
   def change
     create_table :wfd_templates do |t|
+      t.string :identifier, null: false
       t.string :name, null: false
+      t.integer :version, null: false
+      t.string :status, null: false # retired, published, draft
       t.text :description
       t.references :owner, polymorphic: true # TBD
+
+      t.index :identifier, unique: true, where: "status = 'published'", name: 'index_templates_on_identifier_published'
 
       t.timestamps
     end
@@ -20,7 +25,7 @@ class CreateHmisWorkflows < ActiveRecord::Migration[7.0]
       t.jsonb :trigger_config # when to send notifications, create ce events, state changes, api calls
       t.string :name
       t.references :swimlane, foreign_key: { to_table: :wfd_swimlanes }
-      # task nodes have forms
+      # task nodes have forms.
       t.references :form_definition, foreign_key: { to_table: :hmis_form_definitions }
       # gateway nodes have types
       t.string :gateway_type
