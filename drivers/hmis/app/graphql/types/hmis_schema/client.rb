@@ -229,7 +229,8 @@ module Types
     end
 
     def files(**args)
-      resolve_files(**args)
+      # Exclude files that have been uploaded by custom assessments
+      resolve_files(object.files.where.missing(:custom_data_element), **args)
     end
 
     def pronouns
