@@ -18,8 +18,6 @@ module Hmis::WorkflowDefinition
     def join_inflows? = false
     def exclusive_outflows? = false
 
-
-
     # [
     #   { event: 'step_completed', message: 'send_notification', params: params },
     # ]

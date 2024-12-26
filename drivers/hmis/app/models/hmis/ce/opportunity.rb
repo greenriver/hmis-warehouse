@@ -5,13 +5,17 @@ module Hmis::Ce
     include AASM
 
     belongs_to :project, class_name: 'Hmis::Hud::Project'
+    belongs_to :client_match_policy, class_name: 'Hmis::Ce::ClientMatch::Policy', optional: true
     belongs_to :workflow_template,
-      -> { published },
-      foreign_key: 'workflow_template_identifier',
-      primary_key: 'identifier',
-      class_name: 'Hmis::WorkflowDefinition::Template'
+               -> { published },
+               foreign_key: 'workflow_template_identifier',
+               primary_key: 'identifier',
+               class_name: 'Hmis::WorkflowDefinition::Template'
 
     has_many :referrals, class_name: 'Hmis::Ce::Referral', dependent: :restrict_with_exception
+    has_many :candidates, class_name: 'Hmis::Ce::OpportunityCandidate', dependent: :destroy
+    has_many :categorizations, class_name: 'Hmis::Ce::OpportunityCategorization'
+    has_many :categories, through: :categorizations
 
     validates :name, presence: true
 
@@ -23,6 +27,7 @@ module Hmis::Ce
       event :close do
         transitions from: [:open, :locked], to: :closed
       end
+      # lock the opportunity to prevent multiple simultaneous referrals
       event :lock do
         transitions from: :open, to: :locked
       end
@@ -34,8 +39,23 @@ module Hmis::Ce
     # FIXME: permissions
     scope :viewable_by, ->(_user) { all }
 
-    def requirements
-      (requirements_config || []).map { |item| OpenStruct.new(item) }
-    end
+    # Which opportunities are available for a given client
+    scope :for_client, ->(client) {
+      eligible_policy_ids = client.ce_client_match_candidates.select(:match_policy_id)
+      scope = self.open.where(match_policy_id: eligible_policy_ids)
+
+      exclude_ids = []
+      # exclude opportunities where the client has already been referred
+      exclude_ids += client.ce_referrals.distinct.pluck(:opportunity_id)
+
+      # exclude opportunities with overlapping categories from this client's active referrals
+      active_categories = Category.
+        joins(:opportunity).
+        where(ce_opportunities: client.ce_referrals.active.select(:opportunity_id))
+      exclude_ids += Opportunity.joins(:categories).merge(active_categories).pluck(:id)
+
+      scope = scope.where.not(id: exclude_ids.sort.uniq)
+      scope
+    }
   end
 end

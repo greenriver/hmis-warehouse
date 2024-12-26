@@ -6086,16 +6086,82 @@ ALTER SEQUENCE public.ce_assessments_id_seq OWNED BY public.ce_assessments.id;
 
 
 --
+-- Name: ce_client_match_candidates; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_client_match_candidates (
+    id bigint NOT NULL,
+    match_policy_id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    priority_score integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ce_client_match_candidates_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_client_match_candidates_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_client_match_candidates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_client_match_candidates_id_seq OWNED BY public.ce_client_match_candidates.id;
+
+
+--
+-- Name: ce_client_match_policies; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_client_match_policies (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    prioritization_formula character varying,
+    eligibility_requirements character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ce_client_match_policies_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_client_match_policies_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_client_match_policies_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_client_match_policies_id_seq OWNED BY public.ce_client_match_policies.id;
+
+
+--
 -- Name: ce_opportunities; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.ce_opportunities (
     id bigint NOT NULL,
     project_id bigint NOT NULL,
+    match_policy_id bigint,
     workflow_template_identifier character varying NOT NULL,
     name character varying NOT NULL,
     status character varying NOT NULL,
-    requirements_config jsonb,
     expires_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
@@ -6119,6 +6185,99 @@ CREATE SEQUENCE public.ce_opportunities_id_seq
 --
 
 ALTER SEQUENCE public.ce_opportunities_id_seq OWNED BY public.ce_opportunities.id;
+
+
+--
+-- Name: ce_opportunity_categories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_opportunity_categories (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ce_opportunity_categories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_opportunity_categories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_opportunity_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_opportunity_categories_id_seq OWNED BY public.ce_opportunity_categories.id;
+
+
+--
+-- Name: ce_opportunity_categorizations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_opportunity_categorizations (
+    id bigint NOT NULL,
+    opportunity_id bigint NOT NULL,
+    category_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ce_opportunity_categorizations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_opportunity_categorizations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_opportunity_categorizations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_opportunity_categorizations_id_seq OWNED BY public.ce_opportunity_categorizations.id;
+
+
+--
+-- Name: ce_opportunity_notifications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_opportunity_notifications (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    match_policy_id bigint NOT NULL
+);
+
+
+--
+-- Name: ce_opportunity_notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_opportunity_notifications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_opportunity_notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_opportunity_notifications_id_seq OWNED BY public.ce_opportunity_notifications.id;
 
 
 --
@@ -29466,10 +29625,45 @@ ALTER TABLE ONLY public.ce_assessments ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: ce_client_match_candidates id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_client_match_candidates ALTER COLUMN id SET DEFAULT nextval('public.ce_client_match_candidates_id_seq'::regclass);
+
+
+--
+-- Name: ce_client_match_policies id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_client_match_policies ALTER COLUMN id SET DEFAULT nextval('public.ce_client_match_policies_id_seq'::regclass);
+
+
+--
 -- Name: ce_opportunities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.ce_opportunities ALTER COLUMN id SET DEFAULT nextval('public.ce_opportunities_id_seq'::regclass);
+
+
+--
+-- Name: ce_opportunity_categories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_opportunity_categories ALTER COLUMN id SET DEFAULT nextval('public.ce_opportunity_categories_id_seq'::regclass);
+
+
+--
+-- Name: ce_opportunity_categorizations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_opportunity_categorizations ALTER COLUMN id SET DEFAULT nextval('public.ce_opportunity_categorizations_id_seq'::regclass);
+
+
+--
+-- Name: ce_opportunity_notifications id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_opportunity_notifications ALTER COLUMN id SET DEFAULT nextval('public.ce_opportunity_notifications_id_seq'::regclass);
 
 
 --
@@ -32939,11 +33133,51 @@ ALTER TABLE ONLY public.ce_assessments
 
 
 --
+-- Name: ce_client_match_candidates ce_client_match_candidates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_client_match_candidates
+    ADD CONSTRAINT ce_client_match_candidates_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_client_match_policies ce_client_match_policies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_client_match_policies
+    ADD CONSTRAINT ce_client_match_policies_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: ce_opportunities ce_opportunities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.ce_opportunities
     ADD CONSTRAINT ce_opportunities_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_opportunity_categories ce_opportunity_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_opportunity_categories
+    ADD CONSTRAINT ce_opportunity_categories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_opportunity_categorizations ce_opportunity_categorizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_opportunity_categorizations
+    ADD CONSTRAINT ce_opportunity_categorizations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_opportunity_notifications ce_opportunity_notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_opportunity_notifications
+    ADD CONSTRAINT ce_opportunity_notifications_pkey PRIMARY KEY (id);
 
 
 --
@@ -52939,10 +53173,59 @@ CREATE INDEX index_ce_assessments_on_user_id ON public.ce_assessments USING btre
 
 
 --
+-- Name: index_ce_client_match_candidates_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_client_match_candidates_on_client_id ON public.ce_client_match_candidates USING btree (client_id);
+
+
+--
+-- Name: index_ce_client_match_candidates_uniq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_ce_client_match_candidates_uniq ON public.ce_client_match_candidates USING btree (match_policy_id, client_id);
+
+
+--
+-- Name: index_ce_opportunities_on_match_policy_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_opportunities_on_match_policy_id ON public.ce_opportunities USING btree (match_policy_id);
+
+
+--
 -- Name: index_ce_opportunities_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_ce_opportunities_on_project_id ON public.ce_opportunities USING btree (project_id);
+
+
+--
+-- Name: index_ce_opportunity_categorizations_on_category_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_opportunity_categorizations_on_category_id ON public.ce_opportunity_categorizations USING btree (category_id);
+
+
+--
+-- Name: index_ce_opportunity_categorizations_uniq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_ce_opportunity_categorizations_uniq ON public.ce_opportunity_categorizations USING btree (opportunity_id, category_id);
+
+
+--
+-- Name: index_ce_opportunity_notifications_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_opportunity_notifications_on_client_id ON public.ce_opportunity_notifications USING btree (client_id);
+
+
+--
+-- Name: index_ce_opportunity_notifications_on_match_policy_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_opportunity_notifications_on_match_policy_id ON public.ce_opportunity_notifications USING btree (match_policy_id);
 
 
 --
@@ -63333,6 +63616,14 @@ ALTER TABLE ONLY public.service_history_services_2012
 
 
 --
+-- Name: ce_client_match_candidates fk_rails_0bc447eec3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_client_match_candidates
+    ADD CONSTRAINT fk_rails_0bc447eec3 FOREIGN KEY (client_id) REFERENCES public."Client"(id);
+
+
+--
 -- Name: service_history_services_2021 fk_rails_0e5acc7371; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -63394,6 +63685,14 @@ ALTER TABLE ONLY public.warehouse_clients_processed
 
 ALTER TABLE ONLY public.service_history_services_2032
     ADD CONSTRAINT fk_rails_2130a25e33 FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
+
+
+--
+-- Name: ce_opportunity_categorizations fk_rails_230f0873f5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_opportunity_categorizations
+    ADD CONSTRAINT fk_rails_230f0873f5 FOREIGN KEY (opportunity_id) REFERENCES public.ce_opportunities(id);
 
 
 --
@@ -63501,6 +63800,14 @@ ALTER TABLE ONLY public.hmis_external_referral_postings
 
 
 --
+-- Name: ce_opportunity_categorizations fk_rails_4400f9df2f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_opportunity_categorizations
+    ADD CONSTRAINT fk_rails_4400f9df2f FOREIGN KEY (category_id) REFERENCES public.ce_opportunity_categories(id);
+
+
+--
 -- Name: inbound_api_configurations fk_rails_441b0de9e4; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -63557,6 +63864,14 @@ ALTER TABLE ONLY public."Client"
 
 
 --
+-- Name: ce_client_match_candidates fk_rails_52748c910d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_client_match_candidates
+    ADD CONSTRAINT fk_rails_52748c910d FOREIGN KEY (match_policy_id) REFERENCES public.ce_client_match_policies(id);
+
+
+--
 -- Name: service_history_services_2037 fk_rails_564f7bf6cb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -63578,6 +63893,14 @@ ALTER TABLE ONLY public."Inventory"
 
 ALTER TABLE ONLY public.import_overrides
     ADD CONSTRAINT fk_rails_5a2f47c5bf FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
+
+
+--
+-- Name: ce_opportunity_notifications fk_rails_5a3b12c1cd; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_opportunity_notifications
+    ADD CONSTRAINT fk_rails_5a3b12c1cd FOREIGN KEY (match_policy_id) REFERENCES public.ce_client_match_policies(id);
 
 
 --
@@ -63821,6 +64144,14 @@ ALTER TABLE ONLY public.wfe_instances
 
 
 --
+-- Name: ce_opportunity_notifications fk_rails_8efd757343; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_opportunity_notifications
+    ADD CONSTRAINT fk_rails_8efd757343 FOREIGN KEY (client_id) REFERENCES public."Client"(id);
+
+
+--
 -- Name: ce_referral_participants fk_rails_8fe8b4a5a6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -63874,6 +64205,14 @@ ALTER TABLE ONLY public.hmis_project_unit_type_mappings
 
 ALTER TABLE ONLY public."Services"
     ADD CONSTRAINT fk_rails_9ed8af19a8 FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
+
+
+--
+-- Name: ce_opportunities fk_rails_a074b7718a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_opportunities
+    ADD CONSTRAINT fk_rails_a074b7718a FOREIGN KEY (match_policy_id) REFERENCES public.ce_client_match_policies(id);
 
 
 --

@@ -10,7 +10,6 @@ module Hmis::WorkflowDefinition
     has_many :swimlanes, class_name: 'Hmis::WorkflowDefinition::Swimlane', dependent: :restrict_with_exception, foreign_key: 'template_id'
     has_many :ce_opportunities, class_name: 'Hmis::Ce::Opportunity', dependent: :restrict_with_exception
 
-
     validates :name, presence: true
     validates :status, presence: true
     validates :version, presence: true

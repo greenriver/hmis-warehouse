@@ -18,7 +18,7 @@ module Mutations
         opportunity.template = template
         opportunity.create!
       end
-      { opportunity: opportunity}
+      { opportunity: opportunity }
     end
   end
 end

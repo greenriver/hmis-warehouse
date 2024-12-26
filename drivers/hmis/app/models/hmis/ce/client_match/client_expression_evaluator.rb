@@ -1,0 +1,23 @@
+require 'dentaku'
+
+module Hmis::Ce::ClientMatch
+  class ClientExpressionEvaluator
+    attr_reader :expression, :field_map
+    def initialize(expression, field_map)
+      @expression = expression
+      @field_map = field_map
+    end
+
+    def call(client)
+      calculator = Dentaku::Calculator.new
+
+      # construct client values for the expression.
+      # Note, this isn't lazy so it's less performant that it could be
+      client_values = calculator.dependencies(expression).to_h do |field|
+        [field, field_map.instance_value(client, field)]
+      end
+
+      calculator.evaluate!(expression, **client_values)
+    end
+  end
+end

@@ -130,13 +130,9 @@ module Hmis::WorkflowExecution
       # empty expression defaults to true
       return true if expression.blank?
 
-      calculator.evaluate(expression)
-    end
-
-    def calculator
-      Dentaku::Calculator.new.tap do |obj|
-        obj.store(**all_submitted_values)
-      end
+      calculator = Dentaku::Calculator.new
+      defaults = calculator.dependencies(expression).to_h { |k| [k.to_sym, nil] }
+      calculator.evaluate!(expression, **defaults.merge(all_submitted_values))
     end
 
     def all_submitted_values

@@ -10,7 +10,7 @@
 
 module Hmis::WorkflowDefinition
   class Gateway < Node
-    validates :gateway_type, presence: true, inclusion: {in: ['exclusive', 'inclusive', 'join']}
+    validates :gateway_type, presence: true, inclusion: { in: ['exclusive', 'inclusive', 'join'] }
 
     def gateway? = true
 
