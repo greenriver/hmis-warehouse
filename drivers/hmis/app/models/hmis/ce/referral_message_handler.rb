@@ -32,7 +32,7 @@ module Hmis::Ce
 
     def start_referral
       referral.start!
-      referral.opportunity.lock!
+      referral.opportunity.reserve!
     end
 
     def accept_referral

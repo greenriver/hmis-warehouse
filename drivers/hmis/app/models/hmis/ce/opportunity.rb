@@ -28,10 +28,10 @@ module Hmis::Ce
         transitions from: [:open, :locked], to: :closed
       end
       # lock the opportunity to prevent multiple simultaneous referrals
-      event :lock do
+      event :reserve do
         transitions from: :open, to: :locked
       end
-      event :unlock do
+      event :release do
         transitions from: :locked, to: :open
       end
     end
