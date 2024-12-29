@@ -35,8 +35,8 @@ module HudReports
         remaining_questions: build_for_questions,
         user_id: filter.user_id,
         project_ids: filter.effective_project_ids,
-        start_date: filter.start.to_date,
-        end_date: filter.end.to_date,
+        start_date: filter.start&.to_date,
+        end_date: filter.end&.to_date,
         coc_codes: filter.coc_codes,
         options: filter.to_h,
       )

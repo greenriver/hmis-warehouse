@@ -109,6 +109,7 @@ module Types
       can :delete_enrollments
       can :split_households
       can :audit_enrollments
+      can :view_enrollment_location_map
     end
 
     # FULL ACCESS FIELDS. All fields below this line require `can_view_enrollment_details` perm, because they use the overridden 'field' class method.
@@ -225,6 +226,8 @@ module Types
     # should not be queried in batch
     field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Forms for individual data elements that are collected at occurrence for this Enrollment (e.g. Move-In Date)'
 
+    field :geolocations, [Types::HmisSchema::Geolocation], null: false, description: 'Client Locations that have been collected during this Enrollment'
+
     audit_history_field(
       :audit_history,
       # Fields should match our DB casing, consult schema to determine appropriate casing
@@ -256,6 +259,14 @@ module Types
 
       # there should never be more than 1 referral posting for a given enrollment
       load_ar_association(object, :source_postings).min_by(&:id)
+    end
+
+    # N+1, not performant for queries on collections
+    def geolocations
+      return [] unless current_permission?(permission: :can_view_enrollment_location_map, entity: project)
+
+      # Must map to warehouse record because locations use polymorphic source with GrdaWarehouse::Hud::Enrollment type
+      object.as_warehouse.enrollment_location_histories.valid
     end
 
     def audit_history(filters: nil)
