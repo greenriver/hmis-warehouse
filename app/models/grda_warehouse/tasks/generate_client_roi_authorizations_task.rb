@@ -30,12 +30,12 @@ module GrdaWarehouse::Tasks
               columns: values.first&.keys&.excluding(:destination_client_id),
             },
           )
-          # cleanup orphans
-          orphan_scope = GrdaWarehouse::ClientRoiAuthorization.
-            where.not(destination_client_id: destination_client_scope.select(:id))
-          orphan_scope = orphan_scope.where(destination_client_id: client_ids) if client_ids
-          orphan_scope.delete_all
         end
+        # cleanup orphans
+        orphan_scope = GrdaWarehouse::ClientRoiAuthorization.
+          where.not(destination_client_id: destination_client_scope.select(:id))
+        orphan_scope = orphan_scope.where(destination_client_id: client_ids) if client_ids
+        orphan_scope.delete_all
       end
     end
 
