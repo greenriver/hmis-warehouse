@@ -339,49 +339,51 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end.compact
   end
 
+  # Occurrence Point Forms that are enabled for this Enrollment.
+  # Returns array of OpenStructs, which are resolved by the HmisSchema::OccurrencePointForm GQL type.
   def occurrence_point_forms
     # Get definitions for Occurrence Point forms, including inactive/retired (but excluding drafts)
     definitions = Hmis::Form::Definition.with_role(:OCCURRENCE_POINT).published_or_retired.latest_versions
-    # Get cdeds that this enrollment has CDE record(s) for. Do this in advance so we don't make extra trips to db
-    cdeds_this_enrollment_has = custom_data_element_definitions.pluck(:key).to_set
 
-    definitions.map do |definition|
-      # Choose the most specific instance for this enrollment
+    # Filter to only those Occurrence Point Forms that are enabled
+    structs = definitions.map do |definition|
+      # Choose the most specific Instance that enables this FormDefinition for this Enrollment
       best_instance = definition.instances.active.detect_best_instance_for_enrollment(enrollment: self)
-
-      # Check for legacy data. Skip the calculation if there is a current instance
-      has_legacy_data = best_instance ? false : legacy_occurrence_point_data?(definition, cdeds_this_enrollment_has)
-
-      next unless best_instance || has_legacy_data
+      next unless best_instance
 
       OpenStruct.new(
-        legacy: has_legacy_data && !best_instance,
+        legacy: false, # not legacy, because there is an active Form Instance enabling it
         definition: definition,
-        data_collected_about: best_instance&.data_collected_about || 'ALL_CLIENTS',
+        data_collected_about: best_instance.data_collected_about || 'ALL_CLIENTS',
       )
     end.compact
-  end
 
-  private def legacy_occurrence_point_data?(definition, cdeds_this_enrollment_has)
-    definition.walk_definition_nodes(as_open_struct: true) do |item|
-      next unless item.mapping.present?
+    # Add legacy forms to ensure that HUD Data Elements are not hidden.
+    # In the event that an Enrollment has a MoveInDate, for example, but there is no active form that collects it,
+    # we still need to show it so that user can see the data and perform data correction.
+    [
+      # [<Enrollment field>, <default form identifier that should be used if field has any data>]
+      [:move_in_date, 'move_in_date'],
+      [:date_of_engagement, 'date_of_engagement'],
+      [:date_of_path_status, 'path_status'],
+    ].each do |(field, identifier)|
+      # field has no data on this enrollment, skip
+      next unless send(field).present?
+      # field is already collected by an enabled form, skip
+      next if structs.find { |s| s.definition.collects_enrollment_field?(field) }
 
-      record_type = item.mapping&.record_type
-      field_name = item.mapping&.field_name&.underscore
-      custom_field_key = item.mapping&.custom_field_key
+      # find default form to use
+      form = definitions.find { |fd| fd.identifier == identifier && fd.managed_in_version_control? }
+      raise "Unexpected: #{field} present, but default #{identifier} form not found" unless form
 
-      next unless record_type == 'ENROLLMENT' || custom_field_key
-
-      if record_type && field_name
-        # Example: if this item collects `move_in_date` and the Enrollment has a Move-in Date value, then we want to show this form on the Enrollment Dashboard (even though it isn't "enabled" via an instance)
-        return true if respond_to?(field_name) && send(field_name).present?
-      elsif custom_field_key
-        # For simplicity, for now, just look for CDEDs where the owner is this Enrollment
-        return true if cdeds_this_enrollment_has.include?(custom_field_key)
-      end
+      structs << OpenStruct.new(
+        legacy: true, # legacy because there is no Form Instance enabling this data collection
+        definition: form,
+        data_collected_about: 'ALL_CLIENTS',
+      )
     end
 
-    false
+    structs
   end
 
   def save_new_enrollment!
