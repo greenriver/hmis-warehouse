@@ -68,11 +68,12 @@ RSpec.shared_context 'SystemSpecHelper' do
     row_label = find('td', text: row)
     scroll_to(row_label, align: :center)
     column_label = find('th', text: column)
+    input_selector = "[aria-labelledby='#{row_label['id']} #{column_label['id']}']"
     if choice.present?
-      find("[aria-labelledby='#{row_label['id']} #{column_label['id']}']").click
+      find(input_selector).click
       find('li[role=option]', text: choice).click
     else
-      find('button[aria-label="Clear"]').click
+      find("#{input_selector} + div > button[aria-label='Clear']").click
     end
   end
 
