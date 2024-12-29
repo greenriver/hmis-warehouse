@@ -6251,36 +6251,6 @@ ALTER SEQUENCE public.ce_opportunity_categorizations_id_seq OWNED BY public.ce_o
 
 
 --
--- Name: ce_opportunity_notifications; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.ce_opportunity_notifications (
-    id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    match_policy_id bigint NOT NULL
-);
-
-
---
--- Name: ce_opportunity_notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.ce_opportunity_notifications_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ce_opportunity_notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.ce_opportunity_notifications_id_seq OWNED BY public.ce_opportunity_notifications.id;
-
-
---
 -- Name: ce_performance_ce_aprs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -29660,13 +29630,6 @@ ALTER TABLE ONLY public.ce_opportunity_categorizations ALTER COLUMN id SET DEFAU
 
 
 --
--- Name: ce_opportunity_notifications id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_opportunity_notifications ALTER COLUMN id SET DEFAULT nextval('public.ce_opportunity_notifications_id_seq'::regclass);
-
-
---
 -- Name: ce_performance_ce_aprs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -33170,14 +33133,6 @@ ALTER TABLE ONLY public.ce_opportunity_categories
 
 ALTER TABLE ONLY public.ce_opportunity_categorizations
     ADD CONSTRAINT ce_opportunity_categorizations_pkey PRIMARY KEY (id);
-
-
---
--- Name: ce_opportunity_notifications ce_opportunity_notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_opportunity_notifications
-    ADD CONSTRAINT ce_opportunity_notifications_pkey PRIMARY KEY (id);
 
 
 --
@@ -53215,20 +53170,6 @@ CREATE UNIQUE INDEX index_ce_opportunity_categorizations_uniq ON public.ce_oppor
 
 
 --
--- Name: index_ce_opportunity_notifications_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_opportunity_notifications_on_client_id ON public.ce_opportunity_notifications USING btree (client_id);
-
-
---
--- Name: index_ce_opportunity_notifications_on_match_policy_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_opportunity_notifications_on_match_policy_id ON public.ce_opportunity_notifications USING btree (match_policy_id);
-
-
---
 -- Name: index_ce_performance_ce_aprs_on_ce_apr_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63896,14 +63837,6 @@ ALTER TABLE ONLY public.import_overrides
 
 
 --
--- Name: ce_opportunity_notifications fk_rails_5a3b12c1cd; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_opportunity_notifications
-    ADD CONSTRAINT fk_rails_5a3b12c1cd FOREIGN KEY (match_policy_id) REFERENCES public.ce_client_match_policies(id);
-
-
---
 -- Name: service_history_services_2040 fk_rails_5ebdc04142; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -64141,14 +64074,6 @@ ALTER TABLE ONLY public."Disabilities"
 
 ALTER TABLE ONLY public.wfe_instances
     ADD CONSTRAINT fk_rails_8dda38577c FOREIGN KEY (template_id) REFERENCES public.wfd_templates(id);
-
-
---
--- Name: ce_opportunity_notifications fk_rails_8efd757343; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_opportunity_notifications
-    ADD CONSTRAINT fk_rails_8efd757343 FOREIGN KEY (client_id) REFERENCES public."Client"(id);
 
 
 --

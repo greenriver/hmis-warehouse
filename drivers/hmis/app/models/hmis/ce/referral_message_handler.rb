@@ -1,3 +1,5 @@
+# handle workflow execution messages
+
 module Hmis::Ce
   class ReferralMessageHandler
     attr_reader :referral

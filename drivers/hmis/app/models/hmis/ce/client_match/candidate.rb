@@ -2,7 +2,6 @@
 module Hmis::Ce::ClientMatch
   class Candidate < GrdaWarehouseBase
     self.table_name = 'ce_client_match_candidates'
-    include AASM
     belongs_to :match_policy, class_name: 'Hmis::Ce::ClientMatch::Policy'
     belongs_to :client, class_name: 'Hmis::Hud::Client'
 

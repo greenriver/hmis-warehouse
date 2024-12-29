@@ -31,10 +31,13 @@ module Hmis::Ce::ClientMatch
 
     #  DATE_PART('year', AGE('2024-12-26', "Client"."DOB"))
     def age_from(_date_part, date, dob_field)
-      Arel::Nodes::NamedFunction.new('DATE_PART', [
-                                       Arel::Nodes::Quoted.new('year'),
-                                       Arel::Nodes::NamedFunction.new('AGE', [Arel::Nodes::Quoted.new(date), dob_field]),
-                                     ])
+      Arel::Nodes::NamedFunction.new(
+        'DATE_PART',
+        [
+          Arel::Nodes::Quoted.new('year'),
+          Arel::Nodes::NamedFunction.new('AGE', [Arel::Nodes::Quoted.new(date), dob_field]),
+        ],
+      )
     end
 
     def current_date

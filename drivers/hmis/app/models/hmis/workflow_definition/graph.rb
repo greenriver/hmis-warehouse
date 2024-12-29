@@ -1,6 +1,6 @@
 # Provides graph traversal and analysis capabilities for workflow templates.
-# Used for validating workflow structure and determining execution paths.
-# Does not consider conditions or other conditions on flows.
+# - Used for validating workflow structure and determining execution paths.
+# - Does not consider conditions or other conditions on flows.
 module Hmis::WorkflowDefinition
   class Graph
     attr_reader :nodes
@@ -11,8 +11,7 @@ module Hmis::WorkflowDefinition
 
     # entrypoints allows starting with the descendants of specific node. Defaults to graph entrypoints
     # stop_when allows us to perform a bounded depth-first search:
-    # matches = graph.walk(start_node, stop_when: ->(node) { node.type == 'task' })
-    #
+    # matches = graph.walk(entrypoint_ids: ids, stop_when: ->(node) { node.type == 'task' })
     def walk(entrypoint_ids: nil, stop_when: nil)
       Enumerator.new do |yielder|
         visited = Set.new

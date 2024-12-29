@@ -43,11 +43,6 @@ class CreateCeReferrals < ActiveRecord::Migration[7.0]
       t.timestamps
     end
 
-    create_table(:ce_opportunity_notifications) do |t|
-      t.references :client, null: false, foreign_key: { to_table: :Client }
-      t.references :match_policy, null: false, foreign_key: { to_table: :ce_client_match_policies }
-    end
-
     # Referrals (instances of clients going through workflow)
     create_table(:ce_referrals) do |t|
       t.references :opportunity, null: false, foreign_key: { to_table: :ce_opportunities }

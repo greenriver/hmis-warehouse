@@ -1,4 +1,4 @@
-# Given a task, determine users to be assigned
+# Given a workflow task, determine users to be assigned
 module Hmis::Ce
   class ReferralTaskAssignmentHandler
     attr_reader :referral
