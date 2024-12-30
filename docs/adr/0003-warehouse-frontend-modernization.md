@@ -69,7 +69,7 @@ Proposed multi-tiered approach to frontend modernization:
    - Clear upgrade path documented by Bootstrap team
    - Can reuse existing components and patterns with minimal changes
    - Strong focus on backward compatibility in Bootstrap 5
-   - Stimulus provides more structured andapproach to JavaScript
+   - Stimulus provides more structured approach to JavaScript
    - Better alignment with Rails ecosystem and future direction
 
 **Negative:**
