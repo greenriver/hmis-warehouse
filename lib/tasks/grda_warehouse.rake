@@ -141,7 +141,8 @@ namespace :grda_warehouse do
       # Deal with fetching more than one file
       conf.possible_files.each do |file_name|
         options[:file_name] = file_name
-        Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HmisAutoMigrate::S3', options: options)
+        job_class = Importing::HudZip::FetchAndImportJob
+        Delayed::Job.enqueue job_class.new(klass: 'Importers::HmisAutoMigrate::S3', options: options), queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
       end
     end
   end

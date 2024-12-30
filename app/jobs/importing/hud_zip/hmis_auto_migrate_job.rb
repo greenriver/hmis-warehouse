@@ -11,11 +11,11 @@ module Importing::HudZip
 
     attr_accessor :job
 
-    def initialize(upload_id:, data_source_id:, deidentified: false, project_whitelist: false)
+    def initialize(upload_id:, data_source_id:, deidentified: false, allowed_projects: false)
       @upload_id = upload_id
       @data_source_id = data_source_id
       @deidentified = deidentified
-      @project_whitelist = project_whitelist
+      @allowed_projects = allowed_projects
     end
 
     def before(job)
@@ -23,7 +23,7 @@ module Importing::HudZip
     end
 
     def perform
-      lock_obtained = GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_name, timeout_seconds: 0) do
+      lock_obtained = GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_name, timeout_seconds: 60) do
         importer = Importers::HmisAutoMigrate::UploadedZip.new(
           data_source_id: @data_source_id,
           upload_id: @upload_id,
@@ -39,16 +39,18 @@ module Importing::HudZip
     end
 
     private def advisory_lock_name
-      "hud_import_auto_migrate_#{@data_source_id}"
+      GrdaWarehouse::DataSource.import_advisory_lock_name(data_source_id)
+    end
+
+    private def data_source_id
+      job.payload_object.instance_variable_get(:@data_source_id)
     end
 
     private def requeue_job
       # Re-queue this import before processing if another import is running for the same data_source
       # This should help prevent tying up delayed job workers that are really just waiting
       # for the previous import to complete
-      @data_source_id = job.payload_object.instance_variable_get(:@data_source_id)
-
-      Rails.logger.info("Import of Data Source: #{@data_source_id} already running...re-queuing job for #{WAIT_MINUTES} minutes from now")
+      Rails.logger.info("Import of Data Source: #{data_source_id} already running...re-queuing job for #{WAIT_MINUTES} minutes from now")
       new_job = job.dup
       new_job.update(
         locked_at: nil,
