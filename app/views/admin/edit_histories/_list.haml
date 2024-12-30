@@ -1,0 +1,28 @@
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Date changed
+        %th Editor
+        %th Changes
+    %tbody
+      - @history.wrap_display_versions(list).each do |item|
+        %tr
+          %td= item.created_at.to_fs
+          %td
+            - if item.username
+              = item.username
+              - if item.impersonating
+                .small= "Impersonating #{item.impersonating}"
+            - else
+              %span.light N/A
+          %td
+            - if item.error
+              .text-danger= 'Load error'
+              %p Sorry, we couldn't load the change details for this version.
+            - elsif item.changes
+              %ul.list-unstyled
+                - item.changes.each do |change|
+                  %li= change
+            - else
+              %span.light N/A

@@ -1524,7 +1524,9 @@ CREATE TABLE public."CustomAssessments" (
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
     wip boolean DEFAULT false NOT NULL,
-    lock_version integer DEFAULT 0 NOT NULL
+    lock_version integer DEFAULT 0 NOT NULL,
+    created_by_hud_user_id bigint,
+    updated_by_hud_user_id bigint
 );
 
 
@@ -20898,7 +20900,9 @@ CREATE TABLE public.hud_report_apr_clients (
     most_recent_ed_status_at_exit integer,
     current_ed_status_at_exit integer,
     pay_for_success boolean DEFAULT false,
-    race_multi_include_race_none jsonb
+    race_multi_include_race_none jsonb,
+    hoh_move_in_date date,
+    adjusted_move_in_date date
 );
 
 
@@ -27185,7 +27189,9 @@ CREATE TABLE public.talentlms_courses (
     courseid integer,
     months_to_expiration integer,
     name character varying,
-    "default" boolean DEFAULT false
+    "default" boolean DEFAULT false,
+    start_date date,
+    end_date date
 );
 
 
@@ -51289,6 +51295,20 @@ CREATE INDEX "index_CurrentLivingSituation_on_verified_by_project_id" ON public.
 
 
 --
+-- Name: index_CustomAssessments_on_created_by_hud_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomAssessments_on_created_by_hud_user_id" ON public."CustomAssessments" USING btree (created_by_hud_user_id);
+
+
+--
+-- Name: index_CustomAssessments_on_updated_by_hud_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomAssessments_on_updated_by_hud_user_id" ON public."CustomAssessments" USING btree (updated_by_hud_user_id);
+
+
+--
 -- Name: index_CustomCaseNote_on_EnrollmentID; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -62590,6 +62610,14 @@ ALTER TABLE ONLY public."HealthAndDV"
 
 
 --
+-- Name: CustomAssessments fk_rails_09e5803c66; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomAssessments"
+    ADD CONSTRAINT fk_rails_09e5803c66 FOREIGN KEY (updated_by_hud_user_id) REFERENCES public."User"(id);
+
+
+--
 -- Name: service_history_services_2012 fk_rails_0af8ea813e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -63051,6 +63079,14 @@ ALTER TABLE ONLY public.hmis_project_unit_type_mappings
 
 ALTER TABLE ONLY public."Services"
     ADD CONSTRAINT fk_rails_9ed8af19a8 FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
+
+
+--
+-- Name: CustomAssessments fk_rails_a3f9f6f647; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomAssessments"
+    ADD CONSTRAINT fk_rails_a3f9f6f647 FOREIGN KEY (created_by_hud_user_id) REFERENCES public."User"(id);
 
 
 --
@@ -63575,6 +63611,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241110005806'),
 ('20241110005807'),
 ('20241111143412'),
+('20241111212106'),
 ('20241112181349'),
 ('20241118125719'),
 ('20241118130304'),
@@ -63631,10 +63668,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241118205103'),
 ('20241118210256'),
 ('20241118210556'),
+('20241122135153'),
 ('20241125132725'),
 ('20241125133759'),
 ('20241125133814'),
 ('20241126143802'),
+('20241127144123'),
 ('20241127162253');
 
 
