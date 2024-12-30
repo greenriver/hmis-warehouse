@@ -26,13 +26,11 @@ module Importing::HudZip
 
       lock_obtained = GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_name, timeout_seconds: 60) do
         safe_klass.constantize.new(**@options).import!
+        # To prevent re-running when called against the same files if run more than once in a day, yield true
+        true
       end
 
       requeue_job unless lock_obtained
-    end
-
-    def max_attempts
-      1
     end
 
     def known_classes
@@ -46,23 +44,28 @@ module Importing::HudZip
     end
 
     private def data_source_id
-      job.payload_object.instance_variable_get(:@data_source_id)
+      job.payload_object.instance_variable_get(:@options)[:data_source_id]
     end
 
     private def requeue_job
-      # Re-queue this import for a few minutes later
-      a_t = Delayed::Job.arel_table
-      job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%").or(a_t[:id].eq(job_id))).first
-      return unless job_object
-
-      Rails.logger.info("Import of Data Source #{data_source_id} already running...re-queuing job for #{WAIT_MINUTES} minutes from now")
-      new_job = job_object.dup
+      # Re-queue this import before processing if another import is running for the same data_source
+      # This should help prevent tying up delayed job workers that are really just waiting
+      # for the previous import to complete
+      Rails.logger.info("Import of Data Source: #{data_source_id} already running...re-queuing job for #{WAIT_MINUTES} minutes from now")
+      new_job = job.dup
       new_job.update(
         locked_at: nil,
         locked_by: nil,
         run_at: Time.current + WAIT_MINUTES.minutes,
         attempts: 0,
       )
+    end
+
+    def enqueue(job)
+    end
+
+    def max_attempts
+      1
     end
   end
 end

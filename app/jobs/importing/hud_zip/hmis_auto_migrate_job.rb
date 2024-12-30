@@ -32,10 +32,9 @@ module Importing::HudZip
         )
         importer.import!
       end
-      return if lock_obtained
 
       # when this exits, it will remove the current job from the queue, so add a new one to replace it
-      requeue_job
+      requeue_job unless lock_obtained
     end
 
     private def advisory_lock_name

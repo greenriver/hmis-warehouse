@@ -142,6 +142,7 @@ namespace :grda_warehouse do
       conf.possible_files.each do |file_name|
         options[:file_name] = file_name
         job_class = Importing::HudZip::FetchAndImportJob
+
         Delayed::Job.enqueue job_class.new(klass: 'Importers::HmisAutoMigrate::S3', options: options), queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
       end
     end
