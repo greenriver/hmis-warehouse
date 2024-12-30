@@ -68,7 +68,7 @@ module HmisCsvImporter::Importer
 
     # Needs to return an import_log instance
     def import!(import_log = nil)
-      # log that we're waiting, but then continue on.
+      # log that we're waiting and requeue for a few minutes later
       already_running_for_data_source?
 
       GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}") do
