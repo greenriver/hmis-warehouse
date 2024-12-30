@@ -14,6 +14,8 @@ module GrdaWarehouse
     PARTIAL_STATUS = 'partial'.freeze
     FULL_STATUS = 'full'.freeze
 
+    scope :with_invalid_client, -> { left_outer_joins(:destination_client).where(c_t[:id].eq(nil)) }
+
     def active?(date: Date.current)
       case status
       when PARTIAL_STATUS, FULL_STATUS
