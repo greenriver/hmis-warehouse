@@ -492,4 +492,14 @@ module ApplicationHelper
       bracket.first
     end
   end
+
+  # Provides a generic mechanism to show an action menu if there is more than one item, button, if only one
+  # Expects an array of objects called items in the following format
+  # [{ link_to: { path: '/hud_reports/aprs/new?filter%5Bactive_roi%5D=false...'}, icon: :copy, label: 'Clone report' }, { link_to: { path: '/hud_reports/aprs/111', method: :delete }, icon: :cross, label: 'Delete' }]
+  def action_menu_or_button(items:)
+    return if items.empty?
+    return render('/common/action_menu', items: items) if items.many?
+
+    render('/common/action_button', item: items.sole)
+  end
 end
