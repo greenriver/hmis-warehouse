@@ -28,7 +28,7 @@ module Importing::HudZip
           data_source_id: @data_source_id,
           upload_id: @upload_id,
           deidentified: @deidentified,
-          allowed_projects: @project_whitelist,
+          allowed_projects: @allowed_projects,
         )
         importer.import!
       end
