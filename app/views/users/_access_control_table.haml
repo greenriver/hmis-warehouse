@@ -1,4 +1,4 @@
-- access_controls = user.access_controls.preload(:role, :collection, :user_group)
+- access_controls = user.access_controls.preload(:role, :collection, :user_group).joins(:role, :collection, :user_group)
 - if access_controls.empty?
   %p.none-found
     #{user.name} has not been granted any access.

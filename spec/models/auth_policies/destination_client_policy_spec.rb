@@ -33,6 +33,19 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DestinationClientPolicy, type: :mode
       expect(policy.can_view_full_ssn?).to be false
       expect(policy.can_view_hiv_status?).to be false
     end
+
+    context 'with self-referencing warehouse client' do
+      before do
+        warehouse_client.update!(source_id: destination_client.id)
+      end
+      it 'denies all PII permissions' do
+        expect(policy.can_view_name?).to be false
+        expect(policy.can_view_photo?).to be false
+        expect(policy.can_view_full_dob?).to be false
+        expect(policy.can_view_full_ssn?).to be false
+        expect(policy.can_view_hiv_status?).to be false
+      end
+    end
   end
 
   shared_examples 'pii permission checks without access' do
@@ -82,7 +95,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DestinationClientPolicy, type: :mode
       before do
         collection.set_viewables({ projects: [project.id] })
       end
-
       include_examples 'pii permission checks with access'
     end
 

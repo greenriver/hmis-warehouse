@@ -25,7 +25,7 @@ module HmisDataQualityTool::WarehouseReports
       @report = report_class.new(user_id: current_user.id)
       @filter.default_project_type_codes = @report.default_project_type_codes
       previous_report = report_scope.where(user_id: current_user.id).last
-      @filter.update(previous_report.options) if previous_report
+      @filter.update(previous_report.options) if previous_report && params[:filters].blank?
 
       # Make sure the form will work
       filters
