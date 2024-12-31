@@ -57,7 +57,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(enrollment).to be_present
       expect(errors).to be_empty
       expect(Hmis::Hud::Enrollment.all).to contain_exactly(
-        have_attributes(personal_id: c1.personal_id, relationship_to_ho_h: 99),
+        have_attributes(personal_id: c1.personal_id, relationship_to_ho_h: 5),
         have_attributes(personal_id: c2.personal_id, relationship_to_ho_h: 2),
         have_attributes(personal_id: c3.personal_id, relationship_to_ho_h: 1),
       )
