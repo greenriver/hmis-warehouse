@@ -431,7 +431,7 @@ module Types
 
     # This is used for selecting a household for an "outgoing referral"
     def self.open_hoh_enrollments_for_project(project, user:)
-      raise 'Project required' unless project.present?
+      return [] unless project
 
       enrollments = project.enrollments.viewable_by(user).
         open_excluding_wip.
@@ -452,7 +452,7 @@ module Types
     end
 
     def self.external_form_types_for_project(project)
-      return [] unless project.present?
+      return [] unless project
 
       # External forms can only be enabled by Project-level instances
       Hmis::Form::Instance.for_project(project).active.published.
@@ -463,7 +463,7 @@ module Types
     end
 
     def self.enrollments_for_client(client, user:)
-      raise 'Client required' unless client.present?
+      return [] unless client
 
       enrollments = client.enrollments.viewable_by(user).preload(:project, :exit)
       enrollments.sort_by_option(:most_recent).map do |en|
@@ -475,7 +475,7 @@ module Types
     end
 
     def self.available_units_for_enrollment(project, household_id: nil)
-      raise 'Project required' unless project.present?
+      return [] unless project
 
       # Eligible units are unoccupied units, PLUS units occupied by household members
       unoccupied_units = project.units.unoccupied_on.pluck(:id)
@@ -522,9 +522,7 @@ module Types
     end
 
     def self.staff_assignment_relationships(project)
-      raise 'Project required' unless project
-
-      return [] unless project.staff_assignments_enabled?
+      return [] unless project&.staff_assignments_enabled?
 
       Hmis::StaffAssignmentRelationship.all.map(&:to_pick_list_option)
     end
