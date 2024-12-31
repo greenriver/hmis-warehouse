@@ -9928,11 +9928,6 @@ enum RelationshipToHoH {
   CHILD
 
   """
-  (99) Data not collected
-  """
-  DATA_NOT_COLLECTED
-
-  """
   Invalid Value
   """
   INVALID
