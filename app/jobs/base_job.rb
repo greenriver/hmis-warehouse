@@ -61,4 +61,32 @@ class BaseJob < ApplicationJob
       WorkerStatus.new(job).conditional_exit!
     end
   end
+
+  # attempts to requeue this job for a later time
+  # This is somewhat brittle at this time and expects to be operating on
+  # an ActiveJob instance (something like an instance of Importing::HudZip::HmisAutoMigrateJob).
+  # Additionally, this expects the rails job backend to be Delayed::Job
+  def requeue_at(timestamp, message)
+    Rails.logger.info(message) if message.present?
+    new_job = delayed_job.dup
+    new_job.update(
+      locked_at: nil,
+      locked_by: nil,
+      run_at: timestamp,
+      attempts: calculated_attempts,
+    )
+  end
+
+  # Attempt to find the associated delayed job so we can use it
+  def delayed_job
+    job = Delayed::Job.jobs_for_class(job_id).first
+    raise 'Unable to find a related delayed job' unless job.present?
+
+    job
+  end
+
+  # Override as necessary to limit the number of times a job is tried
+  def calculated_attempts
+    0
+  end
 end
