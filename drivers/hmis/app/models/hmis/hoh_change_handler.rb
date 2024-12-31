@@ -68,6 +68,8 @@ module Hmis
         hhm.move_in_date = nil unless hhm.head_of_household? && hhm.move_in_date && !new_hoh_move_in_date
 
         # Clear RelationshipToHoH on previous HoH
+        # TODO(#7127) it would be better if the workflow required the user to enter an updated relationship for the old HoH.
+        # Here we set it to 99, which is not valid.
         if hhm.head_of_household?
           hhm.relationship_to_ho_h = 99
           # Move-in Address(es) from old HoH should transfer to new HoH. We only expect 1, but it's OK if there are more.
