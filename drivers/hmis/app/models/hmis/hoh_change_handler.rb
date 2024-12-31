@@ -67,11 +67,9 @@ module Hmis
         # TODO(#6857) For now, we leave the old MID as-is IF we were unable to transfer it because the new HoH entered after move-in. We plan to adjust this pending guidance from HUD.
         hhm.move_in_date = nil unless hhm.head_of_household? && hhm.move_in_date && !new_hoh_move_in_date
 
-        # Clear RelationshipToHoH on previous HoH
-        # TODO(#7127) it would be better if the workflow required the user to enter an updated relationship for the old HoH.
-        # Here we set it to 99, which is not valid.
+        # Update RelationshipToHoH on previous HoH
         if hhm.head_of_household?
-          hhm.relationship_to_ho_h = 99
+          hhm.relationship_to_ho_h = infer_relationship_to_new_hoh(new_hoh_enrollment)
           # Move-in Address(es) from old HoH should transfer to new HoH. We only expect 1, but it's OK if there are more.
           hhm.move_in_addresses.each { |addr| addr.update!(enrollment: new_hoh_enrollment) }
         end
@@ -123,6 +121,22 @@ module Hmis
 
     def add_warning(full_message)
       validation_errors.add(:enrollment, :informational, severity: :warning, full_message: full_message)
+    end
+
+    # infer which relationship the previous HoH should have to the new HoH
+    def infer_relationship_to_new_hoh(new_hoh)
+      case new_hoh.relationship_to_ho_h
+      when 3 # Spouse
+        3 # Spouse
+      when 4 # Other relative
+        4 # Other relative
+      when 5 # Unrelated household member
+        5 # Unrelated household member
+      when 2 # Child
+        4 # Other relative a.k.a. parent. This is unexpected, because child shouldn't become HoH.
+      else
+        6 # Unrelated household member
+      end
     end
   end
 end
