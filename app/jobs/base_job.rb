@@ -80,7 +80,8 @@ class BaseJob < ApplicationJob
   # Attempt to find the associated delayed job so we can use it
   def delayed_job
     job = Delayed::Job.jobs_for_class(job_id).first
-    raise 'Unable to find a related delayed job' unless job.present?
+    # NOTE: job_id will probably be a UUID in the handler of the row
+    raise "Unable to find a related delayed job (ID: #{job_id})" unless job.present?
 
     job
   end

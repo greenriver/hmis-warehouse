@@ -42,11 +42,9 @@ module Importing::HudZip
     end
 
     def calculated_attempts
-      dj_max_attempts = Delayed::Worker.max_attempts
+      # How many times should we allow this job to fail before we fail permanently
       max_attempts = 1
-      return 0 if max_attempts >= dj_max_attempts
-
-      dj_max_attempts - max_attempts
+      [0, Delayed::Worker.max_attempts - max_attempts].max
     end
   end
 end
