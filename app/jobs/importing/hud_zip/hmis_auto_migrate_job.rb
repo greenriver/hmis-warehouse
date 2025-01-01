@@ -14,7 +14,7 @@ module Importing::HudZip
     after_enqueue :enforce_max_attempts
 
     def perform(upload_id:, data_source_id:, deidentified: false, allowed_projects: false)
-      lock_obtained = GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_name(data_source_id), timeout_seconds: 2) do
+      lock_obtained = GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_name(data_source_id), timeout_seconds: 60) do
         importer = Importers::HmisAutoMigrate::UploadedZip.new(
           data_source_id: data_source_id,
           upload_id: upload_id,
