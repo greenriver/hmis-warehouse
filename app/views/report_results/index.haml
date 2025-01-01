@@ -1,6 +1,5 @@
 = render partial: 'breadcrumbs'
 %h1= Translation.translate("Report Result: #{@report.name}")
-= render 'queue_form'
 
 :ruby
   columns = {'percent_complete' => 'Status', 'created_at' => 'Started'}
