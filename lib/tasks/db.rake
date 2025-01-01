@@ -2,21 +2,11 @@ namespace :db do
   namespace :schema do
     desc "Conditionally load the database schema"
     task :conditional_load, [] => [:environment] do |t, args|
-      if ApplicationRecord.connection.table_exists?(:schema_migrations)
-        puts "Refusing to load the database schema since there are tables present. This is not an error."
+      connection = ApplicationRecord.connection
+      if connection.table_exists?(:schema_migrations)
+        puts "Refusing to load the database schema since there are tables present in #{connection.current_database}. This is not an error."
       else
         Rake::Task['db:schema:load:primary'].invoke
-      end
-    end
-  end
-
-  namespace :structure do
-    desc "Conditionally load the database structure"
-    task :conditional_load, [] => [:environment] do |t, args|
-      if ApplicationRecord.connection.table_exists?(:schema_migrations)
-        puts "Refusing to load the database structure since there are tables present. This is not an error."
-      else
-        Rake::Task['db:structure:load'].invoke
       end
     end
   end

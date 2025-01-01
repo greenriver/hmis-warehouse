@@ -51,8 +51,10 @@ gem 'autoprefixer-rails', '~> 10.3.3' # pinned until we can update to Bootstrap 
 gem 'kaminari'
 gem 'pagy'
 gem 'with_advisory_lock'
-# gem 'schema_plus_views'
-gem 'scenic'
+
+gem 'scenic' # supports db views. Note, order is important, this should load before fx since both gems patch SchemaDumper and we want to dump views before triggerst d
+gem 'fx' # supports functions and triggers in our db schema
+
 gem 'memery', require: false
 gem 'rserve-client', require: false
 gem 'rserve-simpler', require: false

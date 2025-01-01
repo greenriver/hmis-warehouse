@@ -18,7 +18,7 @@ SET default_table_access_method = heap;
 --
 
 CREATE TABLE public.accountable_care_organizations (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     name character varying,
     short_name character varying,
     mco_pid integer,
@@ -36,7 +36,6 @@ CREATE TABLE public.accountable_care_organizations (
 --
 
 CREATE SEQUENCE public.accountable_care_organizations_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -56,7 +55,7 @@ ALTER SEQUENCE public.accountable_care_organizations_id_seq OWNED BY public.acco
 --
 
 CREATE TABLE public.agencies (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     name character varying,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
@@ -70,7 +69,6 @@ CREATE TABLE public.agencies (
 --
 
 CREATE SEQUENCE public.agencies_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -90,7 +88,7 @@ ALTER SEQUENCE public.agencies_id_seq OWNED BY public.agencies.id;
 --
 
 CREATE TABLE public.agency_patient_referrals (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     agency_id integer NOT NULL,
     patient_referral_id integer NOT NULL,
     claimed boolean DEFAULT false NOT NULL,
@@ -105,7 +103,6 @@ CREATE TABLE public.agency_patient_referrals (
 --
 
 CREATE SEQUENCE public.agency_patient_referrals_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -125,7 +122,7 @@ ALTER SEQUENCE public.agency_patient_referrals_id_seq OWNED BY public.agency_pat
 --
 
 CREATE TABLE public.agency_users (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     agency_id integer NOT NULL,
     user_id integer NOT NULL
 );
@@ -136,7 +133,6 @@ CREATE TABLE public.agency_users (
 --
 
 CREATE SEQUENCE public.agency_users_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -190,7 +186,7 @@ ALTER SEQUENCE public.any_careplans_id_seq OWNED BY public.any_careplans.id;
 --
 
 CREATE TABLE public.appointments (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     appointment_type character varying,
     notes text,
     doctor character varying,
@@ -210,7 +206,6 @@ CREATE TABLE public.appointments (
 --
 
 CREATE SEQUENCE public.appointments_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -232,8 +227,8 @@ ALTER SEQUENCE public.appointments_id_seq OWNED BY public.appointments.id;
 CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -314,7 +309,7 @@ ALTER SEQUENCE public.ca_assessments_id_seq OWNED BY public.ca_assessments.id;
 --
 
 CREATE TABLE public.careplan_equipment (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     careplan_id integer,
     equipment_id integer
 );
@@ -325,7 +320,6 @@ CREATE TABLE public.careplan_equipment (
 --
 
 CREATE SEQUENCE public.careplan_equipment_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -345,7 +339,7 @@ ALTER SEQUENCE public.careplan_equipment_id_seq OWNED BY public.careplan_equipme
 --
 
 CREATE TABLE public.careplan_services (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     careplan_id integer,
     service_id integer
 );
@@ -356,7 +350,6 @@ CREATE TABLE public.careplan_services (
 --
 
 CREATE SEQUENCE public.careplan_services_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -376,7 +369,7 @@ ALTER SEQUENCE public.careplan_services_id_seq OWNED BY public.careplan_services
 --
 
 CREATE TABLE public.careplans (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     patient_id integer,
     user_id integer,
     sdh_enroll_date date,
@@ -443,7 +436,6 @@ CREATE TABLE public.careplans (
 --
 
 CREATE SEQUENCE public.careplans_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -463,7 +455,7 @@ ALTER SEQUENCE public.careplans_id_seq OWNED BY public.careplans.id;
 --
 
 CREATE TABLE public.claims (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     user_id integer,
     max_date date,
     job_id integer,
@@ -490,7 +482,7 @@ CREATE TABLE public.claims (
 --
 
 CREATE TABLE public.claims_amount_paid_location_month (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     medicaid_id character varying NOT NULL,
     year integer,
     month integer,
@@ -511,7 +503,6 @@ CREATE TABLE public.claims_amount_paid_location_month (
 --
 
 CREATE SEQUENCE public.claims_amount_paid_location_month_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -531,7 +522,7 @@ ALTER SEQUENCE public.claims_amount_paid_location_month_id_seq OWNED BY public.c
 --
 
 CREATE TABLE public.claims_claim_volume_location_month (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     medicaid_id character varying NOT NULL,
     year integer,
     month integer,
@@ -552,7 +543,6 @@ CREATE TABLE public.claims_claim_volume_location_month (
 --
 
 CREATE SEQUENCE public.claims_claim_volume_location_month_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -572,7 +562,7 @@ ALTER SEQUENCE public.claims_claim_volume_location_month_id_seq OWNED BY public.
 --
 
 CREATE TABLE public.claims_ed_nyu_severity (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     medicaid_id character varying NOT NULL,
     category character varying,
     indiv_pct double precision,
@@ -587,7 +577,6 @@ CREATE TABLE public.claims_ed_nyu_severity (
 --
 
 CREATE SEQUENCE public.claims_ed_nyu_severity_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -607,7 +596,6 @@ ALTER SEQUENCE public.claims_ed_nyu_severity_id_seq OWNED BY public.claims_ed_ny
 --
 
 CREATE SEQUENCE public.claims_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1506,7 +1494,7 @@ ALTER SEQUENCE public.claims_reporting_rx_claims_id_seq OWNED BY public.claims_r
 --
 
 CREATE TABLE public.claims_roster (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     medicaid_id character varying NOT NULL,
     last_name character varying,
     first_name character varying,
@@ -1544,7 +1532,6 @@ CREATE TABLE public.claims_roster (
 --
 
 CREATE SEQUENCE public.claims_roster_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1564,7 +1551,7 @@ ALTER SEQUENCE public.claims_roster_id_seq OWNED BY public.claims_roster.id;
 --
 
 CREATE TABLE public.claims_top_conditions (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     medicaid_id character varying NOT NULL,
     rank integer,
     description character varying,
@@ -1580,7 +1567,6 @@ CREATE TABLE public.claims_top_conditions (
 --
 
 CREATE SEQUENCE public.claims_top_conditions_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1600,7 +1586,7 @@ ALTER SEQUENCE public.claims_top_conditions_id_seq OWNED BY public.claims_top_co
 --
 
 CREATE TABLE public.claims_top_ip_conditions (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     medicaid_id character varying NOT NULL,
     rank integer,
     description character varying,
@@ -1616,7 +1602,6 @@ CREATE TABLE public.claims_top_ip_conditions (
 --
 
 CREATE SEQUENCE public.claims_top_ip_conditions_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1636,7 +1621,7 @@ ALTER SEQUENCE public.claims_top_ip_conditions_id_seq OWNED BY public.claims_top
 --
 
 CREATE TABLE public.claims_top_providers (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     medicaid_id character varying NOT NULL,
     rank integer,
     provider_name character varying,
@@ -1652,7 +1637,6 @@ CREATE TABLE public.claims_top_providers (
 --
 
 CREATE SEQUENCE public.claims_top_providers_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1672,7 +1656,7 @@ ALTER SEQUENCE public.claims_top_providers_id_seq OWNED BY public.claims_top_pro
 --
 
 CREATE TABLE public.comprehensive_health_assessments (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     patient_id integer,
     user_id integer,
     health_file_id integer,
@@ -1694,7 +1678,6 @@ CREATE TABLE public.comprehensive_health_assessments (
 --
 
 CREATE SEQUENCE public.comprehensive_health_assessments_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1787,7 +1770,7 @@ ALTER SEQUENCE public.coordination_teams_id_seq OWNED BY public.coordination_tea
 --
 
 CREATE TABLE public.cp_member_files (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     type character varying,
     file character varying,
     content character varying,
@@ -1803,7 +1786,6 @@ CREATE TABLE public.cp_member_files (
 --
 
 CREATE SEQUENCE public.cp_member_files_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1823,7 +1805,7 @@ ALTER SEQUENCE public.cp_member_files_id_seq OWNED BY public.cp_member_files.id;
 --
 
 CREATE TABLE public.cps (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     pid character varying,
     sl character varying,
     mmis_enrollment_name character varying,
@@ -1857,7 +1839,6 @@ CREATE TABLE public.cps (
 --
 
 CREATE SEQUENCE public.cps_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1877,7 +1858,7 @@ ALTER SEQUENCE public.cps_id_seq OWNED BY public.cps.id;
 --
 
 CREATE TABLE public.data_sources (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     name character varying,
     deleted_at timestamp without time zone,
     created_at timestamp without time zone,
@@ -1890,7 +1871,6 @@ CREATE TABLE public.data_sources (
 --
 
 CREATE SEQUENCE public.data_sources_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1979,7 +1959,7 @@ ALTER SEQUENCE public.document_exports_id_seq OWNED BY public.document_exports.i
 --
 
 CREATE TABLE public.ed_ip_visit_files (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     type character varying,
     file character varying,
     content character varying,
@@ -1999,7 +1979,6 @@ CREATE TABLE public.ed_ip_visit_files (
 --
 
 CREATE SEQUENCE public.ed_ip_visit_files_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2053,7 +2032,7 @@ ALTER SEQUENCE public.ed_ip_visits_id_seq OWNED BY public.ed_ip_visits.id;
 --
 
 CREATE TABLE public.eligibility_inquiries (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     service_date date NOT NULL,
     inquiry character varying,
     result character varying,
@@ -2073,7 +2052,6 @@ CREATE TABLE public.eligibility_inquiries (
 --
 
 CREATE SEQUENCE public.eligibility_inquiries_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2093,7 +2071,7 @@ ALTER SEQUENCE public.eligibility_inquiries_id_seq OWNED BY public.eligibility_i
 --
 
 CREATE TABLE public.eligibility_responses (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     eligibility_inquiry_id integer,
     response character varying,
     created_at timestamp without time zone,
@@ -2114,7 +2092,6 @@ CREATE TABLE public.eligibility_responses (
 --
 
 CREATE SEQUENCE public.eligibility_responses_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2248,7 +2225,7 @@ ALTER SEQUENCE public.enrollment_reasons_id_seq OWNED BY public.enrollment_reaso
 --
 
 CREATE TABLE public.enrollment_rosters (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     roster_file_id integer,
     member_id character varying,
     performance_year character varying,
@@ -2294,7 +2271,6 @@ CREATE TABLE public.enrollment_rosters (
 --
 
 CREATE SEQUENCE public.enrollment_rosters_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2314,7 +2290,7 @@ ALTER SEQUENCE public.enrollment_rosters_id_seq OWNED BY public.enrollment_roste
 --
 
 CREATE TABLE public.enrollments (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     user_id integer,
     content character varying,
     original_filename character varying,
@@ -2335,7 +2311,6 @@ CREATE TABLE public.enrollments (
 --
 
 CREATE SEQUENCE public.enrollments_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2355,7 +2330,7 @@ ALTER SEQUENCE public.enrollments_id_seq OWNED BY public.enrollments.id;
 --
 
 CREATE TABLE public.epic_careplans (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     patient_id character varying,
     id_in_source character varying,
     encounter_id character varying,
@@ -2376,7 +2351,6 @@ CREATE TABLE public.epic_careplans (
 --
 
 CREATE SEQUENCE public.epic_careplans_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2396,7 +2370,7 @@ ALTER SEQUENCE public.epic_careplans_id_seq OWNED BY public.epic_careplans.id;
 --
 
 CREATE TABLE public.epic_case_note_qualifying_activities (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     patient_id character varying,
     id_in_source character varying,
     epic_case_note_source_id character varying,
@@ -2417,7 +2391,6 @@ CREATE TABLE public.epic_case_note_qualifying_activities (
 --
 
 CREATE SEQUENCE public.epic_case_note_qualifying_activities_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2437,7 +2410,7 @@ ALTER SEQUENCE public.epic_case_note_qualifying_activities_id_seq OWNED BY publi
 --
 
 CREATE TABLE public.epic_case_notes (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     patient_id character varying NOT NULL,
     id_in_source character varying NOT NULL,
     contact_date timestamp without time zone,
@@ -2465,7 +2438,6 @@ CREATE TABLE public.epic_case_notes (
 --
 
 CREATE SEQUENCE public.epic_case_notes_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2485,7 +2457,7 @@ ALTER SEQUENCE public.epic_case_notes_id_seq OWNED BY public.epic_case_notes.id;
 --
 
 CREATE TABLE public.epic_chas (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     patient_id character varying,
     id_in_source character varying,
     encounter_id character varying,
@@ -2521,7 +2493,6 @@ CREATE TABLE public.epic_chas (
 --
 
 CREATE SEQUENCE public.epic_chas_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2541,7 +2512,7 @@ ALTER SEQUENCE public.epic_chas_id_seq OWNED BY public.epic_chas.id;
 --
 
 CREATE TABLE public.epic_goals (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     patient_id character varying NOT NULL,
     entered_by character varying,
     title character varying,
@@ -2560,7 +2531,6 @@ CREATE TABLE public.epic_goals (
 --
 
 CREATE SEQUENCE public.epic_goals_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2613,7 +2583,7 @@ ALTER SEQUENCE public.epic_housing_statuses_id_seq OWNED BY public.epic_housing_
 --
 
 CREATE TABLE public.epic_patients (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     id_in_source character varying NOT NULL,
     first_name character varying,
     middle_name character varying,
@@ -2646,7 +2616,6 @@ CREATE TABLE public.epic_patients (
 --
 
 CREATE SEQUENCE public.epic_patients_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2666,7 +2635,7 @@ ALTER SEQUENCE public.epic_patients_id_seq OWNED BY public.epic_patients.id;
 --
 
 CREATE TABLE public.epic_qualifying_activities (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     patient_id character varying NOT NULL,
     id_in_source character varying NOT NULL,
     patient_encounter_id character varying,
@@ -2687,7 +2656,6 @@ CREATE TABLE public.epic_qualifying_activities (
 --
 
 CREATE SEQUENCE public.epic_qualifying_activities_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2707,7 +2675,7 @@ ALTER SEQUENCE public.epic_qualifying_activities_id_seq OWNED BY public.epic_qua
 --
 
 CREATE TABLE public.epic_ssms (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     patient_id character varying,
     id_in_source character varying,
     encounter_id character varying,
@@ -2728,7 +2696,6 @@ CREATE TABLE public.epic_ssms (
 --
 
 CREATE SEQUENCE public.epic_ssms_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2748,7 +2715,7 @@ ALTER SEQUENCE public.epic_ssms_id_seq OWNED BY public.epic_ssms.id;
 --
 
 CREATE TABLE public.epic_team_members (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     patient_id character varying NOT NULL,
     id_in_source character varying,
     name character varying,
@@ -2768,7 +2735,6 @@ CREATE TABLE public.epic_team_members (
 --
 
 CREATE SEQUENCE public.epic_team_members_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2837,7 +2803,7 @@ ALTER SEQUENCE public.epic_thrives_id_seq OWNED BY public.epic_thrives.id;
 --
 
 CREATE TABLE public.equipment (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     item character varying,
     provider character varying,
     quantity integer,
@@ -2856,7 +2822,6 @@ CREATE TABLE public.equipment (
 --
 
 CREATE SEQUENCE public.equipment_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3184,7 +3149,7 @@ ALTER SEQUENCE public.hca_sud_treatments_id_seq OWNED BY public.hca_sud_treatmen
 --
 
 CREATE TABLE public.health_files (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     type character varying NOT NULL,
     file character varying,
     content_type character varying,
@@ -3206,7 +3171,6 @@ CREATE TABLE public.health_files (
 --
 
 CREATE SEQUENCE public.health_files_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3468,7 +3432,7 @@ ALTER SEQUENCE public.health_flexible_service_vprs_id_seq OWNED BY public.health
 --
 
 CREATE TABLE public.health_goals (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     user_id integer,
     type character varying,
     number integer,
@@ -3540,7 +3504,6 @@ CREATE TABLE public.health_goals (
 --
 
 CREATE SEQUENCE public.health_goals_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3747,7 +3710,7 @@ ALTER SEQUENCE public.import_configs_id_seq OWNED BY public.import_configs.id;
 --
 
 CREATE TABLE public.loaded_ed_ip_visits (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     ed_ip_visit_file_id integer NOT NULL,
     medicaid_id character varying,
     last_name character varying,
@@ -3779,7 +3742,6 @@ CREATE TABLE public.loaded_ed_ip_visits (
 --
 
 CREATE SEQUENCE public.loaded_ed_ip_visits_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3799,7 +3761,7 @@ ALTER SEQUENCE public.loaded_ed_ip_visits_id_seq OWNED BY public.loaded_ed_ip_vi
 --
 
 CREATE TABLE public.medications (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     start_date date,
     ordered_date date,
     name text,
@@ -3817,7 +3779,6 @@ CREATE TABLE public.medications (
 --
 
 CREATE SEQUENCE public.medications_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3837,7 +3798,7 @@ ALTER SEQUENCE public.medications_id_seq OWNED BY public.medications.id;
 --
 
 CREATE TABLE public.member_status_report_patients (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     member_status_report_id integer,
     medicaid_id character varying(12),
     member_first_name character varying(100),
@@ -3881,7 +3842,6 @@ CREATE TABLE public.member_status_report_patients (
 --
 
 CREATE SEQUENCE public.member_status_report_patients_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3901,7 +3861,7 @@ ALTER SEQUENCE public.member_status_report_patients_id_seq OWNED BY public.membe
 --
 
 CREATE TABLE public.member_status_reports (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     user_id integer,
     job_id integer,
     started_at timestamp without time zone,
@@ -3926,7 +3886,6 @@ CREATE TABLE public.member_status_reports (
 --
 
 CREATE SEQUENCE public.member_status_reports_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4172,7 +4131,7 @@ ALTER SEQUENCE public.mhx_submissions_id_seq OWNED BY public.mhx_submissions.id;
 --
 
 CREATE TABLE public.participation_forms (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     patient_id integer,
     signature_on date,
     case_manager_id integer,
@@ -4190,7 +4149,6 @@ CREATE TABLE public.participation_forms (
 --
 
 CREATE SEQUENCE public.participation_forms_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4210,7 +4168,7 @@ ALTER SEQUENCE public.participation_forms_id_seq OWNED BY public.participation_f
 --
 
 CREATE TABLE public.patient_referral_imports (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     file_name character varying NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -4222,7 +4180,6 @@ CREATE TABLE public.patient_referral_imports (
 --
 
 CREATE SEQUENCE public.patient_referral_imports_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4242,7 +4199,7 @@ ALTER SEQUENCE public.patient_referral_imports_id_seq OWNED BY public.patient_re
 --
 
 CREATE TABLE public.patient_referrals (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     first_name character varying,
     last_name character varying,
     birthdate date,
@@ -4318,7 +4275,6 @@ CREATE TABLE public.patient_referrals (
 --
 
 CREATE SEQUENCE public.patient_referrals_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4338,7 +4294,7 @@ ALTER SEQUENCE public.patient_referrals_id_seq OWNED BY public.patient_referrals
 --
 
 CREATE TABLE public.patients (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     id_in_source character varying NOT NULL,
     first_name character varying,
     middle_name character varying,
@@ -4382,7 +4338,6 @@ CREATE TABLE public.patients (
 --
 
 CREATE SEQUENCE public.patients_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4601,7 +4556,7 @@ ALTER SEQUENCE public.pctp_needs_id_seq OWNED BY public.pctp_needs.id;
 --
 
 CREATE TABLE public.premium_payments (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     user_id integer,
     content text,
     original_filename character varying,
@@ -4619,7 +4574,6 @@ CREATE TABLE public.premium_payments (
 --
 
 CREATE SEQUENCE public.premium_payments_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4639,7 +4593,7 @@ ALTER SEQUENCE public.premium_payments_id_seq OWNED BY public.premium_payments.i
 --
 
 CREATE TABLE public.problems (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     onset_date date,
     last_assessed date,
     name text,
@@ -4658,7 +4612,6 @@ CREATE TABLE public.problems (
 --
 
 CREATE SEQUENCE public.problems_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4678,7 +4631,7 @@ ALTER SEQUENCE public.problems_id_seq OWNED BY public.problems.id;
 --
 
 CREATE TABLE public.qualifying_activities (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     mode_of_contact character varying,
     mode_of_contact_other character varying,
     reached_client character varying,
@@ -4715,7 +4668,6 @@ CREATE TABLE public.qualifying_activities (
 --
 
 CREATE SEQUENCE public.qualifying_activities_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4735,7 +4687,7 @@ ALTER SEQUENCE public.qualifying_activities_id_seq OWNED BY public.qualifying_ac
 --
 
 CREATE TABLE public.release_forms (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     patient_id integer,
     user_id integer,
     signature_on date,
@@ -4755,7 +4707,6 @@ CREATE TABLE public.release_forms (
 --
 
 CREATE SEQUENCE public.release_forms_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4775,7 +4726,7 @@ ALTER SEQUENCE public.release_forms_id_seq OWNED BY public.release_forms.id;
 --
 
 CREATE TABLE public.rosters (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     roster_file_id integer,
     member_id character varying,
     nam_first character varying,
@@ -4829,7 +4780,6 @@ CREATE TABLE public.rosters (
 --
 
 CREATE SEQUENCE public.rosters_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4902,7 +4852,7 @@ CREATE TABLE public.schema_migrations (
 --
 
 CREATE TABLE public.sdh_case_management_notes (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     user_id integer,
     patient_id integer,
     created_at timestamp without time zone,
@@ -4930,7 +4880,6 @@ CREATE TABLE public.sdh_case_management_notes (
 --
 
 CREATE SEQUENCE public.sdh_case_management_notes_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -4950,7 +4899,7 @@ ALTER SEQUENCE public.sdh_case_management_notes_id_seq OWNED BY public.sdh_case_
 --
 
 CREATE TABLE public.self_sufficiency_matrix_forms (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     patient_id integer,
     user_id integer,
     point_completed character varying,
@@ -5007,7 +4956,6 @@ CREATE TABLE public.self_sufficiency_matrix_forms (
 --
 
 CREATE SEQUENCE public.self_sufficiency_matrix_forms_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -5027,7 +4975,7 @@ ALTER SEQUENCE public.self_sufficiency_matrix_forms_id_seq OWNED BY public.self_
 --
 
 CREATE TABLE public.services (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     service_type character varying,
     provider character varying,
     hours character varying,
@@ -5048,7 +4996,6 @@ CREATE TABLE public.services (
 --
 
 CREATE SEQUENCE public.services_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -5068,7 +5015,7 @@ ALTER SEQUENCE public.services_id_seq OWNED BY public.services.id;
 --
 
 CREATE TABLE public.signable_documents (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     signable_id integer NOT NULL,
     signable_type character varying NOT NULL,
     "primary" boolean DEFAULT true NOT NULL,
@@ -5095,7 +5042,6 @@ CREATE TABLE public.signable_documents (
 --
 
 CREATE SEQUENCE public.signable_documents_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -5115,7 +5061,7 @@ ALTER SEQUENCE public.signable_documents_id_seq OWNED BY public.signable_documen
 --
 
 CREATE TABLE public.signature_requests (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     type character varying NOT NULL,
     patient_id integer NOT NULL,
     careplan_id integer NOT NULL,
@@ -5138,7 +5084,6 @@ CREATE TABLE public.signature_requests (
 --
 
 CREATE SEQUENCE public.signature_requests_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -5158,7 +5103,7 @@ ALTER SEQUENCE public.signature_requests_id_seq OWNED BY public.signature_reques
 --
 
 CREATE TABLE public.soap_configs (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     name character varying,
     "user" character varying,
     encrypted_pass character varying,
@@ -5175,7 +5120,6 @@ CREATE TABLE public.soap_configs (
 --
 
 CREATE SEQUENCE public.soap_configs_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -5195,7 +5139,7 @@ ALTER SEQUENCE public.soap_configs_id_seq OWNED BY public.soap_configs.id;
 --
 
 CREATE TABLE public.ssm_exports (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     user_id integer NOT NULL,
     options jsonb,
     headers jsonb,
@@ -5213,7 +5157,6 @@ CREATE TABLE public.ssm_exports (
 --
 
 CREATE SEQUENCE public.ssm_exports_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -5265,7 +5208,7 @@ ALTER SEQUENCE public.status_dates_id_seq OWNED BY public.status_dates.id;
 --
 
 CREATE TABLE public.team_members (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     type character varying NOT NULL,
     first_name character varying NOT NULL,
     last_name character varying NOT NULL,
@@ -5287,7 +5230,6 @@ CREATE TABLE public.team_members (
 --
 
 CREATE SEQUENCE public.team_members_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -5307,7 +5249,7 @@ ALTER SEQUENCE public.team_members_id_seq OWNED BY public.team_members.id;
 --
 
 CREATE TABLE public.teams (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     patient_id integer,
     deleted_at timestamp without time zone,
     created_at timestamp without time zone,
@@ -5322,7 +5264,6 @@ CREATE TABLE public.teams (
 --
 
 CREATE SEQUENCE public.teams_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -5687,7 +5628,7 @@ ALTER SEQUENCE public.tracing_staffs_id_seq OWNED BY public.tracing_staffs.id;
 --
 
 CREATE TABLE public.transaction_acknowledgements (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     user_id integer,
     content text,
     original_filename character varying,
@@ -5702,7 +5643,6 @@ CREATE TABLE public.transaction_acknowledgements (
 --
 
 CREATE SEQUENCE public.transaction_acknowledgements_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -5722,7 +5662,7 @@ ALTER SEQUENCE public.transaction_acknowledgements_id_seq OWNED BY public.transa
 --
 
 CREATE TABLE public.user_care_coordinators (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     user_id integer,
     care_coordinator_id integer,
     created_at timestamp without time zone NOT NULL,
@@ -5737,7 +5677,6 @@ CREATE TABLE public.user_care_coordinators (
 --
 
 CREATE SEQUENCE public.user_care_coordinators_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -5804,7 +5743,7 @@ ALTER SEQUENCE public.vaccinations_id_seq OWNED BY public.vaccinations.id;
 --
 
 CREATE TABLE public.versions (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     item_type character varying NOT NULL,
     item_id integer NOT NULL,
     event character varying NOT NULL,
@@ -5822,7 +5761,6 @@ CREATE TABLE public.versions (
 --
 
 CREATE SEQUENCE public.versions_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -5842,7 +5780,7 @@ ALTER SEQUENCE public.versions_id_seq OWNED BY public.versions.id;
 --
 
 CREATE TABLE public.visits (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     department character varying,
     visit_type character varying,
     provider character varying,
@@ -5860,7 +5798,6 @@ CREATE TABLE public.visits (
 --
 
 CREATE SEQUENCE public.visits_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -8977,297 +8914,6 @@ ALTER TABLE ONLY public.team_members
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20170512154839'),
-('20170512172314'),
-('20170512172320'),
-('20170512172327'),
-('20170512172333'),
-('20170516185409'),
-('20170516190400'),
-('20170516195310'),
-('20170517125108'),
-('20170523175542'),
-('20170523181235'),
-('20170529174730'),
-('20170529182835'),
-('20170529203247'),
-('20170601172245'),
-('20170602013551'),
-('20170606143003'),
-('20170613150635'),
-('20170713184156'),
-('20170831233204'),
-('20170901195912'),
-('20171028010225'),
-('20171106180121'),
-('20171107000152'),
-('20180220193729'),
-('20180301200541'),
-('20180405154902'),
-('20180411184612'),
-('20180412201311'),
-('20180412214425'),
-('20180413045706'),
-('20180413220534'),
-('20180415191849'),
-('20180508205550'),
-('20180509194250'),
-('20180515174347'),
-('20180515184556'),
-('20180516020528'),
-('20180516032040'),
-('20180516151527'),
-('20180516184628'),
-('20180516192022'),
-('20180516223016'),
-('20180517150308'),
-('20180517151557'),
-('20180517151558'),
-('20180517170436'),
-('20180517171655'),
-('20180518133256'),
-('20180518185643'),
-('20180521132959'),
-('20180521133817'),
-('20180522203840'),
-('20180522233624'),
-('20180523121947'),
-('20180523125514'),
-('20180523203004'),
-('20180524021249'),
-('20180524121555'),
-('20180524124135'),
-('20180524132457'),
-('20180524145220'),
-('20180524175356'),
-('20180525155355'),
-('20180525195857'),
-('20180526183114'),
-('20180527115601'),
-('20180527173419'),
-('20180528002944'),
-('20180528140032'),
-('20180528144412'),
-('20180530202908'),
-('20180601010922'),
-('20180601124144'),
-('20180601152640'),
-('20180601154501'),
-('20180601185402'),
-('20180607134202'),
-('20180607140425'),
-('20180607151108'),
-('20180607180418'),
-('20180611144138'),
-('20180611145132'),
-('20180611145227'),
-('20180611203248'),
-('20180611204954'),
-('20180612171146'),
-('20180612181410'),
-('20180612200528'),
-('20180613134407'),
-('20180614133715'),
-('20180614213248'),
-('20180619184604'),
-('20180621204422'),
-('20180621211650'),
-('20180627182220'),
-('20180628175013'),
-('20180629181555'),
-('20180629203110'),
-('20180630171549'),
-('20180630225902'),
-('20180701013424'),
-('20180703200409'),
-('20180707134347'),
-('20180709184426'),
-('20180710000126'),
-('20180710163416'),
-('20180711170320'),
-('20180711174711'),
-('20180713142425'),
-('20180713162722'),
-('20180713183124'),
-('20180714180117'),
-('20180714180735'),
-('20180716125419'),
-('20180716151309'),
-('20180716202012'),
-('20180717174942'),
-('20180803195603'),
-('20180807130101'),
-('20180807161932'),
-('20180807182636'),
-('20180808174627'),
-('20180808190244'),
-('20180809175415'),
-('20180810153634'),
-('20180827173717'),
-('20180827181354'),
-('20180828173902'),
-('20180831190828'),
-('20180907122443'),
-('20181026155224'),
-('20190114174045'),
-('20190117150120'),
-('20190206194409'),
-('20190328192902'),
-('20190402142851'),
-('20190404153621'),
-('20190416180547'),
-('20190416182618'),
-('20190417171605'),
-('20190418144540'),
-('20190418152152'),
-('20190419122444'),
-('20190419150901'),
-('20190422201024'),
-('20190509155939'),
-('20190513173709'),
-('20190529182702'),
-('20190607144129'),
-('20190730122842'),
-('20190809152023'),
-('20190905170546'),
-('20191107163343'),
-('20191107164902'),
-('20191107165424'),
-('20191112154844'),
-('20191113130108'),
-('20191119200007'),
-('20191206194129'),
-('20191212151341'),
-('20191230193236'),
-('20191230194535'),
-('20200110164537'),
-('20200110170125'),
-('20200113153534'),
-('20200113160822'),
-('20200124194225'),
-('20200127151840'),
-('20200203185425'),
-('20200203203607'),
-('20200204175352'),
-('20200205144804'),
-('20200217200315'),
-('20200217200518'),
-('20200218160012'),
-('20200224162701'),
-('20200313143927'),
-('20200402012546'),
-('20200402165627'),
-('20200403004129'),
-('20200403180901'),
-('20200403184005'),
-('20200403203318'),
-('20200404144432'),
-('20200415205728'),
-('20200417132126'),
-('20200421141725'),
-('20200422135848'),
-('20200422143107'),
-('20200430201554'),
-('20200508135957'),
-('20200512143130'),
-('20200520192050'),
-('20200616201412'),
-('20200617131057'),
-('20200617132415'),
-('20200617134354'),
-('20200618132804'),
-('20200629205716'),
-('20200807140152'),
-('20200807203051'),
-('20200930152001'),
-('20201013203358'),
-('20201015195157'),
-('20201019193122'),
-('20201020125617'),
-('20201020155907'),
-('20201022181343'),
-('20201103202932'),
-('20201104164745'),
-('20201104191034'),
-('20201106141253'),
-('20201118181257'),
-('20201201192211'),
-('20201201224035'),
-('20201203212643'),
-('20201203212706'),
-('20201208220623'),
-('20201209193543'),
-('20201210200633'),
-('20201211162854'),
-('20201223182315'),
-('20210111195511'),
-('20210114205149'),
-('20210118145142'),
-('20210121151237'),
-('20210122155335'),
-('20210128183759'),
-('20210202194001'),
-('20210203164826'),
-('20210204042020'),
-('20210204052544'),
-('20210212151557'),
-('20210309150436'),
-('20210318212736'),
-('20210325190312'),
-('20210326143558'),
-('20210326150547'),
-('20210327131355'),
-('20210330155241'),
-('20210330181230'),
-('20210419174757'),
-('20210422161421'),
-('20210510185734'),
-('20210511143037'),
-('20210607182656'),
-('20210726193142'),
-('20210806150431'),
-('20210928134057'),
-('20211005200728'),
-('20211006152632'),
-('20211006152946'),
-('20211006153817'),
-('20211006154441'),
-('20211006204046'),
-('20211029203229'),
-('20211029203304'),
-('20211115191038'),
-('20211122200024'),
-('20211123203704'),
-('20211129192820'),
-('20211130194653'),
-('20211209205303'),
-('20220112142649'),
-('20220131200130'),
-('20220315172910'),
-('20220315200203'),
-('20220315200521'),
-('20220316184128'),
-('20220317205450'),
-('20220407204625'),
-('20220428183105'),
-('20220428191717'),
-('20220428192510'),
-('20220616173636'),
-('20220616195501'),
-('20220621181125'),
-('20220623172328'),
-('20220721163813'),
-('20220721165009'),
-('20220812184231'),
-('20221005142152'),
-('20221005145830'),
-('20221005201423'),
-('20221005201553'),
-('20221006205522'),
-('20221108190522'),
-('20230123201023'),
-('20230317185655'),
-('20230322163322'),
 ('20230322172802'),
 ('20230504143929'),
 ('20230504194752'),

@@ -57,29 +57,11 @@ namespace :warehouse do
 
       desc 'Conditionally load the database schema'
       task :conditional_load, [] => [:environment] do |_t, _args|
-        if GrdaWarehouseBase.connection.table_exists?(:schema_migrations)
-          puts 'Refusing to load the warehouse database schema since there are tables present. This is not an error.'
+        connection = GrdaWarehouseBase.connection
+        if connection.table_exists?(:schema_migrations)
+          puts "Refusing to load the database schema since there are tables present in #{connection.current_database}. This is not an error."
         else
           Rake::Task['db:schema:load:warehouse'].invoke
-        end
-      end
-    end
-
-    namespace :structure do
-      task :load do
-        Rake::Task['db:structure:load'].invoke
-      end
-
-      task :dump do
-        Rake::Task['db:structure:dump'].invoke
-      end
-
-      desc 'Conditionally load the database structure'
-      task :conditional_load, [] => [:environment] do |_t, _args|
-        if GrdaWarehouseBase.connection.table_exists?(:schema_migrations)
-          puts 'Refusing to load the warehouse database structure since there are tables present. This is not an error.'
-        else
-          GrdaWarehouseBase.connection.execute(File.read('db/warehouse_structure.sql'))
         end
       end
     end
