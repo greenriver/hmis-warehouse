@@ -534,6 +534,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     min_completion_time.to_date
   end
 
+  def self.import_advisory_lock_name(data_source_id)
+    "enforce_sequential_data_source_imports_for_#{data_source_id}"
+  end
+
   def self.stalled_imports?(user)
     Rails.cache.fetch(['data_source_stalled_imports', user], expires_in: 1.hours) do
       stalled = false

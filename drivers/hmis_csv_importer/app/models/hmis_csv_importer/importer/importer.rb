@@ -68,27 +68,22 @@ module HmisCsvImporter::Importer
 
     # Needs to return an import_log instance
     def import!(import_log = nil)
-      # log that we're waiting, but then continue on.
-      already_running_for_data_source?
-
-      GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}") do
-        start_import
-        @import_log = import_log
-        log_timing :analyze_tables
-        log_timing :pre_process!
-        log_timing :validate_data_set!
-        log_timing :aggregate!
-        log_timing :cleanup_data_set!
-        log_timing :analyze_tables
-        # refuse to proceed with the import if there are any errors and that setting is in effect
-        if should_pause?
-          pause_import
-        else
-          ingest!
-          log_timing :invalidate_aggregated_enrollments!
-          complete_import
-          post_process
-        end
+      start_import
+      @import_log = import_log
+      log_timing :analyze_tables
+      log_timing :pre_process!
+      log_timing :validate_data_set!
+      log_timing :aggregate!
+      log_timing :cleanup_data_set!
+      log_timing :analyze_tables
+      # refuse to proceed with the import if there are any errors and that setting is in effect
+      if should_pause?
+        pause_import
+      else
+        ingest!
+        log_timing :invalidate_aggregated_enrollments!
+        complete_import
+        post_process
       end
     end
 
@@ -728,12 +723,6 @@ module HmisCsvImporter::Importer
         where.not(id: export_record.id).
         maximum(:ExportDate).to_date
       export_record.ExportDate.to_date >= previous_date
-    end
-
-    def already_running_for_data_source?
-      running = GrdaWarehouse::DataSource.advisory_lock_exists?("hud_import_#{data_source.id}")
-      log("Import of Data Source: #{data_source.short_name} already running...waiting") if running
-      running
     end
 
     def pause_import

@@ -6,7 +6,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
   let(:real_first_name) { 'RealFirstName' }
   let(:real_middle_name) { 'RealMiddleName' }
   let(:real_last_name) { 'RealLastName' }
-  let(:real_ssn) { '123-45-6789' }
+  let(:real_ssn) { '123456789' }
   let(:real_age) { 28 }
   let(:real_dob) { Date.new(1996, 10, 20) }
 
@@ -50,7 +50,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
   let(:fake_first_name) { 'FakeFirstName' }
   let(:fake_last_name) { 'FakeLastName' }
   let(:fake_middle_name) { 'FakeMiddleName' }
-  let(:fake_ssn) { '999-00-0000' }
+  let(:fake_ssn) { '999000000' }
 
   # stub faker to get reproducable test values
   before(:each) do
