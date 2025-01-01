@@ -16,7 +16,7 @@ module Pii::Scrubber
       middle_name: 'MiddleName%{id}',
       last_name: 'LastName%{id}',
       full_name: 'FullName%{id}',
-      ssn: '999-00-0000',
+      ssn: '999000000',
       dob: Date.new(2000, 1, 1),
       email: 'no-reply@example.com',
       phone: '212-555-0100',
@@ -34,7 +34,7 @@ module Pii::Scrubber
       case field.type
       when :ssn
         # use 999 to make it more obvious the ssn is invalid
-        Faker::IdNumber.invalid.gsub(/^\d{3}/, '999')
+        Faker::IdNumber.invalid.gsub(/^\d{3}/, '999').gsub('-', '')
       when :first_name
         Faker::Name.first_name
       when :last_name
