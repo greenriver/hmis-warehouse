@@ -36,7 +36,10 @@ class UniqueName < ApplicationRecord
           inserts << UniqueName.new(name: name, double_metaphone: double_metaphone)
         end
       end
-      UniqueName.import(inserts, raise_error: true) if inserts.any?
+      next if inserts.empty?
+
+      result = UniqueName.import(inserts)
+      raise "Failed to import UniqueName: #{result.inspect}" if result.failed_instances.present?
     end
 
     # remove names that are no longer used
