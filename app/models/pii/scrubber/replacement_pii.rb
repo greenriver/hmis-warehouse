@@ -24,10 +24,10 @@ module Pii::Scrubber
       geo_postal_code: '00000',
     }.freeze
 
-    def self.static_value(field)
-      raise "can't scrub required field '#{field.description}" unless STATIC_TYPE_VALUES.key?(field.type)
+    def self.static_value(field, id:)
+      raise "can't scrub required field '#{field.description}'" unless STATIC_TYPE_VALUES.key?(field.type)
 
-      format(TYPES_VALUES[field.type], id: record.id)
+      format(STATIC_TYPE_VALUES[field.type], id: id)
     end
 
     def self.fake_value(field)
