@@ -74,6 +74,8 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     results
   end
 
+  BASIC_CLIENT_PII_PERMS = Set.new([:can_view_client_name, :can_view_client_photo, :can_view_full_dob]).freeze
+
   # Window data sources are a deprecated legacy client data sharing mechanic, replaced by a System Collection when using Access Controls-based permissions
   def add_legacy_data_source_permissions(results)
     # is this a user with legacy role-based perms?
@@ -83,7 +85,29 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     # is the client in a window data source?
     return unless context.legacy_window_data_source_ids.include?(client.data_source_id)
 
-    # check roi if the window config requires release (the "can_*_with_roi" permissions are not relevant in this case)
+    # Legacy visibility rules for client attributes:
+    # If a user has either 'can_view_clients' or 'can_search_all_clients' permission, AND they
+    # have another permission (like viewing names), then the user is granted that permission
+    # for ANY client in window data sources, bypassing ROI requirements.
+    #
+    # For example: A user with both 'can_view_clients' and 'can_view_name' permissions can
+    # see names of all clients in window data sources, regardless of the client's ROI.
+    #
+    # Historical context: This behavior comes from the legacy role-based system where client
+    # visibility was considered "global" if the user could access clients in either "search"
+    # or "view" contexts, but only for "window" data sources.
+    if legacy_permissions.include?(:can_view_clients)
+      # all the legacy perms apply to the client
+      results.merge(legacy_permissions)
+      # early return since there's no point in checking ROI
+      return
+    elsif legacy_permissions.include?(:can_search_all_clients)
+      # The can_search_all_clients confers a reduced set or permissions. This is more restricted
+      # than the historic permissions. This is okay since search has limited client details.
+      results.merge(legacy_permissions & BASIC_CLIENT_PII_PERMS)
+    end
+
+    # check ROI if the window config requires release (the "can_*_with_roi" permissions are not relevant in this case)
     return if context.legacy_window_access_requires_release? && !roi_authorized?
 
     results.merge(legacy_permissions)
