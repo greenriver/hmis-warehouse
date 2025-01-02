@@ -881,6 +881,7 @@ module CasClientData
                   :additional_homeless_nights_unsheltered,
                   :calculated_homeless_nights_sheltered,
                   :calculated_homeless_nights_unsheltered,
-                  :total_homeless_nights_sheltered
+                  :total_homeless_nights_sheltered,
+                  :psh_required
   end
 end

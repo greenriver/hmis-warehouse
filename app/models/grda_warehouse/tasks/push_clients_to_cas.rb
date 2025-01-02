@@ -290,6 +290,7 @@ module GrdaWarehouse::Tasks
         total_homeless_nights_sheltered: :total_homeless_nights_sheltered,
         service_need: :service_need,
         housing_barrier: :housing_barrier,
+        psh_required: :psh_required,
       }
     end
 
