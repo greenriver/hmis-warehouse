@@ -38,20 +38,12 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     default_client_ids.each_slice(5_000).with_index do |batch, i|
       include_cas_and_cohorts = i.zero? # catch cohorts and CAS clients on first batch
       skip_expensive_calculations = i.positive?
-      self.class.delay(
-        queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running),
-        priority: 12,
-      ).update_cached_counts_no_named_arguments(
-        batch,
-        include_cas_and_cohorts,
-        skip_expensive_calculations,
+      UpdateWarehouseClientsCachesJob.set(priority: 12).perform_later(
+        client_ids: batch,
+        include_cas_and_cohorts: include_cas_and_cohorts,
+        skip_expensive_calculations: skip_expensive_calculations,
       )
     end
-  end
-
-  # Used for temporary compatability with Delayed::Job that hasn't been fully updated for ruby 3
-  def self.update_cached_counts_no_named_arguments(client_ids, include_cas_and_cohorts = false, skip_expensive_calculations = false)
-    update_cached_counts(client_ids: client_ids, include_cas_and_cohorts: include_cas_and_cohorts, skip_expensive_calculations: skip_expensive_calculations)
   end
 
   private def internal_update_cached_counts(client_ids: [], include_cas_and_cohorts: false, skip_expensive_calculations: false)
@@ -878,7 +870,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       vispdats << [internal.submitted_at, internal] if internal
       vispdats << [external.collected_at, external] if external
       # return the newest vispdat
-      vispdats.sort_by(&:first)&.last&.last
+      vispdats.max_by(&:first)&.last
     end
 
     private def internal_vispdats
