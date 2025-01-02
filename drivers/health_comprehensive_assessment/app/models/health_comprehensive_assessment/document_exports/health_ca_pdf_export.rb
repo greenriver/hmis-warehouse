@@ -99,7 +99,7 @@ module HealthComprehensiveAssessment::DocumentExports
         )
 
         pdf = []
-        pdf << PdfGenerator.merge_inline_pdfs(PdfGenerato.render_pdf(first_page_html, options: first_page_options))
+        pdf << PdfGenerator.merge_inline_pdfs(PdfGenerator.render_pdf(first_page_html, options: first_page_options))
         pdf << PdfGenerator.merge_inline_pdfs(PdfGenerator.render_pdf(html, options: body_options))
 
         file_name = "#{Translation.translate('Comprehensive Assessment')} #{DateTime.current.to_fs(:db)}"
