@@ -42,11 +42,15 @@ module Delayed
           return false if handlers.blank?
 
           handlers = Array.wrap(handlers)
-          scope = where(failed_at: nil).where.not(locked_at: nil)
+          scope = running
           handlers.each do |handler|
             scope = scope.jobs_for_class(handler)
           end
           scope.exists?
+        end
+
+        def self.running
+          where(failed_at: nil).where.not(locked_at: nil)
         end
       end
     end

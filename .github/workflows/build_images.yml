@@ -45,7 +45,7 @@ jobs:
             tags: |
               type=sha,prefix=githash-
               type=ref,event=branch,prefix=branch-
-              # type=raw,event=branch,value=branch-{{branch}}-{{sha}}
+              type=raw,event=branch,value=branch-{{branch}}-{{sha}}
 
     steps:
       - name: Checkout

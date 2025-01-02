@@ -14,6 +14,7 @@ Note that this document may include code that is only in use in a handful of loc
 - [Database Queries](#database-queries)
 - [Background Async Jobs](#background-async-jobs)
 - [Testing](#testing)
+- [Background Reports](#background-reports)
 
 ## Server-side views
 
@@ -125,3 +126,8 @@ Avoid using errors for control-flow. When jumping out of deeply nested methods, 
 ## Testing
 
 Use factories if possible to create test objects rather than the active record classes themselves. This reduces boilerplate code in our tests.
+
+## Background Reports
+
+Where possible, reports that run in the background should use some shared infrastructure.  For official HUD reports, they should use `HudReports::ReportInstance` and follow patterns used in other HUD reports, like including `render 'hud_reports/index'` and `= render 'hud_reports/show'` in their index and show pages to provide a consistent user experience.  For warehouse reports, `SimpleReports::ReportInstance` should be used where possible, and `= render 'common/background_report/history_filter'`
+and `= render 'common/background_report/history_table'` should be included to present a consistent filtering and history experience.

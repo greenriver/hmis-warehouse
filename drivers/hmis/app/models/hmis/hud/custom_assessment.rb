@@ -53,6 +53,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   has_one :current_living_situation, through: :form_processor
   has_one :ce_assessment, through: :form_processor
   has_one :ce_event, through: :form_processor
+  has_one :clh_location, through: :form_processor
 
   # Alias fields that are not part of the Assessment schema
   alias_to_underscore [:DataCollectionStage]

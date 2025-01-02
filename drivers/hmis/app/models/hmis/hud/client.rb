@@ -350,7 +350,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def build_client_headshot_file(image_blob_id, current_user)
-    current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
+    current_image_blob = ActiveStorage::Blob.find_signed(image_blob_id)
+
     return unless current_image_blob
 
     # Note: this builds a GrdaWarehouse::ClientFile where the associated client is a Hmis::Hud::Client,

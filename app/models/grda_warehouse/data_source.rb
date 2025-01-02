@@ -497,36 +497,45 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     @unprocessed_enrollment_count ||= enrollments.unprocessed.joins(:project, :destination_client).count
   end
 
-  # Have we received the expected number of files at least once over the past 48 hours?
-  # there is an assumption that within
-  # return the date of the most-recent fully successful import
-  def stalled_since?(date)
-    return nil unless date.present?
+  # Returns the date of the most recent fully successful import if the import is stalled, nil if it is not stalled
+  # @return [Date, nil] The date the import stalled, or nil if not stalled.
+  def stalled_date
     return nil if import_paused
     return nil unless hmis_import_config&.active
 
     # hmis_import_config.file_count is the expected number of uploads for a given day
     # fetch the expected number, and confirm they all arrived within a 24 hour window
     most_recent_uploads = uploads.completed.
-      # limit look back to 6 months to improve performance
-      where(user_id: User.system_user.id, completed_at: 6.months.ago.to_date..Date.current).
-      order(created_at: :desc).
-      select(:id, :data_source_id, :user_id, :completed_at).
+      # limit look back to 6 months to improve performance, but to potentially highlight missing data
+      where(user_id: User.system_user.id, completed_at: 6.months.ago..Time.current).
+      order(completed_at: :desc, created_at: :desc).
+      select(:id, :data_source_id, :user_id, :completed_at, :created_at).
+      distinct.
       first(hmis_import_config.file_count)
-    return nil unless most_recent_uploads
+    # We didn't find any uploads in the last 6 months, assume this isn't connected yet
+    return nil unless most_recent_uploads.present?
 
-    most_recent_upload = most_recent_uploads.first
-    previously_completed_upload = most_recent_uploads.last
-    # Check that the expected number of files arrived within a 24 hour window, otherwise we might be looking
-    # at two partial runs
-    # If we only expect one file, then first and last will be the same and time_diff will be 0.0
-    return nil if most_recent_upload.blank? || previously_completed_upload.blank?
+    min_completion_time = most_recent_uploads.minimum(:completed_at)
+    received_files_count = most_recent_uploads.count
 
-    time_diff = most_recent_upload.completed_at - previously_completed_upload.completed_at
-    return most_recent_upload.completed_at unless time_diff < 24.hours.to_i
-    return nil if most_recent_upload.completed_at > 48.hours.ago
+    # If we only expected one file
+    if hmis_import_config.file_count == 1
+      # and it came in the last 24 hours, we're good
+      return nil if min_completion_time > 24.hours.ago
 
-    most_recent_upload.completed_at.to_date
+      # if not, return the last time we received a file
+      return min_completion_time.to_date
+    end
+
+    # If we processed the expected number of files within a 24 hour period, we're good
+    return nil if min_completion_time > 24.hours.ago && received_files_count >= hmis_import_config.file_count
+
+    # Note the last time we received a file
+    min_completion_time.to_date
+  end
+
+  def self.import_advisory_lock_name(data_source_id)
+    "enforce_sequential_data_source_imports_for_#{data_source_id}"
   end
 
   def self.stalled_imports?(user)
@@ -537,7 +546,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
         most_recently_completed = data_source.import_logs.maximum(:completed_at)
         if most_recently_completed.present?
-          stalled = true if data_source.stalled_since?(most_recently_completed)
+          stalled = true if data_source.stalled_date.present?
         end
       end
 

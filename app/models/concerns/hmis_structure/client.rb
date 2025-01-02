@@ -16,11 +16,11 @@ module HmisStructure::Client
     self.additional_upsert_columns = [:demographic_dirty]
     acts_as_paranoid(column: :DateDeleted) unless included_modules.include?(Paranoia)
 
-    pii_attr :ssn
-    pii_attr :first_name
-    pii_attr :middle_name
-    pii_attr :last_name
-    pii_attr :dob
+    pii_attr :SSN
+    pii_attr :FirstName
+    pii_attr :MiddleName
+    pii_attr :LastName
+    pii_attr :DOB
   end
 
   module ClassMethods

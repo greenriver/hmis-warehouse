@@ -9,9 +9,9 @@ require 'faker'
 module Pii::Scrubber
   # replace PII attributes with fake values
   class BasicScrubber
-    def perform(fields)
+    def perform(fields, id:)
       fields.each do |field|
-        value = field.required? ? Pii::Scrubber::ReplacementPii.static_value(field) : nil
+        value = field.required? ? Pii::Scrubber::ReplacementPii.static_value(field, id: id) : nil
         field.scrub(value)
       end
     end

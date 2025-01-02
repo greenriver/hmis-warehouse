@@ -5,21 +5,50 @@
 ###
 
 class UniqueName < ApplicationRecord
-  def self.update!
+  # Build double metaphone representations for all names in the database
+  def self.update!(...)
+    with_advisory_lock('UniqueNameUpdate', timeout_seconds: 0) { _update!(...) }
+  end
+
+  def self._update!(batch_size: 5_000)
     Rails.logger.info 'Updating the unique names table'
 
-    # Build double metaphone representations for all names in the database
-    existing_names = UniqueName.pluck(:name)
-    all_names = GrdaWarehouse::Hud::Client.source.distinct.where.not(FirstName: [nil, '']).pluck('FirstName').map(&:downcase) +
-      GrdaWarehouse::Hud::Client.source.distinct.where.not(LastName: [nil, '']).pluck('LastName').map(&:downcase)
-    new_names = all_names - existing_names
-    name_objects = []
-    new_names.uniq.each do |name|
-      next unless name.present?
-
-      double_metaphone = Text::Metaphone.double_metaphone(name)
-      name_objects << UniqueName.new(name: name, double_metaphone: double_metaphone)
+    existing_names = {}
+    UniqueName.all.pluck_in_batches(:name, batch_size: batch_size) do |batch|
+      batch.each { |name| existing_names[name] = false }
     end
-    UniqueName.import name_objects
+
+    name_cols = [:first_name, :last_name]
+    GrdaWarehouse::Hud::Client.source.pluck_in_batches(name_cols, batch_size: batch_size) do |batch|
+      inserts = []
+      batch.each do |row|
+        row.each do |name|
+          next if name.blank?
+
+          name = name.strip.downcase
+          next if name.length > 100
+
+          name_exists = name.in?(existing_names)
+          existing_names[name] = true
+          next if name_exists
+
+          double_metaphone = Text::Metaphone.double_metaphone(name)
+          inserts << UniqueName.new(name: name, double_metaphone: double_metaphone)
+        end
+      end
+      next if inserts.empty?
+
+      result = UniqueName.import(inserts)
+      raise "Failed to import UniqueName: #{result.inspect}" if result.failed_instances.present?
+    end
+
+    # remove names that are no longer used
+    missing_names = []
+    existing_names.filter do |name, exists|
+      missing_names << name unless exists
+    end
+    missing_names.each_slice(batch_size) do |batch|
+      UniqueName.where(name: batch).delete_all
+    end
   end
 end

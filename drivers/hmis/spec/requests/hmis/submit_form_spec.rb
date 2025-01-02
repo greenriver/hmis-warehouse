@@ -20,8 +20,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis service setup'
   include_context 'file upload setup'
 
-  TIME_FMT = '%Y-%m-%d %T.%3N'.freeze
-
   let(:today) { Date.current }
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:c2) { create :hmis_hud_client_complete, data_source: ds1 }
@@ -157,8 +155,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             **mock_form_values_for_definition(definition) do |values|
               if role == :FILE
                 # FIXME make this not depend on specific Link IDs in the file form
-                values[:values]['file_blob_id'] = blob.id.to_s
-                values[:hud_values]['fileBlobId'] = blob.id.to_s
+                values[:values]['file_blob_id'] = blob.signed_id
+                values[:hud_values]['fileBlobId'] = blob.signed_id
               end
               values
             end,

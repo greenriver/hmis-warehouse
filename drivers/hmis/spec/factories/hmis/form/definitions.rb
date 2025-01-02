@@ -872,4 +872,37 @@ FactoryBot.define do
       JSON
     end
   end
+
+  factory :hmis_current_living_situation_form_definition, parent: :hmis_form_definition do
+    identifier { 'hmis_current_living_situation_form_definition' }
+    role { :CURRENT_LIVING_SITUATION }
+    title { 'Current Living Situation Form' }
+    definition do
+      JSON.parse(<<~JSON)
+        {
+          "item": [
+            {
+              "type": "DATE",
+              "link_id": "date",
+              "text": "Information Date",
+              "required": true,
+              "mapping": {
+                "field_name": "informationDate"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "required": true,
+              "link_id": "livingSituation",
+              "text": "Current Living Situation",
+              "pick_list_reference": "CURRENT_LIVING_SITUATION",
+              "mapping": {
+                "field_name": "currentLivingSituation"
+              }
+            }
+          ]
+        }
+      JSON
+    end
+  end
 end
