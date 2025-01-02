@@ -716,6 +716,7 @@ GEM
     parser (3.3.5.0)
       ast (~> 2.4.1)
       racc
+    pdfunite (0.6.0)
     pg (1.5.6)
     pghero (3.6.1)
       activerecord (>= 6.1)
@@ -990,7 +991,7 @@ GEM
       net-ssh (>= 2.8.0)
     ssrf_filter (1.0.8)
     stackprof (0.2.26)
-    stringio (3.1.1)
+    stringio (3.1.2)
     strong_migrations (1.8.0)
       activerecord (>= 5.2)
     sync (0.5.0)
@@ -1140,7 +1141,6 @@ DEPENDENCIES
   census_api!
   charlock_holmes
   coffee-rails
-  combine_pdf
   composite_primary_keys!
   cuprite
   curb
@@ -1219,6 +1219,7 @@ DEPENDENCIES
   paper_trail
   parallel
   paranoia (~> 2.0)
+  pdfunite
   pg
   pg_fixtures!
   pghero
