@@ -56,7 +56,9 @@ FactoryBot.define do
     end
     after(:create) do |instance, evaluator|
       if evaluator.append_items
-        instance.definition['item'][0]['item'].push(*Array.wrap(evaluator.append_items))
+        # If the first item is a group, append the items there. Otherwise just append to the end of the form.
+        array = instance.definition['item'][0]['item'] || instance.definition['item']
+        array.push(*Array.wrap(evaluator.append_items))
         instance.save!
       end
 
@@ -842,6 +844,61 @@ FactoryBot.define do
                   ]
                 }
               ]
+            }
+          ]
+        }
+      JSON
+    end
+  end
+
+  factory :occurrence_point_form, parent: :hmis_form_definition do
+    identifier { 'move_in_date' }
+    role { :OCCURRENCE_POINT }
+    definition do
+      JSON.parse(<<~JSON)
+        {
+          "item": [
+            {
+              "text": "Move-in Date",
+              "type": "DATE",
+              "link_id": "date",
+              "mapping": {
+                "field_name": "moveInDate",
+                "record_type": "ENROLLMENT"
+              }
+            }
+          ]
+        }
+      JSON
+    end
+  end
+
+  factory :hmis_current_living_situation_form_definition, parent: :hmis_form_definition do
+    identifier { 'hmis_current_living_situation_form_definition' }
+    role { :CURRENT_LIVING_SITUATION }
+    title { 'Current Living Situation Form' }
+    definition do
+      JSON.parse(<<~JSON)
+        {
+          "item": [
+            {
+              "type": "DATE",
+              "link_id": "date",
+              "text": "Information Date",
+              "required": true,
+              "mapping": {
+                "field_name": "informationDate"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "required": true,
+              "link_id": "livingSituation",
+              "text": "Current Living Situation",
+              "pick_list_reference": "CURRENT_LIVING_SITUATION",
+              "mapping": {
+                "field_name": "currentLivingSituation"
+              }
             }
           ]
         }

@@ -88,24 +88,6 @@ module GrdaWarehouse::Hud
       where(HouseholdType: HOUSEHOLD_TYPES[:child_only])
     end
 
-    scope :overridden, -> do
-      scope = where(Arel.sql('1=0'))
-      override_columns.each_key do |col|
-        scope = scope.or(where.not(col => nil))
-      end
-      scope
-    end
-
-    TodoOrDie('Remove override_columns method and columns from the database', by: '2024-12-01')
-    # If any of these are not blank, we'll consider it overridden
-    def self.override_columns
-      {
-        coc_code_override: :CoCCode,
-        inventory_start_date_override: :InventoryStartDate,
-        inventory_end_date_override: :InventoryEndDate,
-      }
-    end
-
     def for_export
       row = HmisCsvTwentyTwentyTwo::Exporter::Inventory::Overrides.apply_overrides(self)
       row = HmisCsvTwentyTwentyTwo::Exporter::Inventory.adjust_keys(row)
@@ -139,7 +121,7 @@ module GrdaWarehouse::Hud
       start_date = [range.start, computed_start_date].compact.max
       end_date = [range.end, computed_end_date].compact.min
       days = (end_date - start_date).to_i
-      return 0 if days.negative? || days.zero? || range.length.zero?
+      return 0 if days.negative? || days.zero? || range.length.zero? # rubocop:disable Style/ZeroLengthPredicate
 
       (days.to_f * count / range.length).to_i
     end

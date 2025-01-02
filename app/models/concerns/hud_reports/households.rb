@@ -114,14 +114,10 @@ module HudReports::Households
       current_member
     end
 
-    private def calculate_move_in_date(hh_id, she)
-      move_in_date = she.move_in_date
-      # If the move-in-date is valid, just use it
-      return move_in_date if move_in_date.present? && move_in_date >= she.entry_date
-
+    private def calculate_hh_move_in_date(hh_id, she)
       # Get HoH for further calculations
       household_members = households[hh_id]
-      hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
+      hoh = household_members&.detect { |hm| hm[:relationship_to_hoh] == 1 }
 
       # HoH does not exist or does not have a move-in date - cannot do further calculations
       return nil unless hoh.present? && hoh[:move_in_date].present?
@@ -146,6 +142,14 @@ module HudReports::Households
       nil
     end
 
+    private def calculate_move_in_date(hh_id, she)
+      move_in_date = she.move_in_date
+      # If the move-in-date is valid, just use it
+      return move_in_date if move_in_date.present? && move_in_date >= she.entry_date
+
+      calculate_hh_move_in_date(hh_id, she)
+    end
+
     private def calculate_households
       @hoh_enrollments ||= {}
       @households ||= {}
@@ -159,7 +163,7 @@ module HudReports::Households
         )
         enrollments_by_client_id.each do |_, enrollments|
           enrollments.each do |enrollment|
-            @hoh_enrollments[enrollment.client_id] = enrollment if enrollment.head_of_household?
+            @hoh_enrollments[enrollment.household_id] = enrollment if enrollment.head_of_household?
             next unless enrollment&.enrollment&.client.present?
 
             date = [enrollment.first_date_in_program, @report.start_date].max

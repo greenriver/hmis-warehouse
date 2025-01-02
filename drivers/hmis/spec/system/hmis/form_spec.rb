@@ -39,7 +39,7 @@ RSpec.feature 'Hmis Form behavior', type: :system do
     end
 
     it 'warns you of empty fields that have warn_if_empty, but still lets you submit' do
-      fill_in 'A required field', with: 'tomatoes'
+      fill_in 'A required field', with: '2'
       click_button 'Submit'
       assert_text 'Please confirm the following warnings.'
       assert_text '1 field was left empty'
@@ -219,6 +219,7 @@ RSpec.feature 'Hmis Form behavior', type: :system do
       expect(find('#how_many').value).to eq('22')
       expect(find('#how_much').value).to eq('33')
       click_button 'Submit'
+      assert_text "#{c1.full_name} Assessments"
 
       cded = Hmis::Hud::CustomDataElementDefinition.where(key: 'how_many').sole
       expect(Hmis::Hud::CustomDataElement.of_type(cded).sole.value).to eq(22)
@@ -231,6 +232,7 @@ RSpec.feature 'Hmis Form behavior', type: :system do
       fill_in 'How many?', with: 44
       fill_in 'How much?', with: 55
       click_button 'Submit'
+      assert_text "#{c1.full_name} Assessments"
 
       # it saved the overwritten values
       cded = Hmis::Hud::CustomDataElementDefinition.where(key: 'how_many').sole
@@ -250,6 +252,8 @@ RSpec.feature 'Hmis Form behavior', type: :system do
       expect(Date.strptime(find('#date_with_initial_value').value, '%m/%d/%Y')).to eq(today)
       mui_date_select 'Date with initial value', date: (today - 2.days).to_date
       click_button 'Submit'
+      assert_text "#{c1.full_name} Assessments"
+
       cded = Hmis::Hud::CustomDataElementDefinition.where(key: 'date_with_initial_value').sole
       expect(Hmis::Hud::CustomDataElement.of_type(cded).sole.value).to eq(today - 2.days)
     end

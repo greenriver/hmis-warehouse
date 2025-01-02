@@ -192,6 +192,12 @@ class Role < ApplicationRecord
     column.to_s.humanize
   end
 
+  def granted_permissions
+    self.class.permissions_with_descriptions.keys.filter do |permission|
+      self[permission]
+    end
+  end
+
   def self.permissions_with_descriptions
     {
       can_view_clients: {
@@ -381,13 +387,13 @@ class Role < ApplicationRecord
         sub_category: 'Client Search',
       },
       can_search_own_clients: {
-        description: 'Ability to use some version of the client search. If no additional search permissions are chosen, the user can use the free-form search. You can enforce the strict search by also selecting the Can use strict search permission. Must be used in conjunction with "Can View Clients" for access to client dashboards (NOTE: used in ACLs)',
+        description: 'Ability to use some version of the client search. If no additional search permissions are chosen, the user can use the free-form search. You can enforce the strict search by also selecting the Can use strict search permission. Must be used in conjunction with "Can View Clients" for access to client dashboards (NOTE: used in Access Controls)',
         administrative: false,
         category: 'Client Access',
         sub_category: 'Client Search',
       },
       can_search_clients_with_roi: {
-        description: 'When combined with an Entity Group through an Access Control, exposes clients with an active ROI in a CoC assigned to the user in search results (NOTE: used in ACLs)',
+        description: 'When combined with an Entity Group through an Access Control, exposes clients with an active ROI in a CoC assigned to the user in search results (NOTE: used in Access Controls)',
         administrative: false,
         category: 'Client Access',
         sub_category: 'Client Search',

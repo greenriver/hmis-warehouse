@@ -5,6 +5,7 @@ const truncate = (str, limit) => (str.length > limit ? str.slice(0, limit) + 'â€
 function formatCocLabel(text, width, padding) {
   text.each(function () {
     const paddingV = width * padding;
+    // eslint-disable-next-line no-unused-vars
     const widthV = width - paddingV;
     const text = d3.select(this);
     const [coc, projectName] = text.text().split('|||');
@@ -114,6 +115,7 @@ App.WarehouseReports.clientTimelineChart = (options) => {
     .attr('data-toggle', 'tooltip')
     .attr('data-html', true)
     .attr('title', (i) => {
+      // eslint-disable-next-line no-unused-vars
       const { coc, coc_name, project_name, project_type } = enrollments[i];
       return `<div class="text-left">
         Project Type: ${project_type}<br />
@@ -130,6 +132,7 @@ App.WarehouseReports.clientTimelineChart = (options) => {
     .data(enrollments)
     .enter()
     .append('g')
+    // eslint-disable-next-line no-unused-vars
     .attr('transform', function (d, i) {
       return `translate(0,${yScale(d.id)})`;
     })

@@ -10,6 +10,10 @@ module HudReports
     acts_as_paranoid
     include RailsDrivers::Extensions
 
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+
     self.table_name = 'hud_report_universe_members'
 
     belongs_to :report_cell, class_name: 'HudReports::ReportCell'

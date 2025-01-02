@@ -315,6 +315,7 @@ module GrdaWarehouse
         :self_report_start_date,
         :chronic_adult_only_cohort,
         :enable_auto_deduplication,
+        :rds_s3_integration_role_arn,
         client_details: [],
       ]
     end
@@ -351,6 +352,13 @@ module GrdaWarehouse
       return Consent::Implied if implied_consent?
 
       Consent::Default
+    end
+
+    def self.available_number_lms_courses_required
+      {
+        "All": -1,
+        "One of Any": 1,
+      }
     end
   end
 end

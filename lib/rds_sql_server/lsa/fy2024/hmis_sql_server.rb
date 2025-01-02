@@ -100,6 +100,14 @@ module HmisSqlServer
     private def useful_date_column
       'EntryDate'
     end
+
+    def clean_row_for_import(row:, headers:)
+      # RelationshipToHoH allows 99 in the CSV spec, but not the dictionary
+      # The LSA excludes 99 from the report, so just make them 5s
+      field_index = headers.index('RelationshipToHoH')
+      row[field_index] = 5 if row[field_index].to_s == '99'
+      super(row: row, headers: headers)
+    end
   end
 
   class Exit < LsaBase

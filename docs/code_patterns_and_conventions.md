@@ -14,6 +14,7 @@ Note that this document may include code that is only in use in a handful of loc
 - [Database Queries](#database-queries)
 - [Background Async Jobs](#background-async-jobs)
 - [Testing](#testing)
+- [Background Reports](#background-reports)
 
 ## Server-side views
 
@@ -40,13 +41,54 @@ When creating new JavaScript assets, use esbuild in `app/javascripts` rather tha
 When authorizing an action on an individual record, for example a Client, use a resource policy.
 
 ```ruby
-policy = user.policies.for_client(client)
-not_authorized! unless policy.show?
+policy = user.policy_for(client)
+not_authorized! unless policy.can_view?
+```
+
+### Authorization on a controller action
+
+Keep authorizations at the top of the controller. Use the `authorize_with()` helper, preferably with a policy class.
+
+```ruby
+class ProjectsController < ApplicationControllerV2
+  authorize_with { project_policy.can_view? }
+  authorize_with(only: [:edit, :update]) { project_policy.can_edit? }
+
+  helper_method def project_policy
+    current_user.policy_for(@project)
+  end
+```
+
+Note, the deprecated legacy pattern uses "require_can_*" helpers. However these do not provide granular enough checks going forward
+
+```ruby
+class ProjectsController < ApplicationController
+   # deprecated, use authorize_with instead
+   before_action :require_can_edit_projects!, only: [:edit, :update]
 ```
 
 ### Authorization on a scope
 
 We should use `ArModel.viewable_by(user)`. Note there are variations of this scope in the code base but we should prefer `viewable_by` over visible_by or other variations.
+
+## Tracking PII
+
+If your model could store Personally Identifiable Information (PII), use the `pii_attr` helper to catalog it. Why track PII? It allows us to inventory and potentially scrub PII from our database if needed
+
+For example, if your model has name, dob, and ssn cols:
+
+```ruby
+  module MyReportClient GrdaWarehouseBase
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :dob
+    pii_attr :ssn
+    pii_attr :description, as: :free_text, level: 2 # sensitive notes
+  end
+```
+
+Note, there is a similar pattern for tracking PHI on in the health-related classes
 
 ### Storing credentials
 
@@ -84,3 +126,8 @@ Avoid using errors for control-flow. When jumping out of deeply nested methods, 
 ## Testing
 
 Use factories if possible to create test objects rather than the active record classes themselves. This reduces boilerplate code in our tests.
+
+## Background Reports
+
+Where possible, reports that run in the background should use some shared infrastructure.  For official HUD reports, they should use `HudReports::ReportInstance` and follow patterns used in other HUD reports, like including `render 'hud_reports/index'` and `= render 'hud_reports/show'` in their index and show pages to provide a consistent user experience.  For warehouse reports, `SimpleReports::ReportInstance` should be used where possible, and `= render 'common/background_report/history_filter'`
+and `= render 'common/background_report/history_table'` should be included to present a consistent filtering and history experience.

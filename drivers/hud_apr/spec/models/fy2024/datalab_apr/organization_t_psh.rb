@@ -298,12 +298,8 @@ RSpec.shared_context 'datalab organization t psh apr', shared_context: :metadata
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
         skip: [
-          'D2', # expected '14.0000' (14), got '22.0000' (22)
-          'H2', # expected '32.0000' (32), got '34.0000' (34)
-          'D4', # expected '2276.1400' (2276.1429), got '1830.2700' (1830.2727)
-          'H4', # expected '1039.0900' (1039.0938), got '987.1800' (987.1765)
-          'D5', # expected '1104.0000' (1104.0000), got '704.5000' (704.5)
-          'H5', # expected '890.5000' (890.5000), got '855.5000' (855.5)
+          'D3', # expected '0.0000' (0), got '8.0000' (8)
+          'H3', # expected '0.0000' (0), got '2.0000' (2)
         ],
       )
     end

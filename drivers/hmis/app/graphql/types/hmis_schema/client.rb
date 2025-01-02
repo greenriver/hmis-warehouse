@@ -82,7 +82,7 @@ module Types
     field :contact_points, [HmisSchema::ClientContactPoint], null: false
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
-    field :hud_chronic, Boolean, null: true
+    field :hud_chronic, Boolean, null: true, description: 'Meets the definition for HUD chronically homeless as of today (time of API request)'
 
     field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
       argument :project_id, ID, required: true
@@ -229,7 +229,8 @@ module Types
     end
 
     def files(**args)
-      resolve_files(**args)
+      # Exclude files that have been uploaded by custom assessments
+      resolve_files(object.files.where.missing(:custom_data_element), **args)
     end
 
     def pronouns
@@ -336,12 +337,25 @@ module Types
       load_ar_association(object, :alerts, scope: Hmis::ClientAlert.active).sort_by(&:created_at).reverse
     end
 
+    # not optimized for batch queries, causes n+1 queries
     def hud_chronic
       return unless current_permission?(permission: :can_view_hud_chronic_status, entity: object)
 
-      # causes n+1 queries
-      enrollments = object.enrollments.where(data_source_id: current_user.hmis_data_source_id)
-      !!object.destination_client&.as_warehouse&.hud_chronic?(scope: enrollments)
+      # We are intentionally not checking enrollment visibility. The can_view_hud_chronic_status
+      # permission grants visibility into HUD Chronic status across all the client's enrollments
+      open_enrollments = object.enrollments.open_excluding_wip.preload(:ch_enrollment, :project)
+
+      # Check if there's an open enrollment at a residential project with a move in date that has occurred
+      today = Date.current
+      client_is_housed = open_enrollments.any? do |enrollment|
+        enrollment.project.project_type.in?(HudUtility2024.permanent_housing_project_types) && (enrollment.move_in_date&.<= today)
+      end
+      return false if client_is_housed
+
+      # Check chronic status at open enrollments for homeless project types
+      open_enrollments.any? do |enrollment|
+        enrollment.project.project_type.in?(HudUtility2024.chronic_project_types) && enrollment.ch_enrollment&.chronically_homeless?
+      end
     end
 
     def audit_history(filters: nil)

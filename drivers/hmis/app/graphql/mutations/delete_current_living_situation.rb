@@ -11,8 +11,20 @@ module Mutations
     field :current_living_situation, Types::HmisSchema::CurrentLivingSituation, null: true
 
     def resolve(id:)
-      record = Hmis::Hud::CurrentLivingSituation.viewable_by(current_user).find_by(id: id)
-      default_delete_record(record: record, field_name: :current_living_situation, permissions: [:can_edit_enrollments])
+      current_living_situation = Hmis::Hud::CurrentLivingSituation.viewable_by(current_user).find_by(id: id)
+      access_denied! unless current_living_situation
+      access_denied! unless current_permission?(permission: :can_edit_enrollments, entity: current_living_situation)
+
+      current_living_situation.with_lock do
+        # If this CLS is the owner of a FormProcessor, destroy related records (for example clh_location)
+        current_living_situation.form_processor&.destroy_related_records!
+        current_living_situation.destroy!
+      end
+
+      {
+        current_living_situation: current_living_situation,
+        errors: [],
+      }
     end
   end
 end

@@ -6,6 +6,8 @@
 
 module UserConcern
   extend ActiveSupport::Concern
+  include HasPiiAttributes
+
   included do
     include Rails.application.routes.url_helpers
     include UserPermissions
@@ -13,6 +15,12 @@ module UserConcern
     include ArelHelper
     has_paper_trail ignore: [:provider_raw_info]
     acts_as_paranoid
+
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :email
+    pii_attr :unconfirmed_email, as: :email
+    pii_attr :phone
 
     attr_accessor :remember_device, :device_name, :client_access_arbiter, :copy_form_id
 
@@ -226,9 +234,25 @@ module UserConcern
       end
     end
 
-    def required_training_courses
-      return Talentlms::Course.where(id: training_courses&.compact_blank) if training_courses&.compact_blank&.present?
-      return Talentlms::Course.default if training_required?
+    def training_renewal_date(course)
+      return 'Never' unless course.months_to_expiration.present?
+
+      login = Talentlms::Login.find_by(user: self, config: course.config)
+      return nil unless login
+
+      completion_date = Talentlms::CompletedTraining.find_by(course: course, login: login)&.completion_date
+      return nil unless completion_date
+
+      if Talentlms::Facade.expiration_duration_period == :days
+        completion_date + course.months_to_expiration.days
+      else
+        completion_date + course.months_to_expiration.months
+      end
+    end
+
+    def required_training_courses(date = Date.current)
+      return Talentlms::Course.active_on_date(date).where(id: training_courses&.compact_blank) if training_courses&.compact_blank&.present?
+      return Talentlms::Course.active_on_date(date).default if training_required?
 
       []
     end
@@ -276,7 +300,7 @@ module UserConcern
     end
 
     def two_factor_label
-      label = Translation.translate('Boston DND HMIS Warehouse')
+      label = Translation.translate('Open Path HMIS Warehouse')
       Rails.env.production? ? label : "#{label} [#{Rails.env}]"
     end
 
@@ -353,6 +377,26 @@ module UserConcern
         :pending_confirmation
       else
         :invitation_expired
+      end
+    end
+
+    # Prevent sending confirmation emails if the user has an open invitation
+    def send_reset_password_instructions
+      if invitation_token.present?
+        errors.add :email, 'There is an open invitation for this account.'
+        false
+      else
+        super
+      end
+    end
+
+    # Prevent confirming accounts if the user has an open invitation
+    def pending_any_confirmation
+      if invitation_token.present?
+        errors.add :email, 'There is an open invitation for this account.'
+        false
+      else
+        super
       end
     end
 
@@ -700,28 +744,8 @@ module UserConcern
       true
     end
 
-    def self.describe_changes(_version, changes)
-      changes.slice(*whitelist_for_changes_display).map do |name, values|
-        "Changed #{humanize_attribute_name(name)}: from \"#{values.first}\" to \"#{values.last}\"."
-      end
-    end
-
-    def self.humanize_attribute_name(name)
-      name.humanize.titleize
-    end
-
-    def self.whitelist_for_changes_display
-      [
-        'first_name',
-        'last_name',
-        'email',
-        'phone',
-        'agency',
-        'receive_file_upload_notifications',
-        'notify_of_vispdat_completed',
-        'notify_on_anomaly_identified',
-        'receive_account_request_notifications',
-      ].freeze
+    def self.describe_changes(...)
+      UserEditHistory::UserVersionChangeSummary.new.perform(...)
     end
 
     private def viewable(model)

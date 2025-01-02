@@ -41,6 +41,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   attr_accessor :filter_context
 
   validates :identifier, format: { with: /\A[a-zA-Z][a-zA-Z0-9_-]*\z/, message: 'must contain only alphanumeric characters, underscores, and dashes, and must start with a letter' }
+  # Forms that are managed in version control cannot have more than 1 version. To enforce this, we ensure that the identifier is unique.
+  validates_uniqueness_of :identifier, if: :managed_in_version_control?
 
   # --- Relations by id ----
   has_many :form_processors, dependent: :restrict_with_exception
@@ -78,9 +80,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # These are forms that are *optional* for HMIS functionality, and are configurable. They
   # are primarily for Enrollment-level data collection.
   #
-  # Each one is considered a feature that can be "toggled on" for a given project by enabling
-  # a Form Instance for it.
-  # These are submitted using SubmitForm mutation.
+  # Most of these are features that can be "toggled on" for a given project by enabling a Form Instance.
+  # (Except Referral and Referral Request, which are special-cases that are feature-flagged on permissions.)
   DATA_COLLECTION_FEATURE_ROLES = [
     :CURRENT_LIVING_SITUATION,
     :SERVICE,
@@ -412,6 +413,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     published? || retired?
   end
 
+  def supports_save_in_progress?
+    # Only Assessments can be saved as WIP
+    return false unless ASSESSMENT_FORM_ROLES.include?(role.to_sym)
+
+    # If the assessment contains a File collection item, it cannot be saved as WIP (#6208)
+    return false if link_id_item_hash.values.find { |item| ['FILE', 'IMAGE'].include?(item.type) }
+
+    true
+  end
+
   def self.owner_class_for_role(role)
     return Hmis::Hud::CustomAssessment if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 
@@ -644,6 +655,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       'integer'
     when 'CURRENCY'
       'float'
+    when 'FILE', 'IMAGE'
+      'file'
     else
       raise "unable to determine cded type for #{item_type}"
     end

@@ -31,7 +31,7 @@ module Types
     hud_field :lease_own60_day, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :moved_two_or_more, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :location_details
-
+    field :geolocation, Types::HmisSchema::Geolocation, null: true, description: 'Client Location where the Current Living Situation was recorded'
     custom_data_elements_field
 
     def enrollment
@@ -52,6 +52,13 @@ module Types
       #    The user can only select from allowable project options; they can't input random text.
       # See the CurrentLivingSituationProcessor for more detailed comments about the reason to collect both fields.
       object.verified_by_project_id || object.verified_by
+    end
+
+    def geolocation
+      location = load_ar_association(object, :clh_location)
+      return unless location&.lat_lon_present? # ignore location missing lat/lon (not expected, but allowed by DB)
+
+      location
     end
   end
 end

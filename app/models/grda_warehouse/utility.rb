@@ -16,6 +16,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Census::ByProject,
       GrdaWarehouse::ProjectGroup,
       GrdaWarehouse::Chronic,
+      GrdaWarehouse::ClientRoiAuthorization,
       GrdaWarehouse::HudChronic,
       GrdaWarehouse::Hud::Affiliation,
       GrdaWarehouse::Hud::Disability,
@@ -194,9 +195,11 @@ class GrdaWarehouse::Utility
 
   def self.modifier(model)
     cascade_models = [
+      GrdaWarehouse::File,
       GrdaWarehouse::DataSource,
       GrdaWarehouse::Hud::Client,
       GrdaWarehouse::Hud::Project,
+      GrdaWarehouse::Hud::User,
       GrdaWarehouse::ServiceHistoryEnrollment,
       ActiveStorage::Attachment,
       ActiveStorage::Blob,

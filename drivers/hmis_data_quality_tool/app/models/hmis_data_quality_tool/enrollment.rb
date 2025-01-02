@@ -14,6 +14,11 @@ module HmisDataQualityTool
     include HudReports::Clients
     acts_as_paranoid
 
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :age
+
     HOMELESS_LIVING_SITUATIONS = HudUtility2024.homeless_situations(as: :prior)
     INSTITUTIONAL_LIVING_SITUATIONS = HudUtility2024.institutional_situations(as: :prior)
     HOUSED_LIVING_SITUATIONS = HudUtility2024.temporary_situations(as: :prior) + HudUtility2024.permanent_situations(as: :prior)
@@ -259,7 +264,7 @@ module HmisDataQualityTool
       report_item.iraq_ond = client.IraqOND
       report_item.military_branch = client.MilitaryBranch
       report_item.discharge_status = client.DischargeStatus
-      employment_education = client.employment_educations.max_by(&:InformationDate)
+      employment_education = enrollment.employment_educations.max_by(&:InformationDate)
       report_item.employed = employment_education&.Employed
       report_item.employment_type = employment_education&.EmploymentType
       report_item.not_employed_reason = employment_education&.NotEmployedReason

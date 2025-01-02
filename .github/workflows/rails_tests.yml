@@ -88,6 +88,7 @@ jobs:
         ports:
           - 3333:3333
         env:
+          TZ: "America/New_York"
           PORT: 3333
           CONNECTION_TIMEOUT: 600000
 
@@ -137,35 +138,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up dependencies
-        run: |
-          apk add --no-cache $(cat .github/dependencies.txt)
-          echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
-          chmod 600 ~/.pgpass
-
-      - name: cache gems
-        uses: actions/cache@v4
-        id: gemcache
-        with:
-          path: |
-            vendor/bundle
-            /usr/local/bundle/
-          key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
-
-      - name: Install gems
-        run: |
-          gem install bundler --version=2.5.17
-          bundle config set --local without 'production staging development'
-          bundle install --jobs 4 --retry 3
-
-      - name: Cache Node.js modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
-
-      - name: Install Node.js modules
-        run: yarn install --frozen-lockfile
+      - name: 'Container Setup'
+        id: container-setup
+        uses: ./.github/workflows/container_setup
 
       - name: 'App setup'
         run: |

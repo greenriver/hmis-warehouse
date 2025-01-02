@@ -111,10 +111,10 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
 
         # Temporarily select 90+ days indicates 'break' in chronic homelessness
         mui_select '90 days or more but less than one year', from: 'Length of stay in prior living situation'
-        assert_text 'Client does not meet the HUD definition of chronic at entry.'
+        assert_text 'Client stayed 90+ days in an institutional setting. This is considered a "break" according to the HUD definition of chronic homelessness.'
 
         mui_select 'One month or more, but less than 90 days', from: 'Length of stay in prior living situation'
-        assert_no_text 'Client does not meet the HUD definition of chronic at entry.'
+        assert_no_text 'This is considered a "break" according to the HUD definition of chronic homelessness.'
         assert_text 'On the night before entering the Institutional/Temporary/Permanent/Other housing situation, did the client stay on the streets, ES or SH?'
 
         # Temporarily select YES to night-before question, to confirm form logic

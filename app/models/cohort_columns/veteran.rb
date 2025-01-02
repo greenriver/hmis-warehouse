@@ -17,7 +17,7 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      cohort_client.client.veteran?
+      cohort_client.veteran
     end
   end
 end

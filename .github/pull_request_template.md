@@ -3,10 +3,11 @@
 - use a merge-commit or rebase strategy for PRs targeting the stable branch
 
 ## Description
-[//]: # (Summarize changes and include links related issue. List any new dependencies)
+[//]: # (Summarize changes and include links related issue)
+[//]: # (List any new dependencies or relevant ADRs)
 
 ## Type of change
-[//]: # (e.g., Bug fix, New feature, Code clean-up, Dependency update)
+[//]: # (e.g., Bug fix, New feature, Documentation, Code clean-up, Dependency update)
 
 ## Checklist before requesting review
 [//]: # (Remove any items that are not applicable)
@@ -16,6 +17,9 @@
   - [ ] ensured the API can't leak data from other data sources
   - [ ] ensured this does not introduce N+1s
   - [ ] ensured permissions and visibility checks are performed in the right places
+- [ ] Any major architectural changes are supported by an approved ADR (Architectural Decision Record) 
 - [ ] I have updated the documentation (or not applicable)
 - [ ] I have added spec tests (or not applicable)
 - [ ] I have provided testing instructions in this PR or the related issue (or not applicable)
+
+[//]: # NOTE: system tests may fail if there is no branch on the hmis-frontend that matches the Source  or Target branch of this PR. This is expected

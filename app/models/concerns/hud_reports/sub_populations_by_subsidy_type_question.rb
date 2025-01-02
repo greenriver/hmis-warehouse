@@ -38,7 +38,8 @@ module HudReports::SubPopulationsBySubsidyTypeQuestion
       end
       sheet.update_cell_members(
         cell: [cols[col_index], 13],
-        members: scope,
+        # We only want clients captured in the rows above. Filter the scope to clients with a valid subsidy type
+        members: scope.where(HudUtility2024.rental_subsidy_types.keys.include?(a_t[:exit_destination_subsidy_type])),
       )
     end
   end

@@ -25,6 +25,7 @@ class UserTrainingController < ApplicationController
 
       begin
         course_redirects = []
+        configs_with_required_courses = []
         config_logins = {}
         # Make sure the user has a login setup for each config
         # Pulling this out here to prevent duplicate API calls for courses that share a configuration
@@ -60,22 +61,26 @@ class UserTrainingController < ApplicationController
             end
             course_url = lms.course_url(config, course_id, redirect_url, logout_talentlms_url)
 
-            course_redirects << course_url
+            course_redirects << { course: course, url: course_url }
+            configs_with_required_courses << config
           end
         end
 
         account_exists_in_all_configs = config_logins.values.all?(true)
 
-        if course_redirects.present?
+        # If the user only has one required training course to complete, and that course's config
+        # allows automatic redirects, send them directly to the training portal
+        if course_redirects.present? && course_redirects.count == 1 && course_redirects.first[:course].config.allow_automatic_redirect_to_course
           # redirect to the course training
-          redirect_to course_redirects.first, allow_other_host: true
+          redirect_to course_redirects.first[:url], allow_other_host: true
           return
-        elsif account_exists_in_all_configs
+        # If the user has an active account in all configs and has no trainings left to complete, allow them to navigate the warehouse
+        elsif account_exists_in_all_configs && course_redirects.blank?
           # All trainings are completed and the user has an account in all training configs
           redirect_to after_sign_in_path_for(current_user)
           return
         end
-        # At least one config requires an account to be created for this user.
+        # For all other cases, send the user to the captive portal
         render 'required_trainings'
       rescue RuntimeError => e
         @message = e.message

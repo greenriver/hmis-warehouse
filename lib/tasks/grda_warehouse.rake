@@ -317,6 +317,9 @@ namespace :grda_warehouse do
       Hmis::AutoExitJob.perform_now
     end
 
+    # Purge old soft-deleted records. Enable on production when we have confidence job is correct
+    PurgeSoftDeletedRecordsJob.perform_now(dry_run: false) if DateTime.current.hour == 5 && !Rails.env.production?
+
     # Run CSG Engage export if ready
     MaReports::CsgEngage::Report.run_if_ready if RailsDrivers.loaded.include?(:ma_reports)
 
@@ -338,12 +341,23 @@ namespace :grda_warehouse do
       Rails.logger.error(e.message)
     end
 
+    if DateTime.current.hour == 20
+      begin
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.perform
+      rescue StandardError => e
+        Sentry.capture_exception(e)
+        Rails.logger.error(e.message)
+      end
+    end
+
     stats_collector = AppResourceMonitor::CollectStatsJob.new
     AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
 
     BuildTranslationCacheJob.perform_later
 
-    PgheroCollectStatsJob.perform_later(clean: DateTime.current.hour == 5) if !Rails.env.production? && PgHero.query_stats_enabled?
+    # Disabled pg-hero status job for now. This doesn't have the required permissions
+    # to run in RDS. Note, pg-hero still works without it
+    # PgheroCollectStatsJob.perform_later(clean: DateTime.current.hour == 5) if !Rails.env.production? && PgHero.query_stats_enabled?
   end
 
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'

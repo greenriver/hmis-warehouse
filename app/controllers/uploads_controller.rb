@@ -55,11 +55,10 @@ class UploadsController < ApplicationController
       upload_id: @upload.id,
       data_source_id: @upload.data_source_id,
       deidentified: @upload.deidentified,
-      project_whitelist: @upload.project_whitelist,
+      allowed_projects: @upload.project_whitelist,
     }
-    job_class = Importing::HudZip::HmisAutoMigrateJob
-    job = Delayed::Job.enqueue job_class.new(**options), queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-    @upload.update(delayed_job_id: job.id)
+    job = Importing::HudZip::HmisAutoMigrateJob.perform_later(**options)
+    @upload.update(delayed_job_id: job.provider_job_id)
   end
 
   private def upload_params

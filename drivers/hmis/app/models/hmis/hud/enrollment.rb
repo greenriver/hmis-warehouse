@@ -83,6 +83,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
 
+  # Cached chronically homeless at entry
+  has_one :ch_enrollment, class_name: 'Hmis::ChEnrollment', dependent: :destroy
+
   accepts_nested_attributes_for :move_in_addresses, allow_destroy: true
 
   before_validation :set_hud_project_id_from_project_pk_unless_wip, if: :project_pk_changed?
@@ -279,6 +282,106 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def self.generate_enrollment_id
     generate_uuid
+  end
+
+  # Data Collection Features that are enabled for this enrollment, thru its project (e.g. Current Living Situation)
+  #
+  # Is it enabled?
+  #   If ANY data exists for it in this enrollment, even if no active instances exist, then yes.
+  #   This allows users to see data in the following "legacy" scenarios:
+  #   (1) data was previously collected in HMIS, but the rule (Instance) has since been deactivated
+  #   (2) data was previously collected for this Enrollment, but is no longer collected because of some change in context (e.g. they are no longer HoH, or the project funder/attributes changed)
+  #   (3) data was migrated-in, but has no rule (Instance) to enable it
+  #   Data in these categories is considered "legacy" because it's not collected going forward.
+  #
+  # Who is data collected about?
+  #   Choose the "best" instance – IE the one that would actually be selected
+  #   when creating a new record – and return the data_collected_about on it.
+  #
+  # Returns an OpenStruct that is resolved by the DataCollectionFeature GQL type.
+  def data_collection_features
+    # Create OpenStruct for each enabled feature
+    Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.
+      excluding(:REFERRAL, :REFERRAL_REQUEST, :EXTERNAL_FORM). # These are only relevant to projects, not enrollments
+      map do |role|
+      instance_scope = Hmis::Form::Instance.with_role(role).active.published
+      # Service instances must specify a service type or category.
+      instance_scope = instance_scope.for_services if role == :SERVICE
+
+      # Choose the "best" instance, i.e. the one that would actually be selected when recording new data.
+      # We need to do this so that we can accurately set "data collected about" based on the most applicable form.
+      best_instance = instance_scope.detect_best_instance_for_enrollment(enrollment: self)
+
+      has_any_data = case role
+      when :CURRENT_LIVING_SITUATION
+        current_living_situations.exists?
+      when :SERVICE
+        custom_services.exists? || services.exists?
+      when :CE_EVENT
+        events.exists?
+      when :CE_ASSESSMENT
+        assessments.exists?
+      when :CASE_NOTE
+        custom_case_notes.exists?
+      else
+        raise "Unexpected data collection feature role: #{role}"
+      end
+
+      next unless best_instance || has_any_data
+
+      OpenStruct.new(
+        role: role.to_s,
+        id: [id, role, best_instance&.id].join(':'), # Unique ID for Apollo caching
+        legacy: has_any_data && !best_instance,
+        data_collected_about: best_instance&.data_collected_about || 'ALL_CLIENTS', # Doesn't really matter for legacy
+        instance: best_instance, # just for testing, not resolved
+      )
+    end.compact
+  end
+
+  def occurrence_point_forms
+    # Get definitions for Occurrence Point forms, including inactive/retired (but excluding drafts)
+    definitions = Hmis::Form::Definition.with_role(:OCCURRENCE_POINT).published_or_retired.latest_versions
+    # Get cdeds that this enrollment has CDE record(s) for. Do this in advance so we don't make extra trips to db
+    cdeds_this_enrollment_has = custom_data_element_definitions.pluck(:key).to_set
+
+    definitions.map do |definition|
+      # Choose the most specific instance for this enrollment
+      best_instance = definition.instances.active.detect_best_instance_for_enrollment(enrollment: self)
+
+      # Check for legacy data. Skip the calculation if there is a current instance
+      has_legacy_data = best_instance ? false : legacy_occurrence_point_data?(definition, cdeds_this_enrollment_has)
+
+      next unless best_instance || has_legacy_data
+
+      OpenStruct.new(
+        legacy: has_legacy_data && !best_instance,
+        definition: definition,
+        data_collected_about: best_instance&.data_collected_about || 'ALL_CLIENTS',
+      )
+    end.compact
+  end
+
+  private def legacy_occurrence_point_data?(definition, cdeds_this_enrollment_has)
+    definition.walk_definition_nodes(as_open_struct: true) do |item|
+      next unless item.mapping.present?
+
+      record_type = item.mapping&.record_type
+      field_name = item.mapping&.field_name&.underscore
+      custom_field_key = item.mapping&.custom_field_key
+
+      next unless record_type == 'ENROLLMENT' || custom_field_key
+
+      if record_type && field_name
+        # Example: if this item collects `move_in_date` and the Enrollment has a Move-in Date value, then we want to show this form on the Enrollment Dashboard (even though it isn't "enabled" via an instance)
+        return true if respond_to?(field_name) && send(field_name).present?
+      elsif custom_field_key
+        # For simplicity, for now, just look for CDEDs where the owner is this Enrollment
+        return true if cdeds_this_enrollment_has.include?(custom_field_key)
+      end
+    end
+
+    false
   end
 
   def save_new_enrollment!

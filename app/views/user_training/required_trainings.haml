@@ -1,24 +1,39 @@
-%h1 Additional Training is Required
+- lms = Talentlms::Facade.new(current_user)
+- redirect_url = root_url 
+- redirect_url = clients_url if current_user.can_search_own_clients?
 
-%div The training(s) identified below are required to be completed prior to accessing the warehouse.
-%div Please contact an administrator to setup your account in the following TalentLMS domain(s) and ensure that the correct email address linked to your warehouse account.
-%br
-%h2 Account Information
-.well
-  %div
-    Warehouse email:
-    = current_user.email
-  %div
-    TalentLMS email:
-    = current_user.talent_lms_email
+.row
+  .col-8
+    %h1= Translation.translate('Additional Training is Required')
 
-%h2 Required Training Course Information
+    .well
+      %p= Translation.translate('The training(s) identified below are required to be completed prior to accessing the warehouse.')
+      %p= Translation.translate('If you need access to a TalentLMS portal, please contact an administrator to setup your account in the following TalentLMS domain(s) and ensure that the correct email address linked to your warehouse account.')
+  .col-4
+    %h2 Account Information
+    .well
+      %div
+        Warehouse email:
+        = current_user.email
+      %div
+        TalentLMS email:
+        = current_user.talent_lms_email
+
+
+%h2= Translation.translate('Required Training Course Information')
+- number_trainings_required = GrdaWarehouse::Config.get(:number_lms_courses_required)
+- number_trainings_required = "all" if number_trainings_required < 0
+%p Please complete #{number_trainings_required} of the following training courses.
 - @configs.sort_by(&:unique_name).each do |config|
   .well
     %h3= config.unique_name
     %p 
       Domain:
       = link_to config.domain, "https://#{config.domain}"
+      - if ! lms.active_user?(config)
+        .font-italic
+          %i.icon-warning
+          No active account found in this domain
     .table-responsive
       %table.table.table-striped
         %thead
@@ -29,9 +44,12 @@
         %tbody
           - required_courses_for_config = (@courses & config.courses)
           - required_courses_for_config.each do |course|
+            - course_url = lms.course_url(config, course.courseid, redirect_url, logout_talentlms_url)
             %tr
-              %td= course.name
+              %td= link_to_if course_url.present?, course.name, course_url
               %td= course.courseid
-              %td= checkmark(course.completed_by?(current_user))
+              %td
+                = checkmark(course.completed_by?(current_user))
+                = "Renew After: #{current_user.training_renewal_date(course)}" if course.completed_by?(current_user) && course.months_to_expiration.present?
 
 =render 'logout'
