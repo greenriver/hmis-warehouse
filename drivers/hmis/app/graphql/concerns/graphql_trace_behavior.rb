@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module GraphqlTraceBehavior
   def execute_field(field:, query:, ast_node:, arguments:, object:)
     result = super

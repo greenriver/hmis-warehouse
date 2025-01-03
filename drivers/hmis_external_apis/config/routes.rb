@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 BostonHmis::Application.routes.draw do
   scope(module: :hmis_external_apis) do
     scope(module: :ac_hmis) do
