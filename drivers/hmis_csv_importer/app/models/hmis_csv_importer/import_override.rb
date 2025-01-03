@@ -22,7 +22,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   end
 
   scope :expired, -> do
-    where(expires_on: ..Time.zone.today.yesterday)
+    where(expires_on: ...Date.current)
   end
 
   def self.file_name_keys
@@ -159,9 +159,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   end
 
   def describe_expiration
-    return 'Indefinite' if expires_on.blank?
-
-    expires_on
+    expires_on || 'Indefinite'
   end
 
   def describe_created

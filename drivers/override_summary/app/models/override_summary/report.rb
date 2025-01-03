@@ -6,6 +6,19 @@
 
 require 'memery'
 
+###
+# A report generator to expose HMIS import overrides.
+#
+# Access to override data is restricted based on user permissions. Users must have 'can_edit_projects' permission for the relevant data sources
+#
+# @example
+#   filter = ::Filters::FilterBase.new(user_id: current_user.id)
+#   report = OverrideSummary::Report.new(filter)
+#   viewable_data = report.data
+#
+# @attr_reader [Object] filter The filter object containing user
+# @attr_accessor [Array] override_ids Optional array of IDs for pagination support
+###
 module OverrideSummary
   class Report
     include Memery
@@ -111,6 +124,8 @@ module OverrideSummary
     end
 
     private def relevant_data_sources
+      # return early if the user doesn't have the `can_edit_projects?` permission
+      # GrdaWarehouse::DataSource.viewable_by only checks the permission for ACL users
       return GrdaWarehouse::DataSource.none unless filter.user.can_edit_projects?
 
       GrdaWarehouse::DataSource.viewable_by(filter.user, permission: :can_edit_projects)

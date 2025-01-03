@@ -459,8 +459,26 @@ module ApplicationHelper
     }</span>)
   end
 
-  def render_paginated_list(scope:, item_name:, list_partial:)
-    pagy, list = controller.send(:pagy, scope)
+  # Renders a paginated list with optional pagination controls at the top and bottom.
+  #
+  # This method uses the `pagy` gem for pagination and renders the list using a
+  # specified partial. If `pagy` and `list` are not provided, they will be
+  # determined by invoking the `pagy` method on the controller with the given scope.
+  #
+  # @param [Pagy] pagy Optional Pagy object for pagination. Defaults to nil.
+  # @param [Array] list Optional list of items to render. Defaults to nil.
+  # @param [ActiveRecord::Relation] scope The scope used to fetch the paginated list,
+  #   required if `pagy` and `list` are not provided.
+  # @param [String] item_name The singular name of the item being listed, used for messages.
+  # @param [String] list_partial The path to the partial used to render the list items.
+  #
+  # @return [String] HTML markup for the paginated list with controls.
+  #
+  # @example Usage:
+  #   render_paginated_list(pagy: @pagy, list: @items, item_name: 'item', list_partial: 'items/item')
+  #
+  def render_paginated_list(pagy: nil, list: nil, scope: nil, item_name:, list_partial:)
+    pagy, list = controller.send(:pagy, scope) if pagy.blank? && list.blank?
     return content_tag(:div, "No #{item_name.pluralize} found", class: 'none-found') if pagy.count.zero?
 
     capture do
