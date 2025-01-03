@@ -104,6 +104,10 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     elsif legacy_permissions.include?(:can_search_all_clients)
       # The can_search_all_clients confers a reduced set or permissions. This is more restricted
       # than the historic permissions. This is okay since search has limited client details.
+      #
+      # Notes
+      # - The client search controller (ClientAccessControl::ClientsController) also requires can_search_window || can_use_strict_search. We aren't enforcing that here.
+      # - See the searchable_to method in the Client extension (drivers/client_access_control/extensions/grda_warehouse/hud/client_extension.rb) which includes all clients in the search scope if the user has the can_search_all_clients permission
       results.merge(legacy_permissions & BASIC_CLIENT_PII_PERMS)
     end
 
