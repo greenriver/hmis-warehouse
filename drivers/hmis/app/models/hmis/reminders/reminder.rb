@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module Hmis
   module Reminders
     Reminder = Struct.new(:topic, :due_date, :overdue, :enrollment, :form_definition_id, :assessment_id, keyword_init: true) do
