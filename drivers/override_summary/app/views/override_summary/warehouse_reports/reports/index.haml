@@ -8,4 +8,4 @@
   .ml-auto
     = render 'report_downloads/report_download', export: nil, excel_download_path: override_summary_warehouse_reports_reports_path({format: :xlsx})
 
-= render_paginated_list(pagy: @pagy, list: @data, item_name: 'override', list_partial: 'overrides')
+= render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @data, item_name: 'override', list_partial: 'overrides')
