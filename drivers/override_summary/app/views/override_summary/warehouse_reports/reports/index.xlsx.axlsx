@@ -33,21 +33,22 @@ wb.add_worksheet(name: @report.title) do |sheet|
     records.each do |_, group|
       group.values.each do |data|
         data[:overrides].each do |override|
-          project_names = if data[:projects].blank?
+          projects = data[:projects].compact_blank
+          project_names = if projects.blank?
             override.incorrect_warning
-          elsif data[:projects] == ['Any']
+          elsif projects == ['Any']
             'Any'
           else
-            data[:projects].map do |project|
+            projects.map do |project|
               project.name(current_user)
             end.join(' ')
           end
-          project_urls = if data[:projects].blank?
+          project_urls = if projects.blank?
             # nothing
-          elsif data[:projects] == ['Any']
+          elsif projects == ['Any']
             data_source_url(override.data_source)
           else
-            data[:projects].map do |project|
+            projects.map do |project|
               project_url(project)
             end.join(' ')
           end
