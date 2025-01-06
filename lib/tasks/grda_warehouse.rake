@@ -350,6 +350,9 @@ namespace :grda_warehouse do
       end
     end
 
+    # This should be very fast, no need to background
+    HmisCsvImporter::ImportOverride.remove_expired! if DateTime.current.hour == 17 && RailsDrivers.loaded.include?(:hmis_csv_importer)
+
     stats_collector = AppResourceMonitor::CollectStatsJob.new
     AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
 
