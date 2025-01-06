@@ -52,7 +52,7 @@ RSpec.feature 'Bulk Services behavior', type: :system do
       find('input[type="checkbox"][aria-label="select all"]', visible: :all).trigger(:click)
 
       expect do
-        find('button', text: 'Enroll (3) + Assign (3)').trigger(:click)
+        click_button 'Enroll (3) + Assign (3)'
         assert_text 'Assigned' # wait for it to process
       end.to change(Hmis::Hud::Service, :count).by(3)
 
