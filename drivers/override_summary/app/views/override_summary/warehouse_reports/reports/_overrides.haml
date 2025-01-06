@@ -14,7 +14,7 @@
       - @data.each do |file_name, records|
         - records.each do |data_source_id, group|
           - group.values.each do |data|
-            - projects = data[:projects]
+            - projects = data[:projects].compact_blank
             - data[:overrides].each do |override|
               %tr
                 %td
