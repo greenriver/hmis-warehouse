@@ -459,8 +459,38 @@ module ApplicationHelper
     }</span>)
   end
 
+  # Renders a paginated list of the items `scope` with pagination controls at the top and bottom.
+  # This method uses the `pagy` gem for pagination and renders the list using a specified partial.
+  #
+  # @param [ActiveRecord::Relation] scope The scope used to fetch the paginated list
+  # @param [String] item_name The singular name of the item being listed, used for messages.
+  # @param [String] list_partial The path to the partial used to render the list items.
+  #
+  # @return [String] HTML markup for the paginated list with controls.
+  #
+  # @example Usage:
+  #   render_paginated_list(scope: users, item_name: 'user', list_partial: 'users/card')
+  #
   def render_paginated_list(scope:, item_name:, list_partial:)
     pagy, list = controller.send(:pagy, scope)
+    render_paginated_list_with_explicit_pagy(pagy: pagy, list: list, item_name: item_name, list_partial: list_partial)
+  end
+
+  # Renders a paginated list of the items in `list` with pagination controls at the top and bottom based
+  # on the `pagy` param. This is useful when you've already paginated the list (in the controller).
+  # For simpler cases, see render_paginated_list
+  #
+  # @param [Pagy] pagy The Pagy object for pagination.
+  # @param [Array] list The list of items to render.
+  # @param [String] item_name The singular name of the item being listed, used for messages.
+  # @param [String] list_partial The path to the partial used to render the list items.
+  #
+  # @return [String] HTML markup for the paginated list with controls.
+  #
+  # @example Usage:
+  #   render_paginated_list_with_explicit_pagy(pagy: @pagy, scope: @user_array, item_name: 'user', list_partial: 'users/card')
+  #
+  def render_paginated_list_with_explicit_pagy(pagy:, list:, item_name:, list_partial:)
     return content_tag(:div, "No #{item_name.pluralize} found", class: 'none-found') if pagy.count.zero?
 
     capture do
