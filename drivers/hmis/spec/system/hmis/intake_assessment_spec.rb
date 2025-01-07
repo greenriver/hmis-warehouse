@@ -8,7 +8,7 @@ require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
-RSpec.feature 'Enrollment/household management', type: :system do
+RSpec.feature 'Intake assessment', type: :system do
   include_context 'hmis base setup'
   # could parse CAPYBARA_APP_HOST
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
@@ -74,7 +74,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
         expect(e2.intake_assessment).to be_nil
 
         fill_in 'Search Clients', with: c1.last_name
-        click_link c1.brief_name
+        click_link "View Enrollment, #{c1.brief_name} #{e1.entry_date.strftime('%m/%d/%Y')} - Active"
         click_link 'Assessments'
         click_link 'Finish Intake'
 
