@@ -1,0 +1,22 @@
+ SELECT "ProjectCoCID",
+    "ProjectID",
+    "CoCCode",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID",
+    data_source_id,
+    id,
+    source_hash,
+    pending_date_deleted,
+    "Geocode",
+    "GeographyType",
+    "Address1",
+    "Address2",
+    "City",
+    "State",
+    "Zip",
+    manual_entry
+   FROM public."ProjectCoC"
+  WHERE ("DateDeleted" IS NULL)
