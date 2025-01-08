@@ -94,9 +94,12 @@ module HudApr::Generators::Shared::Fy2024
               apr_client = member.universe_membership
               case response_clause
               when :chronic
+                # Chronically Homeless Veteran (row 2): Any household with at least one veteran who is chronically homeless.
                 ids << member.id if household_veterans_chronically_homeless?(apr_client)
               when :not_chronic
-                ids << member.id if household_veterans_non_chronically_homeless?(apr_client)
+                # Non-Chronically Homeless Veteran (row 3): Any household not reported above with at least one non-chronically homeless veteran
+                # Households may contain veterans who are CH and other veterans who are not CH. Those HHs should be captured in the :chronic case.
+                ids << member.id if household_veterans_non_chronically_homeless?(apr_client) && !household_veterans_chronically_homeless?(apr_client)
               when :veteran # NOTE: actually not-a-veteran
                 ids << member.id if all_household_adults_non_veterans?(apr_client)
               when :refused
@@ -156,7 +159,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q25i_destination
-      sub_populations_by_destination_question(question: 'Q25i', members: universe.members.where(veteran_clause))
+      sub_populations_by_destination_question(question: 'Q25i', members: universe.members.where(leavers_clause).where(veteran_clause))
     end
 
     def q25j_exit_destination_subsidy
