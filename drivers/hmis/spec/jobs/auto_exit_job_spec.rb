@@ -54,6 +54,20 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       Hmis::AutoExitJob.perform_now
       expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
     end
+
+    it 'should not fail if enrollment has contact date before entry (regression #7178)' do
+      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
+      # most recent bed night is before enrollment entry, which is a DQ issue, but should not cause the AutoExitJob to break.
+      # It should auto-exit the enrollment with the entry date as its exit date.
+      create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1, record_type: 200, date_provided: Date.current - 3.months
+
+      Hmis::AutoExitJob.perform_now
+
+      expect(Hmis::Hud::Enrollment.exited).to include(e1)
+      expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
+      expect(e1.exit_assessment&.assessment_date).to eq(e1.entry_date)
+      expect(e1.exit_assessment&.data_collection_stage).to eq(3)
+    end
   end
 
   describe 'for other project types (not ES NBN)' do
