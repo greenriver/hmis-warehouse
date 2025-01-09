@@ -728,6 +728,7 @@ module Types::HmisSchema::Enums::Hud
     value 'SPOUSE_OR_PARTNER', '(3) Spouse or partner', value: 3
     value 'OTHER_RELATIVE', '(4) Other relative', value: 4
     value 'UNRELATED_HOUSEHOLD_MEMBER', '(5) Unrelated household member', value: 5
+    value 'DATA_NOT_COLLECTED', '(99) Data not collected', value: 99
     value 'INVALID', 'Invalid Value', value: -999999
   end
 
