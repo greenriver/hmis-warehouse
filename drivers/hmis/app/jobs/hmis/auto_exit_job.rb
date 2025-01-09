@@ -25,19 +25,17 @@ module Hmis
         raise "Auto-exit config unusually low: #{config.length_of_absence_days}" if config.length_of_absence_days < 30
 
         project.enrollments.open_excluding_wip.each do |enrollment|
-          most_recent_contact = if project.es_nbn? # Night-by-night Emergency Shelter
-            # For NBN shelters, the most recent contact is the last bed night.
-            last_bed_night = enrollment.services.bed_nights.where.not(date_provided: nil).order(:date_provided).last
-            # If the client had no bed nights, or the last bed night is before enrollment entry (invalid), use the enrollment (entry date) as the last contact.
-            [last_bed_night, enrollment].compact.max_by { |entity| contact_date_for_entity(entity) }
+          # If this is a HoH of a multimember household, only exit them if they won't be leaving behind a headless household!
+          most_recent_contact = if enrollment.head_of_household? && enrollment.household_members.count > 1
+            # If any household member's enrollment is still in progress, don't exit the HoH
+            next if enrollment.household_members.any?(&:in_progress?)
+
+            # Look at most recent contact across all enrollments in this household when determining whether to exit the HoH
+            enrollment.household_members.
+              map { |hhm| get_most_recent_contact(hhm, project) }.
+              max_by { |entity| contact_date_for_entity(entity) }
           else
-            [
-              enrollment.services.where.not(date_provided: nil).order(:date_provided).last,
-              enrollment.custom_services.order(:date_provided).last,
-              enrollment.current_living_situations.order(:information_date).last,
-              enrollment.custom_assessments.order(:assessment_date).last,
-              enrollment,
-            ].compact.max_by { |entity| contact_date_for_entity(entity) }
+            get_most_recent_contact(enrollment, project)
           end
 
           most_recent_contact_date = contact_date_for_entity(most_recent_contact)
@@ -56,6 +54,23 @@ module Hmis
     end
 
     private
+
+    def get_most_recent_contact(enrollment, project)
+      if project.es_nbn? # Night-by-night Emergency Shelter
+        # For NBN shelters, the most recent contact is the last bed night.
+        last_bed_night = enrollment.services.bed_nights.where.not(date_provided: nil).order(:date_provided).last
+        # If the client had no bed nights, or the last bed night is before enrollment entry (invalid), use the enrollment (entry date) as the last contact.
+        [last_bed_night, enrollment].compact.max_by { |entity| contact_date_for_entity(entity) }
+      else
+        [
+          enrollment.services.where.not(date_provided: nil).order(:date_provided).last,
+          enrollment.custom_services.order(:date_provided).last,
+          enrollment.current_living_situations.order(:information_date).last,
+          enrollment.custom_assessments.order(:assessment_date).last,
+          enrollment,
+        ].compact.max_by { |entity| contact_date_for_entity(entity) }
+      end
+    end
 
     def auto_exit(enrollment, most_recent_contact)
       exit_date = contact_date_for_entity(most_recent_contact)
