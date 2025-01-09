@@ -127,7 +127,7 @@ module HealthPctp
     end
 
     def expires_on
-      patient_signed_on + 1.year
+      sent_to_pcp_on + 1.year
     end
 
     def identifying_information
