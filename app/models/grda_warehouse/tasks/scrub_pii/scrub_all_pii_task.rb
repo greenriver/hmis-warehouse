@@ -57,6 +57,7 @@ module GrdaWarehouse::Tasks::ScrubPii
         IncomeBenefitsReport::Client,
         MaYyaReport::Client,
         HudSpmReport::Fy2023::SpmEnrollment,
+        HudSpmReport::Fy2024::SpmEnrollment,
         GrdaWarehouse::AdHocClient,
         CePerformance::Client,
         GrdaWarehouse::ClientContact,
