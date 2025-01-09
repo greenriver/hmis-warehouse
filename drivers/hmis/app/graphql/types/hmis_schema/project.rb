@@ -83,7 +83,7 @@ module Types
     field :affiliated_projects, [HmisSchema::Project], null: false
     field :active, Boolean, null: false
     field :staff_assignments_enabled, Boolean, null: false
-    enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
+    enrollments_field filter_args: { omit: [:project_type, :project], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
     referral_requests_field :referral_requests
     referral_postings_field :incoming_referral_postings
@@ -105,6 +105,7 @@ module Types
       can :manage_outgoing_referrals
       can :manage_denied_referrals
       can :manage_external_form_submissions
+      can :split_households
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
     field :has_units, Boolean, null: false

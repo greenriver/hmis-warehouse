@@ -1,0 +1,158 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+#  Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+#
+
+require 'rails_helper'
+require_relative 'login_and_permissions'
+require_relative '../../support/hmis_base_setup'
+
+RSpec.describe Hmis::GraphqlController, type: :request do
+  include_context 'hmis base setup'
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
+  before(:each) do
+    hmis_login(user)
+  end
+
+  let(:mutation) do
+    <<~GRAPHQL
+      mutation JoinHouseholds($input: JoinHouseholdsInput!) {
+        joinHouseholds(input: $input) {
+          household {
+            id
+            householdSize
+            householdClients {
+              client {
+                id
+              }
+              enrollment {
+                id
+              }
+            }
+          }
+        }
+      }
+    GRAPHQL
+  end
+
+  let!(:receiving_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago }
+
+  let!(:remaining_household_id) { Hmis::Hud::Base.generate_uuid }
+  let!(:joining_e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, household_id: remaining_household_id }
+  let!(:joining_e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, relationship_to_hoh: 2, household_id: remaining_household_id }
+
+  def perform_mutation(receiving_household_id, joining_enrollment_inputs)
+    input = {
+      input: {
+        receiving_household_id: receiving_household_id,
+        joining_enrollment_inputs: joining_enrollment_inputs,
+      },
+    }
+    response, result = post_graphql(input) { mutation }
+
+    expect(response.status).to eq(200), result.inspect
+    result.dig('data', 'joinHouseholds', 'household')
+  end
+
+  it 'should successfully join households' do
+    expect do
+      joining_enrollment_inputs = [
+        {
+          enrollment_id: joining_e1.id,
+          relationship_to_hoh: 'SPOUSE_OR_PARTNER',
+        },
+        {
+          enrollment_id: joining_e2.id,
+          relationship_to_hoh: 'CHILD',
+        },
+      ]
+      joined_household = perform_mutation(receiving_enrollment.household_id, joining_enrollment_inputs)
+      expect(joined_household.dig('id')).to eq(receiving_enrollment.household_id)
+      expect(joined_household.dig('householdSize')).to eq(3)
+      joining_e1.reload
+      joining_e2.reload
+    end.to change(joining_e1, :household_id).to(receiving_enrollment.household_id).
+      and change(joining_e2, :household_id).to(receiving_enrollment.household_id)
+  end
+
+  context 'when the joining enrollment entry date is before the receiving hoh entry date' do
+    let!(:joining_e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 4.weeks.ago, relationship_to_hoh: 2, household_id: remaining_household_id }
+
+    it 'should update the joining enrollment' do
+      expect do
+        joining_enrollment_inputs = [
+          {
+            enrollment_id: joining_e2.id,
+            relationship_to_hoh: 'CHILD',
+          },
+        ]
+        perform_mutation(receiving_enrollment.household_id, joining_enrollment_inputs)
+        joining_e2.reload
+      end.to change(joining_e2, :entry_date).to(receiving_enrollment.entry_date)
+    end
+  end
+
+  it 'fails when the given household ID is invalid' do
+    input = {
+      receiving_household_id: 'fake-household',
+      joining_enrollment_inputs: [],
+    }
+    expect_access_denied post_graphql(input: input) { mutation }
+  end
+
+  it 'fails when the user does not have can_split_households permission' do
+    remove_permissions(access_control, :can_split_households)
+    input = {
+      receiving_household_id: receiving_enrollment.household_id,
+      joining_enrollment_inputs: [],
+    }
+    expect_access_denied post_graphql(input: input) { mutation }
+  end
+
+  it 'fails when the given joining enrollment IDs are invalid' do
+    input = {
+      receiving_household_id: receiving_enrollment.household_id,
+      joining_enrollment_inputs: [
+        {
+          enrollment_id: 'fake-enrollment',
+          relationship_to_hoh: 'SPOUSE_OR_PARTNER',
+        },
+      ],
+    }
+    expect_access_denied post_graphql(input: input) { mutation }
+  end
+
+  it 'fails when the given joining enrollment ID comes from a different project' do
+    p2 = create :hmis_hud_project, data_source: ds1, organization: o1, user: u1
+    e2 = create :hmis_hud_enrollment, data_source: ds1, project: p2
+    input = {
+      receiving_household_id: receiving_enrollment.household_id,
+      joining_enrollment_inputs: [
+        {
+          enrollment_id: e2.id,
+          relationship_to_hoh: 'SPOUSE_OR_PARTNER',
+        },
+      ],
+    }
+    expect_gql_error post_graphql(input: input) { mutation }, message: /Cannot merge enrollments from another project/
+  end
+
+  it 'fails when the join would leave behind a headless household' do
+    input = {
+      receiving_household_id: receiving_enrollment.household_id,
+      joining_enrollment_inputs: [
+        {
+          enrollment_id: joining_e1.id,
+          relationship_to_hoh: 'SPOUSE_OR_PARTNER',
+        },
+      ],
+    }
+    expect_gql_error post_graphql(input: input) { mutation }, message: /This operation would leave behind a household with no HoH/
+  end
+end
