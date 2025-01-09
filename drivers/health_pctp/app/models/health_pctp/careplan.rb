@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -127,7 +127,7 @@ module HealthPctp
     end
 
     def expires_on
-      patient_signed_on + 1.year
+      sent_to_pcp_on + 1.year
     end
 
     def identifying_information

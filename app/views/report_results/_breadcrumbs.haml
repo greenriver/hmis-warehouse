@@ -1,4 +1,4 @@
 - if @report&.report_group_name.present?
   = content_for :crumbs do
-    = link_to hud_reports_lsas_path do
-      = "« " +  Translation.translate('LSA Reports')
+    = link_to hud_reports_path do
+      = "« " +  Translation.translate('HUD Reports')

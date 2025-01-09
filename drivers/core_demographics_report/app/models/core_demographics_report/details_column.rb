@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # CoreDemographicsReport::DetailsColumn
 module CoreDemographicsReport
   DetailsColumn = Struct.new(:label, :index, :user, :project_id_index, keyword_init: true) do

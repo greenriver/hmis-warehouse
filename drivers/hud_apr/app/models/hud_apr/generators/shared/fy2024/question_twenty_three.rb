@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -21,11 +21,11 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     def q23c_destination
-      sub_populations_by_destination_question(question: 'Q23c', members: universe.members)
+      sub_populations_by_destination_question(question: 'Q23c', members: universe.members.where(leavers_clause))
     end
 
     def q23d_subsidy_type
-      sub_populations_by_subsidy_type_question(question: 'Q23d', members: universe.members)
+      sub_populations_by_subsidy_type_question(question: 'Q23d', members: universe.members.where(leavers_clause))
     end
 
     def q23e_destination_type_by_race_and_ethnicity

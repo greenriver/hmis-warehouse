@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -49,7 +49,8 @@ module Pii::Scrubber
           dob_scrubber.perform(pii_fields.reject(&:scrubbed?))
 
           # scrub remaining sensitive fields
-          basic_scrubber.perform(pii_fields.filter { |f| f.sensitive? && !f.scrubbed? })
+          remaining_sensitive_fields = pii_fields.filter { |f| f.sensitive? && !f.scrubbed? }
+          basic_scrubber.perform(remaining_sensitive_fields, id: record.id)
 
           pii_attrs = pii_fields.
             filter(&:scrubbed?).
