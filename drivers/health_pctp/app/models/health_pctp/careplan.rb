@@ -75,6 +75,8 @@ module HealthPctp
       sent_to_pcp_on.nil?
     end
 
+    # NOTE: this needs to be updated before expires_on can be based on sent_to_pcp_on
+    # What are the consequences of changing the completed? calculation?
     def completed?
       patient_signed_on.present?
     end
@@ -127,7 +129,7 @@ module HealthPctp
     end
 
     def expires_on
-      sent_to_pcp_on + 1.year
+      patient_signed_on + 1.year
     end
 
     def identifying_information
