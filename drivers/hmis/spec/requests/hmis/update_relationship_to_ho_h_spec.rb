@@ -301,17 +301,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'should error if unauthorized' do
     remove_permissions(access_control, :can_edit_enrollments)
-    expect_gql_error post_graphql(input: test_input) { mutation }, message: 'access denied'
+    expect_access_denied post_graphql(input: test_input) { mutation }
   end
 
   it 'should error if user does not have access to enrollment' do
     remove_permissions(access_control, :can_view_enrollment_details)
     remove_permissions(access_control, :can_edit_enrollments)
-    expect_gql_error post_graphql(input: test_input) { mutation }, message: 'access denied'
+    expect_access_denied post_graphql(input: test_input) { mutation }
   end
 
   it 'should error if enrollment does not exist' do
-    expect_gql_error post_graphql(input: test_input.merge(enrollment_id: '0')) { mutation }, message: 'access denied'
+    expect_access_denied post_graphql(input: test_input.merge(enrollment_id: '0')) { mutation }
   end
 end
 
