@@ -143,6 +143,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :calculated_homeless_nights_unsheltered,
         :total_homeless_nights_sheltered,
         :total_homeless_nights_unsheltered,
+        :date_of_first_service,
       ]
     end
     # memoize :pathways_questions
@@ -321,6 +322,18 @@ module GrdaWarehouse::CasProjectClientCalculator
       pre_calculated_days
     end
 
+    # Overrides the usual calculation for first date homeless if available
+    # If the question doesn't exist on the assessment or is empty, use the usual definition
+    private def date_of_first_service(client)
+      field_name = 'c_pathways_first_date_homeless'
+      answer = most_recent_pathways_or_transfer(client).
+        question_matching_requirement(field_name)&.AssessmentAnswer
+
+      return client.date_of_first_service if answer.blank?
+
+      answer.to_i
+    end
+
     # If a client has more than 548 self-reported days (combination of sheltered and unsheltered)
     # and does not have a verification uploaded, count unsheltered days first, then count sheltered days UP TO 548.
     # If the self reported days are verified, use the provided amounts.
@@ -456,12 +469,18 @@ module GrdaWarehouse::CasProjectClientCalculator
       end
     end
 
+    # Various tie-breaker dates used for prioritization in CAS when all else is equal
+    # For Pathways V3, use the date the assessment was collected
+    # For the V3 Transfer assessment, use the financial assistance end date
+    # For Pathways V4, use the first date of homelessness
     private def tie_breaker_date(client)
       case cas_assessment_name(client)
-      when 'IdentifiedPathwaysVersionThreePathways', 'IdentifiedPathwaysVersionFourPathways'
+      when 'IdentifiedPathwaysVersionThreePathways'
         cas_assessment_collected_at(client)
       when 'IdentifiedPathwaysVersionThreeTransfer'
         financial_assistance_end_date(client)
+      when 'IdentifiedPathwaysVersionFourPathways'
+        date_of_first_service(client)
       end
     end
 
