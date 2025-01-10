@@ -25,7 +25,7 @@ module Importing::HudZip
       end
 
       # when this exits, it will remove the current job from the queue, so add a new one to replace it
-      requeue_at(Time.current + WAIT_MINUTES.minutes, "Import of Data Source: #{data_source_id} already running...re-queuing job for #{WAIT_MINUTES} minutes from now") unless lock_obtained
+      requeue_at(Time.current + WAIT_MINUTES.minutes, "Import of Data Source: #{data_source_id} already running...re-queuing job for #{WAIT_MINUTES} minutes from now") if lock_obtained == false
     end
 
     private def advisory_lock_name(data_source_id)
