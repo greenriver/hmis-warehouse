@@ -14,7 +14,8 @@ module Importing::HudZip
     after_enqueue :enforce_max_attempts
 
     def perform(upload_id:, data_source_id:, deidentified: false, allowed_projects: false)
-      lock_obtained = GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_name(data_source_id), timeout_seconds: 60) do
+      lock_obtained = nil
+      GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_name(data_source_id), timeout_seconds: 60) do
         importer = Importers::HmisAutoMigrate::UploadedZip.new(
           data_source_id: data_source_id,
           upload_id: upload_id,
@@ -22,6 +23,7 @@ module Importing::HudZip
           allowed_projects: allowed_projects,
         )
         importer.import!
+        lock_obtained = true
       end
 
       # when this exits, it will remove the current job from the queue, so add a new one to replace it
