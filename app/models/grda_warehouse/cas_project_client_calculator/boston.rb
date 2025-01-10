@@ -61,7 +61,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         cas_assessment_collected_at: 'Date the assessment was collected', # note this is really just assessment_collected_at
         majority_sheltered: 'Most recent current living situation was sheltered',
         assessment_score_for_cas: 'Days homeless in the past 3 years for pathways, score for transfer assessments',
-        tie_breaker_date: 'Date pathways was collected, or Financial Assistance End Date for transfer assessments',
+        tie_breaker_date: 'Date pathways was collected for Pathways 2023, First Date Homeless for Pathways 2024, or Financial Assistance End Date for Transfer Assessments',
         financial_assistance_end_date: 'Latest Date Eligible for Financial Assistance response from the most recent pathways assessment',
         assessor_first_name: 'First name of the user who completed the most recent pathways assessment',
         assessor_last_name: 'Last name of the user who completed the most recent pathways assessment',
