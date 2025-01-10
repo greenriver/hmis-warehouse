@@ -331,7 +331,7 @@ module GrdaWarehouse::CasProjectClientCalculator
 
       return client.date_of_first_service if answer.blank?
 
-      answer.to_i
+      answer.to_date
     end
 
     # If a client has more than 548 self-reported days (combination of sheltered and unsheltered)
