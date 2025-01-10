@@ -14,6 +14,6 @@ class UpdateWarehouseClientsCachesJob < BaseJob
       GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids, include_cas_and_cohorts: include_cas_and_cohorts, skip_expensive_calculations: skip_expensive_calculations)
     end
 
-    requeue_at(Time.current + WAIT_MINUTES.minutes, "UpdateWarehouseClientsCachesJob is already running...re-queuing job for #{WAIT_MINUTES} minutes from now") unless lock_obtained
+    requeue_at(Time.current + WAIT_MINUTES.minutes, "UpdateWarehouseClientsCachesJob is already running...re-queuing job for #{WAIT_MINUTES} minutes from now") if lock_obtained == false
   end
 end
