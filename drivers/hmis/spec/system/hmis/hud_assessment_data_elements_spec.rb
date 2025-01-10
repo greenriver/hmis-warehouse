@@ -24,6 +24,7 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
   end
 
   def save_ignoring_warnings
+    sleep 1 # seems the wrong element is clicked? Sleep for animation to settle
     first(:button, 'Submit').click
     assert_text 'Ignore Warnings'
     click_button 'Confirm'
