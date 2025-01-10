@@ -175,7 +175,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
       expect(enrollment).to be_present
       expect(errors).to be_empty
-      expect(e1.reload.relationship_to_hoh).to eq(6)
+      expect(e1.reload.relationship_to_hoh).to eq(5)
       expect(e3.reload.relationship_to_hoh).to eq(1)
     end
   end
@@ -231,21 +231,35 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  it 'should warn if HoH is a child' do
-    c3.update(dob: 13.years.ago)
-    response, result = post_graphql(input: test_input.merge(confirmed: false)) { mutation }
+  context 'when new HoH is a child' do
+    before(:each) do
+      c3.update!(dob: 13.years.ago)
+      e3.update!(relationship_to_ho_h: 2) # child
+    end
 
-    aggregate_failures 'checking response' do
-      expect(response.status).to eq(200), result.inspect
-      enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
-      errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
-      expect(enrollment).to be nil
-      expect(errors).to match([
-                                a_hash_including('severity' => 'warning', 'fullMessage' => Hmis::HohChangeHandler.change_hoh_message(c1, c3)),
-                                a_hash_including('severity' => 'warning', 'fullMessage' => Hmis::HohChangeHandler.child_hoh_message),
-                              ])
-      e3.reload
-      expect(e3.relationship_to_ho_h).not_to eq(1)
+    it 'should warn about new HoH being a child' do
+      response, result = post_graphql(input: test_input.merge(confirmed: false)) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq(200), result.inspect
+        enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
+        errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
+        expect(enrollment).to be nil
+        expect(errors).to contain_exactly(
+          a_hash_including('severity' => 'warning', 'fullMessage' => Hmis::HohChangeHandler.change_hoh_message(c1, c3)),
+          a_hash_including('severity' => 'warning', 'fullMessage' => Hmis::HohChangeHandler.child_hoh_message),
+        )
+        e3.reload
+        expect(e3.relationship_to_ho_h).not_to eq(1)
+      end
+    end
+
+    it 'should infer relationship to new HoH as 4 (Other relative)' do
+      expect do
+        response, result = post_graphql(input: test_input) { mutation }
+        expect(response.status).to eq(200), result.inspect
+      end.to change { e3.reload.relationship_to_ho_h }.from(2).to(1).
+        and change { e1.reload.relationship_to_ho_h }.from(1).to(4)
     end
   end
 

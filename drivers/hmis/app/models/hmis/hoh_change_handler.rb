@@ -141,7 +141,7 @@ module Hmis
       when 2 # Child
         4 # Other relative a.k.a. parent. This is unexpected, because child shouldn't become HoH.
       else
-        6 # Unrelated household member
+        5 # Unrelated household member
       end
     end
   end
