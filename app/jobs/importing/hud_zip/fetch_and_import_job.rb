@@ -18,13 +18,14 @@ module Importing::HudZip
       raise "Unknown import class: #{klass}; You must add it to the list of known classes in FetchAndImportJob" unless safe_klass.present?
 
       data_source_id = options[:data_source_id]
-      lock_obtained = GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_name(data_source_id), timeout_seconds: 60) do
+      lock_obtained = nil
+      GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_name(data_source_id), timeout_seconds: 60) do
         safe_klass.constantize.new(**options).import!
         # To prevent re-running when called against the same files if run more than once in a day, yield true
-        true
+        lock_obtained = true
       end
 
-      requeue_at(Time.current + WAIT_MINUTES.minutes, "Import of Data Source: #{data_source_id} already running...re-queuing job for #{WAIT_MINUTES} minutes from now") if lock_obtained == false
+      requeue_at(Time.current + WAIT_MINUTES.minutes, "Import of Data Source: #{data_source_id} already running...re-queuing job for #{WAIT_MINUTES} minutes from now") unless lock_obtained
     end
 
     def known_classes
