@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,7 +42,7 @@ module Health
     def download_careplan
       pdf = careplan_combine_pdf_object
       file_name = 'care_plan'
-      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
+      send_data pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
     # Build and send a PCP signing request and team member based on the values submitted

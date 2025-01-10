@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,8 @@ module GrdaWarehouse
     REVOKED_STATUS = 'revoked'.freeze
     PARTIAL_STATUS = 'partial'.freeze
     FULL_STATUS = 'full'.freeze
+
+    scope :with_invalid_client, -> { left_outer_joins(:destination_client).where(c_t[:id].eq(nil)) }
 
     def active?(date: Date.current)
       case status

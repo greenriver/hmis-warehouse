@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -337,6 +337,10 @@ module Talentlms
       @courses.each do |course|
         training_required << training_required?(course.config, course.courseid)
       end
+
+      # No training is required if there are no training courses required of this user.
+      # This can occur when all courses (default or assigned) are inactive.
+      return false if training_required.empty?
 
       # If a number of courses required to be completed is set, use that, otherwise, all courses are required to be completed.
       # IF number_courses_required is -1, all courses are required

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,16 +13,20 @@ module GrdaWarehouse::Tasks
     end
 
     # @param client_ids [Array<Integer>, nil] client ids to rebuild. Rebuild all clients if nil
-    def perform(client_ids: nil)
+    # @param batch_size [Integer] number of records to process in each batch
+    def perform(client_ids: nil, batch_size: 500)
       with_lock do
         scope = destination_client_scope
         scope = scope.where(id: client_ids) unless client_ids.nil?
-        scope.find_in_batches do |batch|
+        scope.find_in_batches(batch_size: batch_size) do |batch|
           values = []
+          missing_ids = []
           batch.each do |client|
             result = process_client(client)
+            missing_ids << client.id if result.nil?
             values << result if result
           end
+
           GrdaWarehouse::ClientRoiAuthorization.import(
             values,
             on_duplicate_key_update: {
@@ -30,11 +34,15 @@ module GrdaWarehouse::Tasks
               columns: values.first&.keys&.excluding(:destination_client_id),
             },
           )
-          # cleanup orphans
-          orphan_scope = GrdaWarehouse::ClientRoiAuthorization.
-            where.not(destination_client_id: destination_client_scope.select(:id))
-          orphan_scope = orphan_scope.where(destination_client_id: client_ids) if client_ids
-          orphan_scope.delete_all
+
+          # cleanup auth records for clients that have lost ROI status (but client still exists). This might be due to data correction rather than revocation
+          GrdaWarehouse::ClientRoiAuthorization.where(destination_client: missing_ids).delete_all
+        end
+
+        # cleanup orphaned auth records where the client record no-longer exists at all
+        orphan_ids = GrdaWarehouse::ClientRoiAuthorization.with_invalid_client.pluck(:id)
+        orphan_ids.each_slice(batch_size) do |ids|
+          GrdaWarehouse::ClientRoiAuthorization.where(id: ids).delete_all
         end
       end
     end
