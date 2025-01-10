@@ -62,7 +62,7 @@ module HealthCareplan
         wait_until: 'networkidle0',
         print_background: true,
       }
-      CombinePDF.parse(Grover.new(wrap_in_html(coversheet), **grover_options).to_pdf, allow_optional_content: true)
+      PdfGenerator.merge_inline_pdfs(Grover.new(wrap_in_html(coversheet), **grover_options).to_pdf)
     end
 
     def careplan_pdf_full
@@ -99,7 +99,7 @@ module HealthCareplan
         wait_until: 'networkidle0',
         print_background: true,
       }
-      CombinePDF.parse(Grover.new(wrap_in_html(full_careplan), **grover_options).to_pdf, allow_optional_content: true)
+      PdfGenerator.merge_inline_pdfs(Grover.new(wrap_in_html(full_careplan), **grover_options).to_pdf)
     end
 
     def careplan_pdf_pctp
@@ -138,7 +138,7 @@ module HealthCareplan
         print_background: true,
       }
 
-      CombinePDF.parse(Grover.new(wrap_in_html(pctp), **grover_options).to_pdf, allow_optional_content: true)
+      PdfGenerator.merge_inline_pdfs(Grover.new(wrap_in_html(pctp), **grover_options).to_pdf)
     end
 
     private def wrap_in_html(content)
@@ -154,7 +154,7 @@ module HealthCareplan
       # If we already have a document with a signature, use that to try and avoid massive duplication
       if (health_file_id = @careplan.most_appropriate_pdf_id)
         if (health_file = Health::HealthFile.find(health_file_id))
-          return CombinePDF.parse(health_file.content, allow_optional_content: true)
+          return PdfGenerator.merge_inline_pdfs(health_file.content)
         end
       end
 
@@ -168,7 +168,7 @@ module HealthCareplan
       end
       @cha = @patient.comprehensive_health_assessments.recent.first
 
-      pdf = CombinePDF.new
+      pdf = []
 
       pdf << careplan_pdf_coversheet
 
@@ -188,10 +188,10 @@ module HealthCareplan
 
       pdf << careplan_pdf_full
 
-      pdf << CombinePDF.parse(@careplan.health_file.content, allow_optional_content: true) if @careplan.health_file.present?
-      pdf << CombinePDF.parse(@cha.health_file.content, allow_optional_content: true) if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
-      pdf << CombinePDF.parse(@form.health_file.content, allow_optional_content: true) if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
-      pdf
+      pdf << PdfGenerator.merge_inline_pdfs(@careplan.health_file.content) if @careplan.health_file.present?
+      pdf << PdfGenerator.merge_inline_pdfs(@cha.health_file.content) if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
+      pdf << PdfGenerator.merge_inline_pdfs(@form.health_file.content) if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
+      PdfGenerator.merge_inline_pdfs(pdf)
     end
   end
 end
