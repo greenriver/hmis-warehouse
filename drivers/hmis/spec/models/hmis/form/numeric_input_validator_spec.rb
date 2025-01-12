@@ -40,10 +40,15 @@ RSpec.describe Hmis::Form::NumericInputValidator do
 
     context 'with bounds' do
       let(:item) do
-        config_to_item({ type: 'CURRENCY', bounds: [
-                         { type: 'MIN', value_number: 0, severity: 'error' },
-                         { type: 'MAX', value_number: 100, severity: 'error' },
-                       ] })
+        config_to_item(
+          {
+            type: 'CURRENCY',
+            bounds: [
+              { type: 'MIN', value_number: 0, severity: 'error' },
+              { type: 'MAX', value_number: 100, severity: 'error' },
+            ],
+          },
+        )
       end
 
       it 'validates within bounds' do
@@ -53,6 +58,23 @@ RSpec.describe Hmis::Form::NumericInputValidator do
       it 'rejects values outside bounds' do
         expect(validator.call(item, '-1')).to include('must be greater than or equal to 0')
         expect(validator.call(item, '101')).to include('must be less than or equal to 100')
+      end
+    end
+
+    context 'with null bounds' do
+      let(:item) do
+        config_to_item(
+          {
+            type: 'CURRENCY',
+            bounds: [
+              { type: 'MAX', value_number: nil, severity: 'error' },
+            ],
+          },
+        )
+      end
+
+      it 'passes validation' do
+        expect(validator.call(item, '50')).to be_empty
       end
     end
   end
