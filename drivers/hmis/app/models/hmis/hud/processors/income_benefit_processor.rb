@@ -66,7 +66,6 @@ module Hmis::Hud::Processors
         else
           # The frontend input is not expected to send numeric values here
           Sentry.capture_message("Unexpected value \"#{amount_attribute_value}\" received for #{amount_attribute_name}")
-          # the client may send non-numeric values
           bool_attribute_value = 0
         end
       when 'NO'
