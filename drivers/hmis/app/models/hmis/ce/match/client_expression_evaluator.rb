@@ -1,6 +1,6 @@
 require 'dentaku'
 
-module Hmis::Ce::ClientMatch
+module Hmis::Ce::Match
   class ClientExpressionEvaluator
     attr_reader :expression, :field_map
     def initialize(expression, field_map)

@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe Hmis::Ce::ClientMatch::Engine, type: :model do
+RSpec.describe Hmis::Ce::Match::Engine, type: :model do
   let(:user) { create(:hmis_user) }
   let(:opportunity) { create(:hmis_ce_opportunity, workflow_template: template) }
   let(:instance) { opportunity.workflow_template.instances.create! }
@@ -15,7 +15,7 @@ RSpec.describe Hmis::Ce::ClientMatch::Engine, type: :model do
   # override in tests
   let(:eligibility_requirements) { nil }
   let(:prioritization_formula) { nil }
-  let(:policy) { create(:hmis_ce_client_match_policy, eligibility_requirements: eligibility_requirements, prioritization_formula: prioritization_formula) }
+  let(:policy) { create(:hmis_ce_match_policy, eligibility_requirements: eligibility_requirements, prioritization_formula: prioritization_formula) }
 
   let(:clients) do
     Hmis::Hud::Client.where(id: [

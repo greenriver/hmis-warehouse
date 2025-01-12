@@ -5,7 +5,7 @@ module Hmis::Ce
     include AASM
 
     belongs_to :project, class_name: 'Hmis::Hud::Project'
-    belongs_to :client_match_policy, class_name: 'Hmis::Ce::ClientMatch::Policy', optional: true
+    belongs_to :match_policy, class_name: 'Hmis::Ce::Match::Policy', optional: true
     belongs_to :workflow_template,
                -> { published },
                foreign_key: 'workflow_template_identifier',
@@ -41,7 +41,7 @@ module Hmis::Ce
 
     # Which opportunities are available for a given client
     scope :for_client, ->(client) {
-      eligible_policy_ids = client.ce_client_match_candidates.select(:match_policy_id)
+      eligible_policy_ids = client.ce_match_candidates.select(:match_policy_id)
       scope = self.open.where(match_policy_id: eligible_policy_ids)
 
       exclude_ids = []

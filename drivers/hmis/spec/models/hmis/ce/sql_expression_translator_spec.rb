@@ -1,5 +1,5 @@
-RSpec.describe Hmis::Ce::ClientMatch::SqlExpressionTranslator do
-  let(:field_map) { Hmis::Ce::ClientMatch::FieldMap.new }
+RSpec.describe Hmis::Ce::Match::SqlExpressionTranslator do
+  let(:field_map) { Hmis::Ce::Match::FieldMap.new }
 
   describe '.call' do
     it 'handles simple comparisons' do

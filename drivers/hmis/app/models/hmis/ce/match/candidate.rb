@@ -1,8 +1,8 @@
 # an eligible, prioritized client for a given policy
-module Hmis::Ce::ClientMatch
+module Hmis::Ce::Match
   class Candidate < GrdaWarehouseBase
-    self.table_name = 'ce_client_match_candidates'
-    belongs_to :match_policy, class_name: 'Hmis::Ce::ClientMatch::Policy'
+    self.table_name = 'ce_match_candidates'
+    belongs_to :match_policy, class_name: 'Hmis::Ce::Match::Policy'
     belongs_to :client, class_name: 'Hmis::Hud::Client'
 
     # FIXME: permissions

@@ -2,7 +2,7 @@
 # * Score each client based on that policy's prioritization formula.
 # * Persist the results as MatchCandidate records to be consumed by opportunities.
 #
-module Hmis::Ce::ClientMatch
+module Hmis::Ce::Match
   class Engine
     def self.call(...)
       new.call(...)

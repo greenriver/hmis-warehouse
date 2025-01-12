@@ -1,4 +1,4 @@
-module Hmis::Ce::ClientMatch
+module Hmis::Ce::Match
   class FieldMap
     def all
       @all ||= {

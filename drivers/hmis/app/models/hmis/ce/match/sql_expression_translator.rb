@@ -3,7 +3,7 @@ require 'dentaku/visitor/infix'
 
 # Transform an expression into arel based on the arel_fields in field_map. The translation may not be exact and allows for fields, replacing them with TRUE. The intention is to serve as a first-pass filter on a large record set
 
-module Hmis::Ce::ClientMatch
+module Hmis::Ce::Match
   class SqlExpressionTranslator
     include Dentaku::Visitor::Infix
 
