@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -39,6 +39,8 @@ class Hmis::Form::NumericInputValidator
 
     item.bounds.each_with_object([]) do |bound, errors|
       next unless bound.severity == 'error'
+      # bound.value_number can be nil in the case where the bound is against a local constant or another question
+      next unless bound.value_number
 
       case bound.type
       when 'MAX'
