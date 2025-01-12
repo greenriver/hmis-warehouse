@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -51,7 +51,7 @@ module HudReports::Destinations
         ['Staying or living with friends, permanent tenure', field.eq(423)],
         ['Moved from one HOPWA funded project to HOPWA PH', field.eq(426)],
         ['Rental by client, no ongoing housing subsidy', field.eq(410)],
-        ['Rental by client, with ongoing housing subsidy', field.eq(435)],
+        ['Rental by client, with ongoing housing subsidy', field.eq(435).and(a_t[:exit_destination_subsidy_type].in(HudUtility2024.rental_subsidy_types.keys))],
         ['Owned by client, with ongoing housing subsidy', field.eq(421)],
         ['Owned by client, no ongoing housing subsidy', field.eq(411)],
         ['Subtotal', field.in([422, 423, 426, 410, 435, 421, 411])],

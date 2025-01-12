@@ -118,14 +118,42 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
             create(:warehouse_client, source: window_client, data_source: window_data_source)
             create(:client_roi_authorization, destination_client: window_client.destination_client)
           end
-          it 'grants access through window data source' do
-            expect(policy.can_view_name?).to be true
-          end
+          include_examples 'pii permission checks with access'
         end
 
         context 'without release' do
-          it 'denies access' do
-            expect(policy.can_view?).to be false
+          include_examples 'pii permission checks without access'
+
+          context 'when user has "can_view_clients" permission' do
+            let(:permissions) do
+              {
+                can_view_clients: true,
+                can_view_client_name: true,
+                can_view_full_ssn: true,
+                can_view_full_dob: false,
+              }
+            end
+            it 'has expected PII permissions' do
+              expect(policy.can_view_name?).to be true
+              expect(policy.can_view_full_ssn?).to be true
+              expect(policy.can_view_full_dob?).to be false
+            end
+          end
+
+          context 'when user has "can_search_all_clients" permission' do
+            let(:permissions) do
+              {
+                can_search_all_clients: true,
+                can_view_client_name: true,
+                can_view_full_ssn: true,
+                can_view_full_dob: false,
+              }
+            end
+            it 'has expected PII permissions' do
+              expect(policy.can_view_name?).to be true
+              expect(policy.can_view_full_ssn?).to be false
+              expect(policy.can_view_full_dob?).to be false
+            end
           end
         end
       end
@@ -135,9 +163,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
           allow(GrdaWarehouse::Config).to receive(:get).with(:window_access_requires_release).and_return(false)
         end
 
-        it 'grants access through window data source' do
-          expect(policy.can_view_name?).to be true
-        end
+        include_examples 'pii permission checks with access'
       end
     end
   end
@@ -179,9 +205,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
     context 'with window data source' do
       let(:policy) { user.policy_for(window_client) }
 
-      it 'denies access' do
-        expect(policy.can_view_name?).to be false
-      end
+      include_examples 'pii permission checks without access'
     end
   end
 end

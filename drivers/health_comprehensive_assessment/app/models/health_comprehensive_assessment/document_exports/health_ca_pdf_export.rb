@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -98,15 +98,15 @@ module HealthComprehensiveAssessment::DocumentExports
           },
         )
 
-        pdf = CombinePDF.new
-        pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(first_page_html, options: first_page_options), allow_optional_content: true)
-        pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(html, options: body_options), allow_optional_content: true)
+        pdf = []
+        pdf << PdfGenerator.merge_inline_pdfs(PdfGenerator.render_pdf(first_page_html, options: first_page_options))
+        pdf << PdfGenerator.merge_inline_pdfs(PdfGenerator.render_pdf(html, options: body_options))
 
         file_name = "#{Translation.translate('Comprehensive Assessment')} #{DateTime.current.to_fs(:db)}"
         PdfGenerator.new.perform(
           html: '',
           file_name: file_name,
-          pdf_data: pdf.to_pdf,
+          pdf_data: PdfGenerator.merge_inline_pdfs(pdf),
         ) do |io|
           self.pdf_file = io
         end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -85,6 +85,17 @@ module HmisDataCleanup
           update_all(relationship_to_hoh: 1) # skips callbacks
 
         Rails.logger.info "Set HoH in #{rows_affected} single-member households"
+      end
+    end
+
+    # Change any RelationshipToHoH values that are 99 (Data not collected) to 5 (Unrelated household member)
+    # 99 is not a valid option for RelationshipToHoH, and causes flags in the LSA. Reference issue #7127.
+    def self.fix_relationship_to_hoh_99s!
+      without_papertrail_or_timestamps do
+        rows_affected = Hmis::Hud::Enrollment.hmis.where(relationship_to_hoh: 99).
+          update_all(relationship_to_hoh: 5) # skips callbacks
+
+        Rails.logger.info "Set RelationshipToHoH 99=>5 on #{rows_affected} Enrollments"
       end
     end
 

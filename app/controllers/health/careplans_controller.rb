@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -58,7 +58,7 @@ module Health
     def show
       pdf = careplan_combine_pdf_object
       file_name = "care_plan_#{@careplan.updated_at.to_fs(:db)}"
-      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
+      send_data pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
     def edit
@@ -119,7 +119,7 @@ module Health
     def coversheet
       pdf = careplan_pdf_coversheet
       file_name = "care_plan_coversheet_#{@careplan.updated_at.to_fs(:db)}"
-      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
+      send_data pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
     def pctp
@@ -127,7 +127,7 @@ module Health
       pdf = careplan_pdf_coversheet
       pdf << careplan_pdf_pctp
       file_name = "care_plan_pctp_#{@careplan.updated_at.to_fs(:db)}"
-      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
+      send_data pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
     def form_url
