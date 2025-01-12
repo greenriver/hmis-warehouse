@@ -1,29 +1,58 @@
 class CreateCeReferrals < ActiveRecord::Migration[7.0]
   def change
-    # configuration for which clients are eligible and how they are prioritized for opportunities
-    create_table(:ce_match_policies) do |t|
-      # t.references :owner, null: false, polymorphic: true
+    create_table(:ce_match_requirements) do |t|
       t.string :name, null: false
-      # 'vispdat_score + IF(veteran_status = 1, 100, 0)'
-      t.string :prioritization_formula
-      # 'current_age > 18 AND days_homeless > 365'
-      t.string :eligibility_requirements
+      # what entity manages the requirement
+      t.references :owner, null: false, polymorphic: true
+      # what opportunities does this apply to
+      t.string :target_criteria
+      # client eligibility expression
+      t.string :expression, null: false
       t.timestamps
     end
 
-    # Candidates that are eligible and prioritized against a policy
+    create_table(:ce_match_priority_schemes) do |t|
+      t.string :name, null: false
+      # what entity manages this requirement
+      t.references :owner, null: false, polymorphic: true
+      # what opportunities does this apply to
+      t.string :target_criteria
+      # prioritization formula
+      t.string :expression, null: false
+      t.timestamps
+    end
+
+    # automatically managed candidate pools
+    create_table(:ce_match_candidate_pools) do |t|
+      t.string :requirement_expression, null: false
+      t.string :priority_expression, null: false
+      # when was this pool last updated
+      t.datetime :configuration_updated_at
+      # when were candidates last generated
+      t.datetime :candidates_generated_at
+      t.timestamps
+      t.index [:requirement_expression, :priority_expression], unique: true, name: 'index_ce_match_candidate_pools_uniq'
+    end
+
+    # TBD we probably want some kind of association between pools an requirements
+    # create_table(:ce_match_pool_requirements) do |t|
+    #   t.references :candidate_pool, null: false, foreign_key: { to_table: :ce_match_policies }, index: false
+    #   t.references :requirement, null: false, foreign_key: { to_table: :ce_match_requirements}, index: false
+    #   t.timestamps
+    # end
+
     create_table(:ce_match_candidates) do |t|
-      t.references :match_policy, null: false, foreign_key: { to_table: :ce_match_policies }, index: false
+      t.references :candidate_pool, null: false, foreign_key: { to_table: :ce_match_candidate_pools}, index: false
       t.references :client, null: false, foreign_key: { to_table: :Client }
       t.integer :priority_score, null: true
-      t.index [:match_policy_id, :client_id], unique: true, name: 'index_ce_match_candidates_uniq'
       t.timestamps
+      t.index [:candidate_pool_id, :client_id], unique: true, name: 'index_ce_match_candidates_uniq'
     end
 
     # Opportunities (vacancies or services within projects)
     create_table(:ce_opportunities) do |t|
+      t.references :candidate_pool, null: true, foreign_key: { to_table: :ce_match_candidate_pools}
       t.references :project, null: false # what project provides this opportunity?
-      t.references :match_policy, null: true, foreign_key: { to_table: :ce_match_policies }
       t.string :workflow_template_identifier, null: false # use an identifier to allow
       t.string :name, null: false
       t.string :status, null: false
