@@ -209,7 +209,7 @@ module Health
     end
 
     def face_to_face?
-      mode_of_contact.to_sym.in?(face_to_face_modes)
+      mode_of_contact&.to_sym.in?(face_to_face_modes)
     end
 
     # Return the string and the key so we can check either
