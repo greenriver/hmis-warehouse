@@ -32,7 +32,6 @@ libxext
 libxml2-dev
 libxrender
 libxslt-dev
-linux-headers
 nodejs
 npm
 nss
