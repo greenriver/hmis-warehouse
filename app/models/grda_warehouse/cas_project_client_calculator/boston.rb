@@ -144,6 +144,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :total_homeless_nights_sheltered,
         :total_homeless_nights_unsheltered,
         :date_of_first_service,
+        :psh_required,
       ]
     end
     # memoize :pathways_questions
@@ -415,6 +416,24 @@ module GrdaWarehouse::CasProjectClientCalculator
       contact_emails.compact.uniq
     end
 
+    # 0 = No PSH
+    # 1 = PSH required
+    # 2 = Either
+    # Default to either if we don't have an answer
+    # CAS uses `yes`, `no`, `maybe` strings
+    private def psh_required(client)
+      value = most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_rrh_transfer_needs_subsidized_housing_resource')&.AssessmentAnswer.to_i || 2
+      case value
+      when 0
+        'no'
+      when 1
+        'yes'
+      else
+        'maybe'
+      end
+    end
+
     private def contact_info_for_rrh_assessment(client)
       client.client_contacts.case_managers.map(&:full_address).join("\n\n")
     end
@@ -432,6 +451,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         1 => 'IdentifiedPathwaysVersionThreePathways',
         2 => 'IdentifiedPathwaysVersionThreeTransfer',
         3 => 'IdentifiedPathwaysVersionFourPathways',
+        4 => 'IdentifiedPathwaysVersionFourTransfer',
       }[value.to_i] || 'IdentifiedClientAssessment'
     end
 

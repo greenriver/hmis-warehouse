@@ -55,7 +55,7 @@ module GrdaWarehouse::Hud
     scope :transfer, -> do
       pathways_or_rrh.
         joins(:lookup).
-        merge(GrdaWarehouse::AssessmentAnswerLookup.where(response_text: 'RRH-PSH Transfer'))
+        merge(GrdaWarehouse::AssessmentAnswerLookup.where(response_text: ['RRH-PSH Transfer', 'RRH-PSH Transfer 2024']))
     end
 
     # NOTE: you probably want to join/preload :lookup
@@ -91,6 +91,7 @@ module GrdaWarehouse::Hud
       return 'Pathways 2024' if pathways_2024?
       return 'Pathways 2021' if pathways_2021?
       return 'RRH-PSH Transfer' if transfer_2021?
+      return 'RRH-PSH Transfer 2024' if transfer_2024?
 
       # unknown from assessment questions
       nil
@@ -112,6 +113,12 @@ module GrdaWarehouse::Hud
       return nil unless pathways_question?
 
       lookup&.response_text == 'RRH-PSH Transfer'
+    end
+
+    def transfer_2024?
+      return nil unless pathways_question?
+
+      lookup&.response_text == 'RRH-PSH Transfer 2024'
     end
   end
 end
