@@ -102,8 +102,10 @@ module Admin
           # The User Group data is not captured for update when using the Role-Based view. This means it will not be included
           # in the params when switching from Role-Based permissions to ACLs. In order to prevent wiping out any existing
           # user_group_id data, we need to ignore this param when changing to an ACL based permissions.
+          # The reverse is true for the access_group_ids field.
           params_to_update = user_params
           params_to_update = params_to_update.except(:user_group_ids) if changing_to_acls?
+          params_to_update = params_to_update.except(:access_group_ids) if changing_to_role_based?
           @user.update!(params_to_update)
 
           # if we have a user to copy user groups from, add them
@@ -157,6 +159,10 @@ module Admin
 
     private def changing_to_acls?
       params[:user][:permission_context] == 'acls' && @user.permission_context != params[:user][:permission_context]
+    end
+
+    private def changing_to_role_based?
+      params[:user][:permission_context] == 'role_based' && @user.permission_context != params[:user][:permission_context]
     end
 
     private def user_using_or_changing_to_acls?
