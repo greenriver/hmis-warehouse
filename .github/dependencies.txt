@@ -48,4 +48,5 @@ ttf-droid
 ttf-freefont
 ttf-liberation
 tzdata
+yaml-dev
 yarn
