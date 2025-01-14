@@ -95,6 +95,30 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       expect(hhm_e.exit).to be_nil
       expect(hoh_e.exit).to be_nil # HOH shouldn't get exited
     end
+
+    it 'should not exit any member if another member is still active' do
+      household_id = Hmis::Hud::Base.generate_uuid
+      hoh_e = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, household_id: household_id, entry_date: Date.current - 2.months
+      hhm_e = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, household_id: household_id, relationship_to_hoh: 2, entry_date: Date.current - 2.months
+
+      create :hmis_hud_service, data_source: ds1, client: c2, enrollment: hoh_e, user: u1, record_type: 200, date_provided: Date.current - 2.days
+
+      Hmis::AutoExitJob.perform_now
+
+      expect(hhm_e.exit).to be_nil
+      expect(hoh_e.exit).to be_nil
+    end
+
+    it 'should not exit any member if another member has an incomplete enrollment' do
+      household_id = Hmis::Hud::Base.generate_uuid
+      hoh_e = create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: c1, household_id: household_id, entry_date: Date.current - 2.months
+      hhm_e = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, household_id: household_id, relationship_to_hoh: 2, entry_date: Date.current - 2.months
+
+      Hmis::AutoExitJob.perform_now
+
+      expect(hhm_e.exit).to be_nil
+      expect(hoh_e.exit).to be_nil
+    end
   end
 
   describe 'for other project types (not ES NBN)' do

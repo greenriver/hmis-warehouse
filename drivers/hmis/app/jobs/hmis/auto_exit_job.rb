@@ -24,28 +24,27 @@ module Hmis
         next unless config.present?
         raise "Auto-exit config unusually low: #{config.length_of_absence_days}" if config.length_of_absence_days < 30
 
-        project.enrollments.open_excluding_wip.each do |enrollment|
-          # If this is a HoH of a multimember household, only exit them if they won't be leaving behind a headless household!
-          most_recent_contact = if enrollment.head_of_household? && enrollment.household_members.count > 1
-            # If any household member's enrollment is still in progress, don't exit the HoH
-            next if enrollment.household_members.any?(&:in_progress?)
+        project.households.each do |household|
+          # If any household member's enrollment is still in progress (no intake), don't auto-exit
+          next if household.enrollments.any?(&:in_progress?)
 
-            # Look at most recent contact across all enrollments in this household when determining whether to exit the HoH
-            enrollment.household_members.
-              map { |hhm| get_most_recent_contact(hhm, project) }.
-              max_by { |entity| contact_date_for_entity(entity) }
-          else
-            get_most_recent_contact(enrollment, project)
-          end
+          # Get the most recent contact date for the whole household
+          most_recent_contact = household.enrollments.
+            map { |hhm| get_most_recent_contact(hhm, project) }.
+            max_by { |entity| contact_date_for_entity(entity) }
 
           most_recent_contact_date = contact_date_for_entity(most_recent_contact)
           next unless most_recent_contact_date.present?
+          # If any household member has a most recent contact that's within the length_of_absence_days, don't exit anyone in the household
           next unless (Date.current - most_recent_contact_date).to_i >= config.length_of_absence_days
 
-          auto_exit_count += 1
+          auto_exit_count += household.enrollments.size
           auto_exit_projects.add(project.id)
           Hmis::Hud::Base.transaction do
-            auto_exit(enrollment, most_recent_contact)
+            # Auto-exit all household members together, setting the exit date equal to the most recent contact for any household member
+            household.enrollments.each do |e|
+              auto_exit(e, most_recent_contact)
+            end
           end
         end
       end
