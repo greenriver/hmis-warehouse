@@ -80,15 +80,13 @@ module Admin
       existing_health_roles = @user.health_roles.to_a
       begin
         User.transaction do
-          changing_to_acls = params[:user][:permission_context] == 'acls' && @user.permission_context != params[:user][:permission_context]
-          using_acls = @user.using_acls? || changing_to_acls
           @user.skip_reconfirmation!
           # Associations don't play well with acts_as_paranoid, so manually clean up user ACLs
-          @user.user_group_members.where.not(user_group_id: assigned_user_group_ids).destroy_all unless changing_to_acls
+          @user.user_group_members.where.not(user_group_id: assigned_user_group_ids).destroy_all unless changing_to_acls?
 
           # TODO: START_ACL remove when ACL transition complete
           # Associations don't play well with acts_as_paranoid, so manually clean up user roles
-          if ! using_acls
+          if ! user_using_or_changing_to_acls?
             @user.user_roles.where.not(role_id: user_params[:legacy_role_ids]&.select(&:present?)).destroy_all
             @user.access_groups.not_system.
               where.not(id: user_params[:access_group_ids]&.select(&:present?)).each do |g|
@@ -105,14 +103,14 @@ module Admin
           # in the params when switching from Role-Based permissions to ACLs. In order to prevent wiping out any existing
           # user_group_id data, we need to ignore this param when changing to an ACL based permissions.
           params_to_update = user_params
-          params_to_update = params_to_update.except(:user_group_ids) if changing_to_acls
+          params_to_update = params_to_update.except(:user_group_ids) if changing_to_acls?
           @user.update!(params_to_update)
 
           # if we have a user to copy user groups from, add them
-          copy_user_groups if using_acls
+          copy_user_groups if user_using_or_changing_to_acls?
           # TODO: START_ACL remove when ACL transition complete
           # Restore any health roles we previously had
-          if ! using_acls
+          if ! user_using_or_changing_to_acls?
             @user.legacy_roles = (@user.legacy_roles + existing_health_roles).uniq
             @user.set_viewables viewable_params
           end
@@ -155,6 +153,14 @@ module Admin
 
     def title_for_index
       'User List'
+    end
+
+    private def changing_to_acls?
+      params[:user][:permission_context] == 'acls' && @user.permission_context != params[:user][:permission_context]
+    end
+
+    private def user_using_or_changing_to_acls?
+      @user.using_acls? || changing_to_acls?
     end
 
     private def adding_admin?
