@@ -48,7 +48,7 @@ RSpec.describe Admin::UsersController, type: :request do
       end
     end
 
-    context 'when updating user to ACLs' do
+    context 'when updating user from Role-Based to ACLs' do
       let!(:legacy_user) { create :user }
       let!(:user_group)  { create :user_group }
 
@@ -57,10 +57,30 @@ RSpec.describe Admin::UsersController, type: :request do
         # Ensure the orignal user is using role-based permissions and is assigned the user group
         expect(legacy_user.permission_context).to eq('role_based')
         expect(legacy_user.user_group_ids).to eq([user_group.id])
+        # The Role-Based user edit form does not include a field for user_group_ids. As a result, it will
+        # not be included in the parameters sent when switching from Role-Based permissions to ACLs
         patch admin_user_path(legacy_user), params: { user: { permission_context: 'acls' } }
         # Ensure the updated user is using ACLs and is still assigned the user group
         expect(legacy_user.reload.permission_context).to eq('acls')
         expect(legacy_user.reload.user_group_ids).to eq([user_group.id])
+      end
+    end
+
+    context 'when updating user from ACLs to Role-Based' do
+      let!(:acl_user)   { create(:acl_user) }
+      let!(:user_group) { create :user_group }
+
+      it 'updated user keeps assigned user groups' do
+        user_group.add(acl_user)
+        # Ensure the orignal user is using role-based permissions and is assigned the user group
+        expect(acl_user.permission_context).to eq('acls')
+        expect(acl_user.user_group_ids).to eq([user_group.id])
+        # The ACL user edit form includes a field for user_group_ids. As a result, it will be
+        # included in the parameters sent when switching from ACLs to Role-Based permissions
+        patch admin_user_path(acl_user), params: { user: { permission_context: 'role_based', user_group_ids: [user_group.id] } }
+        # Ensure the updated user is using ACLs and is still assigned the user group
+        expect(acl_user.reload.permission_context).to eq('role_based')
+        expect(acl_user.reload.user_group_ids).to eq([user_group.id])
       end
     end
   end
