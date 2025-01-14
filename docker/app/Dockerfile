@@ -70,7 +70,6 @@ RUN apk update \
   git \
   bash \
   musl-dev \
-  linux-headers \
   freetds-dev \
   icu icu-dev \
   curl libcurl curl-dev \
