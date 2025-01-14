@@ -32,7 +32,6 @@ libxext
 libxml2-dev
 libxrender
 libxslt-dev
-libyaml-dev
 linux-headers
 nodejs
 npm
@@ -50,4 +49,5 @@ ttf-droid
 ttf-freefont
 ttf-liberation
 tzdata
+yaml-dev
 yarn
