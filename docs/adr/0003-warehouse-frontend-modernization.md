@@ -37,17 +37,18 @@ Proposed multi-tiered approach to frontend modernization:
    - Compatible with many existing Bootstrap 4.x patterns
    - Migration will involve auditing and updating existing templates and custom styles, particularly where Bootstrap 4.x-specific classes are used.
 
-2. **Implement View Components** for common UI patterns
-   - Create reusable components for menus, tables, other common UI elements
-   - Focus on high-value, frequently used components first
-   - Standardize and document these components as preferred patterns
-   - Gradually adopt these components during feature development
-   - Create generic wrappers for Bootstrap components to ease future component lib updates
+2. **Explore Modular UI Patterns** for improved maintainability
+   - Identify high-value UI patterns that would benefit most from componentization
+   - Build targeted spikes to evaluate different implementation approaches (e.g., ViewComponents, partials with helpers, etc.)
+   - Focus initial efforts on frequently used UI elements with high maintenance cost
+   - Create proof-of-concept implementations for 2-3 critical patterns to validate approach
+   - Document findings and recommendations for broader adoption
+   - If successful, develop migration strategy for gradual implementation
+   - Consider compatibility with Bootstrap, SimpleForm and future UI framework updates
 
-3. **Standardize on Stimulus for JS Custom Behaviors**
-   - Continue to standardize on Stimulus for organizing component-specific JavaScript
-   - Ensure stimulus is upgraded to the most recent major version
-   - Integrate Stimulus with Turbo and view components
+3. **Investigate Standardizing on Stimulus for JS Custom Behaviors**
+   - Standardize on an approach for component-specific JavaScript
+   - Ensure approach integrates with Turbo and view components
    - Continue using jQuery where it makes sense (DOM manipulation, AJAX, Bootstrap integration)
 
 4. **CSS Architecture Strategy**
