@@ -92,18 +92,18 @@ class AccessControl < ApplicationRecord
 
   # If all entities are system entities, this is a system Access Control
   def system?
-    [user_group.system?, role.system?, collection.system?].all?
+    [user_group&.system?, role&.system?, collection&.system?].all?
   end
 
   def name
-    "#{role.name} x #{collection.name} x #{user_group.name}"
+    "#{role&.name || 'missing role'} x #{collection&.name || 'missing collection'} x #{user_group&.name || 'missing user group'}"
   end
 
   def name_as_html
     name_parts = [
-      content_tag(:span, role.name, class: 'badge badge-info font-weight-normal'),
-      content_tag(:span, collection.name, class: 'badge badge-info font-weight-normal'),
-      content_tag(:span, user_group.name, class: 'badge badge-info font-weight-normal'),
+      content_tag(:span, role&.name, class: 'badge badge-info font-weight-normal'),
+      content_tag(:span, collection&.name, class: 'badge badge-info font-weight-normal'),
+      content_tag(:span, user_group&.name, class: 'badge badge-info font-weight-normal'),
     ]
 
     content_tag(
@@ -126,8 +126,8 @@ class AccessControl < ApplicationRecord
       end
 
       scope.ordered.each do |control|
-        options[control.role.name] ||= []
-        options[control.role.name] << [control.name, control.id]
+        options[control.role&.name] ||= []
+        options[control.role&.name] << [control.name, control.id]
       end
     end
   end
