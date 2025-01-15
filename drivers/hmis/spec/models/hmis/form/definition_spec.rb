@@ -232,4 +232,44 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       expect { fd1.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
     end
   end
+
+  describe 'supports_save_in_progress' do
+    it 'returns false for non-assessments' do
+      fd = create :hmis_form_definition, role: :SERVICE
+      expect(fd.supports_save_in_progress?).to be false
+    end
+
+    it 'returns false if it contains an item type of FILE' do
+      fd = create :hmis_form_definition, role: :CUSTOM_ASSESSMENT, append_items: [
+        {
+          'type': 'FILE',
+          'link_id': 'file_blob_id',
+          'text': 'Attachment',
+          'mapping': {
+            'field_name': 'fileBlobId',
+          },
+        },
+      ]
+      expect(fd.supports_save_in_progress?).to be false
+    end
+
+    it 'returns false if it contains an item type of IMAGE' do
+      fd = create :hmis_form_definition, role: :CUSTOM_ASSESSMENT, append_items: [
+        {
+          'type': 'IMAGE',
+          'link_id': 'photo',
+          'text': 'Photo',
+          'mapping': {
+            'field_name': 'photo',
+          },
+        },
+      ]
+      expect(fd.supports_save_in_progress?).to be false
+    end
+
+    it 'returns true for assessments that do not have any FILE or IMAGE items' do
+      fd = create :hmis_form_definition, role: :CUSTOM_ASSESSMENT
+      expect(fd.supports_save_in_progress?).to be true
+    end
+  end
 end

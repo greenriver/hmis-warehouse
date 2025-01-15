@@ -49,6 +49,7 @@ module Talentlms
     # @return [String] email address to be used for generated users in TalentLMS
     def lms_email
       return @user.talent_lms_email if @user.talent_lms_email.present?
+      return @user.email if @user.email.present? && GrdaWarehouse::Config.get(:default_lms_email_to_warehouse_email)
 
       "#{lms_username}@#{ENV['FQDN']}"
     end
@@ -82,12 +83,12 @@ module Talentlms
       api_data.present?
     end
 
-    # Syncronize the user's local data with taht found in the config (subdomain)
+    # Get the account data for the user from the API
     #
     # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account will be synced with the local data
     # @param login [Integer] Nullable ID for the Login record that contains local information about the user we are syncronizing.
     # @return [JSON] Account data returned from the API, nil if no account data is available
-    def sync_lms_account(api, login)
+    def get_lms_account_data(api, login)
       username = lms_username
       email_address = lms_email
 
@@ -99,6 +100,17 @@ module Talentlms
       # Talent does not have a record associated with this email address, check the default username. If we generated an
       # account for this user prior to allowing emails to be set, we should be able to find it this way.
       result ||= lms_find_user_by_username(api, username)
+
+      result
+    end
+
+    # Syncronize the user's local data with taht found in the config (subdomain)
+    #
+    # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account will be synced with the local data
+    # @param login [Integer] Nullable ID for the Login record that contains local information about the user we are syncronizing.
+    # @return [JSON] Account data returned from the API, nil if no account data is available or account is inactive
+    def sync_lms_account(api, login)
+      result = get_lms_account_data(api, login)
       # Talent does not have a record associated with this user, create an account for them.
       result ||= create_account(api)
 
@@ -115,8 +127,23 @@ module Talentlms
         # With this saved, out local data will be synced with that in Talent for this user.
         create_or_update_local_login(api, result) if result.present?
       end
+      # Return nil when the user is not active. This will have the interface work as if the user was not found
+      # and could not be created (e.g. force a redirect to the captive portal)
+      return nil unless active_user?(api, login, result)
 
       result
+    end
+
+    # Return whether or not a user is active in a config
+    #
+    # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account will be synced with the local data
+    # @param login [Integer] Nullable ID for the Login record that contains local information about the user we are syncronizing.
+    # @param api_resonse [JSON] include JSON data here to bypass API lookup. Including this data will prevent additional API calls.
+    # @return [JSON] Account data returned from the API, nil if no account data is available or account is inactive
+    def active_user?(api, login = nil, api_response = nil)
+      login = Login.find_by(config: api, user: @user) unless login.present?
+      api_response = get_lms_account_data(api, login) unless api_response.present?
+      api_response.present? && api_response['status'].downcase == 'active'
     end
 
     # Set the locally stored data for an lmls account
@@ -310,6 +337,10 @@ module Talentlms
       @courses.each do |course|
         training_required << training_required?(course.config, course.courseid)
       end
+
+      # No training is required if there are no training courses required of this user.
+      # This can occur when all courses (default or assigned) are inactive.
+      return false if training_required.empty?
 
       # If a number of courses required to be completed is set, use that, otherwise, all courses are required to be completed.
       # IF number_courses_required is -1, all courses are required

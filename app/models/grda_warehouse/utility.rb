@@ -195,6 +195,7 @@ class GrdaWarehouse::Utility
 
   def self.modifier(model)
     cascade_models = [
+      GrdaWarehouse::File,
       GrdaWarehouse::DataSource,
       GrdaWarehouse::Hud::Client,
       GrdaWarehouse::Hud::Project,

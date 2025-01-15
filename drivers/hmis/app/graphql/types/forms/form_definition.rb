@@ -29,6 +29,7 @@ module Types
     field :role, Types::Forms::Enums::FormRole, null: false
     field :title, String, null: false
     field :version, ID, null: false
+    field :supports_save_in_progress, Boolean, null: false
     field :definition, Forms::FormDefinitionJson, null: false
     field :raw_definition, JsonObject, null: false
     field :system, Boolean, null: false
@@ -116,6 +117,10 @@ module Types
 
     def updated_by
       load_last_user_from_versions(object)
+    end
+
+    def supports_save_in_progress
+      object.supports_save_in_progress?
     end
 
     protected

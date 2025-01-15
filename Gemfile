@@ -175,7 +175,7 @@ gem 'rubyXL', require: false
 gem 'soundex', require: false # for HMIS 6.11 + exports that use SHA-256 of soundex
 
 # PDF Exports
-gem 'combine_pdf'
+gem 'pdfunite'
 gem 'grover'
 
 gem 'whenever', require: false

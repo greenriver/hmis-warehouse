@@ -17,6 +17,9 @@ module Mutations
       assessment, errors = input.find_or_create_assessment
       return { errors: errors } if errors.any?
 
+      # frontend hides the button if it's not supported, so this is a second layer of security
+      raise "Save and finish later is not supported for this assessment. Definition #{assessment.definition.id}" unless assessment.definition.supports_save_in_progress?
+
       # Update values
       assessment.lock_version = assessment_lock_version if assessment_lock_version
       assessment.form_processor.assign_attributes(

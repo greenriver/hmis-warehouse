@@ -22,7 +22,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   # Related records that were created/updated from this form
   # Note: these do not have dependent:destroy because we need to be able to clean up forms without
-  # deleting records during migration. Deletion of related records happens with `destroy_dependent_records!`
+  # deleting records during migration. Deletion of related records happens with `destroy_related_records!`
   belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true, autosave: true
   belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true, autosave: true
   belongs_to :physical_disability, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
@@ -224,7 +224,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       # (rather than in ensure_id validation hook) so that it gets set
       # correctly as the Enrollment.personal_id too.
       owner.client || owner.build_client(personal_id: Hmis::Hud::Base.generate_uuid)
-    when Hmis::Hud::CustomAssessment
+    when Hmis::Hud::CustomAssessment, Hmis::Hud::CurrentLivingSituation
       # An assessment can modify the client that it's associated with
       owner.client
     when HmisExternalApis::ExternalForms::FormSubmission
@@ -387,6 +387,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       HealthAndDv: Hmis::Hud::Processors::HealthAndDvProcessor,
       IncomeBenefit: Hmis::Hud::Processors::IncomeBenefitProcessor,
       Exit: Hmis::Hud::Processors::ExitProcessor,
+      Geolocation: Hmis::Hud::Processors::GeolocationProcessor,
       # Form Records
       Client: Hmis::Hud::Processors::ClientProcessor,
       Service: Hmis::Hud::Processors::ServiceProcessor,
@@ -410,7 +411,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
       # External forms
       FormSubmission: Hmis::Hud::Processors::ExternalFormSubmissionProcessor,
-      Geolocation: Hmis::Hud::Processors::GeolocationProcessor,
     }.freeze
   end
 
@@ -474,6 +474,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       :current_living_situation,
       :ce_assessment,
       :ce_event,
+      :clh_location,
     ].each { |assoc| send(assoc)&.destroy! }.compact
   end
 
