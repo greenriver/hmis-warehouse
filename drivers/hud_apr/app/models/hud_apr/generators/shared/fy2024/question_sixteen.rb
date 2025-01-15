@@ -82,7 +82,7 @@ module HudApr::Generators::Shared::Fy2024
       not_collected = not_collected.and(a_t[:annual_assessment_in_window].eq(true)) if suffix == :annual_assessment
       {
         'No Income' => a_t["income_total_at_#{suffix}".to_sym].eq(0).and(a_t["income_from_any_source_at_#{suffix}".to_sym].in([1, 0])),
-        '$1 - $150' => a_t["income_total_at_#{suffix}".to_sym].between(1..150),
+        '$1 - $150' => a_t["income_total_at_#{suffix}".to_sym].gt(0).and(a_t["income_total_at_#{suffix}".to_sym].lteq(150)), # account for income of $0.01
         '$151 - $250' => a_t["income_total_at_#{suffix}".to_sym].between(151..250),
         '$251 - $500' => a_t["income_total_at_#{suffix}".to_sym].between(251..500),
         '$501 - $1,000' => a_t["income_total_at_#{suffix}".to_sym].between(501..1_000),
