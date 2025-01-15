@@ -29,13 +29,13 @@ module AllNeighborsSystemDashboard
           name: 'Housing Placements',
           display_method: :number_with_delimiter,
         },
-        {
-          id: 'days_to_obtain_housing',
-          icon: 'icon-house',
-          value: average_days_to_obtain_housing.round.abs,
-          name: 'Average Number of Days Between Referral and Housing Move-in',
-          display_method: :number_with_delimiter,
-        },
+        # {
+        #   id: 'days_to_obtain_housing',
+        #   icon: 'icon-house',
+        #   value: average_days_to_obtain_housing.round.abs,
+        #   name: 'Average Number of Days Between Referral and Housing Move-in',
+        #   display_method: :number_with_delimiter,
+        # },
         {
           id: 'no_return',
           icon: 'icon-clip-board-check',
