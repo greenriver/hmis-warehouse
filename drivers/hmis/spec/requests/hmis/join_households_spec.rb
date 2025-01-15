@@ -81,23 +81,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       and change(joining_e2, :household_id).to(receiving_enrollment.household_id)
   end
 
-  context 'when the joining enrollment entry date is before the receiving hoh entry date' do
-    let!(:joining_e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 4.weeks.ago, relationship_to_hoh: 2, household_id: remaining_household_id }
-
-    it 'should update the joining enrollment' do
-      expect do
-        joining_enrollment_inputs = [
-          {
-            enrollment_id: joining_e2.id,
-            relationship_to_hoh: 'CHILD',
-          },
-        ]
-        perform_mutation(receiving_enrollment.household_id, joining_enrollment_inputs)
-        joining_e2.reload
-      end.to change(joining_e2, :entry_date).to(receiving_enrollment.entry_date)
-    end
-  end
-
   it 'fails when the given household ID is invalid' do
     input = {
       receiving_household_id: 'fake-household',

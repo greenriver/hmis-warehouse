@@ -46,8 +46,6 @@ module Mutations
           enrollment.update!(
             household_id: receiving_household_id,
             relationship_to_hoh: map_enrollment_id_to_relationship[enrollment.id],
-            # If the joining member's entry date is earlier than the HoH's entry date, update it to the HoH's entry date
-            entry_date: [receiving_hoh.entry_date, enrollment.entry_date].max,
           )
         end
 
