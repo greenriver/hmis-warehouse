@@ -79,15 +79,25 @@ module HudApr::Generators::Shared::Fy2024
         )
 
       # for annual assessments, only count as missing if the annual assessment actually happened
+      # Following DataLab APR sample code for which values go in which categories
+      # https://github.com/HUD-Data-Lab/DataLab/blob/bed28f9bde1bff1efd53a7a166d141f40526cdf8/datalab_functions.R#L224-L231
+      # calculated_total_income == 0 ~ "No Income",
+      # calculated_total_income <= 150 ~ "$1 - $150",
+      # calculated_total_income <= 250 ~ "$151 - $250",
+      # calculated_total_income <= 500 ~ "$251 - $500",
+      # calculated_total_income <= 1000 ~ "$501 - $1,000",
+      # calculated_total_income <= 1500 ~ "$1,001 - $1,500",
+      # calculated_total_income <= 2000 ~ "$1,501 - $2,000",
+      # TRUE ~ "$2,001+"))
       not_collected = not_collected.and(a_t[:annual_assessment_in_window].eq(true)) if suffix == :annual_assessment
       {
         'No Income' => a_t["income_total_at_#{suffix}".to_sym].eq(0).and(a_t["income_from_any_source_at_#{suffix}".to_sym].in([1, 0])),
-        '$1 - $150' => a_t["income_total_at_#{suffix}".to_sym].between(1..150),
-        '$151 - $250' => a_t["income_total_at_#{suffix}".to_sym].between(151..250),
-        '$251 - $500' => a_t["income_total_at_#{suffix}".to_sym].between(251..500),
-        '$501 - $1,000' => a_t["income_total_at_#{suffix}".to_sym].between(501..1_000),
-        '$1,001 - $1,500' => a_t["income_total_at_#{suffix}".to_sym].between(1_001..1_500),
-        '$1,501 - $2,000' => a_t["income_total_at_#{suffix}".to_sym].between(1_501..2_000),
+        '$1 - $150' => a_t["income_total_at_#{suffix}".to_sym].gt(0).and(a_t["income_total_at_#{suffix}".to_sym].lteq(150)), # account for income of $0.01
+        '$151 - $250' => a_t["income_total_at_#{suffix}".to_sym].gt(150).and(a_t["income_total_at_#{suffix}".to_sym].lteq(250)),
+        '$251 - $500' => a_t["income_total_at_#{suffix}".to_sym].gt(250).and(a_t["income_total_at_#{suffix}".to_sym].lteq(500)),
+        '$501 - $1,000' => a_t["income_total_at_#{suffix}".to_sym].gt(500).and(a_t["income_total_at_#{suffix}".to_sym].lteq(1_000)),
+        '$1,001 - $1,500' => a_t["income_total_at_#{suffix}".to_sym].gt(1_000).and(a_t["income_total_at_#{suffix}".to_sym].lteq(1_500)),
+        '$1,501 - $2,000' => a_t["income_total_at_#{suffix}".to_sym].gt(1_500).and(a_t["income_total_at_#{suffix}".to_sym].lteq(2_000)),
         '$2,001+' => a_t["income_total_at_#{suffix}".to_sym].gt(2_000),
         label_for(:dkptr) => a_t["income_total_at_#{suffix}".to_sym].eq(nil).
           and(a_t["income_from_any_source_at_#{suffix}".to_sym].in([8, 9])),
