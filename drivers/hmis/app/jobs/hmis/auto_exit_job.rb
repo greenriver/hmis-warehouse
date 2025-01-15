@@ -24,10 +24,7 @@ module Hmis
         next unless config.present?
         raise "Auto-exit config unusually low: #{config.length_of_absence_days}" if config.length_of_absence_days < 30
 
-        project.households.each do |household|
-          # If any household member's enrollment is still in progress (no intake), don't auto-exit
-          next if household.enrollments.any?(&:in_progress?)
-
+        project.households.active.not_in_progress.preload(:enrollments).each do |household|
           # Get the most recent contact date for the whole household
           most_recent_contact = household.enrollments.
             map { |hhm| get_most_recent_contact(hhm, project) }.

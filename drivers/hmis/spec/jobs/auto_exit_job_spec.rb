@@ -69,55 +69,54 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       expect(e1.exit_assessment&.data_collection_stage).to eq(3)
     end
 
-    let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
+    context 'with a multi member household' do
+      let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
+      let!(:household_id) { Hmis::Hud::Base.generate_uuid }
+      let!(:hoh_e) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, household_id: household_id, entry_date: Date.current - 2.months }
+      let!(:hhm_e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, household_id: household_id, relationship_to_hoh: 2, entry_date: Date.current - 2.months }
+      let!(:hhm_e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, household_id: household_id, relationship_to_hoh: 2, entry_date: Date.current - 2.months }
 
-    it 'should not exit the HoH if household members are still active' do
-      household_id = Hmis::Hud::Base.generate_uuid
-      hoh_e = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, household_id: household_id, entry_date: Date.current - 2.months
-      hhm_e = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, household_id: household_id, relationship_to_hoh: 2, entry_date: Date.current - 2.months
+      def expect_all_active
+        hoh_e.household_members.each do |member|
+          expect(member.exit).to be_nil
+        end
+      end
 
-      # non-hoh has a recent bed night and won't get auto-exited
-      create :hmis_hud_service, data_source: ds1, client: c2, enrollment: hhm_e, user: u1, record_type: 200, date_provided: Date.current - 2.days
+      context 'when a household member has a recent contact' do
+        let!(:hhm_service) { create :hmis_hud_service, data_source: ds1, client: c2, enrollment: hhm_e1, user: u1, record_type: 200, date_provided: Date.current - 2.days }
 
-      Hmis::AutoExitJob.perform_now
+        it 'should not exit the HoH or other members' do
+          Hmis::AutoExitJob.perform_now
+          expect_all_active
+        end
+      end
 
-      expect(hhm_e.exit).to be_nil
-      expect(hoh_e.exit).to be_nil # HOH shouldn't get exited
-    end
+      context 'when there is a WIP enrollment in the household' do
+        let!(:hhm_e1) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: c2, household_id: household_id, relationship_to_hoh: 2, entry_date: Date.current - 2.months }
 
-    it 'should not exit the HoH if household members have incomplete enrollments' do
-      household_id = Hmis::Hud::Base.generate_uuid
-      hoh_e = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, household_id: household_id, entry_date: Date.current - 2.months
-      hhm_e = create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: c2, household_id: household_id, relationship_to_hoh: 2, entry_date: Date.current - 2.months
+        it 'should not exit the HoH or any household member' do
+          Hmis::AutoExitJob.perform_now
+          expect_all_active
+        end
+      end
 
-      Hmis::AutoExitJob.perform_now
+      context 'when the HoH has a recent contact' do
+        let!(:hoh_service) { create :hmis_hud_service, data_source: ds1, client: c2, enrollment: hoh_e, user: u1, record_type: 200, date_provided: Date.current - 2.days }
 
-      expect(hhm_e.exit).to be_nil
-      expect(hoh_e.exit).to be_nil # HOH shouldn't get exited
-    end
+        it 'should not exit the HoH or any household member' do
+          Hmis::AutoExitJob.perform_now
+          expect_all_active
+        end
+      end
 
-    it 'should not exit any member if another member is still active' do
-      household_id = Hmis::Hud::Base.generate_uuid
-      hoh_e = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, household_id: household_id, entry_date: Date.current - 2.months
-      hhm_e = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, household_id: household_id, relationship_to_hoh: 2, entry_date: Date.current - 2.months
+      context 'when the HoH has an incomplete enrollment' do
+        let!(:hoh_e) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: c2, household_id: household_id, entry_date: Date.current - 2.months }
 
-      create :hmis_hud_service, data_source: ds1, client: c2, enrollment: hoh_e, user: u1, record_type: 200, date_provided: Date.current - 2.days
-
-      Hmis::AutoExitJob.perform_now
-
-      expect(hhm_e.exit).to be_nil
-      expect(hoh_e.exit).to be_nil
-    end
-
-    it 'should not exit any member if another member has an incomplete enrollment' do
-      household_id = Hmis::Hud::Base.generate_uuid
-      hoh_e = create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: c1, household_id: household_id, entry_date: Date.current - 2.months
-      hhm_e = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, household_id: household_id, relationship_to_hoh: 2, entry_date: Date.current - 2.months
-
-      Hmis::AutoExitJob.perform_now
-
-      expect(hhm_e.exit).to be_nil
-      expect(hoh_e.exit).to be_nil
+        it 'should not exit any member if another member has an incomplete enrollment' do
+          Hmis::AutoExitJob.perform_now
+          expect_all_active
+        end
+      end
     end
   end
 
