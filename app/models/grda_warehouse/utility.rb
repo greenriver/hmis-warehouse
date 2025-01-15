@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -107,11 +107,11 @@ class GrdaWarehouse::Utility
     tables << HudPathReport::Fy2020::PathClient if RailsDrivers.loaded.include?(:hud_path_report)
     if RailsDrivers.loaded.include?(:hud_spm_report)
       tables << HudSpmReport::Fy2020::SpmClient
-      tables << HudSpmReport::Fy2023::SpmEnrollment
-      tables << HudSpmReport::Fy2023::Episode
-      tables << HudSpmReport::Fy2023::BedNight
-      tables << HudSpmReport::Fy2023::EnrollmentLink
-      tables << HudSpmReport::Fy2023::Return
+      tables << HudSpmReport::Fy2024::SpmEnrollment
+      tables << HudSpmReport::Fy2024::Episode
+      tables << HudSpmReport::Fy2024::BedNight
+      tables << HudSpmReport::Fy2024::EnrollmentLink
+      tables << HudSpmReport::Fy2024::Return
     end
 
     if RailsDrivers.loaded.include?(:hud_data_quality_report)

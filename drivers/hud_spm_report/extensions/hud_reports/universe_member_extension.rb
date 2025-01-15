@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,9 +22,9 @@ module HudSpmReport::HudReports
       belongs_to(
         :enrollment,
         -> do
-          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2023::SpmEnrollment'))
+          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2024::SpmEnrollment'))
         end,
-        class_name: 'HudSpmReport::Fy2023::SpmEnrollment',
+        class_name: 'HudSpmReport::Fy2024::SpmEnrollment',
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
         optional: true,
@@ -32,9 +32,9 @@ module HudSpmReport::HudReports
       belongs_to(
         :return,
         -> do
-          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2023::Return'))
+          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2024::Return'))
         end,
-        class_name: 'HudSpmReport::Fy2023::Return',
+        class_name: 'HudSpmReport::Fy2024::Return',
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
         optional: true,

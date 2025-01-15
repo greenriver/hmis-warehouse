@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,7 +19,7 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       setup
       puts "Setup Done for SPM Data Lab TestKit #{Time.current}"
       # run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys.grep(/Measure 2/))
-      run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys)
+      run(default_spm_filter, HudSpmReport::Generators::Fy2024::Generator.questions.keys)
       puts "Finished SPM Run Data Lab TestKit #{Time.current}"
     end
 
