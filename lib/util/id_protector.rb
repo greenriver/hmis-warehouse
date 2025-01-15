@@ -15,10 +15,16 @@ class IdProtector
     Rails.application.routes.router.recognize(request) do |route, params|
       decoded_key = false
       params.each do |key, value|
-        if key == :id || key.to_s.ends_with?('_id')
+        next unless key == :id || key.to_s.ends_with?('_id')
+
+        begin
           params[key] = ProtectedId::Encoder.decode(value)
-          decoded_key = true if value != params[key]
+        rescue OpenSSL::Cipher::CipherError => e
+          # Suppress Cipher Errors so the response is handled by the controller as an unfound id.
+          # Still capture the error in Sentry.
+          Sentry.capture_exception(e)
         end
+        decoded_key = true if value != params[key]
       end
       if decoded_key
         env['PATH_INFO'] = route.format(params)
