@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,7 +9,7 @@ module HudSpmReport::HudReports
     extend ActiveSupport::Concern
 
     included do
-      has_many :spm_enrollments, class_name: 'HudSpmReport::Fy2023::SpmEnrollment'
+      has_many :spm_enrollments, class_name: 'HudSpmReport::Fy2024::SpmEnrollment'
     end
   end
 end
