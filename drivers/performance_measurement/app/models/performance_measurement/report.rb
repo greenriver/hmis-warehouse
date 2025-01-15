@@ -275,11 +275,11 @@ module PerformanceMeasurement
 
     private def spm_enrollments_from_answer_member(member)
       case member
-      when HudSpmReport::Fy2023::SpmEnrollment
+      when HudSpmReport::Fy2023::SpmEnrollment, HudSpmReport::Fy2024::SpmEnrollment
         [member]
-      when HudSpmReport::Fy2023::Episode
+      when HudSpmReport::Fy2023::Episode, HudSpmReport::Fy2024::Episode
         member.enrollments
-      when HudSpmReport::Fy2023::Return
+      when HudSpmReport::Fy2023::Return, HudSpmReport::Fy2024::Return
         [member.exit_enrollment]
       else
         raise "unknown type #{member.class.name}"
@@ -1063,11 +1063,11 @@ module PerformanceMeasurement
     end
 
     def spm_fields
-      default_calculation = ->(spm_enrollment) { spm_enrollment.present? }
-      days_homeless_calculation = ->(spm_episode) { spm_episode.days_homeless }
-      destination_calculation = ->(spm_enrollment) { spm_enrollment.destination }
-      days_to_return_calculation = ->(spm_return) { spm_return.days_to_return }
-      exit_destination_calculation = ->(spm_return) { spm_return.exit_destination }
+      default_calculation = lambda(&:present?)
+      days_homeless_calculation = lambda(&:days_homeless)
+      destination_calculation = lambda(&:destination)
+      days_to_return_calculation = lambda(&:days_to_return)
+      exit_destination_calculation = lambda(&:exit_destination)
       increased_non_employment_income_calculation = ->(spm_enrollment) {
         spm_enrollment.current_non_employment_income.to_f > spm_enrollment.previous_non_employment_income.to_f
       }

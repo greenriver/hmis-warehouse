@@ -69,6 +69,7 @@ RUN apk update \
   tzdata \
   git \
   bash \
+  linux-headers \
   freetds-dev \
   icu icu-dev \
   curl libcurl curl-dev \
