@@ -35,6 +35,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   has_many :non_hmis_uploads
 
   has_one :hmis_import_config
+  has_one :import_threshold
 
   accepts_nested_attributes_for :organizations
   accepts_nested_attributes_for :projects

@@ -610,6 +610,9 @@ Rails.application.routes.draw do
     resource :hmis_import_config do
       get :download
     end
+    resource :import_threshold, only: [:show, :update] do
+      resources :notification_configurations
+    end
   end
   resources :ad_hoc_data_sources do
     resources :uploads, except: [:edit], controller: 'ad_hoc_data_sources/uploads' do
