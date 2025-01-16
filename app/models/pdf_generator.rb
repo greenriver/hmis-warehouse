@@ -16,6 +16,10 @@ class PdfGenerator
     true
   end
 
+  def self.render_pdf(...)
+    new.render_pdf(...)
+  end
+
   def render_pdf(html, options: {})
     grover_options = {
       display_url: root_url,
@@ -68,5 +72,23 @@ class PdfGenerator
         assigns: assigns,
       )
     end
+  end
+
+  # A helper method to wrap up some weirdness of Pdfunite needing a block if the objects aren't file paths
+  # Pdfunite requires files to be merged thusly: Pdfunite.join(['path/file_1.pdf', 'path/file_2.pdf'])
+  # and inline objects to be merged thusly: Pdfunite.join([pdf_1, pdf_2]) { |pdf| pdf }
+  # If you we end up needing to do something fancy in the block, we can extend this further, but keeping the two methods
+  # will enforce some standardization
+  # @param [Array] pdf_objects An array of binary inline versions of the PDFs such as you get by reading a PDF file or
+  # calling .to_pdf on a Grover object.
+  # @return [String] string representation of a PDF object
+  def self.merge_inline_pdfs(pdf_objects)
+    Pdfunite.join(pdf_objects) { |pdf| pdf }
+  end
+
+  # @param [Array] files An array of paths to PDF files.
+  # @return [String] string representation of a PDF object
+  def self.merge_pdf_files(files)
+    Pdfunite.join(files)
   end
 end

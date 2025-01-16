@@ -35,6 +35,7 @@ libxslt-dev
 nodejs
 npm
 nss
+poppler-utils
 postgis
 postgresql
 postgresql-dev

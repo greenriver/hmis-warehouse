@@ -17,6 +17,7 @@ class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  has_one :clh_location, through: :form_processor
 
   # Trigger warehouse processing after create/update if certain fields changed.
   # This is called even if the transaction that created/updated the record is rolled back, so it could queue some unnecessary processing.

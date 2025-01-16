@@ -1,3 +1,4 @@
 = f.input :subdomain
 = f.input :api_key, label: 'API Key'
-= f.input :create_new_accounts, label: 'Allow creation of new accounts'
+= f.input :create_new_accounts, label: 'Allow creation of new accounts', hint: 'This will allow accounts to be automatically generated if they do not already exists in the LMS system.'
+= f.input :allow_automatic_redirect_to_course, label: 'Allow automatic course redirects', hint: 'When checked, users who only need to complete one course will be immediately redirected to TalentLMS upon login to the warehouse.  When unchecked or if a user needs to complete more than one course, a summary page will direct users to complete course with links to TalentLMS.'

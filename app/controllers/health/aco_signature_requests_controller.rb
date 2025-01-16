@@ -42,7 +42,7 @@ module Health
     def download_careplan
       pdf = careplan_combine_pdf_object
       file_name = 'care_plan'
-      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
+      send_data pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
     # Build and send a PCP signing request and team member based on the values submitted

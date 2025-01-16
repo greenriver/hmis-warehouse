@@ -436,7 +436,14 @@ class Hmis::Role < ::ApplicationRecord
         description: 'Grants the ability to manage public form submissions',
         administrative: false,
         access: [:editable],
-        category: 'Projects',
+        category: 'Project Access',
+        sub_category: 'Public Forms',
+      },
+      can_view_enrollment_location_map: {
+        description: 'Access to view a Location Map, which shows the locations where the client was contacted during the Enrollment.',
+        administrative: false,
+        access: [:viewable],
+        category: 'Enrollment Access',
         sub_category: 'Access',
       },
     }
