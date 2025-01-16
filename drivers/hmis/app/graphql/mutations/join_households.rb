@@ -9,7 +9,8 @@ module Mutations
     argument :receiving_household_id, ID, required: true
     argument :joining_enrollment_inputs, [Types::HmisSchema::JoiningEnrollmentInput], required: true
 
-    field :household, Types::HmisSchema::Household, null: false
+    field :receiving_household, Types::HmisSchema::Household, null: false
+    field :donor_household, Types::HmisSchema::Household, null: true # For frontend expediency, also return the donor household, if there are any remaining members
 
     def resolve(receiving_household_id:, joining_enrollment_inputs:)
       receiving_enrollments = Hmis::Hud::Enrollment.
@@ -53,7 +54,11 @@ module Mutations
       end
 
       receiving_hoh.reload
-      { household: receiving_hoh.household }
+      donor_household = remaining_enrollments.first&.household
+      {
+        receiving_household: receiving_hoh.household,
+        donor_household: donor_household,
+      }
     end
   end
 end

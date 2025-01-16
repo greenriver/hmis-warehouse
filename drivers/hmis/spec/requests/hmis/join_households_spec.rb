@@ -24,7 +24,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     <<~GRAPHQL
       mutation JoinHouseholds($input: JoinHouseholdsInput!) {
         joinHouseholds(input: $input) {
-          household {
+          receivingHousehold {
             id
             householdSize
             householdClients {
@@ -36,6 +36,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               }
             }
           }
+          donorHousehold {
+            id
+            householdSize
+          }
         }
       }
     GRAPHQL
@@ -43,9 +47,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:receiving_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago }
 
-  let!(:remaining_household_id) { Hmis::Hud::Base.generate_uuid }
-  let!(:joining_e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, household_id: remaining_household_id }
-  let!(:joining_e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, relationship_to_hoh: 2, household_id: remaining_household_id }
+  let!(:donor_household_id) { Hmis::Hud::Base.generate_uuid }
+  let!(:joining_e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, household_id: donor_household_id }
+  let!(:joining_e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, relationship_to_hoh: 2, household_id: donor_household_id }
 
   def perform_mutation(receiving_household_id, joining_enrollment_inputs)
     input = {
@@ -57,7 +61,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     response, result = post_graphql(input) { mutation }
 
     expect(response.status).to eq(200), result.inspect
-    result.dig('data', 'joinHouseholds', 'household')
+    result = result.dig('data', 'joinHouseholds')
+    return result['receivingHousehold'], result['donorHousehold']
   end
 
   it 'should successfully join households' do
@@ -72,13 +77,43 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           relationship_to_hoh: 'CHILD',
         },
       ]
-      joined_household = perform_mutation(receiving_enrollment.household_id, joining_enrollment_inputs)
+      joined_household, donor_household = perform_mutation(receiving_enrollment.household_id, joining_enrollment_inputs)
       expect(joined_household.dig('id')).to eq(receiving_enrollment.household_id)
       expect(joined_household.dig('householdSize')).to eq(3)
+      expect(donor_household).to be_nil # No remaining members in donor household
       joining_e1.reload
       joining_e2.reload
     end.to change(joining_e1, :household_id).to(receiving_enrollment.household_id).
       and change(joining_e2, :household_id).to(receiving_enrollment.household_id)
+  end
+
+  context 'when there are remaining members left behind in the donor household' do
+    let!(:joining_e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, relationship_to_hoh: 3, household_id: donor_household_id }
+    let!(:remaining_member) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, household_id: donor_household_id }
+
+    it 'returns the remaining donor household' do
+      expect do
+        joining_enrollment_inputs = [
+          {
+            enrollment_id: joining_e1.id,
+            relationship_to_hoh: 'SPOUSE_OR_PARTNER',
+          },
+          {
+            enrollment_id: joining_e2.id,
+            relationship_to_hoh: 'CHILD',
+          },
+        ]
+        joined_household, donor_household = perform_mutation(receiving_enrollment.household_id, joining_enrollment_inputs)
+        expect(joined_household.dig('id')).to eq(receiving_enrollment.household_id)
+        expect(donor_household.dig('id')).to eq(donor_household_id)
+        expect(donor_household.dig('householdSize')).to eq(1)
+        joining_e1.reload
+        joining_e2.reload
+        remaining_member.reload
+      end.to change(joining_e1, :household_id).to(receiving_enrollment.household_id).
+        and change(joining_e2, :household_id).to(receiving_enrollment.household_id).
+        and not_change(remaining_member, :household_id)
+    end
   end
 
   it 'fails when the given household ID is invalid' do
