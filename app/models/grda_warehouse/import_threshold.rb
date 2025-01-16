@@ -67,6 +67,40 @@ module GrdaWarehouse
       true
     end
 
+    def error_count_notifications
+      @error_count_notifications ||= GrdaWarehouse::NotificationConfiguration.where(
+        notification_slug: error_count_notification_slug,
+        source: self,
+      ).preload(:user).
+        to_a
+    end
+
+    def record_count_change_notifications
+      @record_count_change_notifications ||= GrdaWarehouse::NotificationConfiguration.where(
+        notification_slug: record_count_change_notification_slug,
+        source: self,
+      ).preload(:user).
+        to_a
+    end
+
+    def valid_notification_slug(slug)
+      valid_slug = [
+        record_count_change_notification_slug,
+        error_count_notification_slug,
+      ].detect { |m| m == slug }
+      return valid_slug if valid_slug.present?
+
+      raise "Unknown slug #{slug}"
+    end
+
+    def record_count_change_notification_slug
+      'NotificationTypes::ImportRecordCountChangeThreshold'
+    end
+
+    def error_count_notification_slug
+      'NotificationTypes::ImportErrorCountThreshold'
+    end
+
     def self.known_params
       [
         :record_count_change_min_threshold,

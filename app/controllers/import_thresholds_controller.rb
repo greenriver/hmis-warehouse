@@ -5,6 +5,7 @@
 ###
 
 class ImportThresholdsController < ApplicationController
+  include AjaxModalRails::Controller
   before_action :require_can_view_imports_projects_or_organizations!, only: [:show]
   before_action :data_source
   before_action :import_threshold
@@ -13,22 +14,12 @@ class ImportThresholdsController < ApplicationController
   end
 
   def update
-    error = false
-    begin
-      @data_source.update!(data_source_params)
-    rescue StandardError => e
-      error = true
-    end
-    if error
-      flash[:error] = "Unable to update data source. #{e}"
-      render :show
-    else
-      redirect_to data_source_path(@data_source), notice: 'Data Source updated'
-    end
+    import_threshold.update!(import_threshold_params)
+    respond_with(import_threshold, location: data_source_import_threshold_path)
   end
 
   private def import_threshold_params
-    params.require(:import_threshold).
+    params.require(:grda_warehouse_import_threshold).
       permit(*GrdaWarehouse::ImportThreshold.known_params)
   end
 
@@ -43,8 +34,10 @@ class ImportThresholdsController < ApplicationController
   private def data_source
     @data_source ||= data_source_source.find(params[:data_source_id].to_i)
   end
+  helper_method :data_source
 
   private def import_threshold
     @import_threshold ||= data_source.import_threshold || GrdaWarehouse::ImportThreshold.new(data_source_id: data_source.id)
   end
+  helper_method :import_threshold
 end

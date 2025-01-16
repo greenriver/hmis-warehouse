@@ -1,0 +1,15 @@
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Name
+        %th email
+        %th Receive Notifications
+        %th Actions
+    %tbody
+      - items.each do |item|
+        %tr
+          %td= item.user&.name
+          %td= item.user&.email
+          %td= checkmark_or_x(item.active)
+          %td

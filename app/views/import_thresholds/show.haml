@@ -1,10 +1,10 @@
-= render 'data_sources/breadcrumbs', data_source: @data_source
+= render 'data_sources/breadcrumbs', data_source: data_source
 - content_for :title, 'Import Thresholds'
 %h1= content_for :title
 
 %p Thresholds can be configured below to pause and alert when certain criteria are met during imports for this data source.
 
-= simple_form_for @import_threshold, url: data_source_import_threshold_path do |f|
+= simple_form_for import_threshold, url: data_source_import_threshold_path, method: :patch do |f|
   .well
     .row
       .col
@@ -13,6 +13,13 @@
         = f.input :record_count_change_min_threshold, label: 'Minium change count threshold', hint: 'Imports will not pause or alert below this threshold.  This is designed to prevent alerting on a 30% change when only on of 3 rows changes.', input_html: { style: 'width: 8em' }
 
     = f.input :pause_on_record_count_threshold, label: 'Pause if threshold is met?', hint: 'When the above threshold is met, should the import be paused?  Notifications will be sent even if the import is not paused.'
+    - if import_threshold.record_count_change_notifications.any?
+      = render 'table', items: import_threshold.record_count_change_notifications
+    - else
+      .none-found
+        = link_to new_data_source_import_threshold_notification_configuration_path(notification_slug: import_threshold.record_count_change_notification_slug), class: 'btn btn-secondary btn-sm', data: {loads_in_ajax_modal: true} do
+          %i.icon-plus
+          Add Notification
   .well
     .row
       .col
@@ -20,3 +27,11 @@
       .col
         = f.input :error_count_min_threshold, label: 'Minium error count threshold', hint: 'Imports will not pause or alert below this threshold.  This is designed to prevent alerting on a 30% error rate when only on of 3 rows contains an error.', input_html: { style: 'width: 8em' }
     = f.input :pause_on_error_threshold, label: 'Pause if threshold is met?', hint: 'When the above threshold is met, should the import be paused?  Notifications will be sent even if the import is not paused.'
+    - if import_threshold.error_count_notifications.any?
+      = render 'table', items: import_threshold.error_count_notifications
+    - else
+      .none-found
+        = link_to new_data_source_import_threshold_notification_configuration_path(notification_slug: import_threshold.error_count_notification_slug), class: 'btn btn-secondary btn-sm', data: {loads_in_ajax_modal: true} do
+          %i.icon-plus
+          Add Notification
+  = f.submit 'Update Thresholds'

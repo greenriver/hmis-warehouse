@@ -7,8 +7,7 @@
 # This is the base class for notifications.  Notifications are called from specific sections of
 # the codebase and each sub-class should encapsulate the necessary functionality to build and send
 # relevant information
-module GrdaWarehouse::Notifications
-  class Base < GrdaWarehouseBase
-    has_many :notification_configurations
+module NotificationTypes
+  class Base
   end
 end

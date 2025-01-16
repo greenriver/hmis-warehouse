@@ -12,6 +12,5 @@ module GrdaWarehouse
   class NotificationConfiguration < GrdaWarehouseBase
     belongs_to :user # NOTE: this is a cross-database relationship
     belongs_to :source, polymorphic: true
-    belongs_to :notification_type, polymorphic: true
   end
 end

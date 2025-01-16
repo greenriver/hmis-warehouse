@@ -3,16 +3,11 @@ class CreateNotificationConfiguration < ActiveRecord::Migration[7.0]
     create_table :notification_configurations do |t|
       t.references :user, null: false
       t.references :source, polymorphic: true, null: false
-      t.references :notification_type, polymorphic: true, null: false
+      t.string :notification_slug, null: false, description: 'Class name for notification logic'
       t.boolean :active, default: :true
       t.timestamps
       t.timestamp :deleted_at
-    end
-    create_table :notification_types do |t|
-      t.string :type, null: false
-      t.boolean :active, default: false
-      t.timestamps
-      t.timestamp :deleted_at
+      t.index [:user_id, :source_id, :source_type, :notification_slug], unique: true, where: 'deleted_at is NULL', name: 'nc_user_source_slug_uniq_idx'
     end
     create_table :import_thresholds do |t|
       t.references :data_source, null: false

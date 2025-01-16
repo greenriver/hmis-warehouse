@@ -1,0 +1,4 @@
+= simple_form_for notification_configuration, url: @form_url, remote: false do |f|
+  = f.input :user_id, as: :select_two, label_method: :name, collection: User.active.not_system, label: 'User', required: true
+  = f.input :active, as: :pretty_boolean, label: 'Receive Notifications'
+  = f.submit 'Add Notification'

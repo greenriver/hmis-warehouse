@@ -23045,8 +23045,7 @@ CREATE TABLE public.notification_configurations (
     user_id bigint NOT NULL,
     source_type character varying NOT NULL,
     source_id bigint NOT NULL,
-    notification_type_type character varying NOT NULL,
-    notification_type_id bigint NOT NULL,
+    notification_slug character varying NOT NULL,
     active boolean DEFAULT true,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
@@ -23071,39 +23070,6 @@ CREATE SEQUENCE public.notification_configurations_id_seq
 --
 
 ALTER SEQUENCE public.notification_configurations_id_seq OWNED BY public.notification_configurations.id;
-
-
---
--- Name: notification_types; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.notification_types (
-    id bigint NOT NULL,
-    type character varying NOT NULL,
-    active boolean DEFAULT false,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: notification_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.notification_types_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: notification_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.notification_types_id_seq OWNED BY public.notification_types.id;
 
 
 --
@@ -31522,13 +31488,6 @@ ALTER TABLE ONLY public.notification_configurations ALTER COLUMN id SET DEFAULT 
 
 
 --
--- Name: notification_types id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.notification_types ALTER COLUMN id SET DEFAULT nextval('public.notification_types_id_seq'::regclass);
-
-
---
 -- Name: performance_measurement_goals id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -35264,14 +35223,6 @@ ALTER TABLE ONLY public.non_hmis_uploads
 
 ALTER TABLE ONLY public.notification_configurations
     ADD CONSTRAINT notification_configurations_pkey PRIMARY KEY (id);
-
-
---
--- Name: notification_types notification_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.notification_types
-    ADD CONSTRAINT notification_types_pkey PRIMARY KEY (id);
 
 
 --
@@ -55826,13 +55777,6 @@ CREATE INDEX index_non_hmis_uploads_on_deleted_at ON public.non_hmis_uploads USI
 
 
 --
--- Name: index_notification_configurations_on_notification_type; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_notification_configurations_on_notification_type ON public.notification_configurations USING btree (notification_type_type, notification_type_id);
-
-
---
 -- Name: index_notification_configurations_on_source; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60331,6 +60275,13 @@ CREATE UNIQUE INDEX involved_in_imports_by_id ON public.involved_in_imports USIN
 --
 
 CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports USING btree (importer_log_id, record_type, record_action);
+
+
+--
+-- Name: nc_user_source_slug_uniq_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX nc_user_source_slug_uniq_idx ON public.notification_configurations USING btree (user_id, source_id, source_type, notification_slug) WHERE (deleted_at IS NULL);
 
 
 --

@@ -611,7 +611,7 @@ Rails.application.routes.draw do
       get :download
     end
     resource :import_threshold, only: [:show, :update] do
-      resources :notification_configurations
+      resources :notification_configurations, only: [:new, :edit, :create, :update, :destroy]
     end
   end
   resources :ad_hoc_data_sources do
