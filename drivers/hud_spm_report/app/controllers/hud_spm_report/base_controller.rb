@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,13 +11,14 @@ module HudSpmReport
     def available_report_versions
       {
         'FY 2020' => { slug: :fy2020, active: false },
-        'FY 2023 (current)' => { slug: :fy2023, active: true },
+        'FY 2023' => { slug: :fy2023, active: false },
+        'FY 2024 (current)' => { slug: :fy2024, active: true },
       }.freeze
     end
     helper_method :available_report_versions
 
     def default_report_version
-      :fy2023
+      :fy2024
     end
 
     private def relevant_project_types
@@ -96,6 +97,7 @@ module HudSpmReport
       {
         fy2020: HudSpmReport::Generators::Fy2020::Generator,
         fy2023: HudSpmReport::Generators::Fy2023::Generator,
+        fy2024: HudSpmReport::Generators::Fy2024::Generator,
       }
     end
   end

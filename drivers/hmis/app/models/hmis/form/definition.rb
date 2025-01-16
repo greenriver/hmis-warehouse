@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -475,6 +475,11 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       is_missing = value.nil? || (value.respond_to?(:empty?) && value.empty?)
       is_data_not_collected = value == 'DATA_NOT_COLLECTED'
       field_name = item.mapping&.field_name || item.mapping&.custom_field_key
+
+      numeric_validator.call(item, value)&.each do |error_message|
+        errors.add field_name || :base, message: error_message, **error_context
+      end
+
       # Validate required status
       if item.required && is_missing
         errors.add field_name || :base, :required, **error_context
@@ -660,6 +665,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     else
       raise "unable to determine cded type for #{item_type}"
     end
+  end
+
+  def numeric_validator
+    @numeric_validator ||= Hmis::Form::NumericInputValidator.new
   end
 
   # Helper for determining CustomDataElementDefinition attributes

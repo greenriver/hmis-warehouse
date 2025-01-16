@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -532,6 +532,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
     # Note the last time we received a file
     min_completion_time.to_date
+  end
+
+  def self.import_advisory_lock_name(data_source_id)
+    "enforce_sequential_data_source_imports_for_#{data_source_id}"
   end
 
   def self.stalled_imports?(user)

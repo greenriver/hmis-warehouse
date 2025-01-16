@@ -37,6 +37,19 @@ CREATE EXTENSION IF NOT EXISTS hstore WITH SCHEMA public;
 COMMENT ON EXTENSION hstore IS 'data type for storing sets of (key, value) pairs';
 
 
+--
+-- Name: prevent_modification(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.prevent_modification() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  RETURN NULL;
+END;
+$$;
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -4011,35 +4024,17 @@ CREATE INDEX unduplicated_clients_unduplicated_client_id ON public.clients_undup
 
 
 --
--- Name: hmis_user_client_activity_log_summaries attempt_hmis_user_client_activity_log_summaries_del; Type: RULE; Schema: public; Owner: -
+-- Name: hmis_user_client_activity_log_summaries no_modify_hmis_user_client_activity_log_summaries; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE RULE attempt_hmis_user_client_activity_log_summaries_del AS
-    ON DELETE TO public.hmis_user_client_activity_log_summaries DO INSTEAD NOTHING;
-
-
---
--- Name: hmis_user_client_activity_log_summaries attempt_hmis_user_client_activity_log_summaries_up; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_hmis_user_client_activity_log_summaries_up AS
-    ON UPDATE TO public.hmis_user_client_activity_log_summaries DO INSTEAD NOTHING;
+CREATE TRIGGER no_modify_hmis_user_client_activity_log_summaries INSTEAD OF DELETE OR UPDATE ON public.hmis_user_client_activity_log_summaries FOR EACH ROW EXECUTE FUNCTION public.prevent_modification();
 
 
 --
--- Name: hmis_user_enrollment_activity_log_summaries attempt_hmis_user_enrollment_activity_log_summaries_del; Type: RULE; Schema: public; Owner: -
+-- Name: hmis_user_enrollment_activity_log_summaries no_modify_hmis_user_enrollment_activity_log_summaries; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE RULE attempt_hmis_user_enrollment_activity_log_summaries_del AS
-    ON DELETE TO public.hmis_user_enrollment_activity_log_summaries DO INSTEAD NOTHING;
-
-
---
--- Name: hmis_user_enrollment_activity_log_summaries attempt_hmis_user_enrollment_activity_log_summaries_up; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_hmis_user_enrollment_activity_log_summaries_up AS
-    ON UPDATE TO public.hmis_user_enrollment_activity_log_summaries DO INSTEAD NOTHING;
+CREATE TRIGGER no_modify_hmis_user_enrollment_activity_log_summaries INSTEAD OF DELETE OR UPDATE ON public.hmis_user_enrollment_activity_log_summaries FOR EACH ROW EXECUTE FUNCTION public.prevent_modification();
 
 
 --
@@ -4467,6 +4462,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241101132207'),
 ('20241203185952'),
 ('20241205185449'),
+('20241206145314'),
 ('20241211202350');
 
 

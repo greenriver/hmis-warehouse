@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -209,7 +209,7 @@ module Health
     end
 
     def face_to_face?
-      mode_of_contact.to_sym.in?(face_to_face_modes)
+      mode_of_contact&.to_sym.in?(face_to_face_modes)
     end
 
     # Return the string and the key so we can check either

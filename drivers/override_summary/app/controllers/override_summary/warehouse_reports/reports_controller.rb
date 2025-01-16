@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,8 +15,14 @@ module OverrideSummary::WarehouseReports
 
     def index
       respond_to do |format|
-        format.html {}
+        format.html do
+          @pagy, @intermediate_overrides = pagy(@report.visible_overrides, items: 50)
+          @report.override_ids = @intermediate_overrides.pluck(:id)
+          @data = @report.data
+        end
         format.xlsx do
+          # Just load all data for the download
+          @data = @report.data
           filename = "#{@report.title} - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
