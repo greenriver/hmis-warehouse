@@ -1,3 +1,4 @@
+- items = import_threshold.items_for(slug)
 .card
   %table.table.table-striped
     %thead
@@ -13,3 +14,7 @@
           %td= item.user&.email
           %td= checkmark_or_x(item.active)
           %td
+            - items = [{ link_to: { path: edit_data_source_import_threshold_notification_configuration_path(@data_source, item, notification_slug: slug), data: { loads_in_ajax_modal: true }}, class: ['btn', 'btn-sm', 'btn-secondary'], icon: :pencil, label: 'Edit notification'}]
+
+            - items << { link_to: { path: data_source_import_threshold_notification_configuration_path(@data_source, item, notification_slug: slug), remote: true, method: :delete, data: {confirm: "Are you sure you want to delete this notification?"}}, class: ['btn', 'btn-sm', 'btn-danger'], label: 'Delete notification'}
+            = action_menu_or_button(items: items)

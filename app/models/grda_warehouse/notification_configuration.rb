@@ -12,5 +12,17 @@ module GrdaWarehouse
   class NotificationConfiguration < GrdaWarehouseBase
     belongs_to :user # NOTE: this is a cross-database relationship
     belongs_to :source, polymorphic: true
+
+    def available_users
+      possible_users.where.not(id: unavailable_user_ids)
+    end
+
+    private def possible_users
+      User.active.not_system.order(last_name: :asc, first_name: :asc)
+    end
+
+    private def unavailable_user_ids
+      self.class.where(source: source, notification_slug: notification_slug).pluck(:user_id) - [user_id]
+    end
   end
 end

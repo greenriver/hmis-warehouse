@@ -93,6 +93,15 @@ module GrdaWarehouse
       raise "Unknown slug #{slug}"
     end
 
+    def items_for(slug)
+      case slug
+      when record_count_change_notification_slug
+        record_count_change_notifications
+      when error_count_notification_slug
+        error_count_notifications
+      end
+    end
+
     def record_count_change_notification_slug
       'NotificationTypes::ImportRecordCountChangeThreshold'
     end

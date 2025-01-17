@@ -3,5 +3,8 @@
   $('.notification-configuration').html "<%=j render 'form' %>"
 <% else %>
   $('#ajax-modal').modal('hide')
-  // Figure out how to reload the table
+  html = "<%= j render('/import_thresholds/table', slug: params[:notification_slug]) %>"
+  slug = "<%= params[:notification_slug].parameterize %>"
+  console.log($("." + slug), slug)
+  $("." + slug).html(html)
 <% end %>

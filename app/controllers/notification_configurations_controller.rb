@@ -28,6 +28,11 @@ class NotificationConfigurationsController < ApplicationController
     respond_with(notification_configuration, location: data_source_import_threshold_path)
   end
 
+  def destroy
+    notification_configuration.destroy!
+    respond_with(notification_configuration, location: data_source_import_threshold_path)
+  end
+
   private def notification_configuration_params
     params.require(:grda_warehouse_notification_configuration).
       permit(:user_id, :active)
