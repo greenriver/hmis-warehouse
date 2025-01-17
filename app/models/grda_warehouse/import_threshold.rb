@@ -67,6 +67,16 @@ module GrdaWarehouse
       true
     end
 
+    ##
+    # Finds all users with an active notification on error counts
+    # and queues an email to them that will indicate the import was paused due to errors
+    def send_error_count_notifications
+      user_ids = error_count_notifications.select(&:active).map(&:user_id)
+      User.where(id: user_ids).each do |user|
+        # TODO: implement mailer and messages
+      end
+    end
+
     def error_count_notifications
       @error_count_notifications ||= GrdaWarehouse::NotificationConfiguration.where(
         notification_slug: error_count_notification_slug,

@@ -79,6 +79,7 @@ module HmisCsvImporter::Importer
       # refuse to proceed with the import if there are any errors and that setting is in effect
       if should_pause?
         pause_import
+        notify_of_import_errors
       else
         ingest!
         log_timing :invalidate_aggregated_enrollments!
@@ -101,22 +102,77 @@ module HmisCsvImporter::Importer
       post_process
     end
 
+    ##
+    # Determines whether the import process should be paused based on error thresholds.
+    #
+    # This method evaluates the import threshold settings and checks the status of the
+    # loader log. It then aggregates error counts from different error sources and compares them
+    # against the threshold defined in the data source.
+    #
+    # Each file is evaluated individually, if any file contains errors above the allowed threshold,
+    # the import is paused
+    #
+    # @return [Boolean] `true` if the import should be paused due to exceeding error thresholds, otherwise `false`.
+    #
     def should_pause?
-      return false unless @data_source.refuse_imports_with_errors
+      return false unless @data_source.pause_imports_with_errors? # should we ever pause?
       return true unless @loader_log.status == 'loaded'
 
-      loader_errors = @loader_log.summary.values.sum { |h| h['total_errors'].to_i }
+      file_lookup = self.class.importable_files_map.invert
 
-      db_errors = HmisCsvImporter::Importer::ImportError.where(
+      loader_summary = @loader_log.summary
+      # group errors by filename
+      error_counts = loader_summary.map { |filename, data| [filename, data['total_errors'].to_i] }.to_h
+
+      # grouped by class name, need to convert
+      HmisCsvImporter::Importer::ImportError.where(
         importer_log_id: importer_log.id,
-      )
+      ).
+        group(:source_type).
+        count.
+        map do |k, count|
+          # convert to filename keys
+          filename = file_lookup[k.demodulize]
+          # every file _should_ be present, but let's try not to throw any errors here
+          next unless error_counts[filename]
 
-      validation_errors = HmisCsvImporter::HmisCsvValidation::Base.where(
+          error_counts[filename] += count
+        end
+
+      # grouped by loader class name
+      HmisCsvImporter::HmisCsvValidation::Base.where(
         type: HmisCsvImporter::HmisCsvValidation::Error.subclasses.map(&:name),
         importer_log_id: importer_log.id,
-      )
+      ).
+        group(:source_type).
+        count.
+        map do |k, count|
+          # convert to filename keys
+          filename = file_lookup[k.demodulize]
+          # every file _should_ be present, but let's try not to throw any errors here
+          next unless error_counts[filename]
 
-      loader_errors.positive? || db_errors.count.positive? || validation_errors.count.positive?
+          error_counts[filename] += count
+        end
+
+      error_count = error_counts.values.sum
+      # no errors found, we don't need to pause
+      return false if error_count.zero?
+
+      # counts of expected rows in each file
+      totals_by_filename = loader_summary.map { |filename, data| [filename, data['total_lines'].to_i] }.to_h
+
+      totals_by_filename.each do |filename, total_count|
+        pause = @data_source.pause_imports_with_errors?(total: total_count, errors: error_counts[filename])
+
+        return true if pause
+      end
+      # No threshold met, we don't need to pause
+      false
+    end
+
+    private def notify_of_import_errors
+      @data_source.notify_
     end
 
     private def analyze_tables

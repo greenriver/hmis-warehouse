@@ -96,6 +96,7 @@ class GrdaWarehouse::Utility
       ActiveStorage::Blob,
       GrdaWarehouse::File,
       GrdaWarehouse::Config,
+      GrdaWarehouse::ImportThreshold,
     ]
     if RailsDrivers.loaded.include?(:hud_apr)
       tables << HudApr::Fy2020::AprClient

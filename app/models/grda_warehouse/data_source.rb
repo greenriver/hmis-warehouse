@@ -569,6 +569,32 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       end
   end
 
+  ##
+  # Determines whether imports should be paused based on error thresholds.
+  #
+  # This method checks if an import threshold is set and whether the number of errors
+  # exceeds the allowed limit. If so, it returns `true`, indicating that imports should
+  # be paused. Calling the method with no arguments will return `true` if it would pause
+  # for ANY errors
+  #
+  # @param total [Integer] The total number of imports processed. Defaults to 1.
+  # @param errors [Integer] The number of errors encountered. Defaults to 1.
+  # @return [Boolean] `true` if imports should be paused due to errors, otherwise `false`.
+  #
+  def pause_imports_with_errors?(total: 1, errors: 1)
+    return false unless import_threshold.present?
+    return false unless import_threshold.pause_on_error_threshold
+
+    import_threshold.error_count_threshold_reached?(total, errors)
+  end
+
+  def notify_of_import_errors
+    return false unless import_threshold.present?
+    return false unless import_threshold.pause_on_error_threshold
+
+    import_threshold.send_error_count_notifications
+  end
+
   def manual_import_path
     "/tmp/uploaded#{file_path}"
   end

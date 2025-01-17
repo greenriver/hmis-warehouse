@@ -8,6 +8,8 @@ require 'aws-sdk-rails'
 require 'zip'
 module Importers::HmisAutoMigrate
   class Local < Base
+    attr_accessor :importer
+
     def initialize(
       data_source_id:,
       deidentified: false,
@@ -37,6 +39,7 @@ module Importers::HmisAutoMigrate
     end
 
     delegate :loader_log, to: :@importer
+    delegate :importer_log, to: :@importer
 
     def pre_process
       compress_and_upload
