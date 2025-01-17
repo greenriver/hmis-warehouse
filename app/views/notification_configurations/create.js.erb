@@ -5,6 +5,5 @@
   $('#ajax-modal').modal('hide')
   html = "<%= j render('/import_thresholds/table', slug: params[:notification_slug]) %>"
   slug = "<%= params[:notification_slug].parameterize %>"
-  console.log($("." + slug), slug)
   $("." + slug).html(html)
 <% end %>
