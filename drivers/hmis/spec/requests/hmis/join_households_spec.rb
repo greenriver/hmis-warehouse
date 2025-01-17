@@ -116,6 +116,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  context 'when the receiving household has no HoH (bad data)' do
+    let!(:receiving_enrollment) { create :hmis_hud_enrollment, relationship_to_hoh: 99, data_source: ds1, project: p1, entry_date: 2.weeks.ago }
+
+    it 'still successfully joins' do
+      expect do
+        joining_enrollment_inputs = [
+          {
+            enrollment_id: joining_e2.id,
+            relationship_to_hoh: 'SPOUSE_OR_PARTNER',
+          },
+        ]
+        joined_household, donor_household = perform_mutation(receiving_enrollment.household_id, joining_enrollment_inputs)
+        expect(joined_household.dig('id')).to eq(receiving_enrollment.household_id)
+        expect(donor_household.dig('householdSize')).to eq(1)
+        joining_e2.reload
+      end.to change(joining_e2, :household_id).to(receiving_enrollment.household_id)
+    end
+  end
+
   it 'fails when the given household ID is invalid' do
     input = {
       receiving_household_id: 'fake-household',

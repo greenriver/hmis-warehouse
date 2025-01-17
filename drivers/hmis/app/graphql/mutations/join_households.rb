@@ -19,7 +19,7 @@ module Mutations
         where(household_id: receiving_household_id)
       access_denied! if receiving_enrollments.empty?
 
-      receiving_hoh = receiving_enrollments.find { |e| e.relationship_to_hoh == 1 }
+      receiving = receiving_enrollments.find { |e| e.relationship_to_hoh == 1 } || receiving_enrollments.first
 
       receiving_project = receiving_enrollments.map(&:project).uniq.sole
       access_denied! unless current_permission?(permission: :can_split_households, entity: receiving_project)
@@ -46,17 +46,17 @@ module Mutations
         joining_enrollments.each do |enrollment|
           enrollment.update!(
             household_id: receiving_household_id,
-            relationship_to_hoh: map_enrollment_id_to_relationship[enrollment.id],
+            relationship_to_hoh: map_enrollment_id_to_relationship[enrollment.id.to_s],
           )
         end
 
         # todo @martha - update the unit, if necessary
       end
 
-      receiving_hoh.reload
+      receiving.reload
       donor_household = remaining_enrollments.first&.household
       {
-        receiving_household: receiving_hoh.household,
+        receiving_household: receiving.household,
         donor_household: donor_household,
       }
     end
