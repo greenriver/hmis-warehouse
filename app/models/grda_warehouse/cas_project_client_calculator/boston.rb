@@ -73,6 +73,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         days_homeless_for_vispdat_prioritization: 'Unused',
         hiv_positive: 'HIV/AIDS response from the most recent pathways assessment',
         meth_production_conviction: 'Meth production response from the most recent pathways assessment',
+        lifetime_sex_offender: 'Registered sex offender (level 1,2,3) - lifetime registration (SORI)',
         requires_wheelchair_accessibility: 'Does the client need a wheelchair accessible unit response from the most recent pathways assessment',
         income_maximization_assistance_requested: 'Did the client request income maximization services response from the most recent pathways assessment',
         sro_ok: 'Is the client ok with an SRO response from the most recent pathways assessment',
@@ -145,6 +146,9 @@ module GrdaWarehouse::CasProjectClientCalculator
         :total_homeless_nights_unsheltered,
         :date_of_first_service,
         :psh_required,
+        :meth_production_conviction,
+        :lifetime_sex_offender,
+        :evicted,
       ]
     end
     # memoize :pathways_questions
@@ -186,6 +190,16 @@ module GrdaWarehouse::CasProjectClientCalculator
 
       # Otherwise, unknown
       nil
+    end
+
+    private def lifetime_sex_offender(client)
+      most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_transfer_barrier_SORI', '1').present?
+    end
+
+    private def evicted(client)
+      most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_transfer_barrier_PHAterm', '1').present?
     end
 
     private def service_need(client)
