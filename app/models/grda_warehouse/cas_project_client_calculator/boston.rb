@@ -95,7 +95,6 @@ module GrdaWarehouse::CasProjectClientCalculator
         hiv_positive: 'c_housing_HIV',
         income_maximization_assistance_requested: 'c_interest_income_max',
         sro_ok: 'c_singleadult_sro',
-        evicted: 'c_pathways_barrier_eviction',
         rrh_desired: 'c_interested_rrh',
         housing_barrier: 'c_pathways_barriers_yn',
       }.freeze
@@ -198,8 +197,15 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def evicted(client)
-      most_recent_pathways_or_transfer(client).
+      evicted = most_recent_pathways_or_transfer(client).question_matching_requirement('c_pathways_barrier_meth', '1').present?
+      return true if evicted
+
+      evicted = most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_transfer_barrier_PHAterm', '1').present?
+      return true if evicted
+
+      # Otherwise unknown
+      nil
     end
 
     private def service_need(client)
