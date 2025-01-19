@@ -12,22 +12,18 @@ module ClientAccessControl::GrdaWarehouse::Hud
     included do
       # hide previous declaration of :destination_visible_to, we'll use this one
       replace_scope :destination_visible_to, ->(user, source_client_ids: nil) do
-        limited_scope = if user.system_user?
-          current_scope || all
-        else
-          arbiter(user).clients_destination_visible_to(user, source_client_ids: source_client_ids)
-        end
-        merge(limited_scope)
+        return current_scope || all if user.system_user?
+
+        filtered = arbiter(user).clients_destination_visible_to(user, source_client_ids: source_client_ids)
+        current_scope.nil? ? filtered : where(id: filtered.select(:id))
       end
 
       # hide previous declaration of :source_visible_to, we'll use this one
       replace_scope :source_visible_to, ->(user, client_ids: nil) do
-        limited_scope = if user.system_user?
-          current_scope || all
-        else
-          arbiter(user).clients_source_visible_to(user, client_ids: client_ids)
-        end
-        merge(limited_scope)
+        return current_scope || all if user.system_user?
+
+        filtered = arbiter(user).clients_source_visible_to(user, client_ids: client_ids)
+        current_scope.nil? ? filtered : where(id: filtered.select(:id))
       end
 
       # hide previous declaration of :searchable_to, we'll use this one
