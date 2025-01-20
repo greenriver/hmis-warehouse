@@ -41,7 +41,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
         end
         # END_ACL
         limited_scope = limited_scope.where(id: client_ids) if client_ids.present?
-        merge(limited_scope)
+        current_scope.nil? ? limited_scope : where(id: limited_scope.select(:id))
       end
 
       scope :destination_from_searchable_to, ->(user) do
