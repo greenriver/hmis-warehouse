@@ -1,23 +1,11 @@
 class CreateCeReferrals < ActiveRecord::Migration[7.0]
   def change
-    create_table(:ce_match_requirements) do |t|
+    create_table(:ce_match_rules) do |t|
       t.string :name, null: false
-      # what entity manages the requirement
+      t.string :rule_type, null: false
+      t.jsonb :applicability_config, null: false
+      # what entity manages the configuration
       t.references :owner, null: false, polymorphic: true
-      # what opportunities does this apply to
-      t.string :target_criteria
-      # client eligibility expression
-      t.string :expression, null: false
-      t.timestamps
-    end
-
-    create_table(:ce_match_priority_schemes) do |t|
-      t.string :name, null: false
-      # what entity manages this requirement
-      t.references :owner, null: false, polymorphic: true
-      # what opportunities does this apply to
-      t.string :target_criteria
-      # prioritization formula
       t.string :expression, null: false
       t.timestamps
     end
@@ -42,7 +30,7 @@ class CreateCeReferrals < ActiveRecord::Migration[7.0]
     # end
 
     create_table(:ce_match_candidates) do |t|
-      t.references :candidate_pool, null: false, foreign_key: { to_table: :ce_match_candidate_pools}, index: false
+      t.references :candidate_pool, null: false, foreign_key: { to_table: :ce_match_candidate_pools }, index: false
       t.references :client, null: false, foreign_key: { to_table: :Client }
       t.integer :priority_score, null: true
       t.timestamps
@@ -51,7 +39,7 @@ class CreateCeReferrals < ActiveRecord::Migration[7.0]
 
     # Opportunities (vacancies or services within projects)
     create_table(:ce_opportunities) do |t|
-      t.references :candidate_pool, null: true, foreign_key: { to_table: :ce_match_candidate_pools}
+      t.references :candidate_pool, null: true, foreign_key: { to_table: :ce_match_candidate_pools }
       t.references :project, null: false # what project provides this opportunity?
       t.string :workflow_template_identifier, null: false # use an identifier to allow
       t.string :name, null: false

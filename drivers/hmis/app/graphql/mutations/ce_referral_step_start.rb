@@ -10,6 +10,8 @@ module Mutations
     field :step, Types::HmisSchema::CeReferralStep, null: false
 
     def resolve(referral_id:, step_id:)
+      raise unless Hmis::Ce.enabled?
+
       referral = Hmis::Ce::Referral.viewable_by(current_user).find(referral_id)
       referral.opportunity.with_lock do
         engine = referral.workflow_engine

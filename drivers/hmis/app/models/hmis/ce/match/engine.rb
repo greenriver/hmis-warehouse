@@ -1,5 +1,5 @@
-# * Find all clients that match the given policy's eligibility requirements.
-# * Score each client based on that policy's prioritization formula.
+# * Find all clients that match the given pools's eligibility requirements.
+# * Score each client based on that pools's prioritization formula.
 # * Persist the results as MatchCandidate records to be consumed by opportunities.
 #
 module Hmis::Ce::Match
@@ -11,12 +11,12 @@ module Hmis::Ce::Match
     # Take a two-step approach to evaluating eligibility to achieve better performance.
     # 1. Translate the eligibility requirements expression into a SQL condition and filter the clients. Uses field_map.arel_node to achieve this translation. Expression components that cannot be represented in SQL are treated as truthy. This reduces the number of client records that we need to evaluate in the more expensive second step.
     # 2. Evaluate the eligibility requirement expression against each matched client. We expect all expression variables to be defined.
-    def call(policy, clients)
-      eligibility_evaluator = ClientExpressionEvaluator.new(policy.eligibility_requirements, field_map)
-      priority_evaluator = ClientExpressionEvaluator.new(policy.prioritization_formula, field_map)
+    def call(pool, clients)
+      eligibility_evaluator = ClientExpressionEvaluator.new(pool.requirement_expression, field_map)
+      priority_evaluator = ClientExpressionEvaluator.new(pool.priority_expression, field_map)
 
       now = DateTime.current
-      crude_eligibility_filter(policy.eligibility_requirements, clients).in_batches do |batch|
+      crude_eligibility_filter(pool.requirement_expression, clients).in_batches do |batch|
         matches = []
         batch.each do |client|
           # note, we could also set an expiration date on the candidate to allow us to skip records we have evaluated recently
@@ -24,7 +24,7 @@ module Hmis::Ce::Match
 
           score = priority_evaluator.call(client)
           matches << {
-            match_policy_id: policy.id,
+            candidate_pool_id: pool.id,
             client_id: client.id,
             priority_score: score,
             created_at: now,
@@ -34,7 +34,7 @@ module Hmis::Ce::Match
         import_candidates!(matches)
       end
       # remove old candidates that no longer match
-      policy.candidates.where(updated_at: ...now).delete_all
+      pool.candidates.where(updated_at: ...now).delete_all
     end
 
     protected
@@ -42,7 +42,7 @@ module Hmis::Ce::Match
     def import_candidates!(values)
       result = Candidate.import(
         values, on_duplicate_key_update: {
-          conflict_target: [:match_policy_id, :client_id],
+          conflict_target: [:candidate_pool_id, :client_id],
           columns: [:priority_score, :updated_at],
         }
       )

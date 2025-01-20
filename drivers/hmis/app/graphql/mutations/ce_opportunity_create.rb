@@ -10,6 +10,8 @@ module Mutations
     field :opportunity, Types::HmisSchema::CeOpportunity, null: false
 
     def resolve(project_id:, input:)
+      raise unless Hmis::Ce.enabled?
+
       project = Hmis::Hud::Project.viewable_by(current_user).find(project_id)
       template = Hmis::WorkflowDefinition::Template.visible_by(current_user).find(input.template_id)
       project.with_lock do

@@ -1,4 +1,4 @@
-# an eligible, prioritized client for a given policy
+# an eligible, prioritized client for a given candidate pool
 module Hmis::Ce::Match
   class Candidate < GrdaWarehouseBase
     self.table_name = 'ce_match_candidates'
@@ -20,16 +20,18 @@ module Hmis::Ce::Match
     # - Filter out candidates that have already been referred to this opportunity.
     # - Filter out candidates with an active referral to another opportunity with overlapping categories.
     scope :for_opportunity, ->(opportunity) {
-      scope = opportunity.pool.candidates
+      return Hmis::Ce::Opportunity.none unless opportunity.candidate_pool
+
+      scope = opportunity.candidate_pool.candidates
 
       # do we need to allow a referral to be re-started for the same client/opportunity?
       scope = scope.where.not(client_id: opportunity.referrals.select(:client_id))
 
       # clients with active referrals to other opportunities who's categories overlap with this opportunity
-      exclude_client_ids = Referral.active.
-        joins(opportunities: :categories).
-        where.not(opportunities: { id: opportunity.id }). # not this opportunity
-        where(categories: { id: opportunity.categories.id }). # overlapping categories
+      exclude_client_ids = Hmis::Ce::Referral.active.
+        joins(opportunity: :categories).
+        where.not(opportunity: { id: opportunity.id }). # not this opportunity
+        where(categories: { id: opportunity.categories.select(:id) }). # overlapping categories
         distinct.pluck(:client_id)
 
       scope = scope.where.not(client_id: exclude_client_ids)

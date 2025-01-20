@@ -12,6 +12,8 @@ module Hmis::Ce
     # FIXME: permissions
     scope :viewable_by, ->(_user) { all }
 
+    scope :active, -> { where.not(status: ['accepted', 'rejected']) }
+
     aasm column: 'status' do
       state :initialized, initial: true
       state :in_progress

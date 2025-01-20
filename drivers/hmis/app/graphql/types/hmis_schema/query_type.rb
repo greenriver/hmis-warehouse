@@ -514,13 +514,24 @@ module Types
       end
     end
 
-    field :ce_referral, [Types::HmisSchema::CeReferral], null: false do
+    field :ce_referral, Types::HmisSchema::CeReferral, null: false do
       argument :id, ID, required: true
     end
+
     def ce_referral(id:)
-      raise unless Rails.env.development?
+      raise unless Hmis::Ce.enabled?
 
       Hmis::Ce::Referral.viewable_by(current_user).find(id)
+    end
+
+    field :ce_opportunity, HmisSchema::CeOpportunity, null: false do
+      argument :id, ID, required: true
+    end
+
+    def ce_opportunity(id:)
+      raise unless Hmis::Ce.enabled?
+
+      Hmis::Ce::Opportunity.viewable_by(current_user).find(id)
     end
   end
 end

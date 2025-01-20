@@ -10,7 +10,7 @@ module Types
   class HmisSchema::CeReferral < Types::BaseObject
     field :id, ID, null: false
     field :opportunity, HmisSchema::CeOpportunity, null: false
-    field :steps, HmisSchema::CeReferralStep, null: false
+    field :steps, [HmisSchema::CeReferralStep], null: false
     field :status, String, null: false
 
     def steps

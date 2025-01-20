@@ -32,7 +32,7 @@ module Hmis::WorkflowDefinition
             stack.concat(children.reverse) # preserve order of children in stack)
           end
         end
-      end.lazy
+      end
     end
 
     # could add helpers for validation such as graph.acyclic?

@@ -14,7 +14,7 @@ module Hmis::Ce
 
     has_many :referrals, class_name: 'Hmis::Ce::Referral', dependent: :restrict_with_exception
     has_many :candidates, class_name: 'Hmis::Ce::OpportunityCandidate', dependent: :destroy
-    has_many :categorizations, class_name: 'Hmis::Ce::OpportunityCategorization'
+    has_many :categorizations, class_name: 'Hmis::Ce::OpportunityCategorization', foreign_key: :opportunity_id
     has_many :categories, through: :categorizations
 
     validates :name, presence: true
@@ -39,6 +39,8 @@ module Hmis::Ce
     # FIXME: permissions
     scope :viewable_by, ->(_user) { all }
 
+    scope :active, -> { where.not(status: 'closed') }
+
     # Which opportunities are available for a given client
     scope :for_client, ->(client) {
       eligible_pool_ids = client.ce_match_candidates.select(:candidate_pool_id)
@@ -49,10 +51,13 @@ module Hmis::Ce
       exclude_ids += client.ce_referrals.distinct.pluck(:opportunity_id)
 
       # exclude opportunities with overlapping categories from this client's active referrals
-      active_categories = Category.
-        joins(:opportunity).
-        where(ce_opportunities: client.ce_referrals.active.select(:opportunity_id))
-      exclude_ids += Opportunity.joins(:categories).merge(active_categories).pluck(:id)
+      active_category_ids = Hmis::Ce::OpportunityCategory.
+        joins(:opportunities).
+        where(ce_opportunities: { id: client.ce_referrals.active.select(:opportunity_id) }).
+        pluck(:id)
+      exclude_ids += Hmis::Ce::Opportunity.joins(:categories).
+        where(ce_opportunity_categories: { id: active_category_ids }).
+        pluck(:id)
 
       scope = scope.where.not(id: exclude_ids.sort.uniq)
       scope

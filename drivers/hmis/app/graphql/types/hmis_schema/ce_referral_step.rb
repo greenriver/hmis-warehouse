@@ -12,9 +12,12 @@ module Types
     field :form_definition, Types::Forms::FormDefinition, null: false
     field :name, String, null: false
     field :status, String, null: false
-    delegate :name, :form_definition, to: :node
+    delegate :name, :form_definition, to: :workflow_node
 
-    protected
+    def id
+      # sometimes object is not yet persisted
+      "#{object.node_id}:#{object.instance_id}"
+    end
 
     def workflow_node
       object.node

@@ -704,7 +704,16 @@ type CeAssessmentsPaginated {
   pagesCount: Int!
 }
 
+type CeCandidate {
+  client: Client!
+  id: ID!
+  priorityScore: Int!
+}
+
 type CeOpportunity {
+  activeReferral: CeReferral
+  candidates: [CeCandidate!]!
+  expiresAt: ISO8601DateTime
   id: ID!
   name: String!
   status: String!
@@ -754,7 +763,7 @@ type CeReferral {
   id: ID!
   opportunity: CeOpportunity!
   status: String!
-  steps: CeReferralStep!
+  steps: [CeReferralStep!]!
 }
 
 """
@@ -843,6 +852,7 @@ type Client {
   alerts: [ClientAlert!]!
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(filters: ClientAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
+  ceOpportunities: [CeOpportunity!]!
   contactPoints: [ClientContactPoint!]!
   createdBy: ApplicationUser
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
@@ -9023,7 +9033,8 @@ type Query {
     """
     role: AssessmentRole
   ): FormDefinition
-  ceReferral(id: ID!): [CeReferral!]!
+  ceOpportunity(id: ID!): CeOpportunity!
+  ceReferral(id: ID!): CeReferral!
 
   """
   Client lookup

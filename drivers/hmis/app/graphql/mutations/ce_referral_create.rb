@@ -11,6 +11,8 @@ module Mutations
     argument :input, Types::HmisSchema::CeReferralInput, required: true
 
     def resolve(opportunity_id:, client_id:, input:)
+      raise unless Hmis::Ce.enabled?
+
       opportunity = Hmis::Ce::Opportunity.viewable_by(current_user).find(opportunity_id)
       client = Hmis::Hud::Client.viewable_by(current_user).find(client_id)
       swimlanes = opportunity.template.swimlanes.index_by(&:id)
