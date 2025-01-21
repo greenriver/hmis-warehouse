@@ -15,7 +15,10 @@ module ClientAccessControl::GrdaWarehouse::Hud
         return current_scope || all if user.system_user?
 
         filtered = arbiter(user).clients_destination_visible_to(user, source_client_ids: source_client_ids)
-        current_scope.nil? ? filtered : where(id: filtered.select(:id))
+
+        return filtered if current_scope.nil?
+
+        return current_scope.where(id: filtered.select(:id))
       end
 
       # hide previous declaration of :source_visible_to, we'll use this one
@@ -23,11 +26,16 @@ module ClientAccessControl::GrdaWarehouse::Hud
         return current_scope || all if user.system_user?
 
         filtered = arbiter(user).clients_source_visible_to(user, client_ids: client_ids)
-        current_scope.nil? ? filtered : where(id: filtered.select(:id))
+
+        return filtered if current_scope.nil?
+
+        return current_scope.where(id: filtered.select(:id))
       end
 
       # hide previous declaration of :searchable_to, we'll use this one
       # can search even if no ROI
+      #
+      # Note, this may return either source or destination clients
       replace_scope :searchable_to, ->(user, client_ids: nil) do
         # TODO: START_ACL cleanup after ACL migration is complete
         limited_scope = if user.using_acls?
@@ -41,7 +49,10 @@ module ClientAccessControl::GrdaWarehouse::Hud
         end
         # END_ACL
         limited_scope = limited_scope.where(id: client_ids) if client_ids.present?
-        current_scope.nil? ? limited_scope : where(id: limited_scope.select(:id))
+
+        return limited_scope if current_scope.nil?
+
+        return current_scope.where(id: limited_scope.select(:id))
       end
 
       scope :destination_from_searchable_to, ->(user) do
