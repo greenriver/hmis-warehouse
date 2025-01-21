@@ -4,11 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'memery'
+
 # This defines two thresholds for imports that will potentially trigger notifications
 # 1. When an import is going to add or remove a significant percentage of the existing records, and that change is greater than the min count threshold
 # 2. When an import contains a high percentage of errors, and that change is greater than the min count threshold
 module GrdaWarehouse
   class ImportThreshold < GrdaWarehouseBase
+    include Memery
     belongs_to :data_source
 
     ##
@@ -67,14 +70,58 @@ module GrdaWarehouse
       true
     end
 
-    ##
-    # Finds all users with an active notification on error counts
-    # and queues an email to them that will indicate the import was paused due to errors
-    def send_error_count_notifications
-      user_ids = error_count_notifications.select(&:active).map(&:user_id)
-      User.where(id: user_ids).each do |user|
-        # TODO: implement mailer and messages
+    # Gather users from notification configurations into 3 categories
+    # 1. Those that have notifications for errors
+    # 2. Those that have notifications for count changes
+    # 3. Those that have both
+    def send_status_notifications(import_log_id, error_threshold_met, record_count_threshold_met, paused)
+      receive_both_user_ids = error_count_notification_user_ids & record_change_count_notification_user_ids
+
+      # Notify where the user receives both notifications
+      User.where(id: receive_both_user_ids).find_each do |user|
+        NotifyUser.with(
+          user: user,
+          import_log_id: import_log_id,
+          data_source: data_source,
+          error: error_threshold_met,
+          count: record_count_threshold_met,
+          paused: paused,
+        ).import_processing.deliver_later
       end
+
+      only_error_user_ids = error_count_notification_user_ids - receive_both_user_ids
+      # Notify where the user receives only the error notification
+      User.where(id: only_error_user_ids).find_each do |user|
+        NotifyUser.with(
+          user: user,
+          import_log_id: import_log_id,
+          data_source: data_source,
+          error: error_threshold_met,
+          count: false, # never notify on counts in this scenario
+          paused: paused,
+        ).import_processing.deliver_later
+      end
+
+      only_count_user_ids = record_change_count_notification_user_ids - receive_both_user_ids
+      # Notify where the user receives only the record count notification
+      User.where(id: only_count_user_ids).find_each do |user|
+        NotifyUser.with(
+          user: user,
+          import_log_id: import_log_id,
+          data_source: data_source,
+          error: false, # never notify on errors in this scenario
+          count: record_count_threshold_met,
+          paused: paused,
+        ).import_processing.deliver_later
+      end
+    end
+
+    memoize def error_count_notification_user_ids
+      error_count_notifications.select(&:active).map(&:user_id)
+    end
+
+    memoize def record_change_count_notification_user_ids
+      record_count_change_notifications.select(&:active).map(&:user_id)
     end
 
     def error_count_notifications

@@ -23,12 +23,15 @@
 # # at this point, you can call any of the various import methods, usually, the last one that was attempted
 # imp.log_timing(:process_existing)
 
+require 'memery'
+
 module HmisCsvImporter::Importer
   class Importer
     include TsqlImport
     include NotifierConfig
     include HmisCsvImporter::HmisCsv
     include ArelHelper
+    include Memery
 
     attr_accessor :import, :range, :data_source, :importer_log
 
@@ -76,16 +79,16 @@ module HmisCsvImporter::Importer
       log_timing :aggregate!
       log_timing :cleanup_data_set!
       log_timing :analyze_tables
+
+      # Send any notifications that might be relevant to the error state of this import
+      notify_of_import_status
       # refuse to proceed with the import if there are any errors and that setting is in effect
-      if should_pause?
-        pause_import
-        notify_of_import_errors
-      else
-        ingest!
-        log_timing :invalidate_aggregated_enrollments!
-        complete_import
-        post_process
-      end
+      return pause_import if should_pause?
+
+      ingest!
+      log_timing :invalidate_aggregated_enrollments!
+      complete_import
+      post_process
     end
 
     def resume!
@@ -105,26 +108,88 @@ module HmisCsvImporter::Importer
     ##
     # Determines whether the import process should be paused based on error thresholds.
     #
-    # This method evaluates the import threshold settings and checks the status of the
-    # loader log. It then aggregates error counts from different error sources and compares them
-    # against the threshold defined in the data source.
+    # This method evaluates the configured settings for pausing imports due to errors and
+    # checks the current status of the loader log. It aggregates error counts from different
+    # sources and determines if they exceed the allowable threshold.
     #
-    # Each file is evaluated individually, if any file contains errors above the allowed threshold,
-    # the import is paused
+    # The decision to pause is made based on the following conditions:
+    # - If the data source is configured to pause imports due to errors or record changes.
+    # - If the loader log status is not `'loaded'`, indicating the import has not progressed to that stage.
+    # - If any individual file has exceeded its error threshold, the import is paused.
     #
     # @return [Boolean] `true` if the import should be paused due to exceeding error thresholds, otherwise `false`.
     #
-    def should_pause?
-      return false unless @data_source.pause_imports_with_errors? # should we ever pause?
+    memoize def should_pause?
+      return false unless @data_source.ever_pause_imports? # should we ever pause?
       return true unless @loader_log.status == 'loaded'
 
+      any_error_thresholds_met? || any_record_count_thresholds_met?
+    end
+
+    ##
+    # Determines if any file in the import process has exceeded its allowed error threshold.
+    #
+    # This method iterates over all import files and checks whether the number of errors
+    # in each file surpasses the defined threshold. If any file's error count exceeds the
+    # threshold set in the data source, the method returns `true`.
+    #
+    # @return [Boolean] `true` if any file has met or exceeded its error threshold, otherwise `false`.
+    #
+    memoize private def any_error_thresholds_met?
+      # counts of expected rows in each file
+      totals_by_filename = @loader_log.summary.map { |filename, data| [filename, data['total_lines'].to_i] }.to_h
+
+      totals_by_filename.each do |filename, total_count|
+        pause = @data_source.pause_imports_with_errors?(total: total_count, errors: error_counts[filename])
+
+        return true if pause
+      end
+      # No threshold met
+      false
+    end
+
+    ##
+    # Determines if any file in the import process has exceeded its allowed record count change threshold.
+    #
+    # This method evaluates the total number of records and absolute number of changes (additions minus removals)
+    # for each file. If the number of changes exceeds the configured threshold for any file, the method
+    # returns `true`.
+    #
+    # @return [Boolean] `true` if any file has met or exceeded its record count change threshold, otherwise `false`.
+    #
+    memoize private def any_record_count_thresholds_met?
+      change_counts.each_value do |data|
+        total = data[:total_count]
+        changes = data[:change_count]
+        pause = @data_source.pause_imports_with_record_count_changes?(total: total, changes: changes)
+
+        return true if pause
+      end
+      # No threshold met
+      false
+    end
+
+    ##
+    # Collects and aggregates import errors from the loader and import processes.
+    #
+    # This method retrieves error counts from different parts of the import process:
+    # - Errors logged in the loader summary.
+    # - Errors recorded in the {HmisCsvImporter::Importer::ImportError} model.
+    # - Validation errors recorded in the {HmisCsvImporter::HmisCsvValidation::Base} model.
+    #
+    # It maps error counts to their respective filenames and ensures that the counts
+    # are aggregated correctly without raising additional errors if files are missing.
+    #
+    # @return [Hash{String => Integer}] A hash where keys are filenames and values are the total error counts for each file.
+    #
+    memoize private def error_counts
       file_lookup = self.class.importable_files_map.invert
 
-      loader_summary = @loader_log.summary
-      # group errors by filename
-      error_counts = loader_summary.map { |filename, data| [filename, data['total_errors'].to_i] }.to_h
+      summary = @loader_log.summary
+      # Initialize error counts grouped by filename
+      counts = summary.map { |filename, data| [filename, data['total_errors'].to_i] }.to_h
 
-      # grouped by class name, need to convert
+      # Collect errors from ImportError model
       HmisCsvImporter::Importer::ImportError.where(
         importer_log_id: importer_log.id,
       ).
@@ -134,12 +199,12 @@ module HmisCsvImporter::Importer
           # convert to filename keys
           filename = file_lookup[k.demodulize]
           # every file _should_ be present, but let's try not to throw any errors here
-          next unless error_counts[filename]
+          next unless counts[filename]
 
-          error_counts[filename] += count
+          counts[filename] += count
         end
 
-      # grouped by loader class name
+      # Collect validation errors
       HmisCsvImporter::HmisCsvValidation::Base.where(
         type: HmisCsvImporter::HmisCsvValidation::Error.subclasses.map(&:name),
         importer_log_id: importer_log.id,
@@ -150,29 +215,68 @@ module HmisCsvImporter::Importer
           # convert to filename keys
           filename = file_lookup[k.demodulize]
           # every file _should_ be present, but let's try not to throw any errors here
-          next unless error_counts[filename]
+          next unless counts[filename]
 
-          error_counts[filename] += count
+          counts[filename] += count
         end
-
-      error_count = error_counts.values.sum
-      # no errors found, we don't need to pause
-      return false if error_count.zero?
-
-      # counts of expected rows in each file
-      totals_by_filename = loader_summary.map { |filename, data| [filename, data['total_lines'].to_i] }.to_h
-
-      totals_by_filename.each do |filename, total_count|
-        pause = @data_source.pause_imports_with_errors?(total: total_count, errors: error_counts[filename])
-
-        return true if pause
-      end
-      # No threshold met, we don't need to pause
-      false
+      counts
     end
 
-    private def notify_of_import_errors
-      @data_source.notify_
+    ##
+    # Collects and aggregates changes in record counts during the import process.
+    #
+    # This method calculates changes in records (additions and removals) for each importable file.
+    # It determines the total number of changes by comparing additions and removals and associates
+    # the changes with the corresponding file. Additionally, it retrieves the total record count
+    # for each file to provide more context about the scale of the changes.
+    #
+    # @return [Hash{String => Hash{Symbol => Integer}}] A hash where keys are filenames, and values
+    #   are hashes containing:
+    #   - `:change_count` (Integer): The absolute value of the difference between additions and removals.
+    #   - `:total_count` (Integer): The total number of records for the corresponding file.
+    #
+    private def change_counts
+      # hash of filenames to class names {"Client.csv" => "Client"}
+      file_lookup = self.class.importable_files_map
+
+      summary = @importer_log.summary
+      # Initialize change counts grouped by filename
+      # A change is the absolute value of the number of additions minus the number of removals
+      changes = summary.map do |filename, data|
+        [
+          filename,
+          {
+            change_count: (data['added'].to_i - data['removed'].to_i).abs,
+          },
+        ]
+      end.to_h
+      file_lookup.each do |filename, klass_name|
+        klass = "GrdaWarehouse::Hud::#{klass_name}".constantize
+        next unless changes[filename]
+
+        changes[filename][:total_count] = klass.where(data_source_id: @data_source.id).count
+      end
+      changes
+    end
+
+    ##
+    # Sends notifications about the current import status.
+    #
+    # This method triggers a emails to users who are setup to receive status notifications for the data source
+    # with the following details:
+    # - Whether any error thresholds have been exceeded.
+    # - Whether any record count change thresholds have been exceeded.
+    # - Whether the import process should be paused.
+    #
+    # @return [void]
+    #
+    private def notify_of_import_status
+      @data_source.notify_of_import_status(
+        @import_log.id,
+        any_error_thresholds_met?,
+        any_record_count_thresholds_met?,
+        should_pause?,
+      )
     end
 
     private def analyze_tables

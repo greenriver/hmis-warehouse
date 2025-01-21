@@ -1,0 +1,21 @@
+%h2
+  A new account has been created for #{@new_user.name_with_email} in the #{Translation.translate('Open Path HMIS Warehouse')}.
+
+%p
+  = link_to 'View account', edit_admin_user_url(@new_user)
+
+%p
+  An import in the #{@data_source.name} data source has triggered notifications for the following reason(s):
+
+%ul
+  - if @paused
+    %li The import is paused
+  - if @error
+    %li The import crossed the configured error count threshold
+  - if @count
+    %li The import crossed the configured record count change threshold
+
+%p
+  View import:
+  %br
+  = import_url(@import)
