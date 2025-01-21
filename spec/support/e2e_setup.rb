@@ -64,7 +64,7 @@ RSpec.shared_context 'SystemSpecHelper' do
     find("[id='#{id}']").value
   end
 
-  def mui_table_select(choice, row:, column:, from:)
+  def mui_table_select(choice, row:, column:, from: nil)
     row_label = from ? from.find('td', text: row) : find('td', text: row)
     scroll_to(row_label, align: :center)
     column_label = from ? from.find('th', text: column) : find('th', text: column)
