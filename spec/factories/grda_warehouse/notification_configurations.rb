@@ -3,11 +3,11 @@ FactoryBot.define do
     association :source, factory: :import_threshold
 
     trait :import_error_count_slug do
-      notification_slug 'NotificationTypes::ImportErrorCountThreshold'
+      notification_slug { 'NotificationTypes::ImportErrorCountThreshold' }
     end
 
     trait :import_record_count_change_slug do
-      notification_slug 'NotificationTypes::ImportRecordCountChangeThreshold'
+      notification_slug { 'NotificationTypes::ImportRecordCountChangeThreshold' }
     end
   end
 end

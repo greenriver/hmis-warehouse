@@ -16,8 +16,8 @@ RSpec.describe GrdaWarehouse::ImportThreshold, type: :model do
 
         threshold = FactoryBot.create(:import_threshold, pause_on_error_threshold: true)
         @data_source = threshold.data_source
-        user = FactoryBot.create(:user)
-        FactoryBot.create(:notification_configuration_import_threshold, :import_error_count_slug, user: user)
+        @user = FactoryBot.create(:user)
+        FactoryBot.create(:notification_configuration_import_threshold, :import_error_count_slug, user: @user)
 
         travel_to Time.local(2020, 1, 1) do
           @loader = import_hmis_csv_fixture(
@@ -31,6 +31,12 @@ RSpec.describe GrdaWarehouse::ImportThreshold, type: :model do
 
       it 'pauses the import when there are issues' do
         expect(@loader.importer_log.status).to eq('paused')
+      end
+
+      it 'enqueues a message' do
+        expect(ActionMailer::Base.deliveries.count).to eq(0)
+        # expect(enqueued_jobs.size).to eq 1
+        # expect(NotifyUser).to have_enqueued_mail(:import_processing).with(@user)
       end
     end
 
