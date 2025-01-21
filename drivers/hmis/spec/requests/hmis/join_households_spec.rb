@@ -83,10 +83,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(joined_household.dig('id')).to eq(receiving_enrollment.household_id)
       expect(joined_household.dig('householdSize')).to eq(3)
       expect(donor_household).to be_nil # No remaining members in donor household
+      receiving_enrollment.reload
       joining_e1.reload
       joining_e2.reload
     end.to change(joining_e1, :household_id).to(receiving_enrollment.household_id).
       and change(joining_e2, :household_id).to(receiving_enrollment.household_id)
+
+    join_event = joining_e1.household.events.sole
+    expect(join_event.household).to eq(receiving_enrollment.household)
+    expect(join_event.event_type).to eq('join')
+    expect(join_event.event_details['donorHouseholdId']).to eq(donor_household_id)
+
+    leave_event = Hmis::HouseholdEvent.where(event_type: 'split').last # it's no longer attached to a household, since the household is gone
+    expect(leave_event.household_id).to eq(donor_household_id)
+    expect(leave_event.event_details['receivingHouseholdId']).to eq(receiving_enrollment.household.household_id)
   end
 
   context 'when there are remaining members left behind in the donor household' do
@@ -105,6 +115,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end.to change(joining_e1, :household_id).to(receiving_enrollment.household_id).
         and change(joining_e2, :household_id).to(receiving_enrollment.household_id).
         and not_change(remaining_member, :household_id)
+
+      join_event = joining_e1.household.events.sole
+      expect(join_event.household).to eq(receiving_enrollment.household)
+      expect(join_event.event_type).to eq('join')
+      expect(join_event.event_details['donorHouseholdId']).to eq(donor_household_id)
+
+      leave_event = remaining_member.household.events.sole
+      expect(leave_event.event_type).to eq('split')
+      expect(leave_event.event_details['receivingHouseholdId']).to eq(receiving_enrollment.household.household_id)
     end
   end
 
