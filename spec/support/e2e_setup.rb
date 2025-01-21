@@ -64,10 +64,10 @@ RSpec.shared_context 'SystemSpecHelper' do
     find("[id='#{id}']").value
   end
 
-  def mui_table_select(choice, row:, column:)
-    row_label = find('td', text: row)
+  def mui_table_select(choice, row:, column:, from:)
+    row_label = from ? from.find('td', text: row) : find('td', text: row)
     scroll_to(row_label, align: :center)
-    column_label = find('th', text: column)
+    column_label = from ? from.find('th', text: column) : find('th', text: column)
     input_selector = "[aria-labelledby='#{row_label['id']} #{column_label['id']}']"
     if choice.present?
       find(input_selector).click
@@ -75,6 +75,17 @@ RSpec.shared_context 'SystemSpecHelper' do
     else
       find("#{input_selector} + div > button[aria-label='Clear']").click
     end
+  end
+
+  def mui_table_expect(expected, row_index:, column_header:, from:)
+    header_cells = from.all('thead th')
+    column_index = header_cells.find_index { |cell| !!cell.text.match(column_header) }
+    expect(column_index).not_to be_nil
+
+    rows = from.all('tbody tr')
+    row = rows[row_index]
+    cell = row.all('td')[column_index]
+    expect(cell.text).to match(expected)
   end
 
   def mui_table_element_for(row:, column:)
