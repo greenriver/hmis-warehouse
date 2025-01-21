@@ -51,7 +51,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:joining_e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, household_id: donor_household_id }
   let!(:joining_e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, relationship_to_hoh: 2, household_id: donor_household_id }
 
-  def perform_mutation(receiving_household_id, joining_enrollment_inputs)
+  def perform_mutation(
+    receiving_household_id = receiving_enrollment.household_id,
+    joining_enrollment_inputs = [
+      {
+        enrollment_id: joining_e1.id,
+        relationship_to_hoh: 'SPOUSE_OR_PARTNER',
+      },
+      {
+        enrollment_id: joining_e2.id,
+        relationship_to_hoh: 'CHILD',
+      },
+    ]
+  )
     input = {
       input: {
         receiving_household_id: receiving_household_id,
@@ -67,17 +79,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'should successfully join households' do
     expect do
-      joining_enrollment_inputs = [
-        {
-          enrollment_id: joining_e1.id,
-          relationship_to_hoh: 'SPOUSE_OR_PARTNER',
-        },
-        {
-          enrollment_id: joining_e2.id,
-          relationship_to_hoh: 'CHILD',
-        },
-      ]
-      joined_household, donor_household = perform_mutation(receiving_enrollment.household_id, joining_enrollment_inputs)
+      joined_household, donor_household = perform_mutation
       expect(joined_household.dig('id')).to eq(receiving_enrollment.household_id)
       expect(joined_household.dig('householdSize')).to eq(3)
       expect(donor_household).to be_nil # No remaining members in donor household
@@ -93,17 +95,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'returns the remaining donor household' do
       expect do
-        joining_enrollment_inputs = [
-          {
-            enrollment_id: joining_e1.id,
-            relationship_to_hoh: 'SPOUSE_OR_PARTNER',
-          },
-          {
-            enrollment_id: joining_e2.id,
-            relationship_to_hoh: 'CHILD',
-          },
-        ]
-        joined_household, donor_household = perform_mutation(receiving_enrollment.household_id, joining_enrollment_inputs)
+        joined_household, donor_household = perform_mutation
         expect(joined_household.dig('id')).to eq(receiving_enrollment.household_id)
         expect(donor_household.dig('id')).to eq(donor_household_id)
         expect(donor_household.dig('householdSize')).to eq(1)
@@ -132,6 +124,59 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(donor_household.dig('householdSize')).to eq(1)
         joining_e2.reload
       end.to change(joining_e2, :household_id).to(receiving_enrollment.household_id)
+    end
+  end
+
+  describe 'unit assignment' do
+    let!(:unit1) { create :hmis_unit, project: p1 }
+
+    context 'when the receiving household has a unit' do
+      let!(:receiving_occupancy) { create :hmis_unit_occupancy, unit: unit1, enrollment: receiving_enrollment }
+
+      it 'adds the joining household members to the unit' do
+        expect do
+          perform_mutation
+          joining_e1.reload
+          joining_e2.reload
+        end.to change(joining_e1, :active_unit_occupancy).
+          and change(joining_e2, :active_unit_occupancy).
+          and not_change(receiving_enrollment, :active_unit_occupancy)
+
+        expect(joining_e1.active_unit_occupancy.unit).to eq(receiving_enrollment.active_unit_occupancy.unit)
+        expect(joining_e2.active_unit_occupancy.unit).to eq(receiving_enrollment.active_unit_occupancy.unit)
+      end
+
+      context 'when the receiving household has several units' do
+        let!(:unit2) { create :hmis_unit, project: p1 }
+        let!(:receiving_member) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, relationship_to_hoh: 3, household_id: receiving_enrollment.household_id }
+        let!(:receiving_occupancy_2) { create :hmis_unit_occupancy, unit: unit2, enrollment: receiving_member }
+
+        it 'distributes the joining enrollments across units' do
+          expect do
+            perform_mutation
+            joining_e1.reload
+            joining_e2.reload
+          end.to change(joining_e1, :active_unit_occupancy).
+            and change(joining_e2, :active_unit_occupancy)
+
+          expect(joining_e1.active_unit_occupancy.unit).to eq(unit1)
+          expect(joining_e2.active_unit_occupancy.unit).to eq(unit2)
+        end
+      end
+    end
+
+    context 'when the joining enrollment has a unit but the receiving household does not' do
+      let!(:joining_e1_occupancy) { create :hmis_unit_occupancy, unit: unit1, enrollment: joining_e1 }
+      let!(:joining_e2_occupancy) { create :hmis_unit_occupancy, unit: unit1, enrollment: joining_e2 }
+
+      it 'removes the current unit occupancy from the joiners' do
+        expect do
+          perform_mutation
+          joining_e1.reload
+          joining_e2.reload
+        end.to change(joining_e1, :active_unit_occupancy).to(nil).
+          and change(joining_e2, :active_unit_occupancy).to(nil)
+      end
     end
   end
 

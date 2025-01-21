@@ -42,15 +42,26 @@ module Mutations
       remaining_hoh = remaining_enrollments.any? { |enrollment| enrollment.relationship_to_hoh == 1 }
       raise 'This operation would leave behind a household with no HoH, which is not allowed' unless remaining_enrollments.empty? || remaining_hoh
 
+      # This works for the present-tense, tracking current unit occupancy, but could be improved to better accommodate past data correction
+      units = receiving_enrollments.map { |enrollment| enrollment.active_unit_occupancy&.unit }.compact.uniq
+
       Hmis::Hud::Enrollment.transaction do
-        joining_enrollments.each do |enrollment|
+        joining_enrollments.each_with_index do |enrollment, index|
           enrollment.update!(
             household_id: receiving_household_id,
             relationship_to_hoh: map_enrollment_id_to_relationship[enrollment.id.to_s],
           )
-        end
 
-        # todo @martha - update the unit, if necessary
+          # Whether or not the receiving household has a unit assignment, clear the current unit assignment for the joining enrollments
+          enrollment.active_unit_occupancy&.assign_attributes(occupancy_period_attributes: { end_date: Date.current })
+
+          unless units.empty?
+            unit = units[index % units.length] # If the receiving household has multiple units, pick any, deterministically
+            enrollment.assign_unit(unit: unit, start_date: Date.current, user: current_user)
+          end
+
+          enrollment.save!
+        end
       end
 
       receiving.reload
