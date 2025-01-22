@@ -6,6 +6,6 @@
 
 module HudSpmReport
   def self.current_generator
-    HudSpmReport::Generators::Fy2023::Generator
+    HudSpmReport::Generators::Fy2024::Generator
   end
 end
