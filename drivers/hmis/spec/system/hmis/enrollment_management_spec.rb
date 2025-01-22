@@ -43,7 +43,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
     def make_household(household_id: Hmis::Hud::Base.generate_uuid, enrollment_factory:)
       [
         [c1, { RelationshipToHoH: 1 }],
-        [c2, { RelationshipToHoH: 99 }],
+        [c2, { RelationshipToHoH: 3 }],
       ].each do |client, enrollment_attrs|
         enrollment_attrs.merge!(
           client: client,
@@ -106,6 +106,8 @@ RSpec.feature 'Enrollment/household management', type: :system do
         assert_text(c2.brief_name)
         assert_text(c1.brief_name)
 
+        e1 = c1.enrollments.sole
+        e2 = c2.enrollments.sole
         # choose second row. These radio selects need better a11y
         # find(:xpath, "//table/tbody/tr[2]/td/*[normalize-space()='HoH']").click
         within(:xpath, '//table/tbody/tr[2]') do
@@ -117,7 +119,9 @@ RSpec.feature 'Enrollment/household management', type: :system do
           within(:xpath, '//table/tbody/tr[2]') do
             with_hidden { expect(page).to have_checked_field('HoH') }
           end
-        end.to change(c2.enrollments.where(relationship_to_hoh: 1), :count).by(1)
+        end.to change(c2.enrollments.where(relationship_to_hoh: 1), :count).by(1).
+          and change { e2.reload.relationship_to_hoh }.from(3).to(1). # c2 becomes HoH
+          and change { e1.reload.relationship_to_hoh }.from(1).to(3) # c1 has inferred relationship to c2
       end
 
       it 'can remove a non-HoH member' do

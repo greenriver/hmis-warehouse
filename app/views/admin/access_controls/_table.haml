@@ -17,9 +17,15 @@
       %tbody
         - @access_controls.each do |acl|
           %tr
-            %td= link_to_if can_edit_users? && !acl.user_group.system?, acl.user_group.name, edit_admin_user_group_path(acl.user_group), target: :_blank
-            %td= link_to_if can_edit_roles? && !acl.role.system?, acl.role.name, edit_admin_role_path(acl.role), target: :_blank
-            %td= link_to_if can_edit_collections? && !acl.collection.system?, acl.collection.name, edit_admin_collection_path(acl.collection), target: :_blank
+            %td
+              - if acl.user_group
+                = link_to_if can_edit_users? && !acl.user_group.system?, acl.user_group.name, edit_admin_user_group_path(acl.user_group), target: :_blank
+            %td
+              - if acl.role
+                = link_to_if can_edit_roles? && !acl.role.system?, acl.role.name, edit_admin_role_path(acl.role), target: :_blank
+            %td
+              - if acl.collection
+                = link_to_if can_edit_collections? && !acl.collection.system?, acl.collection.name, edit_admin_collection_path(acl.collection), target: :_blank
 
             %td.nobr
               -# Don't let use delete or edit a fully system Access Control
@@ -29,7 +35,7 @@
                   %span.icon-pencil
                   Edit Access Control List
 
-                = link_to admin_access_control_path(acl),  method: :delete, data: {confirm: "Would you really like to delete the access control for collection '#{acl.collection.name}', role '#{acl.role.name}', and user group #{acl.user_group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger', 'ml-2'] do
+                = link_to admin_access_control_path(acl),  method: :delete, data: {confirm: "Would you really like to delete the access control for collection '#{acl.collection&.name}', role '#{acl.role&.name}', and user group #{acl.user_group&.name}?"}, class: ['btn', 'btn-sm', 'btn-danger', 'ml-2'] do
                   %span.icon-cross
                   Delete
   = render 'common/pagination_bottom', item_name: 'access control'
