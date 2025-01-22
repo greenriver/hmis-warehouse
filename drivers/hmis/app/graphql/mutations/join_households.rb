@@ -16,7 +16,7 @@ module Mutations
       receiving_enrollments = Hmis::Hud::Enrollment.
         where(household_id: receiving_household_id).
         viewable_by(current_user).
-        includes(:project)
+        includes(:project, :household)
       access_denied! if receiving_enrollments.empty?
 
       receiving_household = receiving_enrollments.first.household
@@ -30,7 +30,8 @@ module Mutations
       joining_enrollment_ids = map_enrollment_id_to_relationship.keys
       joining_enrollments = Hmis::Hud::Enrollment.
         viewable_by(current_user).
-        where(id: joining_enrollment_ids)
+        where(id: joining_enrollment_ids).
+        includes(:household)
       access_denied! unless joining_enrollments.count == joining_enrollment_inputs.count
 
       raise 'Cannot merge enrollments from another project' unless joining_enrollments.pluck(:project_pk).uniq.sole == receiving_project.id
@@ -98,7 +99,7 @@ module Mutations
       }
     end
 
-    private def snapshot(enrollments)
+    private def snapshot(enrollments) # Snapshot a list of enrollments for saving to the event before/after json blob
       enrollments.map do |enrollment|
         {
           'enrollmentId': enrollment.id,
