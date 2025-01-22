@@ -10,25 +10,25 @@ module Mutations
     argument :joining_enrollment_inputs, [Types::HmisSchema::JoiningEnrollmentInput], required: true
 
     field :receiving_household, Types::HmisSchema::Household, null: false
-    field :donor_household, Types::HmisSchema::Household, null: true # For frontend expediency, also return the donor household, if there are any remaining members
-
+    field :donor_household, Types::HmisSchema::Household, null: true # Will be null if there are no remaining members
+    # todo @martha - possible that there will be multiple households with same ID? mutation should require project_id?
     def resolve(receiving_household_id:, joining_enrollment_inputs:)
       receiving_enrollments = Hmis::Hud::Enrollment.
+        where(household_id: receiving_household_id).
         viewable_by(current_user).
-        includes(:project).
-        where(household_id: receiving_household_id)
+        includes(:project)
       access_denied! if receiving_enrollments.empty?
 
-      receiving_enrollment = receiving_enrollments.find { |e| e.relationship_to_hoh == 1 } || receiving_enrollments.first
+      receiving_household = receiving_enrollments.first.household
 
       receiving_project = receiving_enrollments.map(&:project).uniq.sole
       access_denied! unless current_permission?(permission: :can_split_households, entity: receiving_project)
 
+      # The mutation input is a list, so convert it to a hashmap for ease of access
       map_enrollment_id_to_relationship = joining_enrollment_inputs.map { |e| [e.enrollment_id, e.relationship_to_hoh] }.to_h
 
       joining_enrollment_ids = map_enrollment_id_to_relationship.keys
       joining_enrollments = Hmis::Hud::Enrollment.
-        joins(:project).
         viewable_by(current_user).
         where(id: joining_enrollment_ids)
       access_denied! unless joining_enrollments.count == joining_enrollment_inputs.count
@@ -42,11 +42,12 @@ module Mutations
       remaining_hoh = remaining_enrollments.any? { |enrollment| enrollment.relationship_to_hoh == 1 }
       raise 'This operation would leave behind a household with no HoH, which is not allowed' unless remaining_enrollments.empty? || remaining_hoh
 
-      # This works for the present-tense, tracking current unit occupancy, but could be improved to better accommodate past data correction
+      # If the receiving household is assigned to a unit, re-assign the joining enrollments to the same unit.
+      # This works for the present-tense, but could be improved to better accommodate past data correction.
       units = receiving_enrollments.map { |enrollment| enrollment.active_unit_occupancy&.unit }.compact.uniq
 
       receiving_before_state = snapshot(receiving_enrollments)
-      donor_before_state = snapshot(donor_household.enrollments)
+      donor_before_state = snapshot([*joining_enrollments, *remaining_enrollments])
 
       Hmis::Hud::Enrollment.transaction do
         joining_enrollments.each_with_index do |enrollment, index|
@@ -55,7 +56,7 @@ module Mutations
             relationship_to_hoh: map_enrollment_id_to_relationship[enrollment.id.to_s],
           )
 
-          # Whether or not the receiving household has a unit assignment, clear the current unit assignment for the joining enrollments
+          # Whether or not the receiving household has a unit assignment, clear the joining enrollment's current unit assignment
           enrollment.active_unit_occupancy&.assign_attributes(occupancy_period_attributes: { end_date: Date.current })
 
           unless units.empty?
@@ -66,19 +67,18 @@ module Mutations
           enrollment.save!
         end
 
-        receiving_enrollment.reload
+        receiving_household.reload
         donor_household.reload if remaining_enrollments.any?
 
         joining_event = Hmis::HouseholdEvent.new
         joining_event.user = current_user
-        joining_event.household = receiving_enrollment.household
+        joining_event.household = receiving_household
         joining_event.event_type = Hmis::HouseholdEvent::JOIN
         joining_event.event_details = {
           'donorHouseholdId': donor_household.household_id,
           'before': receiving_before_state,
-          'after': snapshot(receiving_enrollment.household.enrollments),
+          'after': snapshot(receiving_household.enrollments),
         }
-        joining_event.save!
 
         leaving_event = Hmis::HouseholdEvent.new
         leaving_event.user = current_user
@@ -89,12 +89,12 @@ module Mutations
           'before': donor_before_state,
           'after': snapshot(remaining_enrollments),
         }
-        leaving_event.save!
+        Hmis::HouseholdEvent.import!([joining_event, leaving_event])
       end
 
       {
-        receiving_household: receiving_enrollment.household,
-        donor_household: remaining_enrollments.first&.household,
+        receiving_household: receiving_household,
+        donor_household: remaining_enrollments.any? ? donor_household : nil,
       }
     end
 
