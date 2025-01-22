@@ -56,7 +56,10 @@ module Admin
 
       @redirecting = true
       update
-      redirect_to({ action: :edit }, notice: 'User updated') and return
+      # early return if the response body was set by update(), avoid double-render error
+      return if performed?
+
+      redirect_to({ action: :edit }, notice: 'User updated')
     end
 
     def impersonate
