@@ -23,6 +23,7 @@ class Users::InvitationsController < Devise::InvitationsController
 
   # POST /resource/invitation
   def create
+    # if the account will be an admin, check that the current user has confirmed this action with their password
     if creating_admin? && current_user.confirm_password_for_admin_actions? && !current_user.valid_password?(confirmation_params[:confirmation_password])
       flash[:error] = 'User not updated. Incorrect password'
       @user = User.new
@@ -30,23 +31,42 @@ class Users::InvitationsController < Devise::InvitationsController
       return
     end
 
-    @user = User.with_deleted.find_by_email(invite_params[:email]).restore if User.with_deleted.find_by_email(invite_params[:email]).present?
-    @user = User.invite!(invite_params.except(:legacy_role_ids), current_user) do |u|
-      u.skip_invitation = invite_params[:skip_invitation]&.to_i == 1
+    # create the new user account and send an invitation. Note that we are sending an email within a tx here which
+    # isn't ideal. This assumes a robust and responsive delivery service such as aws ses
+    @user = nil
+    User.transaction do
+      @user = invite_and_find_or_create_user
+      raise ActiveRecord::Rollback if @user.errors.any?
     end
-    # Roles need to be added as a second pass
-    @user.update(invite_params)
-    @user&.set_viewables(viewable_params.to_h.map { |k, a| [k.to_sym, a] }.to_h) # TODO: START_ACL remove when ACL transition complete
-    # if we have a user to copy user groups from, add them
-    copy_user_groups if @user.using_acls?
 
-    if resource.errors.empty?
-      set_flash_message :notice, :send_instructions, email: resource.email if is_flashing_format? && resource.invitation_sent_at
+    # handle errors from devise
+    if @user.errors.empty?
+      set_flash_message :notice, :send_instructions, email: @user.email if is_flashing_format? && @user.invitation_sent_at
       redirect_to admin_users_path
     else
       @agencies = Agency.order(:name)
       render :new
     end
+  end
+
+  private def invite_and_find_or_create_user
+    # if a deleted account matches the email, restore it so devise's invitable will find it
+    email = invite_params[:email]
+    User.with_deleted.find_by_email(email)&.restore
+
+    # will find or create a user record
+    user = User.invite!(invite_params.except(:legacy_role_ids), current_user) do |u|
+      # I guess we use invite for the side-effect of user creation in this case
+      u.skip_invitation = invite_params[:skip_invitation]&.to_i == 1
+    end
+    return user if user.errors.present?
+
+    # Roles need to be added as a second pass
+    user.update!(invite_params)
+    user.set_viewables(viewable_params.to_h.map { |k, a| [k.to_sym, a] }.to_h) # TODO: START_ACL remove when ACL transition complete
+    # if we have a user to copy user groups from, add them
+    copy_user_groups if user.using_acls?
+    return user
   end
 
   private def copy_user_groups
