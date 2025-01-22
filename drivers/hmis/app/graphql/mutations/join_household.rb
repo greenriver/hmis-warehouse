@@ -47,8 +47,8 @@ module Mutations
       # This works for the present-tense, but could be improved to better accommodate past data correction.
       units = receiving_enrollments.map { |enrollment| enrollment.active_unit_occupancy&.unit }.compact.uniq
 
-      receiving_before_state = snapshot(receiving_enrollments)
-      donor_before_state = snapshot([*joining_enrollments, *remaining_enrollments])
+      receiving_before_state = Hmis::Hud::Enrollment.snapshot_enrollments(receiving_enrollments)
+      donor_before_state = Hmis::Hud::Enrollment.snapshot_enrollments([*joining_enrollments, *remaining_enrollments])
 
       Hmis::Hud::Enrollment.transaction do
         joining_enrollments.each_with_index do |enrollment, index|
@@ -78,7 +78,7 @@ module Mutations
         joining_event.event_details = {
           'donorHouseholdId': donor_household.household_id,
           'before': receiving_before_state,
-          'after': snapshot(receiving_household.enrollments),
+          'after': Hmis::Hud::Enrollment.snapshot_enrollments(receiving_household.enrollments),
         }
 
         leaving_event = Hmis::HouseholdEvent.new
@@ -88,7 +88,7 @@ module Mutations
         leaving_event.event_details = {
           'receivingHouseholdId': receiving_household_id,
           'before': donor_before_state,
-          'after': snapshot(remaining_enrollments),
+          'after': Hmis::Hud::Enrollment.snapshot_enrollments(remaining_enrollments),
         }
         Hmis::HouseholdEvent.import!([joining_event, leaving_event])
       end
@@ -97,15 +97,6 @@ module Mutations
         receiving_household: receiving_household,
         donor_household: remaining_enrollments.any? ? donor_household : nil,
       }
-    end
-
-    private def snapshot(enrollments) # Snapshot a list of enrollments for saving to the event before/after json blob
-      enrollments.map do |enrollment|
-        {
-          'enrollmentId': enrollment.id,
-          'relationshipToHoh': enrollment.relationship_to_hoh,
-        }
-      end
     end
   end
 end

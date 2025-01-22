@@ -284,6 +284,15 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     generate_uuid
   end
 
+  def self.snapshot_enrollments(enrollments)
+    enrollments.map do |enrollment|
+      {
+        'enrollmentId': enrollment.id,
+        'relationshipToHoh': enrollment.relationship_to_hoh,
+      }
+    end
+  end
+
   # Data Collection Features that are enabled for this enrollment, thru its project (e.g. Current Living Situation)
   #
   # Is it enabled?
