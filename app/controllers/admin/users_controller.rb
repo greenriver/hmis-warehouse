@@ -145,7 +145,8 @@ module Admin
 
     def destroy
       @user.paper_trail_event = 'deactivate'
-      @user.update(active: false)
+      # update_column() allows us to update the user even if the record is invalid
+      @user.update_column(:active, false)
       redirect_to({ action: :index }, notice: "User #{@user.name} deactivated")
     end
 
