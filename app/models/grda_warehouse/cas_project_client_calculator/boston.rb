@@ -504,7 +504,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       case cas_assessment_name(client)
       when 'IdentifiedPathwaysVersionThreePathways', 'IdentifiedPathwaysVersionFourPathways'
         days_homeless_in_last_three_years_cached(client)
-      when 'IdentifiedPathwaysVersionThreeTransfer'
+      when 'IdentifiedPathwaysVersionThreeTransfer', 'IdentifiedPathwaysVersionFourTransfer'
         assessment_score(client)
       end
     end
