@@ -76,7 +76,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
       end
 
       it 'upgrades to the newer version when you unlock for editing' do
-        click_link old_definition.title
+        click_link 'View Assessment'
 
         assert_text old_definition.title
 
@@ -101,7 +101,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
 
         # Re-open the assessment to ensure it is using the new form now
         assert_no_text old_definition.title
-        click_link definition.title
+        click_link 'View Assessment'
         assert_text 'New question'
         assert_text 'Answer to new question'
         assert_no_text 'Text on old form'
@@ -113,7 +113,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
       let!(:wip_assessment) { create(:hmis_custom_assessment, definition: old_definition, wip: true, values: { 'assessment_date': today.strftime('%Y-%m-%d') }, enrollment: e1, assessment_date: today) }
 
       it 'uses old form version for editing' do
-        click_link old_definition.title
+        click_link 'View Assessment'
         assert_text old_definition.title
         expect(page).to have_field('Assessment Date', with: wip_assessment.assessment_date.strftime('%m/%d/%Y'))
         assert_text 'Text on old form'
@@ -176,7 +176,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
       sign_in(hmis_user)
 
       visit "/client/#{c1.id}/enrollments/#{e1.id}/assessments"
-      click_link 'Intake'
+      click_link 'Finish Intake'
     end
 
     def select_member(client)
