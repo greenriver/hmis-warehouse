@@ -5,7 +5,7 @@
 ###
 
 module Types
-  class HmisSchema::JoiningEnrollmentInput < BaseInputObject
+  class HmisSchema::EnrollmentRelationshipInput < BaseInputObject
     argument :enrollment_id, ID, required: true
     argument :relationship_to_hoh, Types::HmisSchema::Enums::Hud::RelationshipToHoH, required: true
   end

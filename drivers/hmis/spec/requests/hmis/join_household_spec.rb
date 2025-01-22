@@ -22,8 +22,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation JoinHouseholds($input: JoinHouseholdsInput!) {
-        joinHouseholds(input: $input) {
+      mutation JoinHousehold($input: JoinHouseholdInput!) {
+        joinHousehold(input: $input) {
           receivingHousehold {
             id
             householdSize
@@ -73,7 +73,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     response, result = post_graphql(input) { mutation }
 
     expect(response.status).to eq(200), result.inspect
-    result = result.dig('data', 'joinHouseholds')
+    result = result.dig('data', 'joinHousehold')
     return result['receivingHousehold'], result['donorHousehold']
   end
 

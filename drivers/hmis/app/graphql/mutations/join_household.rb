@@ -5,9 +5,9 @@
 ###
 
 module Mutations
-  class JoinHouseholds < BaseMutation
+  class JoinHousehold < BaseMutation
     argument :receiving_household_id, ID, required: true
-    argument :joining_enrollment_inputs, [Types::HmisSchema::JoiningEnrollmentInput], required: true
+    argument :joining_enrollment_inputs, [Types::HmisSchema::EnrollmentRelationshipInput], required: true
 
     field :receiving_household, Types::HmisSchema::Household, null: false
     field :donor_household, Types::HmisSchema::Household, null: true # Will be null if there are no remaining members
