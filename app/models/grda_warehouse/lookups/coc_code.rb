@@ -26,7 +26,7 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
   #   that the user is allowed to view.
   #
   scope :viewable_by, ->(user, permission: :can_view_projects) do
-    # any code the user could possibly have access to, and the project associated
+    # Fetch all CoC codes that are indirectly accessible to the user via projects they have permission to view.
     coc_codes_inherited_from_projects = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
       merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: permission)).distinct.
       pluck(:CoCCode)
@@ -34,7 +34,8 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
     # access to view projects. We'll fix that with different permissions in the future, for now return all
     active_coc_codes = []
     active_coc_codes = active.distinct.pluck(:coc_code) if coc_codes_inherited_from_projects.blank?
-    # Intersected with the user's since the active_coc_codes returned all CoC codes at the projects
+    # Intersect the active CoC codes with the specific CoC codes explicitly assigned to the user.
+    # This ensures the user can only see codes they have explicit access to, in addition to inherited ones.
     visible_coc_codes = []
     visible_coc_codes = active_coc_codes & user.coc_codes if user.coc_codes.present?
     visible_coc_codes += coc_codes_inherited_from_projects
