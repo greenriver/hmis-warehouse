@@ -35,6 +35,7 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
     active_coc_codes = []
     active_coc_codes = active.distinct.pluck(:coc_code) if coc_codes_inherited_from_projects.blank?
     # Intersected with the user's since the active_coc_codes returned all CoC codes at the projects
+    visible_coc_codes = []
     visible_coc_codes = active_coc_codes & user.coc_codes if user.coc_codes.present?
     visible_coc_codes += coc_codes_inherited_from_projects
 
