@@ -12,6 +12,7 @@
 module HmisExternalApis::AcHmis::Exporters
   class CdeExport
     include ::HmisExternalApis::AcHmis::Exporters::CsvExporter
+    include ::Hmis::Concerns::HmisArelHelper
 
     UNIT_TYPE_KEY = 'unit_type'.freeze
     AUTO_EXIT_KEY = 'auto_exit'.freeze
@@ -24,11 +25,17 @@ module HmisExternalApis::AcHmis::Exporters
 
       cdes.each.with_index do |cde, i|
         Rails.logger.info "Processed #{i} of #{total}" if (i % 100).zero?
+
+        owner_id = cde.owner_id
+        owner_id = client_id_to_warehouse_id[owner_id] if cde.data_element_definition.owner_type == 'Hmis::Hud::Client'
+        # Skip if there is no owner ID. Could happen if client doesn't have a destination client yet.
+        next unless owner_id
+
         values = [
           cde.id,
           cde.data_element_definition.key,
           cde.data_element_definition.owner_type.demodulize,
-          cde.owner_id,
+          owner_id,
           cde.value,
           cde.date_created,
           cde.date_updated,
@@ -59,11 +66,24 @@ module HmisExternalApis::AcHmis::Exporters
     def cdes
       @cdes ||= Hmis::Hud::CustomDataElement.
         where(data_source: data_source).
+        joins(:data_element_definition).
+        # Exclude some Custom Data Elements that are exported in other files. It would be simpler to
+        # just export them here, but customer prefers to keep dedicated file (which was added first).
+        where.not(data_element_definition: { key: HmisExternalApis::AcHmis::Exporters::CdedExport::EXCLUDED_CUSTOM_DATA_ELEMENT_KEYS }).
         preload(:data_element_definition)
     end
 
     def walk_in_cded
       @walk_in_cded ||= Hmis::Hud::CustomDataElementDefinition.where(data_source: data_source, key: :direct_entry, owner_type: 'Hmis::Hud::Project').first!
+    end
+
+    # { source client id => destination warehouse id }
+    # only includes source clients that are the Owner of any CDEs in scope
+    def client_id_to_warehouse_id
+      @client_id_to_warehouse_id ||= begin
+        source_client_ids = cdes.where(data_element_definition: { owner_type: 'Hmis::Hud::Client' }).pluck(:owner_id)
+        Hmis::Hud::Client.where(id: source_client_ids).joins(:warehouse_client_source).pluck(c_t[:id], wc_t[:destination_id]).to_h
+      end
     end
 
     def write_auto_exits
