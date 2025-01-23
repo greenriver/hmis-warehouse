@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'nokogiri'
 
 # Quick and dirty builder class to assist with complex assessments. Manages CDEDS, link-ids

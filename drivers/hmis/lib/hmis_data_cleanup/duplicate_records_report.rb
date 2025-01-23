@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 class HmisDataCleanup::DuplicateRecordsReport
   def duplicate_custom_assessments(data_source)
     # to reduce the search space, find the enrollment ids that might be duplicates
