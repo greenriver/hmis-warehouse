@@ -154,6 +154,14 @@ module HmisCsvTwentyTwentyFour::Importer::ImportConcern
         delete_pending
     end
 
+    # Override as necessary
+    # The import process is relying on flagging records with pending_date_deleted to identify
+    # record changes in the import process. This flag allows for marking the records for deletion
+    # without actually delete them.
+    def self.prevent_import_deletions?
+      false
+    end
+
     def self.pending_deletions(data_source_id:, project_ids:, date_range:)
       involved_warehouse_scope(
         data_source_id: data_source_id,

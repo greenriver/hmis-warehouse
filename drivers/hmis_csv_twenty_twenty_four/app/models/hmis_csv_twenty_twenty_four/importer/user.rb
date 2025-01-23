@@ -22,8 +22,14 @@ module HmisCsvTwentyTwentyFour::Importer
       GrdaWarehouse::Hud::User
     end
 
+    # Overriding this method as such will prevent changes from being made to this class during the import process
     # Don't ever mark these for deletion
-    def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:, importer_log_id:)
+    # def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:, importer_log_id:)
+    # end
+
+    # # Don't ever mark these for deletion
+    def self.prevent_import_deletions?
+      true
     end
 
     def self.hmis_validations

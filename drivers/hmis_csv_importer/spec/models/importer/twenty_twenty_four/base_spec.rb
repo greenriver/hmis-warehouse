@@ -32,12 +32,75 @@ RSpec.describe HmisCsvImporter, type: :model do
     end
   end
 
+  describe 'When importing users' do
+    before(:all) do
+      HmisCsvImporter::Utility.clear!
+      GrdaWarehouse::Utility.clear!
+      import_hmis_csv_fixture(
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/user_test',
+        version: 'AutoMigrate',
+        run_jobs: true,
+      )
+    end
+
+    it 'Baseline users imported' do
+      expect(GrdaWarehouse::Hud::User.count).to eq(4)
+    end
+
+    it 'user emails match expected' do
+      user_emails = GrdaWarehouse::Hud::User.all.pluck(:UserEmail).sort
+      expected_emails = [
+        'freddie@example.com',
+        'ryleigh@example.com',
+        'jackson@example.com',
+        'tamara@example.com',
+      ].sort
+      expect(user_emails).to eq(expected_emails)
+    end
+
+    describe 'after second import' do
+      before(:all) do
+        import_hmis_csv_fixture(
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/user_test_2',
+          version: 'AutoMigrate',
+          run_jobs: true,
+        )
+      end
+
+      it 'users not in import file are not deleted' do
+        # We still expect 4 users even through the new import file only has 3 users included.
+        # Users should not be deleted.
+        expect(GrdaWarehouse::Hud::User.count).to eq(4)
+      end
+
+      it 'users emails are updated to match import file' do
+        user_emails = GrdaWarehouse::Hud::User.all.pluck(:UserEmail).sort
+        expected_emails = [
+          'freddie+edited@example.com',
+          'ryleigh+edited@example.com',
+          'jackson@example.com',
+          'tamara@example.com',
+        ].sort
+        expect(user_emails).to eq(expected_emails)
+      end
+    end
+  end
+
   describe 'When importing enrollments' do
     before(:all) do
       HmisCsvImporter::Utility.clear!
       GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/enrollment_test_files',
+        version: 'AutoMigrate',
+        run_jobs: true,
+      )
+    end
+
+    it 'email updates' do
+      expect(GrdaWarehouse::Hud::User.count).to eq(4)
+      import_hmis_csv_fixture(
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/enrollment_test_files_email_update',
         version: 'AutoMigrate',
         run_jobs: true,
       )
