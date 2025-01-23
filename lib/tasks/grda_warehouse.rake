@@ -350,12 +350,17 @@ namespace :grda_warehouse do
       end
     end
 
+    # This should be very fast, no need to background
+    HmisCsvImporter::ImportOverride.remove_expired! if DateTime.current.hour == 17 && RailsDrivers.loaded.include?(:hmis_csv_importer)
+
     stats_collector = AppResourceMonitor::CollectStatsJob.new
     AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
 
     BuildTranslationCacheJob.perform_later
 
-    PgheroCollectStatsJob.perform_later(clean: DateTime.current.hour == 5) if !Rails.env.production? && PgHero.query_stats_enabled?
+    # Disabled pg-hero status job for now. This doesn't have the required permissions
+    # to run in RDS. Note, pg-hero still works without it
+    # PgheroCollectStatsJob.perform_later(clean: DateTime.current.hour == 5) if !Rails.env.production? && PgHero.query_stats_enabled?
   end
 
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'

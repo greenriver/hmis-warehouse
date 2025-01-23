@@ -40,6 +40,7 @@ module HudApr::Generators::Shared::Fy2024
           answer = @report.answer(question: table_name, cell: cell)
 
           members = universe.members.
+            where(leavers_clause).
             where(population_clause).
             where(assessment_clause).
             where(a_t[:project_type].eq(12)) # Only prevention project enrollments are counted
