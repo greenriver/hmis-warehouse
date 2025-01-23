@@ -42,8 +42,8 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
     active.where(coc_code: visible_coc_codes)
   end
 
-  def self.options_for_select(user:)
-    viewable_by(user).
+  def self.options_for_select(user:, permission: :can_view_projects)
+    viewable_by(user, permission: permission).
       distinct.
       order(:coc_code).
       map(&:as_select_option)

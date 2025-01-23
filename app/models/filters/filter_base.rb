@@ -818,8 +818,8 @@ module Filters
       all_funders_scope.options_for_select_other(user: user)
     end
 
-    def coc_code_options_for_select(user:)
-      GrdaWarehouse::Lookups::CocCode.options_for_select(user: user)
+    def coc_code_options_for_select(user:, permission: :can_view_assigned_reports)
+      GrdaWarehouse::Lookups::CocCode.options_for_select(user: user, permission: permission)
     end
 
     def project_groups_options_for_select(user:)
