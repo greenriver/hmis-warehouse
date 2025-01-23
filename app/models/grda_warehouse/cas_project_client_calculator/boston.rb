@@ -517,7 +517,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       case cas_assessment_name(client)
       when 'IdentifiedPathwaysVersionThreePathways'
         cas_assessment_collected_at(client)
-      when 'IdentifiedPathwaysVersionThreeTransfer'
+      when 'IdentifiedPathwaysVersionThreeTransfer', 'IdentifiedPathwaysVersionFourTransfer'
         financial_assistance_end_date(client)
       when 'IdentifiedPathwaysVersionFourPathways'
         date_of_first_service(client)
