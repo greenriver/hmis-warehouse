@@ -74,7 +74,7 @@ RSpec.feature 'Intake assessment', type: :system do
         expect(e2.intake_assessment).to be_nil
 
         fill_in 'Search Clients', with: c1.last_name
-        click_link "View Enrollment, #{c1.brief_name} #{e1.entry_date.strftime('%m/%d/%Y')} - Active"
+        click_link c1.brief_name
         click_link 'Assessments'
         click_link 'Finish Intake'
 
