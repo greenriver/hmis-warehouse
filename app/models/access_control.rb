@@ -14,6 +14,7 @@
 class AccessControl < ApplicationRecord
   include ActionView::Helpers::TagHelper
   include UserPermissionCache
+  include ArelHelper
 
   acts_as_paranoid
   has_paper_trail
@@ -34,6 +35,19 @@ class AccessControl < ApplicationRecord
   # hide previous declaration of :system (from Kernel), we'll use this one
   replace_scope :system, -> do
     joins(:collection).merge(Collection.system)
+  end
+
+  # Where not ALL role, collection, user group are system
+  scope :editable, -> do
+    # r_t
+    # collection_t
+    # ug_t
+    left_outer_joins(:collection, :role, :user_group).
+      where.not(
+        collection_id: Collection.system.select(:id),
+        role_id: Role.system.select(:id),
+        user_group_id: UserGroup.system.select(:id),
+      )
   end
 
   scope :not_system, -> do
