@@ -39,9 +39,6 @@ class AccessControl < ApplicationRecord
 
   # Where not ALL role, collection, user group are system
   scope :editable, -> do
-    # r_t
-    # collection_t
-    # ug_t
     left_outer_joins(:collection, :role, :user_group).
       where.not(
         collection_id: Collection.system.select(:id),
