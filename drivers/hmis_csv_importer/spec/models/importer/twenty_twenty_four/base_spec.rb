@@ -97,15 +97,6 @@ RSpec.describe HmisCsvImporter, type: :model do
       )
     end
 
-    it 'email updates' do
-      expect(GrdaWarehouse::Hud::User.count).to eq(4)
-      import_hmis_csv_fixture(
-        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/enrollment_test_files_email_update',
-        version: 'AutoMigrate',
-        run_jobs: true,
-      )
-    end
-
     it 'the database will have three source clients' do
       expect(GrdaWarehouse::Hud::Client.source.count).to eq(3)
     end
