@@ -32,15 +32,14 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
       pluck(:CoCCode)
     # If the user can't see any CoC Codes from the above query, it's probably that they don't have any
     # access to view projects. We'll fix that with different permissions in the future, for now return all
-    active_coc_codes = []
-    active_coc_codes = active.distinct.pluck(:coc_code) if coc_codes_inherited_from_projects.blank?
+    active_coc_codes = active.distinct.pluck(:coc_code)
     # Intersect the active CoC codes with the specific CoC codes explicitly assigned to the user.
     # This ensures the user can only see codes they have explicit access to, in addition to inherited ones.
     visible_coc_codes = []
     visible_coc_codes = active_coc_codes & user.coc_codes if user.coc_codes.present?
     visible_coc_codes += coc_codes_inherited_from_projects
 
-    active.where(coc_code: visible_coc_codes)
+    active.where(coc_code: visible_coc_codes.uniq)
   end
 
   def self.options_for_select(user:, permission: :can_view_projects)

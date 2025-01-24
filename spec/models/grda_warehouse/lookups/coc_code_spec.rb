@@ -10,7 +10,12 @@ RSpec.describe GrdaWarehouse::Lookups::CocCode, type: :model do
   let!(:project_3) { create :grda_warehouse_hud_project, ProjectType: 3, OrganizationID: organization.OrganizationID, data_source_id: data_source.id }
   let!(:project_coc_coc_3) { create :grda_warehouse_hud_project_coc, ProjectID: project_3.ProjectID, data_source_id: data_source.id, CoCCode: 'XX-502' }
   let!(:user) { create :user }
-  let!(:coc_codes) { create_list :lookup_coc, 5 }
+  let!(:coc_codes) do
+    (0..4).map do |i|
+      # factory bot will continue to increment if using a sequence, so enforce 500-505
+      create(:lookup_coc, coc_code: "XX-50#{i}", official_name: "Fake CoC 50#{i}}")
+    end
+  end
   let(:expected_cocs) { ['XX-500', 'XX-501'].sort }
   describe 'legacy permissions' do
     before do
