@@ -56,8 +56,8 @@ class Users::InvitationsController < Devise::InvitationsController
 
     # will find or create a user record
     user = User.invite!(invite_params.except(:legacy_role_ids), current_user) do |u|
-      # If the user creating the account explicitly indicated they didn't need to send an invitation 
-      # skip sending the invitation.  This is used when bulk creating accounts ahead of when 
+      # If the user creating the account explicitly indicated they didn't need to send an invitation
+      # skip sending the invitation.  This is used when bulk creating accounts ahead of when
       # someone should be given access to the application.
       u.skip_invitation = invite_params[:skip_invitation]&.to_i == 1
     end
