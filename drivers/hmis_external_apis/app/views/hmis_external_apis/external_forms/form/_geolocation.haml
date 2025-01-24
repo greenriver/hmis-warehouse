@@ -97,7 +97,15 @@
       getLocationButton.click(function(event) {
         event.preventDefault();
         setLoading(true);
-        navigator.geolocation.getCurrentPosition(setPosition, onError);
+        navigator.geolocation.getCurrentPosition(
+          setPosition,
+          onError,
+          {
+            timeout: 10000, // wait up to 10 seconds before showing an error message
+            maximumAge: 180000, // allow the browser to use a cached location if it's less than 3 minutes old
+            // choosing not to enable `enableHighAccuracy` because it can be slow and drain battery
+          }
+        );
       });
 
       clearButton.click(function(event) {
