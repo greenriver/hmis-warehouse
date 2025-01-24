@@ -96,4 +96,42 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       expect(GrdaWarehouse::Cohort.viewable_by(viewer).where(id: cohort.id).exists?).to be_falsey
     end
   end
+  describe '#system_collection' do
+    let(:user) { create(:user) }
+    let(:user_2) { create(:user) }
+    let(:cohort) { create(:cohort, name: 'Old Name') }
+
+    it 'returns the same system collection when the name changes and replace_access is called' do
+      original_collection = cohort.system_collection
+      original_viewable_user_group = cohort.system_viewable_user_group
+      original_editable_user_group = cohort.system_editable_user_group
+      cohort.replace_access(user, scope: :editor)
+
+      # Verify the original collection name matches Cohort's name
+      expect(original_collection.name).to eq('Old Name')
+
+      # This is a regression catch, historically, changing the project name
+      # would cause a new collection and user_group to be created
+      # Update the Cohort's name
+      cohort.update!(name: 'New Name')
+
+      # Calling replace_access (which triggers the entity access logic)
+      cohort.replace_access([user, user_2], scope: :editor)
+
+      # Force re-calculation
+      cohort.instance_variable_set(:@system_collection, nil)
+      cohort.instance_variable_set(:@system_viewable_user_group, nil)
+      cohort.instance_variable_set(:@system_editable_user_group, nil)
+      updated_collection = cohort.system_collection
+      updated_viewable_user_group = cohort.system_viewable_user_group
+      updated_editable_user_group = cohort.system_editable_user_group
+
+      # Confirm the IDs have not changed (i.e., it's still the same record)
+      expect(updated_collection.id).to eq(original_collection.id)
+      expect(updated_viewable_user_group.id).to eq(original_viewable_user_group.id)
+      expect(updated_editable_user_group.id).to eq(original_editable_user_group.id)
+      # Confirm the collection's name has been updated to match the new Cohort name
+      expect(updated_collection.name).to eq('New Name')
+    end
+  end
 end

@@ -41,6 +41,7 @@ class Collection < ApplicationRecord
   has_many :supplemental_data_sets, through: :group_viewable_entities, source: :entity, source_type: 'HmisSupplemental::DataSet'
 
   belongs_to :user, optional: true
+  belongs_to :source, optional: true, polymorphic: true
 
   validates_presence_of :name, unless: :user_id
   validates_presence_of :collection_type, on: :create
@@ -90,6 +91,14 @@ class Collection < ApplicationRecord
     quoted = SqlHelper.quote_sql_array(coc_codes, type: :varchar)
     # use `?|` since coc codes is json
     where("#{quoted_table_name}.coc_codes ?| #{quoted}")
+  end
+
+  scope :with_source_entity, -> do
+    where.not(source_id: nil)
+  end
+
+  scope :without_source_entity, -> do
+    where(source_id: nil)
   end
 
   def self.text_search(text)

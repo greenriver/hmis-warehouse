@@ -75,6 +75,14 @@ class AccessGroup < ApplicationRecord
     where("#{quoted_table_name}.coc_codes @> #{quoted}")
   end
 
+  scope :with_source_entity, -> do
+    where.not(source_id: nil)
+  end
+
+  scope :without_source_entity, -> do
+    where(source_id: nil)
+  end
+
   def name
     if user_id.blank?
       super
