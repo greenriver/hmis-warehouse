@@ -78,12 +78,13 @@ module HmisExternalApis::AcHmis::Exporters
     end
 
     # { source client id => destination warehouse id }
-    # only includes source clients that are the Owner of any CDEs in scope
+    # only includes source clients that are the Owner of any CDEs
     def client_id_to_warehouse_id
-      @client_id_to_warehouse_id ||= begin
-        source_client_ids = cdes.where(data_element_definition: { owner_type: 'Hmis::Hud::Client' }).pluck(:owner_id)
-        Hmis::Hud::Client.where(id: source_client_ids).joins(:warehouse_client_source).pluck(c_t[:id], wc_t[:destination_id]).to_h
-      end
+      @client_id_to_warehouse_id ||=
+        Hmis::Hud::Client.where(data_source: data_source).
+          joins(:custom_data_elements).    # Only include clients that have CDEs
+          joins(:warehouse_client_source). # Join to Warehouse Client to get destination ID
+          pluck(c_t[:id], wc_t[:destination_id]).to_h
     end
 
     def write_auto_exits
