@@ -20,18 +20,16 @@
         -# TODO: START_ACL remove after ACL transition
         -# if everyone is using Access Controls, hide this section, but keep it in the form
         -# so we don't lose data during the change over
-        - visibility_class = if User.all_using_acls? then 'd-none' else '' end
-        - hint_text = if User.anyone_using_acls? then 'Specified user and members of specified groups will have access to this cohort. This method of access is being deprecated, to be replaced with the fields below.' else 'Specified user and members of specified groups will have access to this cohort.' end
-        %div{ class: visibility_class }
+        - hint_text = 'Specified user and members of specified groups will have access to this cohort.'
+        - hint_text += ' This method of access is being deprecated, to be replaced with the fields below.' if User.anyone_using_acls?
+        %div{ class: (User.all_using_acls? && 'd-none') }
           = f.input :user_ids, collection: @groups, as: :grouped_select_two, group_method: :last, selected: @group_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant access to users and groups', hint: hint_text
         - if User.anyone_using_acls? && ! User.all_using_acls?
           %p The following are the new mechanism for adding access to cohorts.  During the transition period, please assign both methods of access.
         -# END_ACL
 
         -# if no one is using Access Controls, hide this section, but keep it in the form
-        -# so we don't lose data during the change over
-        - visibility_class = if User.anyone_using_acls? then '' else 'd-none' end
-        %div{ class: visibility_class }
+        %div{ class: (!User.anyone_using_acls? && 'd-none') }
           - users = @cohort.users_with_access(access_type: :edit)
           - if users.count > 0
             %p The following users already have access to participate in this cohort:

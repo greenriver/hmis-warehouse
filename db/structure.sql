@@ -4475,7 +4475,7 @@ CREATE UNIQUE INDEX index_app_config_properties_on_key ON public.app_config_prop
 -- Name: index_collections_on_source; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_collections_on_source ON public.collections USING btree (source_type, source_id);
+CREATE UNIQUE INDEX index_collections_on_source ON public.collections USING btree (source_type, source_id);
 
 
 --

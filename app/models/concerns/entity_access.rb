@@ -13,15 +13,6 @@
 module EntityAccess
   extend ActiveSupport::Concern
 
-  # Ensure this user has the appropriate access to this item
-  # Need two cohort users choosers, editors and read-only users
-  # If I created a cohort: (put this on the cohort object - accepts users)
-  #   1. first or create a system role with can_view_cohorts "System Role - Can View Cohorts"
-  #   2. first or create a collection for the cohort called "Cohort X" and add the user to it
-  #   3. first or create an access control that includes above role and collection
-  #   4. add user to the access control
-  # NOTE: this will remove any existing who are not included
-  ##
   # Replace the current users who have a specified access level with a new set
   # of users. Determines whether to modify the "editable" or "viewable" group
   # based on +scope+.
@@ -65,7 +56,7 @@ module EntityAccess
       collection: system_collection,
       role: viewable_role,
       user_group: system_viewable_user_group,
-    ).first_or_create
+    ).first_or_create!
   end
 
   ##
@@ -79,7 +70,7 @@ module EntityAccess
       collection: system_collection,
       role: editable_role,
       user_group: system_editable_user_group,
-    ).first_or_create
+    ).first_or_create!
   end
 
   ##
@@ -93,9 +84,9 @@ module EntityAccess
   #
   def system_collection
     @system_collection ||= begin
-      collection = Collection.system.where(source: self).first_or_create
+      collection = Collection.system.where(source: self).first_or_create!
       collection.set_viewables(entity_relation_type => [id])
-      collection.update(name: name) # ensure the collection name still matches
+      collection.update!(name: name) # ensure the collection name still matches
       collection
     end
   end
@@ -111,9 +102,9 @@ module EntityAccess
   #
   def system_viewable_user_group
     @system_viewable_user_group ||= begin
-      ug = UserGroup.system.where(source: self, context: :viewable).first_or_create
+      ug = UserGroup.system.where(source: self, context: :viewable).first_or_create!
       # Maintain the name
-      ug.update(name: viewable_user_group_name)
+      ug.update!(name: viewable_user_group_name)
       ug
     end
   end
@@ -129,9 +120,9 @@ module EntityAccess
   #
   def system_editable_user_group
     @system_editable_user_group ||= begin
-      ug = UserGroup.system.where(source: self, context: :editable).first_or_create
+      ug = UserGroup.system.where(source: self, context: :editable).first_or_create!
       # Maintain the name
-      ug.update(name: editable_user_group_name)
+      ug.update!(name: editable_user_group_name)
       ug
     end
   end
@@ -143,7 +134,7 @@ module EntityAccess
   # @return [Role]
   #
   def viewable_role
-    @viewable_role ||= Role.system.where(name: viewable_role_name, viewable_permission => true).first_or_create
+    @viewable_role ||= Role.system.where(name: viewable_role_name, viewable_permission => true).first_or_create!
   end
 
   ##
@@ -153,7 +144,7 @@ module EntityAccess
   # @return [Role]
   #
   def editable_role
-    @editable_role ||= Role.system.where(name: editable_role_name, editable_permission => true).first_or_create
+    @editable_role ||= Role.system.where(name: editable_role_name, editable_permission => true).first_or_create!
   end
 
   private def editable_permissions
@@ -178,42 +169,6 @@ module EntityAccess
 
   private def editable_user_group_name
     "#{name} [editable]"
-  end
-
-  # NOTE: this only needs to be run once, and only if the installation was created
-  # prior to release-151
-  def fix_entity_associations
-    # If we already have a system collection in the new mechanism, do nothing
-    existing_collection = Collection.system.where(source: self).exists?
-    unless existing_collection
-      # Find the last collection that would have been created under the old mechanism
-      collection = Collection.system.where(name: name).
-        order(id: :desc).
-        first_or_create
-      collection.update(source: self)
-    end
-
-    # If we already have a viewable user group, do nothing
-    existing_user_group = UserGroup.system.where(source: self, context: :viewable).exists?
-    unless existing_user_group
-      user_group = UserGroup.system.
-        where(name: viewable_user_group_name).
-        order(id: :desc).
-        first_or_create
-      user_group.update(source: self, context: :viewable)
-    end
-
-    # If we already have a editable user group, do nothing
-    existing_user_group = UserGroup.system.where(source: self, context: :editable).exists?
-    unless existing_user_group
-      user_group = UserGroup.system.
-        where(name: editable_user_group_name).
-        order(id: :desc).
-        first_or_create
-      user_group.update(source: self, context: :editable)
-    end
-
-    self
   end
 
   ##
