@@ -41,6 +41,11 @@ class Collection < ApplicationRecord
   has_many :supplemental_data_sets, through: :group_viewable_entities, source: :entity, source_type: 'HmisSupplemental::DataSet'
 
   belongs_to :user, optional: true
+
+  # Collections may be "owned" by a single "source" entity.
+  # These eponymous collections are created through side-effects (see the EntityAccess concern) and
+  # are hidden from the administrative view.  They back the access given to users on the entity edit pages.
+  # Currently, these are used for ProjectGroups and Cohorts.
   belongs_to :source, optional: true, polymorphic: true
 
   validates_presence_of :name, unless: :user_id

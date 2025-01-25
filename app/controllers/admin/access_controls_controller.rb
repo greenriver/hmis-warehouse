@@ -13,7 +13,6 @@ class Admin::AccessControlsController < ApplicationController
 
   def index
     @access_controls = access_control_scope.
-      left_outer_joins(:collection, :role, :user_group).
       order(r_t[:name].asc, collection_t[:name].asc).
       filtered(params[:filter])
     @pagy, @access_controls = pagy(@access_controls)
@@ -53,7 +52,7 @@ class Admin::AccessControlsController < ApplicationController
   end
 
   private def access_control_scope
-    AccessControl.editable
+    AccessControl.user_managed
   end
 
   private def filter_params

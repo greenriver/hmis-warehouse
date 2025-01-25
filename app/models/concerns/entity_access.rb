@@ -84,9 +84,15 @@ module EntityAccess
   #
   def system_collection
     @system_collection ||= begin
-      collection = Collection.system.where(source: self).first_or_create!
+      collection = Collection.system.where(source: self).first_or_initialize do |c|
+        c.name = name
+        c.system = ['Entities'] # required to indicate it is a system collection
+        c.collection_type = collection_type # indicate which type of collection this is
+        c
+      end
+      # ensure the collection name still matches
+      collection.update!(name: name)
       collection.set_viewables(entity_relation_type => [id])
-      collection.update!(name: name) # ensure the collection name still matches
       collection
     end
   end
@@ -102,7 +108,7 @@ module EntityAccess
   #
   def system_viewable_user_group
     @system_viewable_user_group ||= begin
-      ug = UserGroup.system.where(source: self, context: :viewable).first_or_create!
+      ug = UserGroup.system.where(source: self, context: :viewable).first_or_initialize
       # Maintain the name
       ug.update!(name: viewable_user_group_name)
       ug
@@ -120,7 +126,7 @@ module EntityAccess
   #
   def system_editable_user_group
     @system_editable_user_group ||= begin
-      ug = UserGroup.system.where(source: self, context: :editable).first_or_create!
+      ug = UserGroup.system.where(source: self, context: :editable).first_or_initialize
       # Maintain the name
       ug.update!(name: editable_user_group_name)
       ug

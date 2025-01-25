@@ -38,7 +38,8 @@ class AccessControl < ApplicationRecord
   end
 
   # Where not ALL role, collection, user group are system
-  scope :editable, -> do
+  # These access controls will show up on the admin page for editing
+  scope :user_managed, -> do
     left_outer_joins(:collection, :role, :user_group).
       where.not(
         collection_id: Collection.system.select(:id),
