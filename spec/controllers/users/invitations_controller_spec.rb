@@ -5,7 +5,7 @@ RSpec.describe Users::InvitationsController, type: :controller do
   let(:admin_role) { create :admin_role }
   let(:no_data_source_collection) { create :collection }
 
-  let(:agency) { create(:agency) } # Assuming a factory for Agency
+  let(:agency) { create(:agency) } 
   let(:valid_params) do
     {
       user: {
