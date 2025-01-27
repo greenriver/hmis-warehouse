@@ -571,7 +571,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       end
   end
 
-  delegate :error_count_threshold_reached?, to: :import_threshold
+  delegate :error_count_threshold_reached?, to: :import_threshold, allow_nil: nil
   ##
   # Determines whether imports should be paused based on error thresholds.
   #
@@ -610,7 +610,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     import_threshold.error_count_min_threshold.present? && import_threshold.error_percent_threshold.present?
   end
 
-  delegate :record_count_threshold_reached?, to: :import_threshold
+  delegate :record_count_threshold_reached?, to: :import_threshold, allow_nil: nil
   ##
   # Determines whether imports should be paused based on record count change thresholds.
   #

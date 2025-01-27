@@ -34,6 +34,14 @@ module HmisCsvImporter::Importer
       end
     end
 
+    def post_processing_time(importer)
+      return unless completed_at
+      return unless importer&.completed_at
+
+      seconds = ((importer.completed_at - completed_at) / 1.minute).round * 60
+      "#{distance_of_time_in_words(seconds)} -#{importer.completed_at.strftime('%l:%M %P')} to #{completed_at.strftime('%l:%M %P')}"
+    end
+
     def any_errors_or_validations?
       import_errors.exists? || import_validations.exists?
     end

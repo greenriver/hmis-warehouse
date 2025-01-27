@@ -59,8 +59,9 @@ module ServiceHistory::Builder
         Delayed::Worker.new.work_off(2)
       else
         started = Time.current
-        while builder_batch_job_scope.exists?
+        while builder_batch_job_scope.any?
           break if (Time.current - started) > max_wait_seconds
+          break if builder_batch_job_scope.empty?
 
           sleep(interval)
         end

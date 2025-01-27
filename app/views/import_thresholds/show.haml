@@ -6,11 +6,13 @@
 
 = simple_form_for import_threshold, url: data_source_import_threshold_path, method: :patch do |f|
   .well
+    %h2 Changes in Record Counts
+    %p The following settings apply when an import significantly changes the number of rows in the data that already exists in the warehouse for the data source.  This will look at the aggregate change, so if 100 rows are removed and 100 added, no change is indicated.
     .row
       .col
         = f.input :record_count_change_percent_threshold, label: 'Record count change threshold (%)', hint: 'Imports will pause and alert if more than the chosen percentage have changed', input_html: { style: 'width: 5em' }
       .col
-        = f.input :record_count_change_min_threshold, label: 'Minium change count threshold', hint: 'Imports will not pause or alert below this threshold.  This is designed to prevent alerting on a 30% change when only on of 3 rows changes.', input_html: { style: 'width: 8em' }
+        = f.input :record_count_change_min_threshold, label: 'Minium change count threshold', hint: 'Imports will not pause or alert below this threshold.  This is designed to prevent alerting on a 30% change when only 1 of 3 rows changes.', input_html: { style: 'width: 8em' }
 
     = f.input :pause_on_record_count_threshold, label: 'Pause if threshold is met?', hint: 'When the above threshold is met, should the import be paused?  Notifications will be sent even if the import is not paused.'
     - slug = import_threshold.record_count_change_notification_slug
@@ -21,11 +23,13 @@
         %i.icon-plus
         Add Notification
   .well
+    %h2 Error Counts
+    %p The following settings apply when an import contains a significant number of errors or validation issues.  The determination of change is completely contained to the import in question, looking at the errors in a given table against the number of records being processed.
     .row
       .col
         = f.input :error_percent_threshold, label: 'Error count threshold (%)', hint: 'Imports will pause and alert if more than the chosen percentage of rows have errors', input_html: { style: 'width: 5em' }
       .col
-        = f.input :error_count_min_threshold, label: 'Minium error count threshold', hint: 'Imports will not pause or alert below this threshold.  This is designed to prevent alerting on a 30% error rate when only on of 3 rows contains an error.', input_html: { style: 'width: 8em' }
+        = f.input :error_count_min_threshold, label: 'Minium error count threshold', hint: 'Imports will not pause or alert below this threshold.  This is designed to prevent alerting on a 30% error rate when only 1 of 3 rows contains an error.', input_html: { style: 'width: 8em' }
     = f.input :pause_on_error_threshold, label: 'Pause if threshold is met?', hint: 'When the above threshold is met, should the import be paused?  Notifications will be sent even if the import is not paused.'
     - slug = import_threshold.error_count_notification_slug
     - if import_threshold.items_for(slug).any?

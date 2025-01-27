@@ -75,44 +75,52 @@ module GrdaWarehouse
     # 2. Those that have notifications for count changes
     # 3. Those that have both
     def send_status_notifications(import_log_id, error_threshold_met, record_count_threshold_met, paused)
+      return unless error_threshold_met || record_count_threshold_met
+
       receive_both_user_ids = error_count_notification_user_ids & record_change_count_notification_user_ids
 
       # Notify where the user receives both notifications
-      User.where(id: receive_both_user_ids).find_each do |user|
-        NotifyUser.with(
-          user: user,
-          import_log_id: import_log_id,
-          data_source: data_source,
-          error: error_threshold_met,
-          count: record_count_threshold_met,
-          paused: paused,
-        ).import_processing.deliver_later
+      if error_threshold_met || record_count_threshold_met
+        User.where(id: receive_both_user_ids).find_each do |user|
+          NotifyUser.with(
+            user: user,
+            import_log_id: import_log_id,
+            data_source: data_source,
+            error: error_threshold_met,
+            count: record_count_threshold_met,
+            paused: paused,
+          ).import_processing.deliver_later
+        end
       end
 
       only_error_user_ids = error_count_notification_user_ids - receive_both_user_ids
       # Notify where the user receives only the error notification
-      User.where(id: only_error_user_ids).find_each do |user|
-        NotifyUser.with(
-          user: user,
-          import_log_id: import_log_id,
-          data_source: data_source,
-          error: error_threshold_met,
-          count: false, # never notify on counts in this scenario
-          paused: paused,
-        ).import_processing.deliver_later
+      if error_threshold_met
+        User.where(id: only_error_user_ids).find_each do |user|
+          NotifyUser.with(
+            user: user,
+            import_log_id: import_log_id,
+            data_source: data_source,
+            error: error_threshold_met,
+            count: false, # never notify on counts in this scenario
+            paused: paused,
+          ).import_processing.deliver_later
+        end
       end
 
       only_count_user_ids = record_change_count_notification_user_ids - receive_both_user_ids
       # Notify where the user receives only the record count notification
-      User.where(id: only_count_user_ids).find_each do |user|
-        NotifyUser.with(
-          user: user,
-          import_log_id: import_log_id,
-          data_source: data_source,
-          error: false, # never notify on errors in this scenario
-          count: record_count_threshold_met,
-          paused: paused,
-        ).import_processing.deliver_later
+      if record_count_threshold_met # rubocop:disable Style/GuardClause
+        User.where(id: only_count_user_ids).find_each do |user|
+          NotifyUser.with(
+            user: user,
+            import_log_id: import_log_id,
+            data_source: data_source,
+            error: false, # never notify on errors in this scenario
+            count: record_count_threshold_met,
+            paused: paused,
+          ).import_processing.deliver_later
+        end
       end
     end
 

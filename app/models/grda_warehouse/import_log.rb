@@ -34,6 +34,7 @@ class GrdaWarehouse::ImportLog < GrdaWarehouseBase
       'processing...'
     end
   end
+
   # Overrides some methods, so must be included at the end
   include RailsDrivers::Extensions
 end

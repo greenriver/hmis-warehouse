@@ -237,7 +237,7 @@ class NotifyUser < DatabaseMailer
 
   def import_processing
     @user = params[:user]
-    @import = params[:import]
+    @import = params[:import_log_id]
     @data_source = params[:data_source]
     @error = params[:error]
     @count = params[:count]

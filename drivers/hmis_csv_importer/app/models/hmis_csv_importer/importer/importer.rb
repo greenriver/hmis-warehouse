@@ -123,7 +123,9 @@ module HmisCsvImporter::Importer
       return false unless @data_source.ever_pause_imports? # should we ever pause?
       return true unless @loader_log.status == 'loaded'
 
-      any_error_thresholds_met? || any_record_count_thresholds_met?
+      return true if any_error_thresholds_met? && @data_source.ever_pause_imports_with_errors?
+
+      any_record_count_thresholds_met? && @data_source.ever_pause_imports_with_record_changes?
     end
 
     ##
@@ -140,9 +142,9 @@ module HmisCsvImporter::Importer
       totals_by_filename = @loader_log.summary.map { |filename, data| [filename, data['total_lines'].to_i] }.to_h
 
       totals_by_filename.each do |filename, total_count|
-        pause = @data_source.pause_imports_with_errors?(total: total_count, errors: error_counts[filename])
+        met = @data_source.error_count_threshold_reached?(total_count, error_counts[filename])
 
-        return true if pause
+        return true if met
       end
       # No threshold met
       false
@@ -161,9 +163,9 @@ module HmisCsvImporter::Importer
       change_counts.each_value do |data|
         total = data[:total_count]
         changes = data[:change_count]
-        pause = @data_source.pause_imports_with_record_count_changes?(total: total, changes: changes)
+        met = @data_source.record_count_threshold_reached?(total, changes)
 
-        return true if pause
+        return true if met
       end
       # No threshold met
       false
@@ -228,7 +230,7 @@ module HmisCsvImporter::Importer
     # This method calculates changes in records (additions and removals) for each importable file.
     # It determines the total number of changes by comparing additions and removals and associates
     # the changes with the corresponding file. Additionally, it retrieves the total record count
-    # for each file to provide more context about the scale of the changes.
+    # for of existing data that matches each file to provide more context about the scale of the changes.
     #
     # @return [Hash{String => Hash{Symbol => Integer}}] A hash where keys are filenames, and values
     #   are hashes containing:
@@ -236,27 +238,30 @@ module HmisCsvImporter::Importer
     #   - `:total_count` (Integer): The total number of records for the corresponding file.
     #
     private def change_counts
-      # hash of filenames to class names {"Client.csv" => "Client"}
-      file_lookup = self.class.importable_files_map
-
-      summary = @importer_log.summary
       # Initialize change counts grouped by filename
       # A change is the absolute value of the number of additions minus the number of removals
-      changes = summary.map do |filename, data|
+      # This makes an estimate of the changes that will occur as it needs to be done before the
+      # actual processing so that it can pause the import if necessary.
+      importable_files.map do |filename, klass|
+        warehouse_scope = klass.existing_data(
+          data_source_id: data_source.id,
+          project_ids: involved_project_ids,
+          date_range: date_range,
+        )
+        existing_data = warehouse_scope.pluck(klass.hud_key).to_set
+        incoming_data = klass.incoming_data(importer_log_id: importer_log.id).
+          pluck(klass.hud_key).to_set
+
+        to_add = (incoming_data - existing_data).count
+        to_remove = (existing_data - incoming_data).count
         [
           filename,
           {
-            change_count: (data['added'].to_i - data['removed'].to_i).abs,
+            change_count: (to_add - to_remove).abs,
+            total_count: existing_data.count,
           },
         ]
       end.to_h
-      file_lookup.each do |filename, klass_name|
-        klass = "GrdaWarehouse::Hud::#{klass_name}".constantize
-        next unless changes[filename]
-
-        changes[filename][:total_count] = klass.where(data_source_id: @data_source.id).count
-      end
-      changes
     end
 
     ##
@@ -950,13 +955,13 @@ module HmisCsvImporter::Importer
         importer_log.status = :complete
         importer_log.completed_at = Time.current
         importer_log.upload_id = @upload.id if @upload.present?
-        importer_log.save
-        data_source.update(last_imported_at: Time.current)
+        importer_log.save!
+        data_source.update!(last_imported_at: Time.current)
         elapsed = importer_log.completed_at - @started_at
         Rails.logger.tagged({ task_name: 'HMIS CSV Importer', repeating_task: true, task_runtime: elapsed }) do
           log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.  #{summary_as_log_str(importer_log.summary)}")
         end
-        @import_log&.update(importer_log: importer_log)
+        @import_log&.update!(importer_log: importer_log)
       end
     end
 
