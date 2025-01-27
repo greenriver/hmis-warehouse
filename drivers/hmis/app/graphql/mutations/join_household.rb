@@ -38,6 +38,7 @@ module Mutations
 
       donor_household = joining_enrollments.map(&:household).uniq.sole
       remaining_enrollments = Hmis::Hud::Enrollment.
+        viewable_by(current_user). # Restrict to this data source
         where(household_id: donor_household.household_id).
         where.not(id: joining_enrollment_ids)
       remaining_hoh = remaining_enrollments.any? { |enrollment| enrollment.relationship_to_hoh == 1 }
