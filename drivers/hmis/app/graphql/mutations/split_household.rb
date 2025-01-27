@@ -26,6 +26,7 @@ module Mutations
 
       donor_household = splitting_enrollments.map(&:household).uniq.sole
       remaining_enrollments = Hmis::Hud::Enrollment.
+        viewable_by(current_user).
         where(household_id: donor_household.household_id).
         where.not(id: splitting_enrollment_ids)
       remaining_hoh = remaining_enrollments.any? { |enrollment| enrollment.relationship_to_hoh == 1 }
