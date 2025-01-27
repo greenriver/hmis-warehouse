@@ -632,6 +632,7 @@ module Filters
         filter_for_coc(scope)
       end
       scope = filter_for_project_type(scope, all_project_types: all_project_types)
+      raise
       scope = filter_for_projects(scope)
       scope = filter_for_funders(scope)
       scope = filter_for_data_sources(scope)

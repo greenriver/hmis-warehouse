@@ -72,38 +72,9 @@ module Filter::FilterScopes
       scope.where(she_t[:head_of_household].eq(true))
     end
 
-    private def age_calculation
-      age_on_date(@filter.start_date)
-    end
-
-    private def filter_for_age(scope)
-      return scope unless @filter.age_ranges.present? && (@filter.available_age_ranges.values & @filter.age_ranges).present?
-
-      # Or'ing ages is very slow, instead we'll build up an acceptable
-      # array of ages
-      ages = []
-      ages += Filters::FilterBase.age_range(:zero_to_four).to_a if @filter.age_ranges.include?(:zero_to_four)
-      ages += Filters::FilterBase.age_range(:five_to_ten).to_a if @filter.age_ranges.include?(:five_to_ten)
-      ages += Filters::FilterBase.age_range(:eleven_to_fourteen).to_a if @filter.age_ranges.include?(:eleven_to_fourteen)
-      ages += Filters::FilterBase.age_range(:fifteen_to_seventeen).to_a if @filter.age_ranges.include?(:fifteen_to_seventeen)
-      ages += Filters::FilterBase.age_range(:under_eighteen).to_a if @filter.age_ranges.include?(:under_eighteen)
-      ages += Filters::FilterBase.age_range(:eighteen_to_twenty_four).to_a if @filter.age_ranges.include?(:eighteen_to_twenty_four)
-      ages += Filters::FilterBase.age_range(:twenty_five_to_twenty_nine).to_a if @filter.age_ranges.include?(:twenty_five_to_twenty_nine)
-      ages += Filters::FilterBase.age_range(:thirty_to_thirty_four).to_a if @filter.age_ranges.include?(:thirty_to_thirty_four)
-      ages += Filters::FilterBase.age_range(:thirty_five_to_thirty_nine).to_a if @filter.age_ranges.include?(:thirty_five_to_thirty_nine)
-      ages += Filters::FilterBase.age_range(:thirty_to_thirty_nine).to_a if @filter.age_ranges.include?(:thirty_to_thirty_nine)
-      ages += Filters::FilterBase.age_range(:forty_to_forty_four).to_a if @filter.age_ranges.include?(:forty_to_forty_four)
-      ages += Filters::FilterBase.age_range(:forty_five_to_forty_nine).to_a if @filter.age_ranges.include?(:forty_five_to_forty_nine)
-      ages += Filters::FilterBase.age_range(:forty_to_forty_nine).to_a if @filter.age_ranges.include?(:forty_to_forty_nine)
-      ages += Filters::FilterBase.age_range(:fifty_to_fifty_four).to_a if @filter.age_ranges.include?(:fifty_to_fifty_four)
-      ages += Filters::FilterBase.age_range(:fifty_five_to_fifty_nine).to_a if @filter.age_ranges.include?(:fifty_five_to_fifty_nine)
-      ages += Filters::FilterBase.age_range(:sixty_to_sixty_one).to_a if @filter.age_ranges.include?(:sixty_to_sixty_one)
-      ages += Filters::FilterBase.age_range(:sixty_two_to_sixty_four).to_a if @filter.age_ranges.include?(:sixty_two_to_sixty_four)
-      ages += Filters::FilterBase.age_range(:over_sixty_one).to_a if @filter.age_ranges.include?(:over_sixty_one)
-      ages += Filters::FilterBase.age_range(:over_sixty_four).to_a if @filter.age_ranges.include?(:over_sixty_four)
-
-      scope.joins(join_clients_method).where(age_calculation.in(ages))
-    end
+    #private def age_calculation
+    #  age_on_date(@filter.start_date)
+    #end
 
     private def filter_for_gender(scope)
       return scope unless @filter.genders.present?
@@ -221,29 +192,20 @@ module Filter::FilterScopes
       scope.in_project_type(p_types)
     end
 
-    private def filter_for_projects(scope)
-      return scope if @filter.project_ids.blank? && @filter.project_group_ids.blank?
-
-      project_ids = if @filter.user.report_filter_visible?(:project_ids)
-        @filter.project_ids || []
-      else
-        []
-      end
-      project_groups = GrdaWarehouse::ProjectGroup.where(id: @filter.project_group_ids)
-      project_groups.each do |group|
-        project_ids += group.projects.pluck(:id)
-      end
-
-      return scope if project_ids.blank?
-
-      scope.in_project(project_ids.uniq).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports))
+    def filter_adapter
+      @filter_adapter ||= Filters::Components::Adapter.new(
+        input: Filters::Components::Input.new(@filter),
+        user: @filter.user
+      )
     end
 
-    private def filter_for_projects_hud(scope)
-      return scope.none if @filter.project_ids.blank?
-
-      scope.in_project(@filter.project_ids).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports))
-    end
+    # delegate implementation to reduce footprint of this mixin
+    delegate(
+      :filter_for_projects,
+      :filter_for_projects_hud,
+      :filter_for_age,
+      to: :filter_adapter
+    )
 
     private def filter_for_cohorts(scope)
       return scope if @filter.cohort_ids.blank?
