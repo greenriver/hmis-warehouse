@@ -77,7 +77,6 @@ RSpec.feature 'Split Households', type: :system do
       expect(rows.count).to eq(2)
       expect(next_button.disabled?).to be_truthy
 
-      # todo @martha - these should be in right order
       mui_table_select 'Self (HoH)', row: new_hoh.brief_name, column: 'Relationship', from: table
       mui_table_select 'Child', row: child.brief_name, column: 'Relationship', from: table
 
