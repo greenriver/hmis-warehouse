@@ -51,7 +51,7 @@ RSpec.feature 'Join Households', type: :system do
     end
 
     describe 'select clients screen' do
-      let!(:rows) { find("table[aria-label='Select Clients for Join']").first('tbody').all('tr') }
+      let!(:rows) { find("table[aria-label='Select Clients']").first('tbody').all('tr') }
       let!(:hoh_cells) { rows.first.all('td') }
       let!(:hoh_checkbox) { hoh_cells[0].first("span input[type='checkbox']", visible: :all) } # MUI hides the actual input
       let!(:hhm_cells) { rows.last.all('td') }
@@ -86,7 +86,7 @@ RSpec.feature 'Join Households', type: :system do
       end
 
       it 'requires you to enter relationships' do
-        table = find("table[aria-label='Add Relationships for Join']")
+        table = find("table[aria-label='Add Relationships']")
         rows = table.first('tbody').all('tr')
         next_button = all('button', text: 'Review Join').last
         expect(rows.count).to eq(3)
@@ -111,14 +111,14 @@ RSpec.feature 'Join Households', type: :system do
     describe 'review join and submit' do
       before(:each) do
         all('button', text: 'Add Relationships').last.click
-        table = find("table[aria-label='Add Relationships for Join']")
+        table = find("table[aria-label='Add Relationships']")
         mui_table_select 'Spouse or partner', row: c2.brief_name, column: 'Relationship', from: table
         mui_table_select 'Other relative', row: c3.brief_name, column: 'Relationship', from: table
         all('button', text: 'Review Join').last.click
       end
 
       it 'correctly displays the info about the join' do
-        table = find("table[aria-label='Review Joined Household']")
+        table = find("table[aria-label='Joining Household']")
         mui_table_expect(c1.brief_name, row_index: 0, column_header: 'Client Name', from: table)
         mui_table_expect('Self (HoH)', row_index: 0, column_header: 'Relationship', from: table)
         mui_table_expect(c2.brief_name, row_index: 1, column_header: 'Client Name', from: table)
