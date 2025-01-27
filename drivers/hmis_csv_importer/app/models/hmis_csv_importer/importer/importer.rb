@@ -450,12 +450,8 @@ module HmisCsvImporter::Importer
         # Never delete Exports
         next if klass.hud_key == :ExportID
 
-        # If the klass does not allow deletions through the import process, remove the pending
-        # deletion flag from all klass records associated with this import.
-        klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil) if klass.prevent_import_deletions?
-
-        # Never delete Projects, Organizations, or Clients, but cleanup any pending deletions
-        if klass.hud_key.in?([:ProjectID, :OrganizationID])
+        # If the klass does not allow deletions through the import process, remove the pending deletion flag from all klass records associated with this import.
+        if klass.prevent_import_deletions?
           klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, source_hash: nil)
         elsif klass.hud_key == :PersonalID
           # Clients need to be treated differently for the situation where we are importing a partial data source
