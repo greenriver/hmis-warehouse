@@ -534,11 +534,13 @@ module HmisCsvImporter::Importer
         # Export has already been processed
         next if klass.hud_key == :ExportID
 
-        klass.involved_warehouse_scope(
-          data_source_id: data_source.id,
-          project_ids: involved_project_ids,
-          date_range: date_range,
-        ).update_all(ExportID: export_record.ExportID)
+        involved_project_ids.each_slice(250) do |project_ids_slice|
+          klass.involved_warehouse_scope(
+            data_source_id: data_source.id,
+            project_ids: project_ids_slice,
+            date_range: date_range,
+          ).update_all(ExportID: export_record.ExportID)
+        end
       end
     end
 
