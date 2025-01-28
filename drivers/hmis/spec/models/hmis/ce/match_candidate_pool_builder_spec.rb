@@ -21,7 +21,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
         create(
           :hmis_ce_match_rule,
           rule_type: 'priority_scheme',
-          expression: 'veteran_status = 1',
+          expression: 'days_homeless',
           owner: organization,
         )
       end
@@ -41,16 +41,13 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       end
 
       it 'updates existing pools configuration timestamp' do
-        pool = create(:hmis_ce_match_candidate_pool,
-                      requirement_expression: 'current_age >= 18',
-                      priority_expression: 'veteran_status = 1')
+        pool = create(:hmis_ce_match_candidate_pool, requirement_expression: 'current_age >= 18', priority_expression: 'days_homeless')
 
         expect { builder.perform }.to(change { pool.reload.configuration_updated_at })
       end
 
       it 'cleans up unused pools after 6 months' do
-        old_pool = create(:hmis_ce_match_candidate_pool,
-                          configuration_updated_at: 7.months.ago)
+        old_pool = create(:hmis_ce_match_candidate_pool, configuration_updated_at: 7.months.ago)
 
         expect { builder.perform }.to change(Hmis::Ce::Match::CandidatePool, :count).by(0)
         expect(Hmis::Ce::Match::CandidatePool.exists?(old_pool.id)).to be false

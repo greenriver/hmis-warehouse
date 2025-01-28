@@ -26,8 +26,8 @@ module Hmis::Ce::Match
       active_opportunities.each do |opportunity|
         rules = Hmis::Ce::Match::Rule.all.to_a.filter { |rule| rule.applies_to_opportunity?(opportunity) }
         key = []
-        key << (rules.filter(&:priority_scheme?).map(&:expression).join(' AND ') || 'TRUE')
-        key << (rules.filter(&:eligibility_requirement?).first&.expression || '0')
+        key << (rules.filter(&:priority_scheme?).first&.expression || '0')
+        key << (rules.filter(&:eligibility_requirement?).map(&:expression).join(' AND ') || 'TRUE')
 
         grouped[key] ||= []
         grouped[key] << opportunity
