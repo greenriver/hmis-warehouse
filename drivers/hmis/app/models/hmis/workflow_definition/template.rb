@@ -28,6 +28,8 @@ module Hmis::WorkflowDefinition
       end
     end
 
+    scope :viewable_by, ->(_user) { all }
+
     def graph
       Hmis::WorkflowDefinition::Graph.new(nodes.preload(:outflows))
     end

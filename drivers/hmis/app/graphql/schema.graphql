@@ -775,7 +775,7 @@ type CeReferralCreatePayload {
 }
 
 input CeReferralInput {
-  participants: CeReferralParticipantInput!
+  participants: [CeReferralParticipantInput!]!
 }
 
 input CeReferralParticipantInput {

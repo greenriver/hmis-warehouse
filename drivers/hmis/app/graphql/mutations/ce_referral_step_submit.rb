@@ -14,6 +14,7 @@ module Mutations
       raise unless Hmis::Ce.enabled?
 
       referral = Hmis::Ce::Referral.viewable_by(current_user).find(referral_id)
+      step = nil
       referral.opportunity.with_lock do
         engine = referral.workflow_engine
         step = engine.active_steps.find(step_id)

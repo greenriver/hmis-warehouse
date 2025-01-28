@@ -15,7 +15,8 @@ module Mutations
 
       opportunity = Hmis::Ce::Opportunity.viewable_by(current_user).find(opportunity_id)
       client = Hmis::Hud::Client.viewable_by(current_user).find(client_id)
-      swimlanes = opportunity.template.swimlanes.index_by(&:id)
+      swimlanes = opportunity.workflow_template.swimlanes.index_by(&:id).stringify_keys
+      referral = nil
       opportunity.with_lock do
         # check for in-progress inside of lock for race cond
         # needs better error handling
@@ -24,14 +25,16 @@ module Mutations
         instance = opportunity.workflow_template.instances.create!
         referral = opportunity.referrals.create!(
           workflow_instance: instance,
+          referred_by: current_user,
           client: client,
         )
         input.participants.each do |participant|
-          user = Hmis::User.viewable_by(current_user).find(participant.user_id)
+          # TBD: should there be a restriction on what users are visible/can be assigned?
+          user = Hmis::User.find(participant.user_id)
           swimlane = swimlanes[participant.swimlane_id]
           referral.participants.create!(user: user, swimlane: swimlane)
         end
-        referral.workflow_engine.start_workflow!
+        referral.workflow_engine.start_workflow!(user: current_user)
       end
       { referral: referral }
     end

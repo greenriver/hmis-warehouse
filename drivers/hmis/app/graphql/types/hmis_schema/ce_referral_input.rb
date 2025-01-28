@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::CeReferralInput < Types::BaseInputObject
-    argument :participants, Types::HmisSchema::CeReferralParticipantInput, required: true
+    argument :participants, [Types::HmisSchema::CeReferralParticipantInput], required: true
 
     # ...other referral properties?
   end

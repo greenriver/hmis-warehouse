@@ -13,12 +13,13 @@ module Mutations
       raise unless Hmis::Ce.enabled?
 
       project = Hmis::Hud::Project.viewable_by(current_user).find(project_id)
-      template = Hmis::WorkflowDefinition::Template.visible_by(current_user).find(input.template_id)
+      template = Hmis::WorkflowDefinition::Template.viewable_by(current_user).find(input.template_id)
+      opportunity = nil
       project.with_lock do
         opportunity = Hmis::Ce::Opportunity.new(project: project)
         opportunity.name = input.name
-        opportunity.template = template
-        opportunity.create!
+        opportunity.workflow_template = template
+        opportunity.save!
       end
       { opportunity: opportunity }
     end
