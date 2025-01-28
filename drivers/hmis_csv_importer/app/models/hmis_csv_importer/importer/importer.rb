@@ -80,8 +80,11 @@ module HmisCsvImporter::Importer
       log_timing :cleanup_data_set!
       log_timing :analyze_tables
 
+      # determine what changes will be made and make note for alerting and monitoring
+      log_timing :precalculate_change_counts
       # Send any notifications that might be relevant to the error state of this import
       notify_of_import_status
+
       # refuse to proceed with the import if there are any errors and that setting is in effect
       return pause_import if should_pause?
 
@@ -138,9 +141,10 @@ module HmisCsvImporter::Importer
     # @return [Boolean] `true` if any file has met or exceeded its error threshold, otherwise `false`.
     #
     memoize private def any_error_thresholds_met?
+      return false unless @data_source.ever_notify_for_imports?
+
       # counts of expected rows in each file
       totals_by_filename = @loader_log.summary.map { |filename, data| [filename, data['total_lines'].to_i] }.to_h
-
       totals_by_filename.each do |filename, total_count|
         met = @data_source.error_count_threshold_reached?(total_count, error_counts[filename])
 
@@ -160,6 +164,8 @@ module HmisCsvImporter::Importer
     # @return [Boolean] `true` if any file has met or exceeded its record count change threshold, otherwise `false`.
     #
     memoize private def any_record_count_thresholds_met?
+      return false unless @data_source.ever_notify_for_imports?
+
       change_counts.each_value do |data|
         total = data[:total_count]
         changes = data[:change_count]
@@ -225,6 +231,53 @@ module HmisCsvImporter::Importer
     end
 
     ##
+    # Estimates the number of records that will be added and removed during the import process.
+    #
+    # This method calculates changes before ingestion to determine if the import
+    # exceeds configured thresholds. It compares existing records in the warehouse
+    # with incoming records from the import log to identify additions and removals.
+    #
+    # The results are stored in the `importer_log.summary` for each file, allowing these values
+    # to be used in import threshold checks before committing data changes.
+    #
+    # @return [void]
+    #
+    private def precalculate_change_counts
+      # This makes an estimate of the changes that will occur as it needs to be done before the
+      # actual processing so that it can pause the import if necessary.
+      # NOTE: as written this causes 2 additional, potentially slow queries
+      importable_files.map do |file, klass|
+        incoming_data = klass.incoming_data(importer_log_id: importer_log.id).
+          pluck(klass.hud_key).to_set
+
+        to_add = (incoming_data - existing_hud_keys(klass)).count
+        to_remove = (existing_hud_keys(klass) - incoming_data).count
+        # If we never delete, just pretend it will be 0
+        to_remove = 0 if klass.prevent_import_deletions?
+        importer_log.summary[file]['added'] = to_add
+        importer_log.summary[file]['removed'] = to_remove
+      end
+    end
+
+    ##
+    # Retrieves the set of existing HUD keys from the warehouse for a given class.
+    #
+    # This method queries the warehouse for records that match the data source,
+    # involved projects, and date range. It then extracts and returns the HUD keys
+    # as a set for efficient lookup and comparison.
+    #
+    # @param klass [Class] The class representing the data model being queried.
+    # @return [Set<String>] A set of existing HUD keys for the given class.
+    #
+    memoize private def existing_hud_keys(klass)
+      klass.existing_data(
+        data_source_id: data_source.id,
+        project_ids: involved_project_ids,
+        date_range: date_range,
+      ).pluck(klass.hud_key).to_set
+    end
+
+    ##
     # Collects and aggregates changes in record counts during the import process.
     #
     # This method calculates changes in records (additions and removals) for each importable file.
@@ -238,27 +291,15 @@ module HmisCsvImporter::Importer
     #   - `:total_count` (Integer): The total number of records for the corresponding file.
     #
     private def change_counts
-      # Initialize change counts grouped by filename
-      # A change is the absolute value of the number of additions minus the number of removals
-      # This makes an estimate of the changes that will occur as it needs to be done before the
-      # actual processing so that it can pause the import if necessary.
-      importable_files.map do |filename, klass|
-        warehouse_scope = klass.existing_data(
-          data_source_id: data_source.id,
-          project_ids: involved_project_ids,
-          date_range: date_range,
-        )
-        existing_data = warehouse_scope.pluck(klass.hud_key).to_set
-        incoming_data = klass.incoming_data(importer_log_id: importer_log.id).
-          pluck(klass.hud_key).to_set
-
-        to_add = (incoming_data - existing_data).count
-        to_remove = (existing_data - incoming_data).count
+      importer_log.summary.map do |file, data|
+        klass = importable_files[file]
+        to_add = data['added']
+        to_remove = data['removed']
         [
-          filename,
+          file,
           {
             change_count: (to_add - to_remove).abs,
-            total_count: existing_data.count,
+            total_count: existing_hud_keys(klass).count,
           },
         ]
       end.to_h
@@ -276,6 +317,9 @@ module HmisCsvImporter::Importer
     # @return [void]
     #
     private def notify_of_import_status
+      # don't do anything if we don't have an import log to reference.
+      return unless @import_log
+
       @data_source.notify_of_import_status(
         @import_log.id,
         any_error_thresholds_met?,
@@ -466,7 +510,10 @@ module HmisCsvImporter::Importer
     # GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
     # In here, add history_generated_on date to enrollment record
     def ingest!
+      # Reset add/remove counts used for import thresholds
+      reset_import_counts
       importer_log.update(status: :importing)
+      reset_import_counts
       # Mark everything that exists in the warehouse, that would be covered by this import
       # as pending deletion.  We'll remove the pending where appropriate
       log_timing :mark_tree_as_dead
@@ -908,6 +955,25 @@ module HmisCsvImporter::Importer
 
       importer_log.summary[file][type] ||= 0
       importer_log.summary[file][type] += increment_by
+    end
+
+    ##
+    # Resets the import counts for each importable file.
+    #
+    # This method ensures that the counts for 'added' and 'removed' records
+    # are set to zero before running ingest!.
+    # These numbers are pre-calculated and saved to determine if the import should trigger any
+    # notifications or should pause.  They are re-added as we process batches of data and
+    # delete existing records, so we'll zero them out and let the re-accumulate
+    #
+    # @return [void]
+    #
+    private def reset_import_counts
+      importable_files.each_key do |file|
+        ['added', 'removed'].each do |type|
+          importer_log.summary[file][type] = 0
+        end
+      end
     end
 
     def setup_summary(file)

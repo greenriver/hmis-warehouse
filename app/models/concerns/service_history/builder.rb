@@ -59,9 +59,10 @@ module ServiceHistory::Builder
         Delayed::Worker.new.work_off(2)
       else
         started = Time.current
-        while builder_batch_job_scope.any?
-          break if (Time.current - started) > max_wait_seconds
-          break if builder_batch_job_scope.empty?
+        # Instantiating the return because the scope somehow gets confused
+        # and returns a cached value even when calling `reload`
+        while builder_batch_job_scope.exists?
+          return if (Time.current - started) > max_wait_seconds
 
           sleep(interval)
         end
@@ -122,7 +123,8 @@ module ServiceHistory::Builder
 
     # Class method
     private def builder_batch_job_scope
-      Delayed::Job.where(failed_at: nil).jobs_for_class('ServiceHistory::RebuildEnrollments')
+      Delayed::Job.where(failed_at: nil).jobs_for_class('ServiceHistory::RebuildEnrollments').
+        where("1!=#{rand(2..50)}") # cache buster, postgres heavily caches this query incorrectly.
     end
 
     # Class method

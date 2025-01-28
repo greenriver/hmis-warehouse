@@ -652,6 +652,13 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     import_threshold.send_status_notifications(import_log_id, error_threshold_met, record_count_threshold_met, paused)
   end
 
+  def ever_notify_for_imports?
+    return false unless import_threshold.present?
+
+    # Do we have any thresholds set?
+    import_threshold.record_count_change_percent_threshold.present? || import_threshold.error_percent_threshold.present?
+  end
+
   def manual_import_path
     "/tmp/uploaded#{file_path}"
   end
