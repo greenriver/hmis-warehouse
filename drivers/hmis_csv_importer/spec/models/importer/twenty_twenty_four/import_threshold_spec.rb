@@ -27,7 +27,11 @@ RSpec.describe GrdaWarehouse::ImportThreshold, type: :model do
             run_jobs: false,
           )
         end
-        @email = ActionMailer::Base.deliveries.last
+      end
+
+      after(:all) do
+        HmisCsvImporter::Utility.clear!
+        GrdaWarehouse::Utility.clear!
       end
 
       it 'pauses the import when there are issues' do
@@ -35,9 +39,8 @@ RSpec.describe GrdaWarehouse::ImportThreshold, type: :model do
       end
 
       it 'enqueues a message' do
-        expect(ActionMailer::Base.deliveries.count).to eq(1)
-        # expect(enqueued_jobs.size).to eq 1
-        # expect(NotifyUser).to have_enqueued_mail(:import_processing).with(@user)
+        expect(ActiveJob::Base.queue_adapter.enqueued_jobs.size).to eq(1)
+        expect(ActiveJob::Base.queue_adapter.enqueued_jobs.first[:job]).to eq(ActionMailer::MailDeliveryJob)
       end
     end
 
@@ -54,6 +57,11 @@ RSpec.describe GrdaWarehouse::ImportThreshold, type: :model do
             run_jobs: false,
           )
         end
+      end
+
+      after(:all) do
+        HmisCsvImporter::Utility.clear!
+        GrdaWarehouse::Utility.clear!
       end
 
       it 'does not pause the import when there are issues' do
