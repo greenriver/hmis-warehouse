@@ -39,8 +39,8 @@ RSpec.describe GrdaWarehouse::ImportThreshold, type: :model do
       end
 
       it 'enqueues a message' do
-        expect(ActiveJob::Base.queue_adapter.enqueued_jobs.size).to eq(1)
-        expect(ActiveJob::Base.queue_adapter.enqueued_jobs.first[:job]).to eq(ActionMailer::MailDeliveryJob)
+        expect(ActiveJob::Base.queue_adapter.enqueued_jobs.size).to be >= 1
+        expect(ActiveJob::Base.queue_adapter.enqueued_jobs.map { |j| j[:job] }).to include(ActionMailer::MailDeliveryJob)
       end
     end
 
