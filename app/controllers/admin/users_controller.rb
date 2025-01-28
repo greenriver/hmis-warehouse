@@ -56,7 +56,10 @@ module Admin
 
       @redirecting = true
       update
-      redirect_to({ action: :edit }, notice: 'User updated') and return
+      # early return if the response body was set by update(), avoid double-render error
+      return if performed?
+
+      redirect_to({ action: :edit }, notice: 'User updated')
     end
 
     def impersonate
@@ -142,7 +145,8 @@ module Admin
 
     def destroy
       @user.paper_trail_event = 'deactivate'
-      @user.update(active: false)
+      # update_column() allows us to update the user even if the record is invalid
+      @user.update_column(:active, false)
       redirect_to({ action: :index }, notice: "User #{@user.name} deactivated")
     end
 

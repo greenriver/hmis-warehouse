@@ -25,6 +25,32 @@ RSpec.describe Admin::UsersController, type: :request do
     end
   end
 
+  describe 'DELETE disable' do
+    context 'when the user is valid' do
+      it 'disables the user' do
+        expect do
+          delete admin_user_path(user)
+        end.to change { User.active.count }.by(-1)
+
+        user.reload
+        expect(user.active).to eq(false)
+      end
+    end
+
+    context 'when the user is invalid' do
+      before do
+        user.update_column(:email, 'invalid-email') # skip validations
+      end
+
+      it 'still disables the user' do
+        delete admin_user_path(user)
+
+        user.reload
+        expect(user.active).to eq(false)
+      end
+    end
+  end
+
   describe 'PUT update' do
     context 'when updating vi-spdat notifications' do
       let(:updated_user) { User.not_system.first }

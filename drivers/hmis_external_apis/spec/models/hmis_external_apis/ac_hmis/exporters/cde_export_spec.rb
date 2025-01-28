@@ -112,4 +112,35 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CdeExport, type: :model do
       a_hash_including({ 'ResponseID' => exit1.id.to_s, 'RecordId' => e1.id.to_s, 'Response' => 'true' }),
     )
   end
+
+  context 'when there are excluded CDEs' do
+    let!(:cded) { create :hmis_custom_data_element_definition, data_source: ds, owner_type: 'Hmis::Hud::Service', field_type: :string, key: 'client_pathway_3' }
+
+    it 'excludes pathways cdes' do
+      subject.run!
+      expect(subject.send(:cdes).length).to eq(0)
+    end
+  end
+
+  context 'when there is a CDE with a Client owner type' do
+    let!(:cded) { create :hmis_custom_data_element_definition_for_color, data_source: ds }
+    let!(:cde1) { create :hmis_custom_data_element, data_element_definition: cded, owner: c1, data_source: ds, value_string: 'Pink', DateCreated: creation_time, DateUpdated: creation_time }
+
+    it 'excludes CDE if Client doesn\'t have a destination client' do
+      subject.run!
+      result = CSV.parse(output, headers: true)
+      expect(result.length).to eq(0)
+    end
+
+    context 'when client has a destination' do
+      let!(:c1) { create :hmis_hud_client_with_warehouse_client, data_source: ds }
+
+      it 'exports warehouse destination client ID, not source ID' do
+        subject.run!
+        result = CSV.parse(output, headers: true)
+        expect(result.length).to eq(1)
+        expect(result.first['RecordId']).to eq(c1.warehouse_id.to_s)
+      end
+    end
+  end
 end
