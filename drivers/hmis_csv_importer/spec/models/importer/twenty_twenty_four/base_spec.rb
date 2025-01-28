@@ -172,7 +172,7 @@ RSpec.describe HmisCsvImporter, type: :model do
         )
       end
 
-      it 'organizations not in import file are not deleted' do
+      it 'organizations not in import file are deleted' do
         expect(GrdaWarehouse::Hud::Organization.count).to eq(2)
       end
 
