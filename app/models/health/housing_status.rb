@@ -4,12 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
-
 # ### HIPAA Risk Assessment
 # Risk: Relates to a patient
 class Health::HousingStatus < HealthBase
@@ -37,5 +31,11 @@ class Health::HousingStatus < HealthBase
 
   def positive_for_homelessness?
     status.in?(HOMELESS_STATUSES)
+  end
+
+  def self.encounter_report_details
+    {
+      source: 'Warehouse',
+    }
   end
 end

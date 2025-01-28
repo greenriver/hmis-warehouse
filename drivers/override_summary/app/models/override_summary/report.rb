@@ -77,10 +77,12 @@ module OverrideSummary
       lookups = HmisCsvImporter::ImportOverride.available_classes
       # Attempt to do as few queries as we can to fetch the projects
       data_by_file.each do |file_name, d|
-        # Ignore any overrides to Export.csv, they'll never be related toa project
+        # Ignore any overrides to Export.csv, they'll never be related to a project
         next if file_name == 'Export.csv'
-        # Ignore any overrides to User.csv, they'll never be related toa project
+        # Ignore any overrides to User.csv, they'll never be related to a project
         next if file_name == 'User.csv'
+        # Ignore any overrides to Client.csv, they'll never be related to a project
+        next if file_name == 'Client.csv'
 
         # Throw out any overrides that don't match a specific record (they'll match any project)
         d.each do |data_source_id, overrides|
