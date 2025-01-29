@@ -37,16 +37,23 @@ module HudLsa::Generators::Fy2024::ViewRelatedConcern
       { 'LSA' => self }
     end
 
-    def allowed_options
-      [
+    def allowed_options(report)
+      opts = [
         :project_ids,
         :project_group_ids,
         :data_source_ids,
         :coc_code,
         :lsa_scope,
-        :start,
-        :end,
       ]
+      opts += if report.hic?
+        [:on]
+      else
+        [
+          :start,
+          :end,
+        ]
+      end
+      opts
     end
 
     def table_descriptions

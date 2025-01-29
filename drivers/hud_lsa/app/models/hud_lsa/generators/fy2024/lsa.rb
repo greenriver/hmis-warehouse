@@ -56,6 +56,10 @@ module HudLsa::Generators::Fy2024
         first
     end
 
+    def hic?
+      options.with_indifferent_access[:lsa_scope] == HudLsa::Fy2024::Report.available_lsa_scopes['HIC']
+    end
+
     def filter
       @filter ||= HudLsa::Filters::LsaFilter.new(user_id: user_id).update(options)
     end

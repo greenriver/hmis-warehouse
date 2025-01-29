@@ -133,11 +133,13 @@ module HudLsa
         prior_report = generator.find_report(current_user)
         options = prior_report&.options
         if options.present?
+          cocs = options['coc_codes'].presence || site_coc_codes
           @filter.update(options.with_indifferent_access.except(:on))
           @filter.on = nil
           @filter.start = options['start'].presence || default_start_date
           @filter.end = options['end'].presence || default_end_date
-          @filter.coc_code = options['coc_codes'].presence || site_coc_codes
+          @filter.coc_code = cocs.try(&:first)
+          @filter.coc_codes = cocs
           @filter.report_version = options['report_version'].presence || default_report_version
         else
           @filter.on = nil

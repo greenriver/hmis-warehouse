@@ -36,7 +36,7 @@ module HudLsa
           @filter.start = nil
           @filter.end = nil
           @filter.on = options['on'].presence || default_on_date
-          @filter.coc_code = options['coc_codes'].presence || site_coc_codes
+          @filter.coc_code = options['coc_code'].presence || site_coc_codes
           @filter.report_version = options['report_version'].presence || default_report_version
         else
           @filter.start = nil
