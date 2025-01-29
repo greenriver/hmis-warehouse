@@ -59,8 +59,6 @@ module ServiceHistory::Builder
         Delayed::Worker.new.work_off(2)
       else
         started = Time.current
-        # Instantiating the return because the scope somehow gets confused
-        # and returns a cached value even when calling `reload`
         while builder_batch_job_scope.exists?
           return if (Time.current - started) > max_wait_seconds
 

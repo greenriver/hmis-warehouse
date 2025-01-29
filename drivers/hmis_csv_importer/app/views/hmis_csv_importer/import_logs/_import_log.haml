@@ -88,8 +88,16 @@
         %tr
           %th File
           %th Rows Processed
-          %th Rows Added
-          %th Rows Removed
+          %th
+            - if @import.importer_log&.paused?
+              Rows to be Added
+            - else
+              Rows Added
+          %th
+            - if @import.importer_log&.paused?
+              Rows to be Removed
+            - else
+              Rows Removed
           %th Rows Updated
           %th Rows Unchanged
           %th Validation Flags
