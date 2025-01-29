@@ -120,7 +120,7 @@ RSpec.shared_context 'veteran adults', shared_context: :metadata do
       },
       'Chronically Homeless: Total number of persons' => {
         row_number: 28,
-        values: [5, 3, 0, 1],
+        values: [4, 3, 0, 0],
       },
     }
 
