@@ -4,11 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-#  Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
-
 module Types
   class Forms::ProjectMatch < Types::BaseObject
     # object is a Hmis::Form::InstanceProjectMatch
