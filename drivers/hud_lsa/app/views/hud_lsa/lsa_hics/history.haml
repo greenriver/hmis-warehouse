@@ -1,10 +1,10 @@
 = render 'breadcrumbs'
-- content_for :title, generator.generic_title
+- content_for :title, 'Housing Inventory Count'
 
 %header.mb-3.d-flex
   %h1= content_for :title
   .ml-auto
-    = link_to "Generate New #{generator.short_name}", path_for_new, class: 'btn btn-secondary'
+    = link_to 'Generate New HIC', new_hud_reports_lsa_hic_path, class: 'btn btn-secondary'
 - if @show_recent
   .well
     .d-flex
