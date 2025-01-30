@@ -120,7 +120,10 @@
                   - tooltip += "Exit: #{c['last_date_in_program']}<br />"
                 .mb-2.mt-2{ data: { toggle: :tooltip, title: tooltip, html: 'true', boundary: :window } }
                   = link_to client_path(c['client_id']), class: 'd-block' do
-                    #{c['FirstName']} #{c['LastName']}
+                    - if @client.pii_provider(user: current_user).redact_name?
+                      = @client.pii_provider(user: current_user).first_name
+                    - else
+                      #{c['FirstName']} #{c['LastName']}
                     - if c['head_of_household']
                       %i.icon-user
                     %br
