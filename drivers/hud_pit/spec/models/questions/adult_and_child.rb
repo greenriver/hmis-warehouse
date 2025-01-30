@@ -147,7 +147,7 @@ RSpec.shared_context 'adult and child', shared_context: :metadata do
       },
       'Chronically Homeless: Total number of persons' => {
         row_number: 35,
-        values: [8, 3, 0],
+        values: [6, 3, 0],
       },
     }
 

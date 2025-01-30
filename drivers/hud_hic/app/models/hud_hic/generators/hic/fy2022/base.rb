@@ -60,7 +60,7 @@ module HudHic::Generators::Hic::Fy2022
       @universe ||= @report.universe(self.class.question_number)
     end
 
-    def self.allowed_options
+    def self.allowed_options(_)
       [
         :on,
         :coc_codes,

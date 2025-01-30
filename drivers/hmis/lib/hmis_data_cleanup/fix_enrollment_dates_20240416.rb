@@ -4,11 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-#  Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
-
 class FixEnrollmentDates20240416
   # For Enrollments in any project EXCEPT special treatment project, where the Entry Date and Exit Date are the same:
   # - Add one day to the exit date
