@@ -339,7 +339,7 @@
       "type": "CHOICE",
       "link_id": "V7_Q",
       "required": false,
-      "text": "Household includes one or more members of an overrepresented population in the homlessness system when compared to the general population",
+      "text": "Household includes one or more members of an overrepresented population in the homelessness system when compared to the general population",
       "pick_list_reference": "NoYesMissing",
       "mapping": {
         "record_type": "ENROLLMENT",
