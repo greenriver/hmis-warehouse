@@ -28,7 +28,7 @@ class ImportThresholdsController < ApplicationController
   end
 
   private def data_source
-    @data_source ||= data_source_scope.find(params[:data_source_id].to_i)
+    @data_source ||= data_source_scope.find_safely(params[:data_source_id])
   end
   helper_method :data_source
 
