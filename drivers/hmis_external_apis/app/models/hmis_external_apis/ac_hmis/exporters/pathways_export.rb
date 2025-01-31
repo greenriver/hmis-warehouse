@@ -7,6 +7,7 @@
 module HmisExternalApis::AcHmis::Exporters
   class PathwaysExport
     include ::HmisExternalApis::AcHmis::Exporters::CsvExporter
+    include ::Hmis::Concerns::HmisArelHelper
 
     PATHWAY_KEYS = [
       'client_pathway_1',
@@ -24,16 +25,19 @@ module HmisExternalApis::AcHmis::Exporters
       Rails.logger.info 'Generating content of pathways export'
 
       write_row(columns)
-      total = clients_with_pathways.count
+      total = pathway_client_warehouse_id_to_client_ids.count
       Rails.logger.info "There are #{total} clients with pathways to export"
 
-      clients_with_pathways.find_each.with_index do |client, i|
-        Rails.logger.info "Processed #{i} of #{total}" if (i % 1000).zero?
-        next unless client.warehouse_id.present?
+      pathway_client_warehouse_id_to_client_ids.each do |warehouse_id, client_ids|
+        # Find the pathway CDE that was most recently updated for this destination client
+        most_recent_pathway_cde = client_ids.map { |id| pathways_by_client_id[id] }.flatten.max_by(&:date_updated)
 
-        pathways = pathways_by_client_id[client.id]
+        # Collect all pathways for the source client that most recently had any pathway updated.
+        # This makes it so that we don't mix-and-match pathways values from different source clients.
+        pathways = pathways_by_client_id[most_recent_pathway_cde.owner_id]
+
         values = [
-          client.warehouse_id, # Matches PersonalID in HMIS CSV export
+          warehouse_id, # Matches PersonalID in HMIS CSV export
           find_pathway(pathways, 'client_pathway_1'),
           find_pathway(pathways, 'client_pathway_1_date'),
           find_pathway(pathways, 'client_pathway_1_narrative'),
@@ -97,8 +101,16 @@ module HmisExternalApis::AcHmis::Exporters
         group_by(&:owner_id) # By Client ID
     end
 
-    private def clients_with_pathways
-      @clients_with_pathways ||= Hmis::Hud::Client.where(id: pathways_by_client_id.keys).preload(:warehouse_client_source)
+    # { source client id => warehouse destination client id }
+    # This drops the source client id if there are multiple source clients with pathways,
+    # so that the resulting CSV does not have duplicated destination client IDs.
+    private def pathway_client_warehouse_id_to_client_ids
+      @pathway_client_warehouse_id_to_client_ids ||= Hmis::WarehouseClient.joins(:source).
+        where(data_source_id: data_source.id).
+        where(source_id: pathways_by_client_id.keys). # Only include clients that have Pathways
+        group(:destination_id).
+        select('"destination_id", array_agg("source_id") as source_ids').
+        map { |r| [r.destination_id, r.source_ids] }.to_h
     end
   end
 end
