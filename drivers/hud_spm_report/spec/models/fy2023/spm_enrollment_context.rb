@@ -4,12 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
-#
 RSpec.shared_context 'FY2023 SPM enrollment context', shared_context: :metadata do
   def default_filter_definition
     {

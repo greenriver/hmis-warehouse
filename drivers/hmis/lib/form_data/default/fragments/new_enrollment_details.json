@@ -6,7 +6,7 @@
       "link_id": "household_id",
       "hidden": true,
       "type": "STRING",
-      "_comment": "This will be present if creating a new Enrollment in an existing Houshold",
+      "_comment": "This will be present if creating a new Enrollment in an existing Household",
       "mapping": {
         "record_type": "ENROLLMENT",
         "field_name": "householdId"
