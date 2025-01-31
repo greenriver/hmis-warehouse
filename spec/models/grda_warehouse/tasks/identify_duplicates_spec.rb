@@ -127,6 +127,58 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         end
       end
     end
+
+    describe 'source client threshold' do
+      before(:each) do
+        client_in_destination.destroy
+        client_in_source.update(first_name: 'A', last_name: 'Client', dob: '2000-01-01', ssn: 'XXX-XX-1234')
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.identify_duplicates
+      end
+      it 'never creates more than the maximum number of source clients' do
+        expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
+        expect(GrdaWarehouse::WarehouseClient.count).to eq(1)
+
+        number_sample_clients = 125
+
+        (1..(number_sample_clients - 1)).each do |n|
+          client = create :grda_warehouse_hud_client, data_source: source_data_source
+          date = Date.new(2000, 1, 1) + n.days - n.months
+          str_n = n.to_s.rjust(4, '0')
+          ssn = "#{str_n.last(3)}-#{str_n.last(2)}-#{str_n.last(4)}"
+          client.update(first_name: "client_#{n}", last_name: 'Test', dob: date, ssn: ssn)
+        end
+
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
+
+        expect(GrdaWarehouse::Hud::Client.destination.count).to eq(number_sample_clients)
+        expect(GrdaWarehouse::WarehouseClient.count).to eq(number_sample_clients)
+
+        (1..(number_sample_clients - 1)).each do |n|
+          str_n = n.to_s.rjust(4, '0')
+          ssn = "#{str_n.last(3)}-#{str_n.last(2)}-#{str_n.last(4)}"
+          client = GrdaWarehouse::Hud::Client.source.find_by(SSN: ssn)
+          client.update(first_name: 'A', last_name: 'Client', dob: '2000-01-01', ssn: 'XXX-XX-1234')
+        end
+
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
+
+        expected_number_destination_clients = ((number_sample_clients * 1.0) / GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS).ceil
+        destination_clients = [].tap do |clients|
+          clients << GrdaWarehouse::Hud::Client.destination
+        end.flatten
+
+        expect(destination_clients.count).to eq(expected_number_destination_clients)
+        expect(GrdaWarehouse::WarehouseClient.count).to eq(number_sample_clients)
+
+        last_client = destination_clients.pop
+        destination_clients.each do |client|
+          expect(client.source_clients.count).to eq(GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS)
+        end
+        expect(last_client.source_clients.count).to eq(number_sample_clients % GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS)
+      end
+    end
   end
 
   describe 'When matching is disabled' do

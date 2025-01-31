@@ -9,6 +9,8 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     include NotifierConfig
 
+    MAX_SOURCE_CLIENTS = 50
+
     def initialize(run_post_processing: true)
       setup_notifier('IdentifyDuplicates')
       @run_post_processing = run_post_processing
@@ -144,8 +146,10 @@ module GrdaWarehouse::Tasks
         # This has already been fully merged
         next if source_id == destination_id
 
-        destination = client_destinations.find(destination_id)
-        source = client_destinations.find(source_id)
+        destination = client_destinations.find_by(id: destination_id)
+        source = client_destinations.find_by(id: source_id)
+        next unless destination.present? && source.present?
+
         begin
           destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current)
         rescue Exception => e
@@ -241,9 +245,13 @@ module GrdaWarehouse::Tasks
       )
     end
 
+    private def matchable_destination_ids
+      GrdaWarehouse::WarehouseClient.group(:destination_id).having('count(*) < ?', MAX_SOURCE_CLIENTS).select(:destination_id)
+    end
+
     # fetch a list of existing clients from the DND Warehouse DataSource (current destinations)
     private def client_destinations
-      GrdaWarehouse::Hud::Client.destination
+      GrdaWarehouse::Hud::Client.destination.where(id: matchable_destination_ids)
     end
 
     # Look for really clear matches (2 of the following 3 should be good):
