@@ -121,8 +121,9 @@ module ServiceHistory::Builder
 
     # Class method
     private def builder_batch_job_scope
-      Delayed::Job.where(failed_at: nil).jobs_for_class('ServiceHistory::RebuildEnrollments').
-        where("1!=#{rand(2..50)}") # cache buster, postgres heavily caches this query incorrectly.
+      Delayed::Job.uncached do
+        Delayed::Job.where(failed_at: nil).jobs_for_class('ServiceHistory::RebuildEnrollments')
+      end
     end
 
     # Class method
