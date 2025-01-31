@@ -38,16 +38,12 @@ class NotificationConfigurationsController < ApplicationController
       permit(:user_id, :active)
   end
 
-  private def data_source_source
+  private def data_source_scope
     GrdaWarehouse::DataSource.viewable_by(current_user, permission: :can_view_projects)
   end
 
-  private def data_source_scope
-    data_source_source.source
-  end
-
   private def data_source
-    @data_source ||= data_source_source.find(params[:data_source_id].to_i)
+    @data_source ||= data_source_scope.find(params[:data_source_id].to_i)
   end
   helper_method :data_source
 

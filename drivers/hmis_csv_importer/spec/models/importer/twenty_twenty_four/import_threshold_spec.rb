@@ -17,8 +17,9 @@ RSpec.describe GrdaWarehouse::ImportThreshold, type: :model do
         threshold = FactoryBot.create(:import_threshold, pause_on_error_threshold: true)
         @data_source = threshold.data_source
         @user = FactoryBot.create(:user)
-        FactoryBot.create(:notification_configuration_import_threshold, :import_error_count_slug, user: @user, source: threshold)
+        FactoryBot.create(:notification_configuration_import_threshold, :error_count_notification_event, user: @user, source: threshold)
 
+        # move to a time contemporaneous with the incoming data (this may not always be necessary)
         travel_to Time.local(2020, 1, 1) do
           @loader = import_hmis_csv_fixture(
             'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/loader_errors',

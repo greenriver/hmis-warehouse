@@ -13,6 +13,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   include Memery
 
   self.primary_key = :id
+  TodoOrDie('Enable the following after release-151', by: '2025-03-01')
+  # self.ignored_columns = ['refuse_imports_with_errors']
+  TodoOrDie('Add a migration to remove refuse_imports_with_errors column from data source', by: '2025-04-01')
 
   acts_as_paranoid
   validates :name, presence: true
@@ -646,17 +649,22 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     import_threshold.record_count_change_min_threshold.present? && import_threshold.record_count_change_percent_threshold.present?
   end
 
-  def notify_of_import_status(import_log_id, error_threshold_met, record_count_threshold_met, paused)
+  def notify_of_import_status(import_log_id:, error_threshold_met:, record_count_threshold_met:, paused:)
     return unless import_threshold.present?
 
-    import_threshold.send_status_notifications(import_log_id, error_threshold_met, record_count_threshold_met, paused)
+    import_threshold.send_status_notifications(
+      import_log_id: import_log_id,
+      error_threshold_met: error_threshold_met,
+      record_count_threshold_met: record_count_threshold_met,
+      paused: paused,
+    )
   end
 
   def ever_notify_for_imports?
     return false unless import_threshold.present?
 
     # Do we have any thresholds set?
-    import_threshold.record_count_change_percent_threshold.present? || import_threshold.error_percent_threshold.present?
+    import_threshold.record_count_change_percent_threshold || import_threshold.error_percent_threshold
   end
 
   def manual_import_path

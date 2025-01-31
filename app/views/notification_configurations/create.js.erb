@@ -1,5 +1,4 @@
 <% if notification_configuration.errors.any? %>
-  console.log(<%= notification_configuration.errors.inspect %>)
   $('.notification-configuration').html "<%=j render 'form' %>"
 <% else %>
   $('#ajax-modal').modal('hide')

@@ -123,12 +123,11 @@ module HmisCsvImporter::Importer
     # @return [Boolean] `true` if the import should be paused due to exceeding error thresholds, otherwise `false`.
     #
     memoize def should_pause?
-      return false unless @data_source.ever_pause_imports? # should we ever pause?
       return true unless @loader_log.status == 'loaded'
 
-      return true if any_error_thresholds_met? && @data_source.ever_pause_imports_with_errors?
+      return true if @data_source.ever_pause_imports_with_errors? && any_error_thresholds_met?
 
-      any_record_count_thresholds_met? && @data_source.ever_pause_imports_with_record_changes?
+      @data_source.ever_pause_imports_with_record_changes? && any_record_count_thresholds_met?
     end
 
     ##
@@ -145,13 +144,9 @@ module HmisCsvImporter::Importer
 
       # counts of expected rows in each file
       totals_by_filename = @loader_log.summary.map { |filename, data| [filename, data['total_lines'].to_i] }.to_h
-      totals_by_filename.each do |filename, total_count|
-        met = @data_source.error_count_threshold_reached?(total_count, error_counts[filename])
-
-        return true if met
+      totals_by_filename.any? do |filename, total_count|
+        @data_source.error_count_threshold_reached?(total_count, error_counts[filename])
       end
-      # No threshold met
-      false
     end
 
     ##
@@ -166,15 +161,11 @@ module HmisCsvImporter::Importer
     memoize private def any_record_count_thresholds_met?
       return false unless @data_source.ever_notify_for_imports?
 
-      change_counts.each_value do |data|
+      change_counts.values.any? do |data|
         total = data[:total_count]
         changes = data[:change_count]
-        met = @data_source.record_count_threshold_reached?(total, changes)
-
-        return true if met
+        @data_source.record_count_threshold_reached?(total, changes)
       end
-      # No threshold met
-      false
     end
 
     ##
@@ -193,6 +184,7 @@ module HmisCsvImporter::Importer
     memoize private def error_counts
       file_lookup = self.class.importable_files_map.invert
 
+      # Serialized hash of processing data persisted on the log model
       summary = @loader_log.summary
       # Initialize error counts grouped by filename
       counts = summary.map { |filename, data| [filename, data['total_errors'].to_i] }.to_h
@@ -206,8 +198,6 @@ module HmisCsvImporter::Importer
         map do |k, count|
           # convert to filename keys
           filename = file_lookup[k.demodulize]
-          # every file _should_ be present, but let's try not to throw any errors here
-          next unless counts[filename]
 
           counts[filename] += count
         end
@@ -251,9 +241,10 @@ module HmisCsvImporter::Importer
           pluck(klass.hud_key).to_set
 
         to_add = (incoming_data - existing_hud_keys(klass)).count
-        to_remove = (existing_hud_keys(klass) - incoming_data).count
         # If we never delete, just pretend it will be 0
         to_remove = 0 if klass.prevent_import_deletions?
+        to_remove ||= (existing_hud_keys(klass) - incoming_data).count
+
         importer_log.summary[file]['added'] = to_add
         importer_log.summary[file]['removed'] = to_remove
       end
@@ -321,10 +312,10 @@ module HmisCsvImporter::Importer
       return unless @import_log
 
       @data_source.notify_of_import_status(
-        @import_log.id,
-        any_error_thresholds_met?,
-        any_record_count_thresholds_met?,
-        should_pause?,
+        import_log_id: @import_log.id,
+        error_threshold_met: any_error_thresholds_met?,
+        record_count_threshold_met: any_record_count_thresholds_met?,
+        paused: should_pause?,
       )
     end
 
@@ -513,7 +504,6 @@ module HmisCsvImporter::Importer
       # Reset add/remove counts used for import thresholds
       reset_import_counts
       importer_log.update(status: :importing)
-      reset_import_counts
       # Mark everything that exists in the warehouse, that would be covered by this import
       # as pending deletion.  We'll remove the pending where appropriate
       log_timing :mark_tree_as_dead

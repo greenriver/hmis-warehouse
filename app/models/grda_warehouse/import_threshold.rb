@@ -14,6 +14,11 @@ module GrdaWarehouse
     include Memery
     belongs_to :data_source
 
+    validates :error_count_min_threshold, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+    validates :error_percent_threshold, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }, allow_nil: true
+    validates :record_count_change_min_threshold, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+    validates :record_count_change_percent_threshold, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }, allow_nil: true
+
     ##
     # Determines whether the record count change during an import meets or exceeds
     # the defined thresholds for triggering a notification.
@@ -74,12 +79,12 @@ module GrdaWarehouse
     # 1. Those that have notifications for errors
     # 2. Those that have notifications for count changes
     # 3. Those that have both
-    def send_status_notifications(import_log_id, error_threshold_met, record_count_threshold_met, paused)
+    def send_status_notifications(import_log_id:, error_threshold_met:, record_count_threshold_met:, paused:)
       return unless error_threshold_met || record_count_threshold_met
 
       receive_both_user_ids = error_count_notification_user_ids & record_change_count_notification_user_ids
 
-      # Notify where the user receives both notifications
+      # Handle users who subscribe to both types - they get one notification containing both status types
       if error_threshold_met || record_count_threshold_met
         User.where(id: receive_both_user_ids).find_each do |user|
           NotifyUser.with(
@@ -134,7 +139,7 @@ module GrdaWarehouse
 
     def error_count_notifications
       @error_count_notifications ||= GrdaWarehouse::NotificationConfiguration.where(
-        notification_slug: error_count_notification_slug,
+        notification_slug: error_count_notification_event,
         source: self,
       ).preload(:user).
         to_a
@@ -142,7 +147,7 @@ module GrdaWarehouse
 
     def record_count_change_notifications
       @record_count_change_notifications ||= GrdaWarehouse::NotificationConfiguration.where(
-        notification_slug: record_count_change_notification_slug,
+        notification_slug: record_count_change_notification_event,
         source: self,
       ).preload(:user).
         to_a
@@ -150,8 +155,8 @@ module GrdaWarehouse
 
     def valid_notification_slug(slug)
       valid_slug = [
-        record_count_change_notification_slug,
-        error_count_notification_slug,
+        record_count_change_notification_event,
+        error_count_notification_event,
       ].detect { |m| m == slug }
       return valid_slug if valid_slug.present?
 
@@ -160,19 +165,19 @@ module GrdaWarehouse
 
     def items_for(slug)
       case slug
-      when record_count_change_notification_slug
+      when record_count_change_notification_event
         record_count_change_notifications
-      when error_count_notification_slug
+      when error_count_notification_event
         error_count_notifications
       end
     end
 
-    def record_count_change_notification_slug
-      'NotificationTypes::ImportRecordCountChangeThreshold'
+    def record_count_change_notification_event
+      'count_threshold_exceeded'
     end
 
-    def error_count_notification_slug
-      'NotificationTypes::ImportErrorCountThreshold'
+    def error_count_notification_event
+      'error_threshold_exceeded'
     end
 
     def self.known_params
