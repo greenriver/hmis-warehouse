@@ -2,12 +2,8 @@
 - status = @import.import_time(details: true)
 - ds_name = @import.data_source.name
 
-%h1
-  = Translation.translate("Import Log from #{ds_name}")
-- if @import.importer_log&.paused?
-  .alert.alert-warning
-    %i.icon-warning.mr-2
-    %p #{ds_name} is currently set to prevent imports from loading if they contain any errors.  This import contained at least one error, which you can review below.  If the errors are unacceptable, fix them in the HMIS CSV files and re-upload.
+%h1= Translation.translate("Import Log from #{ds_name}")
+= render 'hmis_csv_importer/import_logs/import_threshold_description'
 .row
   .col
     .card.mb-4
@@ -24,6 +20,9 @@
             %tr
               %th Imported
               %td= import_time
+            %tr
+              %th Post-Processing
+              %td= @import&.importer_log&.post_processing_time(@import)
           %tr
             %th Completed In
             %td
@@ -89,8 +88,16 @@
         %tr
           %th File
           %th Rows Processed
-          %th Rows Added
-          %th Rows Removed
+          %th
+            - if @import.importer_log&.paused?
+              Rows to be Added
+            - else
+              Rows Added
+          %th
+            - if @import.importer_log&.paused?
+              Rows to be Removed
+            - else
+              Rows Removed
           %th Rows Updated
           %th Rows Unchanged
           %th Validation Flags

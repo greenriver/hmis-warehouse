@@ -1,0 +1,11 @@
+An import in the #{@data_source.name} data source has triggered notifications for the following reason(s):
+
+- if @paused
+  * The import is paused
+- if @error
+  * The import crossed the configured error count threshold
+- if @count
+  * The import crossed the configured record count change threshold
+
+View import:
+= import_url(@import)

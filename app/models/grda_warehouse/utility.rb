@@ -71,6 +71,7 @@ class GrdaWarehouse::Utility
       UserGroupMember,
       UserGroup,
       AccessControl,
+      User,
       HudReports::ReportInstance,
       HudReports::UniverseMember,
       HudReports::ReportCell,
@@ -96,6 +97,8 @@ class GrdaWarehouse::Utility
       ActiveStorage::Blob,
       GrdaWarehouse::File,
       GrdaWarehouse::Config,
+      GrdaWarehouse::ImportThreshold,
+      GrdaWarehouse::NotificationConfiguration,
     ]
     if RailsDrivers.loaded.include?(:hud_apr)
       tables << HudApr::Fy2020::AprClient
@@ -203,6 +206,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::ServiceHistoryEnrollment,
       ActiveStorage::Attachment,
       ActiveStorage::Blob,
+      User,
     ]
     return 'CASCADE' if cascade_models.include?(model)
 

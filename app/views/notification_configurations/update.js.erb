@@ -1,0 +1,8 @@
+<% if notification_configuration.errors.any? %>
+  $('.notification-configuration').html "<%=j render 'form' %>"
+<% else %>
+  $('#ajax-modal').modal('hide')
+  html = "<%= j render('/import_thresholds/table', slug: params[:notification_slug]) %>"
+  slug = "<%= params[:notification_slug].parameterize %>"
+  $("." + slug).html(html)
+<% end %>
