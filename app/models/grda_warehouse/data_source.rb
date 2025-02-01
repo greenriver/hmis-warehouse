@@ -593,10 +593,6 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     error_count_threshold_reached?(total, errors)
   end
 
-  def ever_pause_imports?
-    ever_pause_imports_with_errors? || ever_pause_imports_with_record_changes?
-  end
-
   ##
   # Determines if imports should ever be paused due to errors.
   #
