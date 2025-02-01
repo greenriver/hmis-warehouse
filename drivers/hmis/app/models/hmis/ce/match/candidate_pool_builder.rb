@@ -2,7 +2,7 @@
 
 module Hmis::Ce::Match
   class CandidatePoolBuilder
-    # assumes a relatively small number of active opportunities
+    # Optimization TBD. Assumes a relatively small number of active opportunities (1,000 or less)
     def perform
       with_lock do
         Hmis::Ce::Match::CandidatePool.transaction do
@@ -21,10 +21,10 @@ module Hmis::Ce::Match
     def _perform
       grouped = {}
 
-      Hmis::Ce::Match::Rule.order(:owner_type, :id)
+      all_rules = Hmis::Ce::Match::Rule.order(:owner_type, :id).to_a
       # group opportunities by unique priority and eligibility rules
       active_opportunities.each do |opportunity|
-        rules = Hmis::Ce::Match::Rule.all.to_a.filter { |rule| rule.applies_to_opportunity?(opportunity) }
+        rules = all_rules.filter { |rule| rule.applies_to_opportunity?(opportunity) }
         key = []
         key << (rules.filter(&:priority_scheme?).first&.expression || '0')
         key << (rules.filter(&:eligibility_requirement?).map(&:expression).join(' AND ') || 'TRUE')
@@ -35,6 +35,7 @@ module Hmis::Ce::Match
 
       update_pools!(grouped.keys)
       update_opportunity_pools!(grouped)
+      cleanup_orphan_pools
     end
 
     def update_opportunity_pools!(grouped)
@@ -51,8 +52,11 @@ module Hmis::Ce::Match
       Hmis::Ce::Opportunity.active
     end
 
+    def now
+      @now ||= Time.current
+    end
+
     def update_pools!(values)
-      now = Time.current
       attrs = values.map do |priority_expression, requirement_expression|
         {
           priority_expression: priority_expression,
@@ -68,10 +72,16 @@ module Hmis::Ce::Match
         },
       )
       raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
+    end
 
-      # delete pools that haven't been used in a while
+    # delete pools that haven't been used in a while
+    def cleanup_orphan_pools
+      duration = Hmis::Ce.configuration.days_to_retain_orphan_candidate_pools
+      return unless duration
+
+      expiration_date = now - duration.days
       Hmis::Ce::Match::CandidatePool.
-        where(configuration_updated_at: ...(now - 6.months)).
+        where(configuration_updated_at: ...expiration_date).
         find_each(&:destroy!)
     end
   end

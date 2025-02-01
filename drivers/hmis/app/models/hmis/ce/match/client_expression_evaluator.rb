@@ -17,6 +17,9 @@ module Hmis::Ce::Match
         [field, field_map.instance_value(client, field)]
       end
 
+      # evaluate the expression, for example:
+      # evaluate!('current_age >= 65 AND veteran_status = 1', {current_age: 50, veteran_status: 1})
+      # => false
       calculator.evaluate!(expression, **client_values)
     end
   end

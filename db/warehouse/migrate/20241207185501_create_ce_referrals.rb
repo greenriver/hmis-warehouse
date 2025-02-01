@@ -40,8 +40,8 @@ class CreateCeReferrals < ActiveRecord::Migration[7.0]
     # Opportunities (vacancies or services within projects)
     create_table(:ce_opportunities) do |t|
       t.references :candidate_pool, null: true, foreign_key: { to_table: :ce_match_candidate_pools }
-      t.references :project, null: false # what project provides this opportunity?
-      t.string :workflow_template_identifier, null: false # use an identifier to allow
+      t.references :project, null: false, comment: 'Project providing this opportunity'
+      t.string :workflow_template_identifier, null: false # reference by identifier as the template may be versioned
       t.string :name, null: false
       t.string :status, null: false
       t.datetime :expires_at

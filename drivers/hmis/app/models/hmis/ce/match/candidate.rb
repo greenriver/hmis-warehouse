@@ -11,7 +11,7 @@ module Hmis::Ce::Match
     # order by descending priority, NULL values last. Use id as a tie-breaker
     scope :prioritized, -> {
       order(
-        Arel::Nodes::Descending.new(arel_table[:priority_score]).nulls_last,
+        arel_table[:priority_score].desc.nulls_last,
         arel_table[:id].asc,
       )
     }

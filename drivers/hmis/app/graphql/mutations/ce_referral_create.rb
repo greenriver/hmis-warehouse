@@ -1,7 +1,8 @@
-#  Copyright 2016 - 2024 Green River Data Analysis, LLC
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
-#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
 
 module Mutations
   class CeReferralCreate < CleanBaseMutation
@@ -11,7 +12,7 @@ module Mutations
     argument :input, Types::HmisSchema::CeReferralInput, required: true
 
     def resolve(opportunity_id:, client_id:, input:)
-      raise unless Hmis::Ce.enabled?
+      raise unless Hmis::Ce.configuration.enabled?
 
       opportunity = Hmis::Ce::Opportunity.viewable_by(current_user).find(opportunity_id)
       client = Hmis::Hud::Client.viewable_by(current_user).find(client_id)

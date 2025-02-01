@@ -519,7 +519,7 @@ module Types
     end
 
     def ce_referral(id:)
-      raise unless Hmis::Ce.enabled?
+      raise unless Hmis::Ce.configuration.enabled?
 
       Hmis::Ce::Referral.viewable_by(current_user).find(id)
     end
@@ -529,7 +529,7 @@ module Types
     end
 
     def ce_opportunity(id:)
-      raise unless Hmis::Ce.enabled?
+      raise unless Hmis::Ce.configuration.enabled?
 
       Hmis::Ce::Opportunity.viewable_by(current_user).find(id)
     end

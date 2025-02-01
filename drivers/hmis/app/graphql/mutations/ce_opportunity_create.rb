@@ -1,7 +1,8 @@
-#  Copyright 2016 - 2024 Green River Data Analysis, LLC
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
-#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
 
 module Mutations
   class CeOpportunityCreate < CleanBaseMutation
@@ -10,7 +11,7 @@ module Mutations
     field :opportunity, Types::HmisSchema::CeOpportunity, null: false
 
     def resolve(project_id:, input:)
-      raise unless Hmis::Ce.enabled?
+      raise unless Hmis::Ce.configuration.enabled?
 
       project = Hmis::Hud::Project.viewable_by(current_user).find(project_id)
       template = Hmis::WorkflowDefinition::Template.viewable_by(current_user).find(input.template_id)

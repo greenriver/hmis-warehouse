@@ -1,7 +1,8 @@
-#  Copyright 2016 - 2024 Green River Data Analysis, LLC
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
-#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
 
 module Mutations
   class CeReferralStepSubmit < CleanBaseMutation
@@ -11,7 +12,7 @@ module Mutations
     field :step, Types::HmisSchema::CeReferralStep, null: false
 
     def resolve(referral_id:, step_id:, input:)
-      raise unless Hmis::Ce.enabled?
+      raise unless Hmis::Ce.configuration.enabled?
 
       referral = Hmis::Ce::Referral.viewable_by(current_user).find(referral_id)
       step = nil

@@ -86,7 +86,7 @@ module Types
     field :ce_opportunities, [Types::HmisSchema::CeOpportunity], null: false
 
     def ce_opportunities
-      raise unless Hmis::Ce.enabled?
+      raise unless Hmis::Ce.configuration.enabled?
 
       Hmis::Ce::Opportunity.
         for_client(object).

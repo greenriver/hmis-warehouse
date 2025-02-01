@@ -46,7 +46,8 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
         expect { builder.perform }.to(change { pool.reload.configuration_updated_at })
       end
 
-      it 'cleans up unused pools after 6 months' do
+      it 'cleans up unused pools after expiration period' do
+        allow_any_instance_of(Hmis::Ce::Configuration).to receive(:days_to_retain_orphan_candidate_pools).and_return(90)
         old_pool = create(:hmis_ce_match_candidate_pool, configuration_updated_at: 7.months.ago)
 
         expect { builder.perform }.to change(Hmis::Ce::Match::CandidatePool, :count).by(0)
