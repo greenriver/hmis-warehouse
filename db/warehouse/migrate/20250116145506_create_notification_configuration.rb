@@ -4,7 +4,7 @@ class CreateNotificationConfiguration < ActiveRecord::Migration[7.0]
       t.references :user, null: false
       t.references :source, polymorphic: true, null: false
       t.string :notification_slug, null: false, description: 'Class name for notification logic'
-      t.boolean :active, default: :true
+      t.boolean :active, default: true
       t.timestamps
       t.timestamp :deleted_at
       t.index [:user_id, :source_id, :source_type, :notification_slug], unique: true, where: 'deleted_at is NULL', name: 'nc_user_source_slug_uniq_idx'
