@@ -1,0 +1,15 @@
+%p
+  An import in the #{@data_source.name} data source has triggered notifications for the following reason(s):
+
+%ul
+  - if @paused
+    %li The import is paused
+  - if @error
+    %li The import crossed the configured error count threshold
+  - if @count
+    %li The import crossed the configured record count change threshold
+
+%p
+  View import:
+  %br
+  = import_url(@import)

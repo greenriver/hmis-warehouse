@@ -1,0 +1,13 @@
+- if @import.importer_log&.paused? && @import.data_source&.import_threshold
+  .alert.alert-warning
+    %i.icon-warning.mr-2
+    .d-block
+      %p
+        %strong #{@import.data_source.name}
+        is currently set to prevent pause imports if the following conditions are met:
+      - threshold = @import.data_source.import_threshold
+      %ul
+        - if threshold.pause_on_error_threshold
+          %li If more than #{pluralize(threshold.error_count_min_threshold, 'record')} contain errors and constitute more than #{threshold.error_percent_threshold}% of the incoming records
+        - if threshold.pause_on_record_count_threshold
+          %li If more than #{pluralize(threshold.record_count_change_min_threshold, 'record')} change that would cause a change of more than #{threshold.record_count_change_percent_threshold}% of the data in any given table
