@@ -1,5 +1,5 @@
 # Determines whether a CE rule applies to a given opportunity based on project criteria. This is NOT determining
-# client is eligibility itself; rather it is determine what rule configurations to use for eligibility/priority
+# client is eligibility itself; rather it determines what rule configurations to use for eligibility/priority
 #
 # @attr [Object] owner Entity that owns/manages this applicability rule
 # @attr [Array<String>] project_types List of valid project types
