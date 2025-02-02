@@ -28,6 +28,7 @@ module HmisExternalApis::AcHmis::Exporters
       total = pathway_client_warehouse_id_to_client_ids.count
       Rails.logger.info "There are #{total} clients with pathways to export"
 
+      # Iterate through each Destination Client that has Source Client(s) with any Pathway values
       pathway_client_warehouse_id_to_client_ids.each do |warehouse_id, client_ids|
         # Find the pathway CDE that was most recently updated for this destination client
         most_recent_pathway_cde = client_ids.map { |id| pathways_by_client_id[id] }.flatten.max_by(&:date_updated)
@@ -102,9 +103,7 @@ module HmisExternalApis::AcHmis::Exporters
         group_by(&:owner_id) # By Client ID
     end
 
-    # { source client id => warehouse destination client id }
-    # This drops the source client id if there are multiple source clients with pathways,
-    # so that the resulting CSV does not have duplicated destination client IDs.
+    # { <warehouse destination client id> => [ <source client ids that have pathways> ] }
     private def pathway_client_warehouse_id_to_client_ids
       @pathway_client_warehouse_id_to_client_ids ||= Hmis::WarehouseClient.joins(:source).
         where(data_source_id: data_source.id).
