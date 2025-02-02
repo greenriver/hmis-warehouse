@@ -92,12 +92,13 @@ module HmisExternalApis::AcHmis::Exporters
     end
 
     private def pathway_cded_key_to_id
-      @pathway_cded_key_to_id ||= Hmis::Hud::CustomDataElementDefinition.where(key: PATHWAY_KEYS).pluck(:key, :id).to_h
+      @pathway_cded_key_to_id ||= Hmis::Hud::CustomDataElementDefinition.where(key: PATHWAY_KEYS, owner_type: 'Hmis::Hud::Client').pluck(:key, :id).to_h
     end
 
     private def pathways_by_client_id
       @pathways_by_client_id ||= Hmis::Hud::CustomDataElement.
         where(data_element_definition_id: pathway_cded_key_to_id.values). # All Pathway-related definitions
+        where(owner_type: 'Hmis::Hud::Client').
         group_by(&:owner_id) # By Client ID
     end
 
