@@ -130,18 +130,17 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
 
     describe 'source client threshold' do
       before(:each) do
-        client_in_destination.destroy
+        # We want to know the PPI data for this client, so set it specifically
         client_in_source.update(first_name: 'A', last_name: 'Client', dob: '2000-01-01', ssn: 'XXXXX1234')
-        GrdaWarehouse::Tasks::IdentifyDuplicates.new.identify_duplicates
+        # Clear out the existing destination client, this will be generated for `client_in_source` later in the test
+        client_in_destination.destroy
       end
       it 'never creates more than the maximum number of source clients' do
-        # Verify initial client exists and has a destination client. This is the baseline client we will be testing matching against.
-        expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
-        expect(GrdaWarehouse::WarehouseClient.count).to eq(1)
-
         number_sample_clients = 125
 
-        # Generating n unique clients that won't match the existing client or each other
+        # Generating n unique clients that won't match the existing client or each other.
+        # We are generating `number_sample_clients` - 1 because we are using the existing client (`client_in_source`)
+        # as a baseline. This will bring our total number of clients to `number_sample_clients`.
         (1..(number_sample_clients - 1)).each do |n|
           client = create :grda_warehouse_hud_client, data_source: source_data_source
           date = Date.new(2000, 1, 1) + n.days - n.months
@@ -183,6 +182,7 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         expect(destination_clients.count).to eq(expected_number_destination_clients)
         expect(GrdaWarehouse::WarehouseClient.count).to eq(number_sample_clients)
 
+        # Pop the last client off of the array. This client will have less than the maximum number of source clients.
         last_client = destination_clients.pop
         destination_clients.each do |client|
           expect(client.source_clients.count).to eq(GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS)
