@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -31,5 +31,11 @@ class Health::HousingStatus < HealthBase
 
   def positive_for_homelessness?
     status.in?(HOMELESS_STATUSES)
+  end
+
+  def self.encounter_report_details
+    {
+      source: 'Warehouse',
+    }
   end
 end

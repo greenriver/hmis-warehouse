@@ -12,8 +12,8 @@ RUN apk add --no-cache \
 WORKDIR /
 
 RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
-    -subj "/C=US/ST=Vermont/L=Brattleboro/O=greenriver/CN=www.example.com" \
-    -keyout key.pem -out cert.pem
+  -subj "/C=US/ST=Vermont/L=Brattleboro/O=greenriver/CN=www.example.com" \
+  -keyout key.pem -out cert.pem
 
 
 #########################
@@ -24,7 +24,7 @@ ARG BUILD_TAG
 FROM ruby:${BUILD_TAG} AS base
 ARG USER_ID=10000
 ARG GROUP_ID=10000
-ARG BUNDLER_VERSION=2.5.17
+ARG BUNDLER_VERSION=2.5.23
 
 LABEL "app"=open-path-warehouse
 LABEL "ruby-version"=3.1.6
@@ -57,30 +57,31 @@ COPY docker/app/us-east-1-bundle.pem  /etc/ssl/certs/us-east-1-bundle.pem
 COPY docker/app/rds-combined-ca-bundle.pem /etc/ssl/certs/rds-combined-ca-bundle.pem
 
 RUN addgroup -g ${GROUP_ID} app-user \
-   && adduser -u ${USER_ID} -G app-user -h /home/app-user -D app-user \
-   && mkdir /app /bundle \
-   && chown app-user:app-user /bundle /app
+  && adduser -u ${USER_ID} -G app-user -h /home/app-user -D app-user \
+  && mkdir /app /bundle \
+  && chown app-user:app-user /bundle /app
 
 RUN apk update \
   && apk upgrade --no-cache \
   && apk add --no-cache \
-    nodejs yarn \
-    aws-cli \
-    tzdata \
-    git \
-    bash \
-    freetds-dev \
-    icu icu-dev \
-    curl libcurl curl-dev \
-    imagemagick \
-    libmagic libheif file-dev file \
-    build-base libxml2-dev libxslt-dev postgresql-dev \
-    libgcc libstdc++ libx11 glib libxrender libxext libintl \
-    ttf-dejavu ttf-droid ttf-freefont ttf-liberation \
-    chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
-    lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util zip expect \
-    shared-mime-info \
-    tar p7zip vim gpg gpg-agent \
+  nodejs yarn \
+  aws-cli \
+  tzdata \
+  git \
+  bash \
+  linux-headers \
+  freetds-dev \
+  icu icu-dev \
+  curl libcurl curl-dev \
+  imagemagick \
+  libmagic libheif file-dev file \
+  build-base libxml2-dev libxslt-dev postgresql-dev \
+  libgcc libstdc++ libx11 glib libxrender libxext libintl \
+  ttf-dejavu ttf-droid ttf-freefont ttf-liberation \
+  chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+  lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util zip expect \
+  shared-mime-info \
+  tar p7zip vim gpg gpg-agent poppler-utils \
   && rm -rf /var/cache/apk/* \
   && ln -s libproj.so.21.1.2 /usr/lib/libproj.so.20
 
@@ -113,7 +114,7 @@ ENTRYPOINT ["/usr/bin/entrypoint.dev.sh"]
 RUN git config --global --add safe.directory /app \
   && apk update \
   && apk add --no-cache \
-     neovim less docker python3 zsh openssh \
+  neovim less docker python3 zsh openssh \
   && rm -rf /var/cache/apk/*
 
 USER ${USER_ID}

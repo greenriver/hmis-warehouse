@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -440,6 +440,14 @@ module Types
 
     def move_in_addresses
       load_ar_association(object, :move_in_addresses)
+    end
+
+    def intake_assessment
+      load_ar_association(object, :intake_assessment)
+    end
+
+    def exit_assessment
+      load_ar_association(object, :exit_assessment)
     end
   end
 end

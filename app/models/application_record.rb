@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,6 +11,17 @@ class ApplicationRecord < ActiveRecord::Base
   self.filter_attributes = Rails.application.config.filter_parameters
 
   connects_to database: { writing: :primary, reading: :primary }
+
+  def self.find_safely(tainted_id)
+    safe_id = begin
+      Integer(tainted_id)
+    rescue ArgumentError, TypeError
+      nil
+    end
+    raise(ActiveRecord::RecordNotFound, "#{sti_name} Record not found for ID: #{tainted_id}") unless safe_id
+
+    find(safe_id)
+  end
 
   def self.needs_migration?
     ActiveRecord::Migration.check_pending!

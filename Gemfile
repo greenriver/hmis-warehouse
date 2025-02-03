@@ -51,8 +51,8 @@ gem 'autoprefixer-rails', '~> 10.3.3' # pinned until we can update to Bootstrap 
 gem 'kaminari'
 gem 'pagy'
 gem 'with_advisory_lock'
-# gem 'schema_plus_views'
-gem 'scenic'
+gem 'scenic' # supports db views. Note, order is important, this should load before fx since both gems patch SchemaDumper and we want to dump views before triggers
+gem 'fx' # supports functions and triggers in our db schema
 gem 'memery', require: false
 gem 'rserve-client', require: false
 gem 'rserve-simpler', require: false
@@ -175,7 +175,7 @@ gem 'rubyXL', require: false
 gem 'soundex', require: false # for HMIS 6.11 + exports that use SHA-256 of soundex
 
 # PDF Exports
-gem 'combine_pdf'
+gem 'pdfunite'
 gem 'grover'
 
 gem 'whenever', require: false

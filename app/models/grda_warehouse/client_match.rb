@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -58,7 +58,7 @@ module GrdaWarehouse
     # In addition, if either the source or destination client no longer
     # exists, we'll delete the match
     def self.accept_exact_matches!
-      candidate.
+      candidate.preload(:source_client, :destination_client).
         find_each do |match|
           sc = match.source_client
           dc = match.destination_client

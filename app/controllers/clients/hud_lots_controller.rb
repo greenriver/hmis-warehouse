@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -29,7 +29,7 @@ class Clients::HudLotsController < ApplicationController
   end
 
   private def title_for_show
-    "#{@client.name} - Client-Level System Use & Length of Time Homeless Report"
+    "#{@client.pii_provider(user: current_user).full_name} - Client-Level System Use & Length of Time Homeless Report"
   end
   helper_method :title_for_show
 

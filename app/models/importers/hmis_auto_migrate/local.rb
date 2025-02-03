@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,6 +8,8 @@ require 'aws-sdk-rails'
 require 'zip'
 module Importers::HmisAutoMigrate
   class Local < Base
+    attr_accessor :importer
+
     def initialize(
       data_source_id:,
       deidentified: false,
@@ -36,7 +38,8 @@ module Importers::HmisAutoMigrate
       ).import!
     end
 
-    delegate :loader_log, to: :@importer
+    delegate :loader_log, to: :importer
+    delegate :importer_log, to: :importer
 
     def pre_process
       compress_and_upload

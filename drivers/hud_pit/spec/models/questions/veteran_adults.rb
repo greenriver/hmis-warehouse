@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -120,7 +120,7 @@ RSpec.shared_context 'veteran adults', shared_context: :metadata do
       },
       'Chronically Homeless: Total number of persons' => {
         row_number: 28,
-        values: [5, 3, 0, 1],
+        values: [4, 3, 0, 0],
       },
     }
 

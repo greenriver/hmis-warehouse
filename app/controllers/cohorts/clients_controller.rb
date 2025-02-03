@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -485,7 +485,7 @@ module Cohorts
       else
         log_removal(@client.cohort_id, @client.id, params.dig(:grda_warehouse_cohort_client, :reason))
         if @client.destroy
-          flash[:notice] = "Removed #{@client.name}"
+          flash[:notice] = "Removed #{@client.pii_provider(user: current_user).full_name}"
           redirect_to cohort_path(@cohort)
         else
           render :pre_destroy

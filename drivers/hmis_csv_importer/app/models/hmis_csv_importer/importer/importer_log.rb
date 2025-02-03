@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,6 +32,14 @@ module HmisCsvImporter::Importer
       else
         'processing...'
       end
+    end
+
+    def post_processing_time(importer)
+      return unless completed_at
+      return unless importer&.completed_at
+
+      seconds = ((importer.completed_at - completed_at) / 1.minute).round * 60
+      "#{distance_of_time_in_words(seconds)} -#{importer.completed_at.strftime('%l:%M %P')} to #{completed_at.strftime('%l:%M %P')}"
     end
 
     def any_errors_or_validations?

@@ -32,9 +32,11 @@ libxext
 libxml2-dev
 libxrender
 libxslt-dev
+linux-headers
 nodejs
 npm
 nss
+poppler-utils
 postgis
 postgresql
 postgresql-dev
@@ -47,4 +49,5 @@ ttf-droid
 ttf-freefont
 ttf-liberation
 tzdata
+yaml-dev
 yarn

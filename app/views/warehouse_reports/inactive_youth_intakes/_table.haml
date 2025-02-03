@@ -16,7 +16,7 @@
     %tbody
       - @report.clients.each do |client|
         %tr
-          %td= link_to client.client.name, client_youth_intakes_path(client.client)
+          %td= link_to client.client.pii_provider(user: current_user).full_name, client_youth_intakes_path(client.client)
           %td= client.intake.engagement_date
           - highlight_class = if client.case_mangement.present? && client.case_mangement == client.max_date then 'table-warning' else '' end
           %td{class: highlight_class}= client.case_mangement

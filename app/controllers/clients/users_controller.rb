@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -76,7 +76,7 @@ module Clients
     end
 
     protected def title_for_show
-      "#{@client.name} - Relationships"
+      "#{@client.pii_provider(user: current_user).full_name} - Relationships"
     end
   end
 end

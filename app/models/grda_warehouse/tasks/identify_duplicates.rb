@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,6 +8,8 @@ module GrdaWarehouse::Tasks
   class IdentifyDuplicates
     include ArelHelper
     include NotifierConfig
+
+    MAX_SOURCE_CLIENTS = 50
 
     def initialize(run_post_processing: true)
       setup_notifier('IdentifyDuplicates')
@@ -144,8 +146,10 @@ module GrdaWarehouse::Tasks
         # This has already been fully merged
         next if source_id == destination_id
 
-        destination = client_destinations.find(destination_id)
-        source = client_destinations.find(source_id)
+        destination = client_destinations.find_by(id: destination_id)
+        source = client_destinations.find_by(id: source_id)
+        next unless destination.present? && source.present?
+
         begin
           destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current)
         rescue Exception => e
@@ -241,9 +245,17 @@ module GrdaWarehouse::Tasks
       )
     end
 
+    # Destination clients are limited to MAX_SOURCE_CLIENTS number of source clients. This is to prevent runaway duplicate merges.
+    # This will return the ids of any destination clients that is at or beyond this threshold so they can be filtered out of future matching.
+    # We are using unmatchable destinations here to more easily include destination clients who do not have a warehouse client record.
+    # This should also be a smaller list than the full list of matchable destination ids.
+    private def unmatchable_destination_ids
+      GrdaWarehouse::WarehouseClient.group(:destination_id).having('count(*) >= ?', MAX_SOURCE_CLIENTS).select(:destination_id)
+    end
+
     # fetch a list of existing clients from the DND Warehouse DataSource (current destinations)
     private def client_destinations
-      GrdaWarehouse::Hud::Client.destination
+      GrdaWarehouse::Hud::Client.destination.where.not(id: unmatchable_destination_ids)
     end
 
     # Look for really clear matches (2 of the following 3 should be good):

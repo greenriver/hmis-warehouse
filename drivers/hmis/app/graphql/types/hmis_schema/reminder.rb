@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,6 +18,7 @@ module Types
     field :assessment_id, ID, null: true, description: 'Relevant existing assessment, if any'
 
     def client
+      # note: client and enrollment are preloaded by ReminderGenerator
       object.enrollment.client
     end
 

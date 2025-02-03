@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -96,7 +96,7 @@ module Clients
     end
 
     private def title_for_show
-      "#{@client.name} - #{Translation.translate('Coordinated Entry Assessment')}"
+      "#{@client.pii_provider(user: current_user).full_name} - #{Translation.translate('Coordinated Entry Assessment')}"
     end
 
     def flash_interpolation_options

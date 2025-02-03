@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -1325,7 +1325,7 @@ module GrdaWarehouse::Hud
     end
 
     def policy_class
-      if destination?
+      if destination?(strict: true)
         GrdaWarehouse::AuthPolicies::DestinationClientPolicy
       else
         GrdaWarehouse::AuthPolicies::SourceClientPolicy
@@ -1545,7 +1545,12 @@ module GrdaWarehouse::Hud
       processed_service_history.blank?
     end
 
-    def destination?
+    def destination?(strict: false)
+      # conditional check on data source. This is optional as side-effects are unknown
+      if strict
+        return false unless data_source_id.in?(GrdaWarehouse::DataSource.destination_data_source_ids)
+      end
+
       source_clients.size.positive?
     end
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -80,16 +80,16 @@ module HealthPctp::DocumentExports
           footer_template: footer_html,
         )
 
-        pdf = CombinePDF.new
-        pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(coverpage_html, options: options_no_header), allow_optional_content: true)
-        pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(html, options: options), allow_optional_content: true)
-        pdf << CombinePDF.parse(careplan.health_file.content, allow_optional_content: true) if careplan.health_file.present?
+        pdf = []
+        pdf << PdfGenerator.render_pdf(coverpage_html, options: options_no_header)
+        pdf << PdfGenerator.render_pdf(html, options: options)
+        pdf << careplan.health_file.content if careplan.health_file.present?
 
         file_name = "#{Translation.translate('Care Plan / Patient-Centered Treatment Plan')} #{DateTime.current.to_fs(:db)}"
         PdfGenerator.new.perform(
           html: '',
           file_name: file_name,
-          pdf_data: pdf.to_pdf,
+          pdf_data: PdfGenerator.merge_inline_pdfs(pdf),
         ) do |io|
           self.pdf_file = io
         end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,8 +10,17 @@ module InactiveClientReport::WarehouseReports
     include AjaxModalRails::Controller
     include ArelHelper
     include BaseFilters
+    extend BackgroundRenderAction
 
     before_action :set_report
+
+    background_render_action(:render_section, ::BackgroundRender::InactiveClientReportJob) do
+      {
+        filters: params[:filter].to_json,
+        user_id: current_user.id,
+        page: params[:query_string][:page],
+      }
+    end
 
     def index
       @excel_export = ::InactiveClientReport::DocumentExports::ReportExcelExport.new
@@ -26,6 +35,10 @@ module InactiveClientReport::WarehouseReports
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
+    end
+
+    def data
+      @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name))
     end
 
     private def set_report

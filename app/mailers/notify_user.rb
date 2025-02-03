@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -233,5 +233,16 @@ class NotifyUser < DatabaseMailer
     @notify.each do |user|
       mail(to: user.email, subject: 'Account Created')
     end
+  end
+
+  def import_processing
+    @user = params[:user]
+    @import = params[:import_log_id]
+    @data_source = params[:data_source]
+    @error = params[:error]
+    @count = params[:count]
+    @paused = params[:paused]
+    subject = 'HMIS Import Status Update'
+    mail(to: @user.email, subject: subject)
   end
 end

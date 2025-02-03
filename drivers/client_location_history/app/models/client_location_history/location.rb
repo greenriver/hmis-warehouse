@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -47,9 +47,9 @@ module ClientLocationHistory
 
     private def name_for_label(user)
       if user.can_view_clients?
-        link_for(client_path(client), client.name)
+        link_for(client_path(client), client.pii_provider(user: current_user).full_name)
       else
-        client.name
+        client.pii_provider(user: current_user).full_name
       end
     end
 

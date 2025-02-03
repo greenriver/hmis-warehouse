@@ -1,16 +1,21 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+#
+require 'memery'
 
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
   include RailsDrivers::Extensions
   include EntityAccess
   include ArelHelper
+  include Memery
 
   self.primary_key = :id
-  require 'memery'
+  TodoOrDie('Enable the following after release-151', by: '2025-03-01')
+  # self.ignored_columns = ['refuse_imports_with_errors']
+  TodoOrDie('Add a migration to remove refuse_imports_with_errors column from data source', by: '2025-04-01')
 
   acts_as_paranoid
   validates :name, presence: true
@@ -35,6 +40,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   has_many :non_hmis_uploads
 
   has_one :hmis_import_config
+  has_one :import_threshold
 
   accepts_nested_attributes_for :organizations
   accepts_nested_attributes_for :projects
@@ -534,6 +540,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     min_completion_time.to_date
   end
 
+  def self.import_advisory_lock_name(data_source_id)
+    "enforce_sequential_data_source_imports_for_#{data_source_id}"
+  end
+
   def self.stalled_imports?(user)
     Rails.cache.fetch(['data_source_stalled_imports', user], expires_in: 1.hours) do
       stalled = false
@@ -562,6 +572,95 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
           id,
         ]
       end
+  end
+
+  delegate :error_count_threshold_reached?, to: :import_threshold, allow_nil: true
+  ##
+  # Determines whether imports should be paused based on error thresholds.
+  #
+  # This method checks if an import threshold is set and whether the number of errors
+  # exceeds the allowed limit. If so, it returns `true`, indicating that imports should
+  # be paused.
+  #
+  # @param total [Integer] The total number of rows in the import file. Required.
+  # @param errors [Integer] The number of errors encountered. Required.
+  # @return [Boolean] `true` if imports should be paused due to errors, otherwise `false`.
+  #
+  memoize def pause_imports_with_errors?(total:, errors:)
+    return false unless import_threshold.present?
+    return false unless import_threshold.pause_on_error_threshold
+
+    error_count_threshold_reached?(total, errors)
+  end
+
+  ##
+  # Determines if imports should ever be paused due to errors.
+  #
+  # This method checks whether an error threshold is configured and if a minimum error count
+  # or percentage threshold is set. If both conditions are met, it indicates that the import
+  # process has a mechanism to pause based on errors.
+  #
+  # @return [Boolean] `true` if error-based pausing is possible, otherwise `false`.
+  #
+  memoize def ever_pause_imports_with_errors?
+    return false unless import_threshold.present?
+    return false unless import_threshold.pause_on_error_threshold
+
+    import_threshold.error_count_min_threshold.present? && import_threshold.error_percent_threshold.present?
+  end
+
+  delegate :record_count_threshold_reached?, to: :import_threshold, allow_nil: true
+  ##
+  # Determines whether imports should be paused based on record count change thresholds.
+  #
+  # This method checks if an import threshold is set and whether the number of changes to records
+  # (overall additions and removals)
+  # exceeds the allowed limit. If so, it returns `true`, indicating that imports should
+  # be paused.
+  #
+  # @param total [Integer] The total number of records in the data source for the given class. Required.
+  # @param errors [Integer] The absolute number of additions - removals encountered for the import file. Required.
+  # @return [Boolean] `true` if imports should be paused due to errors, otherwise `false`.
+  #
+  memoize def pause_imports_with_record_count_changes?(total:, changes:)
+    return false unless import_threshold.present?
+    return false unless import_threshold.pause_on_record_count_threshold
+
+    record_count_threshold_reached?(total, changes)
+  end
+
+  ##
+  # Determines if imports should ever be paused due to changes in record counts.
+  #
+  # This method checks whether a threshold for record count changes is configured and if
+  # minimum change or percentage thresholds are defined. If both conditions exist, the system
+  # can pause imports based on significant changes in the number of records.
+  #
+  # @return [Boolean] `true` if imports may be paused due to record count changes, otherwise `false`.
+  #
+  memoize def ever_pause_imports_with_record_changes?
+    return false unless import_threshold.present?
+    return false unless import_threshold.pause_on_error_threshold
+
+    import_threshold.record_count_change_min_threshold.present? && import_threshold.record_count_change_percent_threshold.present?
+  end
+
+  def notify_of_import_status(import_log_id:, error_threshold_met:, record_count_threshold_met:, paused:)
+    return unless import_threshold.present?
+
+    import_threshold.send_status_notifications(
+      import_log_id: import_log_id,
+      error_threshold_met: error_threshold_met,
+      record_count_threshold_met: record_count_threshold_met,
+      paused: paused,
+    )
+  end
+
+  def ever_notify_for_imports?
+    return false unless import_threshold.present?
+
+    # Do we have any thresholds set?
+    import_threshold.record_count_change_percent_threshold || import_threshold.error_percent_threshold
   end
 
   def manual_import_path

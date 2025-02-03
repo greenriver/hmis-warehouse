@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -84,7 +84,7 @@ module HudApr::Generators::Shared::Fy2024
 
           hh_id = get_hh_id(last_service_history_enrollment)
           hoh_enrollment = hoh_enrollments[hh_id]
-          household_assessment_required[hh_id] = annual_assessment_expected?(enrollment: hoh_enrollment, report_end_date: @report.end_date)
+          household_assessment_required[last_service_history_enrollment.client_id] = annual_assessment_expected?(hoh_enrollment: hoh_enrollment, enrollment: last_service_history_enrollment, report_end_date: @report.end_date)
           end_date = if needs_ce_assessments?
             # Only HoHs get CE assessments, so we prefer their entry date
             hoh_enrollment&.first_date_in_program || last_service_history_enrollment.first_date_in_program
@@ -194,9 +194,9 @@ module HudApr::Generators::Shared::Fy2024
           # e.g. If an adult enters 1 day prior HoH assessment date, is their assessment required on the HoH date (1 day later) or on the following year (1 year + 1 day later)
           #      If an adult enters 1 day after the HoH assessment date is their assessment due on the HoH date (1 year - 1 day later) or on the following year (2 years - 1 day)
           annual_assessment_expected = if age.present? && age >= 18
-            household_assessment_required[hh_id] && last_service_history_enrollment.first_date_in_program < hoh_anniversary_date
+            household_assessment_required[last_service_history_enrollment.client_id] && last_service_history_enrollment.first_date_in_program < hoh_anniversary_date
           else
-            household_assessment_required[hh_id]
+            household_assessment_required[last_service_history_enrollment.client_id]
           end
 
           household_calculation_date = if needs_ce_assessments?

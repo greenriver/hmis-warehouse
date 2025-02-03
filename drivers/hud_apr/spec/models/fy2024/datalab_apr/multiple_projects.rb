@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -271,10 +271,6 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q21',
-        skip: [
-          'C14', # expected '5.0000' (5), got '3.0000' (3)
-          'C15', # expected '138.0000' (138), got '140.0000' (140)
-        ],
       )
     end
 

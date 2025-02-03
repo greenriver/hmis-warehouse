@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -28,6 +28,6 @@ class Clients::AuditsController < ApplicationController
   end
 
   def title_for_show
-    "#{@client.name} - Audit"
+    "#{@client.pii_provider(user: current_user).full_name} - Audit"
   end
 end

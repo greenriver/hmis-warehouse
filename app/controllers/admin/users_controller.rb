@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -56,7 +56,10 @@ module Admin
 
       @redirecting = true
       update
-      redirect_to({ action: :edit }, notice: 'User updated') and return
+      # early return if the response body was set by update(), avoid double-render error
+      return if performed?
+
+      redirect_to({ action: :edit }, notice: 'User updated')
     end
 
     def impersonate
@@ -82,11 +85,11 @@ module Admin
         User.transaction do
           @user.skip_reconfirmation!
           # Associations don't play well with acts_as_paranoid, so manually clean up user ACLs
-          @user.user_group_members.where.not(user_group_id: assigned_user_group_ids).destroy_all
+          @user.user_group_members.where.not(user_group_id: assigned_user_group_ids).destroy_all unless changing_to_acls?
 
           # TODO: START_ACL remove when ACL transition complete
           # Associations don't play well with acts_as_paranoid, so manually clean up user roles
-          if ! @user.using_acls?
+          if ! user_using_or_changing_to_acls?
             @user.user_roles.where.not(role_id: user_params[:legacy_role_ids]&.select(&:present?)).destroy_all
             @user.access_groups.not_system.
               where.not(id: user_params[:access_group_ids]&.select(&:present?)).each do |g|
@@ -98,12 +101,21 @@ module Admin
           end
           # END_ACL
           @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
-          @user.update!(user_params)
+
+          # The User Group data is not captured for update when using the Role-Based view. This means it will not be included
+          # in the params when switching from Role-Based permissions to ACLs. In order to prevent wiping out any existing
+          # user_group_id data, we need to ignore this param when changing to an ACL based permissions.
+          # The reverse is true for the access_group_ids field.
+          params_to_update = user_params
+          params_to_update = params_to_update.except(:user_group_ids) if changing_to_acls?
+          params_to_update = params_to_update.except(:access_group_ids) if changing_to_role_based?
+          @user.update!(params_to_update)
+
           # if we have a user to copy user groups from, add them
-          copy_user_groups if @user.using_acls?
+          copy_user_groups if user_using_or_changing_to_acls?
           # TODO: START_ACL remove when ACL transition complete
           # Restore any health roles we previously had
-          if ! @user.using_acls?
+          if ! user_using_or_changing_to_acls?
             @user.legacy_roles = (@user.legacy_roles + existing_health_roles).uniq
             @user.set_viewables viewable_params
           end
@@ -133,7 +145,8 @@ module Admin
 
     def destroy
       @user.paper_trail_event = 'deactivate'
-      @user.update(active: false)
+      # update_column() allows us to update the user even if the record is invalid
+      @user.update_column(:active, false)
       redirect_to({ action: :index }, notice: "User #{@user.name} deactivated")
     end
 
@@ -146,6 +159,18 @@ module Admin
 
     def title_for_index
       'User List'
+    end
+
+    private def changing_to_acls?
+      params[:user][:permission_context] == 'acls' && @user.permission_context != params[:user][:permission_context]
+    end
+
+    private def changing_to_role_based?
+      params[:user][:permission_context] == 'role_based' && @user.permission_context != params[:user][:permission_context]
+    end
+
+    private def user_using_or_changing_to_acls?
+      @user.using_acls? || changing_to_acls?
     end
 
     private def adding_admin?

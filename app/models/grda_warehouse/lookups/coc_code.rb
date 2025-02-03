@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,24 +13,37 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
     where(active: true)
   end
 
-  # NOTE: this is only used for generating filters, it is not to be used when calculating
-  # client visibility
+  ##
+  # Returns all active CoC codes that the given user can view based on permissions.
+  #
+  # NOTE: This scope is primarily used for generating filters and should **not** be used for calculating
+  # client visibility.
+  #
+  # @param user [User] The user whose permissions will be checked.
+  # @param permission [Symbol] The permission used to determine if the user can view the CoC codes.
+  #   Defaults to `:can_view_projects`.
+  # @return [ActiveRecord::Relation<GrdaWarehouse::Lookups::CocCode>] an ActiveRecord::Relation of CoC codes
+  #   that the user is allowed to view.
+  #
   scope :viewable_by, ->(user, permission: :can_view_projects) do
-    # any code the user could possibly have access to, and the project associated
-    visible_coc_codes = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
+    # Fetch all CoC codes that are indirectly accessible to the user via projects they have permission to view.
+    coc_codes_inherited_from_projects = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
       merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: permission)).distinct.
       pluck(:CoCCode)
     # If the user can't see any CoC Codes from the above query, it's probably that they don't have any
     # access to view projects. We'll fix that with different permissions in the future, for now return all
-    visible_coc_codes = active.distinct.pluck(:coc_code) if visible_coc_codes.blank?
-    # Intersected with the user's since the visible_coc_codes returned all CoC codes at the projects
-    visible_coc_codes &= user.coc_codes if user.coc_codes.present?
+    active_coc_codes = active.distinct.pluck(:coc_code)
+    # Intersect the active CoC codes with the specific CoC codes explicitly assigned to the user.
+    # This ensures the user can only see codes they have explicit access to, in addition to inherited ones.
+    visible_coc_codes = []
+    visible_coc_codes = active_coc_codes & user.coc_codes if user.coc_codes.present?
+    visible_coc_codes += coc_codes_inherited_from_projects
 
-    active.where(coc_code: visible_coc_codes)
+    active.where(coc_code: visible_coc_codes.uniq)
   end
 
-  def self.options_for_select(user:)
-    viewable_by(user).
+  def self.options_for_select(user:, permission: :can_view_projects)
+    viewable_by(user, permission: permission).
       distinct.
       order(:coc_code).
       map(&:as_select_option)

@@ -1,7 +1,8 @@
-#  Copyright 2016 - 2024 Green River Data Analysis, LLC
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
-#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
 
 require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
@@ -23,6 +24,7 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
   end
 
   def save_ignoring_warnings
+    sleep 1 # seems the wrong element is clicked? Sleep for animation to settle
     first(:button, 'Submit').click
     assert_text 'Ignore Warnings'
     click_button 'Confirm'

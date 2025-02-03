@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -60,7 +60,8 @@ module UserConcern
     after_save :create_access_group
     # END_ACL
 
-    validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: { maximum: 250 }, on: :update
+    # No longer validating MX record, just validate email format (MX check requires a network connection)
+    validates :email, presence: true, uniqueness: true, email_format: { check_mx: false }, length: { maximum: 250 }
     validate :password_cannot_be_sequential, on: :update
     validates :last_name, presence: true, length: { maximum: 40 }
     validates :first_name, presence: true, length: { maximum: 40 }

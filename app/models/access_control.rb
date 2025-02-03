@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,6 +14,7 @@
 class AccessControl < ApplicationRecord
   include ActionView::Helpers::TagHelper
   include UserPermissionCache
+  include ArelHelper
 
   acts_as_paranoid
   has_paper_trail
@@ -34,6 +35,17 @@ class AccessControl < ApplicationRecord
   # hide previous declaration of :system (from Kernel), we'll use this one
   replace_scope :system, -> do
     joins(:collection).merge(Collection.system)
+  end
+
+  # Where not ALL role, collection, user group are system
+  # These access controls will show up on the admin page for editing
+  scope :user_managed, -> do
+    left_outer_joins(:collection, :role, :user_group).
+      where.not(
+        collection_id: Collection.system.select(:id),
+        role_id: Role.system.select(:id),
+        user_group_id: UserGroup.system.select(:id),
+      )
   end
 
   scope :not_system, -> do
@@ -92,18 +104,18 @@ class AccessControl < ApplicationRecord
 
   # If all entities are system entities, this is a system Access Control
   def system?
-    [user_group.system?, role.system?, collection.system?].all?
+    [user_group&.system?, role&.system?, collection&.system?].all?
   end
 
   def name
-    "#{role.name} x #{collection.name} x #{user_group.name}"
+    "#{role&.name || 'missing role'} x #{collection&.name || 'missing collection'} x #{user_group&.name || 'missing user group'}"
   end
 
   def name_as_html
     name_parts = [
-      content_tag(:span, role.name, class: 'badge badge-info font-weight-normal'),
-      content_tag(:span, collection.name, class: 'badge badge-info font-weight-normal'),
-      content_tag(:span, user_group.name, class: 'badge badge-info font-weight-normal'),
+      content_tag(:span, role&.name, class: 'badge badge-info font-weight-normal'),
+      content_tag(:span, collection&.name, class: 'badge badge-info font-weight-normal'),
+      content_tag(:span, user_group&.name, class: 'badge badge-info font-weight-normal'),
     ]
 
     content_tag(
@@ -126,8 +138,8 @@ class AccessControl < ApplicationRecord
       end
 
       scope.ordered.each do |control|
-        options[control.role.name] ||= []
-        options[control.role.name] << [control.name, control.id]
+        options[control.role&.name] ||= []
+        options[control.role&.name] << [control.name, control.id]
       end
     end
   end

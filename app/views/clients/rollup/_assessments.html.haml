@@ -12,7 +12,7 @@
   -# remove any CE assessments for which we have a matching HMIS custom assessment.  The custom assessment will give better fidelity
   -# we'll add back the ce assessment details on the show page
   - custom_hmis_assessments.each do |assessment|
-    - ce_assessments.delete_if { |ce| ce.id == assessment.form_processor.ce_assessment_id }
+    - ce_assessments.delete_if { |ce| ce.id == assessment.form_processor&.ce_assessment_id }
   - custom_hmis_assessments = custom_hmis_assessments.group_by(&:title)
 
 - ce_assessments = ce_assessments.group_by(&:name)

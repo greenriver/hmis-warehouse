@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,10 +17,10 @@ module HmisStructure::User
       "#{user_first_name} #{user_last_name}"
     end
 
-    pii_attr :user_first_name, as: :first_name
-    pii_attr :user_last_name, as: :last_name
-    pii_attr :user_phone, as: :phone
-    pii_attr :user_email, as: :email
+    pii_attr :UserFirstName, as: :first_name
+    pii_attr :UserLastName, as: :last_name
+    pii_attr :UserPhone, as: :phone
+    pii_attr :UserEmail, as: :email
   end
 
   module ClassMethods

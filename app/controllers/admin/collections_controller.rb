@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,7 +12,7 @@ module Admin
     before_action :set_entities, only: [:new, :edit, :create, :update, :entities]
 
     def index
-      @collections = collection_scope.order(:name)
+      @collections = collection_scope.without_source_entity.order(:name)
       @collections = @collections.text_search(params[:q]) if params[:q].present?
       @pagy, @collections = pagy(@collections)
     end

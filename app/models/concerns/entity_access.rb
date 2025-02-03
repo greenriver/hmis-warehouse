@@ -1,20 +1,32 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+##
+# The +EntityAccess+ concern provides methods for managing user access (either
+# viewable or editable) to a given model. It is currently in-use in ProjectGroups and Cohorts
+# It ensures that each entity has a system collection, user groups for viewing/editing,
+# and the associated roles that grant the correct permissions.
+#
 module EntityAccess
   extend ActiveSupport::Concern
 
-  # Ensure this user has the appropriate access to this item
-  # Need two cohort users choosers, editors and read-only users
-  # If I created a cohort: (put this on the cohort object - accepts users)
-  #   1. first or create a system role with can_view_cohorts "System Role - Can View Cohorts"
-  #   2. first or create a collection for the cohort called "Cohort X" and add the user to it
-  #   3. first or create an access control that includes above role and collection
-  #   4. add user to the access control
-  # NOTE: this will remove any existing who are not included
+  # Replace the current users who have a specified access level with a new set
+  # of users. Determines whether to modify the "editable" or "viewable" group
+  # based on +scope+.
+  #
+  # @param [Array<User>, User] users
+  #   The user or array of users to be granted the specified access.
+  # @param [Symbol] scope
+  #   The access type to update, one of +:editor+ or +:viewer+.
+  #
+  # @raise [RuntimeError]
+  #   Raises an error if +scope+ is not recognized.
+  #
+  # @return [void]
+  #
   def replace_access(users, scope:)
     users = Array.wrap(users)
 
@@ -33,44 +45,112 @@ module EntityAccess
     user_group.add(users) if users.present?
   end
 
+  ##
+  # Retrieves (or creates) the +AccessControl+ record that grants "viewable"
+  # permission for this entity's system collection.
+  #
+  # @return [AccessControl]
+  #
   def viewable_access_control
     @viewable_access_control ||= AccessControl.where(
       collection: system_collection,
       role: viewable_role,
       user_group: system_viewable_user_group,
-    ).first_or_create
+    ).first_or_create!
   end
 
+  ##
+  # Retrieves (or creates) the +AccessControl+ record that grants "editable"
+  # permission for this entity's system collection.
+  #
+  # @return [AccessControl]
+  #
   def editable_access_control
     @editable_access_control ||= AccessControl.where(
       collection: system_collection,
       role: editable_role,
       user_group: system_editable_user_group,
-    ).first_or_create
+    ).first_or_create!
   end
 
+  ##
+  # Finds or creates a "system" +Collection+ dedicated to this entity.
+  # The collection will only contain one group-viewable entity (this one). It
+  # also updates the collection's name to match the entity's +name+.
+  # Note that updating the name may cause an extra query, and in the future we may wan to
+  # refactor that into an after save hook or similar.
+  #
+  # @return [Collection]
+  #
   def system_collection
     @system_collection ||= begin
-      collection = Collection.where(system: ['Entities'], name: name, collection_type: collection_type).first_or_create
+      collection = Collection.system.where(source: self).first_or_initialize do |c|
+        c.name = name
+        c.system = ['Entities'] # required to indicate it is a system collection
+        c.collection_type = collection_type # indicate which type of collection this is
+        c
+      end
+      # ensure the collection name still matches
+      collection.update!(name: name)
       collection.set_viewables(entity_relation_type => [id])
       collection
     end
   end
 
+  ##
+  # Finds or creates a "system" +UserGroup+ that grants viewable access
+  # to this entity to users through the `viewable_access_control``.
+  # It updates the group's name to be "<entity name> [viewable]".
+  # Note that updating the name may cause an extra query, and in the future we may wan to
+  # refactor that into an after save hook or similar.
+  #
+  # @return [UserGroup]
+  #
   def system_viewable_user_group
-    @system_viewable_user_group ||= UserGroup.where(system: true, name: "#{name} [viewable]").first_or_create
+    @system_viewable_user_group ||= begin
+      ug = UserGroup.system.where(source: self, context: :viewable).first_or_initialize
+      # Maintain the name
+      ug.update!(name: viewable_user_group_name)
+      ug
+    end
   end
 
+  ##
+  # Finds or creates a "system" +UserGroup+ that grants editable access
+  # to this entity to users through the `editable_access_control``.
+  # It updates the group's name to be "<entity name> [editable]".
+  # Note that updating the name may cause an extra query, and in the future we may wan to
+  # refactor that into an after save hook or similar.
+  #
+  # @return [UserGroup]
+  #
   def system_editable_user_group
-    @system_editable_user_group ||= UserGroup.where(system: true, name: "#{name} [editable]").first_or_create
+    @system_editable_user_group ||= begin
+      ug = UserGroup.system.where(source: self, context: :editable).first_or_initialize
+      # Maintain the name
+      ug.update!(name: editable_user_group_name)
+      ug
+    end
   end
 
+  ##
+  # Finds or creates a "system" +Role+ that has the "viewable" permission
+  # set to +true+.
+  #
+  # @return [Role]
+  #
   def viewable_role
-    @viewable_role ||= Role.system.where(name: viewable_role_name, viewable_permission => true).first_or_create
+    @viewable_role ||= Role.system.where(name: viewable_role_name, viewable_permission => true).first_or_create!
   end
 
+  ##
+  # Finds or creates a "system" +Role+ that has the "editable" permission
+  # set to +true+.
+  #
+  # @return [Role]
+  #
   def editable_role
-    @editable_role ||= Role.system.where(name: editable_role_name, editable_permission => true).first_or_create
+    @editable_role ||= Role.system.where(name: editable_role_name, editable_permission => true).first_or_create!
   end
 
   private def editable_permissions
@@ -89,6 +169,27 @@ module EntityAccess
     self.class.viewable_permission
   end
 
+  private def viewable_user_group_name
+    "#{name} [viewable]"
+  end
+
+  private def editable_user_group_name
+    "#{name} [editable]"
+  end
+
+  ##
+  # Returns all users with the specified +access_type+ to this entity. This may
+  # include any user with either "viewable" or "editable" permissions, depending
+  # on the requested +access_type+.
+  #
+  # @param [Symbol] access_type
+  #   The type of access to filter by (:view, :edit, or :access).
+  # @raise [RuntimeError]
+  #   Raises an error if +access_type+ is unknown.
+  #
+  # @return [Array<User>]
+  #   The unique list of users who have the specified type of access.
+  #
   def users_with_access(access_type:)
     collection_ids = group_viewable_entities.where.not(collection_id: nil).pluck(:collection_id)
     return [] unless collection_ids

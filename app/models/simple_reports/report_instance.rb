@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,6 +25,15 @@ module SimpleReports
 
     def cell(cell_name)
       report_cells.where(name: cell_name).first
+    end
+
+    def running?
+      return false if started_at.present? && started_at < 24.hours.ago
+      return false if started_at.blank? && created_at < 24.hours.ago
+      return false if failed?
+      return false if completed?
+
+      ! completed?
     end
 
     def completed?

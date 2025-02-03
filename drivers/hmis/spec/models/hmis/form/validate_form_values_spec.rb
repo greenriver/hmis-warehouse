@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,7 +32,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         [[], true],
         ['DATA_NOT_COLLECTED', false], # DNC is a valid answer for a required field
         [0, false],
-        ['value', false],
+        ['0', false],
         [Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE, false], # hidden field should not generate an error
       ].each do |value, should_error|
         it "should #{should_error ? '' : 'not'} error on #{value.nil? ? 'nil' : value}" do
@@ -40,12 +40,11 @@ RSpec.describe Hmis::Form::Definition, type: :model do
             **completed_values,
             linkid_required: value,
           }.stringify_keys)
-
           if should_error
             expected_error = { type: :required, severity: :error, link_id: 'linkid_required', readable_attribute: 'The Required Field' }
             expect(errors.map(&:to_h)).to contain_exactly(a_hash_including(expected_error))
           else
-            expect(errors).to be_empty, errors.map(&:to_h)
+            expect(errors).to be_empty, -> { errors.map(&:to_h) }
           end
         end
       end
@@ -72,7 +71,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
             expected_error = { type: :data_not_collected, severity: :warning, link_id: 'linkid_choice', readable_attribute: 'Choice field' }
             expect(errors.map(&:to_h)).to contain_exactly(a_hash_including(expected_error))
           else
-            expect(errors).to be_empty, errors.map(&:to_h)
+            expect(errors).to be_empty, -> { errors.map(&:to_h) }
           end
         end
       end

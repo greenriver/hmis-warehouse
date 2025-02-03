@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -78,13 +84,16 @@ RSpec.feature 'Enrollment/household management', type: :system do
         assert_text(c1.brief_name)
 
         # first assessment
+        mui_expect_selected_tab('#tab-1')
         complete_individual_assessment
         click_button 'Next'
 
         # second assessment
+        mui_expect_selected_tab('#tab-2')
         complete_individual_assessment
         click_button 'Next'
 
+        mui_expect_selected_tab('#tab-summary')
         assert_text "Complete Entry to #{p1.project_name}"
 
         # Intakes are created as WIP

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -112,12 +112,14 @@ module HmisCsvTwentyTwentyFour::Importer::ImportConcern
 
     # Override as necessary
     def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:, importer_log_id:) # rubocop:disable Lint/UnusedMethodArgument
-      involved_warehouse_scope(
-        data_source_id: data_source_id,
-        project_ids: project_ids,
-        date_range: date_range,
-      ).with_deleted.
-        update_all(pending_date_deleted: pending_date_deleted)
+      project_ids.each_slice(250) do |project_ids_slice|
+        involved_warehouse_scope(
+          data_source_id: data_source_id,
+          project_ids: project_ids_slice,
+          date_range: date_range,
+        ).with_deleted.
+          update_all(pending_date_deleted: pending_date_deleted)
+      end
     end
 
     def self.new_data(data_source_id:, project_ids:, date_range:, importer_log_id:)
@@ -152,6 +154,14 @@ module HmisCsvTwentyTwentyFour::Importer::ImportConcern
         date_range: date_range,
       ).with_deleted.
         delete_pending
+    end
+
+    # Override as necessary
+    # The import process is relying on flagging records with pending_date_deleted to identify
+    # record changes in the import process. This flag allows for marking the records for deletion
+    # without actually delete them.
+    def self.prevent_import_deletions?
+      false
     end
 
     def self.pending_deletions(data_source_id:, project_ids:, date_range:)

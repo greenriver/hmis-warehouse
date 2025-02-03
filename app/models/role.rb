@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -704,8 +704,9 @@ class Role < ApplicationRecord
         category: 'Client Extras',
         sub_category: 'Auditing',
       },
+      # DEPRECATED, superseded by can_view_assigned_reports in combination with access controls
       can_view_all_reports: {
-        description: 'Access to all reports, regardless the user who ran the report',
+        description: 'Access to all reports, regardless the user who ran the report (Note: for Access Controls, this is superseded by "Can View Assigned Reports")',
         administrative: true,
         category: 'Reporting',
         sub_category: 'Report Access',

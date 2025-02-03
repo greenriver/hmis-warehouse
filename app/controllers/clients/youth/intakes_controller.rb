@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -88,7 +88,7 @@ module Clients::Youth
         @client.youth_follow_ups.destroy_all
         # TODO: This does not remove the client from the Youth DataSource
 
-        flash[:notice] = "All Youth information for #{@client.name} has been removed."
+        flash[:notice] = "All Youth information for #{@client.pii_provider(user: current_user).full_name} has been removed."
         redirect_to client_youth_intakes_path(@client)
       else
         not_authorized!

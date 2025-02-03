@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -90,6 +90,16 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(1)
+      end
+
+      it '#source_visible_to does not clobber conditions' do
+        count = GrdaWarehouse::Hud::Client.where(data_source: -1).source_visible_to(user).count
+        expect(count).to eq(0)
+      end
+
+      it '#destination_visible_to does not clobber conditions' do
+        count = GrdaWarehouse::Hud::Client.where(data_source: -1).destination_visible_to(user).count
+        expect(count).to eq(0)
       end
     end
 
