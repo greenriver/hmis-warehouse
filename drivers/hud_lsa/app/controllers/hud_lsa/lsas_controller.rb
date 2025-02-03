@@ -12,11 +12,15 @@ module HudLsa
     before_action :set_report, only: [:show, :destroy, :running, :download, :download_intermediate]
     before_action :set_reports, except: [:index, :running_all_questions]
 
-    def new
-      report
+    private def report_scope
+      report_source.lsa.where(report_name: possible_titles)
     end
 
-    def new_hic
+    private def report_source
+      ::HudLsa::Generators::Fy2024::Lsa
+    end
+
+    def new
       report
     end
 
@@ -58,7 +62,7 @@ module HudLsa
     end
 
     private def report
-      @report ||= report_class.new(options: { user_id: current_user.id })
+      @report ||= report_class.new(options: { user_id: current_user.id, start: default_start_date, end: default_end_date })
     end
 
     private def report_class
@@ -103,12 +107,23 @@ module HudLsa
       possible_generator_classes[default_report_version]
     end
 
-    private def filter
-      year = if Date.current.month >= 10
+    private def default_year
+      if Date.current.month >= 10
         Date.current.year
       else
         Date.current.year - 1
       end
+    end
+
+    private def default_start_date
+      Date.new(default_year - 1, 10, 1)
+    end
+
+    private def default_end_date
+      Date.new(default_year, 9, 30)
+    end
+
+    private def filter
       # Some sane defaults, using the previous report if available
       @filter = filter_class.new(
         user_id: current_user.id,
@@ -118,14 +133,18 @@ module HudLsa
         prior_report = generator.find_report(current_user)
         options = prior_report&.options
         if options.present?
-          @filter.start = options['start'].presence || Date.new(year - 1, 10, 1)
-          @filter.end = options['end'].presence || Date.new(year, 9, 30)
-          @filter.coc_code = options['coc_codes'].presence || site_coc_codes
-          @filter.update(options.with_indifferent_access)
+          cocs = options['coc_codes'].presence || site_coc_codes
+          @filter.update(options.with_indifferent_access.except(:on))
+          @filter.on = nil
+          @filter.start = options['start'].presence || default_start_date
+          @filter.end = options['end'].presence || default_end_date
+          @filter.coc_code = cocs.try(&:first)
+          @filter.coc_codes = cocs
           @filter.report_version = options['report_version'].presence || default_report_version
         else
-          @filter.start = Date.new(year - 1, 10, 1)
-          @filter.end = Date.new(year, 9, 30)
+          @filter.on = nil
+          @filter.start = default_start_date
+          @filter.end = default_end_date
           @filter.report_version = default_report_version
         end
       end

@@ -5,7 +5,6 @@
   %h1= content_for :title
   .ml-auto
     = link_to "Generate New #{generator.short_name}", path_for_new, class: 'btn btn-secondary'
-    = link_to 'Generate New LSA for HIC', new_hic_hud_reports_lsas_path, class: 'btn btn-secondary'
 - if @show_recent
   .well
     .d-flex

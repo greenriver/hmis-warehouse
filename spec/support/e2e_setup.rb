@@ -106,6 +106,10 @@ RSpec.shared_context 'SystemSpecHelper' do
     end
   end
 
+  def mui_expect_selected_tab(tab_selector)
+    expect(page).to have_css("#{tab_selector}[role=\"tab\"][aria-selected=\"true\"]")
+  end
+
   def with_hidden
     last_value = Capybara.ignore_hidden_elements
     begin

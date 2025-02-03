@@ -66,7 +66,7 @@ module HopwaCaper::Generators::Fy2024
       ::Filters::HudFilterBase
     end
 
-    def self.allowed_options
+    def self.allowed_options(_)
       [
         :start,
         :end,

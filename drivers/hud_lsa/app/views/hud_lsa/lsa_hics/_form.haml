@@ -1,7 +1,10 @@
+= content_for :crumbs do
+  = link_to history_hud_reports_lsa_hics_path do
+    &laquo; Housing Inventory Count Reports
 %h3 Queue Report
 - default_coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
 - report_versions = active_report_versions
-= simple_form_for @filter, as: :filter, url: hud_reports_lsas_path, data: { controller: 'filter-projects', 'filter-projects-supported-project-types-value' => @filter.relevant_project_types } do |f|
+= simple_form_for @filter, as: :filter, url: hud_reports_lsa_hics_path, data: { controller: 'filter-projects', 'filter-projects-supported-project-types-value' => @filter.relevant_project_types } do |f|
   - content_for :filters_col_full do
     - coc_cols = if defined?(:report_versions) && report_versions.count > 1 then 'col-sm-6' else 'col-sm-9' end
     .hud-report-options
@@ -22,7 +25,7 @@
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Queue Report', data: { 'filter-projects-target' => 'submitButton' }
-    = button_tag type: :submit, formaction: data_missing_hud_reports_lsas_path, formtarget: :_blank, class: ['btn', 'btn-warning', 'ml-auto'], data: { 'filter-projects-target' => 'missingItems' } do
+    = button_tag type: :submit, formaction: data_missing_hud_reports_lsa_hics_path, formtarget: :_blank, class: ['btn', 'btn-warning', 'ml-auto'], data: { 'filter-projects-target' => 'missingItems' } do
       %i.icon-warning
       Missing Data
 

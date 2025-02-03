@@ -369,11 +369,13 @@ module HmisCsvImporter::Importer
         # Export has already been processed
         next if klass.hud_key == :ExportID
 
-        klass.involved_warehouse_scope(
-          data_source_id: data_source.id,
-          project_ids: involved_project_ids,
-          date_range: date_range,
-        ).update_all(ExportID: export_record.ExportID)
+        involved_project_ids.each_slice(250) do |project_ids_slice|
+          klass.involved_warehouse_scope(
+            data_source_id: data_source.id,
+            project_ids: project_ids_slice,
+            date_range: date_range,
+          ).update_all(ExportID: export_record.ExportID)
+        end
       end
     end
 
@@ -450,8 +452,8 @@ module HmisCsvImporter::Importer
         # Never delete Exports
         next if klass.hud_key == :ExportID
 
-        # Never delete Projects, Organizations, or Clients, but cleanup any pending deletions
-        if klass.hud_key.in?([:ProjectID, :OrganizationID])
+        # If the klass does not allow deletions through the import process, remove the pending deletion flag from all klass records associated with this import.
+        if klass.prevent_import_deletions?
           klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, source_hash: nil)
         elsif klass.hud_key == :PersonalID
           # Clients need to be treated differently for the situation where we are importing a partial data source

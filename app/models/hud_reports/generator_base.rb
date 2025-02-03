@@ -125,7 +125,7 @@ module HudReports
       ['first_name', 'last_name', 'dob', 'ssn']
     end
 
-    def self.allowed_options
+    def self.allowed_options(_)
       [
         :start,
         :end,
