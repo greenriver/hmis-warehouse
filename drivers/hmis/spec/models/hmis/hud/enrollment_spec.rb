@@ -436,13 +436,13 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end
 
       context 'when DateOfEngagement does not exist' do
-        it 'does not return PATH status form' do
+        it 'does not return Date of engagement form' do
           expect(hoh_enrollment.occurrence_point_forms).to be_empty
         end
       end
       context 'when DateOfEngagement exists' do
         before(:each) { hoh_enrollment.update!(date_of_engagement: 3.weeks.ago) }
-        it 'returns the default PATH status form' do
+        it 'returns the default Date of engagement form' do
           expect(hoh_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
         end
       end

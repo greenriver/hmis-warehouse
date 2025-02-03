@@ -363,7 +363,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     # we still need to show it so that user can see the data and perform data correction.
     [
       # [<Enrollment field>, <default form identifier that should be used if field has any data>]
-      [:move_in_date, 'move_in_date'],
+      [:move_in_date, 'move_in_date'], # identifier matches file name of the default form, e.g. drivers/hmis/lib/form_data/default/occurrence_point_forms/move_in_date.json
       [:date_of_engagement, 'date_of_engagement'],
       [:date_of_path_status, 'path_status'],
     ].each do |(field, identifier)|
