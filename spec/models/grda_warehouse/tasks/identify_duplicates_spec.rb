@@ -167,7 +167,7 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
 
-        # # The code below will calculate the number of expected destination clients in the case that MAX_SOURCE_CLIENTS changes enought to affect this number
+        # # The code below will calculate the number of expected destination clients in the case that MAX_SOURCE_CLIENTS changes enough to affect this number
         # expected_number_destination_clients = ((number_sample_clients * 1.0) / GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS).ceil
 
         # With MAX_SOURCE_CLIENTS set to 50, we are expecting 3 destiantion clients. 2 with 50 source clients and 1 with 25 source clients.
