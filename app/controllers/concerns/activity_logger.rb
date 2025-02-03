@@ -58,7 +58,7 @@ module ActivityLogger
 
     # override as necessary in the controller
     protected def title_for_show
-      return @client.name if @client.present?
+      return @client.pii_provider(user: current_user).full_name if @client.present?
       return @user.name if @user.present?
     end
 

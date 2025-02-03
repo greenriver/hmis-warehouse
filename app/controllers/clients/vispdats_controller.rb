@@ -164,7 +164,7 @@ module Clients
     end
 
     private def title_for_show
-      "#{@client.name} - VI-SPDATs"
+      "#{@client.pii_provider(user: current_user).full_name} - VI-SPDATs"
     end
   end
 end

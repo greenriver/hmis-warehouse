@@ -65,7 +65,7 @@ module Clients
     end
 
     def title_for_show
-      "#{@client.name} - CAS Readiness"
+      "#{@client.pii_provider(user: current_user).full_name} - CAS Readiness"
     end
   end
 end
