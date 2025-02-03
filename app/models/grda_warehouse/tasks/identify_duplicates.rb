@@ -245,6 +245,8 @@ module GrdaWarehouse::Tasks
       )
     end
 
+    # Destination clients are limited to MAX_SOURCE_CLIENTS number of source clients. This is to prevent runaway duplicate merges.
+    # This will return the ids of any destination clients that are eligible to have additional source clients added.
     private def matchable_destination_ids
       GrdaWarehouse::WarehouseClient.group(:destination_id).having('count(*) < ?', MAX_SOURCE_CLIENTS).select(:destination_id)
     end
