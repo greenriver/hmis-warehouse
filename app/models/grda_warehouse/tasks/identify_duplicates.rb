@@ -246,14 +246,16 @@ module GrdaWarehouse::Tasks
     end
 
     # Destination clients are limited to MAX_SOURCE_CLIENTS number of source clients. This is to prevent runaway duplicate merges.
-    # This will return the ids of any destination clients that are eligible to have additional source clients added.
-    private def matchable_destination_ids
-      GrdaWarehouse::WarehouseClient.group(:destination_id).having('count(*) < ?', MAX_SOURCE_CLIENTS).select(:destination_id)
+    # This will return the ids of any destination clients that is at or beyond this threshold so they can be filtered out of future matching.
+    # We are using unmatchable destinations here to more easily include destination clients who do not have a warehouse client record.
+    # This should also be a smaller list than the full list of matchable destination ids.
+    private def unmatchable_destination_ids
+      GrdaWarehouse::WarehouseClient.group(:destination_id).having('count(*) >= ?', MAX_SOURCE_CLIENTS).select(:destination_id)
     end
 
     # fetch a list of existing clients from the DND Warehouse DataSource (current destinations)
     private def client_destinations
-      GrdaWarehouse::Hud::Client.destination.where(id: matchable_destination_ids)
+      GrdaWarehouse::Hud::Client.destination.where.not(id: unmatchable_destination_ids)
     end
 
     # Look for really clear matches (2 of the following 3 should be good):
