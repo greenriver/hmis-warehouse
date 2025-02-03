@@ -11,7 +11,7 @@ module Mutations
 
     field :receiving_household, Types::HmisSchema::Household, null: false
     field :donor_household, Types::HmisSchema::Household, null: true # Will be null if there are no remaining members
-    # todo @martha - possible that there will be multiple households with same ID? mutation should require project_id?
+
     def resolve(receiving_household_id:, joining_enrollment_inputs:)
       receiving_enrollments = Hmis::Hud::Enrollment.
         where(household_id: receiving_household_id).
