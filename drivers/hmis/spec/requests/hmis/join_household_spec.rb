@@ -251,7 +251,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         },
       ],
     }
-    expect_gql_error post_graphql(input: input) { mutation }, message: /Cannot merge enrollments from another project/
+    expect_access_denied post_graphql(input: input) { mutation }
   end
 
   it 'fails when the join would leave behind a headless household' do

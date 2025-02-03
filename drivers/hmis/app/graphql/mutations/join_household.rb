@@ -13,15 +13,11 @@ module Mutations
     field :donor_enrollment, Types::HmisSchema::Enrollment, null: true # Will be null if there are no remaining members
 
     def resolve(receiving_household_id:, joining_enrollment_inputs:)
-      receiving_enrollments = Hmis::Hud::Enrollment.
-        where(household_id: receiving_household_id).
-        viewable_by(current_user).
-        includes(:project, :household)
-      access_denied! if receiving_enrollments.empty?
-
-      receiving_household = receiving_enrollments.first.household
-
-      receiving_project = receiving_enrollments.map(&:project).uniq.sole
+      # note: viewable_by takes care of filtering by data source via project with_access
+      receiving_household = Hmis::Hud::Household.viewable_by(current_user).find_by(household_id: receiving_household_id)
+      access_denied! unless receiving_household
+      receiving_enrollments = receiving_household.enrollments
+      receiving_project = receiving_household.project
       access_denied! unless current_permission?(permission: :can_split_households, entity: receiving_project)
 
       # The mutation input is a list, so convert it to a hashmap for ease of access
@@ -29,18 +25,14 @@ module Mutations
 
       joining_enrollment_ids = map_enrollment_id_to_relationship.keys
       joining_enrollments = Hmis::Hud::Enrollment.
-        viewable_by(current_user).
-        where(id: joining_enrollment_ids).
-        includes(:household)
+        where(project: receiving_project). # can only join from household in same project
+        where(id: joining_enrollment_ids)
       access_denied! unless joining_enrollments.count == joining_enrollment_inputs.count
+      raise 'Cannot join from multiple households' unless joining_enrollments.map(&:household_id).uniq.size == 1
 
-      raise 'Cannot merge enrollments from another project' unless joining_enrollments.pluck(:project_pk).uniq.sole == receiving_project.id
+      donor_household = joining_enrollments.first.household
 
-      donor_household = joining_enrollments.map(&:household).uniq.sole
-      remaining_enrollments = Hmis::Hud::Enrollment.
-        viewable_by(current_user). # Restrict to this data source
-        where(household_id: donor_household.household_id).
-        where.not(id: joining_enrollment_ids)
+      remaining_enrollments = donor_household.enrollments - joining_enrollments
       remaining_hoh = remaining_enrollments.find { |enrollment| enrollment.relationship_to_hoh == 1 }
       raise 'This operation would leave behind a household with no HoH, which is not allowed' unless remaining_enrollments.empty? || !!remaining_hoh
 
