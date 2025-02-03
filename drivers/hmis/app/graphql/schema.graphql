@@ -5653,7 +5653,7 @@ type JoinHouseholdPayload {
   A unique identifier for the client performing the mutation.
   """
   clientMutationId: String
-  donorHousehold: Household
+  donorEnrollment: Enrollment
   errors: [ValidationError!]!
   receivingHousehold: Household!
 }

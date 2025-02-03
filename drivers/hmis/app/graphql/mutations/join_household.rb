@@ -10,7 +10,7 @@ module Mutations
     argument :joining_enrollment_inputs, [Types::HmisSchema::EnrollmentRelationshipInput], required: true
 
     field :receiving_household, Types::HmisSchema::Household, null: false
-    field :donor_household, Types::HmisSchema::Household, null: true # Will be null if there are no remaining members
+    field :donor_enrollment, Types::HmisSchema::Enrollment, null: true # Will be null if there are no remaining members
 
     def resolve(receiving_household_id:, joining_enrollment_inputs:)
       receiving_enrollments = Hmis::Hud::Enrollment.
@@ -41,8 +41,8 @@ module Mutations
         viewable_by(current_user). # Restrict to this data source
         where(household_id: donor_household.household_id).
         where.not(id: joining_enrollment_ids)
-      remaining_hoh = remaining_enrollments.any? { |enrollment| enrollment.relationship_to_hoh == 1 }
-      raise 'This operation would leave behind a household with no HoH, which is not allowed' unless remaining_enrollments.empty? || remaining_hoh
+      remaining_hoh = remaining_enrollments.find { |enrollment| enrollment.relationship_to_hoh == 1 }
+      raise 'This operation would leave behind a household with no HoH, which is not allowed' unless remaining_enrollments.empty? || !!remaining_hoh
 
       # If the receiving household is assigned to a unit, re-assign the joining enrollments to the same unit.
       # This works for the present-tense, but could be improved to better accommodate past data correction.
@@ -96,7 +96,7 @@ module Mutations
 
       {
         receiving_household: receiving_household,
-        donor_household: remaining_enrollments.any? ? donor_household : nil,
+        donor_enrollment: remaining_hoh,
       }
     end
   end
