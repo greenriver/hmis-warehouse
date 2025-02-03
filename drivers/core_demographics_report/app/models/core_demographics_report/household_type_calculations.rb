@@ -122,7 +122,9 @@ module
       @households[base_count_sym] = {}
 
       # Ignore client-specific filters so we can calculate household type based on who was there, not who is available for reporting
-      household_scope = filter.apply_project_level_restrictions(report_scope_source)
+      project_criteria = Filters::Criteria::Resolver.new(filter: @filter).filter?(&:project_level?)
+      household_scope = project_criteria.reduce(report_scope_source) { |s, f| f.apply(s) }
+
       # use she.client (destination client) for DOB/Age, sometimes QA has weird data
       set_household_counts(household_scope)
 
@@ -131,9 +133,11 @@ module
         @households[coc_code.to_sym] = {}
 
         # Ignore client-specific filters so we can calculate household type based on who was there, not who is available for reporting
-        household_scope = filter.apply_project_level_restrictions(report_scope_source.in_coc(coc_code: coc_code))
+        coc_report_scope = report_scope_source.in_coc(coc_code: coc_code)
+        household_coc_scope = project_criteria.reduce(coc_report_scope) { |s, f| f.apply(s) }
+
         # use she.client (destination client) for DOB/Age, sometimes QA has weird data
-        set_household_counts(household_scope, coc_code.to_sym)
+        set_household_counts(household_coc_scope, coc_code.to_sym)
       end
 
       Rails.cache.write([self.class.name, cache_slug, "#{__method__}_hoh_enrollments"], @hoh_enrollments, expires_in: expiration_length)

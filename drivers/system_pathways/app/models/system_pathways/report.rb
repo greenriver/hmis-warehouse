@@ -530,7 +530,12 @@ module SystemPathways
         preload(:project, enrollment: [:client, :project, :disabilities_at_entry, :assessments], client: :source_clients).
         joins(:project, :enrollment).
         open_between(start_date: filter.start_date, end_date: filter.end_date)
-      filter.apply(scope, except: [:filter_for_enrollment_cocs])
+      #filter.apply(scope, except: [:filter_for_enrollment_cocs])
+
+      Filters::Criteria::Resolver.new(filter: filter)
+        .filter(&:hud?)
+        .filter { |c| !c.is_a?(Filters::Criteria::EnrollmentCoc) }
+        .reduce(scope)  { |s, f| f.apply(s) }
     end
   end
 end

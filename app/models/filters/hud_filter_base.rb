@@ -92,13 +92,17 @@ module Filters
       @effective_project_ids_during_range[effective_range]
     end
 
+    # todo: what is except needed for?
     def apply(scope, except: [])
       # @filter is required for these to work
       @filter = self
-      filter_methods(except: except).each do |filter_method|
-        scope = send(filter_method, scope)
-      end
-      scope
+      # filter_methods(except: except).each do |filter_method|
+      #   scope = send(filter_method, scope)
+      # end
+
+      chosen_filters = filter_methods(except: except)
+      criteria = ::Filters::Criteria::Resolver.new(filter: @filter)
+      criteria.reduce(scope) { |s, f| f.apply(s) }
     end
 
     private def filter_methods(except: [])
