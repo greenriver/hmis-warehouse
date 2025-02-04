@@ -503,7 +503,11 @@ module GrdaWarehouse::CasProjectClientCalculator
     private def assessment_score_for_cas(client)
       case cas_assessment_name(client)
       when 'IdentifiedPathwaysVersionThreePathways', 'IdentifiedPathwaysVersionFourPathways'
+        # Individual
         days_homeless_in_last_three_years_cached(client)
+        # Family # FIXME:
+        # all time homeless days (no cap on total, but self-report limited to 548 if no verification)
+        # Also need a mechanism to identify family Pathways assessments/AssessmentQuestions
       when 'IdentifiedPathwaysVersionThreeTransfer', 'IdentifiedPathwaysVersionFourTransfer'
         assessment_score(client)
       end
