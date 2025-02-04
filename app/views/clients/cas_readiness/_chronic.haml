@@ -2,7 +2,7 @@
   All clients on the most recent potentially chronic list will be included in each CAS sync.
 %p
   Will
-  %strong= @client.name
+  %strong= @client.pii_provider(user: current_user).full_name
   sync with CAS?
   %br
   = yes_no @client.active_in_cas?(include_overridden: false)

@@ -21,7 +21,7 @@
               %i.icon-group
               Family
     -# else
-      %button.btn.btn-primary(title="#{@client.full_name} already has a VI-SPDAT in progress. Please complete that one or delete it before starting a new VI-SPDAT" data-toggle='tooltip')
+      %button.btn.btn-primary(title="#{@client.pii_provider(user: current_user).full_name} already has a VI-SPDAT in progress. Please complete that one or delete it before starting a new VI-SPDAT" data-toggle='tooltip')
         %span.icon-plus
 
 .card
