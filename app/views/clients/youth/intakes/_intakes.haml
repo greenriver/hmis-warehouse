@@ -1,11 +1,11 @@
 - if @client.youth_follow_up_due_soon?
   %div.alert.alert-warning
     %i.alert__icon.icon-warning
-    A 3-month follow up case note is due for #{@client.name} on #{@client.youth_follow_up_due_on}
+    A 3-month follow up case note is due for #{@client.pii_provider(user: current_user).full_name} on #{@client.youth_follow_up_due_on}
 - if @client.youth_follow_up_due?
   %div.alert.alert-danger
     %i.alert__icon.icon-warning
-    A 3-month follow up case note was due for #{@client.name} on #{@client.youth_follow_up_due_on}
+    A 3-month follow up case note was due for #{@client.pii_provider(user: current_user).full_name} on #{@client.youth_follow_up_due_on}
 = render 'intake_list'
 = render 'case_management_list'
 - if GrdaWarehouse::Config.get(:enable_youth_hrp)

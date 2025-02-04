@@ -19,10 +19,11 @@
             %th Most-Recent CE Assessor
         %tbody
           - @clients.each do |client|
+            - pii = client.pii_provider(user: current_user)
             - projects = client.last_intentional_contacts( current_user, include_confidential_names: false, include_dates: true).select(&:present?)
             %tr
-              %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
-              %td= dob_or_age(client.dob)
+              %td= link_to_if can_view_clients?, pii.full_name, appropriate_client_path(client)
+              %td= pii.dob_or_age
               %td
                 - projects.each do |p|
                   = p

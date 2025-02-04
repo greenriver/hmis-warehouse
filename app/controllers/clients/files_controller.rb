@@ -268,7 +268,7 @@ module Clients
     end
 
     protected def title_for_show
-      "#{@client.name} - Files"
+      "#{@client.pii_provider(user: current_user).full_name} - Files"
     end
 
     def window_visible?(visibility)

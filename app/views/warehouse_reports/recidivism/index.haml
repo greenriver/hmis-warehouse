@@ -25,7 +25,7 @@
     .warehouse-reports__client
       .warehouse-reports__client-name
         %h4
-          = link_to_if can_view_clients?, client.full_name, appropriate_client_path(client)
+          = link_to_if can_view_clients?, client.pii_provider(user: current_user).full_name, appropriate_client_path(client)
       .row
         .col-sm-6
           %h4 PH Enrollments
