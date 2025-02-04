@@ -52,7 +52,7 @@ class Collection < ApplicationRecord
   validates_presence_of :collection_type, on: :create
 
   scope :general, -> do
-    not_hidden.where(user_id: nil)
+    not_hidden.where(user_id: nil, source_id: nil)
   end
 
   scope :not_system, -> do
