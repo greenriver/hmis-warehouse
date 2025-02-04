@@ -541,7 +541,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       input = merge_hud_values(
         test_input.merge(client_id: e1.client.id, project_id: e1.project.id),
       )
-      expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.already_enrolled_full_message)
+      expect_error_message(
+        input,
+        fullMessage: Hmis::Hud::Validators::EnrollmentValidator.already_enrolled_full_message,
+        data: { conflictingEnrollmentId: e1.id.to_s }.stringify_keys,
+      )
     end
 
     it 'should error if entry date is in the future' do
