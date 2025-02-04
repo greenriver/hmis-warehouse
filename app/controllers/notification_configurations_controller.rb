@@ -53,11 +53,14 @@ class NotificationConfigurationsController < ApplicationController
   helper_method :import_threshold
 
   def notification_configuration
-    @notification_configuration ||= GrdaWarehouse::NotificationConfiguration.find_safely(params[:id]) ||
+    @notification_configuration ||= if params[:id].present?
+      GrdaWarehouse::NotificationConfiguration.find_safely(params[:id])
+    else
       GrdaWarehouse::NotificationConfiguration.new(
         source: import_threshold,
         notification_slug: import_threshold.valid_notification_slug(params[:notification_slug]),
       )
+    end
   end
   helper_method :notification_configuration
 end
