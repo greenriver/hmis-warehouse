@@ -5,7 +5,7 @@
       %table.table.table-striped.mb-0
         %thead
           %tr
-            - age_label = if can_view_full_dob? then 'DOB' else 'Age' end
+            - age_label = if current_user.can_view_full_dob? then 'DOB' else 'Age' end
             %th Client
             %th= age_label
             %th Last Seen
@@ -21,8 +21,8 @@
           - @clients.each do |client|
             - projects = client.last_intentional_contacts( current_user, include_confidential_names: false, include_dates: true).select(&:present?)
             %tr
-              %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
-              %td= dob_or_age(client.dob)
+              %td= link_to_if current_user.can_view_clients?, client.name, appropriate_client_path(client)
+              %td= client.pii_provider(user: current_user).dob_or_age
               %td
                 - projects.each do |p|
                   = p
