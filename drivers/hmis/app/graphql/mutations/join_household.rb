@@ -40,8 +40,8 @@ module Mutations
       # This works for the present-tense, but could be improved to better accommodate past data correction.
       units = receiving_enrollments.map { |enrollment| enrollment.active_unit_occupancy&.unit }.compact.uniq
 
-      receiving_before_state = Hmis::Hud::Enrollment.snapshot_enrollments(receiving_enrollments)
-      donor_before_state = Hmis::Hud::Enrollment.snapshot_enrollments([*joining_enrollments, *remaining_enrollments])
+      receiving_before_state = receiving_household.snapshot_household_state
+      donor_before_state = donor_household.snapshot_household_state
 
       Hmis::Hud::Enrollment.transaction do
         joining_enrollments.each_with_index do |enrollment, index|
@@ -62,7 +62,13 @@ module Mutations
         end
 
         receiving_household.reload
-        donor_household.reload if remaining_enrollments.any?
+        receiving_after_state = receiving_household.snapshot_household_state
+
+        donor_after_state = []
+        if remaining_enrollments.any?
+          donor_household.reload
+          donor_after_state = donor_household.snapshot_household_state
+        end
 
         joining_event = Hmis::HouseholdEvent.new
         joining_event.user = current_user
@@ -71,7 +77,7 @@ module Mutations
         joining_event.event_details = {
           'donorHouseholdId': donor_household.household_id,
           'before': receiving_before_state,
-          'after': Hmis::Hud::Enrollment.snapshot_enrollments(receiving_household.enrollments),
+          'after': receiving_after_state,
         }
 
         leaving_event = Hmis::HouseholdEvent.new
@@ -81,7 +87,7 @@ module Mutations
         leaving_event.event_details = {
           'receivingHouseholdId': receiving_household_id,
           'before': donor_before_state,
-          'after': Hmis::Hud::Enrollment.snapshot_enrollments(remaining_enrollments),
+          'after': donor_after_state,
         }
         Hmis::HouseholdEvent.import!([joining_event, leaving_event])
       end
