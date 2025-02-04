@@ -342,7 +342,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # Occurrence Point Forms that are enabled for this Enrollment.
   # Returns array of OpenStructs, which are resolved by the HmisSchema::OccurrencePointForm GQL type.
   def occurrence_point_forms
-    Hmis::Form::OccurrencePointFormCollection.new(self).all
+    Hmis::Form::OccurrencePointFormCollection.new.for_enrollment(self)
   end
 
   def save_new_enrollment!

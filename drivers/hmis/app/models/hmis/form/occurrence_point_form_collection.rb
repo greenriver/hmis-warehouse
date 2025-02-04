@@ -17,24 +17,38 @@ class Hmis::Form::OccurrencePointFormCollection
   # Struct that backs Types::HmisSchema::OccurrencePointForm
   OccurrencePointForm = Struct.new(:definition, :legacy, :data_collected_about, keyword_init: true)
 
-  def initialize(enrollment)
-    @enrollment = enrollment
-  end
-
-  def all
-    structs = active_forms
-    structs += legacy_forms(structs)
+  # Occurrence Point forms to display on the Enrollment, including legacy forms to show existing data
+  def for_enrollment(enrollment)
+    structs = active_for_enrollment(enrollment)
+    structs += legacy_for_enrollment(enrollment, active_forms: structs)
     structs
   end
 
-  def active_forms
+  # Occurrence Point forms that are enabled in the Project. This is only used for purposes of displaying Project configuration.
+  def for_project(project)
+    occurrence_point_definition_scope.map do |definition|
+      # Choose the most specific Instance that enables this FormDefinition for this Project
+      best_instance = definition.instances.active.order(updated_at: :desc).detect_best_instance_for_project(project: project)
+      next unless best_instance
+
+      create_form_struct(
+        definition: definition,
+        legacy: false, # not legacy, because there is an active Form Instance enabling it
+        data_collected_about: best_instance.data_collected_about,
+      )
+    end.compact
+  end
+
+  private
+
+  def active_for_enrollment(enrollment)
     # Get definitions for Occurrence Point forms, including inactive/retired (but excluding drafts)
     # definitions = Hmis::Form::Definition.with_role(:OCCURRENCE_POINT).published_or_retired.latest_versions
 
     # Filter to only those Occurrence Point Forms that are enabled for this
     occurrence_point_definition_scope.map do |definition|
       # Choose the most specific Instance that enables this FormDefinition for this Enrollment
-      best_instance = definition.instances.active.detect_best_instance_for_enrollment(enrollment: @enrollment)
+      best_instance = definition.instances.active.order(updated_at: :desc).detect_best_instance_for_enrollment(enrollment: enrollment)
       # If there was no active instance, that means this Occurrence Point form is not enabled. Skip it.
       next unless best_instance
 
@@ -58,14 +72,14 @@ class Hmis::Form::OccurrencePointFormCollection
     { form_identifier: :path_status, field_name: :date_of_path_status },
   ].freeze
 
-  def legacy_forms(active_forms)
+  def legacy_for_enrollment(enrollment, active_forms:)
     # Add legacy forms to ensure that HUD Data Elements are not hidden.
     # In the event that an Enrollment has a MoveInDate, for example, but there is no active form that collects it,
     # we still need to show it so that user can see the data and perform data correction.
     HUD_DEFAULT_FORMS.map do |config|
       form_identifier, field_name = config.values_at(:form_identifier, :field_name)
       # this enrollment does not have this field (e.g. MoveInDate), skip
-      next unless @enrollment.send(field_name).present?
+      next unless enrollment.send(field_name).present?
       # this field is already collected by an active enable form, skip
       next if active_forms.find { |s| collects_enrollment_field?(s.definition, field_name) }
 
@@ -76,13 +90,8 @@ class Hmis::Form::OccurrencePointFormCollection
     end.compact
   end
 
-  private
-
   def occurrence_point_definition_scope
-    @occurrence_point_definition_scope ||= Hmis::Form::Definition.
-      with_role(:OCCURRENCE_POINT).
-      published.
-      latest_versions
+    @occurrence_point_definition_scope ||= Hmis::Form::Definition.with_role(:OCCURRENCE_POINT).published
   end
 
   def create_form_struct(definition:, legacy:, data_collected_about: nil)
