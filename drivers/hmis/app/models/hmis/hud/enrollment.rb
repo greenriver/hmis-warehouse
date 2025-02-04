@@ -342,48 +342,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # Occurrence Point Forms that are enabled for this Enrollment.
   # Returns array of OpenStructs, which are resolved by the HmisSchema::OccurrencePointForm GQL type.
   def occurrence_point_forms
-    # Get definitions for Occurrence Point forms, including inactive/retired (but excluding drafts)
-    definitions = Hmis::Form::Definition.with_role(:OCCURRENCE_POINT).published_or_retired.latest_versions
-
-    # Filter to only those Occurrence Point Forms that are enabled
-    structs = definitions.map do |definition|
-      # Choose the most specific Instance that enables this FormDefinition for this Enrollment
-      best_instance = definition.instances.active.detect_best_instance_for_enrollment(enrollment: self)
-      next unless best_instance
-
-      OpenStruct.new(
-        legacy: false, # not legacy, because there is an active Form Instance enabling it
-        definition: definition,
-        data_collected_about: best_instance.data_collected_about || 'ALL_CLIENTS',
-      )
-    end.compact
-
-    # Add legacy forms to ensure that HUD Data Elements are not hidden.
-    # In the event that an Enrollment has a MoveInDate, for example, but there is no active form that collects it,
-    # we still need to show it so that user can see the data and perform data correction.
-    [
-      # [<Enrollment field>, <default form identifier that should be used if field has any data>]
-      [:move_in_date, 'move_in_date'], # identifier matches file name of the default form, e.g. drivers/hmis/lib/form_data/default/occurrence_point_forms/move_in_date.json
-      [:date_of_engagement, 'date_of_engagement'],
-      [:date_of_path_status, 'path_status'],
-    ].each do |(field, identifier)|
-      # field has no data on this enrollment, skip
-      next unless send(field).present?
-      # field is already collected by an enabled form, skip
-      next if structs.find { |s| s.definition.collects_enrollment_field?(field) }
-
-      # find default form to use
-      form = definitions.find { |fd| fd.identifier == identifier && fd.managed_in_version_control? }
-      raise "Unexpected: #{field} present, but default #{identifier} form not found" unless form
-
-      structs << OpenStruct.new(
-        legacy: true, # legacy because there is no Form Instance enabling this data collection
-        definition: form,
-        data_collected_about: 'ALL_CLIENTS',
-      )
-    end
-
-    structs
+    Hmis::Form::OccurrencePointFormCollection.new(self).all
   end
 
   def save_new_enrollment!

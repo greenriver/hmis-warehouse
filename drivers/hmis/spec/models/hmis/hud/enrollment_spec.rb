@@ -351,6 +351,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
             definition: definition,
             data_collected_about: 'ALL_CLIENTS',
           )
+          # binding.pry
           expect(hoh_enrollment.occurrence_point_forms).to contain_exactly(expected)
           expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(expected)
         end

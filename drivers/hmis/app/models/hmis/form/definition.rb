@@ -608,12 +608,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping&.record_type) }.present?
   end
 
-  def collects_enrollment_field?(field_name)
-    link_id_item_hash.values.find do |item|
-      item.mapping&.record_type == 'ENROLLMENT' && item.mapping&.field_name == field_name.to_s.camelize(:lower)
-    end.present?
-  end
-
   # Find and/or initialize CustomDataElementDefinitions that are collected by this form.
   # For application forms, we now rely on PublishFormDefinition to generate CDEDs, but
   # this is still used in test fixtures and in PublishExternalFormsJob.
