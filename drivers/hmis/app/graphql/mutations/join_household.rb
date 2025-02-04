@@ -72,7 +72,7 @@ module Mutations
         joining_event.household = receiving_household
         joining_event.event_type = Hmis::HouseholdEvent::JOIN
         joining_event.event_details = {
-          'donorHouseholdId': donor_household.household_id,
+          'donor_household_id': donor_household.household_id,
           'before': receiving_before_state,
           'after': receiving_after_state,
         }
@@ -82,7 +82,7 @@ module Mutations
         leaving_event.household = donor_household
         leaving_event.event_type = Hmis::HouseholdEvent::SPLIT
         leaving_event.event_details = {
-          'receivingHouseholdId': receiving_household_id,
+          'receiving_household_id': receiving_household_id,
           'before': donor_before_state,
           'after': donor_after_state,
         }

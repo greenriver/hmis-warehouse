@@ -92,14 +92,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(join_event.household).to eq(receiving_enrollment.household)
     expect(join_event.event_type).to eq('join')
     dets = join_event.event_details
-    expect(dets['donorHouseholdId']).to eq(donor_household_id)
+    expect(dets['donor_household_id']).to eq(donor_household_id)
     expect(dets['before'].map { |enrollment_snap| enrollment_snap['enrollment_id'] }).to contain_exactly(receiving_enrollment.id)
     expect(dets['after'].map { |enrollment_snap| enrollment_snap['enrollment_id'] }).to contain_exactly(receiving_enrollment.id, donor_hoh.id, donor_child.id)
 
     leave_event = Hmis::HouseholdEvent.where(event_type: 'split').last # Household no longer exists, so query for it directly
     expect(leave_event.household_id).to eq(donor_household_id)
     dets = leave_event.event_details
-    expect(dets['receivingHouseholdId']).to eq(receiving_enrollment.household.household_id)
+    expect(dets['receiving_household_id']).to eq(receiving_enrollment.household.household_id)
     expect(dets['before'].map { |enrollment_snap| enrollment_snap['enrollment_id'] }).to contain_exactly(donor_hoh.id, donor_child.id)
     expect(dets['after'].map { |enrollment_snap| enrollment_snap['enrollment_id'] }).to be_empty
   end
@@ -124,14 +124,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(join_event.household).to eq(receiving_enrollment.household)
       expect(join_event.event_type).to eq('join')
       dets = join_event.event_details
-      expect(dets['donorHouseholdId']).to eq(donor_household_id)
+      expect(dets['donor_household_id']).to eq(donor_household_id)
       expect(dets['before'].map { |enrollment_snap| enrollment_snap['enrollment_id'] }).to contain_exactly(receiving_enrollment.id)
       expect(dets['after'].map { |enrollment_snap| enrollment_snap['enrollment_id'] }).to contain_exactly(receiving_enrollment.id, donor_hoh.id, donor_child.id)
 
       leave_event = remaining_member.household.events.sole
       expect(leave_event.household_id).to eq(donor_household_id)
       dets = leave_event.event_details
-      expect(dets['receivingHouseholdId']).to eq(receiving_enrollment.household.household_id)
+      expect(dets['receiving_household_id']).to eq(receiving_enrollment.household.household_id)
       expect(dets['before'].map { |enrollment_snap| enrollment_snap['enrollment_id'] }).to contain_exactly(remaining_member.id, donor_hoh.id, donor_child.id)
       expect(dets['after'].map { |enrollment_snap| enrollment_snap['enrollment_id'] }).to contain_exactly(remaining_member.id)
     end
