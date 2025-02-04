@@ -33,6 +33,10 @@ module GrdaWarehouse::CasProjectClientCalculator
       end
     end
 
+    def handles_days_homeless?
+      true
+    end
+
     def unrelated_columns
       [
         :vispdat_score,
@@ -148,6 +152,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :meth_production_conviction,
         :lifetime_sex_offender,
         :evicted,
+        :days_homeless,
       ]
     end
     # memoize :pathways_questions
@@ -430,6 +435,17 @@ module GrdaWarehouse::CasProjectClientCalculator
         question_matching_requirement('c_pathways_nights_sheltered_warehouse_added_total')&.AssessmentAnswer.to_i || 0
     end
 
+    # all-time days homeless
+    def days_homeless(client)
+      overall_nights_homeless(client)
+    end
+
+    private def overall_nights_homeless(client)
+      most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_new_boston_homeless_nights_total')&.AssessmentAnswer.to_i ||
+          client.days_homeless
+    end
+
     private def default_shelter_agency_contacts(client)
       contact_emails = client.client_contacts.shelter_agency_contacts.where.not(email: nil).pluck(:email)
       contact_emails << client.source_assessments.max_by(&:assessment_date)&.user&.user_email
@@ -500,12 +516,23 @@ module GrdaWarehouse::CasProjectClientCalculator
         question_matching_requirement('c_latest_date_financial_assistance_eligibility_rrh')&.AssessmentAnswer
     end
 
+    # For 2024/2025 score calculations are:
+    # Individual Pathways Assessment: days homeless in the past 3 years, prefer Pathways answer clamped to 1,096, use
+    # days in the past three years from the warehouse if not available.
+    # Family Pathways Assessment: overall days homeless (all time), prefer Pathways answer, use client.days_homeless if
+    # not available.
+    # Transfer Assessment: use assessment score.
     private def assessment_score_for_cas(client)
       case cas_assessment_name(client)
       when 'IdentifiedPathwaysVersionThreePathways', 'IdentifiedPathwaysVersionFourPathways'
-        # Individual
-        days_homeless_in_last_three_years_cached(client)
-        # Family # FIXME:
+        if most_recent_pathways_or_transfer(client).family_pathways_2024?
+          # Family
+          overall_days_homeless(client)
+        else
+          # Individual
+          days_homeless_in_last_three_years_cached(client)
+        end
+
         # all time homeless days (no cap on total, but self-report limited to 548 if no verification)
         # Also need a mechanism to identify family Pathways assessments/AssessmentQuestions
       when 'IdentifiedPathwaysVersionThreeTransfer', 'IdentifiedPathwaysVersionFourTransfer'

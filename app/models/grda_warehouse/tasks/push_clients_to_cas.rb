@@ -76,11 +76,14 @@ module GrdaWarehouse::Tasks
               project_client = project_clients[client.id] || CasAccess::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
               project_client.assign_attributes(attributes_for_cas_project_client(client))
 
-              case GrdaWarehouse::Config.get(:cas_days_homeless_source)
-              when 'days_homeless_plus_overrides'
-                project_client.days_homeless = client.processed_service_history&.days_homeless_plus_overrides || client.days_homeless
-              else
-                project_client.days_homeless = client.days_homeless
+              # The Boston calculator handles days homeless natively
+              unless calculator_instance.handles_days_homeless?
+                case GrdaWarehouse::Config.get(:cas_days_homeless_source)
+                when 'days_homeless_plus_overrides'
+                  project_client.days_homeless = client.processed_service_history&.days_homeless_plus_overrides || client.days_homeless
+                else
+                  project_client.days_homeless = client.days_homeless
+                end
               end
 
               project_client.calculated_last_homeless_night = client.date_of_last_homeless_service
@@ -296,7 +299,9 @@ module GrdaWarehouse::Tasks
 
     private def attributes_for_cas_project_client(client)
       {}.tap do |options|
-        project_client_columns.map do |destination, source|
+        columns = project_client_columns
+        columns[:days_homeless] = :days_homeless if calculator_instance.handles_days_homeless?
+        columns.map do |destination, source|
           # puts "Processing: #{destination} from: #{source}"
           options[destination] = calculator_instance.value_for_cas_project_client(client: client, column: source)
         end
