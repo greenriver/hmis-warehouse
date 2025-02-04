@@ -16,7 +16,7 @@ class AddHmisHouseholdEventsTable < ActiveRecord::Migration[7.0]
 
     add_index :hmis_household_events,
               [:HouseholdID, :data_source_id],
-              unique: true,
+              unique: false,
               name: 'idx_hmis_household_events_on_household_and_data_source'
   end
 end

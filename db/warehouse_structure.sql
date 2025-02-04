@@ -51025,7 +51025,7 @@ CREATE INDEX idx_hmis_external_referral_postings_user_2 ON public.hmis_external_
 -- Name: idx_hmis_household_events_on_household_and_data_source; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_hmis_household_events_on_household_and_data_source ON public.hmis_household_events USING btree ("HouseholdID", data_source_id);
+CREATE INDEX idx_hmis_household_events_on_household_and_data_source ON public.hmis_household_events USING btree ("HouseholdID", data_source_id);
 
 
 --
