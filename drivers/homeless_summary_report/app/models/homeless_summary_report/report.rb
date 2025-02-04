@@ -508,7 +508,7 @@ module HomelessSummaryReport
 
       # this must be for a PH project, exluding RRH
       valid_project_types = HudUtility2024.permanent_housing_project_types - [HudUtility2024.project_type_number('PH - RRH')]
-      valid_project = valid_project_types.include?(spm_member.enrollment.project.project_type)
+      valid_project = valid_project_types.include?(spm_member.enrollment&.project&.project_type)
 
       valid_project && valid_move_in && valid_exit
     end

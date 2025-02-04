@@ -33,19 +33,16 @@ class Hmis::Form::OccurrencePointFormCollection
 
       create_form_struct(
         definition: definition,
-        legacy: false, # not legacy, because there is an active Form Instance enabling it
         data_collected_about: best_instance.data_collected_about,
+        legacy: false, # not legacy, because there is an active Form Instance enabling it
       )
     end.compact
   end
 
   private
 
+  # Occurrence Point forms that are enabled for this Enrollment via an active form instance
   def active_for_enrollment(enrollment)
-    # Get definitions for Occurrence Point forms, including inactive/retired (but excluding drafts)
-    # definitions = Hmis::Form::Definition.with_role(:OCCURRENCE_POINT).published_or_retired.latest_versions
-
-    # Filter to only those Occurrence Point Forms that are enabled for this
     occurrence_point_definition_scope.map do |definition|
       # Choose the most specific Instance that enables this FormDefinition for this Enrollment
       best_instance = definition.instances.active.order(updated_at: :desc).detect_best_instance_for_enrollment(enrollment: enrollment)
@@ -54,8 +51,8 @@ class Hmis::Form::OccurrencePointFormCollection
 
       create_form_struct(
         definition: definition,
-        legacy: false, # not legacy, because there is an active Form Instance enabling it
         data_collected_about: best_instance.data_collected_about,
+        legacy: false, # not legacy, because there is an active Form Instance enabling it
       )
     end.compact
   end
