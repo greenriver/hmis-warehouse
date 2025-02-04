@@ -51,6 +51,8 @@ class GrdaWarehouse::ExternalHmisConfiguration < GrdaWarehouseBase
   private def known_integrations
     {
       'GrdaWarehouse::Hud::Client' => ExternalHmis::ClientPath,
+      'GrdaWarehouse::Hud::Enrollment' => ExternalHmis::EnrollmentPath,
+      'GrdaWarehouse::Hud::Project' => ExternalHmis::ProjectPath,
     }.freeze
   end
 

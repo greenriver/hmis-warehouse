@@ -42,7 +42,7 @@ module HmisDataQualityTool::WarehouseReports
     end
 
     def by_client
-      @clients = @report.clients.order(:last_name, :first_name)
+      @clients = @report.clients.preload(client: :data_source).order(:last_name, :first_name)
       @pivot_details = @report.pivot_details
       @pagy, @clients = pagy(@clients)
       respond_to do |format|
