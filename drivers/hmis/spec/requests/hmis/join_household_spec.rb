@@ -174,24 +174,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(donor_hoh.active_unit_occupancy.unit).to eq(receiving_enrollment.active_unit_occupancy.unit)
         expect(donor_child.active_unit_occupancy.unit).to eq(receiving_enrollment.active_unit_occupancy.unit)
       end
-
-      context 'when the receiving household has several units' do
-        let!(:unit2) { create :hmis_unit, project: p1 }
-        let!(:receiving_member) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, relationship_to_hoh: 3, household_id: receiving_enrollment.household_id }
-        let!(:receiving_occupancy_2) { create :hmis_unit_occupancy, unit: unit2, enrollment: receiving_member }
-
-        it 'distributes the joining enrollments across units' do
-          expect do
-            perform_mutation
-            donor_hoh.reload
-            donor_child.reload
-          end.to change(donor_hoh, :active_unit_occupancy).
-            and change(donor_child, :active_unit_occupancy)
-
-          expect(donor_hoh.active_unit_occupancy.unit).to eq(unit1)
-          expect(donor_child.active_unit_occupancy.unit).to eq(unit2)
-        end
-      end
     end
 
     context 'when the joining enrollment has a unit but the receiving household does not' do

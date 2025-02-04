@@ -36,15 +36,15 @@ module Mutations
       remaining_hoh = remaining_enrollments.find { |enrollment| enrollment.relationship_to_hoh == 1 }
       raise 'This operation would leave behind a household with no HoH, which is not allowed' unless remaining_enrollments.empty? || !!remaining_hoh
 
-      # If the receiving household is assigned to a unit, re-assign the joining enrollments to the same unit.
+      # If the receiving household is assigned to any unit(s), assign the joining enrollments to the same unit.
       # This works for the present-tense, but could be improved to better accommodate past data correction.
-      units = receiving_enrollments.map { |enrollment| enrollment.active_unit_occupancy&.unit }.compact.uniq
+      receiving_unit = receiving_enrollments.joins(:current_unit).first&.current_unit
 
       receiving_before_state = receiving_household.snapshot_household_state
       donor_before_state = donor_household.snapshot_household_state
 
       Hmis::Hud::Enrollment.transaction do
-        joining_enrollments.each_with_index do |enrollment, index|
+        joining_enrollments.each do |enrollment|
           enrollment.update!(
             household_id: receiving_household_id,
             relationship_to_hoh: map_enrollment_id_to_relationship[enrollment.id.to_s],
@@ -53,10 +53,7 @@ module Mutations
           # Whether or not the receiving household has a unit assignment, clear the joining enrollment's current unit assignment
           enrollment.active_unit_occupancy&.assign_attributes(occupancy_period_attributes: { end_date: Date.current })
 
-          unless units.empty?
-            unit = units[index % units.length] # If the receiving household has multiple units, pick any, deterministically
-            enrollment.assign_unit(unit: unit, start_date: Date.current, user: current_user)
-          end
+          enrollment.assign_unit(unit: receiving_unit, start_date: Date.current, user: current_user) if receiving_unit
 
           enrollment.save!
         end
