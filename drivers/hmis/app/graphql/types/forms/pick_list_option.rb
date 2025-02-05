@@ -513,10 +513,10 @@ module Types
 
       # drop units that have different types
       hh_unit_type_ids = project.enrollments.where(household_id: household_id).map(&:current_unit_type).compact.map(&:id).uniq
-      return picklist unless hh_unit_type_ids.any? # household doesn't have a unit type, so no need for further filtering
+      return picklist if hh_unit_type_ids.empty? # household doesn't have a unit type, so no need for further filtering
 
       # if the household has a unit type, exclude units that don't match
-      allowed_unit_type_unit_ids = project.units.where(unit_type_id: hh_unit_type_ids).pluck(:id)
+      allowed_unit_type_unit_ids = project.units.where(unit_type_id: hh_unit_type_ids).pluck(:id).to_set
       picklist.filter do |option|
         option[:code].in?(allowed_unit_type_unit_ids)
       end
