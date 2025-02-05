@@ -114,12 +114,29 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
+  def merge_hud_values(input, *args)
+    input.merge(hud_values: input[:hud_values].merge(*args))
+  end
+
   def submit_form(input)
     response, result = post_graphql(input: { input: input }) { mutation }
     expect(response.status).to eq(200), result&.inspect
     record = result.dig('data', 'submitForm', 'record')
     errors = result.dig('data', 'submitForm', 'errors')
     [record, errors]
+  end
+
+  def expect_error_message(input, exact: true, **expected_error)
+    response, result = post_graphql(input: { input: input }) { mutation }
+    errors = result.dig('data', 'submitForm', 'errors')
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq(200), result&.inspect
+      if exact
+        expect(errors).to contain_exactly(include(expected_error.stringify_keys))
+      else
+        expect(errors).to include(include(expected_error.stringify_keys))
+      end
+    end
   end
 
   describe 'SubmitForm' do
@@ -334,10 +351,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
     end
 
-    def merge_hud_values(input, *args)
-      input.merge(hud_values: input[:hud_values].merge(*args))
-    end
-
     context 'with open enrollments' do
       let(:today) { Date.current }
       let!(:project) { create :hmis_hud_project, data_source: ds1, organization: o1, with_coc: true, operating_end_date: nil }
@@ -478,23 +491,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
     end
 
-    def merge_hud_values(input, *args)
-      input.merge(hud_values: input[:hud_values].merge(*args))
-    end
-
-    def expect_error_message(input, exact: true, **expected_error)
-      response, result = post_graphql(input: { input: input }) { mutation }
-      errors = result.dig('data', 'submitForm', 'errors')
-      aggregate_failures 'checking response' do
-        expect(response.status).to eq(200), result&.inspect
-        if exact
-          expect(errors).to contain_exactly(include(expected_error.stringify_keys))
-        else
-          expect(errors).to include(include(expected_error.stringify_keys))
-        end
-      end
-    end
-
     it 'should error if adding second HoH to existing household' do
       input = merge_hud_values(
         test_input,
@@ -537,15 +533,39 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(household_size).to eq(2) # household size is 2 even though it contains 3 enrollments
     end
 
-    it 'should warn if client already enrolled' do
-      input = merge_hud_values(
-        test_input.merge(client_id: e1.client.id, project_id: e1.project.id),
-      )
-      expect_error_message(
-        input,
-        fullMessage: Hmis::Hud::Validators::EnrollmentValidator.already_enrolled_full_message,
-        data: { conflictingEnrollmentId: e1.id.to_s }.stringify_keys,
-      )
+    describe 'when client is already enrolled' do
+      let!(:e1) { create(:hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 10.days.ago) }
+      let!(:input) do
+        merge_hud_values(
+          test_input.merge(client_id: e1.client.id, project_id: e1.project.id),
+        )
+      end
+
+      it 'should error' do
+        expect_error_message(
+          input,
+          fullMessage: Hmis::Hud::Validators::EnrollmentValidator.already_enrolled_full_message,
+          data: { conflictingEnrollmentId: e1.id.to_s }.stringify_keys,
+        )
+      end
+
+      context 'and entry date is BEFORE the existing enrollment entry date' do
+        let!(:input) do
+          merge_hud_values(
+            test_input.merge(client_id: e1.client.id, project_id: e1.project.id),
+            'entryDate' => (e1.entry_date - 5.days).strftime('%Y-%m-%d'),
+          )
+        end
+
+        it 'should warn' do
+          expect_error_message(
+            input,
+            severity: 'warning',
+            fullMessage: Hmis::Hud::Validators::EnrollmentValidator.already_enrolled_full_message,
+            data: { conflictingEnrollmentId: e1.id.to_s }.stringify_keys,
+          )
+        end
+      end
     end
 
     it 'should error if entry date is in the future' do
@@ -611,6 +631,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect { submit_form(input) }.to change(Hmis::Form::FormProcessor, :count).by(1)
       expect { submit_form(input) }.not_to change(Hmis::Form::FormProcessor, :count)
     end
+
+    describe 'when updating enrollment entry date conflicts with an existing enrollment' do
+      let(:e1) { create :hmis_hud_enrollment, client: c1, data_source: ds1, project: p1, entry_date: 5.days.ago }
+      let(:e2) { create :hmis_hud_enrollment, client: c1, data_source: ds1, project: p1, entry_date: 20.days.ago, exit_date: 10.days.ago }
+
+      let!(:input) do
+        merge_hud_values(
+          test_input.merge(record_id: e1.id),
+          'entryDate' => 15.days.ago.strftime('%Y-%m-%d'),
+        )
+      end
+
+      it 'should warn' do
+        expect_error_message(
+          input,
+          severity: 'warning',
+          fullMessage: Hmis::Hud::Validators::EnrollmentValidator.already_enrolled_full_message,
+          data: { conflictingEnrollmentId: e2.id.to_s }.stringify_keys,
+        )
+      end
+    end
   end
 
   describe 'SubmitForm for Enrollment on project with ProjectAutoEnterConfig' do
@@ -649,10 +690,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         project_id: p2.id,
         confirmed: true,
       }
-    end
-
-    def merge_hud_values(input, *args)
-      input.merge(hud_values: input[:hud_values].merge(*args))
     end
 
     it 'creates client and enrollment' do
