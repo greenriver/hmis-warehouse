@@ -36,7 +36,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               }
             }
           }
-          donorEnrollment {
+          donorHousehold {
             id
           }
         }
@@ -73,15 +73,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     expect(response.status).to eq(200), result.inspect
     result = result.dig('data', 'joinHousehold')
-    return result['receivingHousehold'], result['donorEnrollment']
+    return result['receivingHousehold'], result['donorHousehold']
   end
 
   it 'should successfully join households' do
     expect do
-      joined_household, donor_enrollment = perform_mutation
+      joined_household, donor_household = perform_mutation
       expect(joined_household.dig('id')).to eq(receiving_enrollment.household_id)
       expect(joined_household.dig('householdSize')).to eq(3)
-      expect(donor_enrollment).to be_nil # No remaining members in donor household
+      expect(donor_household).to be_nil # No remaining members in donor household
       receiving_enrollment.reload
       donor_hoh.reload
       donor_child.reload
@@ -110,9 +110,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'returns the remaining donor household' do
       expect do
-        joined_household, donor_enrollment = perform_mutation
+        joined_household, donor_household = perform_mutation
         expect(joined_household.dig('id')).to eq(receiving_enrollment.household_id)
-        expect(donor_enrollment.dig('id')).to eq(remaining_member.id.to_s)
+        expect(donor_household.dig('id')).to eq(remaining_member.household_id.to_s)
         donor_hoh.reload
         donor_child.reload
         remaining_member.reload
@@ -148,9 +148,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             relationship_to_hoh: 'SPOUSE_OR_PARTNER',
           },
         ]
-        joined_household, donor_enrollment = perform_mutation(receiving_enrollment.household_id, joining_enrollment_inputs)
+        joined_household, donor_household = perform_mutation(receiving_enrollment.household_id, joining_enrollment_inputs)
         expect(joined_household.dig('id')).to eq(receiving_enrollment.household_id)
-        expect(donor_enrollment.dig('id')).to eq(donor_hoh.id.to_s)
+        expect(donor_household.dig('id')).to eq(donor_hoh.household_id.to_s)
         donor_child.reload
       end.to change(donor_child, :household_id).to(receiving_enrollment.household_id)
     end

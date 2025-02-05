@@ -10,7 +10,7 @@ module Mutations
     argument :joining_enrollment_inputs, [Types::HmisSchema::EnrollmentRelationshipInput], required: true
 
     field :receiving_household, Types::HmisSchema::Household, null: false
-    field :donor_enrollment, Types::HmisSchema::Enrollment, null: true # Will be null if there are no remaining members
+    field :donor_household, Types::HmisSchema::Household, null: true # Will be null if there are no remaining members
 
     def resolve(receiving_household_id:, joining_enrollment_inputs:)
       # note: viewable_by takes care of filtering by data source via project with_access
@@ -88,7 +88,7 @@ module Mutations
 
       {
         receiving_household: receiving_household,
-        donor_enrollment: remaining_hoh,
+        donor_household: remaining_enrollments.any? ? donor_household : nil,
       }
     end
   end
