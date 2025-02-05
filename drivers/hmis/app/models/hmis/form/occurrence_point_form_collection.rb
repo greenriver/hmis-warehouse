@@ -16,6 +16,7 @@
 class Hmis::Form::OccurrencePointFormCollection
   # Struct that backs Types::HmisSchema::OccurrencePointForm
   OccurrencePointForm = Struct.new(:definition, :legacy, :data_collected_about, keyword_init: true)
+  private_constant :OccurrencePointForm
 
   # Occurrence Point forms to display on the Enrollment, including legacy forms to show existing data
   def for_enrollment(enrollment)
@@ -102,8 +103,9 @@ class Hmis::Form::OccurrencePointFormCollection
   # Check if the given FormDefinition collects the given field from the Enrollment.
   # This is a bit hacky (transforming fieldname to graphql casing) but it works for the known fields (Move-in date, DOE, PATH).
   def collects_enrollment_field?(definition, field_name)
-    definition.link_id_item_hash.values.find do |item|
-      item.mapping&.record_type == 'ENROLLMENT' && item.mapping&.field_name == field_name.to_s.camelize(:lower)
-    end.present?
+    normalized_field_name = field_name.to_s.camelize(:lower)
+    definition.link_id_item_hash.values.any? do |item|
+      item.mapping&.record_type == 'ENROLLMENT' && item.mapping&.field_name == normalized_field_name
+    end
   end
 end
