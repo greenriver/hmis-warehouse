@@ -33,8 +33,8 @@ module Mutations
       donor_household = joining_enrollments.first.household
 
       remaining_enrollments = donor_household.enrollments - joining_enrollments
-      remaining_hoh = remaining_enrollments.find { |enrollment| enrollment.relationship_to_hoh == 1 }
-      raise 'This operation would leave behind a household with no HoH, which is not allowed' unless remaining_enrollments.empty? || !!remaining_hoh
+      remaining_hoh_exists = remaining_enrollments.any? { |enrollment| enrollment.relationship_to_hoh == 1 }
+      raise 'This operation would leave behind a household with no HoH, which is not allowed' unless remaining_enrollments.empty? || remaining_hoh_exists
 
       # If the receiving household is assigned to any unit(s), assign the joining enrollments to the same unit.
       # This works for the present-tense, but could be improved to better accommodate past data correction.

@@ -119,7 +119,7 @@ RSpec.feature 'Join Households', type: :system do
       it 'correctly displays the info about the join' do
         table = find("table[aria-label='Joining Household']")
         mui_table_expect(c1.brief_name, row_index: 0, column_header: 'Client Name', from: table)
-        mui_table_expect('Self (HoH)', row_index: 0, column_header: 'Relationship', from: table)
+        mui_table_expect('HoH', row_index: 0, column_header: 'Relationship', from: table)
         mui_table_expect(c2.brief_name, row_index: 1, column_header: 'Client Name', from: table)
         mui_table_expect('Spouse or partner', row_index: 1, column_header: 'Relationship', from: table)
         mui_table_expect(c3.brief_name, row_index: 2, column_header: 'Client Name', from: table)
