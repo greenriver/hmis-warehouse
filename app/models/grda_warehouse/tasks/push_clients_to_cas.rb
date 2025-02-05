@@ -50,6 +50,7 @@ module GrdaWarehouse::Tasks
               source_clients: [
                 :most_recent_current_living_situation,
                 :most_recent_tc_hat,
+                :data_source,
                 {
                   most_recent_pathways_or_rrh_assessment: [
                     :assessment_questions,
@@ -112,8 +113,8 @@ module GrdaWarehouse::Tasks
               project_client.needs_update = true
               to_update << project_client
             end
-            to_insert = to_update.select { |c| c.id.blank? }
-            to_upsert = to_update.select { |c| c.id.present? }
+            to_insert = to_update.select { |c| c.id.blank? }.uniq
+            to_upsert = to_update.select { |c| c.id.present? }.uniq
 
             CasAccess::ProjectClient.import!(to_upsert, on_duplicate_key_update: update_columns) if to_upsert.present?
             CasAccess::ProjectClient.import!(update_columns, to_insert) if to_insert.present?

@@ -153,6 +153,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :lifetime_sex_offender,
         :evicted,
         :days_homeless,
+        :hmis_days_homeless_all_time,
       ]
     end
     # memoize :pathways_questions
@@ -437,6 +438,11 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     # all-time days homeless
     def days_homeless(client)
+      overall_nights_homeless(client)
+    end
+
+    # this seems to be calculated many different ways
+    def hmis_days_homeless_all_time(client)
       overall_nights_homeless(client)
     end
 
