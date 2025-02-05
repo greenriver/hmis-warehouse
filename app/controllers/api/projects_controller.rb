@@ -24,14 +24,15 @@ module Api
             :id,
             :ProjectName, # OK to use non-confidentialized name because list is filtered by confidentiality in project_scope
             :ProjectType,
+            :RRHSubType,
             o_t[:OrganizationName],
             o_t[:id],
             ds_t[:short_name],
-          ).each do |id, p_name, type, o_name, o_id, ds_name|
+          ).each do |id, p_name, type, rrh_sub_type, o_name, o_id, ds_name|
             o_name_at_ds = "#{o_name} at #{ds_name}"
             @data[[o_id, o_name_at_ds]] ||= []
 
-            p_name += " (#{HudUtility2024.project_type_brief(type)})" if HudUtility2024.project_type_brief(type).present?
+            p_name += " (#{HudUtility2024.brief_project_type_with_sub_type(type, rrh_sub_type)})" if HudUtility2024.brief_project_type_with_sub_type(type).present?
             @data[[o_id, o_name_at_ds]] << [
               p_name,
               id,

@@ -241,7 +241,7 @@ module HmisDataQualityTool
     # check for overlapping PH post-move-in
     def self.overlapping_post_move_in(enrollments:, report:)
       involved_enrollments = enrollments.select do |en|
-        en.project&.ph?
+        en.project&.ph? && ! en.project&.rrh_sso_only?
       end
 
       return [] if involved_enrollments.blank? || involved_enrollments.count == 1
@@ -288,7 +288,7 @@ module HmisDataQualityTool
 
       # moved-in PH enrollments
       involved_enrollments = enrollments.select do |en|
-        en.project&.ph? && en.MoveInDate.present?
+        en.project&.ph? && ! en.project&.rrh_sso_only? && en.MoveInDate.present?
       end
       return [] if involved_enrollments.blank?
 
