@@ -1,0 +1,5 @@
+<% if notification_configuration.errors.blank? %>
+  html = "<%= j render('/import_thresholds/table', slug: params[:notification_slug]) %>"
+  slug = "<%= params[:notification_slug].parameterize %>"
+  $("." + slug).html(html)
+<% end %>

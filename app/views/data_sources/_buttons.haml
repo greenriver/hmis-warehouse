@@ -20,6 +20,10 @@
     = link_to new_data_source_hmis_import_config_path(data_source_id: @data_source), class: 'btn btn-secondary btn-sm mb-4 mr-2' do
       %i.icon-file-drawn
       Automate HMIS CSV Loads
+  .config-button-wrapper
+    = link_to data_source_import_threshold_path(data_source_id: @data_source), class: 'btn btn-secondary btn-sm mb-4 mr-2' do
+      %i.icon-bell
+      Configure Import Alerts
 
 - if can_edit_data_sources? && RailsDrivers.loaded.include?(:hmis_csv_importer)
   .config-button-wrapper

@@ -77,26 +77,27 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     # Needs to return an import_log instance
-    def import!(import_log = nil)
+    def import!(import_log = nil) # rubocop:disable Lint/UnusedMethodArgument
+      raise 'HmisCsvTwentyTwenty::Importer::Importer should no longer be used to import data, it has been superceded'
       # log that we're waiting, but then continue on.
-      already_running_for_data_source?
+      # already_running_for_data_source?
 
-      GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}") do
-        start_import
-        @import_log = import_log
-        log_timing :pre_process!
-        log_timing :validate_data_set!
-        log_timing :aggregate!
-        log_timing :cleanup_data_set!
-        # refuse to proceed with the import if there are any errors and that setting is in effect
-        if should_pause?
-          pause_import
-        else
-          ingest!
-          log_timing :invalidate_aggregated_enrollments!
-          complete_import
-        end
-      end
+      # GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}") do
+      #   start_import
+      #   @import_log = import_log
+      #   log_timing :pre_process!
+      #   log_timing :validate_data_set!
+      #   log_timing :aggregate!
+      #   log_timing :cleanup_data_set!
+      #   # refuse to proceed with the import if there are any errors and that setting is in effect
+      #   if should_pause?
+      #     pause_import
+      #   else
+      #     ingest!
+      #     log_timing :invalidate_aggregated_enrollments!
+      #     complete_import
+      #   end
+      # end
     end
 
     def resume!
@@ -113,8 +114,6 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def should_pause?
-      return false unless @data_source.refuse_imports_with_errors
-
       db_errors = HmisCsvTwentyTwenty::Importer::ImportError.where(
         importer_log_id: importer_log.id,
       )
