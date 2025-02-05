@@ -339,49 +339,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end.compact
   end
 
+  # Occurrence Point Forms that are enabled for this Enrollment.
+  # Returns array of OpenStructs, which are resolved by the HmisSchema::OccurrencePointForm GQL type.
   def occurrence_point_forms
-    # Get definitions for Occurrence Point forms, including inactive/retired (but excluding drafts)
-    definitions = Hmis::Form::Definition.with_role(:OCCURRENCE_POINT).published_or_retired.latest_versions
-    # Get cdeds that this enrollment has CDE record(s) for. Do this in advance so we don't make extra trips to db
-    cdeds_this_enrollment_has = custom_data_element_definitions.pluck(:key).to_set
-
-    definitions.map do |definition|
-      # Choose the most specific instance for this enrollment
-      best_instance = definition.instances.active.detect_best_instance_for_enrollment(enrollment: self)
-
-      # Check for legacy data. Skip the calculation if there is a current instance
-      has_legacy_data = best_instance ? false : legacy_occurrence_point_data?(definition, cdeds_this_enrollment_has)
-
-      next unless best_instance || has_legacy_data
-
-      OpenStruct.new(
-        legacy: has_legacy_data && !best_instance,
-        definition: definition,
-        data_collected_about: best_instance&.data_collected_about || 'ALL_CLIENTS',
-      )
-    end.compact
-  end
-
-  private def legacy_occurrence_point_data?(definition, cdeds_this_enrollment_has)
-    definition.walk_definition_nodes(as_open_struct: true) do |item|
-      next unless item.mapping.present?
-
-      record_type = item.mapping&.record_type
-      field_name = item.mapping&.field_name&.underscore
-      custom_field_key = item.mapping&.custom_field_key
-
-      next unless record_type == 'ENROLLMENT' || custom_field_key
-
-      if record_type && field_name
-        # Example: if this item collects `move_in_date` and the Enrollment has a Move-in Date value, then we want to show this form on the Enrollment Dashboard (even though it isn't "enabled" via an instance)
-        return true if respond_to?(field_name) && send(field_name).present?
-      elsif custom_field_key
-        # For simplicity, for now, just look for CDEDs where the owner is this Enrollment
-        return true if cdeds_this_enrollment_has.include?(custom_field_key)
-      end
-    end
-
-    false
+    Hmis::Form::OccurrencePointFormCollection.new.for_enrollment(self)
   end
 
   def save_new_enrollment!
