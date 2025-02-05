@@ -39,48 +39,47 @@ RSpec.feature 'Split Households', type: :system do
 
   describe 'select clients screen' do
     it 'selects the initiator and disallows selecting HoH' do
-      hoh_checkbox = find("input[aria-label='Select #{prior_hoh_e.id}:#{prior_hoh.id} ']", visible: :all)
+      hoh_checkbox = find("input[aria-label='Select #{prior_hoh.brief_name}']", visible: :all)
       expect(hoh_checkbox.disabled?).to be_truthy
       expect(hoh_checkbox.checked?).to be_falsey
 
-      new_hoh_checkbox = find("input[aria-label='Select #{new_hoh_e.id}:#{new_hoh.id} ']", visible: :all)
+      new_hoh_checkbox = find("input[aria-label='Select #{new_hoh.brief_name}']", visible: :all)
       expect(new_hoh_checkbox.checked?).to be_truthy
 
-      child_checkbox = find("input[aria-label='Select #{child_e.id}:#{child.id} ']", visible: :all)
+      child_checkbox = find("input[aria-label='Select #{child.brief_name}']", visible: :all)
       expect(child_checkbox.checked?).to be_falsey
       child_checkbox.click
       expect(child_checkbox.checked?).to be_truthy
 
-      all('button', text: 'Add Relationships').last.click
+      click_button 'Add Relationships'
       assert_text 'STEP 2 Add Relationships'
     end
 
     it 'disables proceeding if you de-select all clients' do
-      find("input[aria-label='Select #{new_hoh_e.id}:#{new_hoh.id} ']", visible: :all).click
-
-      next_button = all('button', text: 'Add Relationships').last
+      find("input[aria-label='Select #{new_hoh.brief_name}']", visible: :all).click
+      next_button = find_button('Add Relationships', disabled: :all)
       expect(next_button.disabled?).to be_truthy
     end
   end
 
   describe 'add relationships screen' do
     before(:each) do
-      find("input[aria-label='Select #{child_e.id}:#{child.id} ']", visible: :all).click
-      all('button', text: 'Add Relationships').last.click
+      find("input[aria-label='Select #{child.brief_name}']", visible: :all).click
+      click_button 'Add Relationships'
       assert_text 'STEP 2 Add Relationships'
     end
 
     it 'requires you to enter relationships' do
       table = find("table[aria-label='Add Relationships']")
       rows = table.first('tbody').all('tr')
-      next_button = all('button', text: 'Review Split').last
+      next_button = find_button('Review Split', disabled: :all)
       expect(rows.count).to eq(2)
       expect(next_button.disabled?).to be_truthy
 
       mui_table_select 'Self (HoH)', row: new_hoh.brief_name, column: 'Relationship', from: table
       mui_table_select 'Child', row: child.brief_name, column: 'Relationship', from: table
 
-      next_button = all('button', text: 'Review Split').last
+      next_button = find_button('Review Split')
       expect(next_button.disabled?).to be_falsey
       next_button.click
       assert_text 'STEP 3 Review Split'
@@ -89,25 +88,25 @@ RSpec.feature 'Split Households', type: :system do
 
   describe 'review join and submit' do
     before(:each) do
-      find("input[aria-label='Select #{child_e.id}:#{child.id} ']", visible: :all).click
-      all('button', text: 'Add Relationships').last.click
+      find("input[aria-label='Select #{child.brief_name}']", visible: :all).click
+      click_button 'Add Relationships'
       assert_text 'STEP 2 Add Relationships'
       table = find("table[aria-label='Add Relationships']")
       mui_table_select 'Self (HoH)', row: new_hoh.brief_name, column: 'Relationship', from: table
       mui_table_select 'Child', row: child.brief_name, column: 'Relationship', from: table
-      all('button', text: 'Review Split').last.click
+      click_button 'Review Split'
     end
 
     it 'correctly displays the info about the split' do
       split_table = find("table[aria-label='Split Household']")
       mui_table_expect(new_hoh.brief_name, row_index: 0, column_header: 'Client Name', from: split_table)
-      mui_table_expect('Self (HoH)', row_index: 0, column_header: 'Relationship', from: split_table)
+      mui_table_expect('HoH', row_index: 0, column_header: 'Relationship', from: split_table)
       mui_table_expect(child.brief_name, row_index: 1, column_header: 'Client Name', from: split_table)
       mui_table_expect('Child', row_index: 1, column_header: 'Relationship', from: split_table)
 
       remaining_table = find("table[aria-label='Remaining Household']")
       mui_table_expect(prior_hoh.brief_name, row_index: 0, column_header: 'Client Name', from: remaining_table)
-      mui_table_expect('Self (HoH)', row_index: 0, column_header: 'Relationship', from: remaining_table)
+      mui_table_expect('HoH', row_index: 0, column_header: 'Relationship', from: remaining_table)
     end
 
     it 'submits the mutation and shows success' do
