@@ -7,7 +7,7 @@
 = simple_form_for import_threshold, url: data_source_import_threshold_path, method: :patch do |f|
   .well
     %h2 Changes in Record Counts
-    %p The following settings apply when an import significantly changes the number of rows in the data that already exists in the warehouse for the data source.  This will look at the aggregate change, so if 100 rows are removed and 100 added, no change is indicated.
+    %p The following settings apply when an import significantly changes the number of rows in the data that already exist in the warehouse for the data source that meet the criteria of the import.  This will not trigger if no data exists in the warehouse for the included projects and date range.  This will look at the aggregate change, so if 100 rows are removed and 100 added, no change is indicated.
     .row
       .col
         = f.input :record_count_change_percent_threshold, label: 'Record count change threshold (%)', hint: 'Imports will pause and alert if more than the chosen percentage have changed', input_html: { style: 'width: 5em' }
