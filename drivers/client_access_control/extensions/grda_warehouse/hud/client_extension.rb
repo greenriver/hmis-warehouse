@@ -228,6 +228,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
               household: household(entry.household_id, entry.enrollment.data_source_id),
               project_type: ::HudUtility2024.project_type_brief(entry.project_type),
               project_type_id: entry.project_type,
+              rrh_sub_type: project.rrh_sub_type,
               class: "client__service_type_#{entry.project_type}",
               most_recent_service: most_recent_service,
               new_episode: new_episode,
