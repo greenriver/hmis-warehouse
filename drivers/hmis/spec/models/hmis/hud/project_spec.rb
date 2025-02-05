@@ -209,13 +209,16 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     end
 
     it 'returns most specific instance per definition identifier' do
-      mid_ptype = create(:hmis_form_instance, role: role, entity: nil, project_type: 13, definition_identifier: 'move_in_date')
-      mid_project = create(:hmis_form_instance, role: role, entity: project, definition_identifier: mid_ptype.definition_identifier)
+      mid_ptype = create(:hmis_form_instance, role: role, entity: nil, project_type: 13, definition_identifier: 'move_in_date', data_collected_about: 'HOH')
+      mid_project = create(:hmis_form_instance, role: role, entity: project, definition_identifier: mid_ptype.definition_identifier, data_collected_about: 'HOH_AND_ADULTS')
 
-      doe_default = create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'date_of_engagement')
-      doe_org = create(:hmis_form_instance, role: role, entity: project.organization, definition_identifier: doe_default.definition_identifier)
+      doe_default = create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'date_of_engagement', data_collected_about: 'ALL_CLIENTS')
+      doe_org = create(:hmis_form_instance, role: role, entity: project.organization, definition_identifier: doe_default.definition_identifier, data_collected_about: 'HOH')
 
-      expect(selected_instances).to contain_exactly(mid_project, doe_org)
+      expect(selected_instances).to contain_exactly(
+        have_attributes(definition: mid_project.definition, data_collected_about: mid_project.data_collected_about),
+        have_attributes(definition: doe_default.definition, data_collected_about: doe_org.data_collected_about),
+      )
     end
 
     it 'does not return draft forms, even for active instances' do

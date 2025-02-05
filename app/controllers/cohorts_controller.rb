@@ -142,6 +142,7 @@ class CohortsController < ApplicationController
 
       # If the user doesn't have All Cohorts access, grant them access to the cohort
       @cohort.replace_access(current_user, scope: :editor)
+      @cohort.replace_access(current_user, scope: :viewer)
       # Always add the cohort to the system group
       AccessGroup.maintain_system_groups(group: :cohorts)
       # Add default tabs
@@ -150,7 +151,7 @@ class CohortsController < ApplicationController
       end
     end
     # Search the list so you can see the newly created cohort
-    redirect_to cohorts_path('q[name_cont]' => @cohort.name)
+    redirect_to cohorts_path('search_form[q]' => @cohort.name)
   rescue Exception => e
     flash[:error] = e.message
     redirect_to cohorts_path
