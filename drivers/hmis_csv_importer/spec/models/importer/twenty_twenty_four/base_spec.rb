@@ -32,6 +32,241 @@ RSpec.describe HmisCsvImporter, type: :model do
     end
   end
 
+  describe 'When importing user data' do
+    before(:all) do
+      HmisCsvImporter::Utility.clear!
+      GrdaWarehouse::Utility.clear!
+      import_hmis_csv_fixture(
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/baseline',
+        version: 'AutoMigrate',
+        run_jobs: true,
+      )
+    end
+
+    it 'baseline users are imported' do
+      expect(GrdaWarehouse::Hud::User.count).to eq(4)
+    end
+
+    it 'baseline user emails match expected' do
+      user_emails = GrdaWarehouse::Hud::User.all.pluck(:UserEmail).sort
+      expected_emails = [
+        'freddie@example.com',
+        'ryleigh@example.com',
+        'jackson@example.com',
+        'tamara@example.com',
+      ].sort
+      expect(user_emails).to eq(expected_emails)
+    end
+
+    describe 'after second import without allowing deletion' do
+      before(:each) do
+        allow(HmisCsvTwentyTwentyFour::Importer::User).to receive(:prevent_import_deletions?).and_return(true)
+        import_hmis_csv_fixture(
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/user',
+          version: 'AutoMigrate',
+          run_jobs: true,
+        )
+      end
+
+      it 'users not in import file are not deleted' do
+        # We still expect 4 users even through the new import file only has 3 users included.
+        # Users should not be deleted.
+        expect(GrdaWarehouse::Hud::User.count).to eq(4)
+      end
+
+      it 'users emails are updated to match import file' do
+        user_emails = GrdaWarehouse::Hud::User.all.pluck(:UserEmail).sort
+        expected_emails = [
+          'freddie+edited@example.com',
+          'ryleigh+edited@example.com',
+          'jackson@example.com',
+          'tamara@example.com',
+        ].sort
+        expect(user_emails).to eq(expected_emails)
+      end
+    end
+
+    describe 'after second import with allowing deletion' do
+      before(:each) do
+        allow(HmisCsvTwentyTwentyFour::Importer::User).to receive(:prevent_import_deletions?).and_return(false)
+        import_hmis_csv_fixture(
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/user',
+          version: 'AutoMigrate',
+          run_jobs: true,
+        )
+      end
+
+      it 'users not in import file are not deleted' do
+        expect(GrdaWarehouse::Hud::User.count).to eq(3)
+      end
+
+      it 'users emails are updated to match import file' do
+        user_emails = GrdaWarehouse::Hud::User.all.pluck(:UserEmail).sort
+        expected_emails = [
+          'freddie+edited@example.com',
+          'ryleigh+edited@example.com',
+          'jackson@example.com',
+        ].sort
+        expect(user_emails).to eq(expected_emails)
+      end
+    end
+  end
+
+  describe 'When importing organization data' do
+    before(:all) do
+      HmisCsvImporter::Utility.clear!
+      GrdaWarehouse::Utility.clear!
+      import_hmis_csv_fixture(
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/baseline',
+        version: 'AutoMigrate',
+        run_jobs: true,
+      )
+    end
+
+    it 'baseline organizations are imported' do
+      expect(GrdaWarehouse::Hud::Organization.count).to eq(3)
+    end
+
+    it 'baseline organizations match expected' do
+      user_emails = GrdaWarehouse::Hud::Organization.all.pluck(:OrganizationName).sort
+      expected_emails = [
+        'Empty Eagle Hotel',
+        'Empty Eagle Hotel 2',
+        'Empty Eagle Hotel 3',
+      ].sort
+      expect(user_emails).to eq(expected_emails)
+    end
+
+    describe 'after second import without allowing deletion' do
+      before(:each) do
+        allow(HmisCsvTwentyTwentyFour::Importer::Organization).to receive(:prevent_import_deletions?).and_return(true)
+        import_hmis_csv_fixture(
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/organization',
+          version: 'AutoMigrate',
+          run_jobs: true,
+        )
+      end
+
+      it 'organizations not in import file are not deleted' do
+        expect(GrdaWarehouse::Hud::Organization.count).to eq(3)
+      end
+
+      it 'organization names are updated to match import file' do
+        organizations = GrdaWarehouse::Hud::Organization.all.pluck(:OrganizationName).sort
+        expected_organizations = [
+          'Empty Eagle Hotel',
+          'Empty Eagle Hotel 2 - edited',
+          'Empty Eagle Hotel 3',
+        ].sort
+        expect(organizations).to eq(expected_organizations)
+      end
+    end
+
+    describe 'after second import with allowing deletion' do
+      before(:each) do
+        allow(HmisCsvTwentyTwentyFour::Importer::Organization).to receive(:prevent_import_deletions?).and_return(false)
+        import_hmis_csv_fixture(
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/organization',
+          version: 'AutoMigrate',
+          run_jobs: true,
+        )
+      end
+
+      it 'organizations not in import file are deleted' do
+        expect(GrdaWarehouse::Hud::Organization.count).to eq(2)
+      end
+
+      it 'organizations are updated to match import file' do
+        organizations = GrdaWarehouse::Hud::Organization.all.pluck(:OrganizationName).sort
+        expected_organizations = [
+          'Empty Eagle Hotel 2 - edited',
+          'Empty Eagle Hotel 3',
+        ].sort
+        expect(organizations).to eq(expected_organizations)
+      end
+    end
+  end
+
+  describe 'When importing project data' do
+    before(:all) do
+      HmisCsvImporter::Utility.clear!
+      GrdaWarehouse::Utility.clear!
+      import_hmis_csv_fixture(
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/baseline',
+        version: 'AutoMigrate',
+        run_jobs: true,
+      )
+    end
+
+    it 'baseline projects are imported' do
+      expect(GrdaWarehouse::Hud::Project.count).to eq(3)
+    end
+
+    it 'baseline projects match expected' do
+      projects = GrdaWarehouse::Hud::Project.all.pluck(:ProjectName).sort
+      expected_projects = [
+        'Furious Whistle Hill',
+        'Furious Whistle Hill 2',
+        'Furious Whistle Hill 3',
+      ].sort
+      expect(projects).to eq(expected_projects)
+    end
+
+    describe 'after second import without allowing deletion' do
+      before(:each) do
+        allow(HmisCsvTwentyTwentyFour::Importer::Project).to receive(:prevent_import_deletions?).and_return(true)
+        import_hmis_csv_fixture(
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/project',
+          version: 'AutoMigrate',
+          run_jobs: true,
+        )
+      end
+
+      it 'projects not in import file are not deleted' do
+        expect(GrdaWarehouse::Hud::Project.count).to eq(3)
+      end
+
+      it 'projects names are updated to match import file' do
+        projects = GrdaWarehouse::Hud::Project.all.pluck(:ProjectName).sort
+        expected_projects = [
+          'Furious Whistle Hill',
+          'Furious Whistle Hill 2 - edited',
+          'Furious Whistle Hill 3',
+        ].sort
+        expect(projects).to eq(expected_projects)
+      end
+    end
+
+    describe 'after second import with allowing deletion' do
+      # Projects are filtered to only those included in the import files. Due to this logic, no projects will be
+      # deleted, regardless of the flag. At this point, the import test files with the project deleted will resolve
+      # the same regardless of the `prevent_import_deletions?` flag. These tests are included to catch any divergance
+      # from this in the future.
+      before(:each) do
+        allow(HmisCsvTwentyTwentyFour::Importer::Project).to receive(:prevent_import_deletions?).and_return(false)
+        import_hmis_csv_fixture(
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/project',
+          version: 'AutoMigrate',
+          run_jobs: true,
+        )
+      end
+
+      it 'projects not in import file are not deleted' do
+        expect(GrdaWarehouse::Hud::Project.count).to eq(3)
+      end
+
+      it 'projects are updated to match import file' do
+        projects = GrdaWarehouse::Hud::Project.all.pluck(:ProjectName).sort
+        expected_projects = [
+          'Furious Whistle Hill',
+          'Furious Whistle Hill 2 - edited',
+          'Furious Whistle Hill 3',
+        ].sort
+        expect(projects).to eq(expected_projects)
+      end
+    end
+  end
+
   describe 'When importing enrollments' do
     before(:all) do
       HmisCsvImporter::Utility.clear!

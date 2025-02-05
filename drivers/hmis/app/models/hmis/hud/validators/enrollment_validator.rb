@@ -42,10 +42,11 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     if enrollment.persisted?
       # If the entry date is being changed on an EXISTING enrollment, and it overlaps with another one, it should be a warning
       conflict_scope = conflict_scope.where.not(id: enrollment.id)
-      return :warning, conflict_scope.first if conflict_scope.any?
+      # It's unlikely to have multiple overlapping enrollments, so just pick the one with the earliest entry
+      return :warning, conflict_scope.min_by(&:entry_date) if conflict_scope.any?
     else
       # If the entry date is being set on a NEW enrollment,
-      conflicting_enrollment = conflict_scope.order(entry_date: :asc).first # pick the conflicting enrollment with the earliest entry date
+      conflicting_enrollment = conflict_scope.min_by(&:entry_date)
       if conflicting_enrollment
         # If the entry date is on or after the entry date of any conflicting enrollments, it should be an error
         return :error, conflicting_enrollment if enrollment.entry_date >= conflicting_enrollment.entry_date

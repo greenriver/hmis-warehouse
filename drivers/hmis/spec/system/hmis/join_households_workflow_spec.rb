@@ -56,7 +56,6 @@ RSpec.feature 'Join Households', type: :system do
       let!(:hoh_checkbox) { hoh_cells[0].first("span input[type='checkbox']", visible: :all) } # MUI hides the actual input
       let!(:hhm_cells) { rows.last.all('td') }
       let!(:hhm_checkbox) { hhm_cells[0].first("span input[type='checkbox']", visible: :all) }
-      let!(:next_button) { all('button', text: 'Add Relationships').last }
 
       it 'auto-selects the joining client and selects all HHM' do
         assert_text 'Head of Household Selected'
@@ -67,28 +66,28 @@ RSpec.feature 'Join Households', type: :system do
         expect(hhm_cells[1].text).to eq(c3.brief_name)
         expect(hhm_checkbox.checked?).to be_truthy
         expect(hhm_checkbox.disabled?).to be_truthy # as long as HoH is selected, other hhm cannot be deselected
-        next_button.click
+        click_button 'Add Relationships'
         assert_text 'STEP 2 Add Relationships'
       end
 
       it 'disables proceeding if you de-select the joining client' do
         hoh_checkbox.click # click to deselect
         hhm_checkbox.click
-        next_button = all('button', text: 'Add Relationships', visible: :all).last
+        next_button = find('button', text: 'Add Relationships', visible: :all)
         expect(next_button.disabled?).to be_truthy # can't proceed
       end
     end
 
     describe 'add relationships screen' do
       before(:each) do
-        all('button', text: 'Add Relationships').last.click
+        click_button 'Add Relationships'
         assert_text 'STEP 2 Add Relationships'
       end
 
       it 'requires you to enter relationships' do
         table = find("table[aria-label='Add Relationships']")
         rows = table.first('tbody').all('tr')
-        next_button = all('button', text: 'Review Join').last
+        next_button = find('button', text: 'Review Join', visible: :all)
         expect(rows.count).to eq(3)
         expect(next_button.disabled?).to be_truthy
 
@@ -101,7 +100,7 @@ RSpec.feature 'Join Households', type: :system do
         mui_table_expect(c3.brief_name, row_index: 2, column_header: 'Client Name', from: table)
         mui_table_select 'Other relative', row: c3.brief_name, column: 'Relationship', from: table
 
-        next_button = all('button', text: 'Review Join').last
+        next_button = find('button', text: 'Review Join', visible: :all)
         expect(next_button.disabled?).to be_falsey
         next_button.click
         assert_text 'STEP 3 Review Join'
@@ -110,11 +109,11 @@ RSpec.feature 'Join Households', type: :system do
 
     describe 'review join and submit' do
       before(:each) do
-        all('button', text: 'Add Relationships').last.click
+        click_button 'Add Relationships'
         table = find("table[aria-label='Add Relationships']")
         mui_table_select 'Spouse or partner', row: c2.brief_name, column: 'Relationship', from: table
         mui_table_select 'Other relative', row: c3.brief_name, column: 'Relationship', from: table
-        all('button', text: 'Review Join').last.click
+        click_button 'Review Join'
       end
 
       it 'correctly displays the info about the join' do

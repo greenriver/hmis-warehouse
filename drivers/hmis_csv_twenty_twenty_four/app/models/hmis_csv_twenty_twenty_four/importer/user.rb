@@ -23,7 +23,8 @@ module HmisCsvTwentyTwentyFour::Importer
     end
 
     # Don't ever mark these for deletion
-    def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:, importer_log_id:)
+    def self.prevent_import_deletions?
+      true
     end
 
     def self.hmis_validations

@@ -74,7 +74,7 @@ RSpec.feature 'Intake assessment', type: :system do
         expect(e2.intake_assessment).to be_nil
 
         fill_in 'Search Clients', with: c1.last_name
-        click_link "View Enrollment, #{c1.brief_name} #{e1.entry_date.strftime('%m/%d/%Y')} - Active"
+        click_link c1.brief_name
         click_link 'Assessments'
         click_link 'Finish Intake'
 
@@ -84,13 +84,16 @@ RSpec.feature 'Intake assessment', type: :system do
         assert_text(c1.brief_name)
 
         # first assessment
+        mui_expect_selected_tab('#tab-1')
         complete_individual_assessment
         click_button 'Next'
 
         # second assessment
+        mui_expect_selected_tab('#tab-2')
         complete_individual_assessment
         click_button 'Next'
 
+        mui_expect_selected_tab('#tab-summary')
         assert_text "Complete Entry to #{p1.project_name}"
 
         # Intakes are created as WIP

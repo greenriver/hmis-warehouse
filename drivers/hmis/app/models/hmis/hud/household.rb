@@ -71,6 +71,15 @@ class Hmis::Hud::Household < Hmis::Hud::Base
     enrollments.count
   end
 
+  def snapshot_household_state
+    enrollments.map do |enrollment|
+      {
+        'enrollment_id': enrollment.id,
+        'relationship_to_hoh': enrollment.relationship_to_hoh,
+      }
+    end
+  end
+
   TRIMMED_HOUSEHOLD_ID_LENGTH = 6
   def self.short_id(hh_id)
     return hh_id unless hh_id.length == 32

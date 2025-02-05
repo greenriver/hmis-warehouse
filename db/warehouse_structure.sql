@@ -19467,22 +19467,12 @@ UNION
 
 
 --
--- Name: hmis_household_event_enrollments; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_household_event_enrollments (
-    hmis_household_event_id bigint NOT NULL,
-    enrollment_id bigint NOT NULL
-);
-
-
---
 -- Name: hmis_household_events; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.hmis_household_events (
     id bigint NOT NULL,
-    household_id character varying,
+    "HouseholdID" character varying NOT NULL,
     data_source_id bigint NOT NULL,
     event_type character varying NOT NULL,
     event_details jsonb,
@@ -51032,17 +51022,10 @@ CREATE INDEX idx_hmis_external_referral_postings_user_2 ON public.hmis_external_
 
 
 --
--- Name: idx_hmis_household_event_enrollments_on_event_and_enrollment; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_hmis_household_events_on_household_and_data_source; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_hmis_household_event_enrollments_on_event_and_enrollment ON public.hmis_household_event_enrollments USING btree (hmis_household_event_id, enrollment_id);
-
-
---
--- Name: idx_hmis_household_event_enrollments_on_event_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_hmis_household_event_enrollments_on_event_id ON public.hmis_household_event_enrollments USING btree (hmis_household_event_id);
+CREATE INDEX idx_hmis_household_events_on_household_and_data_source ON public.hmis_household_events USING btree ("HouseholdID", data_source_id);
 
 
 --
@@ -54763,24 +54746,10 @@ CREATE INDEX index_hmis_group_viewable_entities_on_entity ON public.hmis_group_v
 
 
 --
--- Name: index_hmis_household_event_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_household_event_enrollments_on_enrollment_id ON public.hmis_household_event_enrollments USING btree (enrollment_id);
-
-
---
 -- Name: index_hmis_household_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_household_events_on_data_source_id ON public.hmis_household_events USING btree (data_source_id);
-
-
---
--- Name: index_hmis_household_events_on_household_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_household_events_on_household_id ON public.hmis_household_events USING btree (household_id);
 
 
 --
@@ -62653,14 +62622,6 @@ ALTER TABLE ONLY public.service_history_services_2016
 
 
 --
--- Name: hmis_household_event_enrollments fk_rails_186e87e1ba; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_household_event_enrollments
-    ADD CONSTRAINT fk_rails_186e87e1ba FOREIGN KEY (enrollment_id) REFERENCES public."Enrollment"(id);
-
-
---
 -- Name: service_history_services_2046 fk_rails_1f5ddaaa59; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -62930,14 +62891,6 @@ ALTER TABLE ONLY public."Project"
 
 ALTER TABLE ONLY public.service_history_services_2002
     ADD CONSTRAINT fk_rails_785e6f2460 FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
-
-
---
--- Name: hmis_household_event_enrollments fk_rails_7934dc72fb; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_household_event_enrollments
-    ADD CONSTRAINT fk_rails_7934dc72fb FOREIGN KEY (hmis_household_event_id) REFERENCES public.hmis_household_events(id);
 
 
 --

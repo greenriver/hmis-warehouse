@@ -34,8 +34,30 @@ module HudLsa::Generators::Fy2024
     has_one :summary_result, class_name: 'HudLsa::Fy2024::SummaryResult', foreign_key: :hud_report_instance_id
     belongs_to :export, class_name: 'GrdaWarehouse::HmisExport', optional: true
 
+    scope :lsa, -> do
+      where('options->>\'lsa_scope\' != \'?\' OR options->>\'lsa_scope\' IS NULL', HudLsa::Fy2024::Report.available_lsa_scopes['HIC'])
+    end
+
+    scope :hic, -> do
+      where('options->>\'lsa_scope\' = \'?\'', HudLsa::Fy2024::Report.available_lsa_scopes['HIC'])
+    end
+
     def self.find_report(user)
-      where(user_id: user.id).order(created_at: :desc).first
+      where(user_id: user.id).
+        lsa.
+        order(created_at: :desc).
+        first
+    end
+
+    def self.find_hic_report(user)
+      where(user_id: user.id).
+        hic.
+        order(created_at: :desc).
+        first
+    end
+
+    def hic?
+      options.with_indifferent_access[:lsa_scope] == HudLsa::Fy2024::Report.available_lsa_scopes['HIC']
     end
 
     def filter

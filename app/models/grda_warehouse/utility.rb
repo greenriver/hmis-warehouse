@@ -200,7 +200,6 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Hud::Client,
       GrdaWarehouse::Hud::Project,
       GrdaWarehouse::Hud::User,
-      GrdaWarehouse::Hud::Enrollment,
       GrdaWarehouse::ServiceHistoryEnrollment,
       ActiveStorage::Attachment,
       ActiveStorage::Blob,
