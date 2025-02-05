@@ -98,9 +98,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     split_event = remaining.household.events.sole
     expect(split_event.event_type).to eq('split')
     dets = split_event.event_details
-    expect(dets['receivingHouseholdId']).to eq(new_hoh.household_id)
-    expect(dets['before'].map { |enrollment_snap| enrollment_snap['enrollmentId'] }).to contain_exactly(remaining.id, new_hoh.id, child.id)
-    expect(dets['after'].map { |enrollment_snap| enrollment_snap['enrollmentId'] }).to contain_exactly(remaining.id)
+    expect(dets['receiving_household_id']).to eq(new_hoh.household_id)
+    expect(dets['before'].map { |enrollment_snap| enrollment_snap['enrollment_id'] }).to contain_exactly(remaining.id, new_hoh.id, child.id)
+    expect(dets['after'].map { |enrollment_snap| enrollment_snap['enrollment_id'] }).to contain_exactly(remaining.id)
   end
 
   it 'fails when the user does not have can_split_households permission' do
