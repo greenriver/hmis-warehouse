@@ -12,7 +12,8 @@ class ExternalHmis::ClientPath
   #
   # @param configuration [Object] The GrdaWarehouse::ExternalHmisConfiguration object that contains `path_client`
   #   (a string defining the path pattern) and `data_source_id` (for logging purposes).
-  # @param client [Object] The client object that contains `personal_id` used for path replacement.
+  # @param client [Object] The source client object that contains `personal_id` used for path replacement.
+  #   Note that this is a source client, not destination, since the link will go to the source HMIS
   # @return [String, nil] The constructed external HMIS path or `nil` if the pattern is unknown.
   #
   # Logs an error if the `path_client` pattern is unrecognized.

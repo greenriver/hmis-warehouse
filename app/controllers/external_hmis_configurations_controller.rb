@@ -6,6 +6,7 @@
 
 class ExternalHmisConfigurationsController < ApplicationController
   include AjaxModalRails::Controller
+  before_action :require_can_edit_data_sources!
   before_action :require_can_view_imports_projects_or_organizations!, only: [:show]
   before_action :data_source
   before_action :external_hmis_configuration
