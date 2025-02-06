@@ -30,7 +30,7 @@
   .o-page__main-content.mt-3
     .clients__list
       = render 'clients/new_client'
-      - @accessor = current_user.source_client_view_accessor(@clients)
+      - current_user.client_view_accessor.preload_source_clients(@clients)
       - @clients.each do |client|
         = render 'client_access_control/clients/client_card', client: client
     = render 'common/pagination_bottom', item_name: 'client'

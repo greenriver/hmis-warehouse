@@ -1,8 +1,8 @@
 .o-page__main-content.mt-3
   .clients__list
-    - accessor = current_user.source_client_view_accessor(clients)
-    - clients.each do |user_client|
-      - client = user_client.client
+    - source_clients = clients.map(&:user_client)
+    - accessor = current_user.client_view_accessor.preload_source_clients(source_clients)
+    - source_clients.each do |client|
       - window_link = client.appropriate_path_for?(current_user)
       - show_window_link = window_link.present?
       - akas = accessor.client_names(client)

@@ -243,7 +243,14 @@ class User < ApplicationRecord
     end
   end
 
-  def source_client_view_accessor(clients)
-    GrdaWarehouse::SourceClientViewAccessor.new(user: self, clients: clients)
+  # View helper for performant access to client details
+  # clients can be preloaded example:
+  #   current_user.client_view_accessor.preload_source_clients(clients)
+  #   clients.each do |client|
+  #    puts current_user.client_view_accessor.source_clients(client).first
+  #   end
+  #
+  def client_view_accessor
+    @client_view_accessor ||= GrdaWarehouse::SourceClientViewAccessor.new(user: self)
   end
 end

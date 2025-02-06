@@ -1,4 +1,4 @@
-- akas = @accessor.client_names(client)
+- akas = current_user.client_view_accessor.client_names(client)
 - if akas.any?
   .clients__client-additional-names
     - akas.each do |aka|

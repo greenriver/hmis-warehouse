@@ -10,18 +10,18 @@ class GrdaWarehouse::SourceClientViewAccessor
   # @param user [User] The current user accessing the client data
   # @param clients [Array<DestinationClient>] Collection of destination clients to load data for
   # @raise [RuntimeError] if a destination client reference is missing
-  def initialize(user:, clients:)
+  def initialize(user:)
     @user = user
     @source_clients = {}
-
-    preload_source_clients(clients)
   end
 
   # Retrieves source clients for a given destination client
   # @param client [DestinationClient] The destination client to look up
   # @return [Array<HudClient>] Array of source client records associated with the destination client
   def source_clients(client)
-    @source_clients[client.id] || []
+    key = client.id
+    preload_source_clients([client]) unless @source_clients.key?(key)
+    @source_clients[key] || []
   end
 
   # @param client [DestinationClient] The destination client to get names for
@@ -33,8 +33,6 @@ class GrdaWarehouse::SourceClientViewAccessor
       user: @user,
     )
   end
-
-  protected
 
   def preload_source_clients(clients)
     destination_client_ids = clients.map(&:id)

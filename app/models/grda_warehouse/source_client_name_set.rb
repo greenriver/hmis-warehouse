@@ -15,7 +15,7 @@ module GrdaWarehouse
     include Enumerable
 
     SourceClientName = Struct.new(:ds_name, :ds_id, :value, keyword_init: true) do
-      def to_s = value
+      def to_str = value
     end
     private_constant :SourceClientName
 
