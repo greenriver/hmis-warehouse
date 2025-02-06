@@ -41,6 +41,8 @@ module Mutations
           enrollment.household_id = new_household_id
           enrollment.relationship_to_hoh = map_enrollment_id_to_relationship[enrollment.id.to_s]
 
+          # Release the unit, so that we don't end with a unit occupied by 2 different households
+          # (which could occur if any of the remaining enrollments occupy the same unit)
           enrollment.active_unit_occupancy&.assign_attributes(occupancy_period_attributes: { end_date: Date.current })
 
           enrollment.save!
@@ -60,7 +62,10 @@ module Mutations
         }
         event.save!
 
+        # Invalidate remaining enrollments and trigger re-processing, since household composition has changed.
+        # Processing for the new household should already be triggered based on the warehouse_trigger_processing after_create hook.
         remaining_enrollments.invalidate_processing!
+        Hmis::Hud::Enrollment.queue_service_history_processing!
       end
 
       {
