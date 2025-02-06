@@ -177,4 +177,36 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     }
     expect_gql_error post_graphql(input) { mutation }, message: /This operation would leave behind a household with no HoH, which is not allowed/
   end
+
+  it 'fails when the inputs specify no HoH' do
+    input = {
+      splitting_enrollment_inputs: [
+        {
+          enrollment_id: new_hoh.id,
+          relationship_to_hoh: 'SPOUSE_OR_PARTNER',
+        },
+        {
+          enrollment_id: child.id,
+          relationship_to_hoh: 'CHILD',
+        },
+      ],
+    }
+    expect_gql_error post_graphql(input) { mutation }, message: /Must specify exactly 1 HoH/
+  end
+
+  it 'fails when the inputs specify multiple HoH' do
+    input = {
+      splitting_enrollment_inputs: [
+        {
+          enrollment_id: new_hoh.id,
+          relationship_to_hoh: 'SELF_HEAD_OF_HOUSEHOLD',
+        },
+        {
+          enrollment_id: child.id,
+          relationship_to_hoh: 'SELF_HEAD_OF_HOUSEHOLD',
+        },
+      ],
+    }
+    expect_gql_error post_graphql(input) { mutation }, message: /Must specify exactly 1 HoH/
+  end
 end

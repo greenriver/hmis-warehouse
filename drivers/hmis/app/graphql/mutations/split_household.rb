@@ -28,7 +28,10 @@ module Mutations
       remaining_enrollments = donor_household.enrollments.where.not(id: splitting_enrollment_ids)
 
       raise 'Splitting all clients to a new household is invalid' if remaining_enrollments.empty?
-      raise 'This operation would leave behind a household with no HoH, which is not allowed' unless remaining_enrollments.exists?(relationship_to_hoh: 1)
+      raise 'This operation would leave behind a household with no HoH, which is not allowed' unless remaining_enrollments.any?(&:head_of_household?)
+
+      hohs_count = map_enrollment_id_to_relationship.values.count(1)
+      raise 'Must specify exactly 1 HoH' unless hohs_count == 1
 
       donor_before_state = donor_household.snapshot_household_state
       new_household_id = Hmis::Hud::Base.generate_uuid
