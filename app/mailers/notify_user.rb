@@ -234,4 +234,15 @@ class NotifyUser < DatabaseMailer
       mail(to: user.email, subject: 'Account Created')
     end
   end
+
+  def import_processing
+    @user = params[:user]
+    @import = params[:import_log_id]
+    @data_source = params[:data_source]
+    @error = params[:error]
+    @count = params[:count]
+    @paused = params[:paused]
+    subject = 'HMIS Import Status Update'
+    mail(to: @user.email, subject: subject)
+  end
 end

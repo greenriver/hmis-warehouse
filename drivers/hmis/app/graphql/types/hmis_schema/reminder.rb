@@ -18,6 +18,7 @@ module Types
     field :assessment_id, ID, null: true, description: 'Relevant existing assessment, if any'
 
     def client
+      # note: client and enrollment are preloaded by ReminderGenerator
       object.enrollment.client
     end
 

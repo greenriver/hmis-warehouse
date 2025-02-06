@@ -13,7 +13,7 @@
           - client = source_client.destination_client
           %tr
             %td= client.id
-            %td= link_to_if can_view_clients?, source_client.name, appropriate_client_path(client.id)
+            %td= link_to_if can_view_clients?, source_client.pii_provider(user: current_user).full_name, appropriate_client_path(client.id)
   = render 'common/pagination_bottom', item_name: 'client'
 - else
   .none-found No clients found.

@@ -22,7 +22,7 @@
         - @enrollments.each do |row|
           - client = row.client
           %tr
-            %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
+            %td= link_to_if can_view_clients?, client.pii_provider(user: current_user).full_name, appropriate_client_path(client)
             - @report.column_values(row, current_user).each do |key, value|
               - next if key == :project_type
               - if key.in?([:days_between, :days_between_start_and_exit])

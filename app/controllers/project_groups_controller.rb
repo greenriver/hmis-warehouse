@@ -28,7 +28,7 @@ class ProjectGroupsController < ApplicationController
 
   def new
     @project_group = project_group_source.new
-    set_access
+    set_group_access
   end
 
   def create
@@ -166,6 +166,10 @@ class ProjectGroupsController < ApplicationController
 
   def set_access
     @editor_ids = @project_group.editable_access_control.user_ids
+    set_group_access
+  end
+
+  def set_group_access
     # TODO: START_ACL remove when ACL transition complete
     @groups = @project_group.access_groups
     @group_ids = @project_group.access_group_ids

@@ -590,6 +590,18 @@ module GrdaWarehouse::Hud
       project_type_to_use.in?(HudUtility2024.performance_reporting[:rrh])
     end
 
+    def rrh_sso_only?
+      rrh? && self.RRHSubType == rrh_sso_sub_type_code
+    end
+
+    def rrh_with_housing?
+      rrh? && self.RRHSubType != rrh_sso_sub_type_code
+    end
+
+    def rrh_sso_sub_type_code
+      HudUtility2024.rrh_sub_type('RRH: Services Only', true)
+    end
+
     def psh?
       project_type_to_use.in?(HudUtility2024.performance_reporting[:psh])
     end
