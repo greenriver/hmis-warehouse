@@ -5,7 +5,7 @@
 - if RailsDrivers.loaded.include?(:eccovia_data)
   - eccovia_assessments = @client.source_eccovia_assessments
 - if @client.source_assessments.exists?
-  - ce_assessments = @client.source_assessments.preload(:assessment_questions).to_a
+  - ce_assessments = @client.source_assessments.order(assessment_date: :desc).preload(:assessment_questions).to_a
 - custom_hmis_assessments = []
 - if HmisEnforcement.hmis_enabled?
   - custom_hmis_assessments = @client.hmis_source_custom_assessments.order(assessment_date: :desc).preload(:user, enrollment: [:data_source, { project: :warehouse_project }], form_processor: :definition).to_a
