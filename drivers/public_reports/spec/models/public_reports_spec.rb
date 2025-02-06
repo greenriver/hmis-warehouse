@@ -109,9 +109,9 @@ RSpec.describe PublicReports::Report, type: :request do
     end
 
     def get_report_options(options_type:)
-      params = { user_id: user.id }.merge(option_lengths[options_type])
-      filter = ::Filters::FilterBase.new(user_id: user.id).set_from_params(params)
-      return {
+      params = { enforce_one_year_range: false }.merge(option_lengths[options_type])
+      filter = ::Filters::FilterBase.new(user_id: user.id).update(params)
+      {
         start_date: filter.start,
         end_date: filter.end,
         filter: filter.for_params,

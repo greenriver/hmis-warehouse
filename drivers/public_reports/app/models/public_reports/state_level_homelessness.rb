@@ -17,7 +17,7 @@ module PublicReports
     validate :validate_filter_dates_span_one_year, on: :create
 
     def validate_filter_dates_span_one_year
-      return if ((filter_object.end - filter_object.start) / 365).round > 0
+      return if filter_object.start + 1.years <= filter_object.end
 
       errors.add(:base, 'The start and end dates must span at least one year.')
     end
