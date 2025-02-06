@@ -47,7 +47,7 @@ module Clients
     end
 
     def title_for_show
-      "#{@client.name} - Chronic"
+      "#{@client.pii_provider(user: current_user).full_name} - Chronic"
     end
   end
 end

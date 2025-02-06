@@ -14,7 +14,7 @@ module Types
     # Form used for Viewing/Creating/Editing records
     field :definition, Types::Forms::FormDefinition, null: false, extras: [:parent]
 
-    # object is an OpenStruct, see Hmis::Hud::Enrollment occurrence_point_forms
+    # object is an OpenStruct, see Hmis::Form::OccurrencePointFormCollection
 
     def id(parent:)
       # Include project id (if present) so that instance is not cached for use across projects.

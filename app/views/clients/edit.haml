@@ -1,4 +1,4 @@
-- title = "Potential Duplicates for #{@client.name}"
+- title = "Potential Duplicates for #{@client.pii_provider(user: current_user).full_name}"
 - content_for :title, title
 = render 'breadcrumbs'
 

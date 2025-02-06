@@ -40,7 +40,7 @@ module Clients
     end
 
     def title_for_show
-      "#{@client.name} - Historical Enrollments"
+      "#{@client.pii_provider(user: current_user).full_name} - Historical Enrollments"
     end
   end
 end
