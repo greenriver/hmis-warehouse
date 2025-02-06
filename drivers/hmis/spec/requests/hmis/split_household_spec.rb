@@ -14,8 +14,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation SplitHousehold($input: SplitHouseholdInput!) {
-        splitHousehold(input: $input) {
+      mutation SplitHousehold($splittingEnrollmentInputs: [EnrollmentRelationshipInput!]!) {
+        splitHousehold(splittingEnrollmentInputs: $splittingEnrollmentInputs) {
           newHousehold {
             id
             householdSize
@@ -63,9 +63,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     ]
   )
     input = {
-      input: {
-        splitting_enrollment_inputs: splitting_enrollment_inputs,
-      },
+      splitting_enrollment_inputs: splitting_enrollment_inputs,
     }
     response, result = post_graphql(input) { mutation }
 
@@ -113,7 +111,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         },
       ],
     }
-    expect_access_denied post_graphql(input: input) { mutation }
+    expect_access_denied post_graphql(input) { mutation }
   end
 
   it 'fails when the given enrollment IDs are invalid' do
@@ -125,7 +123,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         },
       ],
     }
-    expect_access_denied post_graphql(input: input) { mutation }
+    expect_access_denied post_graphql(input) { mutation }
   end
 
   context 'when the given enrollment IDs come from different households' do
@@ -144,7 +142,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           },
         ],
       }
-      expect_gql_error post_graphql(input: input) { mutation }
+      expect_gql_error post_graphql(input) { mutation }
     end
   end
 
@@ -165,7 +163,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         },
       ],
     }
-    expect_gql_error post_graphql(input: input) { mutation }, message: /Splitting all clients to a new household is invalid/
+    expect_gql_error post_graphql(input) { mutation }, message: /Splitting all clients to a new household is invalid/
   end
 
   it 'fails when the split would leave behind a headless household' do
@@ -177,6 +175,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         },
       ],
     }
-    expect_gql_error post_graphql(input: input) { mutation }, message: /This operation would leave behind a household with no HoH, which is not allowed/
+    expect_gql_error post_graphql(input) { mutation }, message: /This operation would leave behind a household with no HoH, which is not allowed/
   end
 end

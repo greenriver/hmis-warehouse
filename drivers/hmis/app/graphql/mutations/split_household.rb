@@ -5,7 +5,7 @@
 ###
 
 module Mutations
-  class SplitHousehold < BaseMutation
+  class SplitHousehold < CleanBaseMutation
     argument :splitting_enrollment_inputs, [Types::HmisSchema::EnrollmentRelationshipInput], required: true
 
     field :new_household, Types::HmisSchema::Household, null: false
