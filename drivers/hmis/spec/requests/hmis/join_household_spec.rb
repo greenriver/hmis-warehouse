@@ -22,8 +22,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation JoinHousehold($input: JoinHouseholdInput!) {
-        joinHousehold(input: $input) {
+      mutation JoinHousehold($receivingHouseholdId: ID!, $joiningEnrollmentInputs: [EnrollmentRelationshipInput!]!) {
+        joinHousehold(receivingHouseholdId:$receivingHouseholdId, joiningEnrollmentInputs:$joiningEnrollmentInputs) {
           receivingHousehold {
             id
             householdSize
@@ -64,10 +64,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     ]
   )
     input = {
-      input: {
-        receiving_household_id: receiving_household_id,
-        joining_enrollment_inputs: joining_enrollment_inputs,
-      },
+      receiving_household_id: receiving_household_id,
+      joining_enrollment_inputs: joining_enrollment_inputs,
     }
     response, result = post_graphql(input) { mutation }
 
@@ -196,7 +194,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       receiving_household_id: 'fake-household',
       joining_enrollment_inputs: [],
     }
-    expect_access_denied post_graphql(input: input) { mutation }
+    expect_access_denied post_graphql(**input) { mutation }
   end
 
   it 'fails when the user does not have can_split_households permission' do
@@ -205,7 +203,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       receiving_household_id: receiving_enrollment.household_id,
       joining_enrollment_inputs: [],
     }
-    expect_access_denied post_graphql(input: input) { mutation }
+    expect_access_denied post_graphql(**input) { mutation }
   end
 
   it 'fails when the given joining enrollment IDs are invalid' do
@@ -218,7 +216,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         },
       ],
     }
-    expect_access_denied post_graphql(input: input) { mutation }
+    expect_access_denied post_graphql(**input) { mutation }
   end
 
   it 'fails when the given joining enrollment ID comes from a different project' do
@@ -233,7 +231,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         },
       ],
     }
-    expect_access_denied post_graphql(input: input) { mutation }
+    expect_access_denied post_graphql(**input) { mutation }
   end
 
   it 'fails when the join would leave behind a headless household' do
@@ -246,6 +244,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         },
       ],
     }
-    expect_gql_error post_graphql(input: input) { mutation }, message: /This operation would leave behind a household with no HoH/
+    expect_gql_error post_graphql(**input) { mutation }, message: /This operation would leave behind a household with no HoH/
   end
 end

@@ -5,7 +5,7 @@
 ###
 
 module Mutations
-  class JoinHousehold < BaseMutation
+  class JoinHousehold < CleanBaseMutation
     argument :receiving_household_id, ID, required: true
     argument :joining_enrollment_inputs, [Types::HmisSchema::EnrollmentRelationshipInput], required: true
 
