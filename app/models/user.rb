@@ -242,4 +242,8 @@ class User < ApplicationRecord
       GrdaWarehouse::AuthPolicies::UserLegacyContext.new(self)
     end
   end
+
+  def source_client_view_accessor(clients)
+    GrdaWarehouse::SourceClientViewAccessor.new(user: self, clients: clients)
+  end
 end

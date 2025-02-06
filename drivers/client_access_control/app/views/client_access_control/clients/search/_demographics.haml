@@ -2,7 +2,7 @@
   :ruby
     ssns = []
     ages = []
-    client.source_clients_searchable_to(current_user).each do |sc|
+    @accessor.source_clients(client).each do |sc|
       pii = sc.pii_provider(user: current_user)
       ssns.push(pii.ssn(force_mask: true))
       ages.push(pii.dob_and_age(force_year_only: true))
