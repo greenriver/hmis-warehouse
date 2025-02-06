@@ -30,7 +30,7 @@ wb.add_worksheet(name: 'Health Prioritization') do |sheet|
 
     row = [
       client.id,
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.name : 'Redacted',
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.pii_provider(user: current_user).full_name : 'Redacted',
       client.age,
       disability,
       vispdat_disability,

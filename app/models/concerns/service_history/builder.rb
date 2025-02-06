@@ -60,7 +60,7 @@ module ServiceHistory::Builder
       else
         started = Time.current
         while builder_batch_job_scope.exists?
-          break if (Time.current - started) > max_wait_seconds
+          return if (Time.current - started) > max_wait_seconds
 
           sleep(interval)
         end
@@ -121,7 +121,9 @@ module ServiceHistory::Builder
 
     # Class method
     private def builder_batch_job_scope
-      Delayed::Job.where(failed_at: nil).jobs_for_class('ServiceHistory::RebuildEnrollments')
+      Delayed::Job.uncached do
+        Delayed::Job.where(failed_at: nil).jobs_for_class('ServiceHistory::RebuildEnrollments')
+      end
     end
 
     # Class method

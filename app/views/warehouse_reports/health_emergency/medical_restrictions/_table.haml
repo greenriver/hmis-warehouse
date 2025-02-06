@@ -21,15 +21,16 @@
       %tbody
         - @restrictions.each do |restriction|
           - client = restriction.client
+          - pii = client.pii_provider(user: current_user)
           - batch_class = if restriction.in_batch?(params[:batch_id]) then 'report-hightlight' else '' end
           %tr
             %td{class: batch_class}
               - if @html && client.image
                 .client__image{ style: "background-image: url(#{ image_client_path(client) })" }
             %td= link_to_if @html, client.id, polymorphic_path(['client_he', health_emergency], client_id: client)
-            %td= link_to_if @html, client.name, polymorphic_path(['client_he', health_emergency], client_id: client)
-            %td= client.DOB
-            %td= client.age
+            %td= link_to_if @html, pii.full_name, polymorphic_path(['client_he', health_emergency], client_id: client)
+            %td= pii.dob
+            %td= pii.age
             %td= restriction.created_at.to_date
             %td= simple_format(restriction.notes || restriction.note)
   - if @html

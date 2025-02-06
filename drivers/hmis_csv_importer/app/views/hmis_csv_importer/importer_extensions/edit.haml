@@ -15,13 +15,6 @@
           %th Extension
           %th Enabled?
       %tbody
-        %tr
-          %td All
-          %td Require review of imports with any errors.
-          - if editable
-            %td.text-center= f.input :refuse_imports_with_errors, as: :boolean, required: false, label: false, input_html: {checked: @data_source.refuse_imports_with_errors}
-          - else
-            %td.text-center= checkmark(@data_source.refuse_imports_with_errors)
         - allowed_extensions.each do |extension|
           %tr
             %td= extension.associated_model
