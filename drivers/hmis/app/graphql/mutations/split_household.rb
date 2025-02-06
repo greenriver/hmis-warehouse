@@ -51,15 +51,13 @@ module Mutations
         donor_household.reload
         donor_after_state = donor_household.snapshot_household_state
 
-        event = Hmis::HouseholdEvent.new
-        event.user = current_user
-        event.household = donor_household
-        event.event_type = Hmis::HouseholdEvent::SPLIT
-        event.event_details = {
-          'receiving_household_id': new_household_id,
-          'before': donor_before_state,
-          'after': donor_after_state,
-        }
+        event = Hmis::HouseholdEvent.new_split_event(
+          user: current_user,
+          household: donor_household,
+          receiving_household_id: new_household_id,
+          before_state: donor_before_state,
+          after_state: donor_after_state,
+        )
         event.save!
 
         # Invalidate remaining enrollments and trigger re-processing, since household composition has changed.
