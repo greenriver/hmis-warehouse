@@ -3,13 +3,12 @@
 # N+1 queries while providing convenient access to client information.
 #
 class GrdaWarehouse::SourceClientViewAccessor
+  # override inspect to prevent clutter exceptions
   def inspect
     object_id
   end
 
   # @param user [User] The current user accessing the client data
-  # @param clients [Array<DestinationClient>] Collection of destination clients to load data for
-  # @raise [RuntimeError] if a destination client reference is missing
   def initialize(user:)
     @user = user
     @source_clients = {}
@@ -25,7 +24,6 @@ class GrdaWarehouse::SourceClientViewAccessor
   end
 
   # @param client [DestinationClient] The destination client to get names for
-  # @param health [Boolean] Whether to include patient name
   def client_names(client)
     GrdaWarehouse::SourceClientNameSet.new(
       destination_client: client,

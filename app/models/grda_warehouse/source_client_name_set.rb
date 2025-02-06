@@ -22,8 +22,8 @@ module GrdaWarehouse
     def initialize(destination_client:, source_clients:, user:)
       @names = source_clients.map do |client|
         SourceClientName.new(
-          ds_name: client.data_source&.short_name,
-          ds_id: client.data_source&.id,
+          ds_name: client.data_source.short_name,
+          ds_id: client.data_source.id,
           value: client.pii_provider(user: user).full_name,
         )
       end
@@ -33,7 +33,7 @@ module GrdaWarehouse
         @names << SourceClientName.new(
           ds_name: 'Health',
           ds_id: GrdaWarehouse::DataSource.health_authoritative_id,
-          value: patient.pii_provider(user: user).brief_name,
+          value: patient.pii_provider(user: user).full_name,
         )
       end
       @names.uniq!

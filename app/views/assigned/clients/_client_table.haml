@@ -17,7 +17,7 @@
               .client__client-name
                 .client-aka
                   = main_client_name
-              - akas.each do | aka |
+              - akas.each do |aka|
                 .client__client-name
                   .client-aka= render_client_alias(aka)
           .client__details.client__details--status

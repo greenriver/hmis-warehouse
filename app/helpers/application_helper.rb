@@ -250,7 +250,7 @@ module ApplicationHelper
     SimpleCalendar::HomelessService.new(self, options).render(&block)
   end
 
-  # generate HTML snippet representing the name the user is known by in different data sources
+  # Conditional HTML formatting for client name in different data sources (legacy view code)
   def render_client_alias(name)
     if GrdaWarehouse::Config.get(:multi_coc_installation)
       content_tag(:div, name, class: 'mb-4')

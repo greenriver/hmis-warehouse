@@ -244,10 +244,10 @@ class User < ApplicationRecord
   end
 
   # View helper for performant access to client details
-  # clients can be preloaded example:
-  #   current_user.client_view_accessor.preload_source_clients(clients)
-  #   clients.each do |client|
-  #    puts current_user.client_view_accessor.source_clients(client).first
+  # preloaded clients example:
+  #   current_user.client_view_accessor.preload_source_clients(dest_clients)
+  #   dest_clients.each do |client|
+  #     puts current_user.client_view_accessor.source_clients(client).first
   #   end
   #
   def client_view_accessor
