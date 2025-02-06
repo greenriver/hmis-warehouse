@@ -92,7 +92,7 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "_comment": "PriorLivingSituation is an Instituational situation",
+              "_comment": "PriorLivingSituation is an Institutional situation",
               "question": "q_3_917B_1",
               "operator": "EQUAL",
               "answer_group_code": "INSTITUTIONAL"
@@ -128,7 +128,7 @@
               "answer_group_code": "HOMELESS"
             },
             {
-              "_comment": "PriorLivingSituation is a non-Instituational situation",
+              "_comment": "PriorLivingSituation is a non-Institutional situation",
               "question": "q_3_917B_1",
               "operator": "NOT_EQUAL",
               "answer_group_code": "INSTITUTIONAL"
@@ -196,7 +196,7 @@
               "answer_boolean": true
             },
             {
-              "_comment": "PriorLivingSituation is Instituational, Temporary, Permanent, or Other",
+              "_comment": "PriorLivingSituation is Institutional, Temporary, Permanent, or Other",
               "question": "q_3_917B_1",
               "operator": "NOT_EQUAL",
               "answer_group_code": "HOMELESS"
@@ -234,7 +234,7 @@
           "answer_boolean": true
         },
         {
-          "_comment": "PriorLivingSituation is Instituational, Temporary, Permanent, or Other",
+          "_comment": "PriorLivingSituation is Institutional, Temporary, Permanent, or Other",
           "question": "q_3_917B_1",
           "operator": "NOT_EQUAL",
           "answer_group_code": "HOMELESS"

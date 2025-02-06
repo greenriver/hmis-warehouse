@@ -4,11 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-#  Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
-
 require 'rails_helper'
 require_relative '../hmis_data_cleanup/fix_enrollment_dates_20240416'
 

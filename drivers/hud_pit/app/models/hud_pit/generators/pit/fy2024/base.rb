@@ -35,8 +35,8 @@ module HudPit::Generators::Pit::Fy2024
       so: 4,
     }.freeze
 
-    def self.allowed_options
-      HudPit::Generators::Pit::Fy2024::Generator.allowed_options
+    def self.allowed_options(...)
+      HudPit::Generators::Pit::Fy2024::Generator.allowed_options(...)
     end
 
     private def universe
@@ -94,7 +94,6 @@ module HudPit::Generators::Pit::Fy2024
 
           age = source_client.age_on(@generator.filter.on)
           hh_id = get_hh_id(last_service_history_enrollment)
-          hoh_enrollment = enrollments_by_client_id[get_hoh_id(hh_id)]&.last&.enrollment
           household_ages = ages_for(hh_id, @generator.filter.on)
           household_type = household_types[hh_id]
           # https://files.hudexchange.info/resources/documents/Reporting-Gender-for-the-PIT-Count.pdf
@@ -147,9 +146,7 @@ module HudPit::Generators::Pit::Fy2024
             race_none: source_client.RaceNone,
             veteran: source_client.VeteranStatus,
             chronically_homeless: enrollment.chronically_homeless_at_start?(date: @generator.filter.on),
-            # Since 2022, we are using the HoH CH at project start as a proxy for the household chronic status
-            # For a more complete HH status, we could calculate each adult of HoH memeber's CH status and look for any chronic members
-            chronically_homeless_household: hoh_enrollment&.chronically_homeless_at_start?(date: @generator.filter.on),
+            chronically_homeless_household: household_chronic_status(hh_id, client.id).try(:[], :chronic_status) || false,
             substance_use: disabilities_latest.detect(&:substance?)&.DisabilityResponse&.present?,
             substance_use_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.substance? }&.DisabilityResponse.present?,
             domestic_violence: dv_record&.DomesticViolenceSurvivor,

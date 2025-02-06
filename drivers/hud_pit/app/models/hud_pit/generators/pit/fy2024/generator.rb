@@ -26,7 +26,7 @@ module  HudPit::Generators::Pit::Fy2024
       'PIT'
     end
 
-    def self.allowed_options
+    def self.allowed_options(_)
       [
         :on,
         :coc_codes,

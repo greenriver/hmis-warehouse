@@ -12,6 +12,17 @@ class ApplicationRecord < ActiveRecord::Base
 
   connects_to database: { writing: :primary, reading: :primary }
 
+  def self.find_safely(tainted_id)
+    safe_id = begin
+      Integer(tainted_id)
+    rescue ArgumentError, TypeError
+      nil
+    end
+    raise(ActiveRecord::RecordNotFound, "#{sti_name} Record not found for ID: #{tainted_id}") unless safe_id
+
+    find(safe_id)
+  end
+
   def self.needs_migration?
     ActiveRecord::Migration.check_pending!
   end

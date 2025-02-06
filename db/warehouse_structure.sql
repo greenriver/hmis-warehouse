@@ -22032,6 +22032,44 @@ ALTER SEQUENCE public.import_overrides_id_seq OWNED BY public.import_overrides.i
 
 
 --
+-- Name: import_thresholds; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.import_thresholds (
+    id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    record_count_change_min_threshold integer,
+    record_count_change_percent_threshold integer,
+    error_count_min_threshold integer,
+    error_percent_threshold integer,
+    pause_on_record_count_threshold boolean,
+    pause_on_error_threshold boolean,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: import_thresholds_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.import_thresholds_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: import_thresholds_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.import_thresholds_id_seq OWNED BY public.import_thresholds.id;
+
+
+--
 -- Name: inbound_api_configurations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -23035,6 +23073,42 @@ CREATE SEQUENCE public.non_hmis_uploads_id_seq
 --
 
 ALTER SEQUENCE public.non_hmis_uploads_id_seq OWNED BY public.non_hmis_uploads.id;
+
+
+--
+-- Name: notification_configurations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.notification_configurations (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    source_type character varying NOT NULL,
+    source_id bigint NOT NULL,
+    notification_slug character varying NOT NULL,
+    active boolean DEFAULT true,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: notification_configurations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.notification_configurations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: notification_configurations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.notification_configurations_id_seq OWNED BY public.notification_configurations.id;
 
 
 --
@@ -31242,6 +31316,13 @@ ALTER TABLE ONLY public.import_overrides ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: import_thresholds id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.import_thresholds ALTER COLUMN id SET DEFAULT nextval('public.import_thresholds_id_seq'::regclass);
+
+
+--
 -- Name: inbound_api_configurations id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -31414,6 +31495,13 @@ ALTER TABLE ONLY public.nightly_census_by_projects ALTER COLUMN id SET DEFAULT n
 --
 
 ALTER TABLE ONLY public.non_hmis_uploads ALTER COLUMN id SET DEFAULT nextval('public.non_hmis_uploads_id_seq'::regclass);
+
+
+--
+-- Name: notification_configurations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notification_configurations ALTER COLUMN id SET DEFAULT nextval('public.notification_configurations_id_seq'::regclass);
 
 
 --
@@ -34947,6 +35035,14 @@ ALTER TABLE ONLY public.import_overrides
 
 
 --
+-- Name: import_thresholds import_thresholds_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.import_thresholds
+    ADD CONSTRAINT import_thresholds_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: inbound_api_configurations inbound_api_configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -35144,6 +35240,14 @@ ALTER TABLE ONLY public.nightly_census_by_projects
 
 ALTER TABLE ONLY public.non_hmis_uploads
     ADD CONSTRAINT non_hmis_uploads_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: notification_configurations notification_configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notification_configurations
+    ADD CONSTRAINT notification_configurations_pkey PRIMARY KEY (id);
 
 
 --
@@ -57490,6 +57594,13 @@ CREATE INDEX index_import_overrides_on_data_source_id ON public.import_overrides
 
 
 --
+-- Name: index_import_thresholds_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_import_thresholds_on_data_source_id ON public.import_thresholds USING btree (data_source_id);
+
+
+--
 -- Name: index_inbound_api_configurations_on_hashed_api_key; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -57851,6 +57962,20 @@ CREATE INDEX index_nightly_census_by_projects_on_project_id ON public.nightly_ce
 --
 
 CREATE INDEX index_non_hmis_uploads_on_deleted_at ON public.non_hmis_uploads USING btree (deleted_at);
+
+
+--
+-- Name: index_notification_configurations_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_notification_configurations_on_source ON public.notification_configurations USING btree (source_type, source_id);
+
+
+--
+-- Name: index_notification_configurations_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_notification_configurations_on_user_id ON public.notification_configurations USING btree (user_id);
 
 
 --
@@ -62341,6 +62466,13 @@ CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports U
 
 
 --
+-- Name: nc_user_source_slug_uniq_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX nc_user_source_slug_uniq_idx ON public.notification_configurations USING btree (user_id, source_id, source_type, notification_slug) WHERE (deleted_at IS NULL);
+
+
+--
 -- Name: one_entity_per_type_per_collection; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -65558,6 +65690,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241213204702'),
 ('20241213204837'),
 ('20241216184819'),
-('20241217210211');
+('20241217210211'),
+('20250116145506'),
+('20250117174547');
 
 
