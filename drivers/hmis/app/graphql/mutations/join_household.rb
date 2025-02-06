@@ -64,25 +64,24 @@ module Mutations
           donor_after_state = donor_household.snapshot_household_state
         end
 
-        joining_event = Hmis::HouseholdEvent.new
-        joining_event.user = current_user
-        joining_event.household = receiving_household
-        joining_event.event_type = Hmis::HouseholdEvent::JOIN
-        joining_event.event_details = {
-          'donor_household_id': donor_household.household_id,
-          'before': receiving_before_state,
-          'after': receiving_after_state,
-        }
+        # Create two events: One representing the JOIN *into* the receiving household...
+        joining_event = Hmis::HouseholdEvent.new_join_event(
+          user: current_user,
+          household: receiving_household,
+          donor_household_id: donor_household.household_id,
+          before_state: receiving_before_state,
+          after_state: receiving_after_state,
+        )
 
-        leaving_event = Hmis::HouseholdEvent.new
-        leaving_event.user = current_user
-        leaving_event.household = donor_household
-        leaving_event.event_type = Hmis::HouseholdEvent::SPLIT
-        leaving_event.event_details = {
-          'receiving_household_id': receiving_household_id,
-          'before': donor_before_state,
-          'after': donor_after_state,
-        }
+        # ...and one representing the SPLIT *out from* the donor (remaining) household
+        leaving_event = Hmis::HouseholdEvent.new_split_event(
+          user: current_user,
+          household: donor_household,
+          receiving_household_id: receiving_household_id,
+          before_state: donor_before_state,
+          after_state: donor_after_state,
+        )
+
         Hmis::HouseholdEvent.import!([joining_event, leaving_event])
       end
 
