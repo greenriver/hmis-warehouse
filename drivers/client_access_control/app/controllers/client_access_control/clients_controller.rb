@@ -35,19 +35,14 @@ class ClientAccessControl::ClientsController < ApplicationController
       @clients = client_source.text_search(params[:q], client_scope: client_search_scope, sorted: sorted)
       # END_ACL
     elsif current_user.can_search_own_clients? && params[:q].present?
-      # FIXME: optimization refactor needed, this is hack
+      # FIXME: optimization and refactor needed, this is hack
       # It seems that searchable_to scope is not-performant under some configurations. Perform text search first
-      # to limit the total
-      upper_bound_limit = 10_000 # protect from overly very broad queries
-      unauthorized_client_ids = client_source.
-        text_search(params[:q], client_scope: client_search_scope, sorted: false).
-        order(:id).limit(upper_bound_limit).
-        pluck(:id)
-      raise "search for for #{params[:q]} was too broad" unless unauthorized_client_ids.size < upper_bound_limit
+      upper_bound_limit = 8_000 # protect from overly broad queries
+      unauthorized_client_ids = client_source.text_search(params[:q], sorted: sorted).limit(upper_bound_limit).pluck(:id)
+      Sentry.capture_message("Client search from User##{current_user.id} for #{params[:q]} was too broad") unless unauthorized_client_ids.size < upper_bound_limit
 
-      @clients = client_source.
-        where(id: unauthorized_client_ids).
-        text_search(params[:q], client_scope: client_search_scope, sorted: sorted)
+      # performs the text search twice to sort the results
+      @clients = client_source.where(id: unauthorized_client_ids).text_search(params[:q], client_scope: client_search_scope, sorted: sorted)
     end
     preloads = [
       :processed_service_history,
