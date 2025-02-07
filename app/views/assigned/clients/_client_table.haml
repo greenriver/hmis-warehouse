@@ -1,11 +1,11 @@
 .o-page__main-content.mt-3
   .clients__list
-    - source_clients = clients.map(&:user_client)
-    - accessor = current_user.client_view_accessor.preload_source_clients(source_clients)
+    - source_clients = clients.map(&:client)
+    - current_user.client_view_accessor.preload_source_clients(source_clients)
     - source_clients.each do |client|
       - window_link = client.appropriate_path_for?(current_user)
       - show_window_link = window_link.present?
-      - akas = accessor.client_names(client)
+      - akas = current_user.client_view_accessor.searchable_client_names(client).to_a
       - if akas.empty?
         - main_client_name = client.source_clients.first.try(:data_source).try(:short_name)
       - else

@@ -3,7 +3,7 @@
     ssns = []
     ages = []
 
-    source_clients = current_user.client_view_accessor.source_clients(client)
+    source_clients = current_user.client_view_accessor.searchable_clients(client)
     source_clients.each do |sc|
       pii = sc.pii_provider(user: current_user)
       ssns.push(pii.ssn(force_mask: true))

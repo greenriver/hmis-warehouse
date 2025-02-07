@@ -16,6 +16,7 @@ module GrdaWarehouse
 
     SourceClientName = Struct.new(:ds_name, :ds_id, :value, keyword_init: true) do
       def to_str = value
+      def to_s = value
     end
     private_constant :SourceClientName
 
@@ -28,6 +29,8 @@ module GrdaWarehouse
         )
       end
 
+      # if the destination client has a patient record, and we haven't already added a source client
+      # from the health data source, include the name of the patient
       patient = destination_client.patient
       if patient && source_clients.none? { |sc| sc.data_source&.authoritative_type == 'health' }
         @names << SourceClientName.new(

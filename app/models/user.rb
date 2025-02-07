@@ -247,7 +247,7 @@ class User < ApplicationRecord
   # preloaded clients example:
   #   current_user.client_view_accessor.preload_source_clients(dest_clients)
   #   dest_clients.each do |client|
-  #     puts current_user.client_view_accessor.source_clients(client).first
+  #     puts current_user.client_view_accessor.searchable_clients(client).first
   #   end
   #
   def client_view_accessor
