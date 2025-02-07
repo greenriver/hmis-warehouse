@@ -1,0 +1,75 @@
+:ruby
+  items = []
+  if user.invitation_status != :active || user.access_locked?
+    if user.invitation_status == :pending_confirmation
+      items << { link_to: { path: admin_user_resend_invitation_path(user), method: :post }, icon: 'envelope-o', label: 'Resend Invitation' }
+    elsif user.invitation_status == :invitation_expired
+      items << { link_to: { path: admin_user_recreate_invitation_path(user), method: :post }, icon: 'envelope-o', label: 'Re-create Invitation' }
+    elsif user.access_locked?
+      items << { link_to: { path: unlock_admin_user_path(user), method: :post }, icon: 'unlocked', label: 'Unlock' }
+    end
+  end
+
+  items << { link_to: { path: edit_admin_user_path(id: user) }, icon: 'pencil', label: 'Edit Account' }
+
+  if user.training_required? && user.required_training_courses.present?
+    items << { link_to: { path: edit_admin_user_training_path(id: user) }, icon: 'pencil', label: 'Edit Training' }
+  end
+
+  if can_audit_users?
+    items << { link_to: { path: admin_user_audit_path(user) }, icon: 'eye', label: 'Audit' }
+  end
+
+  if can_impersonate_users? && user.impersonateable_by?(true_user)
+    items << { link_to: { path: impersonate_admin_user_path(true_user, become_id: user.id), method: :post }, icon: 'enter', label: 'Become' }
+  end
+
+  items << { link_to: { path: expire_password_admin_user_path(user), method: :patch, data: {confirm: "Would you really like to force a password reset for the account? #{user.name} will be immediately logged out and will need to choose a new password on next login." } }, icon: 'lock', label: 'Force Password Reset', class: ['border-danger', 'border-left'] }
+
+  items << { link_to: { path: admin_user_path(user), method: :delete, data: { confirm: "Would you really like to de-activate the account? #{user.name} will no longer be able to login." } }, icon: 'cross', label: 'De-Activate' }
+
+= action_menu_or_button(items: items)
+-# - if user.invitation_status != :active || user.access_locked?
+-#   .mb-6
+-#     - if user.invitation_status == :pending_confirmation
+-#       .w-100
+-#         = link_to admin_user_resend_invitation_path(user), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
+-#           %i.icon-envelope-o
+-#           Resend Invitation
+-#     - elsif user.invitation_status == :invitation_expired
+-#       .w-100
+-#         = link_to admin_user_recreate_invitation_path(user), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
+-#           %i.icon-envelope-o
+-#           Re-create Invitation
+-#     - elsif user.access_locked?
+-#       .w-100
+-#         = link_to unlock_admin_user_path(user), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
+-#           %i.icon-unlocked
+-#           Unlock
+-# .w-100
+-#   = link_to(edit_admin_user_path(id: user), class: 'btn btn-sm btn-secondary mb-2 text-nowrap') do
+-#     %i.icon-pencil
+-#     Edit Account
+-# - if user.training_required? && user.required_training_courses.present?
+-#   .w-100
+-#     = link_to(edit_admin_user_training_path(id: user), class: 'btn btn-sm btn-secondary mb-2 text-nowrap') do
+-#       %i.icon-pencil
+-#       Edit Training
+-# - if can_audit_users?
+-#   .w-100
+-#     = link_to admin_user_audit_path(user), class: 'btn btn-sm btn-secondary mb-2' do
+-#       %i.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
+-#       Audit
+-# - if can_impersonate_users? && user.impersonateable_by?(true_user)
+-#   .w-100
+-#     = link_to impersonate_admin_user_path(true_user, become_id: user.id), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
+-#       %i.icon-enter
+-#       Become
+-# .w-100
+-#   = link_to expire_password_admin_user_path(user),  method: :patch, data: {confirm: "Would you really like to force a password reset for the account? #{user.name} will be immediately logged out and will need to choose a new password on next login."}, class: 'btn btn-sm btn-warning mb-2 text-nowrap' do
+-#     %i.icon-lock
+-#     Force Password Reset
+-# .w-100
+-#   = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to de-activate the account? #{user.name} will no longer be able to login."}, class: 'btn btn-sm btn-danger mb-2 text-nowrap' do
+-#     %i.icon-cross
+-#     De-Activate
