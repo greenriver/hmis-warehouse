@@ -69,5 +69,34 @@ RSpec.describe 'Accounts', type: :feature do
         end
       end
     end
+
+    feature 'Devise expireable password' do
+      scenario 'after expiring password with password expiration disabled' do
+        Rails.configuration.devise.expire_password_after = false
+        user.force_password_reset!
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: user.password
+        click_button 'Sign In'
+        expect(page).to have_content 'Sign Out'
+      end
+
+      scenario 'after expiring password with password expiration enabled manual' do
+        Rails.configuration.devise.expire_password_after = true
+        user.force_password_reset!
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: user.password
+        click_button 'Sign In'
+        expect(page).to have_content 'Password Expired'
+      end
+
+      scenario 'after expiring password with password expiration enabled time-based' do
+        Rails.configuration.devise.expire_password_after = 1.weeks
+        user.force_password_reset!
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: user.password
+        click_button 'Sign In'
+        expect(page).to have_content 'Password Expired'
+      end
+    end
   end
 end

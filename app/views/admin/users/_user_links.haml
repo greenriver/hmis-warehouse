@@ -24,8 +24,8 @@
     items << { link_to: { path: impersonate_admin_user_path(true_user, become_id: user.id), method: :post }, icon: 'enter', label: 'Become' }
   end
 
-  items << { link_to: { path: expire_password_admin_user_path(user), method: :patch, class: ['border-warning', 'border-left'], data: {confirm: "Would you really like to force a password reset for the account? #{user.name} will be immediately logged out and will need to choose a new password on next login." } }, icon: 'lock', label: 'Force Password Reset' }
+  items << { link_to: { path: expire_password_admin_user_path(user), method: :patch, class: ['label-warning'], data: {confirm: "Would you really like to force a password reset for the account? #{user.name} will be immediately logged out and will need to choose a new password on next login." } }, icon: 'lock', label: 'Force Password Reset' }
 
-  items << { link_to: { path: admin_user_path(user), method: :delete, class: ['border-danger', 'border-left'], data: { confirm: "Would you really like to de-activate the account? #{user.name} will no longer be able to login." } }, icon: 'cross', label: 'De-Activate' }
+  items << { link_to: { path: admin_user_path(user), method: :delete, class: ['label-danger'], data: { confirm: "Would you really like to de-activate the account? #{user.name} will no longer be able to login." } }, icon: 'cross', label: 'De-Activate' }
 
 = action_menu_or_button(items: items)
