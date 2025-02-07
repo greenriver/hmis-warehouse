@@ -37,13 +37,13 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       expect(e2.exit_assessment&.data_collection_stage).to eq(3)
     end
 
-    it 'should exit based on entry date if client had no bed nights' do
+    it 'should exit based on entry date +1 if client had no bed nights' do
       e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
 
       Hmis::AutoExitJob.perform_now
 
       expect(Hmis::Hud::Enrollment.exited).to include(e1)
-      expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
+      expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date + 1.day, destination: 30)
       expect(e1.exit_assessment).to be_present
     end
 
@@ -52,7 +52,7 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       create :hmis_hud_service, :skip_validate, data_source: ds1, client: c1, enrollment: e1, record_type: 200, date_provided: nil
 
       Hmis::AutoExitJob.perform_now
-      expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
+      expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date + 1.day, destination: 30)
     end
 
     it 'should not fail if enrollment has contact date before entry (regression #7178)' do
@@ -64,8 +64,8 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       Hmis::AutoExitJob.perform_now
 
       expect(Hmis::Hud::Enrollment.exited).to include(e1)
-      expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
-      expect(e1.exit_assessment&.assessment_date).to eq(e1.entry_date)
+      expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date + 1.day, destination: 30)
+      expect(e1.exit_assessment&.assessment_date).to eq(e1.entry_date + 1.day)
       expect(e1.exit_assessment&.data_collection_stage).to eq(3)
     end
 
@@ -221,5 +221,31 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
     expect { Hmis::AutoExitJob.perform_now }.to raise_error('Auto-exit config unusually low: 29')
 
     expect(e1.exit).to be_nil
+  end
+
+  describe 'for enrollment with no contacts' do
+    let!(:c1) { create :hmis_hud_client, data_source: ds1 }
+    let!(:aec) { create :hmis_project_auto_exit_config, length_of_absence_days: 30, organization: o1 }
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, entry_date: 2.months.ago }
+
+    context 'residential project type' do
+      # PH project (9)
+      let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 9 }
+      it 'uses EntryDate+1 as ExitDate' do
+        expect do
+          Hmis::AutoExitJob.perform_now
+        end.to change { e1.reload.exit&.exit_date }.from(nil).to(e1.entry_date + 1.day)
+      end
+    end
+
+    context 'non-residential project type' do
+      # Services Only project (6)
+      let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 6 }
+      it 'uses EntryDate as ExitDate' do
+        expect do
+          Hmis::AutoExitJob.perform_now
+        end.to change { e1.reload.exit&.exit_date }.from(nil).to(e1.entry_date)
+      end
+    end
   end
 end
