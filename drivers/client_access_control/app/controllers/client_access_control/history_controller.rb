@@ -111,7 +111,7 @@ module ClientAccessControl
     end
 
     private def title_for_show
-      "#{@client.name} - Service History"
+      "#{@client.pii_provider(user: current_user).full_name} - Service History"
     end
   end
 end

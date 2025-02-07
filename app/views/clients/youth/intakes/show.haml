@@ -1,5 +1,5 @@
 = render 'breadcrumbs'
-- content_for :title, "Youth Intake for #{@client.full_name}"
+- content_for :title, "Youth Intake for #{@client.pii_provider(user: current_user).full_name}"
 
 .d-flex
   %h1.page-title= content_for :title

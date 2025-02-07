@@ -31,7 +31,7 @@
           %td{rowspan: enrollments.count+1}
             = link_to_if can_view_clients?, client.id, appropriate_client_path(client.id)
           %td{rowspan: enrollments.count+1}
-            = link_to_if can_view_clients?, client.name, appropriate_client_path(client.id)
+            = link_to_if can_view_clients?, client.pii_provider(user: current_user).full_name, appropriate_client_path(client.id)
           - enrollments.each do |enrollment|
             %tr
               %td= enrollment.project&.name(current_user)

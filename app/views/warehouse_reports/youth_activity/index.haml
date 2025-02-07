@@ -12,7 +12,7 @@
 - else
   %p No modifications were made to youth records between #{@filter.start} and #{@filter.end}.
 - @clients.find_each do |client|
-  %h3= client.name
+  %h3= client.pii_provider(user: current_user).full_name
   .c-card.mb-4
     .c-card__content
       - # We've preloaded all, use ruby select to pick those in range

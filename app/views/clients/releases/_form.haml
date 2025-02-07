@@ -3,7 +3,7 @@
     .col-4
       %dl
         %dt Name:
-        %dd= @client.name
+        %dd= @client.pii_provider(user: current_user).full_name
     .col-4
       %dl
         %dt Date of Birth:

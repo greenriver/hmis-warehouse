@@ -852,7 +852,7 @@ FactoryBot.define do
   end
 
   factory :occurrence_point_form, parent: :hmis_form_definition do
-    identifier { 'move_in_date' }
+    identifier { 'move_in_date_form' }
     role { :OCCURRENCE_POINT }
     definition do
       JSON.parse(<<~JSON)

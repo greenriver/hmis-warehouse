@@ -295,17 +295,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   # Occurrence Point Form Instances that are enabled for this project (e.g. Move In Date form)
   def occurrence_point_form_instances
-    # All instances for Occurrence Point forms
-    base_scope = Hmis::Form::Instance.with_role(:OCCURRENCE_POINT).active.published
-
-    # All possible form identifiers used for Occurrence Point collection
-    occurrence_point_identifiers = base_scope.pluck(:definition_identifier).uniq
-
-    # Choose the most specific instance for each definition identifier
-    occurrence_point_identifiers.map do |identifier|
-      scope = base_scope.where(definition_identifier: identifier).order(updated_at: :desc)
-      scope.detect_best_instance_for_project(project: self)
-    end.compact
+    Hmis::Form::OccurrencePointFormCollection.new.for_project(self)
   end
 
   def uniq_coc_codes

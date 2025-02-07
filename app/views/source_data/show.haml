@@ -1,4 +1,10 @@
 - title = "HMIS #{@type} Source Data"
+
+- pii = nil
+- redact = {}
+- if @item.class.name == 'GrdaWarehouse::Hud::Client'
+  - pii = @item.pii_provider(user: current_user)
+
 - content_for :title, title
 %h1= content_for :title
 - if @hmis
@@ -82,10 +88,36 @@
         - value = link_to @item[key], source_data_path(search: {id: @item[key], type: 'Organization'})
       - elsif key == :ProjectID && @item.class.name != 'GrdaWarehouse::Hud::Project'
         - value = link_to @item[key], source_data_path(search: {id: @item[key], type: 'Project'})
+      - elsif key == :FirstName && pii
+        - value = pii.first_name
+      - elsif key == :MiddleName && pii
+        - value = pii.middle_name
+      - elsif key == :LastName && pii
+        - value = pii.last_name
+      - elsif key == :SSN && pii
+        - value = pii.ssn
+      - elsif key == :DOB && pii
+        - value = pii.dob_and_age
       %tr
         %th= key
         %td= value
         - if @imported
-          %td= @imported[key]
+          %td
+            - if key.in?([:FirstName, :MiddleName, :LastName])
+              = GrdaWarehouse::PiiProvider.viewable_name(@imported[key], policy: pii.policy)
+            - elsif key.in?([:SSN])
+              = GrdaWarehouse::PiiProvider.viewable_ssn(@imported[key], policy: pii.policy)
+            - elsif key.in?([:DOB])
+              = GrdaWarehouse::PiiProvider.viewable_dob(@imported[key], policy: pii.policy)
+            - else
+              = @imported[key]
         - if @csv
-          %td= @csv[key]
+          %td
+            - if key.in?([:FirstName, :MiddleName, :LastName])
+              = GrdaWarehouse::PiiProvider.viewable_name(@csv[key], policy: pii.policy)
+            - elsif key.in?([:SSN])
+              = GrdaWarehouse::PiiProvider.viewable_ssn(@csv[key], policy: pii.policy)
+            - elsif key.in?([:DOB])
+              = GrdaWarehouse::PiiProvider.viewable_dob(@csv[key], policy: pii.policy)
+            - else
+              = @csv[key]

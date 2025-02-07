@@ -50,6 +50,7 @@ module GrdaWarehouse::Tasks
               source_clients: [
                 :most_recent_current_living_situation,
                 :most_recent_tc_hat,
+                :data_source,
                 {
                   most_recent_pathways_or_rrh_assessment: [
                     :assessment_questions,
@@ -76,11 +77,14 @@ module GrdaWarehouse::Tasks
               project_client = project_clients[client.id] || CasAccess::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
               project_client.assign_attributes(attributes_for_cas_project_client(client))
 
-              case GrdaWarehouse::Config.get(:cas_days_homeless_source)
-              when 'days_homeless_plus_overrides'
-                project_client.days_homeless = client.processed_service_history&.days_homeless_plus_overrides || client.days_homeless
-              else
-                project_client.days_homeless = client.days_homeless
+              # The Boston calculator handles days homeless natively
+              unless calculator_instance.handles_days_homeless?
+                case GrdaWarehouse::Config.get(:cas_days_homeless_source)
+                when 'days_homeless_plus_overrides'
+                  project_client.days_homeless = client.processed_service_history&.days_homeless_plus_overrides || client.days_homeless
+                else
+                  project_client.days_homeless = client.days_homeless
+                end
               end
 
               project_client.calculated_last_homeless_night = client.date_of_last_homeless_service
@@ -109,8 +113,8 @@ module GrdaWarehouse::Tasks
               project_client.needs_update = true
               to_update << project_client
             end
-            to_insert = to_update.select { |c| c.id.blank? }
-            to_upsert = to_update.select { |c| c.id.present? }
+            to_insert = to_update.select { |c| c.id.blank? }.uniq
+            to_upsert = to_update.select { |c| c.id.present? }.uniq
 
             CasAccess::ProjectClient.import!(to_upsert, on_duplicate_key_update: update_columns) if to_upsert.present?
             CasAccess::ProjectClient.import!(update_columns, to_insert) if to_insert.present?
@@ -290,12 +294,15 @@ module GrdaWarehouse::Tasks
         total_homeless_nights_sheltered: :total_homeless_nights_sheltered,
         service_need: :service_need,
         housing_barrier: :housing_barrier,
+        psh_required: :psh_required,
       }
     end
 
     private def attributes_for_cas_project_client(client)
       {}.tap do |options|
-        project_client_columns.map do |destination, source|
+        columns = project_client_columns
+        columns[:days_homeless] = :days_homeless if calculator_instance.handles_days_homeless?
+        columns.map do |destination, source|
           # puts "Processing: #{destination} from: #{source}"
           options[destination] = calculator_instance.value_for_cas_project_client(client: client, column: source)
         end
