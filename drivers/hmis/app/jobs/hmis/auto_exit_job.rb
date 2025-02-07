@@ -12,15 +12,23 @@ module Hmis
       Hmis::ProjectAutoExitConfig.exists?
     end
 
-    # todo add project id param
-    def perform
+    def perform(project_ids: nil, data_source_id: nil)
       return unless self.class.enabled?
 
       setup_notifier('HMIS Auto-Exit')
       auto_exit_projects = Set.new
       auto_exit_count = 0
 
-      Hmis::Hud::Project.hmis.each do |project|
+      project_scope = if project_ids.present?
+        Hmis::Hud::Project.hmis.where(id: project_ids)
+      elsif data_source_id
+        Hmis::Hud::Project.hmis.where(data_source_id: data_source_id)
+      else
+        # By default, run against all HMIS data sources
+        Hmis::Hud::Project.hmis
+      end
+
+      project_scope.each do |project|
         config = Hmis::ProjectAutoExitConfig.detect_best_config_for_project(project)
         next unless config.present?
         raise "Auto-exit config unusually low: #{config.length_of_absence_days}" if config.length_of_absence_days < 30

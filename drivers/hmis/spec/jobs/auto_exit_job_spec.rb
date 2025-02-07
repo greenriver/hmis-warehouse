@@ -248,4 +248,41 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       end
     end
   end
+
+  describe 'can run for specific projects or data sources' do
+    # ds1 with 1 project set up to auto-exit, and 1 eligible enrollment
+    let!(:ds1) { create(:hmis_data_source) }
+    let!(:p1) { create :hmis_hud_project, data_source: ds1 }
+    let!(:aec) { create :hmis_project_auto_exit_config, length_of_absence_days: 30, project: p1 }
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.months.ago }
+
+    let!(:ds2) { create(:hmis_data_source) }
+    let!(:p2) { create :hmis_hud_project, data_source: ds2 }
+    let!(:aec2) { create :hmis_project_auto_exit_config, length_of_absence_days: 30, project: p2 }
+    let!(:e2) { create :hmis_hud_enrollment, data_source: ds2, project: p2, entry_date: 2.months.ago }
+
+    it 'should only auto-exit enrollments for the specified data source' do
+      expect do
+        Hmis::AutoExitJob.perform_now(data_source_id: ds1.id)
+      end.to change { e1.reload.exit&.exit_date }.from(nil).to(be_present).
+        and change(Hmis::Hud::Exit, :count).by(1)
+
+      expect do
+        Hmis::AutoExitJob.perform_now(data_source_id: ds2.id)
+      end.to change { e2.reload.exit&.exit_date }.from(nil).to(be_present).
+        and change(Hmis::Hud::Exit, :count).by(1)
+    end
+
+    it 'should only auto-exit enrollments for the specified project' do
+      expect do
+        Hmis::AutoExitJob.perform_now(project_ids: [p1.id])
+      end.to change { e1.reload.exit&.exit_date }.from(nil).to(be_present).
+        and change(Hmis::Hud::Exit, :count).by(1)
+
+      expect do
+        Hmis::AutoExitJob.perform_now(project_ids: [p2.id])
+      end.to change { e2.reload.exit&.exit_date }.from(nil).to(be_present).
+        and change(Hmis::Hud::Exit, :count).by(1)
+    end
+  end
 end
