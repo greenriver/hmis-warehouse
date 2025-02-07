@@ -1,7 +1,7 @@
 .o-page__main-content.mt-3
   .clients__list
     - source_clients = clients.map(&:client)
-    - current_user.client_view_accessor.preload_source_clients(source_clients)
+    - current_user.client_view_accessor.preload_searchable_clients(source_clients)
     - source_clients.each do |client|
       - window_link = client.appropriate_path_for?(current_user)
       - show_window_link = window_link.present?

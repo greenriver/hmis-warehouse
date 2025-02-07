@@ -1,29 +1,52 @@
-# Provides view-optimized access to source client data for destination clients.
-# Handles both efficient data loading and formatted output for views, reducing
-# N+1 queries while providing convenient access to client information.
+# frozen_string_literal: true
+
+# The SourceClientViewAccessor implements view-specific optimizations to prevent N+1 queries
+# when accessing and authorizing source clients. It is most useful in a list context, such as
+# when rendering an index page.
+#
+# The class manages a cache of authorized source client records, grouped by destination client.
+#
+# @example Batch preloading for multiple clients
+#   accessor = GrdaWarehouse::SourceClientViewAccessor.new(user: current_user)
+#   accessor.preload_searchable_clients(destination_clients)
+#   destination_clients.each do |client|
+#     source_clients = accessor.searchable_clients(client)
+#     # Process source clients...
+#   end
 #
 class GrdaWarehouse::SourceClientViewAccessor
-  # override inspect to prevent clutter exceptions
+  # Overrides the default inspect method to prevent memory-intensive string
+  # generation when the object contains many cached clients
   def inspect
     object_id
   end
 
-  # @param user [User] The current user accessing the client data
+  # @param user [User] The authenticated for permissions checks
   def initialize(user:)
     @user = user
     @searchable_clients = {}
   end
 
-  # Retrieves source clients for a given destination client
-  # @param client [DestinationClient] The destination client to look up
-  # @return [Array<SourceClient>] Array of source client records associated with the destination client
+  # Retrieves all searchable source clients associated with a given destination client, filtered
+  # to only those searchable by the current user
+  #
+  # @param client [DestinationClient] The destination client whose source records
+  #   should be retrieved
+  # @return [Array<SourceClient>] Array of associated source client records
+  # @note Automatically triggers preloading if the client hasn't been cached
   def searchable_clients(client)
     key = client.id
-    preload_source_clients([client]) unless @searchable_clients.key?(key)
+    preload_searchable_clients([client]) unless @searchable_clients.key?(key)
     @searchable_clients[key] || []
   end
 
-  # @param client [DestinationClient] The destination client to get names for
+  # Name set object containing aliases from the source clients associated with the
+  # given destination client, filtered to only those searchable by the current user
+  #
+  # @param client [DestinationClient] The destination client whose names
+  #   should be retrieved
+  # @return [GrdaWarehouse::SourceClientNameSet] Object containing all name
+  #   variations from source records
   def searchable_client_names(client)
     GrdaWarehouse::SourceClientNameSet.new(
       destination_client: client,
@@ -32,8 +55,14 @@ class GrdaWarehouse::SourceClientViewAccessor
     )
   end
 
-  # @param client [Array<DestinationClient>] Array of destination clients to preload for later access
-  def preload_source_clients(clients)
+  # Preloads and caches source client data for a batch of destination clients to
+  # optimize subsequent access
+  #
+  # @param clients [Array<DestinationClient>] Array of destination clients
+  #   whose source records should be preloaded
+  # @return [Boolean] true if preloading was performed, false if no source
+  #   clients were found
+  def preload_searchable_clients(clients)
     destination_client_ids = clients.map(&:id)
     source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: destination_client_ids).pluck(:source_id)
 
@@ -45,7 +74,7 @@ class GrdaWarehouse::SourceClientViewAccessor
 
     clients.each do |client|
       key = client.destination_client&.id
-      raise unless key
+      raise "Source client #{client.id} references invalid destination client" unless key
 
       @searchable_clients[key] ||= []
       @searchable_clients[key] << client

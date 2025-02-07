@@ -79,7 +79,7 @@ class ClientAccessControl::ClientsController < ApplicationController
   # FIXME: optimization and refactor needed, this is hack
   # It seems that searchable_to scope is not-performant under some configurations.
   protected def temporary_acl_search_hack
-    upper_bound_limit = 500 # protect from overly broad queries
+    upper_bound_limit = 5_000 # protect from overly broad queries
     # 1. Perform text search first
     unauthorized_client_ids = client_source.text_search(params[:q], sorted: sorted).limit(upper_bound_limit).pluck(:id)
     if unauthorized_client_ids.size == upper_bound_limit

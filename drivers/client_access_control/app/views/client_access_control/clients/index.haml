@@ -34,7 +34,7 @@
           Client search returned too many records, please narrow your search and try again.
       - else
         = render 'clients/new_client'
-      - current_user.client_view_accessor.preload_source_clients(@clients)
+      - current_user.client_view_accessor.preload_searchable_clients(@clients)
       - @clients.each do |client|
         = render 'client_access_control/clients/client_card', client: client
     = render 'common/pagination_bottom', item_name: 'client'
