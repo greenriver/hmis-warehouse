@@ -5,12 +5,15 @@
   .dropdown-menu.options(aria-label="Actions")
     %ul.list-unstyled.m-0
       - items.each do |item|
-        - classes = ['dropdown-item']
+        -# Populate classes with a drop-down item
+        - item[:link_to][:class] ||= []
+        - item[:link_to][:class] += ['dropdown-item']
+
         - if item.dig(:link_to, :method) == :delete
           - item[:icon] ||= :cross
         - path = item.dig(:link_to, :path)
         %li
-          = link_to(path, **item[:link_to].reverse_merge({class: classes})) do
+          = link_to(path, **item[:link_to]) do
             - if item[:icon].present?
               %i{class: "icon-#{item[:icon]} mr-2"}
             = item[:label]
