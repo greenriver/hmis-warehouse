@@ -1,13 +1,15 @@
 .o-page__main-content.mt-3
   .clients__list
-    - clients.each do |user_client|
-      - client = user_client.client
+    - source_clients = clients.map(&:client)
+    - current_user.client_view_accessor.preload_searchable_clients(source_clients)
+    - source_clients.each do |client|
       - window_link = client.appropriate_path_for?(current_user)
       - show_window_link = window_link.present?
-      - if ( akas = client_aliases client ).empty?
+      - akas = current_user.client_view_accessor.searchable_client_names(client).to_a
+      - if akas.empty?
         - main_client_name = client.source_clients.first.try(:data_source).try(:short_name)
       - else
-        - main_client_name = akas.shift
+        - main_client_name = render_client_alias akas.shift
       .clients__client-card.clients__client.c-card
         .c-card__content
           .client__details.client__details--identity
@@ -15,10 +17,9 @@
               .client__client-name
                 .client-aka
                   = main_client_name
-              - akas.each_with_index do | aka, i |
+              - akas.each do |aka|
                 .client__client-name
-                  .client-aka
-                    = aka
+                  .client-aka= render_client_alias(aka)
           .client__details.client__details--status
             - total_homeless = client.days_homeless
             %p
