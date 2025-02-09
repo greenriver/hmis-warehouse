@@ -80,6 +80,14 @@ RSpec.describe 'Accounts', type: :feature do
         expect(page).to have_content 'Sign Out'
       end
 
+      scenario 'without expiring password with password expiration enabled manual' do
+        Rails.configuration.devise.expire_password_after = true
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: user.password
+        click_button 'Sign In'
+        expect(page).to have_content 'Sign Out'
+      end
+
       scenario 'after expiring password with password expiration enabled manual' do
         Rails.configuration.devise.expire_password_after = true
         user.force_password_reset!
@@ -87,6 +95,24 @@ RSpec.describe 'Accounts', type: :feature do
         fill_in 'Password', with: user.password
         click_button 'Sign In'
         expect(page).to have_content 'Password Expired'
+      end
+
+      scenario 'without expiring password with password expiration enabled time-based' do
+        Rails.configuration.devise.expire_password_after = 1.weeks
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: user.password
+        click_button 'Sign In'
+        expect(page).to have_content 'Sign Out'
+      end
+
+      scenario 'time-expiring password with password expiration enabled time-based' do
+        Rails.configuration.devise.expire_password_after = 1.weeks
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: user.password
+        travel_to Time.current + 2.weeks do
+          click_button 'Sign In'
+          expect(page).to have_content 'Password Expired'
+        end
       end
 
       scenario 'after expiring password with password expiration enabled time-based' do
