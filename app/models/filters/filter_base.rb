@@ -578,6 +578,16 @@ module Filters
       end
     end
 
+    def criteria(all_project_types: nil, multi_coc_code_filter: true, include_date_range: true, chronic_at_entry: true)
+      configuration  = Filters::Criteria::Configuration.new(
+        all_project_types: all_project_types,
+        multi_coc_code_filter: multi_coc_code_filter,
+        include_date_range: include_date_range,
+        chronic_at_entry: chronic_at_entry,
+      )
+      Filters::Criteria::CriteriaSet.call(filter: self, configuration: configuration)
+    end
+
     # Apply all known scopes
     # NOTE: by default we use coc_codes, if you need to filter by the coc_code singular, take note
     def apply(scope, report_scope_source, all_project_types: nil, multi_coc_code_filter: true, include_date_range: true, chronic_at_entry: true)
@@ -586,66 +596,15 @@ module Filters
       @report_scope_source = report_scope_source
       @filter = self
 
-      criteria = Filters::Criteria::Resolver.new(
-        @filter,
+      criteria(
         all_project_types: all_project_types,
         multi_coc_code_filter: multi_coc_code_filter,
         include_date_range: include_date_range,
-        chronic_at_entry: chronic_at_entry
+        chronic_at_entry: chronic_at_entry,
+        project_types: @project_types,
       )
-      # apply the criteria to the scope
-      criteria.reduce(scope) { |s, c| c.apply(s) }
+      criteria.apply(scope)
     end
-
-    # def apply_client_level_restrictions(scope, chronic_at_entry: true)
-    #   @filter = self
-    #   scope = filter_for_household_type(scope)
-    #   scope = filter_for_head_of_household(scope)
-    #   scope = filter_for_age(scope)
-    #   scope = filter_for_gender(scope)
-    #   scope = filter_for_race(scope)
-    #   scope = filter_for_veteran_status(scope)
-    #   scope = filter_for_sub_population(scope)
-    #   scope = filter_for_prior_living_situation(scope)
-    #   scope = filter_for_destination(scope)
-    #   scope = filter_for_disabilities(scope)
-    #   scope = filter_for_indefinite_disabilities(scope)
-    #   scope = filter_for_dv_status(scope)
-    #   scope = filter_for_dv_currently_fleeing(scope)
-    #   scope = if chronic_at_entry
-    #     filter_for_chronic_at_entry(scope)
-    #   else
-    #     filter_for_chronic_status(scope)
-    #   end
-    #   scope = filter_for_rrh_move_in(scope)
-    #   scope = filter_for_psh_move_in(scope)
-    #   scope = filter_for_first_time_homeless_in_past_two_years(scope)
-    #   scope = filter_for_returned_to_homelessness_from_permanent_destination(scope)
-    #   scope = filter_for_ca_homeless(scope)
-    #   scope = filter_for_ce_cls_homeless(scope)
-    #   scope = filter_for_cohorts(scope)
-    #   scope = filter_for_active_roi(scope)
-    #   scope = filter_for_times_homeless(scope)
-    #   scope = filter_for_days_since_contact(scope)
-    #   scope
-    # end
-
-    #def apply_project_level_restrictions(scope, all_project_types: nil, multi_coc_code_filter: true, include_date_range: true)
-      # @filter = self
-      # scope = filter_for_user_access(scope)
-      # scope = filter_for_range(scope) if include_date_range
-      # scope = if multi_coc_code_filter
-      #   filter_for_cocs(scope)
-      # else
-      #   filter_for_coc(scope)
-      # end
-      # scope = filter_for_project_type(scope, all_project_types: all_project_types)
-      # scope = filter_for_projects(scope)
-      # scope = filter_for_funders(scope)
-      # scope = filter_for_data_sources(scope)
-      # scope = filter_for_organizations(scope)
-      # scope
-    #end
 
     def report_scope_source
       @report_scope_source ||= GrdaWarehouse::ServiceHistoryEnrollment.entry
@@ -994,66 +953,6 @@ module Filters
       self.class.available_age_ranges
     end
 
-    def self.age_range(description)
-      case description
-      when :zero_to_four
-        0..4
-      when :five_to_nine
-        5..9
-      when :five_to_ten
-        5..10
-      when :ten_to_fourteen
-        10..14
-      when :eleven_to_fourteen
-        11..14
-      when :fifteen_to_seventeen
-        15..17
-      when :under_eighteen
-        0..17
-      when :eighteen_to_twenty_four
-        18..24
-      when :twenty_five_to_twenty_nine
-        25..29
-      when :twenty_five_to_thirty_four
-        25..34
-      when :thirty_to_thirty_four
-        30..34
-      when :thirty_five_to_thirty_nine
-        35..39
-      when :thirty_five_to_forty_four
-        35..44
-      when :thirty_to_thirty_nine
-        30..39
-      when :forty_to_forty_four
-        40..44
-      when :forty_five_to_forty_nine
-        45..49
-      when :forty_five_to_fifty_four
-        45..54
-      when :forty_to_forty_nine
-        40..49
-      when :fifty_to_fifty_four
-        50..54
-      when :fifty_five_to_fifty_nine
-        55..59
-      when :fifty_five_to_sixty_four
-        55..64
-      when :sixty_to_sixty_one
-        60..61
-      when :sixty_two_to_sixty_four
-        62..64
-      when :over_sixty_one
-        62..110
-      when :over_sixty_four
-        65..110
-      when :sixty_five_to_seventy_four
-        65..74
-      when :seventy_five_to_eighty_four
-        75..84
-      when :eighty_five_plus
-        85..110
-      end
-    end
 
     def available_inactivity_days
       {

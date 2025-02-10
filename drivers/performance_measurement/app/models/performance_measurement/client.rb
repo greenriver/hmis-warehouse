@@ -103,8 +103,10 @@ module PerformanceMeasurement
       self.class
     end
 
-    private def join_clients_method
-      :source_client
+    def criteria_configuration
+      result = super
+      result.join_clients_method = :source_client
+      result
     end
 
     scope :race_ethnicity_am_ind_ak_native, -> do

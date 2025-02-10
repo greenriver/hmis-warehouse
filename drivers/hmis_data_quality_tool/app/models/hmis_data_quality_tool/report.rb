@@ -224,10 +224,10 @@ module HmisDataQualityTool
       # clients with enrollment CoC in the wrong CoC so we can identify them
       #filter.apply(scope, except: :filter_for_enrollment_cocs)
 
-      Filters::Criteria::Resolver.new(filter: filter)
-        .filter(&:hud?)
-        .filter { |c| !c.is_a?(Filters::Criteria::EnrollmentCoc) }
-        .reduce(scope) { |s, f| f.apply(s) }
+      filter.criteria.
+        filter(&:hud?).
+        filter { |c| c.id != :filter_for_enrollment_cocs }.
+        apply(scope)
     end
 
     def can_see_client_details?(user)

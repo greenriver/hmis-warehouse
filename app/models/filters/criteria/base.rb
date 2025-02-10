@@ -1,7 +1,22 @@
 class Filters::Criteria::Base
-  # model must be included before attributes
-  include ActiveModel::Model
-  include ActiveModel::Attributes
+  def self.for_input(input:, config: nil)
+    criteria = new(input: input, config: config)
+    criteria.applies? ? criteria : nil
+  end
+
+  attr_accessor :input, :config
+  def initialize(input:, config: nil)
+    @input = input
+    @config = config || Filters::Criteria::Configuration.new
+  end
+
+  def id
+    self.class.name.demodulize.underscore
+  end
+
+  def hud?
+    self.class::IS_HUD
+  end
 
   def level
     case self.class::LEVEL
@@ -22,5 +37,18 @@ class Filters::Criteria::Base
 
   def arel
     Hmis::ArelHelper.instance
+  end
+
+  # fixme
+  def add_alternative(scope, alternative)
+    if scope.nil?
+      alternative
+    else
+      scope.or(alternative)
+    end
+  end
+
+  def user
+    input.user
   end
 end
