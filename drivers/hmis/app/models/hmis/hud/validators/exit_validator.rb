@@ -46,6 +46,14 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
     errors.add(:exit_date, :out_of_range, message: before_project_start_message(project_start_date), **options) if project_start_date&.> exit_date
     errors.add(:exit_date, :out_of_range, message: after_project_end_message(project_end_date), **options) if project_end_date&.< exit_date
     errors.add :exit_date, :out_of_range, message: before_entry_message(entry_date), **options if entry_date.present? && entry_date > exit_date
+
+    # Some projects do not allow same-day exit
+    # rubocop:disable Style/IfUnlessModifier
+    if entry_date.present? && entry_date == exit_date && !enrollment.project.allows_same_day_exit?
+      errors.add :exit_date, :out_of_range, message: on_entry_message(entry_date), **options
+    end
+    # rubocop:enable Style/IfUnlessModifier
+
     errors.add :exit_date, :information, severity: :warning, message: over_thirty_days_ago_message, **options if exit_date < (Date.current - 30.days)
     errors.add :exit_date, :out_of_range, message: before_dob_message, **options if dob.present? && dob > exit_date
     return errors.errors if errors.any?
