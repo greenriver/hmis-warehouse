@@ -49,7 +49,7 @@ module Hmis
           Hmis::Hud::Base.transaction do
             # Auto-exit all household members together, setting the exit date equal to the most recent contact for any household member
             household.enrollments.each do |e|
-              auto_exit(e, most_recent_contact, project_type: project.project_type)
+              auto_exit(e, most_recent_contact, project: project)
             end
           end
         end
@@ -77,12 +77,12 @@ module Hmis
       end
     end
 
-    def auto_exit(enrollment, most_recent_contact, project_type:)
+    def auto_exit(enrollment, most_recent_contact, project:)
       exit_date = contact_date_for_entity(most_recent_contact)
       # If most recent contact was a Bed Night service, the Exit Date should be the day after they received service
       exit_date += 1.day if most_recent_contact.is_a?(Hmis::Hud::Service) && most_recent_contact.record_type == 200
       # If most recent contact was on Entry Date and this is a residential project, add 1 day to avoid Same-day-exit data quality errors
-      exit_date += 1.day if exit_date == enrollment.entry_date && HudUtility2024.residential_project_type_ids.include?(project_type)
+      exit_date += 1.day if exit_date == enrollment.entry_date && !project.allows_same_day_exit?
 
       user = Hmis::Hud::User.system_user(data_source_id: enrollment.data_source_id)
 

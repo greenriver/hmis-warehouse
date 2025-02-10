@@ -47,9 +47,9 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
     errors.add(:exit_date, :out_of_range, message: after_project_end_message(project_end_date), **options) if project_end_date&.< exit_date
     errors.add :exit_date, :out_of_range, message: before_entry_message(entry_date), **options if entry_date.present? && entry_date > exit_date
 
-    # Residential projects do not allow same-day exit
+    # Some projects do not allow same-day exit
     # rubocop:disable Style/IfUnlessModifier
-    if entry_date.present? && entry_date == exit_date && HudUtility2024.residential_project_type_ids.include?(enrollment.project.project_type)
+    if entry_date.present? && entry_date == exit_date && !enrollment.project.allows_same_day_exit?
       errors.add :exit_date, :out_of_range, message: on_entry_message(entry_date), **options
     end
     # rubocop:enable Style/IfUnlessModifier
