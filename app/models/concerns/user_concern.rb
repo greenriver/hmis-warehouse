@@ -381,6 +381,19 @@ module UserConcern
       end
     end
 
+    # Dependent on devise expire_password_after being set to a value other than false
+    def force_password_reset!
+      return false unless password_expiration_enabled?
+
+      # Immediately logout the user
+      self.unique_session_id = nil
+      # Force a password change on next login
+      need_change_password! # calls save internally
+
+      # Return true to indicate success
+      true
+    end
+
     # Prevent sending confirmation emails if the user has an open invitation
     def send_reset_password_instructions
       if invitation_token.present?

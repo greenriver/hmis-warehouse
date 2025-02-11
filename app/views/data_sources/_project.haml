@@ -26,3 +26,5 @@
         = link_to 'HMIS', source_datum_path(project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
       - if RailsDrivers.loaded.include?(:hmis_csv_importer) && HmisCsvImporter::ImportOverride.any_apply?(project, @overrides)
         %i.icon-info{data: {toggle: :tooltip, title: "Overrides Active"}}
+      - if @data_source.hmis_link_available?
+        = hmis_external_link(project, user: current_user, wrapper_class: 'mb-2 mt-2 text-teeny')

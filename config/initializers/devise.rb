@@ -341,9 +341,14 @@ Devise.setup do |config|
   # ==> Security Extension
   # Configure security extension for devise
 
-  # Should the password expire (e.g 3.months)
-  # config.expire_password_after = false
-  expire_password_after = ENV.fetch('PASSWORD_EXPIRATION_DAYS') { 'false' }
+  # Password expires after a configurable time (in seconds).
+  # Or expire passwords on demand by setting this configuration to `true`
+  # Use `user.need_change_password!` to expire a password.
+  # Setting the configuration to `false` will completely disable expiration checks.
+  # config.expire_password_after = 3.months | true | false
+  # We use the password expiration feature to handle forced password resets.
+  # If no ENV is provided, use true, which expires on demand
+  expire_password_after = ENV.fetch('PASSWORD_EXPIRATION_DAYS') { 'true' }
   if expire_password_after == 'true'
     config.expire_password_after = true
   elsif expire_password_after == 'false'

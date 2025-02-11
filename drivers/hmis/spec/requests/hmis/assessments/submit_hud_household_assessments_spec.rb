@@ -19,9 +19,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
   let!(:access_control) { create_access_control(hmis_user, ds1) }
-  let(:assessment1) { create :hmis_wip_custom_assessment, data_source: ds1 }
-  let(:assessment2) { create :hmis_wip_custom_assessment, data_source: ds1 }
-  let(:assessment3) { create :hmis_wip_custom_assessment, data_source: ds1 }
+
+  let!(:project) { create :hmis_hud_project, data_source: ds1, project_type: 6 } # services only (non-residential)
+  let!(:assessment1) { create :hmis_wip_custom_assessment, data_source: ds1, project: p1 }
+  let!(:assessment2) { create :hmis_wip_custom_assessment, data_source: ds1, project: p1 }
+  let!(:assessment3) { create :hmis_wip_custom_assessment, data_source: ds1, project: p1 }
   let(:submit_assessment_mutation) do
     <<~GRAPHQL
       mutation SubmitHouseholdAssessments($input: SubmitHouseholdAssessmentsInput!) {
@@ -43,7 +45,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     [assessment1, assessment2, assessment3].each do |assessment|
       enrollment = assessment.enrollment
-      project = assessment1.enrollment.project # all use the same project
       enrollment.update!(household_id: assessment1.enrollment.household_id, project_id: project.project_id, project_pk: project.id)
 
       # Save enrollment as WIP
