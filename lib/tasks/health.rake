@@ -16,9 +16,6 @@ namespace :health do
   end
 
   task hourly: [:environment, 'log:info_to_stdout'] do
-    user = User.setup_system_user
-    Health::DeliverScheduledDocumentsJob.perform_later(user) if Health::DeliverScheduledDocumentsJob.any_to_run?
-    Health::SignableDocument.process_unfetched_signed_documents
   end
 
   desc 'Enrollments and Eligibility'
@@ -160,22 +157,6 @@ namespace :health do
   desc 'Clean up referrals'
   task cleanup_referrals: [:environment, 'log:info_to_stdout'] do
     Health::PatientReferral.cleanup_referrals
-  end
-
-  desc 'Check for lost hellosign signatures'
-  task check_hellosign_signatures: [:environment, 'log:info_to_stdout'] do
-    client_ids = Health::Careplan.
-      where(provider_signed_on: nil).
-      joins(:pcp_signature_requests).
-      where.not(signature_requests: { completed_at: nil }).
-      joins(:patient).
-      pluck(:client_id)
-
-    puts 'no lost signatures found' if client_ids.count.zero?
-
-    client_ids.each do |client_id|
-      puts "https://#{ENV['FQDN']}/clients/#{client_id}/health/careplans"
-    end
   end
 
   desc 'Identify and optionally remove (call with [destroy]) empty careplans'
