@@ -39,9 +39,11 @@ RSpec.feature 'Split Households', type: :system do
 
   describe 'select clients screen' do
     it 'selects the initiator and disallows selecting HoH' do
-      hoh_checkbox = find("input[aria-label='Select #{prior_hoh.brief_name}']", visible: :all)
-      expect(hoh_checkbox.disabled?).to be_truthy
-      expect(hoh_checkbox.checked?).to be_falsey
+      table = find("table[aria-label='Select Clients']")
+      rows = table.first('tbody').all('tr')
+      expect(rows.count).to eq(2)
+      client_names = rows.map { |row| row.all('td')[1].text }
+      expect(client_names).to contain_exactly(new_hoh.brief_name, child.brief_name), 'Does not include prior_hoh'
 
       new_hoh_checkbox = find("input[aria-label='Select #{new_hoh.brief_name}']", visible: :all)
       expect(new_hoh_checkbox.checked?).to be_truthy
