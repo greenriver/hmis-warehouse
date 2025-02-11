@@ -123,7 +123,9 @@ module ServiceHistory::Builder
     private def builder_batch_job_scope
       Delayed::Job.uncached do
         Delayed::Job.where(failed_at: nil).
-          where("1 != #{rand(2..50)}"). # Cache buster
+          # Cache buster - for whatever reason `uncached` is completely inconsistent.
+          # We ALWAYS want this to query the database.
+          where("1 != #{rand(2..50)}").
           jobs_for_class('ServiceHistory::RebuildEnrollments')
       end
     end
