@@ -254,6 +254,10 @@ module GrdaWarehouse::Hud
       none
     end
 
+    scope :destination_or_source_visible_to, ->(_user, client_ids: nil) do # rubocop:disable Lint/UnusedBlockArgument
+      none
+    end
+
     scope :searchable_to, ->(_user, client_ids: nil) do # rubocop:disable Lint/UnusedBlockArgument
       # FIXME: add doc as to why scopes are in an extension (these are overridden)
       none
