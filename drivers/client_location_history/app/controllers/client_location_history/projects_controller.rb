@@ -11,7 +11,8 @@ module ClientLocationHistory
     before_action :require_can_view_project_locations!
 
     def map
-      @locations = @project.enrollment_location_histories.where(located_on: filter.range)
+      # find locations tied to Enrollments in the project. Join client to drop locations that don't have a client.
+      @locations = @project.enrollment_location_histories.joins(:client).where(located_on: filter.range)
       @markers = @locations.map { |l| l.as_marker(current_user, [:name, :seen_on]) }
       @bounds = ClientLocationHistory::Location.bounds(@locations)
       @options = {
