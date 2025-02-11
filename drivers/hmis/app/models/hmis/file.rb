@@ -43,26 +43,23 @@ class Hmis::File < GrdaWarehouse::File
   scope :confidential, -> { where(confidential: true) }
   scope :nonconfidential, -> { where(confidential: [false, nil]) }
 
-  # todo @martha - need to add tests for this after validating the approach
-  scope :viewable_by, ->(user, client_ids = nil) do
+  # Passing client_ids can significantly improve performance, to avoid a subquery on the entire Client table.
+  # This may not be the perfect solution (combining scopes would be neater) but it works.
+  # It is similar to the strategy described in the Warehouse's EnrollmentArbiter.
+  scope :viewable_by, ->(user, client_ids: nil) do
     # NOTE: it's okay that confidential files are included in this scope even if the user
     # doesn't have permission to read the file. Users can see the existence of confidential
-    # files but they can't read them. Reference:
-    # https://github.com/open-path/Green-River/issues/5184
-
-    # significantly speeds up the Client scope if we restrict which client IDs we care about.
-    # if the caller passed specific client IDs to check, just check those; otherwise check any clients that have files
-    client_ids_to_check = client_ids || Hmis::File.where(enrollment_id: nil).pluck(:client_id).uniq
+    # files but they can't read them. Reference: https://github.com/open-path/Green-River/issues/5184
 
     client_scope = Hmis::Hud::Client.
-      where(id: client_ids_to_check).
-      # recombining can_view_clients into the with_access call, as opposed to separately adding the .viewable_by scope, does seem to save some time
-      # (but the effect is prob less noticeable if we keep the client_ids_to_check approach, so maybe not worth the hit to readability)
-      with_access(user, :can_view_clients, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
+      viewable_by(user).
+      with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
+    client_scope = client_scope.where(id: client_ids) if client_ids.present?
 
     enrollment_scope = Hmis::Hud::Enrollment.
       viewable_by(user).
       with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
+    enrollment_scope = enrollment_scope.joins(:client).where(client: { id: client_ids }) if client_ids.present?
 
     case_statement = Arel::Nodes::Case.new.
       when(arel_table[:enrollment_id].not_eq(nil)).
@@ -76,7 +73,7 @@ class Hmis::File < GrdaWarehouse::File
 
     viewable_scope = viewable_scope.or(Hmis::File.where(user_id: user.id)) if user.can_manage_own_client_files?
 
-    where(id: viewable_scope.select(:id)) # what's the reason for this instead of just returning viewable_scope? to get rid of the client and enrollment artifacts from the left_outer_join?
+    where(id: viewable_scope.select(:id))
   end
 
   def self.sort_by_option(option)

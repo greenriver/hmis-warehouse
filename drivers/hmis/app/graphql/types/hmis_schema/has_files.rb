@@ -34,8 +34,9 @@ module Types
       private
 
       def scoped_files(scope, sort_order: :date_created)
-        # todo @martha add comments about this
-        scope = scope.viewable_by(current_user, object.instance_of?(Hmis::Hud::Client) ? [object.id] : nil)
+        # Passing the client ID to the viewable_by scope improves performance
+        client_id = object.instance_of?(Hmis::Hud::Client) ? object.id : object.client.id
+        scope = scope.viewable_by(current_user, client_ids: [client_id])
         scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope
       end
