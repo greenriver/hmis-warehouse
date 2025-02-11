@@ -122,7 +122,9 @@ module ServiceHistory::Builder
     # Class method
     private def builder_batch_job_scope
       Delayed::Job.uncached do
-        Delayed::Job.where(failed_at: nil).jobs_for_class('ServiceHistory::RebuildEnrollments')
+        Delayed::Job.where(failed_at: nil).
+          where("1 != #{rand(2..50)}"). # Cache buster
+          jobs_for_class('ServiceHistory::RebuildEnrollments')
       end
     end
 

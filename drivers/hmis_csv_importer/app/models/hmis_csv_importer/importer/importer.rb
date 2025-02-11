@@ -721,7 +721,8 @@ module HmisCsvImporter::Importer
       bm = Benchmark.measure do
         batch = []
         # existing.each_slice(SELECT_BATCH_SIZE) do |hud_keys|
-        existing_destination_data_scope(klass).order(id: :asc).pluck_in_batches(klass.hud_key, batch_size: SELECT_BATCH_SIZE) do |hud_keys|
+        existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
+          hud_keys = relation.pluck(klass.hud_key)
           klass.should_import.where(
             importer_log_id: @importer_log.id,
             klass.hud_key => hud_keys,
