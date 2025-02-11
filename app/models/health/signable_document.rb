@@ -53,8 +53,6 @@ module Health
       where(health_file_id: nil)
     end
 
-    EMAIL_REGEX = /[\w.+]+@[\w.+]+/
-
     def self.patient_expiration_window
       1.hours.from_now
     end
