@@ -76,11 +76,14 @@ module GrdaWarehouse::Hud
     # Needs to come after has_many :enrollments, bc one extension uses a has_many through: :enrollments relation
     include RailsDrivers::Extensions
 
-    # A scope to return any projects that are residential (provide housing).  Generally, and
-    # completely before the FY2024 data standards, this is based on project type.  In FY2024
+    # A scope to return any projects that are residential (provide housing or indicate where someone was living).
+    # Generally, and completely before the FY2024 data standards, this is based on project type.  In FY2024
     # Project Type 13 (RRH) was given an RRHSubType column to indicate if it was a services only
     # project or if it included housing.
     # This handles the RRH Sub Type given a set of project IDs so as to return residential projects
+    # Note that Street Outreach is included in this set even though no one is "providing housing" in
+    # that situation.  This is included as valid SO enrollments require at least one night (and one CLS)
+    # and are an indication of where someone was residing.
     scope :_residential_for_project_type_ids, ->(project_type_ids) do
       project_type_ids = Array.wrap(project_type_ids)
       return where(project_type: project_type_ids) unless project_type_ids.include?(13)
