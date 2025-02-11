@@ -25,10 +25,7 @@ module InactiveClientReport::WarehouseReports
     def index
       @excel_export = ::InactiveClientReport::DocumentExports::ReportExcelExport.new
       respond_to do |format|
-        format.html do
-          @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name))
-          @report.client_ids = @clients.map(&:id)
-        end
+        format.html {}
         format.xlsx do
           @report.client_ids = @report.clients.map(&:id)
           filename = "#{@report.name} - #{Time.current.to_fs(:db)}.xlsx"
