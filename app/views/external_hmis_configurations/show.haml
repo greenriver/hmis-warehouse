@@ -1,0 +1,17 @@
+= render 'data_sources/breadcrumbs', data_source: data_source
+- content_for :title, 'External HMIS Configuration'
+%h1= content_for :title
+
+%p Configure specifics for the external HMIS that provides the source data for this data source.
+
+= simple_form_for external_hmis_configuration, url: data_source_external_hmis_configuration_path, method: :patch do |f|
+  .well
+    %h2 Links to Clients, Enrollments, etc.
+    = f.input :vendor, label: 'HMIS', as: :select_two, collection: @external_hmis_configuration.known_hmis_vendors, include_blank: 'Unset/Disabled'
+
+    = f.input :base_url, label: 'Base URL for your HMIS installation', hint: "For example: #{ENV['FQDN']}/hmis/"
+    = f.input :path_client, label: 'Path for direct client access', hint: "For example: clients/:personal_id:"
+    = f.input :path_enrollment, label: 'Path for direct enrollment access', hint: "For example: clients/:personal_id:/enrollments/:enrollment_id:"
+    = f.input :path_project, label: 'Path for direct project access', hint: "For example: projects/:project_id:"
+
+  = f.submit 'Update External HMIS Configuration'

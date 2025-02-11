@@ -28,13 +28,19 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
         user_id: current_user.id,
         state: :queued,
       }
-      @report = report_source.create(options)
-      ::WarehouseReports::GenericReportJob.perform_later(
-        user_id: current_user.id,
-        report_class: @report.class.name,
-        report_id: @report.id,
-      )
-      respond_with(@report, location: path_to_report_index)
+      @report = report_source.new(options)
+      if @report.valid?
+        @report.save!
+        ::WarehouseReports::GenericReportJob.perform_later(
+          user_id: current_user.id,
+          report_class: @report.class.name,
+          report_id: @report.id,
+        )
+        respond_with(@report, location: path_to_report_index)
+      else
+        flash[:error] = @report.errors.messages.values.join('; ')
+        redirect_to({ action: :index, filters: filter_params[:filters] })
+      end
     end
 
     def update

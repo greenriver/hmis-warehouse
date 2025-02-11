@@ -84,14 +84,14 @@ module EntityAccess
   #
   def system_collection
     @system_collection ||= begin
-      collection = Collection.system.where(source: self).first_or_initialize do |c|
+      collection = Collection.where(source: self).first_or_initialize do |c|
         c.name = name
         c.system = ['Entities'] # required to indicate it is a system collection
         c.collection_type = collection_type # indicate which type of collection this is
         c
       end
-      # ensure the collection name still matches
-      collection.update!(name: name)
+      # ensure the collection name still matches and that it is a system collection
+      collection.update!(name: name, system: ['Entities'])
       collection.set_viewables(entity_relation_type => [id])
       collection
     end

@@ -24,6 +24,10 @@
     = link_to data_source_import_threshold_path(data_source_id: @data_source), class: 'btn btn-secondary btn-sm mb-4 mr-2' do
       %i.icon-bell
       Configure Import Alerts
+  .config-button-wrapper
+    = link_to data_source_external_hmis_configuration_path(data_source_id: @data_source), class: 'btn btn-secondary btn-sm mb-4 mr-2' do
+      %i.icon-link-ext
+      External HMIS Configuration
 
 - if can_edit_data_sources? && RailsDrivers.loaded.include?(:hmis_csv_importer)
   .config-button-wrapper

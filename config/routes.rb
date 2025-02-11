@@ -613,6 +613,7 @@ Rails.application.routes.draw do
     resource :import_threshold, only: [:show, :update] do
       resources :notification_configurations, only: [:new, :edit, :create, :update, :destroy]
     end
+    resource :external_hmis_configuration, only: [:show, :update]
   end
   resources :ad_hoc_data_sources do
     resources :uploads, except: [:edit], controller: 'ad_hoc_data_sources/uploads' do
@@ -747,6 +748,7 @@ Rails.application.routes.draw do
         post :un_expire
         post :confirm
         post :impersonate
+        patch :expire_password
       end
       collection do
         post :stop_impersonating
