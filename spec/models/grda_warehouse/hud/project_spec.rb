@@ -58,6 +58,22 @@ RSpec.describe model, type: :model do
   p = ->(*projects) { projects.map(&:id).sort }
 
   describe 'scopes' do
+    it 'handles RRH Sub Type correctly' do
+      p1.update(project_type: 13, rrh_sub_type: 1) # services only
+      p2.update(project_type: 13, rrh_sub_type: 2) # housing
+      p3.update(project_type: 2) # TH
+      p4.update(project_type: 10) # PH
+      p5.update(project_type: 7) # other
+      p6.update(project_type: 0) # ES Entry/Exit
+      p7.update(project_type: 11) # Day Shelter
+      p8.update(project_type: 12) # Prevention
+      aggregate_failures do
+        expect(GrdaWarehouse::Hud::Project.hud_residential.to_a.sort).to eq([p2, p3, p4, p6].sort)
+        expect(GrdaWarehouse::Hud::Project.hud_non_residential.to_a.sort).to eq([p1, p5, p7, p8].sort)
+        expect(GrdaWarehouse::Hud::Project.hud_residential_non_homeless.to_a.sort).to eq([p2, p3, p4].sort)
+      end
+    end
+
     describe 'viewability' do
       describe 'ordinary user' do
         it 'sees nothing' do

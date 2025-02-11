@@ -76,44 +76,95 @@ module GrdaWarehouse::Hud
     # Needs to come after has_many :enrollments, bc one extension uses a has_many through: :enrollments relation
     include RailsDrivers::Extensions
 
+    # A scope to return any projects that are residential (provide housing or indicate where someone was living).
+    # Generally, and completely before the FY2024 data standards, this is based on project type.  In FY2024
+    # Project Type 13 (RRH) was given an RRHSubType column to indicate if it was a services only
+    # project or if it included housing.
+    # This handles the RRH Sub Type given a set of project IDs so as to return residential projects
+    # Note that Street Outreach is included in this set even though no one is "providing housing" in
+    # that situation.  This is included as valid SO enrollments require at least one night (and one CLS)
+    # and are an indication of where someone was residing.
+    scope :_residential_for_project_type_ids, ->(project_type_ids) do
+      project_type_ids = Array.wrap(project_type_ids)
+      return where(project_type: project_type_ids) unless project_type_ids.include?(13)
+
+      # Special case RRH with new SSO only RRHSubType
+      where(
+        arel_table[:ProjectType].in(project_type_ids - [13]).
+        or(
+          arel_table[:ProjectType].eq(13).
+          # NOTE: officially, only RRHSubType 2 count as residential, but old data won't always have
+          # the RRHSubType, assume those are residential as well
+          and(arel_table[:RRHSubType].eq(2).or(arel_table[:RRHSubType].eq(nil))),
+        ),
+      )
+    end
+
+    # A scope to return any projects that is not residential (doesn't provide housing).
+    # Generally, and completely before the FY2024 data standards, this is based on project type.
+    # In FY2024 Project Type 13 (RRH) was given an RRHSubType column to indicate if it was a
+    # services only project or if it included housing.
+    # This handles the RRH Sub Type given a set of project IDs so as to return non-residential
+    # projects
+    scope :_non_residential_for_project_type_ids, ->(project_type_ids) do
+      project_type_ids = Array.wrap(project_type_ids)
+      return where(project_type: project_type_ids) unless project_type_ids.include?(13)
+
+      # Special case RRH with new SSO only RRHSubType
+      where(
+        arel_table[:ProjectType].in(project_type_ids - [13]).
+        or(arel_table[:ProjectType].eq(13).and(arel_table[:RRHSubType].eq(1))),
+      )
+    end
+
     scope :residential, -> do
-      where(ProjectType: HudUtility2024.residential_project_type_ids)
+      hud_residential
     end
+
     scope :hud_residential, -> do
-      where(project_type: HudUtility2024.residential_project_type_ids)
+      _residential_for_project_type_ids(HudUtility2024.residential_project_type_ids)
     end
+
     scope :non_residential, -> do
-      where.not(ProjectType: HudUtility2024.residential_project_type_ids)
+      hud_non_residential
     end
+
     scope :hud_non_residential, -> do
-      where.not(project_type: HudUtility2024.residential_project_type_ids)
+      # all non-residential project types, but re-add 13 for RRH SSO
+      _non_residential_for_project_type_ids(HudUtility2024.all_project_types - HudUtility2024.residential_project_type_ids + [13])
     end
 
     scope :chronic, -> do
       where(project_type: HudUtility2024.chronic_project_types)
     end
+
     scope :hud_chronic, -> do
       where(project_type: HudUtility2024.chronic_project_types)
     end
+
     scope :homeless, -> do
       where(project_type: HudUtility2024.homeless_project_types)
     end
+
     scope :hud_homeless, -> do
       where(project_type: HudUtility2024.chronic_project_types)
     end
+
     scope :homeless_sheltered, -> do
       where(project_type: HudUtility2024.homeless_sheltered_project_types)
     end
+
     scope :homeless_unsheltered, -> do
       where(project_type: HudUtility2024.homeless_unsheltered_project_types)
     end
+
     scope :residential_non_homeless, -> do
-      r_non_homeless = HudUtility2024.residential_project_type_ids - HudUtility2024.chronic_project_types
-      where(ProjectType: r_non_homeless)
+      hud_residential_non_homeless
     end
+
     scope :hud_residential_non_homeless, -> do
       r_non_homeless = HudUtility2024.residential_project_type_ids - HudUtility2024.chronic_project_types
-      where(project_type: r_non_homeless)
+      _residential_for_project_type_ids(r_non_homeless)
     end
 
     scope :with_hud_project_type, ->(project_types) do
@@ -663,7 +714,7 @@ module GrdaWarehouse::Hud
       else
         safe_project_name
       end
-      project_name += " (#{HudUtility2024.project_type_brief(project_type)})" if include_project_type && project_type.present?
+      project_name += " (#{HudUtility2024.brief_project_type_with_sub_type(project_type, rrh_sub_type)})" if include_project_type && project_type.present?
 
       project_name
     end

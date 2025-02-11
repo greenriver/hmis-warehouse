@@ -41,6 +41,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   has_one :hmis_import_config
   has_one :import_threshold
+  has_one :external_hmis_configuration
 
   accepts_nested_attributes_for :organizations
   accepts_nested_attributes_for :projects
@@ -696,10 +697,21 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     hmis.present?
   end
 
+  def hmis_link_available?
+    hmis? || external_hmis_configuration&.active?
+  end
+
   def hmis_url_for(entity, user: nil)
-    return unless hmis? && HmisEnforcement.hmis_enabled?
+    # Ignore any entity that isn't in this data source
     return unless entity&.data_source_id == id
 
+    # Handle the Open Path HMIS natively
+    return open_path_hmis_url(entity, user: user) if hmis? && HmisEnforcement.hmis_enabled?
+
+    external_hmis_configuration&.url(entity)
+  end
+
+  private def open_path_hmis_url(entity, user: nil)
     base = "https://#{hmis}"
     base += ':5173' if Rails.env.development? # port used by hmis vite dev server
 

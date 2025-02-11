@@ -85,7 +85,10 @@
       %table.table.table-striped.table-hover.mb-0
         %tr
           %th Project ID
-          %td= @project.ProjectID
+          %td
+            = @project.ProjectID
+            - if @project.data_source.hmis_link_available?
+              = hmis_external_link(@project, user: current_user, wrapper_class: 'mt-2 text-teeny')
         %tr
           %th Organization ID
           %td= @project.OrganizationID

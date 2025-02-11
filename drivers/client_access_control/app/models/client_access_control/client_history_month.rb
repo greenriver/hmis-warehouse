@@ -263,12 +263,12 @@ module ClientAccessControl
     def add_project_for_week(projects:, project:, she:, user:)
       return projects unless project.present?
 
-      project_type = project.project_type_to_use
+      project_type = project.project_type
       projects[she.id] ||= {
         project_id: project.id.to_s,
         project_name: project.name(user),
         project_type: project_type.to_s,
-        project_type_name: HudUtility2024.project_type_brief(project_type),
+        project_type_name: HudUtility2024.brief_project_type_with_sub_type(project_type, project.rrh_sub_type),
         entry_date: she.entry_date,
         exit_date: she.exit_date.presence || Date.current,
       }

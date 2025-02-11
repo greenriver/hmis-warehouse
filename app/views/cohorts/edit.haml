@@ -47,7 +47,10 @@
 
       %h3 Automation
       .well
-        = f.input :project_group_id, collection: @cohort.project_group_options_for_select(current_user), as: :select_two, include_blank: 'Manually controlled (no project group)', hint: 'If you select a project group, this cohort will always contain clients with an open enrollment at a project contained in the group.  You will not be able to add and remove clients manually.'
+        - if @cohort.system_cohort?
+          %p This is a system cohort.  Clients will be added and removed based on hard-coded logic.
+        - else
+          = f.input :project_group_id, collection: @cohort.project_group_options_for_select(current_user), as: :select_two, include_blank: 'Manually controlled (no project group)', hint: 'If you select a project group, this cohort will always contain clients with an open enrollment at a project contained in the group.  You will not be able to add and remove clients manually.'
       %h3 Integrations
       .well
         = f.input :show_on_client_dashboard, as: :pretty_boolean, label: 'Show cohort in client dashboard?'
