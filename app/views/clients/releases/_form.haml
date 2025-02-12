@@ -1,17 +1,18 @@
+- pii = @client.pii_provider(user: current_user)
 .well
   .row
     .col-4
       %dl
         %dt Name:
-        %dd= @client.pii_provider(user: current_user).full_name
+        %dd= pii.full_name
     .col-4
       %dl
         %dt Date of Birth:
-        %dd= @client.DOB
+        %dd= pii.dob_or_age
     .col-4
       %dl
         %dt SSN:
-        %dd= ssn(@client.SSN)
+        %dd= pii.ssn
 = simple_form_for @file, url: client_releases_path(@client) do |f|
   - if @file.errors.any?
     .alert.alert-danger{style: 'display: block;'}
