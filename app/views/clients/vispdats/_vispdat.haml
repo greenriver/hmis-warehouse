@@ -1,28 +1,26 @@
-
+- pii = @client.pii_provider(user: current_user)
 %h2 Basic Information
 .well
   .row
     .col-sm-4
       %dt First Name
-      %dd= @client.first_name
+      %dd= pii.first_name
     .col-sm-4
       %dt Nick Name
       %dd= @vispdat.nickname
     .col-sm-4
       %dt Last Name
-      %dd= @client.last_name
+      %dd= pii.last_name
   .row
     .col-sm-4
       %dt Language
       %dd= @vispdat.answer_for :language_answer
     .col-sm-4
       %dt SSN
-      %dd= ssn @client.SSN
+      %dd= pii.ssn
     .col-sm-4
       %dt Date of Birth
-      %dd
-        = @client.DOB
-        = "(#{@client.age})"
+      %dd= "(#{pii.dob_and_age})"
   .row
     .col-sm-4
       %dt Release Signed On?
@@ -433,7 +431,7 @@
     .row
       .col-sm-9
         %label IF THERE ARE SCHOOL-AGED CHILDREN: Do your children attend school more often than not each week?
-      .col-sm-3  
+      .col-sm-3
         = yes_no @vispdat.answer_for :children_attend_school_answer
     .row
       .col-sm-9

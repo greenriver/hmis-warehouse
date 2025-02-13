@@ -32,7 +32,7 @@
                 %br
                 %em Created #{item.created_at} by #{item.user.name}
                 %br
-                %em Last updated #{item.versions.last.created_at} by #{name_for(item.versions.last.whodunnit)}
+                %em Last updated #{item.versions.last&.created_at} by #{name_for(item.versions.last&.whodunnit)}
         - if case_notes && (@filter.activity_type.empty? || @filter.activity_type.include?('case_managements'))
           .col-sm-4
             %h4 Case Management
@@ -42,7 +42,7 @@
                 %br
                 %em Created #{item.created_at} by #{item.user.name}
                 %br
-                %em Last updated #{item.versions.last.created_at} by #{name_for(item.versions.last.whodunnit)}
+                %em Last updated #{item.versions.last&.created_at} by #{name_for(item.versions.last&.whodunnit)}
         - if referrals && (@filter.activity_type.empty? || @filter.activity_type.include?('youth_referrals'))
           .col-sm-4
             %h4 Referrals
