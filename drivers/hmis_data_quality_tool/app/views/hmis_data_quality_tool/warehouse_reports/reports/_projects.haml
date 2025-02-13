@@ -1,10 +1,14 @@
+- show_project_names = @report.filter.effective_projects.count <= 100 || @pdf
 - current_user.policy_context.preload_project_dependencies(@report.filter.effective_project_ids)
-
+.well
+  %i.icon-info.mr-2
+  For performance reasons, project names are not shown when more than 100 projects are included.
+  Project names will still be included in the exported versions.
 .card.mb-6.page-break-avoid
   %table.table.table-striped
     %thead
       %tr
-        %th Project
+        %th= show_project_names ? 'Project' : 'HMIS Project ID'
         - @report.categories.each do |cat|
           %th= cat
     %tbody
@@ -12,7 +16,9 @@
         - project = @report.filter.effective_projects.detect { |p| p.id.to_s == project_id.to_s }
         - next unless project.present?
         %tr
-          %td= link_to_if can_view_projects?, project.name(current_user), project_path(project)
+          - project_name = show_project_names ? project.name(current_user) : project.project_id
+
+          %td= link_to_if can_view_projects?, project_name, project_path(project)
           - @report.categories.each do |cat|
             - valid_count = data[cat][:total] - data[cat][:invalid_count]
             - valid_percent =  @report.percent(data[cat][:total], valid_count).round(1)
