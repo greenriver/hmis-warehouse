@@ -68,7 +68,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
 
   def coc_codes_for_project(project_id)
     preload_coc_codes_by_project([project_id]) unless @coc_codes_by_project.key?(project_id)
-    @coc_codes_by_project[project_id] || []
+    @coc_codes_by_project[project_id] ||= []
   end
 
   def preload_access_group_ids_by_project(project_ids)
@@ -82,7 +82,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
 
   def access_group_ids_for_project(project_id)
     preload_access_group_ids_by_project([project_id]) unless @access_group_ids_by_project.key?(project_id)
-    @access_group_ids_by_project[project_id] || []
+    @access_group_ids_by_project[project_id] ||= []
   end
 
   memoize def system_access_group_ids(group_name)

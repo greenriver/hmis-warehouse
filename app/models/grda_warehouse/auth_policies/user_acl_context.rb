@@ -60,7 +60,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
 
   def coc_codes_for_project(project_id)
     preload_coc_codes_by_project([project_id]) unless @coc_codes_by_project.key?(project_id)
-    @coc_codes_by_project[project_id] || []
+    @coc_codes_by_project[project_id] ||= []
   end
 
   def preload_collection_ids_by_project(project_ids)
@@ -74,7 +74,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
 
   def collection_ids_for_project(project_id)
     preload_collection_ids_by_project([project_id]) unless @collection_ids_by_project.key?(project_id)
-    @collection_ids_by_project[project_id] || []
+    @collection_ids_by_project[project_id] ||= []
   end
 
   memoize def system_collection_ids(group_name)
