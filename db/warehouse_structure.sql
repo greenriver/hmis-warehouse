@@ -58324,6 +58324,20 @@ CREATE INDEX index_project_pass_fails_projects_on_updated_at ON public.project_p
 
 
 --
+-- Name: index_project_project_groups_on_project_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_project_project_groups_on_project_group_id ON public.project_project_groups USING btree (project_group_id) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: index_project_project_groups_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_project_project_groups_on_project_id ON public.project_project_groups USING btree (project_id) WHERE (deleted_at IS NULL);
+
+
+--
 -- Name: index_project_scorecard_reports_on_apr_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -65758,6 +65772,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241217210211'),
 ('20250116145506'),
 ('20250117174547'),
-('20250203142317');
+('20250203142317'),
+('20250213173031');
 
 

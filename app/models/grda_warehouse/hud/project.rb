@@ -69,6 +69,9 @@ module GrdaWarehouse::Hud
     # can't use a direct join table to collections due to db boundary
     has_many :project_collection_members
 
+    # can't use a direct join table to collections due to db boundary
+    has_many :project_access_group_members
+
     # Setup an association to project_cocs that allows us to pull the records even if the
     # project_coc has been deleted
     belongs_to :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], optional: true
