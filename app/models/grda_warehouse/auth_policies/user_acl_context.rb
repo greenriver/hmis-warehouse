@@ -17,8 +17,8 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
     raise ArgumentError, 'must be acl user' unless @user.using_acls?
   end
 
-  memoize def project_role_permissions(project_id)
-    collection_ids = project_collection_ids(project_id)
+  memoize def project_role_permissions(project_or_project_id)
+    collection_ids = project_collection_ids(project_or_project_id)
     permissions_for_collection_ids(collection_ids)
   end
 
@@ -43,7 +43,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
     [Collection.system_collection(group_name)&.id].compact
   end
 
-  def permissions_for_collection_ids(collection_ids)
+  memoize def permissions_for_collection_ids(collection_ids)
     collection_ids += system_collection_ids(:data_sources)
     return EMPTY_SET if collection_ids.blank?
 
@@ -52,7 +52,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
       flat_map(&:granted_permissions).to_set.freeze
   end
 
-  def data_source_collection_ids(data_source_id)
+  memoize def data_source_collection_ids(data_source_id)
     ids = GrdaWarehouse::GroupViewableEntity.
       where(entity_type: GrdaWarehouse::DataSource.sti_name).
       where(entity_id: data_source_id).
@@ -61,23 +61,37 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
     ids.uniq.sort
   end
 
-  def project_collection_ids(project_id)
+  # Accepts a project instance or project id (primary key).  If passed a project
+  # you probably want to preload(:project_collection_members, :project_cocs) to avoid
+  # N+1s
+  # Returns the collection ids that include this project
+  def project_collection_ids(project_or_project_id)
     p_t = GrdaWarehouse::Hud::Project.arel_table
+    collection_ids = []
+    coc_codes = []
+    if project_or_project_id.is_a?(GrdaWarehouse::Hud::Project)
+      collection_ids = project_or_project_id.project_collection_members.map(&:collection_id)
+      coc_codes = project_or_project_id.project_cocs.map(&:coc_code)
+    else
+      # collections including the project, org, project groups, etc
+      collection_ids = GrdaWarehouse::ProjectCollectionMember.
+        where(project_id: project_or_project_id).
+        pluck(:collection_id)
 
-    # collections including the project, org, project groups, etc
-    collection_ids = GrdaWarehouse::ProjectCollectionMember.
-      where(project_id: project_id).
-      pluck(:collection_id)
-
-    # collections for the projects via coc_codes
-    coc_codes = GrdaWarehouse::Hud::ProjectCoc.
-      joins(:project).
-      where(p_t[:id].eq(project_id)).
-      pluck(:coc_code)
+      # collections for the projects via coc_codes
+      coc_codes = GrdaWarehouse::Hud::ProjectCoc.
+        joins(:project).
+        where(p_t[:id].eq(project_or_project_id)).
+        pluck(:coc_code)
+    end
     # two queries are required because COC codes are on the app db
-    collection_ids += Collection.for_coc_codes(coc_codes).pluck(:id) if coc_codes.any?
+    collection_ids += collection_for_coc_codes(coc_codes) if coc_codes.any?
 
     collection_ids.uniq.sort
+  end
+
+  memoize private def collection_for_coc_codes(coc_codes)
+    Collection.for_coc_codes(coc_codes).pluck(:id)
   end
 
   # These are source clients, mostly for health-care and youth. See DataSource.authoritative_types.

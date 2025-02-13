@@ -18,8 +18,8 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     raise ArgumentError, 'cannot be acl user' if @user.using_acls?
   end
 
-  memoize def project_role_permissions(project_id)
-    access_group_ids = project_access_group_ids(project_id)
+  memoize def project_role_permissions(project_or_project_id)
+    access_group_ids = project_access_group_ids(project_or_project_id)
     permissions_for_access_group_ids(access_group_ids)
   end
 
@@ -51,7 +51,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     [AccessGroup.system_groups[group_name]&.id].compact
   end
 
-  def permissions_for_access_group_ids(access_group_ids)
+  memoize def permissions_for_access_group_ids(access_group_ids)
     access_group_ids += system_access_group_ids(:data_sources)
     return EMPTY_SET if access_group_ids.blank?
     return EMPTY_SET unless user.access_groups.where(id: access_group_ids).exists?
@@ -59,7 +59,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     legacy_permissions
   end
 
-  def data_source_access_group_ids(data_source_id)
+  memoize def data_source_access_group_ids(data_source_id)
     ids = GrdaWarehouse::GroupViewableEntity.
       where(entity_type: GrdaWarehouse::DataSource.sti_name).
       where(entity_id: data_source_id).
@@ -68,24 +68,40 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     ids.uniq.sort
   end
 
-  def project_access_group_ids(project_id)
+  # # Accepts a project instance or project id (primary key).  If passed a project
+  # # you probably want to preload(:project_access_group_members, :project_cocs) to avoid
+  # # N+1s
+  # # Returns the access group ids that include this project
+  def project_access_group_ids(project_or_project_id)
     p_t = GrdaWarehouse::Hud::Project.arel_table
+    access_group_ids = []
+    coc_codes = []
 
-    # access groups including the project, org, project groups, etc
-    access_group_ids = GrdaWarehouse::ProjectAccessGroupMember.
-      where(project_id: project_id).
-      pluck(:access_group_id)
+    if project_or_project_id.is_a?(GrdaWarehouse::Hud::Project)
+      access_group_ids = project_or_project_id.project_access_group_members.map(&:access_group_id)
+      coc_codes = project_or_project_id.project_cocs.map(&:coc_code)
+    else
+      # access groups including the project, org, project groups, etc
+      access_group_ids = GrdaWarehouse::ProjectAccessGroupMember.
+        where(project_id: project_id).
+        pluck(:access_group_id)
 
-    # access groups for the projects via coc_codes
-    coc_codes = GrdaWarehouse::Hud::ProjectCoc.
-      joins(:project).
-      where(p_t[:id].eq(project_id)).
-      pluck(:coc_code).
-      compact_blank
+      # access groups for the projects via coc_codes
+      coc_codes = GrdaWarehouse::Hud::ProjectCoc.
+        joins(:project).
+        where(p_t[:id].eq(project_id)).
+        pluck(:coc_code).
+        compact_blank
+    end
+
     # two queries are required because COC codes are on the app db
-    access_group_ids += AccessGroup.for_coc_codes(coc_codes).pluck(:id) if coc_codes.any?
+    access_group_ids += access_group_for_coc_codes(coc_codes) if coc_codes.any?
 
     access_group_ids.uniq.sort
+  end
+
+  memoize private def access_group_for_coc_codes(coc_codes)
+    AccessGroup.for_coc_codes(coc_codes).pluck(:id)
   end
 
   # These are source clients, mostly for health-care and youth. See DataSource.authoritative_types.

@@ -47,7 +47,7 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
   end
 
   def resource_permissions
-    context.project_role_permissions(project_id)
+    context.project_role_permissions(project)
   end
 
   def project
