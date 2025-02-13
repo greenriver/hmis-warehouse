@@ -1,3 +1,5 @@
+= render 'number_clients'
+= render 'report_download'
 .overflow-scroll
   - if @report.total_client_count.positive?
     = render 'common/pagination_top', item_name: 'client'
