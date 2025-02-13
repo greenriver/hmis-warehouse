@@ -17,6 +17,12 @@ class GrdaWarehouse::PiiProvider
     value.presence
   end
 
+  def self.viewable_ssn(value, policy:, replacement: REDACTED)
+    return replacement unless policy.can_view_full_ssn?
+
+    value.presence
+  end
+
   def self.viewable_dob(value, policy:, replacement: REDACTED)
     return replacement unless policy.can_view_full_dob?
 
@@ -46,32 +52,44 @@ class GrdaWarehouse::PiiProvider
     new(record, policy: policy)
   end
 
+  def redact_name?
+    ! policy.can_view_name?
+  end
+
+  def redact_ssn?
+    ! policy.can_view_full_ssn?
+  end
+
+  def redact_dob?
+    ! policy.can_view_full_dob?
+  end
+
   def first_name
-    return name_redacted unless policy.can_view_name?
+    return name_redacted if redact_name?
 
     record.first_name.presence
   end
 
   def last_name
-    return name_redacted unless policy.can_view_name?
+    return name_redacted if redact_name?
 
     record.last_name.presence
   end
 
   def middle_name
-    return name_redacted unless policy.can_view_name?
+    return name_redacted if redact_name?
 
     record.middle_name.presence
   end
 
   def full_name
-    return name_redacted unless policy.can_view_name?
+    return name_redacted if redact_name?
 
     [record.first_name, record.middle_name, record.last_name].compact.join(' ').presence
   end
 
   def brief_name
-    return name_redacted unless policy.can_view_name?
+    return name_redacted if redact_name?
 
     [record.first_name, record.last_name].compact.join(' ').presence
   end
@@ -84,7 +102,7 @@ class GrdaWarehouse::PiiProvider
     return nil unless record.dob
 
     display_dob = record.dob
-    display_dob = display_dob&.year if force_year_only || !policy.can_view_full_dob?
+    display_dob = display_dob&.year if force_year_only || redact_dob?
 
     "#{display_dob} (#{age})"
   end
@@ -101,7 +119,7 @@ class GrdaWarehouse::PiiProvider
 
   def ssn(force_mask: false)
     value = record.ssn.presence
-    mask = force_mask || !policy.can_view_full_ssn?
+    mask = force_mask || redact_ssn?
     format_ssn(value, mask: mask) if value
   end
 

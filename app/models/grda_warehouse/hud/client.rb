@@ -754,26 +754,6 @@ module GrdaWarehouse::Hud
       names.join(',')
     end
 
-    def client_names(user:, health: false)
-      names = source_clients_searchable_to(user).map do |client|
-        {
-          ds: client.data_source&.short_name,
-          ds_id: client.data_source&.id,
-          name: client.pii_provider(user: user).full_name,
-          health: client.data_source&.authoritative_type == 'health',
-        }
-      end
-
-      if health && names.none? { |name| name[:health].present? } && patient.present?
-        names << {
-          ds: 'Health',
-          ds_id: GrdaWarehouse::DataSource.health_authoritative_id,
-          name: patient.pii_provider(user: user).brief_name,
-        }
-      end
-      names.uniq
-    end
-
     # client has a disability response in the affirmative
     # where they don't have a subsequent affirmative or negative
     def currently_disabled?
@@ -1357,7 +1337,7 @@ module GrdaWarehouse::Hud
       return source_clients.map(&:email).reject(&:blank?).first if destination?
 
       # Look for value from OP HMIS
-      value = most_recent_email_hmis if HmisEnforcement.hmis_enabled?
+      value = most_recent_email_hmis if HmisEnforcement.hmis_enabled? && data_source&.hmis?
       # Look for value from other HMIS integrations
       value ||= hmis_client_response['Email'] if hmis_client_response.present?
       value ||= hmis_client.processed_fields['email'] if hmis_client&.processed_fields
@@ -1368,7 +1348,7 @@ module GrdaWarehouse::Hud
       # Fetch the data from the source clients if we are a destination client
       return source_clients.map(&:home_phone).reject(&:blank?).first if destination?
 
-      value = most_recent_home_phone_hmis if HmisEnforcement.hmis_enabled?
+      value = most_recent_home_phone_hmis if HmisEnforcement.hmis_enabled? && data_source&.hmis?
       value ||= hmis_client_response['HomePhone'] if hmis_client_response.present?
       value
     end
@@ -1377,7 +1357,7 @@ module GrdaWarehouse::Hud
       # Fetch the data from the source clients if we are a destination client
       return source_clients.map(&:cell_phone).reject(&:blank?).first if destination?
 
-      value = most_recent_cell_or_other_phone_hmis if HmisEnforcement.hmis_enabled?
+      value = most_recent_cell_or_other_phone_hmis if HmisEnforcement.hmis_enabled? && data_source&.hmis?
       value ||= hmis_client_response['CellPhone'] if hmis_client_response.present?
       value ||= hmis_client.processed_fields['phone'] if hmis_client&.processed_fields
       value
@@ -1387,7 +1367,7 @@ module GrdaWarehouse::Hud
       # Fetch the data from the source clients if we are a destination client
       return source_clients.map(&:work_phone).reject(&:blank?).first if destination?
 
-      value = most_recent_work_or_school_phone_hmis if HmisEnforcement.hmis_enabled?
+      value = most_recent_work_or_school_phone_hmis if HmisEnforcement.hmis_enabled? && data_source&.hmis?
       return value if value
       return unless hmis_client_response.present?
 

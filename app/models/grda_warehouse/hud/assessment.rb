@@ -63,6 +63,10 @@ module GrdaWarehouse::Hud
       where(AssessmentID: GrdaWarehouse::Hud::AssessmentQuestion.transfer.select(:AssessmentID))
     end
 
+    scope :family_pathways, -> do
+      where(AssessmentID: GrdaWarehouse::Hud::AssessmentQuestion.family_pathways.select(:AssessmentID))
+    end
+
     def answer(question)
       assessment_questions.find_by(assessment_question: question.to_s)&.assessment_answer
     end
@@ -104,6 +108,10 @@ module GrdaWarehouse::Hud
 
     def pathways?
       assessment_questions.any?(&:pathways?)
+    end
+
+    def family_pathways_2024?
+      name == 'Family Pathways 2024'
     end
   end
 end

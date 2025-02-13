@@ -35,6 +35,7 @@ Dir.glob('**/*shp').each do |shape_file|
   system(<<~EOS)
     shp2pgsql -s 4269:4326 -c -I #{shape_file} shape_cocs \
       | sed -e 's/gid/id/' \
+      | sed -e 's/"st_1"/"st"/' \
       | grep 'INSERT' \
       >> inserts.sql
   EOS

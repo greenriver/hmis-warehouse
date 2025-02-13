@@ -12,14 +12,23 @@ module Hmis
       Hmis::ProjectAutoExitConfig.exists?
     end
 
-    def perform
+    def perform(project_ids: nil, data_source_id: nil)
       return unless self.class.enabled?
 
       setup_notifier('HMIS Auto-Exit')
       auto_exit_projects = Set.new
       auto_exit_count = 0
 
-      Hmis::Hud::Project.hmis.each do |project|
+      project_scope = if project_ids.present?
+        Hmis::Hud::Project.hmis.where(id: project_ids)
+      elsif data_source_id
+        Hmis::Hud::Project.hmis.where(data_source_id: data_source_id)
+      else
+        # By default, run against all HMIS data sources
+        Hmis::Hud::Project.hmis
+      end
+
+      project_scope.each do |project|
         config = Hmis::ProjectAutoExitConfig.detect_best_config_for_project(project)
         next unless config.present?
         raise "Auto-exit config unusually low: #{config.length_of_absence_days}" if config.length_of_absence_days < 30
@@ -40,7 +49,7 @@ module Hmis
           Hmis::Hud::Base.transaction do
             # Auto-exit all household members together, setting the exit date equal to the most recent contact for any household member
             household.enrollments.each do |e|
-              auto_exit(e, most_recent_contact)
+              auto_exit(e, most_recent_contact, project: project)
             end
           end
         end
@@ -68,10 +77,13 @@ module Hmis
       end
     end
 
-    def auto_exit(enrollment, most_recent_contact)
+    def auto_exit(enrollment, most_recent_contact, project:)
       exit_date = contact_date_for_entity(most_recent_contact)
       # If most recent contact was a Bed Night service, the Exit Date should be the day after they received service
       exit_date += 1.day if most_recent_contact.is_a?(Hmis::Hud::Service) && most_recent_contact.record_type == 200
+      # If most recent contact was on Entry Date and this is a residential project, add 1 day to avoid Same-day-exit data quality errors
+      exit_date += 1.day if exit_date == enrollment.entry_date && !project.allows_same_day_exit?
+
       user = Hmis::Hud::User.system_user(data_source_id: enrollment.data_source_id)
 
       exit_record = Hmis::Hud::Exit.new(

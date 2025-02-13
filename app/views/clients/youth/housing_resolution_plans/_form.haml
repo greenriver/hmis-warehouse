@@ -1,11 +1,11 @@
 .row
   .col-6
-    = f.input 'name', as: :string, disabled: true, label: 'YYA Name (goes by)', input_html: {value: @client.name}
+    = f.input 'name', as: :string, disabled: true, label: 'YYA Name (goes by)', input_html: {value: @client.pii_provider(user: current_user).full_name}
   .col-6
     = f.input :pronouns, label: 'YYA Pronouns'
 .row
   .col-6
-    = f.input 'name', as: :string, disabled: true, label: 'YYA Legal Name', input_html: {value: @client.name}
+    = f.input 'name', as: :string, disabled: true, label: 'YYA Legal Name', input_html: {value: @client.pii_provider(user: current_user).full_name}
   .col-6
     = f.input :planned_on, as: :date_picker, label: 'Date'
 .row

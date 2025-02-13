@@ -1,4 +1,4 @@
-- title = "Editing #{_'Coordinated Entry Assessment'} for #{@client.name}"
+- title = "Editing #{_'Coordinated Entry Assessment'} for #{@client.pii_provider(user: current_user).full_name}"
 - content_for :title, title
 .o-page
   = render 'clients/breadcrumbs'

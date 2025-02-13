@@ -70,6 +70,8 @@ module Types
         available_unit_types_for_project(project)
       when 'AVAILABLE_UNITS_FOR_ENROLLMENT'
         available_units_for_enrollment(project, household_id: household_id)
+      when 'ADMIN_AVAILABLE_UNITS_FOR_ENROLLMENT'
+        admin_available_units_for_enrollment(project, household_id: household_id)
       when 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT'
         open_hoh_enrollments_for_project(project, user: user)
       when 'ENROLLMENTS_FOR_CLIENT'
@@ -474,7 +476,7 @@ module Types
       end
     end
 
-    def self.available_units_for_enrollment(project, household_id: nil)
+    def self.admin_available_units_for_enrollment(project, household_id: nil)
       return [] unless project
 
       # Eligible units are unoccupied units, PLUS units occupied by household members
@@ -487,10 +489,8 @@ module Types
         []
       end
 
-      unit_types_assigned_to_household = Hmis::Unit.where(id: hh_units).pluck(:unit_type_id).compact.uniq
       eligible_units = Hmis::Unit.where(id: unoccupied_units + hh_units)
-      # If some household members are assigned to units with unit types, then list should be limited to units of the same type.
-      eligible_units = eligible_units.where(unit_type_id: unit_types_assigned_to_household) if unit_types_assigned_to_household.any?
+
       eligible_units.preload(:unit_type).
         order(:unit_type_id, :id).
         map do |unit|
@@ -502,6 +502,24 @@ module Types
             initial_selected: unit.id == hh_units.first,
           }
         end
+    end
+
+    def self.available_units_for_enrollment(project, household_id: nil)
+      return [] unless project
+
+      # use picklist that includes all available units including units of other types
+      picklist = admin_available_units_for_enrollment(project, household_id: household_id)
+      return picklist unless household_id # no household, so no need to filter unit types
+
+      # drop units that have different types
+      hh_unit_type_ids = project.enrollments.where(household_id: household_id).map(&:current_unit_type).compact.map(&:id).uniq
+      return picklist if hh_unit_type_ids.empty? # household doesn't have a unit type, so no need for further filtering
+
+      # if the household has a unit type, exclude units that don't match
+      allowed_unit_type_unit_ids = project.units.where(unit_type_id: hh_unit_type_ids).pluck(:id).to_set
+      picklist.filter do |option|
+        option[:code].in?(allowed_unit_type_unit_ids)
+      end
     end
 
     def self.assessment_names_for_project(project)

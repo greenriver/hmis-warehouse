@@ -202,14 +202,6 @@
         "location": "./drivers/hud_path_report/spec/models/fy2021/question_twenty_six_spec.rb:16"
       },
       {
-        "count": 4,
-        "start": "2024-07-20T16:36:53.099+00:00",
-        "description": "Prepend Organization IDs",
-        "total_time": 12.343842105,
-        "average": 3.08596052625,
-        "location": "./drivers/hmis_csv_twenty_twenty/spec/models/prepend_organization_ids_spec.rb:9"
-      },
-      {
         "count": 12,
         "start": "2024-07-20T16:59:17.391+00:00",
         "description": "HudPathReport::Generators::Fy2021::QuestionNineteenToTwentyFour",

@@ -176,7 +176,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
       sign_in(hmis_user)
 
       visit "/client/#{c1.id}/enrollments/#{e1.id}/assessments"
-      click_link 'Intake'
+      click_link 'Finish Intake'
     end
 
     def select_member(client)

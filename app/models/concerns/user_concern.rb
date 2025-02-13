@@ -60,7 +60,8 @@ module UserConcern
     after_save :create_access_group
     # END_ACL
 
-    validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: { maximum: 250 }
+    # No longer validating MX record, just validate email format (MX check requires a network connection)
+    validates :email, presence: true, uniqueness: true, email_format: { check_mx: false }, length: { maximum: 250 }
     validate :password_cannot_be_sequential, on: :update
     validates :last_name, presence: true, length: { maximum: 40 }
     validates :first_name, presence: true, length: { maximum: 40 }
@@ -378,6 +379,19 @@ module UserConcern
       else
         :invitation_expired
       end
+    end
+
+    # Dependent on devise expire_password_after being set to a value other than false
+    def force_password_reset!
+      return false unless password_expiration_enabled?
+
+      # Immediately logout the user
+      self.unique_session_id = nil
+      # Force a password change on next login
+      need_change_password! # calls save internally
+
+      # Return true to indicate success
+      true
     end
 
     # Prevent sending confirmation emails if the user has an open invitation
