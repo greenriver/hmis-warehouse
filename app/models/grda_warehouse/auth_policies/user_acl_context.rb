@@ -52,7 +52,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
       flat_map(&:granted_permissions).to_set.freeze
   end
 
-  memoize def data_source_collection_ids(data_source_id)
+  def data_source_collection_ids(data_source_id)
     ids = GrdaWarehouse::GroupViewableEntity.
       where(entity_type: GrdaWarehouse::DataSource.sti_name).
       where(entity_id: data_source_id).
