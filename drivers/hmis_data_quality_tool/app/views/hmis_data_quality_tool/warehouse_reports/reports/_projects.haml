@@ -1,10 +1,10 @@
-- show_projects = @report.filter.effective_projects.count < 50 || @pdf
+- current_user.policy_context.preload_project_dependencies(@report.filter.effective_project_ids)
 
 .card.mb-6.page-break-avoid
   %table.table.table-striped
     %thead
       %tr
-        %th= show_projects ? 'Project' : 'HMIS Project ID'
+        %th Project
         - @report.categories.each do |cat|
           %th= cat
     %tbody
@@ -12,9 +12,7 @@
         - project = @report.filter.effective_projects.detect { |p| p.id.to_s == project_id.to_s }
         - next unless project.present?
         %tr
-          - project_name = show_projects ? project.name(current_user) : project.project_id
-
-          %td= link_to_if can_view_projects?, project_name, project_path(project)
+          %td= link_to_if can_view_projects?, project.name(current_user), project_path(project)
           - @report.categories.each do |cat|
             - valid_count = data[cat][:total] - data[cat][:invalid_count]
             - valid_percent =  @report.percent(data[cat][:total], valid_count).round(1)

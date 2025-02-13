@@ -16,10 +16,13 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
   def initialize(user)
     @user = user
     raise ArgumentError, 'cannot be acl user' if @user.using_acls?
+
+    @coc_codes_by_project = {}
+    @access_group_ids_by_project = {}
   end
 
-  memoize def project_role_permissions(project_or_project_id)
-    access_group_ids = project_access_group_ids(project_or_project_id)
+  memoize def project_role_permissions(project_id)
+    access_group_ids = project_access_group_ids(project_id)
     permissions_for_access_group_ids(access_group_ids)
   end
 
@@ -31,6 +34,11 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
   memoize def direct_client_role_permissions(client_id)
     access_group_ids = direct_client_access_group_ids(client_id)
     permissions_for_access_group_ids(access_group_ids)
+  end
+
+  def preload_project_dependencies(project_ids)
+    preload_coc_codes_by_project(project_ids)
+    preload_access_group_ids_by_project(project_ids)
   end
 
   memoize def legacy_permissions
@@ -46,6 +54,36 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
   end
 
   protected
+
+  def preload_coc_codes_by_project(project_ids)
+    p_t = GrdaWarehouse::Hud::Project.arel_table
+    results = GrdaWarehouse::Hud::ProjectCoc.
+      joins(:project).
+      where(p_t[:id].in(project_ids)).
+      pluck(p_t[:id], :coc_code).
+      group_by(&:shift).
+      transform_values(&:flatten)
+    @coc_codes_by_project.merge!(results)
+  end
+
+  def coc_codes_for_project(project_id)
+    preload_coc_codes_by_project([project_id]) unless @coc_codes_by_project.key?(project_id)
+    @coc_codes_by_project[project_id] || []
+  end
+
+  def preload_access_group_ids_by_project(project_ids)
+    results = GrdaWarehouse::ProjectAccessGroupMember.
+      where(project_id: project_ids).
+      pluck(:project_id, :access_group_id).
+      group_by(&:shift).
+      transform_values(&:flatten)
+    @access_group_ids_by_project.merge!(results)
+  end
+
+  def access_group_ids_for_project(project_id)
+    preload_access_group_ids_by_project([project_id]) unless @access_group_ids_by_project.key?(project_id)
+    @access_group_ids_by_project[project_id] || []
+  end
 
   memoize def system_access_group_ids(group_name)
     [AccessGroup.system_groups[group_name]&.id].compact
@@ -68,31 +106,10 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     ids.uniq.sort
   end
 
-  # # Accepts a project instance or project id (primary key).  If passed a project
-  # # you probably want to preload(:project_access_group_members, :project_cocs) to avoid
-  # # N+1s
-  # # Returns the access group ids that include this project
-  def project_access_group_ids(project_or_project_id)
-    p_t = GrdaWarehouse::Hud::Project.arel_table
-    access_group_ids = []
-    coc_codes = []
-
-    if project_or_project_id.is_a?(GrdaWarehouse::Hud::Project)
-      access_group_ids = project_or_project_id.project_access_group_members.map(&:access_group_id)
-      coc_codes = project_or_project_id.project_cocs.map(&:coc_code)
-    else
-      # access groups including the project, org, project groups, etc
-      access_group_ids = GrdaWarehouse::ProjectAccessGroupMember.
-        where(project_id: project_or_project_id).
-        pluck(:access_group_id)
-
-      # access groups for the projects via coc_codes
-      coc_codes = GrdaWarehouse::Hud::ProjectCoc.
-        joins(:project).
-        where(p_t[:id].eq(project_or_project_id)).
-        pluck(:coc_code).
-        compact_blank
-    end
+  # Returns the access group ids that include this project id
+  def project_access_group_ids(project_id)
+    access_group_ids = access_group_ids_for_project(project_id)
+    coc_codes = coc_codes_for_project(project_id)
 
     # two queries are required because COC codes are on the app db
     access_group_ids += access_group_for_coc_codes(coc_codes) if coc_codes.any?
