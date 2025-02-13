@@ -1,5 +1,5 @@
 - show_project_names = @report.filter.effective_projects.count <= 100 || @pdf
-- current_user.policy_context.preload_project_dependencies(@report.filter.effective_project_ids)
+- current_user.policy_context.preload_project_dependencies(@report.filter.effective_project_ids) if show_project_names
 .well
   %i.icon-info.mr-2
   For performance reasons, project names are not shown when more than 100 projects are included.
