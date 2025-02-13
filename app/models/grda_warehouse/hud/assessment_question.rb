@@ -63,8 +63,8 @@ module GrdaWarehouse::Hud
 
     # NOTE: you probably want to join/preload :lookup
     def human_readable
-      # special case, this is sometimes a 1, but should not be yes
-      return self.AssessmentAnswer if self.AssessmentQuestion.in?(['c_pathways_Household_size', 'c_larger_room_size'])
+      # special case, this is sometimes a 1, but should not be yes so should never use the default responses
+      return lookup&.response_text || self.AssessmentAnswer if self.AssessmentQuestion.in?(['c_pathways_Household_size', 'c_larger_room_size'])
 
       lookup&.response_text || default_response_text(self.AssessmentAnswer) || self.AssessmentAnswer
     end
