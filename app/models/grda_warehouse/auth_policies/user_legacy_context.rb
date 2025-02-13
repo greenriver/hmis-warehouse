@@ -83,13 +83,13 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
     else
       # access groups including the project, org, project groups, etc
       access_group_ids = GrdaWarehouse::ProjectAccessGroupMember.
-        where(project_id: project_id).
+        where(project_id: project_or_project_id).
         pluck(:access_group_id)
 
       # access groups for the projects via coc_codes
       coc_codes = GrdaWarehouse::Hud::ProjectCoc.
         joins(:project).
-        where(p_t[:id].eq(project_id)).
+        where(p_t[:id].eq(project_or_project_id)).
         pluck(:coc_code).
         compact_blank
     end
