@@ -250,12 +250,18 @@ module ApplicationHelper
     SimpleCalendar::HomelessService.new(self, options).render(&block)
   end
 
-  # Conditional HTML formatting for client name in different data sources (legacy view code)
-  def render_client_alias(name)
-    if GrdaWarehouse::Config.get(:multi_coc_installation)
-      content_tag(:div, name, class: 'mb-4')
-    else
-      content_tag(:em, name.ds_name, class: "ds-color-#{name.ds_id}") + name
+  # generates a list of HTML snippets representing the names the user is known by in different data sources
+  def client_aliases(client)
+    names = client.client_names(user: current_user, health: true)
+    names.map do |name|
+      sn = name[:ds]
+      id = name[:ds_id]
+      full_name = name[:name]
+      if GrdaWarehouse::Config.get(:multi_coc_installation)
+        content_tag(:div, full_name, class: 'mb-4')
+      else
+        content_tag(:em, sn, class: "ds-color-#{id}") + " #{full_name}"
+      end
     end
   end
 
