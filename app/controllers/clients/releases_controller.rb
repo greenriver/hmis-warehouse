@@ -139,7 +139,7 @@ module Clients
 
     private def render_pdf!
       @pdf = true
-      file_name = "Release of Information for #{@client.name}"
+      file_name = "Release of Information for #{@client.pii_provider(user: current_user).full_name}"
       send_data roi_pdf(file_name), filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
@@ -175,7 +175,7 @@ module Clients
     end
 
     protected def title_for_show
-      "#{@client.name} - Release of Information"
+      "#{@client.pii_provider(user: current_user).full_name} - Release of Information"
     end
 
     def window_visible?(_visibility)

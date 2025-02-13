@@ -86,6 +86,31 @@ module HudUtility2024
     no_yes_reasons_for_missing_data(*args)
   end
 
+  def project_type_with_sub_type(type, sub_type = nil)
+    [
+      project_type(type),
+      rrh_sub_type(sub_type),
+    ].compact_blank.join(' — ')
+  end
+
+  def brief_project_type_with_sub_type(type, sub_type = nil)
+    [
+      project_type_brief(type),
+      rrh_sub_type_brief(sub_type),
+    ].compact_blank.join(' — ')
+  end
+
+  def rrh_sub_types_brief
+    {
+      1 => 'SSO',
+      2 => 'Housing',
+    }.freeze
+  end
+
+  def rrh_sub_type_brief(id, reverse = false, raise_on_missing: false)
+    _translate(rrh_sub_types_brief, id, reverse, raise_on_missing: raise_on_missing)
+  end
+
   def project_type_number(type)
     # attempt to lookup full name
     number = project_type(type, true) # reversed

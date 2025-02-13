@@ -21,9 +21,10 @@
           %th Completed?
       %tbody
         - @clients.each do |client|
+          - pii = client.pii_provider(user: current_user)
           %tr
-            %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
-            %td= client.DOB
+            %td= link_to_if can_view_clients?, pii.full_name, appropriate_client_path(client)
+            %td= pii.dob_or_age
             %td= client.ce_assessment.location
             %td= client.ce_assessment.score
             %td= client.ce_assessment.vulnerability_score

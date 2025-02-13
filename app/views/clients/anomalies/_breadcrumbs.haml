@@ -1,4 +1,4 @@
 = content_for :crumbs do
   = link_to client_path(@client) do
-    &laquo; Back to 
-    = @client.name
+    &laquo; Back to
+    = @client.pii_provider(user: current_user).full_name

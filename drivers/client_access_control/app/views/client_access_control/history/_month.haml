@@ -19,7 +19,7 @@
           %label Project
           %select.js-client-calendar-filter__project{name: 'projects[]', multiple: 'multiple', data: {name: 'projects'}}
             - data.available_projects(month: @month, year: @year, client: @client, user: current_user).each do |project|
-              %option{value: project.id.to_s, selected: @filters[:projects].include?(project.id.to_s)}= project.name(current_user)
+              %option{value: project.id.to_s, selected: @filters[:projects].include?(project.id.to_s)}= project.name(current_user, include_project_type: true)
         .mb-4
           %label Contact Type
           %select.js-client-calendar-filter__contact-type{name: 'contact_types[]', multiple: 'multiple', data: {name: 'contactTypes'}}

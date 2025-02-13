@@ -8,7 +8,7 @@ require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
-RSpec.feature 'Hmis Form behavior', type: :system do
+RSpec.feature 'Bulk Services behavior', type: :system do
   include_context 'hmis base setup'
   include_context 'hmis service setup'
 
@@ -54,9 +54,9 @@ RSpec.feature 'Hmis Form behavior', type: :system do
       # Find the indices of the two columns we want to check
       header_cells = all('thead th')
       last_bed_night_date_index = header_cells.find_index { |cell| cell.text == 'Last Bed Night Date' }
-      assign_bed_night_index = header_cells.find_index { |cell| cell.text == "Assign Bed Night for #{bed_night_date.strftime('%m/%d/%Y')}" }
+      button_column_index = header_cells.find_index { |cell| cell.text == 'Actions' }
       expect(last_bed_night_date_index).not_to be_nil
-      expect(assign_bed_night_index).not_to be_nil
+      expect(button_column_index).not_to be_nil
 
       # Verify that all 3 rows have the expected attributes
       all('tbody tr').each do |row|
@@ -64,8 +64,8 @@ RSpec.feature 'Hmis Form behavior', type: :system do
         last_bed_night_date = row.all('td')[last_bed_night_date_index].text
         expect(last_bed_night_date).to match(/#{bed_night_date.strftime('%m/%d/%Y')}/)
 
-        # Check the "Assign Bed Night for mm/dd/yyyy" column
-        assign_button = row.all('td')[assign_bed_night_index].find('button')
+        # Check the "Actions" column
+        assign_button = row.all('td')[button_column_index].first('button')
         expect(assign_button.text).to eq('Assigned')
       end
 

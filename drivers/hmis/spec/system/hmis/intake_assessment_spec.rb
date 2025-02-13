@@ -8,7 +8,7 @@ require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
-RSpec.feature 'Enrollment/household management', type: :system do
+RSpec.feature 'Intake assessment', type: :system do
   include_context 'hmis base setup'
   # could parse CAPYBARA_APP_HOST
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }

@@ -76,7 +76,7 @@ module Clients
     end
 
     protected def title_for_show
-      "#{@client.name} - Relationships"
+      "#{@client.pii_provider(user: current_user).full_name} - Relationships"
     end
   end
 end
