@@ -586,6 +586,8 @@ module HmisCsvImporter::Importer
         destination_class = klass.reflect_on_association(:destination_record).klass
         # Rails.logger.debug "Adding #{destination_class.table_name} #{hash_as_log_str log_ids}"
         batch = []
+        # This is the same query as `existing_hud_keys` but the memoization of that method prevents this from
+        # using it.
         existing_keys = klass.existing_data(
           data_source_id: data_source.id,
           project_ids: involved_project_ids,
@@ -656,10 +658,10 @@ module HmisCsvImporter::Importer
 
         # If the klass does not allow deletions through the import process, remove the pending deletion flag from all klass records associated with this import.
         if klass.prevent_import_deletions?
-          klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, source_hash: nil)
+          existing_destination_data_scope(klass).update_all(pending_date_deleted: nil, source_hash: nil)
         elsif klass.hud_key == :PersonalID
           # Clients need to be treated differently for the situation where we are importing a partial data source
-          existing = klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range)
+          existing = existing_destination_data_scope(klass)
           # for everyone who would have been included in this import, but didn't get
           # processed above, set their source hash to nil so future imports will fix them
           existing.joins(enrollments: :project).
@@ -670,11 +672,7 @@ module HmisCsvImporter::Importer
         else
           delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
           # Do this in batches to avoid the complex join during the update
-          scope = klass.existing_destination_data(
-            data_source_id: data_source.id,
-            project_ids: involved_project_ids,
-            date_range: date_range,
-          )
+          scope = existing_destination_data_scope(klass)
           all_ids = scope.pluck(:id)
           update_scope = if scope.klass.paranoid?
             scope.klass.with_deleted
@@ -695,6 +693,14 @@ module HmisCsvImporter::Importer
         pluck(:ProjectID)
     end
 
+    private def existing_destination_data_scope(klass)
+      klass.existing_destination_data(
+        data_source_id: data_source.id,
+        project_ids: involved_project_ids,
+        date_range: date_range,
+      )
+    end
+
     # At this point,
     #   * All new data has been added
     #   * All extraneous data has been deleted
@@ -711,14 +717,12 @@ module HmisCsvImporter::Importer
       destination_class = klass.reflect_on_association(:destination_record).klass
       # Rails.logger.debug "Updating #{destination_class.name} #{hash_as_log_str log_ids}"
 
-      existing = klass.existing_destination_data(
-        data_source_id: data_source.id,
-        project_ids: involved_project_ids,
-        date_range: date_range,
-      ).distinct.pluck(klass.hud_key)
+      # existing = existing_destination_data_scope(klass).distinct.pluck(klass.hud_key)
       bm = Benchmark.measure do
         batch = []
-        existing.each_slice(SELECT_BATCH_SIZE) do |hud_keys|
+        # existing.each_slice(SELECT_BATCH_SIZE) do |hud_keys|
+        existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
+          hud_keys = relation.pluck(klass.hud_key)
           klass.should_import.where(
             importer_log_id: @importer_log.id,
             klass.hud_key => hud_keys,
@@ -792,11 +796,7 @@ module HmisCsvImporter::Importer
       # We always bring over Exports
       return if klass.hud_key == :ExportID
 
-      existing = klass.existing_destination_data(
-        data_source_id: data_source.id,
-        project_ids: involved_project_ids,
-        date_range: date_range,
-      ).where.not(DateUpdated: nil). # A bad import can sometimes cause this
+      existing = existing_destination_data_scope(klass).where.not(DateUpdated: nil). # A bad import can sometimes cause this
         pluck(klass.hud_key, :source_hash)
       incoming = klass.should_import.where(importer_log_id: @importer_log.id).
         pluck(klass.hud_key, :source_hash)
@@ -823,11 +823,7 @@ module HmisCsvImporter::Importer
       return if klass.hud_key == :ExportID
       return if most_recent_export_for_ds?
 
-      existing = klass.existing_destination_data(
-        data_source_id: data_source.id,
-        project_ids: involved_project_ids,
-        date_range: date_range,
-      ).pluck(klass.hud_key, :DateUpdated).to_h
+      existing = existing_destination_data_scope(klass).pluck(klass.hud_key, :DateUpdated).to_h
       incoming = klass.should_import.where(importer_log_id: @importer_log.id).
         pluck(klass.hud_key, :DateUpdated).to_h
 
