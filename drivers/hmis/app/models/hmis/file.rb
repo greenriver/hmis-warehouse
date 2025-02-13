@@ -59,7 +59,7 @@ class Hmis::File < GrdaWarehouse::File
     enrollment_scope = Hmis::Hud::Enrollment.
       viewable_by(user).
       with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
-    enrollment_scope = enrollment_scope.joins(:client).where(client: { id: client_ids }) if client_ids.present?
+    enrollment_scope = enrollment_scope.joins(:client).where(c_t[:id].in(client_ids)) if client_ids.present?
 
     case_statement = Arel::Nodes::Case.new.
       when(arel_table[:enrollment_id].not_eq(nil)).
