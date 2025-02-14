@@ -5,6 +5,17 @@ gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
 # gem 'rails_drivers', path: '/usr/local/bundle/tmp/rails_drivers'
 gem 'rack', '>= 2.2.8.1'
 
+# No longer default gems
+gem 'irb'
+gem 'reline'
+gem 'benchmark'
+gem 'rdoc'
+gem 'mutex_m'
+gem 'drb'
+gem 'fiddle'
+gem 'observer'
+gem 'csv'
+
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
 
@@ -232,7 +243,6 @@ gem 'ansi'
 
 gem 'parallel'
 gem 'todo_or_die'
-gem 'reline'
 
 gem 'business_time', '~> 0.10.0'
 gem 'cable_ready', '>= 5.0.0.rc2'
@@ -242,7 +252,9 @@ gem 'sentry-ruby'
 gem 'sentry-delayed_job'
 gem 'warning'
 gem 'hashdiff'
-gem 'k8s-ruby'
+# Once 0.17 is released we should be able to unpin this
+# https://github.com/k8s-ruby/k8s-ruby/pull/57
+gem 'k8s-ruby', github: 'k8s-ruby/k8s-ruby', branch: 'master'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
