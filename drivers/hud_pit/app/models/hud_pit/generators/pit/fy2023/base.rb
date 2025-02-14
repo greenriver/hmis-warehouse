@@ -34,8 +34,8 @@ module HudPit::Generators::Pit::Fy2023
       so: 4,
     }.freeze
 
-    def self.allowed_options
-      HudPit::Generators::Pit::Fy2023::Generator.allowed_options
+    def self.allowed_options(...)
+      HudPit::Generators::Pit::Fy2023::Generator.allowed_options(...)
     end
 
     private def universe

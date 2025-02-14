@@ -37,7 +37,7 @@ module HudLsa::Generators::Fy2022::ViewRelatedConcern
       { 'LSA' => self }
     end
 
-    def allowed_options
+    def allowed_options(_)
       [
         :project_ids,
         :project_group_ids,

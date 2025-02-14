@@ -158,7 +158,7 @@ RSpec.describe 'Validate import files', type: :model do
 
   # Enrollment
   it 'includes expected enrollments' do
-    expect(GrdaWarehouse::Hud::Enrollment.count).to eq(4)
+    expect(GrdaWarehouse::Hud::Enrollment.count).to eq(6)
   end
 
   it 'includes expected enrollments failures' do
@@ -177,12 +177,13 @@ RSpec.describe 'Validate import files', type: :model do
   end
 
   it 'has two entry after exit validation errors' do
-    expect(HmisCsvImporter::HmisCsvValidation::EntryAfterExit.count).to eq(2)
+    # and doesn't error on an RRHSSO with same day exit
+    expect(HmisCsvImporter::HmisCsvValidation::EntryAfterExit.count).to eq(3)
   end
 
   # Exit
   it 'includes expected exits' do
-    expect(GrdaWarehouse::Hud::Exit.count).to eq(3)
+    expect(GrdaWarehouse::Hud::Exit.count).to eq(5)
   end
 
   it 'includes expected exits failures' do
@@ -324,7 +325,7 @@ RSpec.describe 'Validate import files', type: :model do
 
   # Project
   it 'includes expected projects' do
-    expect(GrdaWarehouse::Hud::Project.count).to eq(2)
+    expect(GrdaWarehouse::Hud::Project.count).to eq(4)
   end
 
   it 'includes expected projects failures' do

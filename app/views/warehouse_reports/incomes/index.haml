@@ -33,7 +33,7 @@
         - @enrollments.each do |record|
           %tr
             %td
-              = link_to_if can_view_clients?, record.client.name, appropriate_client_path(record.client)
+              = link_to_if can_view_clients?, record.client.pii_provider(user: current_user).full_name, appropriate_client_path(record.client)
             %td
               %ul.list-unstyled
                 - record.enrollment.income_benefits_at_entry&.sources_and_amounts&.each do |name, amount|

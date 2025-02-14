@@ -38,7 +38,7 @@ class Hmis::Form::NumericInputValidator
     return [] if item.bounds.blank?
 
     item.bounds.each_with_object([]) do |bound, errors|
-      next unless bound.severity == 'error'
+      next if bound.severity == 'warning'
       # bound.value_number can be nil in the case where the bound is against a local constant or another question
       next unless bound.value_number
 

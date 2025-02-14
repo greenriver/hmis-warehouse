@@ -14,6 +14,14 @@ module PublicReports
     include Memery
     acts_as_paranoid
 
+    validate :validate_filter_dates_span_one_year, on: :create
+
+    def validate_filter_dates_span_one_year
+      return if filter_object.start + 1.years <= filter_object.end
+
+      errors.add(:base, 'The start and end dates must span at least one year.')
+    end
+
     MIN_THRESHOLD = 11
 
     attr_accessor :map_max_rate, :map_max_count

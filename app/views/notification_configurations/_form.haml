@@ -1,0 +1,5 @@
+.mb-8
+  = simple_form_for notification_configuration, url: @form_url, remote: ajax_modal_request? do |f|
+    = f.input :user_id, as: :select_two, label_method: :name_with_email, collection: notification_configuration.available_users, label: 'User', required: true
+    = f.input :active, as: :pretty_boolean, label: 'Receive Notifications'
+    = f.submit submit_label

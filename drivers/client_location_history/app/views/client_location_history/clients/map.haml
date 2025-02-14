@@ -1,4 +1,4 @@
-- title = "Location Map for #{@client.name}"
+- title = "Location Map for #{@client.pii_provider(user: current_user).full_name}"
 - content_for :title, title
 = render 'clients/breadcrumbs'
 

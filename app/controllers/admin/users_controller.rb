@@ -10,9 +10,9 @@ module Admin
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!, except: [:stop_impersonating]
-    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate, :un_expire]
+    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate, :un_expire, :expire_password]
     before_action :require_can_impersonate_users!, only: [:impersonate]
-    after_action :log_user, only: [:show, :edit, :update, :destroy, :unlock, :un_expire]
+    after_action :log_user, only: [:show, :edit, :update, :destroy, :unlock, :un_expire, :expire_password]
     helper_method :sort_column, :sort_direction
 
     require 'active_support'
@@ -51,12 +51,24 @@ module Admin
       redirect_to({ action: :index }, notice: 'User re-activated')
     end
 
+    def expire_password
+      msg = if @user.force_password_reset!
+        { notice: "User #{@user.email} has been logged out and will need to change their password on next login." }
+      else
+        { warn: "Unable to expire password for #{@user.email}, password expiration is disabled" }
+      end
+      redirect_to({ action: :index }, **msg)
+    end
+
     def confirm
       return if adding_admin?
 
       @redirecting = true
       update
-      redirect_to({ action: :edit }, notice: 'User updated') and return
+      # early return if the response body was set by update(), avoid double-render error
+      return if performed?
+
+      redirect_to({ action: :edit }, notice: 'User updated')
     end
 
     def impersonate
@@ -142,7 +154,8 @@ module Admin
 
     def destroy
       @user.paper_trail_event = 'deactivate'
-      @user.update(active: false)
+      # update_column() allows us to update the user even if the record is invalid
+      @user.update_column(:active, false)
       redirect_to({ action: :index }, notice: "User #{@user.name} deactivated")
     end
 

@@ -57,24 +57,27 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     service_types << 'extrapolated' if GrdaWarehouse::Config.get(:so_day_as_month)
   end
   scope :residential, -> {
-    in_project_type(HudUtility2024.residential_project_type_ids)
+    # Need to join project to use RRHSubType
+    joins(:project).merge(GrdaWarehouse::Hud::Project.residential)
   }
 
   scope :hud_residential, -> do
-    hud_project_type(HudUtility2024.residential_project_type_ids)
+    # Need to join project to use RRHSubType
+    joins(:project).merge(GrdaWarehouse::Hud::Project.hud_residential)
   end
 
   scope :hud_non_residential, -> do
+    # Need to join project to use RRHSubType
     joins(:project).merge(GrdaWarehouse::Hud::Project.hud_non_residential)
   end
 
   scope :residential_non_homeless, -> do
-    r_non_homeless = HudUtility2024.residential_project_type_numbers_by_code[:ph] + HudUtility2024.residential_project_type_numbers_by_code[:th]
-    in_project_type(r_non_homeless)
+    # Need to join project to use RRHSubType
+    joins(:project).merge(GrdaWarehouse::Hud::Project.residential_non_homeless)
   end
   scope :hud_residential_non_homeless, -> do
-    r_non_homeless = HudUtility2024.residential_project_type_numbers_by_code[:ph] + HudUtility2024.residential_project_type_numbers_by_code[:th]
-    hud_project_type(r_non_homeless)
+    # Need to join project to use RRHSubType
+    joins(:project).merge(GrdaWarehouse::Hud::Project.hud_residential_non_homeless)
   end
   scope :permanent_housing, -> do
     project_types = HudUtility2024.residential_project_type_numbers_by_code.values_at(:ph).flatten

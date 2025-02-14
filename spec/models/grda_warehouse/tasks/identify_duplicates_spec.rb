@@ -127,6 +127,67 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         end
       end
     end
+
+    describe 'source client threshold' do
+      before(:each) do
+        # We want to know the PPI data for this client, so set it specifically
+        client_in_source.update(first_name: 'A', last_name: 'Client', dob: '2000-01-01', ssn: 'XXXXX1234')
+        # Clear out the existing destination client, this will be generated for `client_in_source` later in the test
+        client_in_destination.destroy
+      end
+      it 'never creates more than the maximum number of source clients' do
+        number_sample_clients = 125
+
+        # Generating n unique clients that won't match the existing client or each other.
+        # We are generating `number_sample_clients` - 1 because we are using the existing client (`client_in_source`)
+        # as a baseline. This will bring our total number of clients to `number_sample_clients`.
+        (1..(number_sample_clients - 1)).each do |n|
+          client = create :grda_warehouse_hud_client, data_source: source_data_source
+          date = Date.new(2000, 1, 1) + n.days - n.months
+          str_n = n.to_s.rjust(4, '0')
+          ssn = "#{str_n.last(3)}#{str_n.last(2)}#{str_n.last(4)}"
+          client.update(first_name: "client_#{n}", last_name: 'Test', dob: date, ssn: ssn)
+        end
+
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
+
+        # Test that each unique client received a destination client
+        expect(GrdaWarehouse::Hud::Client.destination.count).to eq(number_sample_clients)
+        expect(GrdaWarehouse::WarehouseClient.count).to eq(number_sample_clients)
+
+        # Update the n unique clients so that they all match the baseline client.
+        (1..(number_sample_clients - 1)).each do |n|
+          str_n = n.to_s.rjust(4, '0')
+          ssn = "#{str_n.last(3)}#{str_n.last(2)}#{str_n.last(4)}"
+          client = GrdaWarehouse::Hud::Client.source.find_by(SSN: ssn)
+          client.update(first_name: 'A', last_name: 'Client', dob: '2000-01-01', ssn: 'XXXXX1234')
+        end
+
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
+
+        # # The code below will calculate the number of expected destination clients in the case that MAX_SOURCE_CLIENTS changes enought to affect this number
+        # expected_number_destination_clients = ((number_sample_clients * 1.0) / GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS).ceil
+
+        # With MAX_SOURCE_CLIENTS set to 50, we are expecting 3 destiantion clients. 2 with 50 source clients and 1 with 25 source clients.
+        # We are setting this specifically instead of using the calculated number in case `MAX_SOURCE_CLIENTS` gets set to a number larger than
+        # `number_sample_clients`. If that happened, we wouldn't be reaching the threshold for the numebr of source clients that we are testing.
+        expected_number_destination_clients = 3
+
+        destination_clients = GrdaWarehouse::Hud::Client.destination.to_a
+
+        expect(destination_clients.count).to eq(expected_number_destination_clients)
+        expect(GrdaWarehouse::WarehouseClient.count).to eq(number_sample_clients)
+
+        # Pop the last client off of the array. This client will have less than the maximum number of source clients.
+        last_client = destination_clients.pop
+        destination_clients.each do |client|
+          expect(client.source_clients.count).to eq(GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS)
+        end
+        expect(last_client.source_clients.count).to eq(number_sample_clients % GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS)
+      end
+    end
   end
 
   describe 'When matching is disabled' do

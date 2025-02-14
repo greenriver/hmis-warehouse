@@ -230,6 +230,19 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     end
   end
 
+  context 'with client location records' do
+    let!(:loc1) { create :clh_location, client_id: client1.id }
+    let!(:loc2) { create :clh_location, client_id: client2.id }
+
+    it 'moves all locations to retained client' do
+      expect do
+        Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+      end.to change { loc2.reload.client_id }.from(client2.id).to(client1.id).
+        and not_change { loc1.reload.client_id }.
+        and change(client1.client_location_histories, :count).by(1)
+    end
+  end
+
   context 'with external referral records' do
     let!(:referral1) { create :hmis_external_api_ac_hmis_referral }
     let!(:referral1_hhm1) { create :hmis_external_api_ac_hmis_referral_household_member, client: client1, referral: referral1 }
