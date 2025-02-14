@@ -15,6 +15,7 @@ gem 'drb'
 gem 'fiddle'
 gem 'observer'
 gem 'csv'
+gem 'abbrev'
 
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
