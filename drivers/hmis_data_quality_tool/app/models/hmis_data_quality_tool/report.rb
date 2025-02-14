@@ -711,7 +711,6 @@ module HmisDataQualityTool
               next if overall_count.zero?
 
               this_result[:projects][project.id] = {
-                project_name: project&.name(user) || 'unknown',
                 invalid_count: invalid_count,
                 total: overall_count,
               }
