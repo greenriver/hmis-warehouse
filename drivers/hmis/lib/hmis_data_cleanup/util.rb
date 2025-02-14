@@ -109,8 +109,7 @@ module HmisDataCleanup
       end
     end
 
-    # If the overall RaceNone or GenderNone value is present (8, 9, or 99),
-    # then change all the other specific Race and Gender values from 99 to 0.
+    # Race and Gender values should always be 0 or 1
     def self.fix_race_gender_99s!
       without_papertrail_or_timestamps do
         clients = Hmis::Hud::Client.hmis
