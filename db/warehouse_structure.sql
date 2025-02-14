@@ -278,7 +278,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -6502,7 +6502,7 @@ ALTER SEQUENCE public.ce_performance_results_id_seq OWNED BY public.ce_performan
 CREATE TABLE public.ce_referral_notes (
     id bigint NOT NULL,
     referral_id bigint NOT NULL,
-    participant_id bigint NOT NULL,
+    user_id bigint NOT NULL,
     submitted_form_data jsonb,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
@@ -53517,10 +53517,10 @@ CREATE INDEX index_ce_performance_results_on_report_id ON public.ce_performance_
 
 
 --
--- Name: index_ce_referral_notes_on_participant_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_ce_referral_notes_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_ce_referral_notes_on_participant_id ON public.ce_referral_notes USING btree (participant_id);
+CREATE INDEX index_ce_referral_notes_on_user_id ON public.ce_referral_notes USING btree (user_id);
 
 
 --
@@ -64635,14 +64635,6 @@ ALTER TABLE ONLY public.wfe_audit_events
 
 
 --
--- Name: ce_referral_notes fk_rails_d464acd99e; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referral_notes
-    ADD CONSTRAINT fk_rails_d464acd99e FOREIGN KEY (participant_id) REFERENCES public.ce_referral_participants(id);
-
-
---
 -- Name: wfd_flows fk_rails_d77e22c3ca; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -65131,5 +65123,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250117174547'),
 ('20250121204933'),
 ('20250203142317');
-
-

@@ -80,7 +80,7 @@ class CreateCeReferrals < ActiveRecord::Migration[7.0]
 
     create_table(:ce_referral_notes) do |t|
       t.references :referral, null: false, foreign_key: { to_table: :ce_referrals }
-      t.references :participant, null: false, foreign_key: { to_table: :ce_referral_participants }
+      t.references :user, null: false
       t.jsonb :submitted_form_data
       t.timestamps
     end

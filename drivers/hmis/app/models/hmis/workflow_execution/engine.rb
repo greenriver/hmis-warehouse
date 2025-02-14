@@ -126,6 +126,10 @@ module Hmis::WorkflowExecution
       end
     end
 
+    # Evaluate a workflow condition expression.
+    # Example:
+    #   'client_accepted = 0'
+    #   where 'client_accepted is a submitted value on any completed step
     def evaluate_condition(expression)
       # empty expression defaults to true
       return true if expression.blank?
