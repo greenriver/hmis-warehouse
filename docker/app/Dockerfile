@@ -58,8 +58,8 @@ COPY docker/app/rds-combined-ca-bundle.pem /etc/ssl/certs/rds-combined-ca-bundle
 
 RUN addgroup -g ${GROUP_ID} app-user \
   && adduser -u ${USER_ID} -G app-user -h /home/app-user -D app-user \
-  && mkdir /app /bundle \
-  && chown app-user:app-user /bundle /app
+  && mkdir /app /bundle /node_modules \
+  && chown app-user:app-user /bundle /app /node_modules
 
 RUN apk update \
   && apk upgrade --no-cache \
@@ -69,6 +69,7 @@ RUN apk update \
   tzdata \
   git \
   bash \
+  jemalloc \
   linux-headers \
   freetds-dev \
   icu icu-dev \

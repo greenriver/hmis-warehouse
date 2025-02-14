@@ -37,6 +37,7 @@ runs:
         # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
         PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
         PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+        LD_PRELOAD: /usr/lib/libjemalloc.so.2
       run: |
         apk add --no-cache $(cat .github/dependencies.txt)
 

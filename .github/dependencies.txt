@@ -20,6 +20,7 @@ harfbuzz
 icu
 icu-dev
 imagemagick
+jemalloc
 lftp
 libcurl
 libgcc

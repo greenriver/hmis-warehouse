@@ -116,6 +116,7 @@ class SystemStatusController < ActionController::Base
       patient_count_positive: Health::Patient.any?,
       registered_deployment_id: Rails.cache.read('registered-deployment-id'),
       environment_deployment_id: ENV['DEPLOYMENT_ID'],
+      jmalloc: File.read('/proc/self/maps').to_s =~ /jemalloc/,
       last_migration: {
         app: app,
         warehouse: warehouse,
