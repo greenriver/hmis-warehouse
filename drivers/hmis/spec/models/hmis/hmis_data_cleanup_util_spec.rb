@@ -129,6 +129,33 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
   end
 
+  context 'enrollments with DisablingCondition' do
+    before(:each) do
+      # use update_columns to bypass before_save hook
+      e1.update_columns(disabling_condition: nil)
+      e2.update_columns(disabling_condition: nil)
+      e3.update_columns(disabling_condition: 1)
+      e4.update_columns(disabling_condition: 99)
+      GrdaWarehouse::Hud::Enrollment.where.not(data_source: hmis_ds).update_all(disabling_condition: nil)
+    end
+
+    it 'sets DisablingCondition from nil to 99, leaving other DisablingConditions unchanged' do
+      expect do
+        HmisDataCleanup::Util.fix_disabling_condition_nils!
+        [e1, e2, e3, e4].map(&:reload)
+      end.to change(e1, :disabling_condition).from(nil).to(99).
+        and change(e2, :disabling_condition).from(nil).to(99).
+        and not_change(e3, :disabling_condition).
+        and not_change(e4, :disabling_condition)
+    end
+
+    it 'does not make changes to non-hmis data' do
+      expect_leaves_non_hmis_data_alone do
+        HmisDataCleanup::Util.fix_disabling_condition_nils!
+      end
+    end
+  end
+
   context 'records with incorrect PersonalID references' do
     let!(:records_with_bad_references) do
       records = []

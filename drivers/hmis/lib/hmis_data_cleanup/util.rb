@@ -99,6 +99,16 @@ module HmisDataCleanup
       end
     end
 
+    # Change any DisablingCondition values on the Enrollment that are nil to 99
+    def self.fix_disabling_condition_nils!
+      without_papertrail_or_timestamps do
+        rows_affected = Hmis::Hud::Enrollment.hmis.where(disabling_condition: nil).
+          update_all(disabling_condition: 99) # skips callbacks
+
+        Rails.logger.info "Set DisablingCondition nil=>99 on #{rows_affected} Enrollments"
+      end
+    end
+
     # Fix any instances of enrollment-related records where the PersonalID does not match the Enrollment's PersonalIDs
     def self.fix_incorrect_personal_id_references!(classes: nil, dry_run: false)
       classes&.each do |klass|
