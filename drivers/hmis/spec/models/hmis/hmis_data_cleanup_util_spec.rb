@@ -156,6 +156,92 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
   end
 
+  context 'clients with badly formatted race/gender data' do
+    let!(:race_fields) { HudUtility2024.races.keys.excluding('RaceNone') }
+    let!(:gender_fields) { HudUtility2024.gender_fields.excluding(:GenderNone) }
+
+    let!(:c1_with_race_and_gender) do
+      create(
+        :hmis_hud_client,
+        data_source: hmis_ds,
+        RaceNone: nil,
+        GenderNone: nil,
+        **race_fields.map { |field| [field, 99] }.to_h,
+        **gender_fields.map { |field| [field, 99] }.to_h,
+        AmIndAKNative: 1,
+        Woman: 1,
+      )
+    end
+
+    let!(:c2_doesnt_know) do
+      create(
+        :hmis_hud_client,
+        data_source: hmis_ds,
+        RaceNone: 8,
+        GenderNone: 8,
+        **race_fields.map { |field| [field, 99] }.to_h,
+        **gender_fields.map { |field| [field, 99] }.to_h,
+      )
+    end
+
+    let!(:c3_prefers_not_to) do
+      create(
+        :hmis_hud_client,
+        data_source: hmis_ds,
+        RaceNone: 9,
+        GenderNone: 9,
+        **race_fields.map { |field| [field, 99] }.to_h,
+        **gender_fields.map { |field| [field, 99] }.to_h,
+      )
+    end
+
+    let!(:c4_data_not_collected) do
+      create(
+        :hmis_hud_client,
+        data_source: hmis_ds,
+        RaceNone: 99,
+        GenderNone: 99,
+        **race_fields.map { |field| [field, 99] }.to_h,
+        **gender_fields.map { |field| [field, 99] }.to_h,
+      )
+    end
+
+    let!(:other_ds_client) do
+      create(
+        :hmis_hud_client,
+        data_source: other_source_ds,
+        RaceNone: 99,
+        GenderNone: 99,
+        **race_fields.map { |field| [field, 99] }.to_h,
+        **gender_fields.map { |field| [field, 99] }.to_h,
+      )
+    end
+
+    it 'updates race/gender values of 99 to 0' do
+      HmisDataCleanup::Util.fix_race_gender_99s!
+      [c1_with_race_and_gender, c2_doesnt_know, c3_prefers_not_to, c4_data_not_collected].map(&:reload)
+
+      expect(c1_with_race_and_gender.AmIndAKNative).to eq(1)
+      expect(c1_with_race_and_gender.Woman).to eq(1)
+      race_fields.excluding('AmIndAKNative').each { |field| expect(c1_with_race_and_gender.send(field)).to eq(0) }
+      gender_fields.excluding(:Woman).each { |field| expect(c1_with_race_and_gender.send(field)).to eq(0) }
+
+      aggregate_failures 'sets race/gender values to 0' do
+        (race_fields + gender_fields).each do |field|
+          [c2_doesnt_know, c3_prefers_not_to, c4_data_not_collected].each do |client|
+            expect(client.send(field)).to eq(0)
+          end
+        end
+      end
+    end
+
+    it 'does not update clients in other data sources' do
+      expect_leaves_non_hmis_data_alone do
+        HmisDataCleanup::Util.fix_race_gender_99s!
+      end
+    end
+  end
+
   context 'records with incorrect PersonalID references' do
     let!(:records_with_bad_references) do
       records = []

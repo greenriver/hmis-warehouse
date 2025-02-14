@@ -109,6 +109,42 @@ module HmisDataCleanup
       end
     end
 
+    # If the overall RaceNone or GenderNone value is present (8, 9, or 99),
+    # then change all the other specific Race and Gender values from 99 to 0.
+    def self.fix_race_gender_99s!
+      without_papertrail_or_timestamps do
+        clients = Hmis::Hud::Client.hmis
+
+        fix_99s_for_category!(
+          clients,
+          category: 'Race',
+          fields: HudUtility2024.races.keys.excluding('RaceNone'),
+        )
+
+        fix_99s_for_category!(
+          clients,
+          category: 'Gender',
+          fields: HudUtility2024.gender_fields.excluding(:GenderNone),
+        )
+      end
+    end
+
+    def self.fix_99s_for_category!(clients, category:, fields:)
+      # Build a scope that matches any record where any of the specific fields equals 99
+      target_scope = fields.
+        map { |field| clients.where(field => 99) }.
+        reduce { |memo, scope| memo.or(scope) }
+
+      # Construct SQL to update fields: set to 0 if it's 99, otherwise leave it unchanged
+      update_sql = fields.map do |field|
+        quoted_field = "\"#{field}\""
+        "#{quoted_field} = CASE WHEN #{quoted_field} = 99 THEN 0 ELSE #{quoted_field} END"
+      end.join(', ')
+
+      rows_affected = target_scope.update_all(update_sql)
+      Rails.logger.info "Set #{category} fields 99=>0 on #{rows_affected} Clients"
+    end
+
     # Fix any instances of enrollment-related records where the PersonalID does not match the Enrollment's PersonalIDs
     def self.fix_incorrect_personal_id_references!(classes: nil, dry_run: false)
       classes&.each do |klass|

@@ -109,7 +109,7 @@ module Hmis::Hud::Processors
         result[none_field] = nil
       else
         enum_map.base_members.each do |member|
-          result[member[:key]] = 99
+          result[member[:key]] = 0
         end
         result[none_field] = null_value unless none_field.nil?
       end
