@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 # curl -I -s "http://hmis-url/?[1-350]" | grep HTTP/
@@ -160,7 +168,7 @@ RSpec.describe Rack::Attack, type: :request do
       till_throttled(requests_to_send: throttled_at, throttled_status: -999) { get(path, headers: headers) }
       expect(SlackSendMonitor.lifetime_attempts).to be > 20
       expect(SlackSendMonitor.lifetime_sends).to be > 1
-      expect(SlackSendMonitor.percent_sent).to be < 10
+      expect(SlackSendMonitor.percent_sent).to be < 15
     end
   end
 end

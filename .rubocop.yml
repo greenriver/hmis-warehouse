@@ -99,7 +99,7 @@ Style/RescueStandardError:
   Enabled: true
 
 Style/FrozenStringLiteralComment:
-  Enabled: always
+  Enabled: true
 
 Style/CommentedKeyword:
   Enabled: false
