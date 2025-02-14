@@ -957,7 +957,7 @@ GEM
     sentry-ruby (5.19.0)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
-    set (1.1.0)
+    set (1.1.1)
     sexp_processor (4.17.1)
     shoulda (4.0.0)
       shoulda-context (~> 2.0)
@@ -1696,7 +1696,7 @@ CHECKSUMS
   sentry-delayed_job (5.19.0) sha256=7f70ceea2d45bc48a2b7f042692e1e9e428c3486de11bf3401e6bdc1105354ae
   sentry-rails (5.19.0) sha256=d4ad5323feea8e876f9feb2f50b126a3be3b4f6e137d37c360c31d52b6861995
   sentry-ruby (5.19.0) sha256=0ddf89f246840a5c50df6c68b8eb59ad23ee4adb4a91187a414bb196cee1838b
-  set (1.1.0) sha256=57233af23b1259a1bb3ce5baeef67ad0a8ad73cc1cc557e64049f0808eea7597
+  set (1.1.1) sha256=6c7ac6c06d5907216395a4d5dae3ffe52ca5ee8a372befe6d4dea794383f98f0
   sexp_processor (4.17.1) sha256=91110946720307f30bf1d549e90d9a529fef40d1fc471c069c8cca7667015da0
   shoulda (4.0.0) sha256=e677218c432eaa102a173e7047fbcf396ebc8ccea467725ba4e6053bc9e09c0a
   shoulda-context (2.0.0) sha256=7adf45342cd800f507d2a053658cb1cce2884b616b26004d39684b912ea32c34
