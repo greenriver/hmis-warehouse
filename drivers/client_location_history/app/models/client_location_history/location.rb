@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 module ClientLocationHistory
   class Location < GrdaWarehouseBase
     include Rails.application.routes.url_helpers
