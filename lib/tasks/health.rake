@@ -15,9 +15,6 @@ namespace :health do
     Health::EdIpVisitImporter.new.daily!
   end
 
-  task hourly: [:environment, 'log:info_to_stdout'] do
-  end
-
   desc 'Enrollments and Eligibility'
   task enrollments_and_eligibility: [:environment, 'log:info_to_stdout'] do
     begin
