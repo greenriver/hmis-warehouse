@@ -15,7 +15,7 @@ module ClientLocationHistory::WarehouseReports
 
     def index
       ids = ClientLocationHistory::Location.joins(:client).
-        merge(GrdaWarehouse::Hud::Client.destination_visible_to(current_user)).
+        merge(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(current_user)).
         where(located_on: filter.range).
         order(:client_id, located_on: :desc).
         distinct_on(:client_id).pluck(:id)

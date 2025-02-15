@@ -365,7 +365,7 @@ GEM
       ferrum (~> 0.14.0)
     curb (1.0.5)
     daemons (1.4.1)
-    date (3.3.4)
+    date (3.4.1)
     db-query-matchers (0.12.0)
       activesupport (>= 4.0, < 7.2)
       rspec (>= 3.0)
@@ -639,7 +639,7 @@ GEM
     mutex_m (0.2.0)
     net-http (0.4.1)
       uri
-    net-imap (0.5.0)
+    net-imap (0.5.6)
       date
       net-protocol
     net-pop (0.1.2)
@@ -730,7 +730,7 @@ GEM
       nio4r (~> 2.0)
     pwned (2.4.1)
     racc (1.8.1)
-    rack (2.2.10)
+    rack (2.2.11)
     rack-attack (6.7.0)
       rack (>= 1.0, < 4)
     rack-cors (2.0.2)
@@ -993,7 +993,7 @@ GEM
     thread_safe (0.3.6)
     tilt (2.3.0)
     timecop (0.9.8)
-    timeout (0.4.1)
+    timeout (0.4.3)
     tins (1.32.1)
       sync
     tiny_tds (2.1.7)
@@ -1215,7 +1215,7 @@ DEPENDENCIES
   prometheus-client
   pry-rails
   puma (~> 6.4)
-  rack (>= 2.2.8.1)
+  rack (>= 2.2.11)
   rack-attack
   rack-cors
   rack-mini-profiler

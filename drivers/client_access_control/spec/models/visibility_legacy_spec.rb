@@ -25,6 +25,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(0)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(0)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(0)
       end
     end
 
@@ -38,6 +39,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(0)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(0)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(0)
       end
     end
 
@@ -51,6 +53,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(0)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(0)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(0)
       end
     end
 
@@ -68,6 +71,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(0)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(0)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(0)
       end
     end
 
@@ -83,6 +87,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(1)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(2)
       end
     end
 
@@ -96,6 +101,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(0)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(0)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(0)
       end
     end
 
@@ -113,6 +119,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(0)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(0)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(0)
       end
     end
   end
