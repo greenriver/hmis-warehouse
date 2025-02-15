@@ -10,7 +10,7 @@ class Filters::Criteria::FilterForGender < Filters::Criteria::Base
       column = HudUtility2024.gender_id_to_field_name[value]
       next unless column
 
-      gender_query = report_scope_source.
+      gender_query = config.report_scope_source.
         joins(config.join_clients_method).
         where(arel.c_t[column.to_sym].eq(HudUtility2024.gender_comparison_value(value)))
       gender_scope = add_alternative(gender_scope, gender_query)

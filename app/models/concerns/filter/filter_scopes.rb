@@ -59,14 +59,14 @@ module Filter::FilterScopes
       scope.in_project(@filter.project_ids).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports))
     end
 
-    # we extracted these methods into discrete classes but keep methods to preserve
-    # backwards compatibility
-    Filters::Criteria::CriteriaSet::CRITERIA_CLASS_NAMES.each do |class_name|
-      method = class_name.demodulize.underscore
+    # we extracted these methods into discrete classes but keep methods to preserve backwards compatibility
+    Filters::Criteria::Registry::ALL_IDS.each do |method|
       define_method(method) do |scope|
-        criterion = class_name.constantize.for_input(input: self, config: criteria_configuration)
-        criterion ? criterion.apply(scope) : scope
+        criterion_class = Filters::Criteria::Registry.get(method)
+        criterion = criterion_class.new(input: filter, config: criteria_configuration)
+        criterion.apply(scope)
       end
     end
+
   end
 end

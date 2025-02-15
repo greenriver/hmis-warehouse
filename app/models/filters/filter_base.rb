@@ -578,36 +578,26 @@ module Filters
       end
     end
 
-    def criteria(all_project_types: nil, multi_coc_code_filter: true, include_date_range: true, chronic_at_entry: true)
-      configuration  = Filters::Criteria::Configuration.new(
-        all_project_types: all_project_types,
-        multi_coc_code_filter: multi_coc_code_filter,
-        include_date_range: include_date_range,
-        chronic_at_entry: chronic_at_entry,
-      )
-      Filters::Criteria::CriteriaSet.call(filter: self, configuration: configuration)
+    def new_criteria_set(configuration)
+      Filters::Criteria::CriteriaSet.new(filter: self, configuration: configuration)
     end
 
     # Apply all known scopes
     # NOTE: by default we use coc_codes, if you need to filter by the coc_code singular, take note
     def apply(scope, report_scope_source, all_project_types: nil, multi_coc_code_filter: true, include_date_range: true, chronic_at_entry: true)
-      # set up instance variables
-      # TBD: document what these are for, what calls these ivars
-      @report_scope_source = report_scope_source
-      @filter = self
-
-      criteria(
+      config = Filters::Criteria::Configuration.new(
         all_project_types: all_project_types,
         multi_coc_code_filter: multi_coc_code_filter,
         include_date_range: include_date_range,
         chronic_at_entry: chronic_at_entry,
         project_types: @project_types,
+        report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry,
       )
-      criteria.apply(scope)
-    end
 
-    def report_scope_source
-      @report_scope_source ||= GrdaWarehouse::ServiceHistoryEnrollment.entry
+      criteria_classes = Filters::Criteria::Registry.hud
+      criteria = criteria_classes.map do |klass|
+        klass.new(input: input, config: config)
+      end.compact
     end
 
     def all_projects?

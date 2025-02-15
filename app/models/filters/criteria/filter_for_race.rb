@@ -20,7 +20,7 @@ class Filters::Criteria::FilterForRace < Filters::Criteria::Base
   protected
 
   def race_alternative(key)
-    report_scope_source.joins(join_clients_method).where(c_t[key].eq(1))
+    config.report_scope_source.joins(join_clients_method).where(c_t[key].eq(1))
   end
 
   def multi_racial_clients(include_hispanic_latinaeo: false)
@@ -35,7 +35,7 @@ class Filters::Criteria::FilterForRace < Filters::Criteria::Base
     ]
     columns << arel.c_t[:HispanicLatinaeo] if include_hispanic_latinaeo
 
-    report_scope_source.joins(config.join_clients_method).
+    config.report_scope_source.joins(config.join_clients_method).
       where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
   end
 end
