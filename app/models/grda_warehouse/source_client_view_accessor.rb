@@ -37,7 +37,7 @@ class GrdaWarehouse::SourceClientViewAccessor
   def searchable_clients(client)
     key = client.id
     preload_searchable_clients([client]) unless @searchable_clients.key?(key)
-    @searchable_clients[key] || []
+    @searchable_clients[key] ||= []
   end
 
   # Name set object containing aliases from the source clients associated with the

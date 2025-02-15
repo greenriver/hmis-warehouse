@@ -15,6 +15,20 @@ module GrdaWarehouse
     FULL_STATUS = 'full'.freeze
 
     scope :with_invalid_client, -> { left_outer_joins(:destination_client).where(c_t[:id].eq(nil)) }
+    scope :active, ->(date: Date.current) {
+      expires_at = arel_table[:expires_at]
+      starts_at = arel_table[:starts_at]
+      where(status: [PARTIAL_STATUS, FULL_STATUS]).
+        where(
+          expires_at.eq(nil).and(starts_at.eq(nil)).
+          or(expires_at.eq(nil).and(starts_at.lteq(date))).
+          or(starts_at.eq(nil).and(expires_at.gteq(date))).
+          or(starts_at.lteq(date).and(expires_at.gteq(date))),
+        )
+    }
+    scope :matching_coc_codes, ->(coc_codes) {
+      where('coc_codes IS NULL OR coc_codes && ARRAY[?]::varchar[]', coc_codes)
+    }
 
     def active?(date: Date.current)
       case status
