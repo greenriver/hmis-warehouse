@@ -220,6 +220,10 @@ module HmisCsvImporter::Importer
       counts
     end
 
+    private def any_import_thresholds?
+      @data_source.ever_pause_imports_with_errors? || @data_source.ever_pause_imports_with_record_changes?
+    end
+
     ##
     # Estimates the number of records that will be added and removed during the import process.
     #
@@ -233,6 +237,9 @@ module HmisCsvImporter::Importer
     # @return [void]
     #
     private def precalculate_change_counts
+      # Do nothing if no thresholds have been configured on this data source
+      return unless any_import_thresholds?
+
       # This makes an estimate of the changes that will occur as it needs to be done before the
       # actual processing so that it can pause the import if necessary.
       # NOTE: as written this causes 2 additional, potentially slow queries
@@ -310,6 +317,9 @@ module HmisCsvImporter::Importer
     private def notify_of_import_status
       # don't do anything if we don't have an import log to reference.
       return unless @import_log
+
+      # Do nothing if no thresholds have been configured on this data source
+      return unless any_import_thresholds?
 
       @data_source.notify_of_import_status(
         import_log_id: @import_log.id,
