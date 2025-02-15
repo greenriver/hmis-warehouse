@@ -29,7 +29,7 @@ gem 'paranoia', '~> 2.0'
 # gem 'composite_primary_keys', '~> 14.0.9'
 gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys', branch: 'ea/preload-has-many-through-fix'
 gem 'pg'
-gem 'activerecord-sqlserver-adapter'
+gem 'activerecord-sqlserver-adapter', '~> 7.0' # tied to the rails version
 gem 'activerecord-import'
 gem 'order_as_specified'
 gem 'pghero'
