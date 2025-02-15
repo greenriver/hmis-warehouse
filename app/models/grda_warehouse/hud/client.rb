@@ -405,8 +405,13 @@ module GrdaWarehouse::Hud
     end
 
     scope :active_confirmed_consent_in_cocs, ->(coc_codes) do
-      joins(:data_source).where(data_sources: {obey_consent: true}).
-        joins(:roi_authorizations).merge(GrdaWarehouse::ClientRoiAuthorization.active)
+      coc_codes = Array.wrap(coc_codes) + ['All CoCs']
+      # if the client has a release in "my" cocs, or all cocs
+      query = "#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map { |s| connection.quote(s) }.join(',')}]"
+      # or if the cocs haven't been set
+      query += " or #{quoted_table_name}.consented_coc_codes = '[]' "
+      # and the release is valid
+      consent_form_valid.where(Arel.sql(query))
     end
 
     scope :consent_form_valid, -> do
