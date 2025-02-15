@@ -1,0 +1,75 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+module Mutations
+  class SplitHousehold < CleanBaseMutation
+    argument :splitting_enrollment_inputs, [Types::HmisSchema::EnrollmentRelationshipInput], required: true
+
+    field :new_household, Types::HmisSchema::Household, null: false
+    field :remaining_household, Types::HmisSchema::Household, null: false
+
+    def resolve(splitting_enrollment_inputs:)
+      map_enrollment_id_to_relationship = splitting_enrollment_inputs.map { |e| [e.enrollment_id, e.relationship_to_hoh] }.to_h
+
+      splitting_enrollment_ids = map_enrollment_id_to_relationship.keys
+      splitting_enrollments = Hmis::Hud::Enrollment.
+        where(id: splitting_enrollment_ids).
+        viewable_by(current_user).
+        includes(:household, :project)
+      access_denied! unless splitting_enrollments.size == splitting_enrollment_inputs.size
+
+      project = splitting_enrollments.map(&:project).uniq.sole
+      access_denied! unless current_permission?(permission: :can_split_households, entity: project)
+
+      donor_household = splitting_enrollments.map(&:household).uniq.sole
+      remaining_enrollments = donor_household.enrollments.where.not(id: splitting_enrollment_ids)
+
+      raise 'Splitting all clients to a new household is invalid' if remaining_enrollments.empty?
+      raise 'This operation would leave behind a household with no HoH, which is not allowed' unless remaining_enrollments.any?(&:head_of_household?)
+
+      hohs_count = map_enrollment_id_to_relationship.values.count(1)
+      raise 'Must specify exactly 1 HoH' unless hohs_count == 1
+
+      donor_before_state = donor_household.snapshot_household_state
+      new_household_id = Hmis::Hud::Base.generate_uuid
+
+      Hmis::Hud::Enrollment.transaction do
+        splitting_enrollments.each do |enrollment|
+          enrollment.household_id = new_household_id
+          enrollment.relationship_to_hoh = map_enrollment_id_to_relationship[enrollment.id.to_s]
+
+          # Release the unit, so that we don't end with a unit occupied by 2 different households
+          # (which could occur if any of the remaining enrollments occupy the same unit)
+          enrollment.active_unit_occupancy&.assign_attributes(occupancy_period_attributes: { end_date: Date.current })
+
+          enrollment.save!
+        end
+
+        donor_household.reload
+        donor_after_state = donor_household.snapshot_household_state
+
+        event = Hmis::HouseholdEvent.new_split_event(
+          user: current_user,
+          household: donor_household,
+          receiving_household_id: new_household_id,
+          before_state: donor_before_state,
+          after_state: donor_after_state,
+        )
+        event.save!
+
+        # Invalidate remaining enrollments and trigger re-processing, since household composition has changed.
+        # Processing for the new household should already be triggered based on the warehouse_trigger_processing after_create hook.
+        remaining_enrollments.invalidate_processing!
+        Hmis::Hud::Enrollment.queue_service_history_processing!
+      end
+
+      {
+        new_household: splitting_enrollments.first.reload.household,
+        remaining_household: donor_household,
+      }
+    end
+  end
+end

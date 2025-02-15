@@ -44,6 +44,10 @@ class Hmis::Hud::Validators::BaseValidator < ActiveModel::Validator
     "cannot be before entry date (#{entry_date.strftime('%m/%d/%Y')})"
   end
 
+  def self.on_entry_message(entry_date)
+    "must be after entry date (#{entry_date.strftime('%m/%d/%Y')})"
+  end
+
   def self.after_exit_message(exit_date)
     "cannot be after exit date (#{exit_date.strftime('%m/%d/%Y')})"
   end

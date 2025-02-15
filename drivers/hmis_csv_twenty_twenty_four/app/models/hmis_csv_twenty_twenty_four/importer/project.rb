@@ -22,7 +22,15 @@ module HmisCsvTwentyTwentyFour::Importer
     end
 
     scope :residential, -> do
-      where(ProjectType: HudUtility2024.residential_project_type_ids)
+      where(
+        arel_table[:ProjectType].in(HudUtility2024.residential_project_type_ids - [13]).
+        or(
+          arel_table[:ProjectType].eq(13).
+          # NOTE: officially, only RRHSubType 2 count as residential, but old data won't always have
+          # the RRHSubType, assume those are residential as well
+          and(arel_table[:RRHSubType].eq(2).or(arel_table[:RRHSubType].eq(nil))),
+        ),
+      )
     end
 
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument

@@ -66,6 +66,12 @@ module ClientAccessControl
       end
     end
 
+    def clients_destination_or_source_visible_to(user, client_ids: nil)
+      source_client_ids = clients_source_visible_to(user, client_ids: client_ids).pluck(:id)
+      destination_client_ids = clients_destination_visible_to(user, source_client_ids: source_client_ids).pluck(:id)
+      ::GrdaWarehouse::Hud::Client.where(id: source_client_ids + destination_client_ids)
+    end
+
     # Given a user, which source clients should be exposed for search results?
     # NOTE: this always uses :can_search_own_clients OR can_search_clients_with_roi
     def clients_source_searchable_to(user, client_ids: nil)
