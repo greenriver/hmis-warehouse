@@ -25,7 +25,7 @@ gem 'loofah'
 gem 'rubyzip'
 gem 'rails-html-sanitizer'
 gem 'sshkit'
-gem 'paranoia', '~> 2.0'
+gem 'paranoia'
 # gem 'composite_primary_keys', '~> 14.0.9'
 gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys', branch: 'ea/preload-has-many-through-fix'
 gem 'pg'
@@ -106,14 +106,13 @@ gem 'faraday', '~> 2.2'
 gem 'oauth2'
 
 gem 'pretender'
-gem 'rqrcode-rails3'
-gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3
+gem 'rqrcode'
 
 gem 'authtrail' # for logging login attempts
 gem 'maxminddb' # for local geocoding of login attempts
 gem 'geocoder'
 
-gem 'paper_trail'
+gem 'paper_trail', '~> 15' # 16 breaks models with inherited has_paper_trail, need to update significant code
 gem 'validate_url'
 gem 'validates_email_format_of'
 gem 'ruby-mailchecker'
@@ -195,7 +194,7 @@ gem 'progress_bar', require: false
 
 gem 'slack-notifier'
 
-gem 'puma', '~> 6.4'
+gem 'puma', '~> 6'
 
 gem 'dotenv-rails'
 
@@ -245,9 +244,9 @@ gem 'ansi'
 gem 'parallel'
 gem 'todo_or_die'
 
-gem 'business_time', '~> 0.10.0'
+gem 'business_time'
 gem 'cable_ready', '>= 5.0.0.rc2'
-gem 'graphql', '~> 2.0'
+gem 'graphql', '= 2.3.20'
 gem 'sentry-rails', '~> 5.5'
 gem 'sentry-ruby'
 gem 'sentry-delayed_job'
