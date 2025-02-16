@@ -148,12 +148,6 @@ tasks = [
     interruptable: false,
   },
   {
-    task: 'health:hourly',
-    frequency: 1.hour,
-    trigger: health_trigger,
-    interruptable: true,
-  },
-  {
     task: 'driver:medicaid_hmis_interchange:medicaid_hmis_transfer',
     frequency: :sunday,
     at: '5:01am',
