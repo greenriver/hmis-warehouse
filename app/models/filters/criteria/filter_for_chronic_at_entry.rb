@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForChronicAtEntry < Filters::Criteria::Base
-  LEVEL = :client
-
   def applies? = config.chronic_at_entry && input.chronic_status
 
   def apply(scope)

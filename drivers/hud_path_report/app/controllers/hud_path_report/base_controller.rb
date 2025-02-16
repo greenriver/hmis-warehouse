@@ -37,8 +37,6 @@ module HudPathReport
       end
       # Some sane defaults, using the previous report if available
       @filter = filter_class.new(user_id: current_user.id)
-      #raise @filter.method(:apply).source_location.inspect
-      @filter.apply(GrdaWarehouse::ServiceHistoryEnrollment.all)
       if filter_params.blank?
         prior_report = generator.find_report(current_user)
         options = prior_report&.options

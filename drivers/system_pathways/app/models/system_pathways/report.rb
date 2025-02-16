@@ -522,7 +522,7 @@ module SystemPathways
     end
 
     def enrollment_scope
-      # For compatibility with filter_scopes
+      # For compatability with filter_scopes
       filter.project_ids = filter.effective_project_ids
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
@@ -530,11 +530,7 @@ module SystemPathways
         preload(:project, enrollment: [:client, :project, :disabilities_at_entry, :assessments], client: :source_clients).
         joins(:project, :enrollment).
         open_between(start_date: filter.start_date, end_date: filter.end_date)
-
-      # apply all the hud-filters except enrollment cocs
-      filter.new_criteria_set(criteria_configuration).
-        filter{ |c| c.id != :filter_for_enrollment_cocs }.
-        apply(scope)
+      filter.apply(scope, except: [:filter_for_enrollment_cocs])
     end
   end
 end

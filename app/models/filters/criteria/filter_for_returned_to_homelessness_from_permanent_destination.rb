@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForReturnedToHomelessnessFromPermanentDestination< Filters::Criteria::Base
-  LEVEL = :client
-
   def applies? = input.returned_to_homelessness_from_permanent_destination
 
   def apply(scope)

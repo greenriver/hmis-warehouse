@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForHouseholdType < Filters::Criteria::Base
-  LEVEL = :client
-
   def applies?
     input.household_type.present? && input.household_type != :all
   end

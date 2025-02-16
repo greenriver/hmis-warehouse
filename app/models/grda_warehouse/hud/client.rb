@@ -29,6 +29,7 @@ module GrdaWarehouse::Hud
     include ClientImageConsumer
     include VeteranStatusCalculator
     include NotifierConfig
+    include ClientRaceAndEthnicityMixin
     has_paper_trail
 
     attr_accessor :source_id

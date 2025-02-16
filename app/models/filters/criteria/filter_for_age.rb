@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForAge < Filters::Criteria::Base
-  LEVEL = :client
-
   def applies? = !!age_ranges
 
   def apply(scope)

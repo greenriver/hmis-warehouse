@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForDaysSinceContact< Filters::Criteria::Base
-  LEVEL = :client
-
   def applies?
     input.days_since_contact_min.present? || input.days_since_contact_max.present?
   end

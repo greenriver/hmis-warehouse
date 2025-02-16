@@ -222,12 +222,7 @@ module HmisDataQualityTool
       scope = filter_for_range(scope)
       # Only apply CoC Code filter to the projects, we need to include
       # clients with enrollment CoC in the wrong CoC so we can identify them
-      #filter.apply(scope, except: :filter_for_enrollment_cocs)
-
-      filter.criteria.
-        filter(&:hud?).
-        filter { |c| c.id != :filter_for_enrollment_cocs }.
-        apply(scope)
+      filter.apply(scope, except: :filter_for_enrollment_cocs)
     end
 
     def can_see_client_details?(user)

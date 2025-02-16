@@ -54,7 +54,6 @@ module HudReports
     end
 
     def create
-      # raise generator.name
       if @filter.valid?
         @report = report_source.from_filter(@filter, report_name, build_for_questions: generator.questions.keys)
         generator.new(@report).queue

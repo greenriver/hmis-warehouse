@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForActiveRoi < Filters::Criteria::Base
-  LEVEL = :client
-
   def applies? = input.active_roi
 
   def apply(scope)

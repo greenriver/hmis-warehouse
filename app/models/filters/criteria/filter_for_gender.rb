@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForGender < Filters::Criteria::Base
-  LEVEL = :client
-
   def applies? = input.genders.present?
 
   def apply(scope)

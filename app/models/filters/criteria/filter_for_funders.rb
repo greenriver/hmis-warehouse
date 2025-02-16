@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForFunders < Filters::Criteria::Base
-  LEVEL = :project
-
   def applies?
     return false unless input.funder_ids.present? || input.funder_others.present?
 

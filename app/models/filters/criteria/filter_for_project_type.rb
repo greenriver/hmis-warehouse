@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForProjectType < Filters::Criteria::Base
-  LEVEL = :project
-
   def applies?
     config.all_project_types ? false : project_types.any?
   end

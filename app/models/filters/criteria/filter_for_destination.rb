@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForDestination < Filters::Criteria::Base
-  LEVEL = :client
-
   def applies? = input.destination_ids.present?
 
   def apply(scope)

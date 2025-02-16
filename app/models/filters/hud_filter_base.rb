@@ -92,24 +92,16 @@ module Filters
       @effective_project_ids_during_range[effective_range]
     end
 
-    def apply(scope)
-      criteria_set = new_criteria_set(
-        all_project_types: all_project_types,
-        multi_coc_code_filter: multi_coc_code_filter,
-        include_date_range: include_date_range,
-        chronic_at_entry: chronic_at_entry,
-        project_types: @project_types,
-        report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry,
-      )
-      criteria_set.add(*filter_methods.without(except)).apply(scope)
-
-      criteria_classes = Filters::Criteria::Registry.hud
-      applicable_criteria = criteria_classes.map do |klass|
-        klass.for_input(input: input, config: config)
-      end.compact
+    def apply(scope, except: [])
+      # @filter is required for these to work
+      @filter = self
+      filter_methods(except: except).each do |filter_method|
+        scope = send(filter_method, scope)
+      end
+      scope
     end
 
-    private def filter_methods
+    private def filter_methods(except: [])
       [
         :filter_for_user_access,
         :filter_for_projects_hud,
@@ -122,7 +114,11 @@ module Filters
         :filter_for_race,
         :filter_for_sub_population,
         :filter_for_enrollment_cocs,
-      ]
+      ] - Array.wrap(except)
+    end
+
+    private def report_scope_source
+      GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
     private def funder_scope

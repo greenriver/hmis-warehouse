@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForCeClsHomeless < Filters::Criteria::Base
-  LEVEL = :client
-
   def applies? = input.ce_cls_as_homeless
 
   def apply(scope)

@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForPshMoveIn< Filters::Criteria::Base
-  LEVEL = :client
-
   def applies? = input.psh_move_in
 
   def apply(scope)

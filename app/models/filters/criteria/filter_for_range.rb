@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForRange < Filters::Criteria::Base
-  LEVEL = :project
-
   def applies?
     config.include_date_range
   end

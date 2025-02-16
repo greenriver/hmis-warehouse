@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForProjects < Filters::Criteria::Base
-  LEVEL = :project
-
   def applies?
     return false unless input.project_ids.present? || input.project_group_ids.present?
 

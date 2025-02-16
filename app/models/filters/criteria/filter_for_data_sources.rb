@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForDataSources < Filters::Criteria::Base
-  LEVEL = :project
-
   def applies?
     config.data_source_ids.present? && user.report_filter_visible?(:data_source_ids)
   end

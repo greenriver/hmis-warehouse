@@ -5,10 +5,6 @@ class Filters::Criteria::Base
     @config = config || Filters::Criteria::Configuration.new
   end
 
-  def id
-    self.class.name.demodulize.underscore
-  end
-
   def arel
     Hmis::ArelHelper.instance
   end

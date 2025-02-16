@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForDvStatus < Filters::Criteria::Base
-  LEVEL = :client
-
   def applies? = input.dv_status.present?
 
   def apply(scope)

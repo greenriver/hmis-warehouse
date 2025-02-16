@@ -70,5 +70,9 @@ class Filters::Criteria::Registry
     :filter_for_days_since_contact,
   ].freeze
 
-  ALL_IDS = (HUD_CRITERIA_IDS + WH_PROJECT_CRITERIA_IDS + WH_CLIENT_CRITERIA_IDS).uniq
+  OTHER_IDS = [
+    :filter_for_race_ethnicity_combinations
+  ]
+
+  ALL_IDS = (HUD_CRITERIA_IDS + WH_PROJECT_CRITERIA_IDS + WH_CLIENT_CRITERIA_IDS + OTHER_IDS).uniq
 end

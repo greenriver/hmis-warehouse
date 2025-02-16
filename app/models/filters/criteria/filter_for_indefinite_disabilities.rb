@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForIndefiniteDisabilities < Filters::Criteria::Base
-  LEVEL = :client
-
   def applies? = input.indefinite_disabilities.present?
 
   def apply(scope)

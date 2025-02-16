@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForDvCurrentlyFleeing < Filters::Criteria::Base
-  LEVEL = :client
-
   def applies? = input.currently_fleeing.present?
 
   def apply(scope)

@@ -1,7 +1,5 @@
 class Filters::Criteria::FilterForUserAccess < Filters::Criteria::Base
-  LEVEL = :project
-
-  def applies?(_input) = true
+  def applies? = true
 
   def apply(scope)
     scope.joins(:project).

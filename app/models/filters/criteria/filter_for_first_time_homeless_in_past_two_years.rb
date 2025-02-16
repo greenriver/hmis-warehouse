@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForFirstTimeHomelessInPastTwoYears < Filters::Criteria::Base
-  LEVEL = :client
-
   def applies? = input.first_time_homeless
 
   def apply(scope)

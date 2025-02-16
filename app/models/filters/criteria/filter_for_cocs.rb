@@ -1,14 +1,8 @@
 class Filters::Criteria::FilterForCocs < Filters::Criteria::Base
-  LEVEL = :project
-
   def applies? = coc_codes.present?
 
   def apply(scope)
-    if config.multi_coc_code_filter
-      filter_for_cocs(scope)
-    else
-      filter_for_coc(scope)
-    end
+    filter_for_cocs(scope)
   end
 
   protected
@@ -33,12 +27,5 @@ class Filters::Criteria::FilterForCocs < Filters::Criteria::Base
         or(GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: nil)).
         or(GrdaWarehouse::Hud::Enrollment.where.not(EnrollmentCoC: HudUtility2024.cocs.keys)),
       )
-  end
-
-  def filter_for_coc(scope)
-    return scope unless input.coc_code.present?
-
-    scope.joins(project: :project_cocs).
-      merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: input.coc_code))
   end
 end

@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForHeadOfHousehold < Filters::Criteria::Base
-  LEVEL = :client
-
   def applies? = input.hoh_only
 
   def apply(scope)

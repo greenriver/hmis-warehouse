@@ -574,30 +574,45 @@ module Filters
         ids << effective_project_ids_from_data_sources
         ids << effective_project_ids_from_coc_codes
         ids << effective_project_ids_from_project_types
+
         ids.reject(&:empty?).reduce(&:&)
       end
     end
 
-    def new_criteria_set(configuration)
-      Filters::Criteria::CriteriaSet.new(filter: self, configuration: configuration)
+    def criteria_configuration
+      @criteria_configuration ||= ::Filters::Criteria::Configuration.new(
+        all_project_types: all_project_types,
+        include_date_range: include_date_range,
+        chronic_at_entry: chronic_at_entry,
+        project_types: @project_types,
+        report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry,
+      )
     end
 
     # Apply all known scopes
     # NOTE: by default we use coc_codes, if you need to filter by the coc_code singular, take note
-    def apply(scope, report_scope_source, all_project_types: nil, multi_coc_code_filter: true, include_date_range: true, chronic_at_entry: true)
-      config = Filters::Criteria::Configuration.new(
+    def apply(scope, report_scope_source, all_project_types: nil, include_date_range: true, chronic_at_entry: true)
+      config = ::Filters::Criteria::Configuration.new(
         all_project_types: all_project_types,
-        multi_coc_code_filter: multi_coc_code_filter,
         include_date_range: include_date_range,
         chronic_at_entry: chronic_at_entry,
         project_types: @project_types,
         report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry,
       )
 
-      criteria_classes = Filters::Criteria::Registry.hud
+      criteria_classes = ::Filters::Criteria::Registry.hud
       criteria = criteria_classes.map do |klass|
-        klass.new(input: input, config: config)
+        klass.new(input: self, config: config)
       end.compact
+      criteria.filter(&:applies?).reduce(scope) do |result, criterion|
+        criterion.apply(result)
+      end
+    end
+
+    def apply_project_level_restrictions(scope)
+    end
+
+    def apply_client_level_restrictions(scope)
     end
 
     def all_projects?

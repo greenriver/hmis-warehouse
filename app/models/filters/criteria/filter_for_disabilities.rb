@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForDisabilities < Filters::Criteria::Base
-  LEVEL = :client
-
   def applies? = input.disabilities.present?
 
   def apply(scope)

@@ -1,6 +1,4 @@
 class Filters::Criteria::FilterForVeteranStatus < Filters::Criteria::Base
-  LEVEL = :client
-
   def applies? = input.veteran_statuses.present?
 
   def apply(scope)
