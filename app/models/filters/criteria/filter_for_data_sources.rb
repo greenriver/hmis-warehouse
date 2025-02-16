@@ -1,6 +1,6 @@
 class Filters::Criteria::FilterForDataSources < Filters::Criteria::Base
   def applies?
-    config.data_source_ids.present? && user.report_filter_visible?(:data_source_ids)
+    input.data_source_ids.present? && user.report_filter_visible?(:data_source_ids)
   end
 
   def apply(scope)

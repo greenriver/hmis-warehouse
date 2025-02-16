@@ -10,7 +10,6 @@ module Filters
     include AvailableSubPopulations
     include ArelHelper
     include ApplicationHelper
-    include Filter::FilterScopes
     include ActionView::Helpers::TagHelper
     include ActionView::Context
 
@@ -579,40 +578,45 @@ module Filters
       end
     end
 
-    def criteria_configuration
-      @criteria_configuration ||= ::Filters::Criteria::Configuration.new(
-        all_project_types: all_project_types,
-        include_date_range: include_date_range,
-        chronic_at_entry: chronic_at_entry,
+    def apply_criteria(scope, tags:, except: [], **opts)
+      # Define default configuration options.
+      defaults = {
         project_types: @project_types,
-        report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry,
-      )
-    end
+        all_project_types: nil,
+        include_date_range: true,
+        chronic_at_entry: true,
+        report_scope_source: nil,
+        join_clients_method: :client
+      }
 
-    # Apply all known scopes
-    # NOTE: by default we use coc_codes, if you need to filter by the coc_code singular, take note
-    def apply(scope, report_scope_source, all_project_types: nil, include_date_range: true, chronic_at_entry: true)
-      config = ::Filters::Criteria::Configuration.new(
-        all_project_types: all_project_types,
-        include_date_range: include_date_range,
-        chronic_at_entry: chronic_at_entry,
-        project_types: @project_types,
-        report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry,
-      )
+      # Merge provided options with the defaults.
+      config_options = defaults.merge(opts)
+      config = ::Filters::Criteria::Configuration.new(**config_options)
 
-      criteria_classes = ::Filters::Criteria::Registry.hud
-      criteria = criteria_classes.map do |klass|
-        klass.new(input: self, config: config)
-      end.compact
+      # Instantiate criteria
+      criteria = ::Filters::Criteria.classes_for_tags(tags).map do |criteria_class|
+        criteria_class.new(input: self, config: config)
+      end
+
+      # Remove any explicitly excluded criteria.
+      criteria.reject! { |c| except.include?(c.id) } if except.any?
+
+      # Apply only criteria that are applicable.
       criteria.filter(&:applies?).reduce(scope) do |result, criterion|
         criterion.apply(result)
       end
     end
 
-    def apply_project_level_restrictions(scope)
-    end
-
-    def apply_client_level_restrictions(scope)
+    # Apply all known scopes
+    def apply(scope, report_scope_source, all_project_types: nil, include_date_range: true, chronic_at_entry: true)
+      apply_criteria(
+        scope,
+        tags: [:warehouse],
+        report_scope_source: report_scope_source,
+        all_project_types: all_project_types,
+        include_date_range: include_date_range,
+        chronic_at_entry: chronic_at_entry
+      )
     end
 
     def all_projects?
@@ -957,7 +961,6 @@ module Filters
     def available_age_ranges
       self.class.available_age_ranges
     end
-
 
     def available_inactivity_days
       {

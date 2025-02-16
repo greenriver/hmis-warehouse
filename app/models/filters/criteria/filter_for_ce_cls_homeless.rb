@@ -10,5 +10,4 @@ class Filters::Criteria::FilterForCeClsHomeless < Filters::Criteria::Base
     scope.where(client_id: client_ids_with_two_homeless_cls).
       or(scope.where(project_type: p_types))
   end
-
 end

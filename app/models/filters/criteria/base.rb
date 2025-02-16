@@ -1,5 +1,10 @@
 class Filters::Criteria::Base
   attr_accessor :input, :config
+
+  def id
+    Filters::Criteria::IDS_BY_CLASS.fetch(self.class)
+  end
+
   def initialize(input:, config: nil)
     @input = input
     @config = config || Filters::Criteria::Configuration.new

@@ -122,7 +122,7 @@ module
       @households[base_count_sym] = {}
 
       # Ignore client-specific filters so we can calculate household type based on who was there, not who is available for reporting
-      household_scope = filter.apply_project_level_restrictions(report_scope_source)
+      household_scope = filter.apply_criteria(report_scope_source, tags: [:warehouse, :project])
       # use she.client (destination client) for DOB/Age, sometimes QA has weird data
       set_household_counts(household_scope)
 
@@ -131,7 +131,7 @@ module
         @households[coc_code.to_sym] = {}
 
         # Ignore client-specific filters so we can calculate household type based on who was there, not who is available for reporting
-        household_scope = filter.apply_project_level_restrictions(report_scope_source.in_coc(coc_code: coc_code))
+        household_scope = filter.apply_criteria(report_scope_source.in_coc(coc_code: coc_code), tags: [:warehouse, :project])
         # use she.client (destination client) for DOB/Age, sometimes QA has weird data
         set_household_counts(household_scope, coc_code.to_sym)
       end

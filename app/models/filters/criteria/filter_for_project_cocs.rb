@@ -1,5 +1,4 @@
 class Filters::Criteria::FilterForProjectCocs < Filters::Criteria::Base
-
   def applies? = true
 
   def apply(scope)

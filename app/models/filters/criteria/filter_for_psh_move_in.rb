@@ -1,4 +1,4 @@
-class Filters::Criteria::FilterForPshMoveIn< Filters::Criteria::Base
+class Filters::Criteria::FilterForPshMoveIn < Filters::Criteria::Base
   def applies? = input.psh_move_in
 
   def apply(scope)

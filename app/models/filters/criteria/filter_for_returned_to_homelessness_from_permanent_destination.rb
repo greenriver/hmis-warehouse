@@ -1,4 +1,4 @@
-class Filters::Criteria::FilterForReturnedToHomelessnessFromPermanentDestination< Filters::Criteria::Base
+class Filters::Criteria::FilterForReturnedToHomelessnessFromPermanentDestination < Filters::Criteria::Base
   def applies? = input.returned_to_homelessness_from_permanent_destination
 
   def apply(scope)
@@ -15,5 +15,4 @@ class Filters::Criteria::FilterForReturnedToHomelessnessFromPermanentDestination
 
     scope.homeless.where(client_id: client_ids_with_recent_permanent_exits.select(:client_id))
   end
-
 end

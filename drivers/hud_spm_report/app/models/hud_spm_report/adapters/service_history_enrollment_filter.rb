@@ -31,7 +31,7 @@ module HudSpmReport::Adapters
 
       # ATTN: coc filter is needed for testkit
       scope = filter_for_cocs(scope)
-      scope = @filter.apply_client_level_restrictions(scope)
+      scope = @filter.apply_criteria(scope, tags: [:warehouse, :client])
 
       GrdaWarehouse::Hud::Enrollment.where(id: scope.joins(:enrollment).select(e_t[:id])).select(*enrollment_columns)
     end

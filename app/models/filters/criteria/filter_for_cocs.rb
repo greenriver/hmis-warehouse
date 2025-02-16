@@ -1,18 +1,14 @@
 class Filters::Criteria::FilterForCocs < Filters::Criteria::Base
-  def applies? = coc_codes.present?
+  def applies? = input.coc_codes.present?
 
   def apply(scope)
-    filter_for_cocs(scope)
-  end
-
-  protected
-
-  def filter_for_cocs(scope)
     return scope unless input.coc_codes.present?
 
     scope = filter_for_project_cocs(scope)
     filter_for_enrollment_cocs(scope)
   end
+
+  protected
 
   def filter_for_project_cocs(scope)
     scope.joins(project: :project_cocs).

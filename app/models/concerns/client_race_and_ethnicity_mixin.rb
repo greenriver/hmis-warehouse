@@ -7,7 +7,7 @@
 module ClientRaceAndEthnicityMixin
   extend ActiveSupport::Concern
   included do
-    scope :race_ethnicity_alternative, -> (key, hispanic_latinaeo = false) {
+    scope :race_ethnicity_alternative, ->(key, hispanic_latinaeo = false) {
       scope = self
       columns = (HudUtility2024.race_fields - [:RaceNone]).map { |k| [k, 0] }.to_h
 
@@ -33,7 +33,7 @@ module ClientRaceAndEthnicityMixin
       end
     }
 
-    scope :multi_racial_clients, -> (include_hispanic_latinaeo: false) {
+    scope :multi_racial_clients, ->(include_hispanic_latinaeo: false) {
       # Looking at all races with responses of 1, where we have a sum > 1
       columns = [
         c_t[:AmIndAKNative],

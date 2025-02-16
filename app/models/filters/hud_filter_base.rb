@@ -92,29 +92,9 @@ module Filters
       @effective_project_ids_during_range[effective_range]
     end
 
+    # Caution: this overrides base class signature
     def apply(scope, except: [])
-      # @filter is required for these to work
-      @filter = self
-      filter_methods(except: except).each do |filter_method|
-        scope = send(filter_method, scope)
-      end
-      scope
-    end
-
-    private def filter_methods(except: [])
-      [
-        :filter_for_user_access,
-        :filter_for_projects_hud,
-        :filter_for_project_cocs,
-        :filter_for_veteran_status,
-        :filter_for_household_type,
-        :filter_for_head_of_household,
-        :filter_for_age,
-        :filter_for_gender,
-        :filter_for_race,
-        :filter_for_sub_population,
-        :filter_for_enrollment_cocs,
-      ] - Array.wrap(except)
+      apply_criteria(scope, tags: [:hud], except: except)
     end
 
     private def report_scope_source

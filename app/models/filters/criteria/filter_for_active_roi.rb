@@ -4,5 +4,4 @@ class Filters::Criteria::FilterForActiveRoi < Filters::Criteria::Base
   def apply(scope)
     scope.joins(config.join_clients_method).merge(GrdaWarehouse::Hud::Client.consent_form_valid)
   end
-
 end

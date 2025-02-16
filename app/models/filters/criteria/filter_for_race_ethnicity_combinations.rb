@@ -1,5 +1,4 @@
 class Filters::Criteria::FilterForRaceEthnicityCombinations < Filters::Criteria::Base
-
   def applies? = input.race_ethnicity_combinations.present?
 
   def apply(scope)
