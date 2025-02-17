@@ -168,7 +168,7 @@ RSpec.describe Rack::Attack, type: :request do
       till_throttled(requests_to_send: throttled_at, throttled_status: -999) { get(path, headers: headers) }
       expect(SlackSendMonitor.lifetime_attempts).to be > 20
       expect(SlackSendMonitor.lifetime_sends).to be > 1
-      expect(SlackSendMonitor.percent_sent).to be < 15
+      expect(SlackSendMonitor.percent_sent).to be < 11
     end
   end
 end
