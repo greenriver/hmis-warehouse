@@ -271,6 +271,7 @@ jobs:
           RUN_SYSTEM_TESTS: true
           BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
           CHROME_URL: http://chrome:3333
+          FERRUM_DEBUG: true
         run:
           bash ./bin/run_hmis_system_tests.sh
 
