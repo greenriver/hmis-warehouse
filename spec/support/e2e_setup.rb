@@ -4,11 +4,11 @@ if ENV['RUN_SYSTEM_TESTS']
   Capybara.default_driver = E2eTests::DRIVER_NAME
 end
 
+# from user factory
+DEFAULT_USER_PASSWORD = Digest::SHA256.hexdigest('abcd1234abcd1234')
+
 # test helper methods
 RSpec.shared_context 'SystemSpecHelper' do
-  # from user factory
-  DEFAULT_USER_PASSWORD = Digest::SHA256.hexdigest('abcd1234abcd1234')
-
   def sign_in(user, password: DEFAULT_USER_PASSWORD)
     # this should go into before-each but that seems to hang up some tests
     visit('/')
