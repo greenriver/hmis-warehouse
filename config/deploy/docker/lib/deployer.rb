@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 require 'date'
 require 'byebug'
 require 'English'
@@ -154,10 +156,10 @@ class Deployer
   def _check_compiled_assets!
     secrets_arn_ = secrets_arn.gsub(/[^0-9A-Za-z\_\-\:\/]/, '') # Sanitize for cli.
     target_group_name_ = target_group_name&.gsub(/[^0-9A-Za-z\_\-]/, '') # Sanitize for cli.
-    checksum = `SECRET_ARN=#{secrets_arn_.shellescape} ASSETS_PREFIX=#{target_group_name_.shellescape} bin/asset_checksum`.split(' ')[-1]
+    checksum = `SECRET_ARN=#{Shellwords.escape(secrets_arn_)} ASSETS_PREFIX=#{Shellwords.escape(target_group_name_)} bin/asset_checksum`.split(' ')[-1]
 
     compiled_assets_s3_path = AssetCompiler.compiled_assets_s3_path(target_group_name_, checksum)
-    while `aws s3 ls #{compiled_assets_s3_path.shellescape}`.strip.empty?
+    while `aws s3 ls #{Shellwords.escape(compiled_assets_s3_path)}`.strip.empty?
       puts "[INFO] Assets for hash [#{checksum}] not compiled yet, waiting 60 seconds..."
       sleep 60
     end
