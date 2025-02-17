@@ -242,15 +242,4 @@ class User < ApplicationRecord
       GrdaWarehouse::AuthPolicies::UserLegacyContext.new(self)
     end
   end
-
-  # View helper for performant access to client details
-  # preloaded clients example:
-  #   current_user.client_view_accessor.preload_searchable_clients(dest_clients)
-  #   dest_clients.each do |client|
-  #     puts current_user.client_view_accessor.searchable_clients(client).first
-  #   end
-  #
-  def client_view_accessor
-    @client_view_accessor ||= GrdaWarehouse::SourceClientViewAccessor.new(user: self)
-  end
 end
