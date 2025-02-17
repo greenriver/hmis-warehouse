@@ -82,4 +82,22 @@ RSpec.describe GrdaWarehouse::ClientRoiAuthorization, type: :model do
       end
     end
   end
+
+  describe 'when clients are merged' do
+    let!(:warehouse_client_1) { create(:warehouse_client) }
+    let!(:warehouse_client_2) { create(:warehouse_client) }
+    let!(:authorization_1) { create(:client_roi_authorization, destination_client: warehouse_client_1.destination) }
+    let!(:authorization_2) { create(:client_roi_authorization, destination_client: warehouse_client_2.destination) }
+
+    it 'deletes the authorization associated with the deleted client' do
+      expect do
+        warehouse_client_1.destination.merge_from(warehouse_client_2.destination, reviewed_by: User.system_user, reviewed_at: Time.current)
+      end.to change { GrdaWarehouse::ClientRoiAuthorization.count }.by(-1)
+    end
+
+    it 'deletes the expected authorization' do
+      warehouse_client_1.destination.merge_from(warehouse_client_2.destination, reviewed_by: User.system_user, reviewed_at: Time.current)
+      expect(GrdaWarehouse::ClientRoiAuthorization.pluck(:id)).to eq([authorization_1.id])
+    end
+  end
 end
