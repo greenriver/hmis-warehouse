@@ -3,6 +3,7 @@
 # frozen_string_literal: false
 
 require_relative '../config/deploy/docker/lib/asset_compiler.rb'
+require 'shellwords'
 
 target_group_name = ENV.fetch('TARGET_GROUP_NAME', false)
 checksum = ENV.fetch('ASSET_CHECKSUM', false)
@@ -13,7 +14,7 @@ raise 'Waiting for compiled assets error: TARGET_GROUP_NAME not defined' unless 
 raise 'Waiting for compiled assets error: ASSET_CHECKSUM not defined' unless checksum
 
 compiled_assets_s3_path = AssetCompiler.compiled_assets_s3_path(target_group_name, checksum)
-while `aws s3 ls #{Shellwords.escape(compiled_assets_s3_path)}`.strip.empty?
+while `aws s3 ls #{compiled_assets_s3_path.shellescape}`.strip.empty?
 
   if Time.now - start_time > two_hours
     puts "[FATAL] Assets for hash [#{checksum}] never arrived. Exiting"
