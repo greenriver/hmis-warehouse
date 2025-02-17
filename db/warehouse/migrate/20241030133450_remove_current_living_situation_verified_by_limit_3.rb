@@ -7,7 +7,7 @@ class RemoveCurrentLivingSituationVerifiedByLimit3 < ActiveRecord::Migration[7.0
 
   # No longer in use
   def up
-    # Bi::ViewMaintainer.new.safe_create_role
+    # # Bi::ViewMaintainer.new.safe_create_role
     # Bi::ViewMaintainer.new.non_client_view(GrdaWarehouse::Hud::CurrentLivingSituation)
   end
 

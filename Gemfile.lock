@@ -23,16 +23,6 @@ GIT
       activerecord (~> 7.0.2)
 
 GIT
-  remote: https://github.com/greenriver/hellosign-ruby-sdk.git
-  revision: 5718c3f96c37153fb18c02c9ade0e4112a8c7926
-  specs:
-    hellosign-ruby-sdk (3.7.10)
-      faraday (~> 2.2)
-      faraday-multipart (~> 1.0.0)
-      mime-types
-      multi_json
-
-GIT
   remote: https://github.com/greenriver/pg_fixtures.git
   revision: 48c46a77893f472890cb06366d89eba6492d8c27
   specs:
@@ -1233,7 +1223,6 @@ DEPENDENCIES
   haml-rails
   handlebars_assets
   hashdiff
-  hellosign-ruby-sdk!
   html2haml
   htmlentities
   image_processing
@@ -1259,6 +1248,7 @@ DEPENDENCIES
   mimemagic
   mini_magick
   minitest-reporters
+  multipart-post
   mutex_m
   net-http
   net-sftp
@@ -1544,7 +1534,6 @@ CHECKSUMS
   hashdiff (1.1.2) sha256=2c30eeded6ed3dce8401d2b5b99e6963fe5f14ed85e60dd9e33c545a44b71a77
   hashie (5.0.0) sha256=9d6c4e51f2a36d4616cbc8a322d619a162d8f42815a792596039fc95595603da
   heapy (0.2.0) sha256=74141e845d61ffc7c1e8bf8b127c8cf94544ec7a1181aec613288682543585ea
-  hellosign-ruby-sdk (3.7.10)
   highline (3.1.2) sha256=67cbd34d19f6ef11a7ee1d82ffab5d36dfd5b3be861f450fc1716c7125f4bb4a
   html2haml (2.3.0) sha256=b587eaf532609642fc3b5c2b35861e8c9e15e72e0355b93bbcfee1e3ae088127
   htmlentities (4.3.4) sha256=125a73c6c9f2d1b62100b7c3c401e3624441b663762afa7fe428476435a673da
