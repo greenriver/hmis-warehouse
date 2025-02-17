@@ -381,12 +381,22 @@ module UserConcern
       end
     end
 
+    # Enforce a known value is included in the devise salt
+    # this allows us to invalidate sessions even though they are stored in redis
+    def authenticatable_salt
+      "#{super}#{session_token}"
+    end
+
+    def force_logout!
+      update_attribute(:session_token, SecureRandom.hex)
+    end
+
     # Dependent on devise expire_password_after being set to a value other than false
     def force_password_reset!
       return false unless password_expiration_enabled?
 
       # Immediately logout the user
-      self.unique_session_id = nil
+      self.session_token = SecureRandom.hex
       # Force a password change on next login
       need_change_password! # calls save internally
 

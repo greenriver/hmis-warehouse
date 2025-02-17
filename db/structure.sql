@@ -3291,7 +3291,8 @@ CREATE TABLE public.users (
     permission_context character varying DEFAULT 'role_based'::character varying,
     superset_roles jsonb DEFAULT '[]'::jsonb,
     talent_lms_email character varying,
-    training_courses jsonb
+    training_courses jsonb,
+    session_token character varying
 );
 
 
@@ -5184,6 +5185,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241211202350'),
 ('20250124170335'),
 ('20250124171033'),
-('20250208211846');
+('20250208211846'),
+('20250217181347');
 
 
