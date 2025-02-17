@@ -183,7 +183,7 @@ module Types
       argument :id, ID, required: false, description: 'Form Definition ID, if known'
     end
     def record_form_definition(role:, project_id: nil, id: nil)
-      raise 'Not supported, use serviceFormDefinition to look up service forms' if role == 'SERVICE' && !id
+      raise 'Not supported, use serviceFormDefinition to look up service forms' if role == 'SERVICE'
       raise 'unexpected role' unless Hmis::Form::Definition::FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
@@ -232,15 +232,22 @@ module Types
     field :service_form_definition, Types::Forms::FormDefinition, 'Get most relevant form definition for the specified service type', null: true do
       argument :service_type_id, ID, required: true
       argument :project_id, ID, required: true
+      argument :id, ID, required: false, description: 'Form Definition ID, if known'
     end
-    def service_form_definition(service_type_id:, project_id:)
+    def service_form_definition(service_type_id:, project_id:, id:)
       project = Hmis::Hud::Project.find_by(id: project_id)
       raise HmisErrors::ApiError, 'Project not found' unless project.present?
 
       service_type = Hmis::Hud::CustomServiceType.find_by(id: service_type_id)
       raise HmisErrors::ApiError, 'Service type not found' unless service_type.present?
 
-      definition = Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
+      definition = if id
+        # If ID is specified, we assume that it's correct for this project. ID is only provided when editing existing services.
+        Hmis::Form::Definition.with_role(:SERVICE).find(id)
+      else
+        # If ID is not specified, determine which form is specified for collecting this Service Type in this Project.
+        Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
+      end
 
       # Similar to record_form_definition above, we always want to return a definition if we possibly can, so use the
       # default HUD Service form for HUD service types. For Custom service types, return empty because we can't determine which form to use.

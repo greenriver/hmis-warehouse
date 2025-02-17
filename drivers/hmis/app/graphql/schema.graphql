@@ -9117,7 +9117,14 @@ type Query {
   """
   Get most relevant form definition for the specified service type
   """
-  serviceFormDefinition(projectId: ID!, serviceTypeId: ID!): FormDefinition
+  serviceFormDefinition(
+    """
+    Form Definition ID, if known
+    """
+    id: ID
+    projectId: ID!
+    serviceTypeId: ID!
+  ): FormDefinition
 
   """
   Service type lookup
