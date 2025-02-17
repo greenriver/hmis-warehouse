@@ -2,6 +2,7 @@
 
 require_relative 'aws_sdk_helpers'
 require 'dotenv'
+require 'shellwords'
 
 class AssetCompiler
   include AwsSdkHelpers::Helpers
@@ -34,14 +35,14 @@ class AssetCompiler
   def run!
     checksum = '<nochecksum>'
     time_me name: 'Checksumming' do
-      checksum = `SECRET_ARN=#{Shellwords.escape(@secret_arn)} ASSETS_PREFIX=#{Shellwords.escape(@target_group_name)} bin/asset_checksum`.split(' ')[-1]
+      checksum = `SECRET_ARN=#{@secret_arn.shellescape} ASSETS_PREFIX=#{@target_group_name.shellescape} bin/asset_checksum`.split(' ')[-1]
     end
 
     puts "Asset checksum: [#{checksum}]"
 
     existing_assets = ''
     time_me name: 'Checking if compiled assets already exist' do
-      existing_assets = `aws s3 ls #{Shellwords.escape(self.class.compiled_assets_s3_path(@target_group_name, checksum))}`.strip
+      existing_assets = `aws s3 ls #{self.class.compiled_assets_s3_path(@target_group_name, checksum).shellescape}`.strip
     end
 
     unless existing_assets.empty?
@@ -51,7 +52,7 @@ class AssetCompiler
 
     if @secret_arn.present?
       time_me name: 'Secrets download' do
-        system(`SECRET_ARN=#{Shellwords.escape(@secret_arn)} bin/download_secrets.rb > .env`)
+        system(`SECRET_ARN=#{@secret_arn.shellescape} bin/download_secrets.rb > .env`)
       end
     end
 
@@ -71,7 +72,7 @@ class AssetCompiler
 
   def push_to_s3!(checksum)
     time_me name: 'Uploading compiled assets' do
-      system("aws s3 cp --recursive public/assets s3://#{Shellwords.escape(self.class.compiled_assets_s3_path(@target_group_name, checksum))} >/dev/null")
+      system("aws s3 cp --recursive public/assets s3://#{self.class.compiled_assets_s3_path(@target_group_name, checksum).shellescape} >/dev/null")
     end
   end
 end
