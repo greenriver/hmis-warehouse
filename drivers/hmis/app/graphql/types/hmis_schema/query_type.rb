@@ -234,7 +234,7 @@ module Types
       argument :project_id, ID, required: true
       argument :id, ID, required: false, description: 'Form Definition ID, if known'
     end
-    def service_form_definition(service_type_id:, project_id:, id:)
+    def service_form_definition(service_type_id:, project_id:, id: nil)
       project = Hmis::Hud::Project.find_by(id: project_id)
       raise HmisErrors::ApiError, 'Project not found' unless project.present?
 
