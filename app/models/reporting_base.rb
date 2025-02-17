@@ -4,10 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class ReportingBase < ApplicationRecord
-  include ArelHelper
+# frozen_string_literal: false
 
+class ReportingBase < ApplicationRecord
   self.abstract_class = true
+  include ArelHelper
 
   connects_to database: { writing: :reporting, reading: :reporting }
 
