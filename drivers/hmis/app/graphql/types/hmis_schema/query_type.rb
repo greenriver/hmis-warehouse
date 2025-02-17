@@ -183,7 +183,7 @@ module Types
       argument :id, ID, required: false, description: 'Form Definition ID, if known'
     end
     def record_form_definition(role:, project_id: nil, id: nil)
-      raise 'Not supported, use serviceFormDefinition to look up service forms' if role == 'SERVICE'
+      raise 'Not supported, use serviceFormDefinition to look up service forms' if role == 'SERVICE' && !id
       raise 'unexpected role' unless Hmis::Form::Definition::FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
