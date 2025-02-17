@@ -34,12 +34,10 @@ RSpec.feature 'Viewing/editing legacy Service records on Enrollment', type: :sys
       find_all('a[id^="side-nav-"]').map(&:text)
     end
 
-    it 'should not show Service in the project side nav' do
+    it 'should not show Service in the Project and Enrollment side navs' do
       visit "/projects/#{p1.id}/overview"
       expect(side_nav_elements).not_to include('Services')
-    end
 
-    it 'should not show Services in the enrollment side nav' do
       visit "/client/#{client.id}/enrollments/#{enrollment.id}/overview"
       expect(side_nav_elements).not_to include('Services')
     end
@@ -47,11 +45,10 @@ RSpec.feature 'Viewing/editing legacy Service records on Enrollment', type: :sys
     context 'but HUD Service exists (no form processor)' do
       let!(:service) { create(:hmis_hud_service, enrollment: enrollment) }
 
-      it 'should show Services in the project nav' do
+      it 'should show Services in the Project and Enrollment side navs' do
         visit "/projects/#{p1.id}/overview"
         expect(side_nav_elements).to include('Services')
-      end
-      it 'should show Services in the enrollment nav' do
+
         visit "/client/#{client.id}/enrollments/#{enrollment.id}/overview"
         expect(side_nav_elements).to include('Services')
       end
@@ -65,16 +62,15 @@ RSpec.feature 'Viewing/editing legacy Service records on Enrollment', type: :sys
     context 'HUD Service exists (no form processor)' do
       let!(:service) { create(:hmis_hud_service, enrollment: enrollment) }
 
-      it 'should not allow adding a new Service' do
-        assert_no_text 'Add Service'
-      end
-
-      it 'should show legacy HUD Service' do
+      it 'should allow editing legacy HUD Service' do
+        # legacy service is present
         table_row = find('tbody').find_all('tr').sole.text
         expect(table_row).to include('Bed Night')
-      end
 
-      it 'should allow editing legacy HUD Service' do
+        # can't add new service
+        assert_no_text 'Add Service'
+
+        # can view and edit legacy service
         find('tbody').first('tr').trigger(:click)
         assert_text 'Update Service'
         click_button 'Save'
@@ -98,16 +94,12 @@ RSpec.feature 'Viewing/editing legacy Service records on Enrollment', type: :sys
       let!(:service_definition) { create(:hmis_service_form, data_source: ds1, status: :retired, append_items: [service_note_item]) }
       let!(:service) { create(:hmis_hud_service, enrollment: enrollment, definition: service_definition) }
 
-      it 'should not allow adding a new Service' do
-        assert_no_text 'Add Service'
-      end
-
-      it 'should show legacy HUD Service' do
+      it 'should allow viewing and editing HUD Service with specified form' do
+        # legacy service is present
         table_row = find('tbody').find_all('tr').sole.text
         expect(table_row).to include('Bed Night')
-      end
 
-      it 'should allow viewing and editing HUD Service with specified form' do
+        # can view and edit legacy service
         find('tbody').first('tr').trigger(:click)
         assert_text 'Update Service'
         assert_text custom_note_field # ensure rendering the correct form
@@ -137,16 +129,12 @@ RSpec.feature 'Viewing/editing legacy Service records on Enrollment', type: :sys
       let!(:service_definition) { create(:hmis_service_form, data_source: ds1, status: :retired, append_items: [service_note_item]) }
       let!(:service) { create(:hmis_custom_service, enrollment: enrollment, definition: service_definition, service_type: flex_funds_service_type) }
 
-      it 'should not allow adding a new Service' do
-        assert_no_text 'Add Service'
-      end
-
-      it 'should show legacy Custom Service' do
+      it 'should allow viewing and editing Custom Service with specified form' do
+        # legacy service is present
         table_row = find('tbody').find_all('tr').sole.text
         expect(table_row).to include('Flex Funds')
-      end
 
-      it 'should allow viewing and editing Custom Service with specified form' do
+        # can view and edit legacy service
         find('tbody').first('tr').trigger(:click)
         assert_text 'Update Service'
         assert_text custom_note_field # ensure rendering the correct form
