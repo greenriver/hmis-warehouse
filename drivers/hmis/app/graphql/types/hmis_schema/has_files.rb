@@ -22,6 +22,7 @@ module Types
         end
       end
 
+      # not currently used, because we are only querying for files on 1 client at a time
       def resolve_files_with_loader(association_name = :files, **args)
         load_ar_association(object, association_name, scope: scoped_files(Hmis::File, **args))
       end
@@ -32,8 +33,9 @@ module Types
 
       private
 
-      def scoped_files(scope, sort_order: :date_created)
-        scope = scope.viewable_by(current_user)
+      def scoped_files(scope, sort_order: :date_created, client_ids: nil)
+        # Passing client IDs to the viewable_by scope improves performance
+        scope = scope.viewable_by(current_user, client_ids: client_ids)
         scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope
       end

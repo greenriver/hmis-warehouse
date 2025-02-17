@@ -253,12 +253,6 @@ module Health
       patient_signed_on.present? && patient_signed_on_changed?
     end
 
-    # We need both signatures, and one of must have just been done
-    # FIXME: Left until HelloSign is removed
-    def just_signed?
-      (patient_signed_on.present? && provider_signed_on.present?) && (patient_signed_on_changed? || provider_signed_on_changed?)
-    end
-
     def ncm_just_approved?
       @cha = patient.recent_cha_form
       @cha&.complete? && ncm_approved_on.present? && ncm_approved_on_changed?
