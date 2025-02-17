@@ -206,6 +206,17 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       )
     end
 
+    let!(:c5_none_field_nil) do
+      create(
+        :hmis_hud_client,
+        data_source: hmis_ds,
+        RaceNone: nil,
+        GenderNone: nil,
+        **race_fields.map { |field| [field, 0] }.to_h,
+        **gender_fields.map { |field| [field, 0] }.to_h,
+      )
+    end
+
     let!(:other_ds_client) do
       create(
         :hmis_hud_client,
@@ -233,6 +244,14 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
           end
         end
       end
+    end
+
+    it 'updates RaceNone and GenderNone to 99 when all race/gender values are 0' do
+      HmisDataCleanup::Util.fix_race_gender_99s!
+      c5_none_field_nil.reload
+
+      expect(c5_none_field_nil.RaceNone).to eq(99)
+      expect(c5_none_field_nil.GenderNone).to eq(99)
     end
 
     it 'does not update clients in other data sources' do

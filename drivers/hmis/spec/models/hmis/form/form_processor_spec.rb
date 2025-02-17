@@ -930,7 +930,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.veteran_status).to eq(99)
         expect(client.race_fields).to eq([])
         expect(client.RaceNone).to eq(99)
-        HudUtility2024.races.keys.except('RaceNone').each do |f|
+        HudUtility2024.races.keys.excluding('RaceNone').each do |f|
           expect(client.send(f)).to eq(0)
         end
         expect(client.gender_fields).to eq([])
@@ -965,7 +965,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
         expect(client.race_fields).to eq([])
         expect(client.RaceNone).to eq(99)
-        HudUtility2024.races.keys.except('RaceNone').each do |f|
+        HudUtility2024.races.keys.excluding('RaceNone').each do |f|
           expect(client.send(f)).to eq(0)
         end
         expect(client.gender_fields).to eq([])
@@ -993,7 +993,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.dob_data_quality).to eq(9)
         expect(client.race_fields).to eq([])
         expect(client.RaceNone).to eq(9)
-        HudUtility2024.races.keys.except('RaceNone').each do |f|
+        HudUtility2024.races.keys.excluding('RaceNone').each do |f|
           expect(client.send(f)).to eq(0)
         end
         expect(client.gender_fields).to eq([])

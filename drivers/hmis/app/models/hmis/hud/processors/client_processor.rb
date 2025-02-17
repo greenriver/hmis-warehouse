@@ -75,6 +75,24 @@ module Hmis::Hud::Processors
     def information_date(_)
     end
 
+    def post_process
+      # RaceNone and GenderNone should be set to 99 (Data Not Collected) if no Race/Gender fields are 1.
+      # input_to_multi_fields handles this when data is submitted as an empty list, but
+      # if race/gender data is submitted as individual fields ('Client.Woman' => '0', 'Client.Transgender' => '0')
+      # then we need to update RaceNone/GenderNone to 99 here in post-processing.
+      client = @processor.send(factory_name)
+
+      race_fields = HudUtility2024.races.keys.excluding('RaceNone')
+      any_race = race_fields.any? { |field| client.send(field) == 1 }
+      race_none = any_race ? nil : client.RaceNone || 99
+
+      gender_fields = HudUtility2024.gender_fields.excluding(:GenderNone)
+      any_gender = gender_fields.any? { |field| client.send(field) == 1 }
+      gender_none = any_gender ? nil : client.GenderNone || 99
+
+      client.assign_attributes({ RaceNone: race_none, GenderNone: gender_none })
+    end
+
     def self.race_attributes(attribute_value)
       input_to_multi_fields(
         attribute_value,
