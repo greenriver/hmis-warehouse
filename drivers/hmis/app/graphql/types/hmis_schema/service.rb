@@ -79,12 +79,16 @@ module Types
     end
 
     def custom_data_elements
-      owner_service = load_ar_association(object, :owner)
       resolve_custom_data_elements(owner_service)
     end
 
     def form_definition_id
-      load_ar_association(object, :form_processor)&.definition_id
+      load_ar_association(owner_service, :form_processor)&.definition_id
+    end
+
+    # Hmis::Hud::Service or Hmis::Hud::CustomService
+    private def owner_service
+      load_ar_association(object, :owner)
     end
   end
 end
