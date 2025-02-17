@@ -689,6 +689,11 @@ type CeAssessment {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
+
+  """
+  Form Definition that was most recently used to create/update this record
+  """
+  formDefinitionId: ID
   id: ID!
   prioritizationStatus: PrioritizationStatus
   user: ApplicationUser
@@ -1765,6 +1770,11 @@ type CurrentLivingSituation {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
+
+  """
+  Form Definition that was most recently used to create/update this record
+  """
+  formDefinitionId: ID
 
   """
   Client Location where the Current Living Situation was recorded
@@ -3666,6 +3676,11 @@ type Event {
   enrollment: Enrollment!
   event: EventType!
   eventDate: ISO8601Date!
+
+  """
+  Form Definition that was most recently used to create/update this record
+  """
+  formDefinitionId: ID
   id: ID!
   locationCrisisOrPhHousing: String
   probSolDivRrResult: NoYesMissing
@@ -10292,6 +10307,11 @@ type Service {
   faAmount: Float
   faEndDate: ISO8601Date
   faStartDate: ISO8601Date
+
+  """
+  Form Definition that was most recently used to create/update this record
+  """
+  formDefinitionId: ID
   id: ID!
   movingOnOtherType: String
   otherTypeProvided: String

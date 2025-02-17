@@ -45,6 +45,7 @@ module Types
 
     field :record_type, HmisSchema::Enums::Hud::RecordType, null: true
     field :type_provided, HmisSchema::Enums::ServiceTypeProvided, null: true
+    field :form_definition_id, ID, null: true, description: 'Form Definition that was most recently used to create/update this record'
 
     def type_provided
       [object.record_type, object.type_provided].join(':')
@@ -80,6 +81,10 @@ module Types
     def custom_data_elements
       owner_service = load_ar_association(object, :owner)
       resolve_custom_data_elements(owner_service)
+    end
+
+    def form_definition_id
+      load_ar_association(object, :form_processor)&.definition_id
     end
   end
 end
