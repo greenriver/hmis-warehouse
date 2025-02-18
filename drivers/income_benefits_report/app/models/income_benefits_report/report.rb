@@ -221,7 +221,7 @@ module IncomeBenefitsReport
       scope = filter.apply(report_scope_source, report_scope_source, all_project_types: all_project_types)
 
       # Limit to most recently started enrollment per client
-      scope.only_most_recent_by_client(scope: scope)
+      scope.only_most_recent_by_client(scope: scope).joins(:enrollment)
     end
 
     def report_scope_source
@@ -342,9 +342,6 @@ module IncomeBenefitsReport
         race_cache = GrdaWarehouse::Hud::Client.new
         client_ids = batch.map(&:client_id)
         batch.each do |enrollment|
-          # Skip the SHE if the corresponding enrollment has been
-          next if enrollment.enrollment.nil?
-
           race_string = race_cache.race_string(
             destination_id: enrollment.client_id,
             scope_limit: race_cache.class.where(id: client_ids),
