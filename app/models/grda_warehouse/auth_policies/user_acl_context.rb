@@ -56,7 +56,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
       where(p_t[:id].in(project_ids)).
       pluck(p_t[:id], :coc_code).
       group_by(&:shift).
-      transform_values(&:flatten)
+      transform_values { |v| v.flatten.compact_blank }
     @coc_codes_by_project.merge!(results)
   end
 
@@ -70,7 +70,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
       where(project_id: project_ids).
       pluck(:project_id, :collection_id).
       group_by(&:shift).
-      transform_values(&:flatten)
+      transform_values { |v| v.flatten.compact_blank }
     @collection_ids_by_project.merge!(results)
   end
 
