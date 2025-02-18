@@ -109,6 +109,8 @@ module ClientAccessControl
       client_scope.where(where_clause)
     end
 
+    # @param user [User] user to use for to determine authorized searchable clients
+    # @param client_ids [Array<ids>] source client ids, restricts returned scope
     # Access to client in search results via:
     # 1. Enrollment at project where appropriate permission has been passed and the user has matching access control
     # 2. Client has an ROI that would expose data to this user via an access control
@@ -129,7 +131,7 @@ module ClientAccessControl
       union_sql = union_parts.compact.map do |scope|
         scope = scope.where(c_t[:id].in(client_ids)) if client_ids
         scope.select(c_t[:id]).to_sql
-      end.compact.join(' UNION ')
+      end.join(' UNION ')
 
       client_scope.where(Arel.sql("#{c_t[:id].to_sql} IN (#{union_sql})"))
     end
