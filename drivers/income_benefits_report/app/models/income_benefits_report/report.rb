@@ -342,6 +342,9 @@ module IncomeBenefitsReport
         race_cache = GrdaWarehouse::Hud::Client.new
         client_ids = batch.map(&:client_id)
         batch.each do |enrollment|
+          # Skip the SHE if the corresponding enrollment has been
+          next if enrollment.enrollment.nil?
+
           race_string = race_cache.race_string(
             destination_id: enrollment.client_id,
             scope_limit: race_cache.class.where(id: client_ids),
