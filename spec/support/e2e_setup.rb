@@ -19,6 +19,7 @@ RSpec.shared_context 'SystemSpecHelper' do
     assert_text user.full_name # user's name should appear in the header
 
     # Refresh page to address intermittent "_cuprite is not defined" failures on CI https://github.com/rubycdp/cuprite/issues/219
+    page.driver.wait_for_network_idle
     page.driver.refresh
     assert_text user.full_name
   end
