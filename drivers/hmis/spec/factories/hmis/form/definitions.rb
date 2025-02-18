@@ -109,6 +109,7 @@ FactoryBot.define do
             type: 'DATE',
             link_id: 'exit_date',
             required: true,
+            text: 'Exit Date',
             warn_if_empty: false,
             assessment_date: true,
             mapping: {
@@ -119,6 +120,7 @@ FactoryBot.define do
           {
             type: 'CHOICE',
             link_id: 'exit_destination',
+            text: 'Exit Destination',
             mapping: {
               record_type: 'EXIT',
               field_name: 'destination',
