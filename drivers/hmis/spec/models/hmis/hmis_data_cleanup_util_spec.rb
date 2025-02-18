@@ -184,16 +184,16 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
           and change { c1_with_race_and_gender.White }.from(99).to(0).
           and change { c1_with_race_and_gender.HispanicLatinaeo }.from(99).to(0).
           and change { c1_with_race_and_gender.MidEastNAfrican }.from(99).to(0).
-          and not_change { c1_with_race_and_gender.AmIndAKNative }.
-          and not_change { c1_with_race_and_gender.RaceNone }.
+          and(not_change { c1_with_race_and_gender.AmIndAKNative }).
+          and(not_change { c1_with_race_and_gender.RaceNone }).
           and change { c1_with_race_and_gender.Man }.from(99).to(0).
           and change { c1_with_race_and_gender.CulturallySpecific }.from(99).to(0).
           and change { c1_with_race_and_gender.DifferentIdentity }.from(99).to(0).
           and change { c1_with_race_and_gender.NonBinary }.from(99).to(0).
           and change { c1_with_race_and_gender.Transgender }.from(99).to(0).
           and change { c1_with_race_and_gender.Questioning }.from(99).to(0).
-          and not_change { c1_with_race_and_gender.Woman }. # rubocop:disable Lint/AmbiguousBlockAssociation
-          and not_change { c1_with_race_and_gender.GenderNone }
+          and(not_change { c1_with_race_and_gender.Woman }).
+          and(not_change { c1_with_race_and_gender.GenderNone })
       end
     end
 
@@ -243,15 +243,15 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
           and change { clients.map(&:White).uniq.sole }.from(99).to(0).
           and change { clients.map(&:HispanicLatinaeo).uniq.sole }.from(99).to(0).
           and change { clients.map(&:MidEastNAfrican).uniq.sole }.from(99).to(0).
-          and not_change { clients.map(&:RaceNone) }.
+          and(not_change { clients.map(&:RaceNone) }).
           and change { clients.map(&:Woman).uniq.sole }.from(99).to(0).
           and change { clients.map(&:Man).uniq.sole }.from(99).to(0).
           and change { clients.map(&:CulturallySpecific).uniq.sole }.from(99).to(0).
           and change { clients.map(&:DifferentIdentity).uniq.sole }.from(99).to(0).
           and change { clients.map(&:NonBinary).uniq.sole }.from(99).to(0).
           and change { clients.map(&:Transgender).uniq.sole }.from(99).to(0).
-          and change { clients.map(&:Questioning).uniq.sole }.from(99).to(0). # rubocop:disable Lint/AmbiguousBlockAssociation
-          and not_change { clients.map(&:GenderNone) }
+          and change { clients.map(&:Questioning).uniq.sole }.from(99).to(0).
+          and(not_change { clients.map(&:GenderNone) })
       end
     end
 
