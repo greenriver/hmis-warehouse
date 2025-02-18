@@ -160,103 +160,154 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     let!(:race_fields) { HudUtility2024.races.keys.excluding('RaceNone') }
     let!(:gender_fields) { HudUtility2024.gender_fields.excluding(:GenderNone) }
 
-    let!(:c1_with_race_and_gender) do
-      create(
-        :hmis_hud_client,
-        data_source: hmis_ds,
-        RaceNone: nil,
-        GenderNone: nil,
-        **race_fields.map { |field| [field, 99] }.to_h,
-        **gender_fields.map { |field| [field, 99] }.to_h,
-        AmIndAKNative: 1,
-        Woman: 1,
-      )
-    end
+    context 'when the client has some race/gender fields specified' do
+      let!(:c1_with_race_and_gender) do
+        create(
+          :hmis_hud_client,
+          data_source: hmis_ds,
+          RaceNone: nil,
+          GenderNone: nil,
+          **race_fields.map { |field| [field, 99] }.to_h,
+          **gender_fields.map { |field| [field, 99] }.to_h,
+          AmIndAKNative: 1,
+          Woman: 1,
+        )
+      end
 
-    let!(:c2_doesnt_know) do
-      create(
-        :hmis_hud_client,
-        data_source: hmis_ds,
-        RaceNone: 8,
-        GenderNone: 8,
-        **race_fields.map { |field| [field, 99] }.to_h,
-        **gender_fields.map { |field| [field, 99] }.to_h,
-      )
-    end
-
-    let!(:c3_prefers_not_to) do
-      create(
-        :hmis_hud_client,
-        data_source: hmis_ds,
-        RaceNone: 9,
-        GenderNone: 9,
-        **race_fields.map { |field| [field, 99] }.to_h,
-        **gender_fields.map { |field| [field, 99] }.to_h,
-      )
-    end
-
-    let!(:c4_data_not_collected) do
-      create(
-        :hmis_hud_client,
-        data_source: hmis_ds,
-        RaceNone: 99,
-        GenderNone: 99,
-        **race_fields.map { |field| [field, 99] }.to_h,
-        **gender_fields.map { |field| [field, 99] }.to_h,
-      )
-    end
-
-    let!(:c5_none_field_nil) do
-      create(
-        :hmis_hud_client,
-        data_source: hmis_ds,
-        RaceNone: nil,
-        GenderNone: nil,
-        **race_fields.map { |field| [field, 0] }.to_h,
-        **gender_fields.map { |field| [field, 0] }.to_h,
-      )
-    end
-
-    let!(:other_ds_client) do
-      create(
-        :hmis_hud_client,
-        data_source: other_source_ds,
-        RaceNone: 99,
-        GenderNone: 99,
-        **race_fields.map { |field| [field, 99] }.to_h,
-        **gender_fields.map { |field| [field, 99] }.to_h,
-      )
-    end
-
-    it 'updates race/gender values of 99 to 0' do
-      HmisDataCleanup::Util.fix_race_gender_99s!
-      [c1_with_race_and_gender, c2_doesnt_know, c3_prefers_not_to, c4_data_not_collected].map(&:reload)
-
-      expect(c1_with_race_and_gender.AmIndAKNative).to eq(1)
-      expect(c1_with_race_and_gender.Woman).to eq(1)
-      race_fields.excluding('AmIndAKNative').each { |field| expect(c1_with_race_and_gender.send(field)).to eq(0) }
-      gender_fields.excluding(:Woman).each { |field| expect(c1_with_race_and_gender.send(field)).to eq(0) }
-
-      aggregate_failures 'sets race/gender values to 0' do
-        (race_fields + gender_fields).each do |field|
-          [c2_doesnt_know, c3_prefers_not_to, c4_data_not_collected].each do |client|
-            expect(client.send(field)).to eq(0)
-          end
-        end
+      it 'updates race/gender values of 99 to 0' do
+        expect do
+          HmisDataCleanup::Util.fix_race_gender_99s!
+          c1_with_race_and_gender.reload
+        end.to change { c1_with_race_and_gender.Asian }.from(99).to(0).
+          and change { c1_with_race_and_gender.BlackAfAmerican }.from(99).to(0).
+          and change { c1_with_race_and_gender.NativeHIPacific }.from(99).to(0).
+          and change { c1_with_race_and_gender.White }.from(99).to(0).
+          and change { c1_with_race_and_gender.HispanicLatinaeo }.from(99).to(0).
+          and change { c1_with_race_and_gender.MidEastNAfrican }.from(99).to(0).
+          and not_change { c1_with_race_and_gender.AmIndAKNative }.
+          and not_change { c1_with_race_and_gender.RaceNone }.
+          and change { c1_with_race_and_gender.Man }.from(99).to(0).
+          and change { c1_with_race_and_gender.CulturallySpecific }.from(99).to(0).
+          and change { c1_with_race_and_gender.DifferentIdentity }.from(99).to(0).
+          and change { c1_with_race_and_gender.NonBinary }.from(99).to(0).
+          and change { c1_with_race_and_gender.Transgender }.from(99).to(0).
+          and change { c1_with_race_and_gender.Questioning }.from(99).to(0).
+          and not_change { c1_with_race_and_gender.Woman }. # rubocop:disable Lint/AmbiguousBlockAssociation
+          and not_change { c1_with_race_and_gender.GenderNone }
       end
     end
 
-    it 'updates RaceNone and GenderNone to 99 when all race/gender values are 0' do
-      HmisDataCleanup::Util.fix_race_gender_99s!
-      c5_none_field_nil.reload
+    context 'when the client has no race/gender fields specified and none field is set' do
+      let!(:c2_doesnt_know) do
+        create(
+          :hmis_hud_client,
+          data_source: hmis_ds,
+          RaceNone: 8,
+          GenderNone: 8,
+          **race_fields.map { |field| [field, 99] }.to_h,
+          **gender_fields.map { |field| [field, 99] }.to_h,
+        )
+      end
 
-      expect(c5_none_field_nil.RaceNone).to eq(99)
-      expect(c5_none_field_nil.GenderNone).to eq(99)
+      let!(:c3_prefers_not_to) do
+        create(
+          :hmis_hud_client,
+          data_source: hmis_ds,
+          RaceNone: 9,
+          GenderNone: 9,
+          **race_fields.map { |field| [field, 99] }.to_h,
+          **gender_fields.map { |field| [field, 99] }.to_h,
+        )
+      end
+
+      let!(:c4_data_not_collected) do
+        create(
+          :hmis_hud_client,
+          data_source: hmis_ds,
+          RaceNone: 99,
+          GenderNone: 99,
+          **race_fields.map { |field| [field, 99] }.to_h,
+          **gender_fields.map { |field| [field, 99] }.to_h,
+        )
+      end
+
+      it 'updates race/gender values of 99 to 0' do
+        clients = [c2_doesnt_know, c3_prefers_not_to, c4_data_not_collected]
+        expect do
+          HmisDataCleanup::Util.fix_race_gender_99s!
+          clients.each(&:reload)
+        end.to change { clients.map(&:AmIndAKNative).uniq.sole }.from(99).to(0).
+          and change { clients.map(&:Asian).uniq.sole }.from(99).to(0).
+          and change { clients.map(&:BlackAfAmerican).uniq.sole }.from(99).to(0).
+          and change { clients.map(&:NativeHIPacific).uniq.sole }.from(99).to(0).
+          and change { clients.map(&:White).uniq.sole }.from(99).to(0).
+          and change { clients.map(&:HispanicLatinaeo).uniq.sole }.from(99).to(0).
+          and change { clients.map(&:MidEastNAfrican).uniq.sole }.from(99).to(0).
+          and not_change { clients.map(&:RaceNone) }.
+          and change { clients.map(&:Woman).uniq.sole }.from(99).to(0).
+          and change { clients.map(&:Man).uniq.sole }.from(99).to(0).
+          and change { clients.map(&:CulturallySpecific).uniq.sole }.from(99).to(0).
+          and change { clients.map(&:DifferentIdentity).uniq.sole }.from(99).to(0).
+          and change { clients.map(&:NonBinary).uniq.sole }.from(99).to(0).
+          and change { clients.map(&:Transgender).uniq.sole }.from(99).to(0).
+          and change { clients.map(&:Questioning).uniq.sole }.from(99).to(0). # rubocop:disable Lint/AmbiguousBlockAssociation
+          and not_change { clients.map(&:GenderNone) }
+      end
     end
 
-    it 'does not update clients in other data sources' do
-      expect_leaves_non_hmis_data_alone do
-        HmisDataCleanup::Util.fix_race_gender_99s!
+    context 'when the client has nil RaceNone and/or GenderNone' do
+      let!(:c5_none_field_nil) do
+        create(
+          :hmis_hud_client,
+          data_source: hmis_ds,
+          RaceNone: nil,
+          GenderNone: nil,
+          **race_fields.map { |field| [field, 0] }.to_h,
+          **gender_fields.map { |field| [field, 0] }.to_h,
+        )
+      end
+
+      let!(:c6_with_race_and_gender) do
+        create(
+          :hmis_hud_client,
+          data_source: hmis_ds,
+          RaceNone: nil,
+          GenderNone: nil,
+          AmIndAKNative: 1,
+          Woman: 1,
+        )
+      end
+
+      it 'updates RaceNone and GenderNone to 99 when all race/gender values are 0' do
+        expect do
+          HmisDataCleanup::Util.fix_race_gender_99s!
+          c5_none_field_nil.reload
+          c6_with_race_and_gender.reload
+        end.to change(c5_none_field_nil, :RaceNone).from(nil).to(99).
+          and change(c5_none_field_nil, :GenderNone).from(nil).to(99).
+          and not_change(c5_none_field_nil, :race_fields).
+          and not_change(c5_none_field_nil, :gender_fields).
+          and not_change(c6_with_race_and_gender, :RaceNone).
+          and not_change(c6_with_race_and_gender, :GenderNone)
+      end
+    end
+
+    context 'when there is bad data on non-hmis data source' do
+      let!(:other_ds_client) do
+        create(
+          :hmis_hud_client,
+          data_source: other_source_ds,
+          RaceNone: 99,
+          GenderNone: 99,
+          **race_fields.map { |field| [field, 99] }.to_h,
+          **gender_fields.map { |field| [field, 99] }.to_h,
+        )
+      end
+
+      it 'does not update clients in other data sources' do
+        expect_leaves_non_hmis_data_alone do
+          HmisDataCleanup::Util.fix_race_gender_99s!
+        end
       end
     end
   end

@@ -146,13 +146,10 @@ module HmisDataCleanup
       Rails.logger.info "Set #{category} fields 99=>0 on #{rows_affected} Clients"
 
       # Build a scope that matches clients where ALL of the <Race|Gender> fields are 0
-      clients_with_all_fields_empty = fields.
-        map { |field| clients.where(field => 0) }.
-        reduce { |memo, scope| memo.and(scope) }
+      clients_with_all_fields_empty = clients.where(**fields.to_h { |f| [f, 0] })
 
       # IF ALL <Race|Gender> fields are 0 but the <Race|Gender>None field is nil, it should be set to 99 Data Not Collected
-      clients_with_bad_nonefield = clients.where(none_field => nil).merge(clients_with_all_fields_empty)
-
+      clients_with_bad_nonefield = clients_with_all_fields_empty.where(none_field => nil)
       rows_affected = clients_with_bad_nonefield.update_all(none_field => 99)
       Rails.logger.info "Set #{none_field} fields nil=>99 on #{rows_affected} Clients"
     end
