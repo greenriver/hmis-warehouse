@@ -494,8 +494,6 @@ GEM
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
-    faraday-multipart (1.0.4)
-      multipart-post (~> 2)
     faraday-net_http (3.4.0)
       net-http (>= 0.5.0)
     ferrum (0.15)
@@ -576,8 +574,8 @@ GEM
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     ice_nine (0.11.2)
-    image_processing (1.14.0)
-      mini_magick (>= 4.9.5, < 6)
+    image_processing (1.13.0)
+      mini_magick (>= 4.9.5, < 5)
       ruby-vips (>= 2.0.17, < 3)
     iniparse (1.5.0)
     io-console (0.8.0)
@@ -659,9 +657,7 @@ GEM
       nokogiri (~> 1)
       rake
     mini_histogram (0.3.1)
-    mini_magick (5.1.2)
-      benchmark
-      logger
+    mini_magick (4.13.2)
     mini_mime (1.1.5)
     mini_portile2 (2.8.8)
     minitest (5.25.4)
@@ -1225,7 +1221,7 @@ DEPENDENCIES
   hashdiff
   html2haml
   htmlentities
-  image_processing
+  image_processing (~> 1.13.0)
   irb
   jquery-minicolors-rails
   jquery-rails
@@ -1507,7 +1503,6 @@ CHECKSUMS
   factory_bot_rails (6.4.4) sha256=139e17caa2c50f098fddf5e5e1f29e8067352024e91ca1186d018b36589e5c88
   faker (3.5.1) sha256=1ad1fbea279d882f486059c23fe3ddb816ccd1d7052c05a45014b4450d859bfc
   faraday (2.12.2) sha256=157339c25c7b8bcb739f5cf1207cb0cefe8fa1c65027266bcbc34c90c84b9ad6
-  faraday-multipart (1.0.4) sha256=9012021ab57790f7d712f590b48d5f948b19b43cfa11ca83e6459f06090b0725
   faraday-net_http (3.4.0) sha256=a1f1e4cd6a2cf21599c8221595e27582d9936819977bbd4089a601f24c64e54a
   ferrum (0.15) sha256=644bc7d29e30ed2d25e5936c518e0763a108e126ee2ca1a3127a36f14edacb1d
   ffi (1.17.1) sha256=26f6b0dbd1101e6ffc09d3ca640b2a21840cc52731ad8a7ded9fb89e5fb0fc39
@@ -1543,7 +1538,7 @@ CHECKSUMS
   http-form_data (2.3.0) sha256=cc4eeb1361d9876821e31d7b1cf0b68f1cf874b201d27903480479d86448a5f3
   i18n (1.14.7) sha256=ceba573f8138ff2c0915427f1fc5bdf4aa3ab8ae88c8ce255eb3ecf0a11a5d0f
   ice_nine (0.11.2) sha256=5d506a7d2723d5592dc121b9928e4931742730131f22a1a37649df1c1e2e63db
-  image_processing (1.14.0) sha256=754cc169c9c262980889bec6bfd325ed1dafad34f85242b5a07b60af004742fb
+  image_processing (1.13.0) sha256=71cffe2707573b16a4800b10619dc851add8cf9e667931ae900b7cac1d9cdd65
   iniparse (1.5.0) sha256=36a165e98d8a250b7631c4a7f9afba32af78f089970cd6446a39771189c761f1
   io-console (0.8.0) sha256=cd6a9facbc69871d69b2cb8b926fc6ea7ef06f06e505e81a64f14a470fddefa2
   irb (1.15.1) sha256=d9bca745ac4207a8b728a52b98b766ca909b86ff1a504bcde3d6f8c84faae890
@@ -1584,7 +1579,7 @@ CHECKSUMS
   mime-types-data (3.2024.0305) sha256=a5101ed02bf708fbaf1f65453d9dd27ece1bf910bece3df61835498d7be1a703
   mimemagic (0.4.3) sha256=08ac2d41e2d7cd967b00843dea8c189f91939e3f47732204944908f1ab7ecc9f
   mini_histogram (0.3.1) sha256=6a114b504e4618b0e076cc672996036870f7cc6f16b8e5c25c0c637726d2dd94
-  mini_magick (5.1.2) sha256=2c57112a2c55d9f86b1ed7ab568b3c389a3265788ac5c1ad3e632a201b629a7e
+  mini_magick (4.13.2) sha256=71d6258e0e8a3d04a9a0a09784d5d857b403a198a51dd4f882510435eb95ddd9
   mini_mime (1.1.5) sha256=8681b7e2e4215f2a159f9400b5816d85e9d8c6c6b491e96a12797e798f8bccef
   mini_portile2 (2.8.8) sha256=8e47136cdac04ce81750bb6c09733b37895bf06962554e4b4056d78168d70a75
   minitest (5.25.4) sha256=9cf2cae25ac4dfc90c988ebc3b917f53c054978b673273da1bd20bcb0778f947
