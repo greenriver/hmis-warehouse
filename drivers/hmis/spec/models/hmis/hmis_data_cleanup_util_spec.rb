@@ -129,7 +129,7 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
   end
 
-  context 'enrollments with DisablingCondition' do
+  context 'enrollments without DisablingCondition' do
     before(:each) do
       # use update_columns to bypass before_save hook
       e1.update_columns(disabling_condition: nil)
