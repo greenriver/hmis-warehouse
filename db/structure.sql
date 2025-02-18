@@ -3292,8 +3292,15 @@ CREATE TABLE public.users (
     superset_roles jsonb DEFAULT '[]'::jsonb,
     talent_lms_email character varying,
     training_courses jsonb,
-    session_token character varying
+    custom_session_invalidator character varying
 );
+
+
+--
+-- Name: COLUMN users.custom_session_invalidator; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.users.custom_session_invalidator IS 'Changing the value of this column will invalidate the current session for the user.';
 
 
 --
@@ -5186,6 +5193,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250124170335'),
 ('20250124171033'),
 ('20250208211846'),
-('20250217181347');
+('20250217181347'),
+('20250218131829');
 
 
