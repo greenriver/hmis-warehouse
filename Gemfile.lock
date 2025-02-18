@@ -23,16 +23,6 @@ GIT
       activerecord (~> 7.0.2)
 
 GIT
-  remote: https://github.com/greenriver/hellosign-ruby-sdk.git
-  revision: 5718c3f96c37153fb18c02c9ade0e4112a8c7926
-  specs:
-    hellosign-ruby-sdk (3.7.10)
-      faraday (~> 2.2)
-      faraday-multipart (~> 1.0.0)
-      mime-types
-      multi_json
-
-GIT
   remote: https://github.com/greenriver/pg_fixtures.git
   revision: 48c46a77893f472890cb06366d89eba6492d8c27
   specs:
@@ -470,8 +460,6 @@ GEM
       i18n (>= 1.8.11, < 2)
     faraday (2.9.0)
       faraday-net_http (>= 2.0, < 3.2)
-    faraday-multipart (1.0.4)
-      multipart-post (~> 2)
     faraday-net_http (3.1.0)
       net-http
     ferrum (0.14)
@@ -648,7 +636,7 @@ GEM
     msgpack (1.7.2)
     multi_json (1.15.0)
     multi_xml (0.6.0)
-    multipart-post (2.4.0)
+    multipart-post (2.4.1)
     mutex_m (0.2.0)
     net-http (0.4.1)
       uri
@@ -1179,7 +1167,6 @@ DEPENDENCIES
   haml-rails
   handlebars_assets
   hashdiff
-  hellosign-ruby-sdk!
   html2haml
   htmlentities
   image_processing
@@ -1204,6 +1191,7 @@ DEPENDENCIES
   mimemagic
   mini_magick
   minitest-reporters
+  multipart-post
   net-http
   net-sftp
   net-ssh (~> 7)

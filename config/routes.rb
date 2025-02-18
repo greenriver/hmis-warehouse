@@ -78,20 +78,6 @@ Rails.application.routes.draw do
       resources :careplans, except: [:create], controller: '/health/careplans' do
         resources :team_members, except: [:index, :show], controller: '/health/team_members'
         resources :goals, except: [:index, :show], controller: '/health/goals'
-        resources :signable_documents, only: [:show, :create], controller: '/health/signable_documents' do
-          member do
-            # post :remind
-            get :signature
-            get :signed
-          end
-        end
-        resources :pcp_signature_requests, except: [:index], controller: '/health/pcp_signature_requests'
-        resources :aco_signature_requests, except: [:index], controller: '/health/aco_signature_requests' do
-          member do
-            get :download_careplan
-          end
-        end
-
         get :self_sufficiency_assessment
         get :print
         get :revise, on: :member
@@ -880,8 +866,6 @@ Rails.application.routes.draw do
 
   resources :public_files, only: [:show]
   resources :public_agencies, only: [:index]
-
-  post 'hello-sign' => 'hello_sign#callback'
 
   unless Rails.env.production?
     resource :style_guide, only: :none do

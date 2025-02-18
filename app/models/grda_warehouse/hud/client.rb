@@ -2245,7 +2245,7 @@ module GrdaWarehouse::Hud
           if prev_destination_client.source_clients.empty?
             # Create a client_merge_history record so we can keep links working
             GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
-            prev_destination_client.delete
+            prev_destination_client.destroy
           end
 
           move_dependent_items(prev_destination_client.id, self.id) # rubocop:disable Style/RedundantSelf
@@ -2335,7 +2335,6 @@ module GrdaWarehouse::Hud
         [GrdaWarehouse::HealthEmergency::UploadedTest, :client_id],
         [GrdaWarehouse::HealthEmergency::Vaccination, :client_id],
         [GrdaWarehouse::Anomaly, :client_id],
-        [GrdaWarehouse::ClientRoiAuthorization, :destination_client_id],
       ]
     end
 
