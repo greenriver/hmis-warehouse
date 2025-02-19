@@ -272,6 +272,8 @@ jobs:
           BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
           CHROME_URL: http://chrome:3333
         run:
+          # Are you looking to run the system tests locally? See:
+          # https://github.com/greenriver/hmis-warehouse/blob/stable/drivers/hmis/README.md#e2e-testing
           bash ./bin/run_hmis_system_tests.sh
 
       - name: Archive artifacts
