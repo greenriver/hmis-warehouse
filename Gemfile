@@ -304,7 +304,7 @@ end
 
 group :test do
   gem 'capybara'
-  gem 'cuprite'
+  gem 'cuprite', '= 0.15'
   gem 'ferrum', '~> 0.14'
   gem 'pg_fixtures', github: 'greenriver/pg_fixtures'
   gem 'minitest-reporters'
