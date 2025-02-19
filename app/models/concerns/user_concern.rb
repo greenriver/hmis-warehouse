@@ -389,7 +389,7 @@ module UserConcern
 
       # Poison the salt to force the user to re-login by changing custom_session_invalidator
       # Make sure the salt isn't changing length
-      Digest::MD5.hexdigest("#{base_salt}#{custom_session_invalidator}")[0, base_salt.length]
+      Digest::SHA256.base64digest("#{base_salt}#{custom_session_invalidator}")[0, base_salt.length]
     end
 
     def force_logout!
