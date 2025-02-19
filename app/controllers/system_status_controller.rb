@@ -122,6 +122,7 @@ class SystemStatusController < ActionController::Base
         reporting: reporting,
         health: health,
       },
+      eks: ENV.fetch('EKS', false),
     }
 
     render json: payload, status: status
