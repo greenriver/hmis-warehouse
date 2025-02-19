@@ -14,34 +14,20 @@
 - if !Rails.env.production? && !ENV['HIDE_NON_PRODUCTION_WARNING']
   #non-production-warning
     .d-flex.pt-2.pb-2
-      - if Rails.env.development?
-        .git-branch.ml-auto
+      .git-branch.ml-auto
+        .label.label-info
+          = ENV['CLIENT']
+          - if ENV['EKS']
+            (EKS)
+      .git-branch.ml-4
+        = branch_info
+      .git-branch.ml-4
+        .navbar-text
           .label.label-info
-            = ENV['CLIENT']
-        .git-branch.ml-4
-          = branch_info
-        .git-branch.ml-4
-          .navbar-text
-            .label.label-info
-              = Rails.version
-              on
-              = ENV['RUBY_VERSION']
-        .rails-env.ml-4.mr-6
-          .navbar-text
-            %span.label.label-success
-              = Rails.env
-      - else
-        .git-revision.ml-auto
-          .navbar-text
-            .label.label-info
-              = git_revision
-        .git-branch.ml-4
-          .navbar-text
-            .label.label-warning
-              = Rails.version
-              on
-              = ENV['RUBY_VERSION']
-        .rails-env.ml-4.mr-6
-          .navbar-text
-            %span.label.label-success
-              = Rails.env
+            = Rails.version
+            on
+            = ENV['RUBY_VERSION']
+      .rails-env.ml-4.mr-6
+        .navbar-text
+          %span.label.label-success
+            = Rails.env
