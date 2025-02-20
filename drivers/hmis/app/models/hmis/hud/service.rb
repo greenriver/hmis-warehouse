@@ -44,9 +44,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
       type_provided == custom_service_type.hud_type_provided
   end
 
-  def contact_date
-    date_provided
-  end
+  alias contact_date date_provided
 
   private def warehouse_trigger_processing
     return unless enrollment && warehouse_columns_changed?

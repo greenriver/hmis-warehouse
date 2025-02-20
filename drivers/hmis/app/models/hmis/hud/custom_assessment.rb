@@ -150,9 +150,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     title
   end
 
-  def contact_date
-    assessment_date
-  end
+  alias contact_date assessment_date
 
   def save_submitted_assessment!(current_user:, as_wip: false)
     Hmis::Hud::CustomAssessment.transaction do
