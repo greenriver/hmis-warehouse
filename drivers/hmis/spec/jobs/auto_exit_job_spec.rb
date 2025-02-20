@@ -122,7 +122,7 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       context 'when one household member is already exited' do
         let!(:hhm_exit) { create :hmis_hud_exit, data_source: ds1, enrollment: hhm_e1, client: c2, exit_date: Date.current - 1.week }
 
-        it 'should only exit the clients that dont already have exit records' do
+        it 'should only exit the clients that dont already have exit records (regression #7335)' do
           expected_exit_date = hoh_e.entry_date + 1.day
           expect do
             Hmis::AutoExitJob.perform_now
