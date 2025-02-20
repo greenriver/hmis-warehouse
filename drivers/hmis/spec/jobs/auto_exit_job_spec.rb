@@ -71,10 +71,11 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
 
     context 'with a multi member household' do
       let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
+      let!(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }
       let!(:household_id) { Hmis::Hud::Base.generate_uuid }
       let!(:hoh_e) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, household_id: household_id, entry_date: Date.current - 2.months }
       let!(:hhm_e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, household_id: household_id, relationship_to_hoh: 2, entry_date: Date.current - 2.months }
-      let!(:hhm_e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, household_id: household_id, relationship_to_hoh: 2, entry_date: Date.current - 2.months }
+      let!(:hhm_e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, household_id: household_id, relationship_to_hoh: 2, entry_date: Date.current - 2.months }
 
       def expect_all_active
         hoh_e.household_members.each do |member|
@@ -115,6 +116,21 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
         it 'should not exit any member if another member has an incomplete enrollment' do
           Hmis::AutoExitJob.perform_now
           expect_all_active
+        end
+      end
+
+      context 'when one household member is already exited' do
+        let!(:hhm_exit) { create :hmis_hud_exit, data_source: ds1, enrollment: hhm_e1, client: c2, exit_date: Date.current - 1.week }
+
+        it 'should only exit the clients that dont already have exit records' do
+          expected_exit_date = hoh_e.entry_date + 1.day
+          expect do
+            Hmis::AutoExitJob.perform_now
+            [hoh_e, hhm_e1, hhm_e2].each(&:reload)
+          end.to change { hoh_e.exit_date }.from(nil).to(expected_exit_date).
+            and change { hhm_e2.exit_date }.from(nil).to(expected_exit_date).
+            and(not_change { hhm_e1.exit_date }).
+            and(not_change { Hmis::Hud::Exit.where(enrollment_id: hhm_e1.enrollment_id, data_source_id: hhm_e1.data_source_id).count })
         end
       end
     end
