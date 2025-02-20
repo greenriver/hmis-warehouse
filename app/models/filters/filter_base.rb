@@ -579,29 +579,26 @@ module Filters
     end
 
     def apply_criteria(scope, tags:, except: [], **opts)
-      # Define default configuration options.
+      # default configuration options.
       defaults = {
         project_types: @project_types,
         all_project_types: nil,
         include_date_range: true,
         chronic_at_entry: true,
         report_scope_source: nil,
-        join_clients_method: :client
+        join_clients_method: :client,
       }
+      config = ::Filters::Criteria::Configuration.new(**defaults.merge(opts))
 
-      # Merge provided options with the defaults.
-      config_options = defaults.merge(opts)
-      config = ::Filters::Criteria::Configuration.new(**config_options)
-
-      # Instantiate criteria
+      # instantiate criteria
       criteria = ::Filters::Criteria.classes_for_tags(tags).map do |criteria_class|
         criteria_class.new(input: self, config: config)
       end
 
-      # Remove any explicitly excluded criteria.
+      # remove any explicitly excluded criteria.
       criteria.reject! { |c| except.include?(c.id) } if except.any?
 
-      # Apply only criteria that are applicable.
+      # apply only criteria that are applicable.
       criteria.filter(&:applies?).reduce(scope) do |result, criterion|
         criterion.apply(result)
       end
@@ -615,7 +612,7 @@ module Filters
         report_scope_source: report_scope_source,
         all_project_types: all_project_types,
         include_date_range: include_date_range,
-        chronic_at_entry: chronic_at_entry
+        chronic_at_entry: chronic_at_entry,
       )
     end
 

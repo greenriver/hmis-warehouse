@@ -20,9 +20,10 @@ module Filter::FilterScopes
       criterion.applies? ? criterion.apply(scope) : scope
     end
 
-    def criteria_configuration
+    def criteria_configuration(**opts)
       # special case handling to allow for @project_types instance var which is seems to override filter.project_type_ids
-      @criteria_configuration ||= Filters::Criteria::Configuration.new(project_types: @project_types)
+      defaults = { project_types: @project_types }
+      Filters::Criteria::Configuration.new(**defaults.merge(opts))
     end
 
     # FIXME factor this out

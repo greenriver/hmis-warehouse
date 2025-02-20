@@ -11,13 +11,13 @@ class Filters::Criteria::FilterForRace < Filters::Criteria::Base
 
     # Include anyone who has more than one race listed, anded with any previous alternatives
     race_scope ||= scope
-    race_scope = race_scope.where(id: config.report_scope_source.multi_racial_clients.select(:id)) if input.races.include?('MultiRacial')
+    race_scope = race_scope.where(id: multi_racial_clients.joins(config.join_clients_method).select(:id)) if input.races.include?('MultiRacial')
     scope.merge(race_scope)
   end
 
   protected
 
   def race_alternative(key)
-    config.report_scope_source.joins(join_clients_method).where(arel.c_t[key].eq(1))
+    config.report_scope_source.joins(config.join_clients_method).where(arel.c_t[key].eq(1))
   end
 end

@@ -65,7 +65,7 @@ class Filters::Criteria::FilterForDaysSinceContact < Filters::Criteria::Base
   protected
 
   def max_date_per_warehouse_client_id_cte(join:, date_column:, merge_class:)
-    p_ids = @filter.personal_ids_for_days_since_contact_calculations
+    p_ids = input.personal_ids_for_days_since_contact_calculations
     query = GrdaWarehouse::WarehouseClient.
       joins(**join)
     query = query.merge(merge_class.where(PersonalID: p_ids)) if p_ids.any?

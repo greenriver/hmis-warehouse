@@ -510,7 +510,7 @@ module ArelHelper
     # FIXME- this probably doesn't belong in a global mixin
     # This method can be used to generate the select for a client's age at entry or start date (usually report start)
     # It requires the query to include both Client and ServiceHistoryEnrollment to function
-    private def age_on_date(start_date)
+    def age_on_date(start_date)
       cast(
         datepart(
           GrdaWarehouse::ServiceHistoryEnrollment,
