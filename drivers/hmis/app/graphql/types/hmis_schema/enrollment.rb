@@ -473,11 +473,13 @@ module Types
           scope: Hmis::Hud::CustomCaseNote.order(Hmis::Hud::CustomCaseNote.arel_table[:information_date].asc.nulls_first),
         ).last,
       ].compact.
-        # Filter out entities (Service or CustomCaseNote) whose contact_date is null. Do this here in-memory instead of using a .where scope to avoid n+1
-        filter { |entity| entity.contact_date.present? }.
-        max_by(&:contact_date)
+        max_by { |entity| Hmis::Hud::Enrollment.contact_date_for_entity(entity) } # max_by treats nils as lower than any non-nil value
 
       return nil unless last_contact_entity
+
+      contact_date = Hmis::Hud::Enrollment.contact_date_for_entity(last_contact_entity)
+      # Check nil contact date in-memory instead of using a .where scope above, to avoid n+1
+      return nil unless contact_date
 
       contact_type = case last_contact_entity
       when Hmis::Hud::Service
@@ -496,7 +498,7 @@ module Types
       end
 
       {
-        date: last_contact_entity.contact_date,
+        date: contact_date,
         type: contact_type,
       }
     end

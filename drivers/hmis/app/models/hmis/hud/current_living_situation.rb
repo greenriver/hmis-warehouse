@@ -24,8 +24,6 @@ class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
   # Not using the after_commit hook because it doesn't reliably pick up the saved_changes from a transaction.
   after_save :warehouse_trigger_processing
 
-  alias contact_date information_date
-
   private def warehouse_trigger_processing
     return unless enrollment && warehouse_columns_changed?
 

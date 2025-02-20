@@ -45,8 +45,6 @@ class Hmis::Hud::CustomCaseNote < Hmis::Hud::Base
     where(id: viewable_scope.select(:id))
   end
 
-  alias_attribute :contact_date, :information_date
-
   def self.hud_key
     :CustomCaseNoteID
   end

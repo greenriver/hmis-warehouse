@@ -37,9 +37,9 @@ module Hmis
           # Get the most recent contact date for the whole household
           most_recent_contact = household.enrollments.
             map { |hhm| get_most_recent_contact(hhm, project) }.
-            max_by(&:contact_date)
+            max_by { |entity| Hmis::Hud::Enrollment.contact_date_for_entity(entity) }
 
-          most_recent_contact_date = most_recent_contact.contact_date
+          most_recent_contact_date = Hmis::Hud::Enrollment.contact_date_for_entity(most_recent_contact)
           next unless most_recent_contact_date.present?
           # If any household member has a most recent contact that's within the length_of_absence_days, don't exit anyone in the household
           next unless (Date.current - most_recent_contact_date).to_i >= config.length_of_absence_days
@@ -65,7 +65,7 @@ module Hmis
         # For NBN shelters, the most recent contact is the last bed night.
         last_bed_night = enrollment.services.bed_nights.where.not(date_provided: nil).order(:date_provided).last
         # If the client had no bed nights, or the last bed night is before enrollment entry (invalid), use the enrollment (entry date) as the last contact.
-        [last_bed_night, enrollment].compact.max_by(&:contact_date)
+        [last_bed_night, enrollment].compact.max_by { |entity| Hmis::Hud::Enrollment.contact_date_for_entity(entity) }
       else
         [
           enrollment.services.where.not(date_provided: nil).order(:date_provided).last,
@@ -73,12 +73,13 @@ module Hmis
           enrollment.current_living_situations.order(:information_date).last,
           enrollment.custom_assessments.order(:assessment_date).last,
           enrollment,
-        ].compact.max_by(&:contact_date)
+        ].compact.
+          max_by { |entity| Hmis::Hud::Enrollment.contact_date_for_entity(entity) }
       end
     end
 
     def auto_exit(enrollment, most_recent_contact, project:)
-      exit_date = most_recent_contact.contact_date
+      exit_date = Hmis::Hud::Enrollment.contact_date_for_entity(most_recent_contact)
       # If most recent contact was a Bed Night service, the Exit Date should be the day after they received service
       exit_date += 1.day if most_recent_contact.is_a?(Hmis::Hud::Service) && most_recent_contact.record_type == 200
       # If most recent contact was on Entry Date and this is a residential project, add 1 day to avoid Same-day-exit data quality errors
