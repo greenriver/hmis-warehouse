@@ -23,35 +23,37 @@ module HmisCsvFixtures
 
     @data_source = data_source
     source_file_path = File.join(file_path, 'source')
+    begin
+      # duplicate the fixture folder since some
+      # importers expect data in "#{file_path}/#{data_source_id}"
+      # and to be able to tamper with its contents
+      # TODO: fix importers to avoid mutating the source!
+      tmp_path = File.join(file_path, data_source.id.to_s)
+      FileUtils.cp_r(source_file_path, tmp_path)
 
-    # duplicate the fixture folder since some
-    # importers expect data in "#{file_path}/#{data_source_id}"
-    # and to be able to tamper with its contents
-    # TODO: fix importers to avoid mutating the source!
-    tmp_path = File.join(file_path, data_source.id.to_s)
-    FileUtils.cp_r(source_file_path, tmp_path)
+      importer = if version == '2020'
+        HmisCsvTwentyTwenty::Loader::Loader.new(
+          file_path: tmp_path,
+          data_source_id: data_source.id,
+          deidentified: deidentified,
+        )
+      elsif version == 'AutoMigrate'
+        Importers::HmisAutoMigrate::Local.new(
+          file_path: tmp_path,
+          data_source_id: data_source.id,
+          deidentified: deidentified,
+          allowed_projects: allowed_projects,
+          project_cleanup: false,
+        )
+      else
+        raise "Unsupported CSV version #{version}"
+      end
 
-    importer = if version == '2020'
-      HmisCsvTwentyTwenty::Loader::Loader.new(
-        file_path: tmp_path,
-        data_source_id: data_source.id,
-        deidentified: deidentified,
-      )
-    elsif version == 'AutoMigrate'
-      Importers::HmisAutoMigrate::Local.new(
-        file_path: tmp_path,
-        data_source_id: data_source.id,
-        deidentified: deidentified,
-        allowed_projects: allowed_projects,
-        project_cleanup: false,
-      )
-    else
-      raise "Unsupported CSV version #{version}"
+      # puts "Starting import: #{Time.now}"
+      importer.import!
+    ensure
+      FileUtils.rm_rf(tmp_path) if tmp_path
     end
-
-    # puts "Starting import: #{Time.now}"
-    importer.import!
-    FileUtils.rm_rf(tmp_path) if tmp_path
     process_imported_fixtures(user: user, skip_location_cleanup: skip_location_cleanup) if run_jobs
 
     Rails.cache.delete([user, 'access_groups']) # These are cached in project.rb etc for one minute, which is too long for tests

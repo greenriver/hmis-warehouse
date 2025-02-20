@@ -51,7 +51,7 @@ module HudPathReport::Generators::Fy2024
       ::HudPathReport::Filters::PathFilter
     end
 
-    def self.allowed_options
+    def self.allowed_options(_)
       [
         :start,
         :end,

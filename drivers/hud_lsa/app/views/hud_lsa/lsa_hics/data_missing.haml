@@ -1,0 +1,5 @@
+= content_for :crumbs do
+  = link_to new_hud_reports_lsa_hic_path do
+    &laquo; New Housing Inventory Count Report
+- content_for :modal_title, 'Housing Inventory Count Data Issues'
+= render 'missing_data'

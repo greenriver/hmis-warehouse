@@ -10,22 +10,32 @@ module InactiveClientReport::WarehouseReports
     include AjaxModalRails::Controller
     include ArelHelper
     include BaseFilters
+    extend BackgroundRenderAction
 
     before_action :set_report
+
+    background_render_action(:render_section, ::BackgroundRender::InactiveClientReportJob) do
+      {
+        filters: params[:filter].to_json,
+        user_id: current_user.id,
+        page: params[:query_string][:page],
+      }
+    end
 
     def index
       @excel_export = ::InactiveClientReport::DocumentExports::ReportExcelExport.new
       respond_to do |format|
-        format.html do
-          @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name))
-          @report.client_ids = @clients.map(&:id)
-        end
+        format.html {}
         format.xlsx do
           @report.client_ids = @report.clients.map(&:id)
           filename = "#{@report.name} - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
+    end
+
+    def data
+      @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name))
     end
 
     private def set_report
