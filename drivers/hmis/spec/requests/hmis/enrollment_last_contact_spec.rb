@@ -55,7 +55,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     result.dig('data', 'client', 'enrollments', 'nodes', 0, 'lastContact')&.deep_symbolize_keys
   end
 
-  describe 'resolving lastContactDate' do
+  describe 'resolving lastContact' do
     context 'when there is no last contact' do
       it 'returns nil' do
         expect(query_last_contact).to be_nil
