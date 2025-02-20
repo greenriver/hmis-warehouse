@@ -96,6 +96,7 @@ module Types
     summary_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
     summary_field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     summary_field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
+    summary_field :last_contact, HmisSchema::LastContact, null: true
     summary_field :auto_exited, Boolean, null: false
 
     field :last_service_date, GraphQL::Types::ISO8601Date, null: true do
@@ -448,6 +449,55 @@ module Types
 
     def exit_assessment
       load_ar_association(object, :exit_assessment)
+    end
+
+    def last_contact
+      last_contact_entity = [
+        # Service DateProvided may be nil, so to avoid n+1 queries, sort with nulls_first using arel
+        # (rather than adding .where clause to the scope, which won't work - see comments on load_ar_association).
+        load_ar_association(
+          object,
+          :services,
+          scope: Hmis::Hud::Service.preload(:hud_service_type).order(Hmis::Hud::Service.arel_table[:date_provided].asc.nulls_first),
+        ).last,
+        # CustomService DateProvided is guaranteed non-null by DB
+        load_ar_association(object, :custom_services, scope: Hmis::Hud::CustomService.order(:date_provided)).last,
+        # CLS InformationDate is guaranteed non-null by DB
+        load_ar_association(object, :current_living_situations, scope: Hmis::Hud::CurrentLivingSituation.order(:information_date)).last,
+        # AssessmentDate is guaranteed non-null by DB
+        load_ar_association(object, :custom_assessments, scope: Hmis::Hud::CustomAssessment.order(:assessment_date)).last,
+        # CustomCaseNote's information_date can be null in DB, so sort with nulls_first using arel
+        load_ar_association(
+          object,
+          :custom_case_notes,
+          scope: Hmis::Hud::CustomCaseNote.order(Hmis::Hud::CustomCaseNote.arel_table[:information_date].asc.nulls_first),
+        ).last,
+      ].compact.
+        # Filter out entities (Service or CustomCaseNote) whose contact_date is null. Do this here in-memory instead of using a .where scope to avoid n+1
+        filter { |entity| entity.contact_date.present? }.
+        max_by(&:contact_date)
+
+      return nil unless last_contact_entity
+
+      contact_type = case last_contact_entity
+      when Hmis::Hud::Service
+        last_contact_entity.hud_service_type.name
+      when Hmis::Hud::CustomService
+        last_contact_entity.service_name
+      when Hmis::Hud::CurrentLivingSituation
+        'Current Living Situation'
+      when Hmis::Hud::CustomAssessment
+        last_contact_entity.title
+      when Hmis::Hud::CustomCaseNote
+        'Case Note'
+      else
+        raise
+      end
+
+      {
+        date: last_contact_entity.contact_date,
+        type: contact_type,
+      }
     end
   end
 end

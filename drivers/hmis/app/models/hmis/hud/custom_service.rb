@@ -45,6 +45,10 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
     "#{custom_service_category.name} - #{service_type.name}"
   end
 
+  def contact_date
+    date_provided
+  end
+
   private def set_service_name
     return if service_name.present?
 

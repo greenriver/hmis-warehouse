@@ -3357,6 +3357,7 @@ type Enrollment {
   juvenileJusticeMonths: Int
   juvenileJusticeYears: RHYNumberofYears
   lastBedNightDate: ISO8601Date
+  lastContact: LastContact
   lastCurrentLivingSituation: CurrentLivingSituation
   lastServiceDate(serviceTypeId: ID!): ISO8601Date
   lengthOfStay: ResidencePriorLengthOfStay
@@ -5650,6 +5651,11 @@ scalar JsonObject
 type KeyValue {
   key: String!
   value: String
+}
+
+type LastContact {
+  date: ISO8601Date!
+  type: String!
 }
 
 """

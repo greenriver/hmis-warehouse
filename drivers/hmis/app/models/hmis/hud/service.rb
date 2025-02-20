@@ -17,6 +17,15 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  has_one :hud_service_type, class_name: 'Hmis::Hud::CustomServiceType', primary_key: [
+    :data_source_id,
+    :RecordType,
+    :TypeProvided,
+  ], foreign_key: [
+    :data_source_id,
+    :hud_record_type,
+    :hud_type_provided,
+  ]
 
   validates_with Hmis::Hud::Validators::ServiceValidator
 
@@ -33,6 +42,10 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   def matches_custom_service_type?(custom_service_type)
     record_type == custom_service_type.hud_record_type &&
       type_provided == custom_service_type.hud_type_provided
+  end
+
+  def contact_date
+    date_provided
   end
 
   private def warehouse_trigger_processing

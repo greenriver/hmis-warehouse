@@ -370,6 +370,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     build_synthetic_intake_assessment.save!
   end
 
+  def contact_date
+    # Used in determining the last contact date for auto-exit.
+    # This enrollment's entry date is the fallback if no other contact (assessments, CLS, etc.) exists
+    entry_date
+  end
+
   def save_in_progress!
     raise 'cannot unset ProjectID on enrollment that is missing project_pk' unless project_pk
 
