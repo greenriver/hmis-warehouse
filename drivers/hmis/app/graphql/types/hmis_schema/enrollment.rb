@@ -458,7 +458,7 @@ module Types
         load_ar_association(
           object,
           :services,
-          scope: Hmis::Hud::Service.preload(:hud_service_type).order(Hmis::Hud::Service.arel_table[:date_provided].asc.nulls_first),
+          scope: Hmis::Hud::Service.order(Hmis::Hud::Service.arel_table[:date_provided].asc.nulls_first),
         ).last,
         # CustomService DateProvided is guaranteed non-null by DB
         load_ar_association(object, :custom_services, scope: Hmis::Hud::CustomService.order(:date_provided)).last,
@@ -481,15 +481,16 @@ module Types
 
       contact_type = case last_contact_entity
       when Hmis::Hud::Service
-        last_contact_entity.hud_service_type.name
+        last_contact_entity.record_type == 200 ? 'BED_NIGHT' : 'SERVICE'
       when Hmis::Hud::CustomService
-        last_contact_entity.service_name
+        'SERVICE'
       when Hmis::Hud::CurrentLivingSituation
-        'Current Living Situation'
+        'CURRENT_LIVING_SITUATION'
       when Hmis::Hud::CustomAssessment
-        last_contact_entity.title
+        assessment_name = HudUtility2024.assessment_name_by_data_collection_stage[last_contact_entity.data_collection_stage]
+        assessment_name.present? ? Types::BaseEnum.to_enum_key(assessment_name) : 'ASSESSMENT'
       when Hmis::Hud::CustomCaseNote
-        'Case Note'
+        'CASE_NOTE'
       else
         raise
       end

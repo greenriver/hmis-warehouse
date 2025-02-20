@@ -74,7 +74,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(query_last_contact).to match(
             a_hash_including(
               date: s1_bednight.date_provided.strftime('%Y-%m-%d'),
-              type: 'Bed Night',
+              type: 'BED_NIGHT',
             ),
           )
         end
@@ -87,7 +87,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(query_last_contact).to match(
             a_hash_including(
               date: s2_custom.date_provided.strftime('%Y-%m-%d'),
-              type: s2_custom.service_name,
+              type: 'SERVICE',
             ),
           )
         end
@@ -100,7 +100,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(query_last_contact).to match(
             a_hash_including(
               date: cls.information_date.strftime('%Y-%m-%d'),
-              type: 'Current Living Situation',
+              type: 'CURRENT_LIVING_SITUATION',
             ),
           )
         end
@@ -113,7 +113,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(query_last_contact).to match(
             a_hash_including(
               date: assessment.assessment_date.strftime('%Y-%m-%d'),
-              type: 'Annual Assessment', # Specifies the custom assessment name
+              type: 'ANNUAL_ASSESSMENT', # Specifies the custom assessment name
             ),
           )
         end
@@ -126,7 +126,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(query_last_contact).to match(
             a_hash_including(
               date: case_note.information_date.strftime('%Y-%m-%d'),
-              type: 'Case Note',
+              type: 'CASE_NOTE',
             ),
           )
         end

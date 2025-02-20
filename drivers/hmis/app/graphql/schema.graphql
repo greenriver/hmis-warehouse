@@ -5655,7 +5655,59 @@ type KeyValue {
 
 type LastContact {
   date: ISO8601Date!
-  type: String!
+  type: LastContactType!
+}
+
+enum LastContactType {
+  """
+  Annual Assessment
+  """
+  ANNUAL_ASSESSMENT
+
+  """
+  Assessment
+  """
+  ASSESSMENT
+
+  """
+  Bed Night
+  """
+  BED_NIGHT
+
+  """
+  Case Note
+  """
+  CASE_NOTE
+
+  """
+  Current Living Situation
+  """
+  CURRENT_LIVING_SITUATION
+
+  """
+  Exit Assessment
+  """
+  EXIT_ASSESSMENT
+
+  """
+  Intake Assessment
+  """
+  INTAKE_ASSESSMENT
+
+  """
+  Post-Exit Assessment
+  """
+  POST_EXIT_ASSESSMENT
+
+  """
+  Service
+  """
+  SERVICE
+
+  """
+  Update Assessment
+  """
+  UPDATE_ASSESSMENT
 }
 
 """

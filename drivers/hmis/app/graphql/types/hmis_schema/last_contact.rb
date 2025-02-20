@@ -11,6 +11,6 @@ module Types
     skip_activity_log
 
     field :date, GraphQL::Types::ISO8601Date, null: false
-    field :type, String, null: false
+    field :type, HmisSchema::Enums::LastContactType, null: false
   end
 end
