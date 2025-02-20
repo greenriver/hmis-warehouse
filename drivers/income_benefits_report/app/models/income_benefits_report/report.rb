@@ -221,7 +221,7 @@ module IncomeBenefitsReport
       scope = filter.apply(report_scope_source, report_scope_source, all_project_types: all_project_types)
 
       # Limit to most recently started enrollment per client
-      scope.only_most_recent_by_client(scope: scope)
+      scope.only_most_recent_by_client(scope: scope).joins(:enrollment)
     end
 
     def report_scope_source
