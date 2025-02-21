@@ -1,0 +1,22 @@
+FactoryBot.define do
+  factory :grda_warehouse_client_notes_expired_alert, class: 'GrdaWarehouse::ClientNotes::Alert' do
+    association :client, factory: :grda_warehouse_hud_client
+    user
+    note { 'Test' }
+    expiration_date { Date.yesterday }
+  end
+
+  factory :grda_warehouse_client_notes_active_alert, class: 'GrdaWarehouse::ClientNotes::Alert' do
+    association :client, factory: :grda_warehouse_hud_client
+    user
+    note { 'Test' }
+    expiration_date { Date.tomorrow }
+  end
+
+  factory :grda_warehouse_client_notes_no_expiration, class: 'GrdaWarehouse::ClientNotes::Alert' do
+    association :client, factory: :grda_warehouse_hud_client
+    user
+    note { 'Test' }
+    expiration_date { nil }
+  end
+end

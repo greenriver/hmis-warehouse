@@ -19,8 +19,15 @@
         - else
           = Translation.translate("You can only see notes you add.")
     - if @notes.any?
-      - @notes.order(created_at: :desc).each do |note|
-        = render 'note', note: note
+      - if @notes.active.any?
+        - @notes.active.order(created_at: :desc).each do |note|
+          = render 'note', note: note
+      - else
+        %p No Active Notes on file
+      - if @notes.expired.any?
+        %h2 Expired Notes
+        - @notes.expired.order(created_at: :desc).each do |note|
+          = render 'note', note: note
     - else
       No notes on file
 
