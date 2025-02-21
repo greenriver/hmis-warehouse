@@ -18,20 +18,4 @@ class Filters::Criteria::Base
       scope.or(alternative)
     end
   end
-
-  # FIXME, probably doesn't belong here
-  private def multi_racial_clients(include_hispanic_latinaeo: false)
-    # Looking at all races with responses of 1, where we have a sum > 1
-    columns = [
-      arel.c_t[:AmIndAKNative],
-      arel.c_t[:Asian],
-      arel.c_t[:BlackAfAmerican],
-      arel.c_t[:NativeHIPacific],
-      arel.c_t[:White],
-      arel.c_t[:MidEastNAfrican],
-    ]
-    columns << arel.c_t[:HispanicLatinaeo] if include_hispanic_latinaeo
-
-    config.report_scope_source.where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
-  end
 end

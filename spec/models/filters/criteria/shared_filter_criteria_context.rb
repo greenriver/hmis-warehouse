@@ -1,6 +1,10 @@
 require 'rails_helper'
 
 RSpec.shared_context 'filter criteria setup' do
+  before(:all) do
+    # other tests leak data that brakes our assertions :(
+    GrdaWarehouse::Utility.clear!
+  end
   # Common fixtures
   let(:user) { create(:acl_user) }
   let(:start_date) { Date.new(2023, 1, 1) }

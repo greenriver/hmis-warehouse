@@ -105,12 +105,12 @@ module PerformanceMeasurement
 
     protected def criteria_configuration(**opts)
       defaults = {
-        join_clients_method: :source_client
+        join_clients_method: :source_client,
       }
       super(**defaults.merge(opts))
     end
 
-    scope :race_ethnicity_alternative, ->(key, hispanic_latinaeo ) do
+    scope :race_ethnicity_alternative, ->(key, hispanic_latinaeo) do
       client_scope = GrdaWarehouse::Hud::Client.race_ethnicity_alternative(key, hispanic_latinaeo)
       joins(:source_client).merge(client_scope)
     end

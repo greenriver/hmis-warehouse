@@ -9,10 +9,12 @@ class Filters::Criteria::FilterForRace < Filters::Criteria::Base
       race_scope = add_alternative(race_scope, race_alternative(column.to_sym))
     end
 
-    # Include anyone who has more than one race listed, anded with any previous alternatives
     race_scope ||= scope
-    race_scope = race_scope.where(id: multi_racial_clients.joins(config.join_clients_method).select(:id)) if input.races.include?('MultiRacial')
-    scope.merge(race_scope)
+    return race_scope unless input.races.include?('MultiRacial')
+
+    # Include anyone who has more than one race listed, anded with any previous alternatives
+    mr_scope = config.report_scope_source.multi_racial_clients.joins(config.join_clients_method).select(:id)
+    scope.merge(race_scope.where(id: mr_scope.select(:id)))
   end
 
   protected
