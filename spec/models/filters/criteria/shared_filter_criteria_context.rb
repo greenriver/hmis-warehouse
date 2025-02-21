@@ -15,18 +15,26 @@ RSpec.shared_context 'filter criteria setup' do
 
   # Helper methods
   def create_enrollment_for_client(client, attributes = {})
-    create(
-      :she_entry, {
-        client_id: client.id,
-        project_type: 1,
-        date: start_date,
-        first_date_in_program: start_date,
-        last_date_in_program: end_date,
-        project_id: project.ProjectID,
-        organization_id: organization.OrganizationID,
-        data_source_id: data_source.id,
-      }.merge(attributes)
+    enrollment_attributes = attributes.delete(:enrollment_attributes) || {}
+    she_attributes = {
+      client_id: client.id,
+      project_type: 1,
+      date: start_date,
+      first_date_in_program: start_date,
+      last_date_in_program: end_date,
+      project_id: project.ProjectID,
+      organization_id: organization.OrganizationID,
+      data_source_id: data_source.id,
+    }.merge(attributes)
+    enrollment_attributes.merge!(
+      client: client,
+      data_source_id: she_attributes[:data_source_id],
+      project_id: she_attributes[:project_id],
     )
+    enrollment = create(:grda_warehouse_hud_enrollment, enrollment_attributes)
+    # for some reason, enrollment_group_id is the enrollment fk col on SHE
+    she_attributes[:enrollment_group_id] = enrollment.enrollment_id
+    create(:she_entry, she_attributes)
   end
 
   def create_project(attributes = {})

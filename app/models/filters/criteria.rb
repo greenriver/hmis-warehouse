@@ -1,13 +1,14 @@
 module Filters::Criteria
   def self.classes_for_tags(tags)
-    definitions = DEFINITIONS.values.filter do |df|
-      tags.all? { |tag| df[:tags].include?(tag) }
+    definitions = DEFINITIONS.values.filter do |dfn|
+      tags.all? { |tag| dfn[:tags].include?(tag) }
     end
-    definitions.map { |df| df[:class_name].constantize }
+    definitions.map { |dfn| dfn[:class_name].constantize }
   end
 
   def self.factory(criterion_id, input:, config: nil)
-    DEFINITIONS.fetch(criterion_id).new(input: input, config: config)
+    dfn = DEFINITIONS.fetch(criterion_id)
+    dfn[:class_name].constantize.new(input: input, config: config)
   end
 
   def self.class_id(criteria_class)
@@ -60,9 +61,9 @@ module Filters::Criteria
     { tags: [:warehouse, :client], id: :filter_for_times_homeless },
     { tags: [:warehouse, :client], id: :filter_for_days_since_contact },
     { tags: [], id: :filter_for_race_ethnicity_combinations },
-  ].map { |df| df.merge({ class_name: "Filters::Criteria::#{df[:id].to_s.camelize}" }) }.
+  ].map { |dfn| dfn.merge({ class_name: "Filters::Criteria::#{dfn[:id].to_s.camelize}" }) }.
     index_by { |h| h[:id] }.
     freeze
 
-  IDS_BY_CLASS = DEFINITIONS.values.to_h { |df| df.values_at(:class_name, :id) }.freeze
+  IDS_BY_CLASS = DEFINITIONS.values.to_h { |dfn| dfn.values_at(:class_name, :id) }.freeze
 end
