@@ -119,7 +119,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
       end
 
-      context 'when custom assessment is the last contact' do
+      context 'when case note is the last contact' do
         let!(:case_note) { create(:hmis_hud_custom_case_note, client: c1, enrollment: e1, information_date: today - 4.days) }
 
         it 'returns the correct type and date' do
