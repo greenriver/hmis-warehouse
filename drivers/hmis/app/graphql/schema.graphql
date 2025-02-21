@@ -5654,8 +5654,8 @@ type KeyValue {
 }
 
 type LastContact {
-  date: ISO8601Date!
-  type: LastContactType!
+  contactDate: ISO8601Date!
+  contactType: LastContactType!
 }
 
 enum LastContactType {

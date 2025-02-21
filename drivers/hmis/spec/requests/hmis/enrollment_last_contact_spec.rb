@@ -34,8 +34,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             nodes {
               id
               lastContact {
-                date
-                type
+                contactDate
+                contactType
               }
             }
           }
@@ -73,8 +73,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         it 'returns the HUD service date' do
           expect(query_last_contact).to match(
             a_hash_including(
-              date: s1_bednight.date_provided.strftime('%Y-%m-%d'),
-              type: 'BED_NIGHT',
+              contactDate: s1_bednight.date_provided.strftime('%Y-%m-%d'),
+              contactType: 'BED_NIGHT',
             ),
           )
         end
@@ -86,8 +86,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         it 'returns the custom service date' do
           expect(query_last_contact).to match(
             a_hash_including(
-              date: s2_custom.date_provided.strftime('%Y-%m-%d'),
-              type: 'SERVICE',
+              contactDate: s2_custom.date_provided.strftime('%Y-%m-%d'),
+              contactType: 'SERVICE',
             ),
           )
         end
@@ -99,8 +99,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         it 'returns the correct type and date' do
           expect(query_last_contact).to match(
             a_hash_including(
-              date: cls.information_date.strftime('%Y-%m-%d'),
-              type: 'CURRENT_LIVING_SITUATION',
+              contactDate: cls.information_date.strftime('%Y-%m-%d'),
+              contactType: 'CURRENT_LIVING_SITUATION',
             ),
           )
         end
@@ -112,8 +112,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         it 'returns the correct type and date' do
           expect(query_last_contact).to match(
             a_hash_including(
-              date: assessment.assessment_date.strftime('%Y-%m-%d'),
-              type: 'ANNUAL_ASSESSMENT', # Specifies the custom assessment name
+              contactDate: assessment.assessment_date.strftime('%Y-%m-%d'),
+              contactType: 'ANNUAL_ASSESSMENT', # Specifies the custom assessment name
             ),
           )
         end
@@ -125,8 +125,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         it 'returns the correct type and date' do
           expect(query_last_contact).to match(
             a_hash_including(
-              date: case_note.information_date.strftime('%Y-%m-%d'),
-              type: 'CASE_NOTE',
+              contactDate: case_note.information_date.strftime('%Y-%m-%d'),
+              contactType: 'CASE_NOTE',
             ),
           )
         end

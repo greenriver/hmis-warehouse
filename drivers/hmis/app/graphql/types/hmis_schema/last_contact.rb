@@ -10,7 +10,7 @@ module Types
   class HmisSchema::LastContact < Types::BaseObject
     skip_activity_log
 
-    field :date, GraphQL::Types::ISO8601Date, null: false
-    field :type, HmisSchema::Enums::LastContactType, null: false
+    field :contact_date, GraphQL::Types::ISO8601Date, null: false
+    field :contact_type, HmisSchema::Enums::LastContactType, null: false
   end
 end

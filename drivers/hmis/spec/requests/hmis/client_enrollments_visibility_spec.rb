@@ -51,8 +51,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 entryDate # summary-access
                 projectName # summary-access
                 lastContact { # summary-access
-                  date
-                  type
+                  contactDate
+                  contactType
                 }
                 access {
                   canViewEnrollmentDetails # summary-access
@@ -115,8 +115,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(resolved_e2['sexualOrientation']).to be_nil # redacted due to permissions
           expect(resolved_e2['entryDate']).to be_present
           expect(resolved_e2['projectName']).to be_present
-          expect(resolved_e2['lastContact']['date']).to eq(s2.date_provided.strftime('%Y-%m-%d'))
-          expect(resolved_e2['lastContact']['type']).to eq('BED_NIGHT')
+          expect(resolved_e2['lastContact']['contactDate']).to eq(s2.date_provided.strftime('%Y-%m-%d'))
+          expect(resolved_e2['lastContact']['contactType']).to eq('BED_NIGHT')
           expect(resolved_e2['access']['canViewEnrollmentDetails']).to eq(false)
         end
 

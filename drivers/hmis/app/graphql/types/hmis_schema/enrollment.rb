@@ -498,8 +498,8 @@ module Types
       end
 
       {
-        date: contact_date,
-        type: contact_type,
+        contact_date: contact_date,
+        contact_type: contact_type,
       }
     end
   end
