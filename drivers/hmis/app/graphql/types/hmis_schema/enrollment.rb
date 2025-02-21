@@ -453,12 +453,10 @@ module Types
 
     def last_contact
       last_contact_entity = [
-        # Service DateProvided may be nil, so to avoid n+1 queries, sort with nulls_first using arel
-        # (rather than adding .where clause to the scope, which won't work - see comments on load_ar_association).
         load_ar_association(
           object,
           :services,
-          scope: Hmis::Hud::Service.order(Hmis::Hud::Service.arel_table[:date_provided].asc.nulls_first),
+          scope: Hmis::Hud::Service.where.not(date_provided: nil).order(date_provided: :asc),
         ).last,
         # CustomService DateProvided is guaranteed non-null by DB
         load_ar_association(object, :custom_services, scope: Hmis::Hud::CustomService.order(:date_provided)).last,
@@ -466,20 +464,18 @@ module Types
         load_ar_association(object, :current_living_situations, scope: Hmis::Hud::CurrentLivingSituation.order(:information_date)).last,
         # AssessmentDate is guaranteed non-null by DB
         load_ar_association(object, :custom_assessments, scope: Hmis::Hud::CustomAssessment.order(:assessment_date)).last,
-        # CustomCaseNote's information_date can be null in DB, so sort with nulls_first using arel
+        # CustomCaseNote's information_date can be null in DB
         load_ar_association(
           object,
           :custom_case_notes,
-          scope: Hmis::Hud::CustomCaseNote.order(Hmis::Hud::CustomCaseNote.arel_table[:information_date].asc.nulls_first),
+          scope: Hmis::Hud::CustomCaseNote.where.not(information_date: nil).order(information_date: :asc),
         ).last,
       ].compact.
-        max_by { |entity| Hmis::Hud::Enrollment.contact_date_for_entity(entity) } # max_by treats nils as lower than any non-nil value
+        max_by { |entity| Hmis::Hud::Enrollment.contact_date_for_entity(entity) }
 
       return nil unless last_contact_entity
 
       contact_date = Hmis::Hud::Enrollment.contact_date_for_entity(last_contact_entity)
-      # Check nil contact date in-memory instead of using a .where scope above, to avoid n+1
-      return nil unless contact_date
 
       contact_type = case last_contact_entity
       when Hmis::Hud::Service

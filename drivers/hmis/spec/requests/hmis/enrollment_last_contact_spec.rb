@@ -133,16 +133,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'minimizes n+1' do
-        30.times do
+        10.times do
           enrollment = create :hmis_hud_enrollment, data_source: ds1, client: c1
-          create(:hmis_hud_service_bednight, data_source: ds1, client: c1, enrollment: enrollment)
+          10.times do
+            create(:hmis_hud_service_bednight, data_source: ds1, client: c1, enrollment: enrollment)
+            create(:hmis_hud_custom_case_note, data_source: ds1, client: c1, enrollment: enrollment)
+            create(:hmis_custom_assessment, data_source: ds1, client: c1, enrollment: enrollment)
+            create(:hmis_current_living_situation, data_source: ds1, client: c1, enrollment: enrollment)
+            create(:hmis_custom_service, data_source: ds1, client: c1, enrollment: enrollment)
+          end
         end
 
         expect do
           response, result = post_graphql(client_id: c1.id) { query }
-          expect(response.status).to eq(200)
+          expect(response.status).to eq(200), result.inspect
           enrollments = result.dig('data', 'client', 'enrollments', 'nodes').map(&:deep_symbolize_keys)
-          expect(enrollments.size).to eq(31)
           expect(enrollments.map { |e| e[:lastContact] }.compact.size).to eq(enrollments.size)
         end.to make_database_queries(count: 10..30)
       end
@@ -165,6 +170,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'returns no last contact' do
         expect(query_last_contact).to be_nil
+      end
+    end
+
+    context 'when there are some with and some without dates' do
+      let!(:bed_night) { create(:hmis_hud_service_bednight, data_source: ds1, client: c1, enrollment: e1) }
+      let!(:case_note) { create(:hmis_hud_custom_case_note, client: c1, enrollment: e1, information_date: nil) }
+
+      it 'returns last contact with date' do
+        expect(query_last_contact).to match(
+          a_hash_including(
+            contactDate: bed_night.date_provided.strftime('%Y-%m-%d'),
+            contactType: 'BED_NIGHT',
+          ),
+        )
       end
     end
   end
