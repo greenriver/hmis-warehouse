@@ -25,8 +25,11 @@ RSpec.shared_context 'filter criteria setup' do
   end
 
   # Helper methods
+
   def create_enrollment_for_client(client, attributes = {})
     enrollment_attributes = attributes.delete(:enrollment_attributes) || {}
+    exit_attributes = attributes.delete(:exit_attributes)
+
     she_attributes = {
       client_id: client.id,
       project_type: 1,
@@ -34,15 +37,29 @@ RSpec.shared_context 'filter criteria setup' do
       first_date_in_program: start_date,
       last_date_in_program: end_date,
       project_id: project.ProjectID,
-      organization_id: organization.OrganizationID,
+      organization_id: organization.organization_id,
       data_source_id: data_source.id,
     }.merge(attributes)
+
     enrollment_attributes.merge!(
       client: client,
       data_source_id: she_attributes[:data_source_id],
       project_id: she_attributes[:project_id],
     )
+
     enrollment = create(:grda_warehouse_hud_enrollment, enrollment_attributes)
+
+    # Create exit record if exit attributes provided
+    if exit_attributes.present?
+      exit = create(:hud_exit, {
+        enrollment: enrollment,
+        data_source_id: she_attributes[:data_source_id],
+        personal_id: client.personal_id,
+        exit_date: she_attributes[:last_date_in_program],
+      }.merge(exit_attributes))
+      she_attributes[:destination] ||= exit.destination
+    end
+
     # for some reason, enrollment_group_id is the enrollment fk col on SHE
     she_attributes[:enrollment_group_id] = enrollment.enrollment_id
     create(:she_entry, she_attributes)
@@ -53,7 +70,7 @@ RSpec.shared_context 'filter criteria setup' do
       :hud_project,
       {
         data_source_id: data_source.id,
-        OrganizationID: organization.OrganizationID,
+        organization_id: organization.OrganizationID,
       }.merge(attributes),
     )
   end

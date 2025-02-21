@@ -7,9 +7,8 @@ class Filters::Criteria::FilterForProjects < Filters::Criteria::Base
     project_ids = visible_project_ids
     return scope if project_ids.blank?
 
-    viewable_projects = GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports)
     # seems to be order dependent (merge before in_project)
-    scope.merge(viewable_projects).in_project(project_ids)
+    scope.merge(viewable_project_scope).in_project(project_ids)
   end
 
   protected

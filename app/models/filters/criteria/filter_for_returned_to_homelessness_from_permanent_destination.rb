@@ -2,7 +2,7 @@ class Filters::Criteria::FilterForReturnedToHomelessnessFromPermanentDestination
   def applies? = input.returned_to_homelessness_from_permanent_destination
 
   def apply(scope)
-    visible_enrollments = filter_for_user_access(scope)
+    visible_enrollments = scope.joins(:project).merge(viewable_project_scope)
     exits = visible_enrollments.
       select(:id, :client_id, :last_date_in_program, :destination).
       joins(enrollment: :exit).

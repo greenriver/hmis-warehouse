@@ -2,8 +2,7 @@ class Filters::Criteria::FilterForFirstTimeHomelessInPastTwoYears < Filters::Cri
   def applies? = input.first_time_homeless
 
   def apply(scope)
-    visible_enrollments = scope.joins(:project).
-      merge(GrdaWarehouse::Hud::Project.viewable_by(input.user, permission: :can_view_assigned_reports))
+    visible_enrollments = scope.joins(:project).merge(viewable_project_scope)
 
     # Homeless enrollments open the two years prior to the report start
     recent_homeless_enrollments = visible_enrollments.

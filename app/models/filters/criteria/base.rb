@@ -18,4 +18,8 @@ class Filters::Criteria::Base
       scope.or(alternative)
     end
   end
+
+  def viewable_project_scope
+    GrdaWarehouse::Hud::Project.viewable_by(input.user, permission: :can_view_assigned_reports)
+  end
 end
