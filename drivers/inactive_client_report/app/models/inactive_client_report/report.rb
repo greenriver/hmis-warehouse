@@ -69,7 +69,7 @@ module InactiveClientReport
     end
 
     def clients
-      GrdaWarehouse::Hud::Client.where(id: report_scope.select(:client_id)).
+      @clients ||= GrdaWarehouse::Hud::Client.where(id: report_scope.select(:client_id)).
         preload(
           :processed_service_history,
           service_history_entry_ongoing: :project,
@@ -207,10 +207,13 @@ module InactiveClientReport
     end
 
     def report_scope(limited: false)
-      filter.personal_ids_for_days_since_contact_calculations = personal_ids if limited
-      scope = filter.apply(report_scope_base, report_scope_base, include_date_range: false)
-      # Apply a single date filter
-      scope.ongoing(on_date: filter.on)
+      @report_scope ||= {}
+      @report_scope[limited] ||= begin
+        filter.personal_ids_for_days_since_contact_calculations = personal_ids if limited
+        scope = filter.apply(report_scope_base, report_scope_base, include_date_range: false)
+        # Apply a single date filter
+        scope.ongoing(on_date: filter.on)
+      end
     end
 
     def report_scope_base
