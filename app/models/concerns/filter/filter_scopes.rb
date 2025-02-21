@@ -16,7 +16,7 @@ module Filter::FilterScopes
 
     # run the criteria on scope if applicable using the current filter as the input
     def run_applicable_criteria(criterion_id, scope)
-      criterion = Filters::Criteria.factory(criterion_id, input: filter, config: criteria_configuration)
+      criterion = Filters::Criteria.factory(criterion_id, input: @filter, config: criteria_configuration)
       criterion.applies? ? criterion.apply(scope) : scope
     end
 
