@@ -49,7 +49,7 @@ module Hmis
           Hmis::Hud::Base.transaction do
             # Auto-exit all household members together, setting the exit date equal to the most recent contact for any household member
             household.enrollments.each do |e|
-              auto_exit(e, most_recent_contact, project: project)
+              auto_exit(e, most_recent_contact, project: project) unless e.exit.present?
             end
           end
         end

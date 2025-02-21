@@ -23,6 +23,7 @@ FactoryBot.define do
   end
 
   factory :hmis_custom_service_type_for_hud_service, parent: :hmis_custom_service_type do
+    name { 'Bed Night' }
     hud_record_type { 200 }
     hud_type_provided { 200 }
   end
