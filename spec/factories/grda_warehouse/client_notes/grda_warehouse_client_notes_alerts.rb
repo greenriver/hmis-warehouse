@@ -3,14 +3,14 @@ FactoryBot.define do
     association :client, factory: :grda_warehouse_hud_client
     user
     note { 'Test' }
-    expiration_date { Date.yesterday }
+    expiration_date { Date.current - 1.days }
   end
 
   factory :grda_warehouse_client_notes_active_alert, class: 'GrdaWarehouse::ClientNotes::Alert' do
     association :client, factory: :grda_warehouse_hud_client
     user
     note { 'Test' }
-    expiration_date { Date.tomorrow }
+    expiration_date { Date.current + 1.days }
   end
 
   factory :grda_warehouse_client_notes_no_expiration, class: 'GrdaWarehouse::ClientNotes::Alert' do
@@ -24,6 +24,6 @@ FactoryBot.define do
     association :client, factory: :grda_warehouse_hud_client
     user
     note { 'Test' }
-    expiration_date { Date.today }
+    expiration_date { Date.current }
   end
 end
