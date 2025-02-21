@@ -21,6 +21,7 @@ module Types
     hud_field :prob_sol_div_rr_result, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :referral_case_manage_after, HmisSchema::Enums::Hud::NoYesMissing
     field :result_date, GraphQL::Types::ISO8601Date, null: true
+    field :form_definition_id, ID, null: true, description: 'Form Definition that was most recently used to create/update this record'
 
     def enrollment
       load_ar_association(object, :enrollment)
@@ -28,6 +29,10 @@ module Types
 
     def client
       load_ar_association(object, :client)
+    end
+
+    def form_definition_id
+      load_ar_association(object, :form_processor)&.definition_id
     end
   end
 end
