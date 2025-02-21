@@ -485,7 +485,7 @@ module Cohorts
       else
         log_removal(@client.cohort_id, @client.id, params.dig(:grda_warehouse_cohort_client, :reason))
         if @client.destroy
-          flash[:notice] = "Removed #{@client.name}"
+          flash[:notice] = "Removed #{@client.client.pii_provider(user: current_user).full_name}"
           redirect_to cohort_path(@cohort)
         else
           render :pre_destroy

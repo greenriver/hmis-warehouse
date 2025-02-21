@@ -42,6 +42,12 @@ class Collection < ApplicationRecord
 
   belongs_to :user, optional: true
 
+  # Collections may be "owned" by a single "source" entity.
+  # These eponymous collections are created through side-effects (see the EntityAccess concern) and
+  # are hidden from the administrative view.  They back the access given to users on the entity edit pages.
+  # Currently, these are used for ProjectGroups and Cohorts.
+  belongs_to :source, optional: true, polymorphic: true
+
   validates_presence_of :name, unless: :user_id
   validates_presence_of :collection_type, on: :create
 
@@ -90,6 +96,14 @@ class Collection < ApplicationRecord
     quoted = SqlHelper.quote_sql_array(coc_codes, type: :varchar)
     # use `?|` since coc codes is json
     where("#{quoted_table_name}.coc_codes ?| #{quoted}")
+  end
+
+  scope :with_source_entity, -> do
+    where.not(source_id: nil)
+  end
+
+  scope :without_source_entity, -> do
+    where(source_id: nil)
   end
 
   def self.text_search(text)

@@ -193,7 +193,19 @@
           "mapping": {
             "record_type": "CLIENT",
             "field_name": "yearEnteredService"
-          }
+          },
+          "bounds": [
+            {
+              "id": "min-year",
+              "type": "MIN",
+              "value_number": 1900
+            },
+            {
+              "id": "max-year",
+              "type": "MAX",
+              "value_number": 2080
+            }
+          ]
         },
         {
           "type": "INTEGER",
@@ -203,7 +215,21 @@
           "mapping": {
             "record_type": "CLIENT",
             "field_name": "yearSeparated"
-          }
+          },
+          "bounds": [
+            {
+              "id": "min-year",
+              "type": "MIN",
+              "severity": "error",
+              "value_number": 1900
+            },
+            {
+              "id": "max-year",
+              "type": "MAX",
+              "severity": "error",
+              "value_number": 2080
+            }
+          ]
         },
         {
           "type": "GROUP",

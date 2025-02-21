@@ -441,5 +441,13 @@ module Types
     def move_in_addresses
       load_ar_association(object, :move_in_addresses)
     end
+
+    def intake_assessment
+      load_ar_association(object, :intake_assessment)
+    end
+
+    def exit_assessment
+      load_ar_association(object, :exit_assessment)
+    end
   end
 end

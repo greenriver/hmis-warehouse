@@ -10,9 +10,9 @@ module Admin
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!, except: [:stop_impersonating]
-    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate, :un_expire]
+    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate, :un_expire, :expire_password]
     before_action :require_can_impersonate_users!, only: [:impersonate]
-    after_action :log_user, only: [:show, :edit, :update, :destroy, :unlock, :un_expire]
+    after_action :log_user, only: [:show, :edit, :update, :destroy, :unlock, :un_expire, :expire_password]
     helper_method :sort_column, :sort_direction
 
     require 'active_support'
@@ -49,6 +49,15 @@ module Admin
     def un_expire
       @user.update_last_activity!
       redirect_to({ action: :index }, notice: 'User re-activated')
+    end
+
+    def expire_password
+      msg = if @user.force_password_reset!
+        { notice: "User #{@user.email} has been logged out and will need to change their password on next login." }
+      else
+        { warn: "Unable to expire password for #{@user.email}, password expiration is disabled" }
+      end
+      redirect_to({ action: :index }, **msg)
     end
 
     def confirm

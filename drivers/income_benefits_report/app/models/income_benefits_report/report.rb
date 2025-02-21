@@ -221,7 +221,7 @@ module IncomeBenefitsReport
       scope = filter.apply(report_scope_source, report_scope_source, all_project_types: all_project_types)
 
       # Limit to most recently started enrollment per client
-      scope.only_most_recent_by_client(scope: scope)
+      scope.only_most_recent_by_client(scope: scope).joins(:enrollment)
     end
 
     def report_scope_source
@@ -347,11 +347,11 @@ module IncomeBenefitsReport
             scope_limit: race_cache.class.where(id: client_ids),
           )
           report_client = client_from(enrollment, race_string, range)
-          earlier_income = enrollment.enrollment.income_benefits.min_by(&:InformationDate)
-          later_income = enrollment.enrollment.income_benefits.select do |m|
+          earlier_income = enrollment.enrollment&.income_benefits&.min_by(&:InformationDate)
+          later_income = enrollment.enrollment&.income_benefits&.select do |m|
             m.InformationDate < filter.end_date &&
             m.InformationDate > earlier_income.InformationDate
-          end.max_by(&:InformationDate)
+          end&.max_by(&:InformationDate)
           if earlier_income.present?
             income_record_from(report_client, :earlier, earlier_income, range)
             income_record_from(report_client, :later, later_income, range) if later_income.present?

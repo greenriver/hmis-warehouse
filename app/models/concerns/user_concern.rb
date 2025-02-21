@@ -60,7 +60,8 @@ module UserConcern
     after_save :create_access_group
     # END_ACL
 
-    validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: { maximum: 250 }
+    # No longer validating MX record, just validate email format (MX check requires a network connection)
+    validates :email, presence: true, uniqueness: true, email_format: { check_mx: false }, length: { maximum: 250 }
     validate :password_cannot_be_sequential, on: :update
     validates :last_name, presence: true, length: { maximum: 40 }
     validates :first_name, presence: true, length: { maximum: 40 }
@@ -378,6 +379,34 @@ module UserConcern
       else
         :invitation_expired
       end
+    end
+
+    # Enforce a known value is included in the devise salt
+    # this allows us to invalidate sessions even though they are stored in redis
+    def authenticatable_salt
+      base_salt = super
+      return base_salt if custom_session_invalidator.blank?
+
+      # Poison the salt to force the user to re-login by changing custom_session_invalidator
+      # Make sure the salt isn't changing length
+      Digest::SHA256.base64digest("#{base_salt}#{custom_session_invalidator}")[0, base_salt.length]
+    end
+
+    def force_logout!
+      update_attribute(:custom_session_invalidator, SecureRandom.hex)
+    end
+
+    # Dependent on devise expire_password_after being set to a value other than false
+    def force_password_reset!
+      return false unless password_expiration_enabled?
+
+      # Immediately logout the user
+      self.custom_session_invalidator = SecureRandom.hex
+      # Force a password change on next login
+      need_change_password! # calls save internally
+
+      # Return true to indicate success
+      true
     end
 
     # Prevent sending confirmation emails if the user has an open invitation

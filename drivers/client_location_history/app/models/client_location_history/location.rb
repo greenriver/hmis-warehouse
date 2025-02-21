@@ -47,9 +47,12 @@ module ClientLocationHistory
 
     private def name_for_label(user)
       if user.can_view_clients?
-        link_for(client_path(client), client.name)
+        # These can be source clients, so make sure any link is going to their destination client
+        destination = client
+        destination = client.destination_client unless client.destination?
+        link_for(client_path(destination), client.pii_provider(user: user).full_name)
       else
-        client.name
+        client.pii_provider(user: user).full_name
       end
     end
 

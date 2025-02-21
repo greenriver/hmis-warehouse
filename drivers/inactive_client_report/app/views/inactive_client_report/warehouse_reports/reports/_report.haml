@@ -1,0 +1,48 @@
+= render 'number_clients'
+= render 'report_download'
+.overflow-scroll
+  - if @report.total_client_count.positive?
+    = render 'common/pagination_top', item_name: 'client'
+    .card
+      %table.table.table-striped.mb-0
+        %thead
+          %tr
+            - age_label = if current_user.can_view_full_dob? then 'DOB' else 'Age' end
+            %th Client
+            %th= age_label
+            %th Last Seen
+            %th Ongoing Enrollments
+            %th Days Homeless in the Last 3 Years
+            %th Days Since Most-Recent Contact
+            %th Most-Recent Entry Date
+            %th Most-Recent Current Living Situation
+            %th Most-Recent Bed Night
+            %th Most-Recent CE Assessment
+            %th Most-Recent CE Assessor
+        %tbody
+          - @clients.each do |client|
+            - pii = client.pii_provider(user: current_user)
+            - projects = client.last_intentional_contacts( current_user, include_confidential_names: false, include_dates: true).select(&:present?)
+            %tr
+              %td= link_to_if current_user.can_view_clients?, pii.full_name, appropriate_client_path(client)
+              %td= pii.dob_or_age
+              %td
+                - projects.each do |p|
+                  = p
+                  %br
+              %td
+                - client.service_history_entry_ongoing.map { |en| en&.project&.name(current_user, include_project_type: true) }.compact.each do |p|
+                  = p
+                  %br
+              %td= number_with_delimiter client.processed_service_history&.days_homeless_last_three_years
+              %td= number_with_delimiter @report.days_since_most_recent_contact(client)
+              %td= @report.max_entry_date(client)
+              %td= @report.most_recent_cls(client)
+              %td= @report.most_recent_bed_night(client)
+              %td= @report.most_recent_ce_assessment(client)&.dig(:assessment_date)
+              %td= @report.most_recent_ce_assessment(client)&.dig(:assessor)
+
+    = render 'common/pagination_bottom', item_name: 'client'
+  - else
+    .well.none-found
+      No clients match the chosen universe.

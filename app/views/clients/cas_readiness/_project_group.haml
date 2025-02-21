@@ -2,7 +2,7 @@
   Any client in project group '#{GrdaWarehouse::Config.cas_sync_project_group.name}'.
 %p
   Will
-  %strong= @client.name
+  %strong= @client.pii_provider(user: current_user).full_name
   sync with CAS?
   %br
   = yes_no @client.active_in_cas?(include_overridden: false)

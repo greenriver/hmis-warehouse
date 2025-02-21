@@ -17,6 +17,7 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   has_many :current_units, through: :enrollments
   has_many :custom_assessments, through: :enrollments
   has_many :staff_assignments, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], foreign_key: [:data_source_id, :household_id]
+  has_many :events, class_name: 'Hmis::HouseholdEvent', primary_key: [:data_source_id, :HouseholdID], foreign_key: [:data_source_id, :household_id]
   alias_attribute :household_id, :HouseholdID
 
   replace_scope :viewable_by, ->(user) do
@@ -68,6 +69,15 @@ class Hmis::Hud::Household < Hmis::Hud::Base
 
   def household_size
     enrollments.count
+  end
+
+  def snapshot_household_state
+    enrollments.map do |enrollment|
+      {
+        'enrollment_id': enrollment.id,
+        'relationship_to_hoh': enrollment.relationship_to_hoh,
+      }
+    end
   end
 
   TRIMMED_HOUSEHOLD_ID_LENGTH = 6

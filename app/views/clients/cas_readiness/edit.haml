@@ -10,7 +10,9 @@
 
     %p
       The following information is used exclusively for matching clients to vacancies in CAS.  It is not used for federal reporting.
-
-  = render 'background_render', url: render_content_client_cas_readiness_path, fetch_params: { client_id: @client.id } do
-    .rollup
-      .rollup-container.well
+  - if params[:render_inline] == "1" && Rails.env.development?
+    = render 'render_content'
+  - else
+    = render 'background_render', url: render_content_client_cas_readiness_path, fetch_params: { client_id: @client.id } do
+      .rollup
+        .rollup-container.well

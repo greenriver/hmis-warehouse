@@ -8641,6 +8641,49 @@ ALTER SEQUENCE public.exports_id_seq OWNED BY public.exports.id;
 
 
 --
+-- Name: external_hmis_configurations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.external_hmis_configurations (
+    id bigint NOT NULL,
+    data_source_id bigint,
+    vendor character varying,
+    base_url character varying,
+    path_client character varying,
+    path_enrollment character varying,
+    path_project character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN external_hmis_configurations.path_client; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.external_hmis_configurations.path_client IS 'something like: /clients/:client_token:/profile';
+
+
+--
+-- Name: external_hmis_configurations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.external_hmis_configurations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: external_hmis_configurations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.external_hmis_configurations_id_seq OWNED BY public.external_hmis_configurations.id;
+
+
+--
 -- Name: external_ids; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -19501,6 +19544,41 @@ UNION
 
 
 --
+-- Name: hmis_household_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_household_events (
+    id bigint NOT NULL,
+    "HouseholdID" character varying NOT NULL,
+    data_source_id bigint NOT NULL,
+    event_type character varying NOT NULL,
+    event_details jsonb,
+    user_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_household_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_household_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_household_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_household_events_id_seq OWNED BY public.hmis_household_events.id;
+
+
+--
 -- Name: hmis_households; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -22032,6 +22110,44 @@ ALTER SEQUENCE public.import_overrides_id_seq OWNED BY public.import_overrides.i
 
 
 --
+-- Name: import_thresholds; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.import_thresholds (
+    id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    record_count_change_min_threshold integer,
+    record_count_change_percent_threshold integer,
+    error_count_min_threshold integer,
+    error_percent_threshold integer,
+    pause_on_record_count_threshold boolean,
+    pause_on_error_threshold boolean,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: import_thresholds_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.import_thresholds_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: import_thresholds_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.import_thresholds_id_seq OWNED BY public.import_thresholds.id;
+
+
+--
 -- Name: inbound_api_configurations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -23035,6 +23151,42 @@ CREATE SEQUENCE public.non_hmis_uploads_id_seq
 --
 
 ALTER SEQUENCE public.non_hmis_uploads_id_seq OWNED BY public.non_hmis_uploads.id;
+
+
+--
+-- Name: notification_configurations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.notification_configurations (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    source_type character varying NOT NULL,
+    source_id bigint NOT NULL,
+    notification_slug character varying NOT NULL,
+    active boolean DEFAULT true,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: notification_configurations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.notification_configurations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: notification_configurations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.notification_configurations_id_seq OWNED BY public.notification_configurations.id;
 
 
 --
@@ -29499,6 +29651,13 @@ ALTER TABLE ONLY public.exports_ad_hocs ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: external_hmis_configurations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_hmis_configurations ALTER COLUMN id SET DEFAULT nextval('public.external_hmis_configurations_id_seq'::regclass);
+
+
+--
 -- Name: external_ids id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -30920,6 +31079,13 @@ ALTER TABLE ONLY public.hmis_group_viewable_entities ALTER COLUMN id SET DEFAULT
 
 
 --
+-- Name: hmis_household_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_household_events ALTER COLUMN id SET DEFAULT nextval('public.hmis_household_events_id_seq'::regclass);
+
+
+--
 -- Name: hmis_import_configs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -31242,6 +31408,13 @@ ALTER TABLE ONLY public.import_overrides ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: import_thresholds id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.import_thresholds ALTER COLUMN id SET DEFAULT nextval('public.import_thresholds_id_seq'::regclass);
+
+
+--
 -- Name: inbound_api_configurations id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -31414,6 +31587,13 @@ ALTER TABLE ONLY public.nightly_census_by_projects ALTER COLUMN id SET DEFAULT n
 --
 
 ALTER TABLE ONLY public.non_hmis_uploads ALTER COLUMN id SET DEFAULT nextval('public.non_hmis_uploads_id_seq'::regclass);
+
+
+--
+-- Name: notification_configurations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notification_configurations ALTER COLUMN id SET DEFAULT nextval('public.notification_configurations_id_seq'::regclass);
 
 
 --
@@ -32952,6 +33132,14 @@ ALTER TABLE ONLY public.exports_ad_hocs
 
 ALTER TABLE ONLY public.exports
     ADD CONSTRAINT exports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: external_hmis_configurations external_hmis_configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_hmis_configurations
+    ADD CONSTRAINT external_hmis_configurations_pkey PRIMARY KEY (id);
 
 
 --
@@ -34579,6 +34767,14 @@ ALTER TABLE ONLY public.hmis_group_viewable_entities
 
 
 --
+-- Name: hmis_household_events hmis_household_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_household_events
+    ADD CONSTRAINT hmis_household_events_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_import_configs hmis_import_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -34947,6 +35143,14 @@ ALTER TABLE ONLY public.import_overrides
 
 
 --
+-- Name: import_thresholds import_thresholds_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.import_thresholds
+    ADD CONSTRAINT import_thresholds_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: inbound_api_configurations inbound_api_configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -35144,6 +35348,14 @@ ALTER TABLE ONLY public.nightly_census_by_projects
 
 ALTER TABLE ONLY public.non_hmis_uploads
     ADD CONSTRAINT non_hmis_uploads_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: notification_configurations notification_configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notification_configurations
+    ADD CONSTRAINT notification_configurations_pkey PRIMARY KEY (id);
 
 
 --
@@ -52198,6 +52410,13 @@ CREATE INDEX idx_hmis_external_referral_postings_user_2 ON public.hmis_external_
 
 
 --
+-- Name: idx_hmis_household_events_on_household_and_data_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_hmis_household_events_on_household_and_data_source ON public.hmis_household_events USING btree ("HouseholdID", data_source_id);
+
+
+--
 -- Name: idx_inbound_api_configurations_uniq; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54386,6 +54605,13 @@ CREATE INDEX index_exports_on_deleted_at ON public.exports USING btree (deleted_
 --
 
 CREATE INDEX index_exports_on_export_id ON public.exports USING btree (export_id);
+
+
+--
+-- Name: index_external_hmis_configurations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_hmis_configurations_on_data_source_id ON public.external_hmis_configurations USING btree (data_source_id);
 
 
 --
@@ -56874,6 +57100,20 @@ CREATE INDEX index_hmis_group_viewable_entities_on_entity ON public.hmis_group_v
 
 
 --
+-- Name: index_hmis_household_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_household_events_on_data_source_id ON public.hmis_household_events USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_household_events_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_household_events_on_user_id ON public.hmis_household_events USING btree (user_id);
+
+
+--
 -- Name: index_hmis_import_configs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -57490,6 +57730,13 @@ CREATE INDEX index_import_overrides_on_data_source_id ON public.import_overrides
 
 
 --
+-- Name: index_import_thresholds_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_import_thresholds_on_data_source_id ON public.import_thresholds USING btree (data_source_id);
+
+
+--
 -- Name: index_inbound_api_configurations_on_hashed_api_key; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -57854,6 +58101,20 @@ CREATE INDEX index_non_hmis_uploads_on_deleted_at ON public.non_hmis_uploads USI
 
 
 --
+-- Name: index_notification_configurations_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_notification_configurations_on_source ON public.notification_configurations USING btree (source_type, source_id);
+
+
+--
+-- Name: index_notification_configurations_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_notification_configurations_on_user_id ON public.notification_configurations USING btree (user_id);
+
+
+--
 -- Name: index_performance_metrics_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58131,6 +58392,20 @@ CREATE INDEX index_project_pass_fails_projects_on_project_pass_fail_id ON public
 --
 
 CREATE INDEX index_project_pass_fails_projects_on_updated_at ON public.project_pass_fails_projects USING btree (updated_at);
+
+
+--
+-- Name: index_project_project_groups_on_project_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_project_project_groups_on_project_group_id ON public.project_project_groups USING btree (project_group_id) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: index_project_project_groups_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_project_project_groups_on_project_id ON public.project_project_groups USING btree (project_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -62341,6 +62616,13 @@ CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports U
 
 
 --
+-- Name: nc_user_source_slug_uniq_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX nc_user_source_slug_uniq_idx ON public.notification_configurations USING btree (user_id, source_id, source_type, notification_slug) WHERE (deleted_at IS NULL);
+
+
+--
 -- Name: one_entity_per_type_per_collection; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -65558,6 +65840,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241213204702'),
 ('20241213204837'),
 ('20241216184819'),
-('20241217210211');
+('20241217210211'),
+('20250116145506'),
+('20250117174547'),
+('20250121204933'),
+('20250203142317'),
+('20250213173031');
 
 

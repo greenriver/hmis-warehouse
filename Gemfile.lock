@@ -23,16 +23,6 @@ GIT
       activerecord (~> 7.0.2)
 
 GIT
-  remote: https://github.com/greenriver/hellosign-ruby-sdk.git
-  revision: 5718c3f96c37153fb18c02c9ade0e4112a8c7926
-  specs:
-    hellosign-ruby-sdk (3.7.10)
-      faraday (~> 2.2)
-      faraday-multipart (~> 1.0.0)
-      mime-types
-      multi_json
-
-GIT
   remote: https://github.com/greenriver/pg_fixtures.git
   revision: 48c46a77893f472890cb06366d89eba6492d8c27
   specs:
@@ -375,7 +365,7 @@ GEM
       ferrum (~> 0.14.0)
     curb (1.0.5)
     daemons (1.4.1)
-    date (3.3.4)
+    date (3.4.1)
     db-query-matchers (0.12.0)
       activesupport (>= 4.0, < 7.2)
       rspec (>= 3.0)
@@ -470,8 +460,6 @@ GEM
       i18n (>= 1.8.11, < 2)
     faraday (2.9.0)
       faraday-net_http (>= 2.0, < 3.2)
-    faraday-multipart (1.0.4)
-      multipart-post (~> 2)
     faraday-net_http (3.1.0)
       net-http
     ferrum (0.14)
@@ -648,11 +636,11 @@ GEM
     msgpack (1.7.2)
     multi_json (1.15.0)
     multi_xml (0.6.0)
-    multipart-post (2.4.0)
+    multipart-post (2.4.1)
     mutex_m (0.2.0)
     net-http (0.4.1)
       uri
-    net-imap (0.5.0)
+    net-imap (0.5.6)
       date
       net-protocol
     net-pop (0.1.2)
@@ -743,7 +731,7 @@ GEM
       nio4r (~> 2.0)
     pwned (2.4.1)
     racc (1.8.1)
-    rack (2.2.10)
+    rack (2.2.11)
     rack-attack (6.7.0)
       rack (>= 1.0, < 4)
     rack-cors (2.0.2)
@@ -1006,7 +994,7 @@ GEM
     thread_safe (0.3.6)
     tilt (2.3.0)
     timecop (0.9.8)
-    timeout (0.4.1)
+    timeout (0.4.3)
     tins (1.32.1)
       sync
     tiny_tds (2.1.7)
@@ -1179,7 +1167,6 @@ DEPENDENCIES
   haml-rails
   handlebars_assets
   hashdiff
-  hellosign-ruby-sdk!
   html2haml
   htmlentities
   image_processing
@@ -1204,6 +1191,7 @@ DEPENDENCIES
   mimemagic
   mini_magick
   minitest-reporters
+  multipart-post
   net-http
   net-sftp
   net-ssh (~> 7)
@@ -1229,7 +1217,7 @@ DEPENDENCIES
   prometheus-client
   pry-rails
   puma (~> 6.4)
-  rack (>= 2.2.8.1)
+  rack (>= 2.2.11)
   rack-attack
   rack-cors
   rack-mini-profiler

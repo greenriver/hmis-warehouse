@@ -30,13 +30,14 @@
             %th Data Source
             %th Personal ID
             %th Name
-            %th DOB
+            %th DOB/Age
             %th SSN
             %th Merged
             %th Merged By
             %th
           %tbody
             - source_clients.each do |c|
+              - pii = c.pii_provider(user: current_user)
               %tr
                 %td.jSplit= f.input_field :merge, as: :boolean, checked_value: c.id, unchecked_value: nil, name: input_id
                 - if GrdaWarehouse::Config.get(:healthcare_available)
@@ -46,9 +47,9 @@
                     = radio_button_tag 'grda_warehouse_hud_client[health_receiver]', c.id, false, disabled: true
                 %td= c.data_source&.short_name
                 %td= c.uuid
-                %td= c.full_name
-                %td= c.DOB
-                %td= ssn c.SSN
+                %td= pii.full_name
+                %td= pii.dob_or_age
+                %td= pii.ssn
                 %td= c.warehouse_client_source.reviewed_at
                 %td
                   - if (user = reviewers[c.warehouse_client_source.reviewd_by.to_i])
@@ -59,7 +60,7 @@
                       Match Details
 
         .form-actions
-          = f.button :submit, "Split selected records from #{@client.FirstName} #{@client.LastName}", id: :splitButton, data: {confirm: "Are you sure you want to split #{@client.FirstName} #{@client.LastName}? Dependent data will be moved to the selected clients."}
+          = f.button :submit, "Split selected records from #{@client.pii_provider(user: current_user).full_name}", id: :splitButton, data: {confirm: "Are you sure you want to split #{@client.pii_provider(user: current_user).full_name}? Dependent data will be moved to the selected clients."}
 
 = content_for :page_js do
   :javascript

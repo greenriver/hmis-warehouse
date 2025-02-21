@@ -143,7 +143,7 @@ RSpec.shared_context 'parenting youth', shared_context: :metadata do
       },
       'Chronically Homeless: Total number of persons' => {
         row_number: 34,
-        values: [0, 0, 0],
+        values: [1, 0, 0],
       },
     }
 

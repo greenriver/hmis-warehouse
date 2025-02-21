@@ -15,6 +15,11 @@ module GrdaWarehouse::CasProjectClientCalculator
       client.send(column)
     end
 
+    # Defer calculation of `days_homeless` to PushClientsToCas
+    def handles_days_homeless?
+      false
+    end
+
     def description_for_column(column)
       custom_descriptions[column].presence || GrdaWarehouse::Hud::Client.cas_columns_data.dig(column, :description)
     end

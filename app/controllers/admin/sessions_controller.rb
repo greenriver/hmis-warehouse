@@ -14,8 +14,8 @@ module Admin
 
     def destroy
       user = User.find(params[:id])
-      user.unique_session_id = nil
-      user.save
+      user.force_logout!
+
       redirect_to({ action: :index }, notice: "Session ended for #{user.name}")
     end
   end

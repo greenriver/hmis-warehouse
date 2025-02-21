@@ -34,7 +34,7 @@ module HudPit::Generators::Pit::Fy2022
       so: 4,
     }.freeze
 
-    def self.allowed_options
+    def self.allowed_options(_)
       [
         :on,
         :coc_codes,

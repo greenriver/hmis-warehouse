@@ -254,6 +254,10 @@ module GrdaWarehouse::Hud
       none
     end
 
+    scope :destination_or_source_visible_to, ->(_user, client_ids: nil) do # rubocop:disable Lint/UnusedBlockArgument
+      none
+    end
+
     scope :searchable_to, ->(_user, client_ids: nil) do # rubocop:disable Lint/UnusedBlockArgument
       # FIXME: add doc as to why scopes are in an extension (these are overridden)
       none
@@ -1357,7 +1361,7 @@ module GrdaWarehouse::Hud
       return source_clients.map(&:email).reject(&:blank?).first if destination?
 
       # Look for value from OP HMIS
-      value = most_recent_email_hmis if HmisEnforcement.hmis_enabled?
+      value = most_recent_email_hmis if HmisEnforcement.hmis_enabled? && data_source&.hmis?
       # Look for value from other HMIS integrations
       value ||= hmis_client_response['Email'] if hmis_client_response.present?
       value ||= hmis_client.processed_fields['email'] if hmis_client&.processed_fields
@@ -1368,7 +1372,7 @@ module GrdaWarehouse::Hud
       # Fetch the data from the source clients if we are a destination client
       return source_clients.map(&:home_phone).reject(&:blank?).first if destination?
 
-      value = most_recent_home_phone_hmis if HmisEnforcement.hmis_enabled?
+      value = most_recent_home_phone_hmis if HmisEnforcement.hmis_enabled? && data_source&.hmis?
       value ||= hmis_client_response['HomePhone'] if hmis_client_response.present?
       value
     end
@@ -1377,7 +1381,7 @@ module GrdaWarehouse::Hud
       # Fetch the data from the source clients if we are a destination client
       return source_clients.map(&:cell_phone).reject(&:blank?).first if destination?
 
-      value = most_recent_cell_or_other_phone_hmis if HmisEnforcement.hmis_enabled?
+      value = most_recent_cell_or_other_phone_hmis if HmisEnforcement.hmis_enabled? && data_source&.hmis?
       value ||= hmis_client_response['CellPhone'] if hmis_client_response.present?
       value ||= hmis_client.processed_fields['phone'] if hmis_client&.processed_fields
       value
@@ -1387,7 +1391,7 @@ module GrdaWarehouse::Hud
       # Fetch the data from the source clients if we are a destination client
       return source_clients.map(&:work_phone).reject(&:blank?).first if destination?
 
-      value = most_recent_work_or_school_phone_hmis if HmisEnforcement.hmis_enabled?
+      value = most_recent_work_or_school_phone_hmis if HmisEnforcement.hmis_enabled? && data_source&.hmis?
       return value if value
       return unless hmis_client_response.present?
 
@@ -2261,7 +2265,7 @@ module GrdaWarehouse::Hud
           if prev_destination_client.source_clients.empty?
             # Create a client_merge_history record so we can keep links working
             GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
-            prev_destination_client.delete
+            prev_destination_client.destroy
           end
 
           move_dependent_items(prev_destination_client.id, self.id) # rubocop:disable Style/RedundantSelf
@@ -2351,7 +2355,6 @@ module GrdaWarehouse::Hud
         [GrdaWarehouse::HealthEmergency::UploadedTest, :client_id],
         [GrdaWarehouse::HealthEmergency::Vaccination, :client_id],
         [GrdaWarehouse::Anomaly, :client_id],
-        [GrdaWarehouse::ClientRoiAuthorization, :destination_client_id],
       ]
     end
 

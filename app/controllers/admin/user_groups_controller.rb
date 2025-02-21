@@ -10,7 +10,7 @@ module Admin
     before_action :set_group, only: [:edit, :update, :destroy]
 
     def index
-      @groups = user_group_scope.order(:name)
+      @groups = user_group_scope.without_source_entity.order(:name)
       @groups = @groups.text_search(params[:q]) if params[:q].present?
       @pagy, @groups = pagy(@groups)
     end

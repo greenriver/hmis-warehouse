@@ -15,7 +15,7 @@
         %tr
           %th Project Type
           %td
-            = HudUtility2024.project_type(@project.ProjectType)
+            = HudUtility2024.project_type_with_sub_type(@project.project_type, @project.rrh_sub_type)
             - if @project.active_homeless_status_override.present?
               %br
               %em Enrolled clients are actively homeless for CAS and Cohorts
@@ -85,7 +85,10 @@
       %table.table.table-striped.table-hover.mb-0
         %tr
           %th Project ID
-          %td= @project.ProjectID
+          %td
+            = @project.ProjectID
+            - if @project.data_source.hmis_link_available?
+              = hmis_external_link(@project, user: current_user, wrapper_class: 'mt-2 text-teeny')
         %tr
           %th Organization ID
           %td= @project.OrganizationID

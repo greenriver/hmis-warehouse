@@ -9,14 +9,11 @@
         %th Race
     %tbody
       - @client.family_members.each do |client|
+        - pii = client.pii_provider(user: current_user)
         %tr
           %td
-            = link_to client.name, client_path(client)
-          %td
-            - if can_view_full_ssn?
-              = ssn(client.SSN)
-            - else
-              = masked_ssn(client.SSN)
+            = link_to pii.full_name, client_path(client)
+          %td= pii.ssn
           %td= client.age
           %td= client.gender
           %td= client.race_fields.map{ |f| HudUtility2024.race(f) }.join ', '

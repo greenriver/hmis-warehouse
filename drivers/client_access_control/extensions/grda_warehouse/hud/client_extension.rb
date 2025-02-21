@@ -32,6 +32,17 @@ module ClientAccessControl::GrdaWarehouse::Hud
         return current_scope.where(id: filtered.select(:id))
       end
 
+      # hide previous declaration of :source_visible_to, we'll use this one
+      replace_scope :destination_or_source_visible_to, ->(user, client_ids: nil) do
+        return current_scope || all if user.system_user?
+
+        filtered = arbiter(user).clients_destination_or_source_visible_to(user, client_ids: client_ids)
+
+        return filtered if current_scope.nil?
+
+        return current_scope.where(id: filtered.select(:id))
+      end
+
       # hide previous declaration of :searchable_to, we'll use this one
       # can search even if no ROI
       #
@@ -228,6 +239,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
               household: household(entry.household_id, entry.enrollment.data_source_id),
               project_type: ::HudUtility2024.project_type_brief(entry.project_type),
               project_type_id: entry.project_type,
+              rrh_sub_type: project.rrh_sub_type,
               class: "client__service_type_#{entry.project_type}",
               most_recent_service: most_recent_service,
               new_episode: new_episode,
