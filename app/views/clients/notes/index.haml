@@ -29,9 +29,10 @@
       - else
         %p No Active Notes on file
       - if expired_notes.any?
-        %h2 Expired Notes
-        - expired_notes.sort_by(&:created_at).reverse.each do |note|
-          = render 'note', note: note
+        - content_for :panel_collapse_content, flush: true do
+          - expired_notes.sort_by(&:created_at).reverse.each do |note|
+            = render 'note', note: note
+        = render 'common/panel_collapse', title: 'Expired Notes'
     - else
       No notes on file
 
