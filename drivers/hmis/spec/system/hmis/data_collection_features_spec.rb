@@ -84,48 +84,47 @@ RSpec.feature 'Data collection features', type: :system do
       end
     end
 
-    # TODO(#6113) - Uncomment and update this system test when correct behavior is implemented
-    # context 'legacy CLS data exists with a form processor' do
-    #   # it references a definition that's different from the project default
-    #   let!(:definition_json) do # simplified CLS definition
-    #     {
-    #       'item': [
-    #         {
-    #           'text': 'What date? This item is customized',
-    #           'type': 'DATE',
-    #           'link_id': 'date',
-    #           'mapping': {
-    #             'field_name': 'informationDate',
-    #           },
-    #         },
-    #         {
-    #           'text': 'Current Living Situation',
-    #           'type': 'CHOICE',
-    #           'link_id': 'cls',
-    #           'mapping': {
-    #             'field_name': 'currentLivingSituation',
-    #           },
-    #           'pick_list_reference': 'CURRENT_LIVING_SITUATION',
-    #         },
-    #       ],
-    #     }
-    #   end
-    #   let!(:definition) { create :hmis_form_definition, title: 'Custom CLS', role: 'CURRENT_LIVING_SITUATION', data_source: ds1, definition: definition_json, identifier: 'custom_cls' }
-    #   let!(:cls) { create(:hmis_current_living_situation, client: spouse, enrollment: spouse_enrollment, current_living_situation: 118) }
-    #   let!(:proc) { create(:hmis_form_processor, definition: definition, owner: cls) }
-    #
-    #   it 'allows viewing the legacy CLS with the non-default form' do
-    #     visit "/client/#{spouse.id}/enrollments/#{spouse_enrollment.id}/current-living-situations"
-    #
-    #     table_row = find('tbody').find_all('tr').sole.text
-    #     expect(table_row).to include('Safe Haven')
-    #     assert_no_text 'Add Current Living Situation'
-    #
-    #     find('tbody').first('tr').trigger(:click)
-    #     assert_text 'View Current Living Situation'
-    #     assert_text 'What date? This item is customized'
-    #   end
-    # end
+    context 'legacy CLS data exists with a form processor' do
+      # it references a definition that's different from the project default
+      let!(:definition_json) do # simplified CLS definition
+        {
+          'item': [
+            {
+              'text': 'What date? This item is customized',
+              'type': 'DATE',
+              'link_id': 'date',
+              'mapping': {
+                'field_name': 'informationDate',
+              },
+            },
+            {
+              'text': 'Current Living Situation',
+              'type': 'CHOICE',
+              'link_id': 'cls',
+              'mapping': {
+                'field_name': 'currentLivingSituation',
+              },
+              'pick_list_reference': 'CURRENT_LIVING_SITUATION',
+            },
+          ],
+        }
+      end
+      let!(:definition) { create :hmis_form_definition, title: 'Custom CLS', role: 'CURRENT_LIVING_SITUATION', data_source: ds1, definition: definition_json, identifier: 'custom_cls' }
+      let!(:cls) { create(:hmis_current_living_situation, client: spouse, enrollment: spouse_enrollment, current_living_situation: 118) }
+      let!(:proc) { create(:hmis_form_processor, definition: definition, owner: cls) }
+
+      it 'allows viewing the legacy CLS with the non-default form' do
+        visit "/client/#{spouse.id}/enrollments/#{spouse_enrollment.id}/current-living-situations"
+
+        table_row = find('tbody').find_all('tr').sole.text
+        expect(table_row).to include('Safe Haven')
+        assert_no_text 'Add Current Living Situation'
+
+        find('tbody').first('tr').trigger(:click)
+        assert_text 'View Current Living Situation'
+        assert_text 'What date? This item is customized'
+      end
+    end
   end
 
   context 'when no case note is enabled in the project, but legacy data exists' do
