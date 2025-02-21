@@ -37,5 +37,4 @@ class Filters::Criteria::FilterForRaceEthnicityCombinations < Filters::Criteria:
       scope.where(query)
     end
   end
-
 end

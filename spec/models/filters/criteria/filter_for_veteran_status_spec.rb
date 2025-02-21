@@ -1,4 +1,3 @@
-
 require 'rails_helper'
 require_relative 'shared_filter_criteria_context'
 
@@ -13,7 +12,7 @@ RSpec.describe Filters::Criteria::FilterForVeteranStatus do
     [
       create_enrollment_for_client(create(:hud_client, VeteranStatus: 1)),
       create_enrollment_for_client(create(:hud_client, VeteranStatus: 0)),
-      create_enrollment_for_client(create(:hud_client, VeteranStatus: 99))
+      create_enrollment_for_client(create(:hud_client, VeteranStatus: 99)),
     ]
   end
 

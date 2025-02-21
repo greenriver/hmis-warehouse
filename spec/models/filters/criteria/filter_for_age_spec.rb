@@ -1,4 +1,3 @@
-
 require 'rails_helper'
 require_relative 'shared_filter_criteria_context'
 
@@ -36,14 +35,14 @@ RSpec.describe Filters::Criteria::FilterForAge do
     end
   end
 
-    describe 'collect_ages_from_selected_ranges' do
-      it 'correctly builds age arrays based on selected ranges' do
-        ages = criteria.send(:collect_ages_from_selected_ranges)
+  describe 'collect_ages_from_selected_ranges' do
+    it 'correctly builds age arrays based on selected ranges' do
+      ages = criteria.send(:collect_ages_from_selected_ranges)
 
-        # Should include ages 0-24 (under_eighteen and eighteen_to_twenty_four)
-        expect(ages).to include(0, 10, 17, 18, 24)
-        expect(ages).not_to include(25, 30)
-        expect(ages.count).to eq(25) # 0-24 inclusive
-      end
+      # Should include ages 0-24 (under_eighteen and eighteen_to_twenty_four)
+      expect(ages).to include(0, 10, 17, 18, 24)
+      expect(ages).not_to include(25, 30)
+      expect(ages.count).to eq(25) # 0-24 inclusive
     end
+  end
 end

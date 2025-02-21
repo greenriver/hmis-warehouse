@@ -1,4 +1,3 @@
-
 require 'rails_helper'
 require_relative 'shared_filter_criteria_context'
 
@@ -8,57 +7,53 @@ RSpec.describe Filters::Criteria::FilterForRaceEthnicityCombinations do
   let(:race_ethnicity_combinations) { ['white', 'asian_hispanic_latinaeo'] }
 
   # Create clients with different race/ethnicity combinations
-  let!(:white_non_hispanic) {
+  let!(:white_non_hispanic) do
     create(:hud_client,
-      White: 1,
-      BlackAfAmerican: 0,
-      Asian: 0,
-      AmIndAKNative: 0,
-      NativeHIPacific: 0,
-      MidEastNAfrican: 0,
-      HispanicLatinaeo: 0,
-      data_source_id: data_source.id
-    )
-  }
+           White: 1,
+           BlackAfAmerican: 0,
+           Asian: 0,
+           AmIndAKNative: 0,
+           NativeHIPacific: 0,
+           MidEastNAfrican: 0,
+           HispanicLatinaeo: 0,
+           data_source_id: data_source.id)
+  end
 
-  let!(:asian_hispanic) {
+  let!(:asian_hispanic) do
     create(:hud_client,
-      White: 0,
-      BlackAfAmerican: 0,
-      Asian: 1,
-      AmIndAKNative: 0,
-      NativeHIPacific: 0,
-      MidEastNAfrican: 0,
-      HispanicLatinaeo: 1,
-      data_source_id: data_source.id
-    )
-  }
+           White: 0,
+           BlackAfAmerican: 0,
+           Asian: 1,
+           AmIndAKNative: 0,
+           NativeHIPacific: 0,
+           MidEastNAfrican: 0,
+           HispanicLatinaeo: 1,
+           data_source_id: data_source.id)
+  end
 
-  let!(:asian_non_hispanic) {
+  let!(:asian_non_hispanic) do
     create(:hud_client,
-      White: 0,
-      BlackAfAmerican: 0,
-      Asian: 1,
-      AmIndAKNative: 0,
-      NativeHIPacific: 0,
-      MidEastNAfrican: 0,
-      HispanicLatinaeo: 0,
-      data_source_id: data_source.id
-    )
-  }
+           White: 0,
+           BlackAfAmerican: 0,
+           Asian: 1,
+           AmIndAKNative: 0,
+           NativeHIPacific: 0,
+           MidEastNAfrican: 0,
+           HispanicLatinaeo: 0,
+           data_source_id: data_source.id)
+  end
 
-  let!(:multi_racial_hispanic) {
+  let!(:multi_racial_hispanic) do
     create(:hud_client,
-      White: 1,
-      BlackAfAmerican: 1,
-      Asian: 0,
-      AmIndAKNative: 0,
-      NativeHIPacific: 0,
-      MidEastNAfrican: 0,
-      HispanicLatinaeo: 1,
-      data_source_id: data_source.id
-    )
-  }
+           White: 1,
+           BlackAfAmerican: 1,
+           Asian: 0,
+           AmIndAKNative: 0,
+           NativeHIPacific: 0,
+           MidEastNAfrican: 0,
+           HispanicLatinaeo: 1,
+           data_source_id: data_source.id)
+  end
 
   # Create enrollments for each client
   let!(:enrollments) do
@@ -72,7 +67,7 @@ RSpec.describe Filters::Criteria::FilterForRaceEthnicityCombinations do
       user_id: user.id,
       start: start_date,
       end: end_date,
-      race_ethnicity_combinations: race_ethnicity_combinations
+      race_ethnicity_combinations: race_ethnicity_combinations,
     )
   end
 
@@ -136,18 +131,17 @@ RSpec.describe Filters::Criteria::FilterForRaceEthnicityCombinations do
 
     context 'with no race specified' do
       let(:race_ethnicity_combinations) { ['race_none'] }
-      let!(:no_race_client) {
+      let!(:no_race_client) do
         create(:hud_client,
-          White: 0,
-          BlackAfAmerican: 0,
-          Asian: 0,
-          AmIndAKNative: 0,
-          NativeHIPacific: 0,
-          MidEastNAfrican: 0,
-          RaceNone: 8,
-          data_source_id: data_source.id
-        )
-      }
+               White: 0,
+               BlackAfAmerican: 0,
+               Asian: 0,
+               AmIndAKNative: 0,
+               NativeHIPacific: 0,
+               MidEastNAfrican: 0,
+               RaceNone: 8,
+               data_source_id: data_source.id)
+      end
       let!(:no_race_enrollment) { create_enrollment_for_client(no_race_client) }
 
       it 'returns clients with no race specified' do

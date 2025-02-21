@@ -1,4 +1,3 @@
-
 require 'rails_helper'
 require_relative 'shared_filter_criteria_context'
 
@@ -25,7 +24,7 @@ RSpec.describe Filters::Criteria::FilterForRace do
       user_id: user.id,
       start: start_date,
       end: end_date,
-      races: races
+      races: races,
     )
   end
 

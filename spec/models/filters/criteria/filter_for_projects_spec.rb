@@ -1,4 +1,3 @@
-
 require 'rails_helper'
 require_relative 'shared_filter_criteria_context'
 
@@ -11,21 +10,21 @@ RSpec.describe Filters::Criteria::FilterForProjects do
     ::Filters::FilterBase.new(
       user_id: user.id,
       project_ids: project_ids,
-      project_group_ids: project_group_ids
+      project_group_ids: project_group_ids,
     )
   end
   let(:criteria) { described_class.new(input: filter, config: config) }
 
   # Create additional projects and groups
-  let!(:project2) { create(:hud_project, data_source_id: data_source.id, OrganizationID: organization.OrganizationID) }
-  let!(:project3) { create(:hud_project, data_source_id: data_source.id, OrganizationID: organization.OrganizationID) }
+  let!(:project2) { create_project }
+  let!(:project3) { create_project }
   let!(:project_group) { create(:project_group, projects: [project2, project3]) }
 
   let!(:enrollments) do
     [
       create_enrollment_for_client(create(:hud_client), project_id: project.ProjectID),
       create_enrollment_for_client(create(:hud_client), project_id: project2.ProjectID),
-      create_enrollment_for_client(create(:hud_client), project_id: project3.ProjectID)
+      create_enrollment_for_client(create(:hud_client), project_id: project3.ProjectID),
     ]
   end
 
@@ -58,7 +57,7 @@ RSpec.describe Filters::Criteria::FilterForProjects do
 
     context 'when user cannot view project_ids' do
       let(:role) do
-        create(:role, can_view_project_related_filters: false )
+        create(:role, can_view_project_related_filters: false)
       end
       before { allow(user).to receive(:report_filter_visible?).with(:project_ids).and_return(false) }
       let(:project_ids) { [project.id] }
