@@ -30,12 +30,6 @@ RSpec.describe Filters::Criteria::FilterForProjects do
 
   it_behaves_like 'a criteria that applies conditionally', :project_ids, [1]
 
-  let(:role) do
-    create(:role, can_view_project_related_filters: true, can_view_assigned_reports: true)
-  end
-  before do
-    setup_access_control(user, role, Collection.system_collection(:data_sources))
-  end
   describe '#apply' do
     context 'with project_ids' do
       let(:project_ids) { [project.id, project2.id] }

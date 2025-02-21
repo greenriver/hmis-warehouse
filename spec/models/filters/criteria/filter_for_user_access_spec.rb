@@ -17,13 +17,6 @@ RSpec.describe Filters::Criteria::FilterForUserAccess do
     ]
   end
 
-  let(:role) do
-    create(:role, can_view_project_related_filters: true, can_view_assigned_reports: true)
-  end
-  before do
-    setup_access_control(user, role, Collection.system_collection(:data_sources))
-  end
-
   it_behaves_like 'a criteria that always applies'
 
   describe '#apply' do

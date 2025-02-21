@@ -13,6 +13,13 @@ RSpec.shared_context 'filter criteria setup' do
   let(:config) { Filters::Criteria::Configuration.new(report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry) }
   let(:scope) { GrdaWarehouse::ServiceHistoryEnrollment.entry }
 
+  let(:role) do
+    create(:role, can_view_project_related_filters: true, can_view_assigned_reports: true)
+  end
+  before do
+    setup_access_control(user, role, Collection.system_collection(:data_sources))
+  end
+
   # Helper methods
   def create_enrollment_for_client(client, attributes = {})
     enrollment_attributes = attributes.delete(:enrollment_attributes) || {}
