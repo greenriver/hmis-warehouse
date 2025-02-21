@@ -6907,7 +6907,7 @@ CREATE TABLE public.client_notes (
     alert_active boolean DEFAULT true NOT NULL,
     service_id bigint,
     project_id bigint,
-    expiration_date timestamp(6) without time zone
+    expiration_date date
 );
 
 

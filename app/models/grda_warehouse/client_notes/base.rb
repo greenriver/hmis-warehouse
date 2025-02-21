@@ -41,11 +41,11 @@ module GrdaWarehouse::ClientNotes
     end
 
     scope :active, -> do
-      where.not(id: expired)
+      where(expiration_date: nil).or(where(expiration_date: Date.current + 1.days ..))
     end
 
     scope :expired, -> do
-      where('expiration_date <= ?', Date.current)
+      where(expiration_date: .. Date.current)
     end
 
     scope :visible_by, ->(user, client) do
@@ -105,10 +105,14 @@ module GrdaWarehouse::ClientNotes
       @notification_contacts ||= User.where(id: ids).map(&:name_with_email)
     end
 
-    def expired?
-      return false if expiration_date.blank?
+    def active?
+      return true if expiration_date.blank?
 
-      expiration_date.past?
+      expiration_date.future?
+    end
+
+    def expired?
+      !active?
     end
   end
 end

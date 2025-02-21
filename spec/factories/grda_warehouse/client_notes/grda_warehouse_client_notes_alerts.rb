@@ -19,4 +19,11 @@ FactoryBot.define do
     note { 'Test' }
     expiration_date { nil }
   end
+
+  factory :grda_warehouse_client_notes_expiration_today, class: 'GrdaWarehouse::ClientNotes::Alert' do
+    association :client, factory: :grda_warehouse_hud_client
+    user
+    note { 'Test' }
+    expiration_date { Date.today }
+  end
 end
