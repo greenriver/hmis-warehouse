@@ -11,7 +11,7 @@ class Filters::Criteria::FilterForReturnedToHomelessnessFromPermanentDestination
       partition_by(:client_id, order_by: { last_date_in_program: :desc }).
       select_window(:row_number, over: :client_window, as: :row_id)
     client_ids_with_recent_permanent_exits = GrdaWarehouse::ServiceHistoryEnrollment.from(exits).
-      where("row_id = 1 AND destination IN (?)", HudUtility2024.permanent_destinations)
+      where('row_id = 1 AND destination IN (?)', HudUtility2024.permanent_destinations)
 
     scope.homeless.where(client_id: client_ids_with_recent_permanent_exits.select(:client_id))
   end
