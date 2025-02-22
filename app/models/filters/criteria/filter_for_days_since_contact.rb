@@ -72,7 +72,7 @@ class Filters::Criteria::FilterForDaysSinceContact < Filters::Criteria::Base
     query.group(:destination_id).
       select(
         :destination_id,
-        nf(
+        arel.nf(
           'MAX',
           [date_column],
         ).as('date'),

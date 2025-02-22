@@ -1,10 +1,10 @@
 class Filters::Criteria::FilterForHouseholdType < Filters::Criteria::Base
   def applies?
-    input.household_type.present? && input.household_type != :all
+    household_type.present?
   end
 
   def apply(scope)
-    case input.household_type
+    case household_type
     when :without_children
       scope.adult_only_households
     when :with_children
@@ -12,7 +12,14 @@ class Filters::Criteria::FilterForHouseholdType < Filters::Criteria::Base
     when :only_children
       scope.child_only_households
     else
-      raise
+      raise "unknown household_type \"#{household_type}\""
     end
+  end
+
+  def household_type
+    return nil unless input.household_type.present?
+
+    type_as_sym = input.household_type.to_sym
+    type_as_sym == :all ? nil : type_as_sym
   end
 end

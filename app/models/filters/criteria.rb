@@ -1,4 +1,23 @@
+# Filters::Criteria provides a modular system for building and applying filter conditions to HMIS reporting queries.
+# It uses a factory pattern to instantiate criteria objects based on filter definitions, and provides utilities
+# for working with groups of related criteria.
+#
+# Each criteria class represents a specific type of filter (e.g., age range, project type, etc.) and follows
+# a consistent interface with `applies?` and `apply` methods.
+#
+# @example Creating and applying a single criterion
+#   filter = Filters::FilterBase.new(user_id: current_user.id, age_ranges: [:under_eighteen])
+#   criterion = Filters::Criteria.factory(:filter_for_age, input: filter)
+#   filtered_scope = criterion.apply(scope) if criterion.applies?
+#
+# @example Finding criteria classes that match certain tags
+#   client_criteria = Filters::Criteria.classes_for_tags([:warehouse, :client])
+#
 module Filters::Criteria
+  # Returns an array of criteria classes that match all specified tags
+  #
+  # @param tags [Array<Symbol>] List of tags that must all be present on the criteria
+  # @return [Array<Class>] Array of criteria classes that match all specified tags
   def self.classes_for_tags(tags)
     definitions = DEFINITIONS.values.filter do |dfn|
       tags.all? { |tag| dfn[:tags].include?(tag) }
@@ -6,19 +25,41 @@ module Filters::Criteria
     definitions.map { |dfn| dfn[:class_name].constantize }
   end
 
+  # Creates a new criteria instance for the specified criterion ID
+  #
+  # @param criterion_id [Symbol] The ID of the criterion to instantiate
+  # @param input [Filters::FilterBase] The filter input containing parameters
+  # @param config [Filters::Criteria::Configuration, nil] Optional configuration
+  # @return [Filters::Criteria::Base] A new criteria instance
+  # @raise [KeyError] If criterion_id is not found in DEFINITIONS
   def self.factory(criterion_id, input:, config: nil)
     dfn = DEFINITIONS.fetch(criterion_id)
     dfn[:class_name].constantize.new(input: input, config: config)
   end
 
+  # Gets the criterion ID for a given criteria class
+  #
+  # @param criteria_class [Class] The criteria class
+  # @return [Symbol] The criterion ID
+  # @raise [KeyError] If class is not found in CLASS_ID_LOOKUP
   def self.class_id(criteria_class)
     CLASS_ID_LOOKUP.fetch(criteria_class.sti_name)
   end
 
+  # Returns all available criterion IDs
+  #
+  # @return [Array<Symbol>] Array of all criterion IDs
   def self.criterion_ids
     DEFINITIONS.keys
   end
 
+  # Criteria definitions mapping criterion IDs to their metadata
+  # Each definition includes:
+  # - tags: Array of symbols categorizing the criterion (e.g., :hud, :warehouse, :client)
+  # - id: Symbol identifying the criterion
+  # - class_name: String name of the criterion class
+  #
+  # @api private
   DEFINITIONS = [
     { tags: [:hud, :warehouse, :project], id: :filter_for_user_access },
     { tags: [:hud], id: :filter_for_projects_hud },
@@ -65,5 +106,8 @@ module Filters::Criteria
     index_by { |h| h[:id] }.
     freeze
 
+  # Lookup table mapping class names to criterion IDs
+  #
+  # @api private
   IDS_BY_CLASS = DEFINITIONS.values.to_h { |dfn| dfn.values_at(:class_name, :id) }.freeze
 end
