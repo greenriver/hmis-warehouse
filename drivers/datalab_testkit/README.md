@@ -29,4 +29,4 @@ When running `GrdaWarehouse::Tasks::ProjectCleanup` in `HmisCsvImporter::Importe
 
 ### Rebuilding test kit
 
-To rebuild, push a commit that contains `[gh:rebuild_fixpoints]` in the commit message
+To rebuild, push a commit that contains `[gh:rebuild_fixpoints]` in the commit message.
