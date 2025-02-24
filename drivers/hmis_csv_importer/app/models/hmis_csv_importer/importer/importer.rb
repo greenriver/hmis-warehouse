@@ -572,7 +572,7 @@ module HmisCsvImporter::Importer
 
         queries << {
           'compressed_query' => compressed_query,
-          'duration' => event.duration,
+          'duration' => event.duration * 1000, # convert to seconds
         }
       }
 
@@ -582,7 +582,7 @@ module HmisCsvImporter::Importer
       end
 
       scope_name = [klass.name.demodulize, name].compact.join('.')
-      importer_log.log_phase(phase, **{ scope_name => queries })
+      importer_log.log_phase(phase, **{ scope_name => queries }) if queries.any?
       result
     end
 
