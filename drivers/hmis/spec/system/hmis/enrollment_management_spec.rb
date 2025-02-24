@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -28,7 +30,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
   end
 
   def search_for_client(client)
-    fill_in 'Search Clients', with: client.last_name
+    fill_in 'Search for Client', with: client.last_name
     click_button 'Search'
   end
 
@@ -42,8 +44,8 @@ RSpec.feature 'Enrollment/household management', type: :system do
 
     def make_household(household_id: Hmis::Hud::Base.generate_uuid, enrollment_factory:)
       [
-        [c1, { RelationshipToHoH: 1 }],
-        [c2, { RelationshipToHoH: 3 }],
+        [c1, { RelationshipToHoH: 1 }], # hoh
+        [c2, { RelationshipToHoH: 3 }], # spouse or partner
       ].each do |client, enrollment_attrs|
         enrollment_attrs.merge!(
           client: client,
@@ -52,7 +54,6 @@ RSpec.feature 'Enrollment/household management', type: :system do
           entry_date: today - 5.days,
           user: u1,
         )
-        # create(:hmis_hud_enrollment, **enrollment_attrs)
         create(enrollment_factory, **enrollment_attrs)
       end
       Hmis::Hud::Household.where(household_id: household_id).first!
@@ -70,6 +71,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
       assert_text(c1.brief_name)
 
       # add client 2 to household
+      find("[role='button']", text: 'Add Household Member').click # expand search card
       search_for_client(c2)
       click_button('Add to Household')
       household = c1.households.where(earliest_entry: entry_date).first!
@@ -77,9 +79,16 @@ RSpec.feature 'Enrollment/household management', type: :system do
         submit_enrollment_form(entry_date: entry_date, relationship_to_hoh: 'Other relative')
         assert_no_selector "[role='dialog']" # wait for dialog to close
       end.to change(household.enrollments.where(personal_id: c2.personal_id), :count).by(1)
+
       # should see both clients
       assert_text(c1.brief_name)
       assert_text(c2.brief_name)
+
+      # make sure we can correctly navigate to intakes
+      click_link 'Household Intakes'
+      assert_text 'Household Intake' # assert navigated to household intake page
+      assert_text c1.brief_name
+      assert_text c2.brief_name
     end
 
     it 'shows error when the user tries to submit an invalid date' do
@@ -99,37 +108,46 @@ RSpec.feature 'Enrollment/household management', type: :system do
         fill_in 'Search Clients', with: c1.last_name
         click_link c1.brief_name
         click_link 'Household'
-        click_link 'Manage Household'
-      end
-
-      it 'can change relationship to HoH' do
-        assert_text(c2.brief_name)
         assert_text(c1.brief_name)
+        assert_text(c2.brief_name)
+      end
+      let!(:e1) { c1.enrollments.sole }
+      let!(:e2) { c2.enrollments.sole }
 
-        e1 = c1.enrollments.sole
-        e2 = c2.enrollments.sole
-        # choose second row. These radio selects need better a11y
-        # find(:xpath, "//table/tbody/tr[2]/td/*[normalize-space()='HoH']").click
-        within(:xpath, '//table/tbody/tr[2]') do
-          with_hidden { choose('HoH') }
-        end
+      it 'can change HoH' do
+        click_button "Action menu for #{c2.brief_name}"
+        mui_click_menu_item 'Make Head of Household'
         assert_text("Head of Household will change from #{c1.brief_name} to #{c2.brief_name}")
+
         expect do
           click_button('Confirm')
-          within(:xpath, '//table/tbody/tr[2]') do
-            with_hidden { expect(page).to have_checked_field('HoH') }
-          end
+          within('tr', text: c2.brief_name) { expect(page).to have_content 'HoH' }
+          within('tr', text: c1.brief_name) { expect(page).not_to have_content 'HoH' }
         end.to change(c2.enrollments.where(relationship_to_hoh: 1), :count).by(1).
           and change { e2.reload.relationship_to_hoh }.from(3).to(1). # c2 becomes HoH
           and change { e1.reload.relationship_to_hoh }.from(1).to(3) # c1 has inferred relationship to c2
       end
 
-      it 'can remove a non-HoH member' do
+      it 'can change relationship to HoH' do
+        click_button "Action menu for #{c2.brief_name}"
+        mui_click_menu_item 'Change Relationship'
+        assert_text 'Change Relationship to HoH'
+        mui_select 'Other relative', from: 'Relationship to HoH'
+
         expect do
-          find("button[aria-label='Action menu for #{c2.brief_name}']", visible: :all).trigger(:click)
-          find("li[aria-label='Delete #{c2.brief_name}\\'s enrollment']").trigger(:click) # no confirmation here, since enrollment is WIP
+          click_button 'Update'
+          within('tr', text: c2.brief_name) { expect(page).to have_content 'Other relative' }
+        end.to change { e2.reload.relationship_to_hoh }.from(3).to(4) # spouse => other relative
+      end
+
+      it 'can remove a non-HoH member' do
+        click_button "Action menu for #{c2.brief_name}"
+
+        expect do
+          mui_click_menu_item 'Delete Enrollment' # no confirmation here, since enrollment is WIP
           assert_no_text(c2.brief_name)
         end.to change(c2.enrollments, :count).by(-1)
+        expect(e2.reload).to be_deleted
       end
     end
 
@@ -153,21 +171,24 @@ RSpec.feature 'Enrollment/household management', type: :system do
         entry_date = today - 2.days
         click_link 'Add Enrollment'
         search_for_client(c1)
-        click_button('Enroll Client')
+        click_button 'Enroll Client'
         submit_enrollment_form(entry_date: entry_date)
         assert_no_selector "[role='dialog']" # wait for dialog to close
 
-        # now we have to go back and find the enrollment again to see prev members
-        click_link 'Enrollments', match: :first
-        assert_text(c1.brief_name)
-        click_link c1.brief_name, match: :first
+        # Previously Associated Members card should appear and show client 2
+        find("[role='button']", text: 'Previously Associated Household Members').click # expand card
+        assert_text c2.brief_name
+        assert_text 'Add to Household'
+
+        # Go to Enrollment Household management page to confirm Previously Associated Members card as well
+        click_button "Action menu for #{c1.brief_name}"
+        mui_click_menu_item 'Go to Client Enrollment'
         click_link 'Household'
-        click_link 'Manage Household'
 
         # should see client 2
-        assert_text('Previously Associated Members')
-        assert_text(c2.brief_name)
-        assert_text('Add to Household')
+        find("[role='button']", text: 'Previously Associated Household Members').click # expand card
+        assert_text c2.brief_name
+        assert_text 'Add to Household'
       end
     end
   end

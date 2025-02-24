@@ -9,6 +9,8 @@
 #  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 #
 
+# frozen_string_literal: false
+
 require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -31,7 +33,7 @@ RSpec.feature 'Join Households', type: :system do
     sign_in(hmis_user)
     visit "/client/#{c1.id}/enrollments/#{receiving_enrollment.id}/household"
     click_link 'Manage Household'
-    fill_in 'Search Clients', with: c2.brief_name
+    fill_in 'Search for Client', with: c2.brief_name
     click_button 'Search'
     click_button 'Add to Household'
     assert_text "Enroll #{c2.brief_name}"
