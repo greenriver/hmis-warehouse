@@ -121,11 +121,13 @@ RSpec.feature 'Enrollment/household management', type: :system do
 
         expect do
           click_button('Confirm')
-          within('tr', text: c2.brief_name) { expect(page).to have_content 'HoH' }
-          within('tr', text: c1.brief_name) { expect(page).not_to have_content 'HoH' }
+          assert_no_selector "[role='dialog']" # wait for dialog to close
         end.to change(c2.enrollments.where(relationship_to_hoh: 1), :count).by(1).
           and change { e2.reload.relationship_to_hoh }.from(3).to(1). # c2 becomes HoH
           and change { e1.reload.relationship_to_hoh }.from(1).to(3) # c1 has inferred relationship to c2
+
+        within('tr', text: c2.brief_name) { expect(page).to have_content 'Self (HoH)' }
+        within('tr', text: c1.brief_name) { expect(page).to have_content 'Spouse or partner' }
       end
 
       it 'can change relationship to HoH' do
