@@ -40,6 +40,14 @@ module GrdaWarehouse::ClientNotes
       where(type: types)
     end
 
+    scope :active, -> do
+      where(expiration_date: nil).or(where(expiration_date: Date.current + 1.days ..))
+    end
+
+    scope :expired, -> do
+      where(expiration_date: .. Date.current)
+    end
+
     scope :visible_by, ->(user, client) do
       if user.can_edit_client_notes?
         current_scope
@@ -95,6 +103,16 @@ module GrdaWarehouse::ClientNotes
       return unless ids.present?
 
       @notification_contacts ||= User.where(id: ids).map(&:name_with_email)
+    end
+
+    def active?
+      return true if expiration_date.blank?
+
+      expiration_date.future?
+    end
+
+    def expired?
+      !active?
     end
   end
 end

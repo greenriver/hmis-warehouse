@@ -107,6 +107,7 @@ module Clients
           :note,
           :type,
           :send_notification,
+          :expiration_date,
           recipients: [],
         )
     end
