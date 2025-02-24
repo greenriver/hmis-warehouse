@@ -143,7 +143,8 @@ RSpec.feature 'Join Households', type: :system do
     it 'enrolls the client in the household' do
       expect do
         click_button 'Enroll'
-        assert_text "#{today.strftime('%m/%d/%Y')} - Incomplete" # wait for the enrollment to load...
+        assert_no_selector "[role='dialog']" # wait for dialog to close
+        assert_text c2.brief_name
 
         header_cells = first('thead').all('th')
         name_index = header_cells.find_index { |cell| cell.text == 'Name' }
@@ -151,10 +152,12 @@ RSpec.feature 'Join Households', type: :system do
         expect(name_index).not_to be_nil
         expect(relationship_index).not_to be_nil
 
-        rows = first('tbody').all('tr')
-        expect(rows.count).to eq(2)
-        expect(rows.last.all('td')[name_index].text).to eq(c2.brief_name)
-        expect(rows.last.all('td')[relationship_index].first('input').value).to eq('Spouse or partner')
+        # 2 rows in household table
+        expect(first('tbody').all('tr').count).to eq(2)
+        # new client's relationship appears
+        within('tr', text: c2.brief_name) do
+          expect(page).to have_content 'Spouse or partner'
+        end
 
         receiving_enrollment.reload
         c2.reload
