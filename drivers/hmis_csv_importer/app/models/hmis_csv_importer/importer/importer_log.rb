@@ -13,6 +13,8 @@ module HmisCsvImporter::Importer
     has_many :import_validations, class_name: 'HmisCsvImporter::HmisCsvValidation::Base'
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
+    scope :without_phase_metrics, -> { select(column_names - ['phase_metrics']) }
+
     def paused?
       status.to_s == 'paused'
     end
@@ -63,7 +65,6 @@ module HmisCsvImporter::Importer
       raise if phase.blank?
 
       self.phase_metrics ||= {}
-      phase_metrics[phase] ||= {}
       phase_metrics[phase] ||= {}
       phase_metrics[phase].deep_merge!(args.stringify_keys)
       save!
