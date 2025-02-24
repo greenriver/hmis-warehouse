@@ -32,7 +32,7 @@ RSpec.feature 'Join Households', type: :system do
   before(:each) do
     sign_in(hmis_user)
     visit "/client/#{c1.id}/enrollments/#{receiving_enrollment.id}/household"
-    click_link 'Manage Household'
+    find("[role='button']", text: 'Add Household Member').click # expand search card
     fill_in 'Search for Client', with: c2.brief_name
     click_button 'Search'
     click_button 'Add to Household'
