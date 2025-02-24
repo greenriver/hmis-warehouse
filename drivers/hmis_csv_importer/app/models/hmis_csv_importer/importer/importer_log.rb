@@ -63,6 +63,7 @@ module HmisCsvImporter::Importer
       raise if phase.blank?
 
       phase_metrics[phase] ||= {}
+      phase_metrics[phase] ||= {}
       phase_metrics[phase].deep_merge!(args.stringify_keys)
       save!
     end

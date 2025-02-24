@@ -553,9 +553,18 @@ module HmisCsvImporter::Importer
       begin
         queries = []
         ActiveSupport::Notifications.subscribe('sql.active_record') do |_name, start, finish, _id, payload|
+          next if payload[:name] == 'SCHEMA' || payload[:sql] =~ /ROLLBACK|COMMIT|BEGIN|SAVEPOINT/
+          next if payload[:sql] =~ /hmis_csv_importer_logs/
+
+          binds = payload[:binds].map { |bind| { name: bind.name || '?', value: bind.value_for_database.inspect } }
+          query_data = { sql: payload[:sql].squish, binds: binds }
           # decode with Zlib::Inflate.inflate(Base64.decode64(str))
-          compressed_sql = Base64.encode64(Zlib::Deflate.deflate(payload[:sql].squish)).chomp
-          queries << { 'compressed_sql' => compressed_sql, 'start' => start, 'finish' => finish }
+          compressed_query = Base64.strict_encode64(Zlib::Deflate.deflate(query_data.to_json)).chomp
+          queries << {
+            'compressed_query' => compressed_query,
+            'start' => start,
+            'finish' => finish,
+          }
         end
 
         result = yield
