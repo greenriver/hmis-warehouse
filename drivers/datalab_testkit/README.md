@@ -27,6 +27,6 @@ If importing the test kit data into your web app, you may need to disable some a
 When running `GrdaWarehouse::Tasks::ProjectCleanup` in `HmisCsvImporter::Importer::Importer.post_process` (_File: `drivers/hmis_csv_importer/app/models/hmis_csv_importer/importer/importer.rb`_), the warehouse attempts to reconcile CoC Codes. This can interfere with Test Kits that are meant to have bad CoC codes. If you set the `skip_location_cleanup` argument to false during the Test Kit import process, these CoC codes will remain as they are in the CSVs.
 
 
-### Rebuilding test kit
+### Rebuilding Test Kit
 
 To rebuild, push a commit that contains `[gh:rebuild_fixpoints]` in the commit message.
