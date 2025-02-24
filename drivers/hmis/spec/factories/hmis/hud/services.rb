@@ -14,6 +14,14 @@ FactoryBot.define do
     DateProvided { Date.yesterday }
     RecordType { 200 }
     TypeProvided { 200 }
+    transient do
+      definition { nil }
+    end
+    after(:create) do |service, evaluator|
+      next unless evaluator.definition
+
+      service.form_processor = create(:hmis_form_processor, owner: service, definition: evaluator.definition)
+    end
   end
 
   factory :hmis_hud_service_bednight, parent: :hmis_hud_service do

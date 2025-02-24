@@ -109,6 +109,7 @@ FactoryBot.define do
             type: 'DATE',
             link_id: 'exit_date',
             required: true,
+            text: 'Exit Date',
             warn_if_empty: false,
             assessment_date: true,
             mapping: {
@@ -119,6 +120,7 @@ FactoryBot.define do
           {
             type: 'CHOICE',
             link_id: 'exit_destination',
+            text: 'Exit Destination',
             mapping: {
               record_type: 'EXIT',
               field_name: 'destination',
@@ -903,6 +905,27 @@ FactoryBot.define do
           ]
         }
       JSON
+    end
+  end
+
+  factory :hmis_service_form, parent: :hmis_form_definition do
+    role { :SERVICE }
+    title { 'Custom Service Form' }
+    sequence(:identifier) { |n| "service_#{n}" }
+    definition do
+      {
+        'item': [
+          {
+            "type": 'DATE',
+            "link_id": 'dateProvided',
+            "required": true,
+            "text": 'Date Provided',
+            "mapping": {
+              "field_name": 'dateProvided',
+            },
+          },
+        ],
+      }.deep_stringify_keys
     end
   end
 end
