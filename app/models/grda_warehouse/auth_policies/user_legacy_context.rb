@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 require 'memery'
 
 # cross-policy memoized utils for Legacy user-role-based permissions

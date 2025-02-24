@@ -1,15 +1,15 @@
 x-app: &app
-  image: hmis-warehouse:4.3
+  image: hmis-warehouse:4.4
   build:
     context: .
     dockerfile: docker/app/Dockerfile
     target: dev-build
     args:
-      RUBY_VERSION: 3.1.6
-      BUNDLER_VERSION: '2.5.23'
+      RUBY_VERSION: 3.3.7
+      BUNDLER_VERSION: '2.6.3'
       USER_ID: ${USER_ID:-1001}
       GROUP_ID: ${GROUP_ID:-1001}
-      BUILD_TAG: 3.1.6-alpine3.20
+      BUILD_TAG: 3.3.7-alpine3.20
   environment: &env
     AWS_REGION: ${AWS_REGION:-us-east-1}
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
