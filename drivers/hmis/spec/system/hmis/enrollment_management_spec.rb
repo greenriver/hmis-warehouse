@@ -89,6 +89,10 @@ RSpec.feature 'Enrollment/household management', type: :system do
       assert_text 'Household Intake' # assert navigated to household intake page
       assert_text c1.brief_name
       assert_text c2.brief_name
+
+      # make sure we can navigate back to enrollment
+      click_button "Back to #{c1.brief_name}"
+      assert_text 'Enrollment Overview'
     end
 
     it 'shows error when the user tries to submit an invalid date' do
