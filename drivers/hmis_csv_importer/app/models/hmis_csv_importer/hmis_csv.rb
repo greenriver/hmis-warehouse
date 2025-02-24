@@ -83,12 +83,19 @@ module HmisCsvImporter::HmisCsv
 
     def log_timing(message)
       Rails.logger.debug { "#{message} #{hash_as_log_str log_ids}" }
+
+      phase = message.to_s.gsub(/!$/, '')
+      importer_log&.log_phase(phase, started_at: Time.current)
+
       ret = nil
       bm = Benchmark.measure do
         ret = send(message)
       end
 
-      log "#{message} completed in #{elapsed_time bm.real} (#{(bm.total * 100.0 / bm.real).round}% cpu) #{hash_as_log_str log_ids}"
+      cpu_percentage = (bm.total * 100.0 / bm.real).round
+      importer_log&.log_phase(phase, cpu_percentage: cpu_percentage, duration: bm.real.round(3))
+
+      log "#{message} completed in #{elapsed_time bm.real} (#{cpu_percentage}% cpu) #{hash_as_log_str log_ids}"
       ret
     end
   end

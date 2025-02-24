@@ -57,5 +57,14 @@ module HmisCsvImporter::Importer
       loader_class = files.to_h.invert[filename]
       import_validations.where(source_type: loader_class, type: error_classes).count
     end
+
+    def log_phase(phase, **args)
+      phase = phase.to_s
+      raise if phase.blank?
+
+      phase_metrics[phase] ||= {}
+      phase_metrics[phase].deep_merge!(args.stringify_keys)
+      save!
+    end
   end
 end

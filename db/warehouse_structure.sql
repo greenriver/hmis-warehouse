@@ -18456,7 +18456,8 @@ CREATE TABLE public.hmis_csv_importer_logs (
     completed_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    upload_id integer
+    upload_id integer,
+    phase_metrics jsonb DEFAULT '{}'::jsonb
 );
 
 
@@ -65845,6 +65846,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250117174547'),
 ('20250121204933'),
 ('20250203142317'),
-('20250213173031');
+('20250213173031'),
+('20250222234500');
 
 
