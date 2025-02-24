@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 FactoryBot.define do
   factory :grda_warehouse_client_notes_expired_alert, class: 'GrdaWarehouse::ClientNotes::Alert' do
     association :client, factory: :grda_warehouse_hud_client

@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 require 'rails_helper'
 
 # Included Base before ChronicJustification and WindowNote to fix circular dependency issue
