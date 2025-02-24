@@ -18457,7 +18457,7 @@ CREATE TABLE public.hmis_csv_importer_logs (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     upload_id integer,
-    phase_metrics jsonb DEFAULT '{}'::jsonb
+    phase_metrics jsonb
 );
 
 
