@@ -13,6 +13,7 @@ module HmisCsvImporter::Importer
     has_many :import_validations, class_name: 'HmisCsvImporter::HmisCsvValidation::Base'
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
+    # phase_metrics can be large, use this scope for more performant selects
     scope :without_phase_metrics, -> { select(column_names - ['phase_metrics']) }
 
     def paused?
