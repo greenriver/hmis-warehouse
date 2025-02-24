@@ -548,7 +548,7 @@ module HmisCsvImporter::Importer
     end
 
     # capture executed sql for debugging
-    def with_sql_log(phase, klass, name: nil, min_duration: 5)
+    def with_sql_log(phase, klass, name: nil, min_duration: 100)
       queries = []
       callback = lambda { |event|
         payload_sql = event.payload[:sql].squish
