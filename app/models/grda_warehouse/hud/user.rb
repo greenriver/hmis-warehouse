@@ -46,5 +46,9 @@ module GrdaWarehouse::Hud
     def name
       "#{user_first_name} #{user_last_name}"
     end
+
+    def name_and_email
+      "#{name} (#{user_email})"
+    end
   end
 end
