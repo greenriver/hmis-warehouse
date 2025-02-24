@@ -95,7 +95,7 @@ module Filters::Criteria
     { tags: [:warehouse, :client], id: :filter_for_psh_move_in },
     { tags: [:warehouse, :client], id: :filter_for_first_time_homeless_in_past_two_years },
     { tags: [:warehouse, :client], id: :filter_for_returned_to_homelessness_from_permanent_destination },
-    { tags: [:warehouse, :client], id: :filter_for_ca_homeless },
+    { tags: [:warehouse, :client], id: :filter_for_ce_homeless },
     { tags: [:warehouse, :client], id: :filter_for_ce_cls_homeless },
     { tags: [:warehouse, :client], id: :filter_for_cohorts },
     { tags: [:warehouse, :client], id: :filter_for_active_roi },

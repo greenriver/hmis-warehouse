@@ -10,11 +10,12 @@ RSpec.describe Filters::Criteria::FilterForRace do
   let!(:white_client) { create(:hud_client, White: 1, BlackAfAmerican: 0, Asian: 0, AmIndAKNative: 0, NativeHIPacific: 0, MidEastNAfrican: 0, data_source_id: data_source.id) }
   let!(:black_client) { create(:hud_client, White: 0, BlackAfAmerican: 1, Asian: 0, AmIndAKNative: 0, NativeHIPacific: 0, MidEastNAfrican: 0, data_source_id: data_source.id) }
   let!(:asian_client) { create(:hud_client, White: 0, BlackAfAmerican: 0, Asian: 1, AmIndAKNative: 0, NativeHIPacific: 0, MidEastNAfrican: 0, data_source_id: data_source.id) }
-  let!(:multi_racial_client) { create(:hud_client, White: 0, BlackAfAmerican: 0, Asian: 1, AmIndAKNative: 0, NativeHIPacific: 1, MidEastNAfrican: 1, data_source_id: data_source.id) }
+  let!(:asian_multi_racial_client) { create(:hud_client, White: 0, BlackAfAmerican: 0, Asian: 1, AmIndAKNative: 0, NativeHIPacific: 1, MidEastNAfrican: 1, data_source_id: data_source.id) }
+  let!(:non_asian_multi_racial_client) { create(:hud_client, White: 0, BlackAfAmerican: 0, Asian: 0, AmIndAKNative: 0, NativeHIPacific: 1, MidEastNAfrican: 1, data_source_id: data_source.id) }
 
   # Create service history enrollments for each client
   let!(:enrollments) do
-    [white_client, black_client, asian_client, multi_racial_client].map do |client|
+    [white_client, black_client, asian_client, asian_multi_racial_client, non_asian_multi_racial_client].map do |client|
       create_enrollment_for_client(client)
     end
   end
@@ -48,9 +49,9 @@ RSpec.describe Filters::Criteria::FilterForRace do
       it 'filters for clients with multiple races' do
         result = criteria.apply(scope)
 
-        # Should return only the multi-racial client
-        expect(result.count).to eq(1)
-        expect(result.pluck(:client_id)).to contain_exactly(multi_racial_client.id)
+        # Should return only the multi-racial clients
+        expect(result.count).to eq(2)
+        expect(result.pluck(:client_id)).to contain_exactly(asian_multi_racial_client.id, non_asian_multi_racial_client.id)
       end
     end
 
@@ -62,7 +63,7 @@ RSpec.describe Filters::Criteria::FilterForRace do
 
         # Should return white client and multi-racial client
         expect(result.count).to eq(1)
-        expect(result.pluck(:client_id)).to contain_exactly(multi_racial_client.id)
+        expect(result.pluck(:client_id)).to contain_exactly(asian_multi_racial_client.id)
       end
     end
   end

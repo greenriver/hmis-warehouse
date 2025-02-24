@@ -4,7 +4,7 @@ require_relative 'shared_filter_criteria_context'
 RSpec.describe Filters::Criteria::FilterForPriorLivingSituation do
   include_context 'filter criteria setup'
 
-  let(:prior_living_situation_ids) { [1, 16] } # Emergency shelter and Place not meant for habitation
+  let(:prior_living_situation_ids) { [101, 116] } # Emergency shelter and Place not meant for habitation
   let(:filter) do
     ::Filters::FilterBase.new(
       user_id: user.id,
@@ -16,15 +16,15 @@ RSpec.describe Filters::Criteria::FilterForPriorLivingSituation do
   let!(:enrollments) do
     [
       # From emergency shelter
-      create_enrollment_for_client(create(:hud_client), enrollment_attributes: { LivingSituation: 1 }),
+      create_enrollment_for_client(create(:hud_client), enrollment_attributes: { LivingSituation: 101 }),
       # From place not meant for habitation
-      create_enrollment_for_client(create(:hud_client), enrollment_attributes: { LivingSituation: 16 }),
+      create_enrollment_for_client(create(:hud_client), enrollment_attributes: { LivingSituation: 116 }),
       # From permanent housing
-      create_enrollment_for_client(create(:hud_client), enrollment_attributes: { LivingSituation: 3 }),
+      create_enrollment_for_client(create(:hud_client), enrollment_attributes: { LivingSituation: 335 }),
     ]
   end
 
-  it_behaves_like 'a criteria that applies conditionally', :prior_living_situation_ids, [1, 16]
+  it_behaves_like 'a criteria that applies conditionally', :prior_living_situation_ids, [101, 116]
 
   describe '#apply' do
     it 'filters by prior living situation' do
@@ -33,7 +33,7 @@ RSpec.describe Filters::Criteria::FilterForPriorLivingSituation do
     end
 
     context 'with different living situations' do
-      let(:prior_living_situation_ids) { [3] } # Permanent housing only
+      let(:prior_living_situation_ids) { [335] } # Permanent housing
 
       it 'returns enrollments with matching living situation' do
         result = criteria.apply(scope)

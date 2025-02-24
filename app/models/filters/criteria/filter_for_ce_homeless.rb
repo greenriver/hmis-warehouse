@@ -1,4 +1,4 @@
-class Filters::Criteria::FilterForCaHomeless < Filters::Criteria::Base
+class Filters::Criteria::FilterForCeHomeless < Filters::Criteria::Base
   def applies? = input.coordinated_assessment_living_situation_homeless
 
   # This needs to work correctly with project type filters, where it adds the

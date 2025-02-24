@@ -17,7 +17,7 @@ class Filters::Criteria::FilterForProjects < Filters::Criteria::Base
     project_ids = []
     project_ids += input.project_ids || [] if user.report_filter_visible?(:project_ids)
 
-    # note, this is from the original logic: filter by groups even if user cannot filter by project_id
+    # Note: since filtering by project groups amounts to filtering by sets of project ids, and they need to be OR'd with projects so that they aren't limiting to overlaps with chosen projects, we extract the project_ids from the chosen project groups and add them to those from the projects input.
     project_groups = GrdaWarehouse::ProjectGroup.where(id: input.project_group_ids)
     project_groups.each do |group|
       project_ids += group.projects.pluck(:id)
