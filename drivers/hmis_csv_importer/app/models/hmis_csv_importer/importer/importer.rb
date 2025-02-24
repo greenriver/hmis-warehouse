@@ -548,32 +548,40 @@ module HmisCsvImporter::Importer
     end
 
     # capture executed sql for debugging
-    def with_sql_log(phase, klass, name: nil)
-      result = nil
-      begin
-        queries = []
-        ActiveSupport::Notifications.subscribe('sql.active_record') do |_name, start, finish, _id, payload|
-          next if payload[:name] == 'SCHEMA' || payload[:sql] =~ /ROLLBACK|COMMIT|BEGIN|SAVEPOINT/
-          next if payload[:sql] =~ /hmis_csv_importer_logs/
+    def with_sql_log(phase, klass, name: nil, min_duration: 5)
+      queries = []
+      callback = lambda { |event|
+        payload_sql = event.payload[:sql].squish
+        next if payload_sql =~ /ROLLBACK|COMMIT|BEGIN|SAVEPOINT/
+        next if event.duration < min_duration
 
-          binds = payload[:binds].map { |bind| { name: bind.name || '?', value: bind.value_for_database.inspect } }
-          query_data = { sql: payload[:sql].squish, binds: binds }
+        binds = (event.payload[:binds] || []).map { |bind| { name: bind.name || '?', value: bind.value_for_database.inspect } }
+        query_data = { sql: payload_sql.squish, binds: binds }
+
+        compressed_query = begin
           # decode with Zlib::Inflate.inflate(Base64.decode64(str))
-          compressed_query = Base64.strict_encode64(Zlib::Deflate.deflate(query_data.to_json)).chomp
-          queries << {
-            'compressed_query' => compressed_query,
-            'start' => start,
-            'finish' => finish,
-          }
+          Base64.strict_encode64(Zlib::Deflate.deflate(query_data.to_json)).chomp
+        rescue JSON::GeneratorError => e
+          Rails.logger.error("JSON serialization failed: #{e.message}")
+          nil
+        rescue Zlib::Error => e
+          Rails.logger.error("Compression failed: #{e.message}")
+          nil
         end
 
-        result = yield
+        queries << {
+          'compressed_query' => compressed_query,
+          'duration' => event.duration,
+        }
+      }
 
-        scope_name = [klass.name.demodulize, name].compact.join('.')
-        importer_log.log_phase(phase, **{ scope_name => queries })
-      ensure
-        ActiveSupport::Notifications.unsubscribe('sql.active_record')
+      result = nil
+      ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+        result = yield
       end
+
+      scope_name = [klass.name.demodulize, name].compact.join('.')
+      importer_log.log_phase(phase, **{ scope_name => queries })
       result
     end
 
