@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 require 'date'
 require 'byebug'
 require 'English'
@@ -5,6 +7,7 @@ require_relative 'roll_out'
 require_relative 'aws_sdk_helpers'
 require_relative 'asset_compiler'
 require_relative 'blue_green'
+require 'shellwords'
 
 class Deployer
   include AwsSdkHelpers::Helpers
