@@ -89,7 +89,7 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
     super(record) do
       record.errors.add :other_destination, :required if record.destination == OTHER_DESTINATION && !record.other_destination.present?
       entry_date = record.enrollment&.entry_date
-      record.errors.add :exit_date, :invalid, message: self.class.before_entry_message(entry_date) if entry_date.present? && record.exit_date.present? && entry_date > record.exit_date
+      record.errors.add :exit_date, :out_of_range, message: self.class.before_entry_message(entry_date) if entry_date.present? && record.exit_date.present? && entry_date > record.exit_date
     end
   end
 end
