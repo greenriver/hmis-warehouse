@@ -10,6 +10,9 @@
 #   do_something if RailsDrivers.loaded.include(:hmis)
 #
 # use with caution!
+
+# frozen_string_literal: true
+
 RailsDrivers.loaded << :hmis
 
 Rails.application.config.queued_tasks[:hmis_check_constraints] = -> do
