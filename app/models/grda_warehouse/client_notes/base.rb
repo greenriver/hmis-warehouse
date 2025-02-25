@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 module GrdaWarehouse::ClientNotes
   class Base < GrdaWarehouseBase
     self.table_name = :client_notes
@@ -38,6 +40,14 @@ module GrdaWarehouse::ClientNotes
     scope :window_varieties, -> do
       types = available_types.map(&:name)
       where(type: types)
+    end
+
+    scope :active, -> do
+      where(expiration_date: nil).or(where(expiration_date: Date.current + 1.days ..))
+    end
+
+    scope :expired, -> do
+      where(expiration_date: .. Date.current)
     end
 
     scope :visible_by, ->(user, client) do
@@ -95,6 +105,16 @@ module GrdaWarehouse::ClientNotes
       return unless ids.present?
 
       @notification_contacts ||= User.where(id: ids).map(&:name_with_email)
+    end
+
+    def active?
+      return true if expiration_date.blank?
+
+      expiration_date.future?
+    end
+
+    def expired?
+      !active?
     end
   end
 end

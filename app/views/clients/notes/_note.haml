@@ -10,6 +10,9 @@
           = note.recipient_info
       %p.small.text-muted
         Posted by #{content_tag(:strong, note.user&.name)} on #{content_tag(:strong, note.created_at)}
+      - if note.expiration_date
+        %p.small.text-muted
+          Expiration: #{content_tag(:strong, note.expiration_date.to_date)}
     - if show_destroy
       .col-sm-4.text-right
         = link_to(client_note_path(note, client_id: @client.id), method: :delete, data: {confirm: "Would you really like to delete this note?"}, class: 'btn btn-sm btn-icon-only btn-danger') do
