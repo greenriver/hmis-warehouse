@@ -4,10 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-#  Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
+# frozen_string_literal: false
 
 require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
@@ -30,8 +27,8 @@ RSpec.feature 'Join Households', type: :system do
   before(:each) do
     sign_in(hmis_user)
     visit "/client/#{c1.id}/enrollments/#{receiving_enrollment.id}/household"
-    click_link 'Manage Household'
-    fill_in 'Search Clients', with: c2.brief_name
+    find("[role='button']", text: 'Add Household Member').click # expand search card
+    fill_in 'Search for Client', with: c2.brief_name
     click_button 'Search'
     click_button 'Add to Household'
     assert_text "Enroll #{c2.brief_name}"
@@ -141,7 +138,8 @@ RSpec.feature 'Join Households', type: :system do
     it 'enrolls the client in the household' do
       expect do
         click_button 'Enroll'
-        assert_text "#{today.strftime('%m/%d/%Y')} - Incomplete" # wait for the enrollment to load...
+        assert_no_selector "[role='dialog']" # wait for dialog to close
+        assert_text c2.brief_name
 
         header_cells = first('thead').all('th')
         name_index = header_cells.find_index { |cell| cell.text == 'Name' }
@@ -149,10 +147,12 @@ RSpec.feature 'Join Households', type: :system do
         expect(name_index).not_to be_nil
         expect(relationship_index).not_to be_nil
 
-        rows = first('tbody').all('tr')
-        expect(rows.count).to eq(2)
-        expect(rows.last.all('td')[name_index].text).to eq(c2.brief_name)
-        expect(rows.last.all('td')[relationship_index].first('input').value).to eq('Spouse or partner')
+        # 2 rows in household table
+        expect(first('tbody').all('tr').count).to eq(2)
+        # new client's relationship appears
+        within('tr', text: c2.brief_name) do
+          expect(page).to have_content 'Spouse or partner'
+        end
 
         receiving_enrollment.reload
         c2.reload
