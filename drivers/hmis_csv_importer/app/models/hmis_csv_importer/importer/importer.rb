@@ -547,7 +547,7 @@ module HmisCsvImporter::Importer
       data_source.import_cleanups[basename]&.map(&:constantize)
     end
 
-    # capture executed sql for debugging
+    # Capture executed sql for debugging. Also disable nested loops
     # min_duration defaults to 1 minute
     def with_sql_log(phase, klass, name: nil, min_duration: 60_000)
       queries = []
@@ -577,8 +577,10 @@ module HmisCsvImporter::Importer
       }
 
       result = nil
-      ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
-        result = yield
+      GrdaWarehouseBase.disable_nestloop do
+        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+          result = yield
+        end
       end
 
       scope_name = [klass.name.demodulize, name].compact.join('.')
