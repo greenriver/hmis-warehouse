@@ -168,20 +168,20 @@ GEM
       zeitwerk (>= 2.4, < 3.0)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
-    airbrussh (1.5.1)
+    airbrussh (1.5.3)
       sshkit (>= 1.6.1, != 1.7.0)
     ajax_modal_rails (1.0.12)
       rails (>= 4)
     amazing_print (1.6.0)
     ansi (1.5.0)
-    anyway_config (2.6.3)
+    anyway_config (2.7.0)
       ruby-next-core (~> 1.0)
     ast (2.4.2)
     attr_encrypted (4.0.0)
       encryptor (~> 3.0.0)
     attribute_normalizer (1.2.0)
-    authtrail (0.5.0)
-      railties (>= 6.1)
+    authtrail (0.6.0)
+      railties (>= 7)
       warden
     autoprefixer-rails (10.3.3.0)
       execjs (~> 2)
@@ -279,9 +279,10 @@ GEM
       execjs (~> 2.0)
     base64 (0.2.0)
     bcrypt (3.1.20)
-    bcrypt_pbkdf (1.1.0)
+    bcrypt_pbkdf (1.1.1)
+    bcrypt_pbkdf (1.1.1-arm64-darwin)
     benchmark (0.4.0)
-    benchmark-ips (2.13.0)
+    benchmark-ips (2.14.0)
     benchmark-malloc (0.2.0)
     benchmark-perf (0.6.0)
     benchmark-trend (0.4.0)
@@ -1366,15 +1367,15 @@ CHECKSUMS
   activesupport (7.0.8.7) sha256=df4702375de924aae81709c831605317c5417f0bd9e502a0373ff84a067204ff
   acts-as-taggable-on (11.0.0) sha256=1718e8ce00b0eeb138e14bd6cccca7d5c45b376f42af544c5bdb5afbdb3be852
   addressable (2.8.7) sha256=462986537cf3735ab5f3c0f557f14155d778f4b43ea4f485a9deb9c8f7c58232
-  airbrussh (1.5.1) sha256=db9eb8c0a4e9bc0261abb971bbae634deadb76c1888a5baf9a879b922b45b326
+  airbrussh (1.5.3) sha256=7b06eb03be15f50120bc03d95967c95144fbbb7a6ad58d4105cd1550c3aa989c
   ajax_modal_rails (1.0.12) sha256=d386142f420d83d6d2fc2253ff98e3e80233caf0613a5235e989af679afb436d
   amazing_print (1.6.0) sha256=9903e93daadc15411c854239f8ca1ca6ce78be279ed99d43fec2bd3b0aa37397
   ansi (1.5.0) sha256=5408253274e33d9d27d4a98c46d2998266fd51cba58a7eb9d08f50e57ed23592
-  anyway_config (2.6.3) sha256=ae04623e5d9f39353ec0cf69b082d8e90dc1af4a343451cb60783a4e72af7681
+  anyway_config (2.7.0) sha256=0ebbe4a7952da7a43e5c596f1c670a1ff61ee18243292b92cef68ddaef3cdd7e
   ast (2.4.2) sha256=1e280232e6a33754cde542bc5ef85520b74db2aac73ec14acef453784447cc12
   attr_encrypted (4.0.0) sha256=ccbe4abd2b6973929f119af3b50a3fa10dba51bd69a7b4076a57a59d57359d0c
   attribute_normalizer (1.2.0) sha256=580df3f316d7f0a2cc068fd655377f4769848643328d0c6c6c685ea98ac181c4
-  authtrail (0.5.0) sha256=adeab5e6480f2bffe7532e952d4dc088569bf7a4c42d97c7737b7ebda59a768b
+  authtrail (0.6.0) sha256=1cef519ec474d65461e52a352a923569809168aea5ee36d240757f2ca40dafd2
   autoprefixer-rails (10.3.3.0) sha256=aaed247e87e773e6332786ea92d88ec04a925d57d34f7f7ec7fe7983a95448ae
   aws-eventstream (1.3.0) sha256=f1434cc03ab2248756eb02cfa45e900e59a061d7fbdc4a9fd82a5dd23d796d3f
   aws-partitions (1.904.0) sha256=3647a586f57a291ad2a885ae31c50e13d5b4554f5effdf8a371d4dc091821b2b
@@ -1408,9 +1409,10 @@ CHECKSUMS
   babel-transpiler (0.7.0) sha256=4c06f4ad9e8e1cabe94f99e11df2f140bb72aca9ba067dbb49dc14d9b98d1570
   base64 (0.2.0) sha256=0f25e9b21a02a0cc0cea8ef92b2041035d39350946e8789c562b2d1a3da01507
   bcrypt (3.1.20) sha256=8410f8c7b3ed54a3c00cd2456bf13917d695117f033218e2483b2e40b0784099
-  bcrypt_pbkdf (1.1.0) sha256=8590dfd5983e460dc981d40461fe1ace643e9f981e7be0a16170da1d95abaa59
+  bcrypt_pbkdf (1.1.1) sha256=2f9077dde837d1f0dd2eb0f9e5327c6871c68ebc8eba88870fb6b7956e1e2b13
+  bcrypt_pbkdf (1.1.1-arm64-darwin) sha256=f35a468372a182b363086d810f6f7ee62d6ea55efbf04eb2374290c30ee4c7ef
   benchmark (0.4.0) sha256=0f12f8c495545e3710c3e4f0480f63f06b4c842cc94cec7f33a956f5180e874a
-  benchmark-ips (2.13.0) sha256=b7da62ec5b8c2d2e76c234e32a004e1d35db352d2b311e91955dee061f415e09
+  benchmark-ips (2.14.0) sha256=b72bc8a65d525d5906f8cd94270dccf73452ee3257a32b89fbd6684d3e8a9b1d
   benchmark-malloc (0.2.0) sha256=37c68f0435261634026f584d79956a35325a3027e3e6b4cc8d7575aa10537e6b
   benchmark-perf (0.6.0) sha256=fe2b01959f3de0f9dd34820d54ef881eb4f3589fccb7d17b63068ac92d7f9621
   benchmark-trend (0.4.0) sha256=de5a02a9f443babefbbd97784759820decee8554a0c273d859c02a0990845d81
