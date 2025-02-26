@@ -70,5 +70,66 @@ module HmisCsvImporter::Importer
       phase_metrics[phase].deep_merge!(args.stringify_keys)
       save!
     end
+
+    # for debugging
+    def format_phases(show_sql: false)
+      log_data = phase_metrics
+      # log_data = JSON.parse(File.read(Rails.root.join('t2.json')))
+
+      # Sort phases by duration (if available)
+      sorted_phases = log_data.sort_by do |_phase_name, phase_data|
+        -(phase_data['duration'] || 0).to_f
+      end
+
+      # Format each phase
+      formatted_output = ''
+
+      sorted_phases.each do |phase_name, phase_data|
+        formatted_output += "#{phase_name}:\n"
+
+        # Add phase duration if available
+        if phase_data['duration']
+          formatted_output += "  duration: #{phase_data['duration']} seconds\n"
+        else
+          formatted_output += "  duration: incomplete\n"
+        end
+
+        # Process SQL query keys
+        phase_data.each do |key, value|
+          next if ['duration', 'started_at'].include?(key)
+
+          # Assume this is a query key if it's an array
+          next unless value.is_a?(Array) && !value.empty?
+
+          formatted_output += "  #{key}:\n"
+
+          # Sort queries by duration
+          sorted_queries = value.sort_by { |q| -(q['duration'] || 0).to_f }
+
+          sorted_queries.each_with_index do |query_info, index|
+            query_name = "query#{index + 1}"
+            formatted_output += "     #{query_name}:\n"
+            formatted_output += "       #{(query_info['duration'] / 1000) / 1000} seconds:\n"
+
+            next unless query_info['compressed_query']
+
+            next unless show_sql
+
+            begin
+              # decompress the query
+              (query_sql, _query_binds) = JSON.parse(Zlib::Inflate.inflate(Base64.decode64(query_info['compressed_query']))).values_at('sql', 'binds')
+              # hydrate the binds
+              # (_query_binds|| []).each { |bind| query_sql.sub!(/\$\d+/, bind['value'].gsub('"', "'")) }
+              formatted_output += "       query: #{query_sql}\n"
+              # formatted_output += "       binds: #{_query_binds}\n"
+            rescue StandardError => e
+              formatted_output += "       error: Failed to decompress query: #{e.message}\n"
+            end
+          end
+        end
+      end
+
+      formatted_output
+    end
   end
 end
