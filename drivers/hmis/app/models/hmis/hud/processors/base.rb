@@ -26,6 +26,10 @@ class Hmis::Hud::Processors::Base
     @processor.send(factory_name)&.assign_attributes(attribute_name => attribute_value)
   end
 
+  def post_process
+    # implement in subclass, if necessary
+  end
+
   def assign_metadata
     @processor.send(factory_name, create: false)&.assign_attributes(
       user: @processor.hud_user,

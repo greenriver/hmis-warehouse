@@ -96,6 +96,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     self.project_id = project.project_id
   end
 
+  before_save :set_default_disabling_condition
+  private def set_default_disabling_condition
+    self.disabling_condition ||= 99
+  end
+
   validates_with Hmis::Hud::Validators::EnrollmentValidator
   validate :client_is_valid, on: :new_client_enrollment_form
 

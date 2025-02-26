@@ -108,6 +108,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         processor&.assign_metadata
         processor&.information_date(owner.assessment_date) if custom_assessment?
         processor&.information_date(owner.submitted_at.to_date) if external_form_submission?
+        processor&.post_process
       end
     end
 

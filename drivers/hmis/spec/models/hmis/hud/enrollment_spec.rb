@@ -61,6 +61,25 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     end
   end
 
+  describe 'saving an enrollment (regression #7266)' do
+    it 'sets DisablingCondition to 99 on save' do
+      coc_code = p1.project_cocs.pluck(:coc_code).first
+      enrollment = Hmis::Hud::Enrollment.new(
+        user: u1,
+        enrollment_coc: coc_code,
+        data_source: p1.data_source,
+        entry_date: Date.current - 1.month,
+        project: p1,
+        personal_id: c1.PersonalID,
+        household_id: Hmis::Hud::Base.generate_uuid,
+        relationship_to_hoh: 1,
+      )
+      expect(enrollment.valid?).to be_truthy
+      enrollment.save_in_progress!
+      expect(enrollment.disabling_condition).to eq(99)
+    end
+  end
+
   describe 'in progress enrollments' do
     let!(:enrollment) { build(:hmis_hud_enrollment) }
     before(:each) do
