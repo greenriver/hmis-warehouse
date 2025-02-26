@@ -99,6 +99,61 @@ module HmisDataCleanup
       end
     end
 
+    # Change any DisablingCondition values on the Enrollment that are nil to 99
+    def self.fix_disabling_condition_nils!
+      without_papertrail_or_timestamps do
+        rows_affected = Hmis::Hud::Enrollment.hmis.where(disabling_condition: nil).
+          update_all(disabling_condition: 99) # skips callbacks
+
+        Rails.logger.info "Set DisablingCondition nil=>99 on #{rows_affected} Enrollments"
+      end
+    end
+
+    # Race and Gender values should always be 0 or 1
+    def self.fix_race_gender_99s!
+      without_papertrail_or_timestamps do
+        clients = Hmis::Hud::Client.hmis
+
+        fix_99s_for_category!(
+          clients,
+          category: 'Race',
+          none_field: 'RaceNone',
+          fields: HudUtility2024.races.keys.excluding('RaceNone'),
+        )
+
+        fix_99s_for_category!(
+          clients,
+          category: 'Gender',
+          none_field: 'GenderNone',
+          fields: HudUtility2024.gender_fields.excluding(:GenderNone),
+        )
+      end
+    end
+
+    def self.fix_99s_for_category!(clients, category:, none_field:, fields:)
+      # Build a scope that matches clients where ANY of the <Race|Gender> fields equals 99
+      clients_with_bad_99s = fields.
+        map { |field| clients.where(field => 99) }.
+        reduce { |memo, scope| memo.or(scope) }
+
+      # Construct SQL to update fields: set to 0 if it's 99, otherwise leave it unchanged
+      update_sql = fields.map do |field|
+        quoted_field = "\"#{field}\""
+        "#{quoted_field} = CASE WHEN #{quoted_field} = 99 THEN 0 ELSE #{quoted_field} END"
+      end.join(', ')
+
+      rows_affected = clients_with_bad_99s.update_all(update_sql)
+      Rails.logger.info "Set #{category} fields 99=>0 on #{rows_affected} Clients"
+
+      # Build a scope that matches clients where ALL of the <Race|Gender> fields are 0
+      clients_with_all_fields_empty = clients.where(**fields.to_h { |f| [f, 0] })
+
+      # IF ALL <Race|Gender> fields are 0 but the <Race|Gender>None field is nil, it should be set to 99 Data Not Collected
+      clients_with_bad_nonefield = clients_with_all_fields_empty.where(none_field => nil)
+      rows_affected = clients_with_bad_nonefield.update_all(none_field => 99)
+      Rails.logger.info "Set #{none_field} fields nil=>99 on #{rows_affected} Clients"
+    end
+
     # Fix any instances of enrollment-related records where the PersonalID does not match the Enrollment's PersonalIDs
     def self.fix_incorrect_personal_id_references!(classes: nil, dry_run: false)
       classes&.each do |klass|

@@ -929,12 +929,14 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.pronouns).to be nil
         expect(client.veteran_status).to eq(99)
         expect(client.race_fields).to eq([])
-        HudUtility2024.races.keys.each do |f|
-          expect(client.send(f)).to eq(99)
+        expect(client.RaceNone).to eq(99)
+        HudUtility2024.races.keys.excluding('RaceNone').each do |f|
+          expect(client.send(f)).to eq(0)
         end
         expect(client.gender_fields).to eq([])
-        HudUtility2024.gender_fields.each do |f|
-          expect(client.send(f)).to eq(99)
+        expect(client.GenderNone).to eq(99)
+        HudUtility2024.gender_fields.excluding(:GenderNone).each do |f|
+          expect(client.send(f)).to eq(0)
         end
       end
     end
@@ -962,12 +964,14 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         process_record(record: client, hud_values: hud_values, user: hmis_user, definition: definition)
 
         expect(client.race_fields).to eq([])
-        HudUtility2024.races.keys.each do |f|
-          expect(client.send(f)).to eq(99)
+        expect(client.RaceNone).to eq(99)
+        HudUtility2024.races.keys.excluding('RaceNone').each do |f|
+          expect(client.send(f)).to eq(0)
         end
         expect(client.gender_fields).to eq([])
-        HudUtility2024.gender_fields.each do |f|
-          expect(client.send(f)).to eq(99)
+        expect(client.GenderNone).to eq(99)
+        HudUtility2024.gender_fields.excluding(:GenderNone).each do |f|
+          expect(client.send(f)).to eq(0)
         end
         expect(client.pronouns).to be nil
       end
@@ -989,8 +993,14 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.dob_data_quality).to eq(9)
         expect(client.race_fields).to eq([])
         expect(client.RaceNone).to eq(9)
+        HudUtility2024.races.keys.excluding('RaceNone').each do |f|
+          expect(client.send(f)).to eq(0)
+        end
         expect(client.gender_fields).to eq([])
         expect(client.GenderNone).to eq(8)
+        HudUtility2024.gender_fields.excluding(:GenderNone).each do |f|
+          expect(client.send(f)).to eq(0)
+        end
       end
     end
 
