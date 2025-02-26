@@ -572,7 +572,7 @@ module HmisCsvImporter::Importer
 
         queries << {
           'compressed_query' => compressed_query,
-          'duration' => event.duration * 1000, # convert to seconds
+          'duration' => event.duration / 1000, # convert to seconds
         }
       }
 
