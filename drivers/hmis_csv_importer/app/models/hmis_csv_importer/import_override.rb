@@ -4,7 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
+  UNUSED_DAYS = 30
   belongs_to :data_source
   has_paper_trail
   acts_as_paranoid
@@ -16,6 +19,11 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   validates :replacement_value, presence: true
   validates :replaces_column, presence: true
   validates :replaces_value, uniqueness: { scope: [:data_source_id, :file_name, :replaces_column, :matched_hud_key, :replaces_value], message: 'is already in use.  Another override exists with the same combination of file, matched ID, replacement column, value to replace, and replacement value, this one cannot be created at it would be a duplicate.' }
+
+  # Ensure we always have a starting point for determining when an override was last used
+  after_initialize -> do
+    self.last_used_on ||= Date.current
+  end
 
   scope :sorted, -> do
     order(:file_name, :replaces_column, :matched_hud_key)
@@ -195,8 +203,23 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     replaces_value
   end
 
+  def recently_used?
+    last_used_on >= UNUSED_DAYS.days.ago
+  end
+
+  def describe_last_use
+    "Last used #{ActionController::Base.helpers.pluralize((Date.current - last_used_on).to_i, 'day')} ago"
+  end
+
   def hud_key
     associated_class.hud_key.to_s
+  end
+
+  def requires_project?
+    return true if associated_class.column_names.include?('ProjectID')
+    return true if associated_class.column_names.include?('EnrollmentID')
+
+    false
   end
 
   def project
