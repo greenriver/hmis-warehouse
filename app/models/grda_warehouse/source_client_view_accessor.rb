@@ -68,11 +68,11 @@ class GrdaWarehouse::SourceClientViewAccessor
 
     return if source_client_ids.empty?
 
-    clients = GrdaWarehouse::Hud::Client.arbiter(@user).
+    source_clients = GrdaWarehouse::Hud::Client.arbiter(@user).
       clients_source_searchable_to(@user, client_ids: source_client_ids).
       preload(:destination_client, :data_source, :patient)
 
-    clients.each do |client|
+    source_clients.each do |client|
       key = client.destination_client&.id
       raise "Source client #{client.id} references invalid destination client" unless key
 
