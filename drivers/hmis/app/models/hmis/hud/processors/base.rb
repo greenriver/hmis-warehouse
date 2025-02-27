@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 # ==  Hmis::Hud::Processors::Base
 #
 # Base class for field processors. Responsible for processing a single form input
