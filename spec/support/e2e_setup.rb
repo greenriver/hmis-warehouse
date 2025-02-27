@@ -1,14 +1,22 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: false
+
 if ENV['RUN_SYSTEM_TESTS']
   require_relative './e2e_tests'
   E2eTests::Setup.perform
   Capybara.default_driver = E2eTests::DRIVER_NAME
 end
 
+# from user factory
+DEFAULT_USER_PASSWORD = Digest::SHA256.hexdigest('abcd1234abcd1234')
+
 # test helper methods
 RSpec.shared_context 'SystemSpecHelper' do
-  # from user factory
-  DEFAULT_USER_PASSWORD = Digest::SHA256.hexdigest('abcd1234abcd1234')
-
   def sign_in(user, password: DEFAULT_USER_PASSWORD)
     # this should go into before-each but that seems to hang up some tests
     visit('/')
@@ -18,7 +26,8 @@ RSpec.shared_context 'SystemSpecHelper' do
     click_button('Sign In')
     assert_text user.full_name # user's name should appear in the header
 
-    # Refresh page to addrss intermittent "_cuprite is not defined" failures on CI https://github.com/rubycdp/cuprite/issues/219
+    # Refresh page to address intermittent "_cuprite is not defined" failures on CI https://github.com/rubycdp/cuprite/issues/219
+    page.driver.wait_for_network_idle
     page.driver.refresh
     assert_text user.full_name
   end
@@ -108,6 +117,10 @@ RSpec.shared_context 'SystemSpecHelper' do
 
   def mui_expect_selected_tab(tab_selector)
     expect(page).to have_css("#{tab_selector}[role=\"tab\"][aria-selected=\"true\"]")
+  end
+
+  def mui_click_menu_item(label)
+    find("[role='menuitem']", text: label).click
   end
 
   def with_hidden

@@ -32,6 +32,7 @@ module Types
     hud_field :moved_two_or_more, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :location_details
     field :geolocation, Types::HmisSchema::Geolocation, null: true, description: 'Client Location where the Current Living Situation was recorded'
+    field :form_definition_id, ID, null: true, description: 'Form Definition that was most recently used to create/update this record'
     custom_data_elements_field
 
     def enrollment
@@ -40,6 +41,10 @@ module Types
 
     def client
       load_ar_association(object, :client)
+    end
+
+    def form_definition_id
+      load_ar_association(object, :form_processor)&.definition_id
     end
 
     def verified_by_project_id

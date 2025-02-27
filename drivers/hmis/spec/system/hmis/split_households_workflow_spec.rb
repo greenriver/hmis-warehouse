@@ -4,10 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-#  Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
+# frozen_string_literal: false
 
 require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
@@ -30,10 +27,8 @@ RSpec.feature 'Split Households', type: :system do
   before(:each) do
     sign_in(hmis_user)
     visit "/client/#{prior_hoh.id}/enrollments/#{prior_hoh_e.id}/household"
-    click_link 'Manage Household'
-    assert_text 'Edit Household'
-    find("button[aria-label='Action menu for #{new_hoh.brief_name}").click
-    find("li[aria-label='Split #{new_hoh.brief_name} to new household']").click
+    click_button "Action menu for #{new_hoh.brief_name}"
+    mui_click_menu_item 'Split'
     assert_text 'STEP 1 Select Clients'
   end
 

@@ -1,5 +1,9 @@
 #!/usr/bin/env ruby
+
+# frozen_string_literal: false
+
 require_relative '../config/deploy/docker/lib/asset_compiler.rb'
+require 'shellwords'
 
 target_group_name = ENV.fetch('TARGET_GROUP_NAME', false)
 checksum = ENV.fetch('ASSET_CHECKSUM', false)

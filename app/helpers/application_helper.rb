@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 require_relative '../../lib/util/git'
 
 module ApplicationHelper
@@ -287,9 +289,8 @@ module ApplicationHelper
   end
 
   def branch_info
-    branch_name = `git rev-parse --abbrev-ref HEAD`
     content_tag :div, class: 'navbar-text' do
-      content_tag :span, branch_name, class: 'label label-warning'
+      content_tag :span, Git.branch, class: 'label label-warning'
     end
   end
 

@@ -5,19 +5,31 @@ gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
 # gem 'rails_drivers', path: '/usr/local/bundle/tmp/rails_drivers'
 gem 'rack', '>= 2.2.11'
 
+# No longer default gems
+gem 'irb'
+gem 'reline'
+gem 'benchmark'
+gem 'rdoc'
+gem 'mutex_m'
+gem 'drb'
+gem 'fiddle'
+gem 'observer'
+gem 'csv'
+gem 'abbrev'
+
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
 
-gem 'nokogiri', '>= 1.16.4' # GHSA-r95h-9x8f-r3f7
-gem 'loofah', '>= 2.19.1' # >= 2.19.1 due to GHSA-228g-948r-83gx
-gem 'rubyzip', '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
-gem 'rails-html-sanitizer', '>= 1.4.4' # >= 1.4.4 due to CVE-2022-23519
+gem 'nokogiri'
+gem 'loofah'
+gem 'rubyzip'
+gem 'rails-html-sanitizer'
 gem 'sshkit'
-gem 'paranoia', '~> 2.0'
+gem 'paranoia'
 # gem 'composite_primary_keys', '~> 14.0.9'
 gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys', branch: 'ea/preload-has-many-through-fix'
 gem 'pg'
-gem 'activerecord-sqlserver-adapter'
+gem 'activerecord-sqlserver-adapter', '~> 7.0' # tied to the rails version
 gem 'activerecord-import'
 gem 'order_as_specified'
 gem 'pghero'
@@ -65,7 +77,7 @@ gem 'carrierwave-i18n'
 # version 1.5 has the fix we need when we ever go to 1.5
 # gem 'carrierwave-aws', '~> 1.4'
 gem 'carrierwave-aws', git: 'https://github.com/greenriver/carrierwave-aws.git', branch: 'gr-1.4.0-without-deprecations'
-gem 'image_processing'
+gem 'image_processing', '~> 1.13.0' # higher requires mini_magick 5, which appears to be incompatible with carrierwave 1.4
 
 gem 'ruby-filemagic' unless ENV['SKIP_FILEMAGIC'].to_s == 'true'
 gem 'mini_magick'
@@ -73,10 +85,10 @@ gem 'mimemagic'
 # there are no obvious breaking changes but
 # since there are no tests for this
 # it should be tested manually
-gem 'acts-as-taggable-on', '~> 9.0.1'
+gem 'acts-as-taggable-on', '~>11.0'
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
 
-gem 'devise', '~> 4.8'
+gem 'devise', '~> 4.9'
 gem 'devise_invitable', '~> 2.0.9'
 gem 'devise-pwned_password'
 gem 'devise-security'
@@ -91,14 +103,13 @@ gem 'faraday', '~> 2.2'
 gem 'oauth2'
 
 gem 'pretender'
-gem 'rqrcode-rails3'
-gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3
+gem 'rqrcode'
 
 gem 'authtrail' # for logging login attempts
 gem 'maxminddb' # for local geocoding of login attempts
 gem 'geocoder'
 
-gem 'paper_trail'
+gem 'paper_trail', '~> 15' # 16 breaks models with inherited has_paper_trail, need to update significant code
 gem 'validate_url'
 gem 'validates_email_format_of'
 gem 'ruby-mailchecker'
@@ -180,7 +191,7 @@ gem 'progress_bar', require: false
 
 gem 'slack-notifier'
 
-gem 'puma', '~> 6.4'
+gem 'puma', '~> 6'
 
 gem 'dotenv-rails'
 
@@ -196,7 +207,7 @@ gem 'bcrypt_pbkdf'
 gem 'gpgme'
 
 # AWS SDK is needed for deployment and within the application
-gem 'aws-sdk-rails'
+gem 'aws-sdk-rails', '~> 3'
 gem 'aws-sdk-autoscaling', '~> 1'
 gem 'aws-sdk-cloudwatchevents', '~> 1'
 gem 'aws-sdk-cloudwatchlogs', '~> 1'
@@ -230,17 +241,18 @@ gem 'ansi'
 
 gem 'parallel'
 gem 'todo_or_die'
-gem 'reline'
 
-gem 'business_time', '~> 0.10.0'
+gem 'business_time'
 gem 'cable_ready', '>= 5.0.0.rc2'
-gem 'graphql', '~> 2.0'
+gem 'graphql', '= 2.3.20'
 gem 'sentry-rails', '~> 5.5'
 gem 'sentry-ruby'
 gem 'sentry-delayed_job'
 gem 'warning'
 gem 'hashdiff'
-gem 'k8s-ruby'
+# Once 0.17 is released we should be able to unpin this
+# https://github.com/k8s-ruby/k8s-ruby/pull/57
+gem 'k8s-ruby', github: 'k8s-ruby/k8s-ruby', branch: 'master'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
@@ -292,7 +304,8 @@ end
 
 group :test do
   gem 'capybara'
-  gem 'cuprite'
+  gem 'cuprite', '= 0.15'
+  gem 'ferrum', '~> 0.14'
   gem 'pg_fixtures', github: 'greenriver/pg_fixtures'
   gem 'minitest-reporters'
   gem 'rspec-mocks'
