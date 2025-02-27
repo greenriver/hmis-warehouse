@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../../../requests/hmis/login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
@@ -18,7 +20,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
 
   HIDDEN = Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE
-  INVALID = 'INVALID'.freeze # Invalid enum representation
+  INVALID = 'INVALID' # Invalid enum representation
 
   before(:all) do
     cleanup_test_environment

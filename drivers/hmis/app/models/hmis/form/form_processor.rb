@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 # Stores the actual data that was collected during an assessment. 1:1 with CustomAssessments.
 #   If the assessment is WIP: The data is stored exclusively as JSON blobs in the "values”/”hud_values" cols.
 #   If the assessment is non-WIP: The HUD data is stored in records (IncomeBenefit, HealthAndDv, etc) that are referenced by this form_processor directly. (health_and_dv_id etc)
