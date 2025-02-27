@@ -623,6 +623,7 @@ module HmisCsvImporter::Importer
         batch = []
         # This is the same query as `existing_hud_keys` but the memoization of that method prevents this from
         # using it.
+        #  maybe slow (?)
         existing_keys = klass.existing_data(
           data_source_id: data_source.id,
           project_ids: involved_project_ids,
