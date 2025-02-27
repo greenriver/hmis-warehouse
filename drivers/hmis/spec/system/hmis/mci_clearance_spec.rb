@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -127,7 +129,7 @@ RSpec.feature 'Assessment definition selection', type: :system do
   context 'Creating a new client for enrollment in PH project' do
     before(:each) do
       visit "/projects/#{p1.id}/add-household"
-      fill_in 'Search Clients', with: 'xxx'
+      fill_in 'Search for Client', with: 'xxx'
       click_button 'Search'
       click_button 'Add New Client'
       assert_text 'Enroll a New Client'
