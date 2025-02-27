@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SourceClientNameSet aggregates client names from multiple data sources, including
 # both source clients and patient health records. It provides a unified interface
 # for iterating over all valid client names.
