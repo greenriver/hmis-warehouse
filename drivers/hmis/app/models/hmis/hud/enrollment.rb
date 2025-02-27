@@ -292,6 +292,23 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     generate_uuid
   end
 
+  def self.contact_date_for_entity(entity)
+    case entity
+    when Hmis::Hud::Service, Hmis::Hud::CustomService
+      entity.date_provided
+    when Hmis::Hud::CurrentLivingSituation
+      entity.information_date
+    when Hmis::Hud::CustomAssessment
+      entity.assessment_date
+    when Hmis::Hud::Enrollment
+      entity.entry_date
+    when Hmis::Hud::CustomCaseNote
+      entity.information_date
+    else
+      raise "Unknown entity '#{entity.class}'"
+    end
+  end
+
   # Data Collection Features that are enabled for this enrollment, thru its project (e.g. Current Living Situation)
   #
   # Is it enabled?
