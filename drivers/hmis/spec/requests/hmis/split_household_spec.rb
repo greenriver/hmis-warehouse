@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -72,7 +74,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     return result['newHousehold'], result['remainingHousehold']
   end
 
-  it 'should successfully split households' do
+  it 'should successfully split household into two' do
     expect do
       new_household, remaining_household = perform_mutation
       expect(new_household.dig('householdSize')).to eq(2)
