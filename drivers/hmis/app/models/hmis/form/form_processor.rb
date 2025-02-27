@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 # Stores the actual data that was collected during an assessment. 1:1 with CustomAssessments.
 #   If the assessment is WIP: The data is stored exclusively as JSON blobs in the "values”/”hud_values" cols.
 #   If the assessment is non-WIP: The HUD data is stored in records (IncomeBenefit, HealthAndDv, etc) that are referenced by this form_processor directly. (health_and_dv_id etc)
@@ -108,6 +110,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         processor&.assign_metadata
         processor&.information_date(owner.assessment_date) if custom_assessment?
         processor&.information_date(owner.submitted_at.to_date) if external_form_submission?
+        processor&.post_process
       end
     end
 
