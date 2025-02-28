@@ -82,8 +82,9 @@ module HmisCsvImporter::Importer
       log_timing :cleanup_data_set!
       log_timing :analyze_tables
 
-      # determine what changes will be made and make note for alerting and monitoring
-      log_timing :precalculate_change_counts
+      # Determine what changes will be made and make note for alerting and monitoring. This is only needed if the data source is configured to pause on errors.
+      log_timing :precalculate_change_counts if @data_source.ever_pause_imports_with_errors?
+
       # Send any notifications that might be relevant to the error state of this import
       notify_of_import_status
 
