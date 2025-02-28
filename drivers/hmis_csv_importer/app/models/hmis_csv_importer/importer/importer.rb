@@ -235,23 +235,39 @@ module HmisCsvImporter::Importer
     # @return [void]
     #
     private def precalculate_change_counts
-      # Process each file/class
-      importable_files.each do |file, klass|
-        existing_scope = klass.existing_data(
-          data_source_id: data_source.id,
-          project_ids: involved_project_ids,
-          date_range: date_range,
-        )
-        # Calculate changes for this file/class and store the results
-        with_sql_log(__method__, klass, name: 'ImportChangeCalculator') do
-          ImportChangeCalculator.apply(
-            klass: klass,
-            existing_scope: existing_scope,
-            incoming_scope: klass.incoming_data(importer_log_id: importer_log.id),
-          )
-        end
-        importer_log.summary[file].merge!(results)
+      # This makes an estimate of the changes that will occur as it needs to be done before the
+      # actual processing so that it can pause the import if necessary.
+      # NOTE: as written this causes 2 additional, potentially slow queries
+      importable_files.map do |file, klass|
+        incoming_data = klass.incoming_data(importer_log_id: importer_log.id).
+          pluck(klass.hud_key).to_set
+
+        to_add = (incoming_data - existing_hud_keys(klass)).count
+        # If we never delete, just pretend it will be 0
+        to_remove = 0 if klass.prevent_import_deletions?
+        to_remove ||= (existing_hud_keys(klass) - incoming_data).count
+
+        importer_log.summary[file]['added'] = to_add
+        importer_log.summary[file]['removed'] = to_remove
       end
+    end
+
+    ##
+    # Retrieves the set of existing HUD keys from the warehouse for a given class.
+    #
+    # This method queries the warehouse for records that match the data source,
+    # involved projects, and date range. It then extracts and returns the HUD keys
+    # as a set for efficient lookup and comparison.
+    #
+    # @param klass [Class] The class representing the data model being queried.
+    # @return [Set<String>] A set of existing HUD keys for the given class.
+    #
+    memoize private def existing_hud_keys(klass)
+      klass.existing_data(
+        data_source_id: data_source.id,
+        project_ids: involved_project_ids,
+        date_range: date_range,
+      ).pluck(klass.hud_key).to_set
     end
 
     ##
@@ -272,17 +288,11 @@ module HmisCsvImporter::Importer
         klass = importable_files[file]
         to_add = data['added']
         to_remove = data['removed']
-        existing_scope = klass.existing_data(
-          data_source_id: data_source.id,
-          project_ids: involved_project_ids,
-          date_range: date_range,
-        )
-
         [
           file,
           {
             change_count: (to_add - to_remove).abs,
-            total_count: existing_scope.count,
+            total_count: existing_hud_keys(klass).count,
           },
         ]
       end.to_h
