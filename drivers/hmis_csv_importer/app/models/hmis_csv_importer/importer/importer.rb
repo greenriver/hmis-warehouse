@@ -83,7 +83,7 @@ module HmisCsvImporter::Importer
       log_timing :analyze_tables
 
       # Determine what changes will be made and make note for alerting and monitoring. This is only needed if the data source is configured to pause on errors.
-      log_timing :precalculate_change_counts if @data_source.ever_pause_imports_with_errors?
+      log_timing :precalculate_change_counts if @data_source.ever_pause_imports_with_errors? || @data_source.ever_notify_for_imports?
 
       # Send any notifications that might be relevant to the error state of this import
       notify_of_import_status
@@ -634,12 +634,14 @@ module HmisCsvImporter::Importer
         batch = []
         # This is the same query as `existing_hud_keys` but the memoization of that method prevents this from
         # using it.
-        #  maybe slow (?)
-        existing_keys = klass.existing_data(
-          data_source_id: data_source.id,
-          project_ids: involved_project_ids,
-          date_range: date_range,
-        ).pluck(klass.hud_key).to_set
+        existing_keys = nil
+        with_sql_log(__method__, klass, name: 'existing_data') do
+          existing_keys = klass.existing_data(
+            data_source_id: data_source.id,
+            project_ids: involved_project_ids,
+            date_range: date_range,
+          ).pluck(klass.hud_key).to_set
+        end
 
         bm = Benchmark.measure do
           klass.incoming_data(importer_log_id: importer_log.id).find_each(batch_size: SELECT_BATCH_SIZE) do |row|
