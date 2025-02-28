@@ -51,6 +51,8 @@ class BaseJob < ApplicationJob
       # DjMetrics.instance.refresh_queue_sizes!
     end
 
+    # Normalize the queue name so calling the job through .perform_later and Delayed::Job.enqueue
+    # are both able to determine the appropriate queue
     private def job_queue_name(job)
       return job.queue_name if job.respond_to?(:queue_name)
 
