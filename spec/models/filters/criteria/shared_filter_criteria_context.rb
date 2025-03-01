@@ -20,7 +20,7 @@ RSpec.shared_context 'filter criteria setup' do
   let(:scope) { GrdaWarehouse::ServiceHistoryEnrollment.entry }
 
   let(:role) do
-    create(:role, can_view_project_related_filters: true, can_view_assigned_reports: true)
+    create(:role, can_view_project_related_filters: true, can_view_assigned_reports: true, can_view_projects: true)
   end
   before do
     setup_access_control(user, role, Collection.system_collection(:data_sources))
@@ -38,8 +38,8 @@ RSpec.shared_context 'filter criteria setup' do
       date: start_date,
       first_date_in_program: start_date,
       last_date_in_program: end_date,
-      project_id: project.ProjectID,
-      organization_id: organization.organization_id,
+      project_id: project.project_id,
+      organization_id: project.organization_id,
       data_source_id: data_source.id,
     }.merge(attributes)
 
@@ -72,7 +72,7 @@ RSpec.shared_context 'filter criteria setup' do
       :hud_project,
       {
         data_source_id: data_source.id,
-        organization_id: organization.OrganizationID,
+        organization_id: organization.organization_id,
       }.merge(attributes),
     )
   end
