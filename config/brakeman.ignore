@@ -410,7 +410,7 @@
       "check_name": "EOLRails",
       "message": "Support for Rails 7.0.8.7 ends on 2025-04-01",
       "file": "Gemfile.lock",
-      "line": 1664,
+      "line": 1646,
       "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
       "code": null,
       "render_path": null,
@@ -747,7 +747,7 @@
           "type": "controller",
           "class": "Health::CareplansController",
           "method": "show",
-          "line": 62,
+          "line": 42,
           "file": "app/controllers/health/careplans_controller.rb",
           "rendered": {
             "name": "health/careplans/show",
@@ -879,6 +879,29 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "4e848abe8f3b8e81eef1a3d217902eb95d9161fb33ffbe5b7b93920d5a837f63",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/client_access_control/app/models/client_access_control/enrollment_arbiter.rb",
+      "line": 138,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"#{c_t[:id].to_sql} IN (#{union_sql})\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientAccessControl::EnrollmentArbiter",
+        "method": "searchable_client_scope"
+      },
+      "user_input": "union_sql",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
       "fingerprint": "4f50bd02cffae24567d5d511f692ceeae1ac8183f4092cb176a63afabf3b18df",
@@ -998,7 +1021,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 105,
+      "line": 108,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse #{`git rev-parse --abbrev-ref HEAD`.chomp}`",
       "render_path": null,
@@ -1021,7 +1044,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 147,
+      "line": 150,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`echo #{revision} > #{_assets_path}/REVISION`",
       "render_path": null,
@@ -1579,7 +1602,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 104,
+      "line": 107,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git ls-remote origin | grep refs/heads/#{`git rev-parse --abbrev-ref HEAD`.chomp}$`",
       "render_path": null,
