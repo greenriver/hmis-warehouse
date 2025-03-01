@@ -6,16 +6,19 @@ class Filters::Criteria::FilterForGender < Filters::Criteria::Base
   def apply(scope)
     scope = super(scope)
     scope = scope.joins(config.join_clients_method)
-    gender_scope = nil
-    input.genders.each do |value|
+
+    gender_queries = input.genders.filter_map do |value|
       column = HudUtility2024.gender_id_to_field_name[value]
       next unless column
 
-      gender_query = config.report_scope_source.
+      config.report_scope_source.
         joins(config.join_clients_method).
         where(arel.c_t[column.to_sym].eq(HudUtility2024.gender_comparison_value(value)))
-      gender_scope = add_alternative(gender_scope, gender_query)
     end
-    scope.merge(gender_scope)
+
+    return scope if gender_queries.empty?
+
+    combined_query = gender_queries.reduce(:or)
+    scope.merge(combined_query)
   end
 end

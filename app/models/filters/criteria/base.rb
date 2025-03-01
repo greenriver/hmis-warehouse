@@ -22,15 +22,6 @@ class Filters::Criteria::Base
     @config = config || Filters::Criteria::Configuration.new
   end
 
-  # FIXME, probably doesn't belong here
-  def add_alternative(scope, alternative)
-    if scope.nil?
-      alternative
-    else
-      scope.or(alternative)
-    end
-  end
-
   def viewable_project_scope
     GrdaWarehouse::Hud::Project.viewable_by(input.user, permission: :can_view_assigned_reports)
   end
