@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 class Filters::Criteria::FilterForProjects < Filters::Criteria::Base
   def applies?
     input.project_ids.present? || input.project_group_ids.present?
   end
 
   def apply(scope)
+    scope = super(scope)
     project_ids = visible_project_ids
     return scope if project_ids.blank?
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Filters::Criteria::FilterForCeHomeless < Filters::Criteria::Base
   def applies? = input.coordinated_assessment_living_situation_homeless
 
@@ -5,6 +7,7 @@ class Filters::Criteria::FilterForCeHomeless < Filters::Criteria::Base
   # potentially additional type of CA, but only if LivingSituation (3.917.1) is
   # of a homeless type (6, 1, 18)
   def apply(scope)
+    scope = super(scope)
     p_types = config.project_types.presence || input.project_type_ids
     scope.joins(:enrollment).where(
       arel.she_t[:project_type].in(HudUtility2024.performance_reporting[:ce]).

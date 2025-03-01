@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 class Filters::Criteria::FilterForRace < Filters::Criteria::Base
   def applies? = input.races.present?
 
   def apply(scope)
+    scope = super(scope)
     race_scope = nil
     input.races.each do |column|
       next if column == 'MultiRacial'

@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 class Filters::Criteria::FilterForFunders < Filters::Criteria::Base
   def applies?
+    super(scope)
     return false unless input.funder_ids.present? || input.funder_others.present?
 
     user.report_filter_visible?(:funder_ids) || user.report_filter_visible?(:funder_others)

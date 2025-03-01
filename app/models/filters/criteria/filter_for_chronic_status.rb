@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 class Filters::Criteria::FilterForChronicStatus < Filters::Criteria::Base
   def applies? = !config.chronic_at_entry && input.chronic_status
 
   def apply(scope)
+    scope = super(scope)
     chronic_source = case GrdaWarehouse::Config.get(:chronic_definition).to_sym
     when :chronics
       GrdaWarehouse::Chronic

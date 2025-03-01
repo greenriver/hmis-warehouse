@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Filters::Criteria::FilterForDaysSinceContact < Filters::Criteria::Base
   def applies?
     input.days_since_contact_min.present? || input.days_since_contact_max.present?
@@ -10,6 +12,7 @@ class Filters::Criteria::FilterForDaysSinceContact < Filters::Criteria::Base
   # Service.DateProvided
   # CurrentLivingSituation.InformationDate
   def apply(scope)
+    scope = super(scope)
     # Common Table Expressions
     max_assessment_dates = max_date_per_warehouse_client_id_cte(
       join: { source: :direct_assessments },

@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 class Filters::Criteria::FilterForFirstTimeHomelessInPastTwoYears < Filters::Criteria::Base
   def applies? = input.first_time_homeless
 
   def apply(scope)
+    scope = super(scope)
     visible_enrollments = scope.joins(:project).merge(viewable_project_scope)
 
     # Homeless enrollments open the two years prior to the report start

@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 class Filters::Criteria::FilterForReturnedToHomelessnessFromPermanentDestination < Filters::Criteria::Base
   def applies? = input.returned_to_homelessness_from_permanent_destination
 
   def apply(scope)
+    scope = super(scope)
     visible_enrollments = scope.joins(:project).merge(viewable_project_scope)
     exits = visible_enrollments.
       select(:id, :client_id, :last_date_in_program, :destination).

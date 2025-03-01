@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Filters::Criteria::FilterForAge < Filters::Criteria::Base
   AGE_RANGES = {
     zero_to_four: 0..4,
@@ -26,6 +28,7 @@ class Filters::Criteria::FilterForAge < Filters::Criteria::Base
   end
 
   def apply(scope)
+    scope = super(scope)
     input_ranges = input.age_ranges.to_set
     ages = AGE_RANGES.filter { |key, _| input_ranges.include?(key) }.
       flat_map { |_key, range| range.to_a }

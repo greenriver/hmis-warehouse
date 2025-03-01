@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -545,6 +547,8 @@ module Filters
       all_project_scope.where(id: effective_project_ids)
     end
 
+    # This filter supports project-level reports (as opposed to enrollment-level);
+    # it's also used in non-reporting context by project group
     def effective_project_ids
       @effective_project_ids ||= begin
         project_ids = effective_project_ids_from_projects
@@ -564,6 +568,7 @@ module Filters
       effective_project_ids.reject { |m| m&.zero? }.present?
     end
 
+    # This filter supports project-level reports (as opposed to enrollment-level)
     def anded_effective_project_ids
       @anded_effective_project_ids ||= begin
         ids = []

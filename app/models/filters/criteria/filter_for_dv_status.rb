@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 class Filters::Criteria::FilterForDvStatus < Filters::Criteria::Base
   def applies? = input.dv_status.present?
 
   def apply(scope)
+    scope = super(scope)
     scope.joins(enrollment: :health_and_dvs).
       merge(
         GrdaWarehouse::Hud::HealthAndDv.where(

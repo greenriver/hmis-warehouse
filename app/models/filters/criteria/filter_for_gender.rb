@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 class Filters::Criteria::FilterForGender < Filters::Criteria::Base
   def applies? = input.genders.present?
 
   def apply(scope)
+    scope = super(scope)
     scope = scope.joins(config.join_clients_method)
     gender_scope = nil
     input.genders.each do |value|

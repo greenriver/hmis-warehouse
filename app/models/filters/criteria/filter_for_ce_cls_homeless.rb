@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 class Filters::Criteria::FilterForCeClsHomeless < Filters::Criteria::Base
   def applies? = input.ce_cls_as_homeless
 
   def apply(scope)
+    scope = super(scope)
     client_ids_with_two_homeless_cls = scope.ce.joins(enrollment: :current_living_situations).
       merge(GrdaWarehouse::Hud::CurrentLivingSituation.homeless.between(start_date: input.start_date, end_date: input.end_date)).group(arel.she_t[:client_id]).
       having(arel.nf('COUNT', [arel.she_t[:client_id]]).gt(1)).

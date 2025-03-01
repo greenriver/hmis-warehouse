@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 class Filters::Criteria::FilterForCocs < Filters::Criteria::Base
   def applies? = input.coc_codes.present?
 
   def apply(scope)
+    scope = super(scope)
     return scope unless input.coc_codes.present?
 
     scope = filter_for_project_cocs(scope)

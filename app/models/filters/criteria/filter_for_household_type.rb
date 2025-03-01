@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 class Filters::Criteria::FilterForHouseholdType < Filters::Criteria::Base
   def applies?
     household_type.present?
   end
 
   def apply(scope)
+    scope = super(scope)
     case household_type
     when :without_children
       scope.adult_only_households

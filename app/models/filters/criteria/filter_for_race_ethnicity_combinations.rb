@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 class Filters::Criteria::FilterForRaceEthnicityCombinations < Filters::Criteria::Base
   def applies? = input.race_ethnicity_combinations.present?
 
   def apply(scope)
+    scope = super(scope)
     race_ethnicity_scope = nil
     input.race_ethnicity_combinations.each do |combination|
       hispanic_latinaeo = combination.to_s.ends_with?('_hispanic_latinaeo')

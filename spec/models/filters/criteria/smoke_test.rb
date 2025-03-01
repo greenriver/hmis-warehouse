@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'shared_filter_criteria_context'
 
@@ -9,7 +11,7 @@ RSpec.describe 'Filters::Criteria smoke test' do
 
   # Test each criteria class
   Filters::Criteria::DEFINITIONS.each do |criterion_id, definition|
-    context (definition[:class_name]).to_s do
+    context definition[:class_name].to_s do
       # Create a filter with all possible options enabled
       let(:filter) do
         Filters::FilterBase.new(
@@ -50,6 +52,13 @@ RSpec.describe 'Filters::Criteria smoke test' do
           races: ['White'],
           times_homeless_in_last_three_years: [1],
           veteran_statuses: [1],
+        )
+      end
+
+      let(:config) do
+        Filters::Criteria::Configuration.new(
+          report_scope_source: GrdaWarehouse::ServiceHistoryEnrollment.entry,
+          chronic_at_entry: criterion_id == :filter_for_chronic_at_entry,
         )
       end
 

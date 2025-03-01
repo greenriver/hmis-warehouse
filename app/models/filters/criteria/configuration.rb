@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # abstraction that encapsulates filter behavior previously managed by instance variables and params
 
 class Filters::Criteria::Configuration
