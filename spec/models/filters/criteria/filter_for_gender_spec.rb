@@ -12,9 +12,9 @@ RSpec.describe Filters::Criteria::FilterForGender do
 
   let!(:enrollments) do
     [
-      create_enrollment_for_client(create(:hud_client, Gender: 0, Woman: 1)),
-      create_enrollment_for_client(create(:hud_client, Gender: 1, Man: 1)),
-      create_enrollment_for_client(create(:hud_client, Gender: 4, NonBinary: 1)),
+      create_enrollment_for_client(create(:hud_client, Woman: 1)),
+      create_enrollment_for_client(create(:hud_client, Man: 1)),
+      create_enrollment_for_client(create(:hud_client, NonBinary: 1)),
     ]
   end
 

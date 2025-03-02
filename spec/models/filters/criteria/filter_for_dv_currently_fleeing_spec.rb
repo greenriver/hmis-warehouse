@@ -19,7 +19,7 @@ RSpec.describe Filters::Criteria::FilterForDvCurrentlyFleeing do
 
   # Create enrollments with different currently fleeing statuses
   let!(:enrollments) do
-    fleeing_statuses = [1, 0, 2] # Yes, No, Client doesn't know
+    fleeing_statuses = [1, 0, 8] # Yes, No, Client doesn't know
 
     fleeing_statuses.map do |_status|
       create_enrollment_for_client(create(:hud_client))
@@ -28,7 +28,7 @@ RSpec.describe Filters::Criteria::FilterForDvCurrentlyFleeing do
 
   before do
     # Create health_and_dv records for each enrollment with different fleeing statuses
-    fleeing_statuses = [1, 0, 2]
+    fleeing_statuses = [1, 0, 8]
 
     fleeing_statuses.each_with_index do |status, index|
       create(
@@ -51,7 +51,7 @@ RSpec.describe Filters::Criteria::FilterForDvCurrentlyFleeing do
     end
 
     context 'with different currently fleeing status' do
-      let(:currently_fleeing) { [2] } # Client doesn't know
+      let(:currently_fleeing) { [8] } # Client doesn't know
 
       it 'returns enrollments with matching status' do
         result = criteria.apply(scope)
@@ -60,7 +60,7 @@ RSpec.describe Filters::Criteria::FilterForDvCurrentlyFleeing do
     end
 
     context 'with multiple currently fleeing statuses' do
-      let(:currently_fleeing) { [0, 2] } # No and Client doesn't know
+      let(:currently_fleeing) { [0, 8] } # No and Client doesn't know
 
       it 'returns enrollments with any matching status' do
         result = criteria.apply(scope)

@@ -19,7 +19,7 @@ RSpec.describe Filters::Criteria::FilterForIndefiniteDisabilities do
 
   # Create enrollments with different indefinite disability statuses
   let!(:enrollments) do
-    indefinite_statuses = [1, 0, 2] # Yes, No, Client doesn't know
+    indefinite_statuses = [1, 0, 8] # Yes, No, Client doesn't know
 
     indefinite_statuses.map do |_|
       create_enrollment_for_client(create(:hud_client))
@@ -28,7 +28,7 @@ RSpec.describe Filters::Criteria::FilterForIndefiniteDisabilities do
 
   before do
     # Create disability records for each enrollment with different indefinite status
-    indefinite_statuses = [1, 0, 2]
+    indefinite_statuses = [1, 0, 8]
 
     indefinite_statuses.each_with_index do |status, index|
       create(
@@ -53,7 +53,7 @@ RSpec.describe Filters::Criteria::FilterForIndefiniteDisabilities do
     end
 
     context 'with different indefinite disability status' do
-      let(:indefinite_disabilities) { [2] } # Client doesn't know
+      let(:indefinite_disabilities) { [8] } # Client doesn't know
 
       it 'returns enrollments with matching status' do
         result = criteria.apply(scope)
@@ -62,7 +62,7 @@ RSpec.describe Filters::Criteria::FilterForIndefiniteDisabilities do
     end
 
     context 'with multiple indefinite disability statuses' do
-      let(:indefinite_disabilities) { [0, 2] } # No and Client doesn't know
+      let(:indefinite_disabilities) { [0, 8] } # No and Client doesn't know
 
       it 'returns enrollments with any matching status' do
         result = criteria.apply(scope)
