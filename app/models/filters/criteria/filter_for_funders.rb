@@ -2,13 +2,13 @@
 
 class Filters::Criteria::FilterForFunders < Filters::Criteria::Base
   def applies?
-    super(scope)
     return false unless input.funder_ids.present? || input.funder_others.present?
 
     user.report_filter_visible?(:funder_ids) || user.report_filter_visible?(:funder_others)
   end
 
   def apply(scope)
+    scope = super(scope)
     funder_scope = GrdaWarehouse::Hud::Funder.
       viewable_by(user, permission: :can_view_assigned_reports).
       joins(:project)
