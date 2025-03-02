@@ -7,6 +7,7 @@ class Filters::Criteria::FilterForOrganizations < Filters::Criteria::Base
 
   def apply(scope)
     scope = super(scope)
+    # order of scopes may matter here
     scope.merge(GrdaWarehouse::Hud::Organization.viewable_by(user)).
       in_organization(input.organization_ids)
   end

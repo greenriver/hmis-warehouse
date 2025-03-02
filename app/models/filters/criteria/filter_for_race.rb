@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# frozen_string_literal: true
-
 class Filters::Criteria::FilterForRace < Filters::Criteria::Base
   def applies? = input.races.present?
 
