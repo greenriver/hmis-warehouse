@@ -24,7 +24,9 @@ module Filter::FilterScopes
 
     def criteria_configuration(**opts)
       # special case handling to allow for @project_types instance var which is seems to override filter.project_type_ids
-      defaults = { project_types: @project_types }
+      defaults = {}
+      defaults[:project_types] = @project_types if @project_types
+      defaults[:report_scope_source] = report_scope_source if respond_to?(:report_scope_source)
       Filters::Criteria::Configuration.new(**defaults.merge(opts))
     end
 
