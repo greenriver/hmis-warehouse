@@ -715,12 +715,34 @@ type CeCandidate {
   priorityScore: Int!
 }
 
+type CeCandidatesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CeCandidate!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+type CeOpportunitiesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CeOpportunity!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
 type CeOpportunity {
+  acceptedReferral: CeReferral
   activeReferral: CeReferral
-  candidates: [CeCandidate!]!
+  candidates(limit: Int, offset: Int): CeCandidatesPaginated!
   expiresAt: ISO8601DateTime
   id: ID!
   name: String!
+  projectId: ID!
   status: String!
 }
 
@@ -6962,6 +6984,11 @@ enum PickListType {
   User accounts. Deprecated in favor of AUDITABLE_USERS
   """
   USERS
+
+  """
+  Templates for CE workflow definitions
+  """
+  WORKFLOW_DEFINITION_TEMPLATES
 }
 
 """
@@ -8776,6 +8803,7 @@ type Project {
   active: Boolean!
   affiliatedProjects: [Project!]!
   assessments(filters: AssessmentsForProjectFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  ceOpportunities(limit: Int, offset: Int): CeOpportunitiesPaginated!
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
   contactInformation: String
   continuumProject: NoYes
@@ -9317,6 +9345,7 @@ type QueryAccess {
   canViewClientName: Boolean!
   canViewClientPhoto: Boolean!
   canViewClients: Boolean!
+  canViewCoordinatedEntry: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewEnrollmentLocationMap: Boolean!
