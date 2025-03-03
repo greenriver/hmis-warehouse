@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 require 'memery'
 require 'restclient'
 
@@ -213,7 +215,7 @@ module GrdaWarehouse::Hud
     has_many :window_notes, class_name: 'GrdaWarehouse::ClientNotes::WindowNote'
     has_many :anomaly_notes, class_name: 'GrdaWarehouse::ClientNotes::AnomalyNote'
     has_many :cohort_notes, class_name: 'GrdaWarehouse::ClientNotes::CohortNote'
-    has_many :alert_notes, class_name: 'GrdaWarehouse::ClientNotes::Alert'
+    has_many :alert_notes, -> { active }, class_name: 'GrdaWarehouse::ClientNotes::Alert'
 
     has_many :anomalies, class_name: 'GrdaWarehouse::Anomaly'
 
@@ -251,6 +253,10 @@ module GrdaWarehouse::Hud
     end
 
     scope :source_visible_to, ->(_user, client_ids: nil) do # rubocop:disable Lint/UnusedBlockArgument
+      none
+    end
+
+    scope :destination_or_source_visible_to, ->(_user, client_ids: nil) do # rubocop:disable Lint/UnusedBlockArgument
       none
     end
 
@@ -2241,7 +2247,7 @@ module GrdaWarehouse::Hud
           if prev_destination_client.source_clients.empty?
             # Create a client_merge_history record so we can keep links working
             GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
-            prev_destination_client.delete
+            prev_destination_client.destroy
           end
 
           move_dependent_items(prev_destination_client.id, self.id) # rubocop:disable Style/RedundantSelf
@@ -2331,7 +2337,6 @@ module GrdaWarehouse::Hud
         [GrdaWarehouse::HealthEmergency::UploadedTest, :client_id],
         [GrdaWarehouse::HealthEmergency::Vaccination, :client_id],
         [GrdaWarehouse::Anomaly, :client_id],
-        [GrdaWarehouse::ClientRoiAuthorization, :destination_client_id],
       ]
     end
 

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 module HmisDataQualityTool
   class Report < HudReports::ReportInstance
     include Filter::ControlSections
@@ -711,7 +713,6 @@ module HmisDataQualityTool
               next if overall_count.zero?
 
               this_result[:projects][project.id] = {
-                project_name: project&.name(user) || 'unknown',
                 invalid_count: invalid_count,
                 total: overall_count,
               }

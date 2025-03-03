@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
@@ -32,6 +34,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(0)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(0)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(0)
       end
     end
 
@@ -45,6 +48,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(0)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(0)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(0)
       end
     end
 
@@ -58,6 +62,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(0)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(0)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(0)
       end
     end
 
@@ -76,6 +81,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(0)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(0)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(0)
       end
     end
 
@@ -90,6 +96,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(1)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(2)
       end
 
       it '#source_visible_to does not clobber conditions' do
@@ -99,6 +106,11 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
       it '#destination_visible_to does not clobber conditions' do
         count = GrdaWarehouse::Hud::Client.where(data_source: -1).destination_visible_to(user).count
+        expect(count).to eq(0)
+      end
+
+      it '#destination_or_source_visible_to does not clobber conditions' do
+        count = GrdaWarehouse::Hud::Client.where(data_source: -1).destination_or_source_visible_to(user).count
         expect(count).to eq(0)
       end
     end
@@ -113,6 +125,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(0)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(0)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(0)
       end
     end
 
@@ -131,6 +144,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(0)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(0)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(0)
       end
     end
   end

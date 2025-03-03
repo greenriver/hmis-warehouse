@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 module ClientLocationHistory
   class Location < GrdaWarehouseBase
     include Rails.application.routes.url_helpers
@@ -47,7 +49,10 @@ module ClientLocationHistory
 
     private def name_for_label(user)
       if user.can_view_clients?
-        link_for(client_path(client), client.pii_provider(user: user).full_name)
+        # These can be source clients, so make sure any link is going to their destination client
+        destination = client
+        destination = client.destination_client unless client.destination?
+        link_for(client_path(destination), client.pii_provider(user: user).full_name)
       else
         client.pii_provider(user: user).full_name
       end

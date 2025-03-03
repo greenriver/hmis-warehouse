@@ -18,7 +18,7 @@ global_pg_db_config: &global_pg_db_config
     # Increased to 8MB to potentially improve performance for queries involving large sorts or hash operations.
     # Be cautious: setting this too high can lead to excessive memory usage, especially on busy systems with many concurrent operations.
     # Monitor memory usage and adjust as needed based on your workload and available resources.
-    work_mem: 8MB
+    work_mem: <%= ENV.fetch("PG_WORK_MEM") { '16MB' } %>
 
 default_app_db: &default_app_db
   <<: *global_pg_db_config

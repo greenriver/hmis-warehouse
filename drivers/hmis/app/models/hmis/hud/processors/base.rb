@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 # ==  Hmis::Hud::Processors::Base
 #
 # Base class for field processors. Responsible for processing a single form input
@@ -24,6 +26,10 @@ class Hmis::Hud::Processors::Base
     attribute_value = attribute_value_for_enum(graphql_enum(field), value)
 
     @processor.send(factory_name)&.assign_attributes(attribute_name => attribute_value)
+  end
+
+  def post_process
+    # implement in subclass, if necessary
   end
 
   def assign_metadata

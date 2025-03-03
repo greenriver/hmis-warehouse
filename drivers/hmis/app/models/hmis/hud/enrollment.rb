@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Concerns::Shared
@@ -94,6 +96,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     return unless project_id
 
     self.project_id = project.project_id
+  end
+
+  before_save :set_default_disabling_condition
+  private def set_default_disabling_condition
+    self.disabling_condition ||= 99
   end
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator
@@ -283,6 +290,23 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def self.generate_enrollment_id
     generate_uuid
+  end
+
+  def self.contact_date_for_entity(entity)
+    case entity
+    when Hmis::Hud::Service, Hmis::Hud::CustomService
+      entity.date_provided
+    when Hmis::Hud::CurrentLivingSituation
+      entity.information_date
+    when Hmis::Hud::CustomAssessment
+      entity.assessment_date
+    when Hmis::Hud::Enrollment
+      entity.entry_date
+    when Hmis::Hud::CustomCaseNote
+      entity.information_date
+    else
+      raise "Unknown entity '#{entity.class}'"
+    end
   end
 
   # Data Collection Features that are enabled for this enrollment, thru its project (e.g. Current Living Situation)

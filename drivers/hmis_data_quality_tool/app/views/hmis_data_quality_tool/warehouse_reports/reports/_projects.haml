@@ -1,0 +1,32 @@
+- show_project_names = @report.filter.effective_projects.count <= 100 || @pdf
+- current_user.policy_context.preload_project_dependencies(@report.filter.effective_project_ids) if show_project_names
+.well
+  %i.icon-info.mr-2
+  For performance reasons, project names are not shown when more than 100 projects are included.
+  Project names will still be included in the exported versions.
+.card.mb-6.page-break-avoid
+  %table.table.table-striped
+    %thead
+      %tr
+        %th= show_project_names ? 'Project' : 'HMIS Project ID'
+        - @report.categories.each do |cat|
+          %th= cat
+    %tbody
+      - @report.per_project_results.each do |project_id, data|
+        - project = @report.filter.effective_projects.detect { |p| p.id.to_s == project_id.to_s }
+        - next unless project.present?
+        %tr
+          - project_name = show_project_names ? project.name(current_user) : project.project_id
+
+          %td= link_to_if can_view_projects?, project_name, project_path(project)
+          - @report.categories.each do |cat|
+            - valid_count = data[cat][:total] - data[cat][:invalid_count]
+            - valid_percent =  @report.percent(data[cat][:total], valid_count).round(1)
+            - if goal_config.present? && goal_config.active?
+              - name = goal_config.name_for(valid_percent.to_i)
+              - if name.present?
+                -# !important for print -- bootstrap has an !important style that for some reason overrides inline styles
+                - background_color = "background-color: #{goal_config.color_for(valid_percent.to_i)} !important;"
+                %td{ style: background_color, data: { toggle: :tooltip, title: "#{valid_count} of #{data[cat][:total]}" }} #{valid_percent}%
+            - else
+              %td #{valid_percent}%

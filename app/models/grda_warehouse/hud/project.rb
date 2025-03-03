@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 # these are also sometimes called programs
 module GrdaWarehouse::Hud
   class Project < Base
@@ -68,6 +70,9 @@ module GrdaWarehouse::Hud
 
     # can't use a direct join table to collections due to db boundary
     has_many :project_collection_members
+
+    # can't use a direct join table to collections due to db boundary
+    has_many :project_access_group_members
 
     # Setup an association to project_cocs that allows us to pull the records even if the
     # project_coc has been deleted

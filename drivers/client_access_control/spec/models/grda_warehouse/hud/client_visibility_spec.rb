@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
 
@@ -42,6 +44,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         it 'user can see all clients' do
           expect(GrdaWarehouse::Hud::Client.source.source_visible_to(user).count).to eq(4)
           expect(GrdaWarehouse::Hud::Client.destination.destination_visible_to(user).count).to eq(3)
+          expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(7)
         end
       end
     end
@@ -100,6 +103,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(3)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(7)
       end
     end
     describe 'and the user has a role granting can view window clients' do
@@ -196,6 +200,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(3)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(7)
       end
     end
     describe 'and the user has a role granting can view window clients' do
@@ -268,6 +273,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(3)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(7)
       end
     end
     describe 'and the user has a role granting can view window clients' do
@@ -345,6 +351,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(3)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(7)
       end
     end
     describe 'and the user has a role granting can view window clients' do
@@ -533,6 +540,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(3)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(7)
       end
     end
     describe 'and the user has a role granting can search own clients' do
