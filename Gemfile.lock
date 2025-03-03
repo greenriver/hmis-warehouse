@@ -355,7 +355,7 @@ GEM
     caxlsx_rails (0.6.4)
       actionpack (>= 3.1)
       caxlsx (>= 3.0)
-    cgi (0.4.1)
+    cgi (0.4.2)
     charlock_holmes (0.7.9)
     childprocess (5.1.0)
       logger (~> 1.5)
@@ -1443,7 +1443,7 @@ CHECKSUMS
   caxlsx (4.2.0) sha256=043e832e912010e36357ed7f65b24c49e09a764b172e27f21aff7a55db8bc8f0
   caxlsx_rails (0.6.4) sha256=27e1ebb4617473f49a7956214e352b485beb080d590769ef5a826c410c7d2276
   census_api (2.0.1)
-  cgi (0.4.1) sha256=4349e1e2025c9cc73534c52c93cffc0dafc93e0a81edc0830d851a3b2c49a430
+  cgi (0.4.2) sha256=a3cb190d46a820ca01a3e28bd5b64e67003ff99d7884b70512448566f35347e6
   charlock_holmes (0.7.9) sha256=b49e8a11ce1921e2c5b65511bb864ae51720ce9bd1c336ccf0e89e6c8ae62db0
   childprocess (5.1.0) sha256=9a8d484be2fd4096a0e90a0cd3e449a05bc3aa33f8ac9e4d6dcef6ac1455b6ec
   choice (0.2.0) sha256=a19617f7dfd4921b38a85d0616446620de685a113ec6d1ecc85bdb67bf38c974
@@ -1778,4 +1778,4 @@ CHECKSUMS
   zeitwerk (2.7.2) sha256=842e067cb11eb923d747249badfb5fcdc9652d6f20a1f06453317920fdcd4673
 
 BUNDLED WITH
-   2.6.5
+   2.6.3
