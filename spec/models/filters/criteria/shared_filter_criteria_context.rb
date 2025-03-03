@@ -31,6 +31,7 @@ RSpec.shared_context 'filter criteria setup' do
   def create_enrollment_for_client(client, attributes = {})
     enrollment_attributes = attributes.delete(:enrollment_attributes) || {}
     exit_attributes = attributes.delete(:exit_attributes)
+    @household_id ||= 1000
 
     she_attributes = {
       client_id: client.id,
@@ -41,6 +42,7 @@ RSpec.shared_context 'filter criteria setup' do
       project_id: project.project_id,
       organization_id: project.organization_id,
       data_source_id: data_source.id,
+      household_id: (@household_id += 1),
     }.merge(attributes)
 
     enrollment_attributes.merge!(

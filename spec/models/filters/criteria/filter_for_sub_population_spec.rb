@@ -6,7 +6,7 @@ require_relative 'shared_filter_criteria_context'
 RSpec.describe Filters::Criteria::FilterForSubPopulation do
   include_context 'filter criteria setup'
 
-  let(:sub_population) { :veterans }
+  let(:sub_population) { :clients }
   let(:filter) do
     ::Filters::FilterBase.new(
       user_id: user.id,
@@ -15,75 +15,83 @@ RSpec.describe Filters::Criteria::FilterForSubPopulation do
   end
   let(:criteria) { described_class.new(input: filter, config: config) }
 
-  # Make sure we have the right scope methods available
-  before do
-    # We need to ensure our scope responds to all the subpopulation methods
-    available_sub_populations = [
-      :adults_with_children, :adults_with_children_youth_hoh,
-      :adults_with_children_twentyfive_plus_hoh, :adult_only_households, :clients,
-      :child_only_households, :non_veterans, :veterans
-    ]
+  # Create test data for all different types of clients/enrollments
+  let!(:veteran_adult) { create(:hud_client, VeteranStatus: 1) }
+  let!(:non_veteran_adult) { create(:hud_client, VeteranStatus: 0) }
+  let!(:young_adult) { create(:hud_client, VeteranStatus: 0, DOB: 22.years.ago.to_date) }
+  let!(:older_adult) { create(:hud_client, VeteranStatus: 0, DOB: 30.years.ago.to_date) }
+  let!(:child) { create(:hud_client, VeteranStatus: 0, DOB: 10.years.ago.to_date) }
 
-    available_sub_populations.each do |method|
-      allow(scope).to receive(method).and_return(scope)
-    end
-
-    # Set up specific return values for our test cases
-    allow(scope).to receive(:veterans).and_return(scope.where(id: enrollments[0].id))
-    allow(scope).to receive(:non_veterans).and_return(scope.where(id: enrollments[1].id))
-    allow(scope).to receive(:adult_only_households).and_return(scope.where(id: enrollments[2].id))
+  # Create enrollments with various household compositions
+  let!(:veteran_single_enrollment) do
+    create_enrollment_for_client(veteran_adult, head_of_household: true, age: 35, other_clients_under_18: 0)
   end
 
-  let!(:enrollments) do
-    [
-      # Veteran
-      create_enrollment_for_client(
-        create(:hud_client, VeteranStatus: 1),
-        head_of_household: true,
-        age: 35,
-      ),
-
-      # Non-veteran
-      create_enrollment_for_client(
-        create(:hud_client, VeteranStatus: 0),
-        head_of_household: true,
-        age: 30,
-      ),
-
-      # Adult-only household
-      create_enrollment_for_client(
-        create(:hud_client),
-        head_of_household: true,
-        age: 40,
-        other_clients_under_18: 0,
-      ),
-    ]
+  let!(:non_veteran_single_enrollment) do
+    create_enrollment_for_client(non_veteran_adult, head_of_household: true, age: 30, other_clients_under_18: 0)
   end
 
-  # default params make this filter always apply
+  let!(:adult_with_child_enrollment) do
+    create_enrollment_for_client(older_adult, head_of_household: true, age: 40, other_clients_under_18: 1)
+  end
+
+  let!(:youth_head_with_child_enrollment) do
+    create_enrollment_for_client(young_adult, head_of_household: true, age: 22, other_clients_under_18: 1)
+  end
+
+  let!(:child_only_enrollment) do
+    create_enrollment_for_client(child, head_of_household: true, age: 10, other_clients_under_18: 0)
+  end
+
   it_behaves_like 'a criteria that always applies'
 
   describe '#apply' do
-    it 'filters for the specified sub population' do
-      result = criteria.apply(scope)
-      expect(result.pluck(:id)).to contain_exactly(enrollments[0].id)
-    end
+    # Test each available sub-population
+    AvailableSubPopulations.available_sub_populations.values.each do |sub_pop|
+      context "with #{sub_pop} filter" do
+        let(:sub_population) { sub_pop }
 
-    context 'with non_veterans sub population' do
-      let(:sub_population) { :non_veterans }
+        it 'filters correctly' do
+          expect(scope).to receive(sub_pop).and_call_original
+          result = criteria.apply(scope)
 
-      it 'returns non-veteran enrollments' do
-        result = criteria.apply(scope)
-        expect(result.pluck(:id)).to contain_exactly(enrollments[1].id)
-      end
-    end
-
-    context 'with adult_only_households sub population' do
-      let(:sub_population) { :adult_only_households }
-
-      it 'returns enrollments from adult-only households' do
-        result = criteria.apply(scope)
-        expect(result.pluck(:id)).to contain_exactly(enrollments[2].id)
+          # Expectations based on the sub-population
+          case sub_pop
+          when :veterans
+            expect(result.pluck(:id)).to include(veteran_single_enrollment.id)
+            expect(result.pluck(:id)).not_to include(non_veteran_single_enrollment.id)
+          when :non_veterans
+            expect(result.pluck(:id)).not_to include(veteran_single_enrollment.id)
+            expect(result.pluck(:id)).to include(non_veteran_single_enrollment.id)
+          when :adults_with_children
+            expect(result.pluck(:id)).to include(adult_with_child_enrollment.id, youth_head_with_child_enrollment.id)
+            expect(result.pluck(:id)).not_to include(veteran_single_enrollment.id, non_veteran_single_enrollment.id)
+          when :adults_with_children_youth_hoh
+            expect(result.pluck(:id)).to include(youth_head_with_child_enrollment.id)
+            expect(result.pluck(:id)).not_to include(adult_with_child_enrollment.id)
+          when :adults_with_children_twentyfive_plus_hoh
+            expect(result.pluck(:id)).to include(adult_with_child_enrollment.id)
+            expect(result.pluck(:id)).not_to include(youth_head_with_child_enrollment.id)
+          when :adult_only_households
+            expect(result.pluck(:id)).to include(veteran_single_enrollment.id, non_veteran_single_enrollment.id)
+            expect(result.pluck(:id)).not_to include(adult_with_child_enrollment.id)
+          when :child_only_households
+            expect(result.pluck(:id)).to include(child_only_enrollment.id)
+            expect(result.pluck(:id)).not_to include(veteran_single_enrollment.id, adult_with_child_enrollment.id)
+          when :clients
+            # This should include all enrollments
+            enrollment_ids = [
+              veteran_single_enrollment.id,
+              non_veteran_single_enrollment.id,
+              adult_with_child_enrollment.id,
+              youth_head_with_child_enrollment.id,
+              child_only_enrollment.id,
+            ]
+            expect(result.pluck(:id)).to include(*enrollment_ids)
+          else
+            raise "#{sub_pop} test not supported"
+          end
+        end
       end
     end
 

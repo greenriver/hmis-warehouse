@@ -66,6 +66,10 @@ RSpec.describe Filters::Criteria::FilterForRace do
         # Should return white client and multi-racial client
         expect(result.count).to eq(1)
         expect(result.pluck(:client_id)).to contain_exactly(asian_multi_racial_client.id)
+
+        # Should return asian multi-racial client, but exclude the non-asian multi-racial client.
+        expect(result.count).to eq(1)
+        expect(result.pluck(:client_id)).to contain_exactly(asian_multi_racial_client.id)
       end
     end
   end
