@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -5,7 +7,7 @@
 ###
 
 module HopwaCaper
-  class Enrollment < GrdaWarehouseBase
+  class Enrollment < ::HudReports::ReportClientBase
     self.table_name = 'hopwa_caper_enrollments'
 
     has_many :hud_reports_universe_members,
@@ -17,6 +19,10 @@ module HopwaCaper
              foreign_key: :universe_membership_id
     has_many :services, class_name: 'HopwaCaper::Service', primary_key: :enrollment_id
     belongs_to :enrollment, -> { with_deleted }, class_name: 'GrdaWarehouse::Hud::Enrollment'
+
+    def project_id
+      enrollment.project_id
+    end
 
     def self.as_report_members
       current_scope.map do |record|

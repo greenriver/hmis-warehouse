@@ -2,14 +2,21 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: @name.slice(0,30).gsub(':', ' ')) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
 
+  project_ids = @enrollments.map(&:project_id).uniq + @services.map(&:project_id).uniq
+  current_user.policy_context.preload_project_dependencies(project_ids)
+
   [[HopwaCaper::Enrollment.detail_headers, @enrollments], [HopwaCaper::Service.detail_headers, @services]].each do |headers, records|
     next if records.to_a.empty?
+
     sheet.add_row(headers.values, style: title)
     records.each do |record|
+      pii_policy = current_user.policy_for(nil, policy_class: GrdaWarehouse::AuthPolicies::DefaultPiiPolicy)
+      pii_policy = current_user.policy_for(record.project_id.to_i, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if record.project_id
       row = []
       headers.each_key do |k|
-        row << record[k]
+        row << record.display_value(k, pii_policy: pii_policy, include_content_tag: false)
       end
       sheet.add_row(row)
     end
+  end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -6,7 +8,7 @@
 
 # services are only used to report on questions around households receiving certain service types
 module HopwaCaper
-  class Service < GrdaWarehouseBase
+  class Service < ::HudReports::ReportClientBase
     self.table_name = 'hopwa_caper_services'
 
     has_many :hud_reports_universe_members,
@@ -19,6 +21,10 @@ module HopwaCaper
 
     belongs_to :enrollment, class_name: 'HopwaCaper::Enrollment', primary_key: :enrollment_id
     delegate :first_name, :last_name, :personal_id, :hmis_enrollment_id, to: :enrollment
+
+    def project_id
+      enrollment.project_id
+    end
 
     def self.as_report_members
       all.map do |record|

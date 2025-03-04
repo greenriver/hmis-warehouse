@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -13,11 +15,11 @@ module HopwaCaper
       @cell = @report.valid_cell_name(params[:id])
       @table = @report.valid_table_name(params[:table])
       @enrollments = @report.hopwa_caper_enrollments.
-        preload(:enrollment).
+        preload(:enrollment, { enrollment: :project }).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell))
       @services = @report.hopwa_caper_services.
-        preload(enrollment: :enrollment).
+        preload(enrollment: [:enrollment, { enrollment: :project }]).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell))
       @name = "#{generator.file_prefix} #{@question} #{@cell}"
