@@ -175,6 +175,29 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "0c18917fa3b616846e7d22f5972d3a49b203ccab2625d0ceeca13cfe8f94a843",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse_base.rb",
+      "line": 83,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"SET enable_nestloop = #{connection.select_value(\"SHOW enable_nestloop\").downcase}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouseBase",
+        "method": "GrdaWarehouseBase.disable_nestloop"
+      },
+      "user_input": "connection.select_value(\"SHOW enable_nestloop\").downcase",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "0ea2018506ebfda99646143c3a6b329586df8a0a0b9ad12049e05c90566f6d22",
       "check_name": "SQL",
       "message": "Possible SQL injection",
