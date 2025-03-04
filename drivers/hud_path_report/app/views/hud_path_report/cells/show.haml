@@ -11,7 +11,6 @@
       Download
 
 
-
 - if @clients.blank?
   .none-found No records found.
 - else
@@ -24,7 +23,10 @@
             - HudPathReport::Fy2020::PathClient.detail_headers.each_value do |header|
               %th= header
         %tbody.thead-dark
+          - current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id)) 
           - @clients.each.with_index do |client, i|
+            - pii_policy = current_user.policy_for(nil, policy_class: GrdaWarehouse::AuthPolicies::DefaultPiiPolicy)
+            - pii_policy = current_user.policy_for(client.project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if client.project_id
             %tr
               %th= i + 1
               - HudPathReport::Fy2020::PathClient.detail_headers.each_key do |k|
@@ -41,4 +43,4 @@
                   - elsif k == 'contacts'
                     = count_dates(client[k])
                   - else
-                    = formatted_cell(client[k])
+                    = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)

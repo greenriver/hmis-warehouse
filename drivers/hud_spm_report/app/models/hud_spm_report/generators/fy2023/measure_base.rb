@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -7,7 +9,8 @@
 module HudSpmReport::Generators::Fy2023
   class MeasureBase < ::HudReports::QuestionBase
     def self.client_class
-      HudSpmReport::Fy2023::SpmEnrollment
+      HudSpmReport::Fy2023::SpmEnrollment.
+        preload(enrollment: :project)
     end
 
     private def enrollment_set

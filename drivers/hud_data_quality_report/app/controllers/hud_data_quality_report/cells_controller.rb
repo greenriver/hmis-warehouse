@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -24,12 +26,5 @@ module HudDataQualityReport
         end
       end
     end
-
-    def formatted_cell(cell)
-      return cell.to_json if cell.is_a?(Array) || cell.is_a?(Hash)
-
-      cell
-    end
-    helper_method :formatted_cell
   end
 end

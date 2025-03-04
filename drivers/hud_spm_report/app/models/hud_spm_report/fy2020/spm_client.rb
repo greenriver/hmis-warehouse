@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -31,6 +33,10 @@ module HudSpmReport::Fy2020
       else
         human_attribute_name(col)
       end
+    end
+
+    def display_value(col, pii_policy:, include_content_tag: true)
+      super
     end
   end
 end

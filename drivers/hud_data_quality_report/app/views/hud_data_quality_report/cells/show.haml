@@ -11,7 +11,7 @@
       Download
 
 
-
+- pii_cells = HudDataQualityReport::Fy2020::DqClient.pii_attributes_config.keys
 - if @clients.blank?
   .none-found No records found.
 - else
@@ -24,7 +24,10 @@
             - HudDataQualityReport::Fy2020::DqClient.detail_headers.each_value do |header|
               %th= header
         %tbody.thead-dark
+          - current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id)) 
           - @clients.each.with_index do |client, i|
+            - pii_policy = current_user.policy_for(nil, policy_class: GrdaWarehouse::AuthPolicies::DefaultPiiPolicy)
+            - pii_policy = current_user.policy_for(client.project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if client.project_id
             %tr
               %th= i + 1
               - HudDataQualityReport::Fy2020::DqClient.detail_headers.each_key do |k|
@@ -42,4 +45,4 @@
                   - elsif k.to_s.starts_with?('hiv_aids') && !can_view_hiv_status?
                     %i.light redacted
                   - else
-                    = formatted_cell(client[k])
+                    = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)

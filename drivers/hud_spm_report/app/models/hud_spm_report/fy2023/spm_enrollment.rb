@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -5,7 +7,7 @@
 ###
 
 module HudSpmReport::Fy2023
-  class SpmEnrollment < GrdaWarehouseBase
+  class SpmEnrollment < HudReports::ReportClientBase
     self.table_name = 'hud_report_spm_enrollments'
     include ArelHelper
     include Detail
@@ -122,6 +124,10 @@ module HudSpmReport::Fy2023
                 and(arel_table[:prior_living_situation].between(300..499)).
                 and(arel_table[:los_under_threshold].eq(true)))))),
       )
+    end
+
+    def project_id
+      enrollment.project.id
     end
 
     HomelessnessInfo = Struct.new(:start_of_homelessness, :entry_date, :move_in_date, keyword_init: true)

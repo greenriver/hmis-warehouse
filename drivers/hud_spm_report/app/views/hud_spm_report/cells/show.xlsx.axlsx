@@ -2,10 +2,13 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: @name.slice(0,30).gsub(':', ' ')) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(@headers.values, style: title)
+  current_user.policy_context.preload_project_dependencies(@clients.map(&:project_id).uniq)
   @clients.each do |client|
+    pii_policy = current_user.policy_for(nil, policy_class: GrdaWarehouse::AuthPolicies::DefaultPiiPolicy)
+    pii_policy = current_user.policy_for(client.project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if client.project_id
     row = []
     @headers.each_key do |k|
-      row << cell_value(client, k)
+      row << client.display_value(k, pii_policy: pii_policy, include_content_tag: false)
     end
     sheet.add_row(row)
   end

@@ -32,24 +32,36 @@ module ApplicationHelper
     ::Menu::Menu.new(user: current_user, context: self).site_menu
   end
 
-  def yes_no(boolean, include_icon: true)
+  def yes_no(boolean, include_icon: true, include_content_tag: true)
+    return 'Not Specified' if boolean.nil?
+
     case boolean
-    when nil
-      'Not Specified'
     when true, 'Yes'
-      capture do
-        concat content_tag :span, nil, class: 'icon-checkmark o-color--positive' if include_icon
-        concat ' Yes'
+      if include_content_tag
+        capture do
+          concat content_tag :span, nil, class: 'icon-checkmark o-color--positive' if include_icon
+          concat ' Yes'
+        end
+      else
+        'Yes'
       end
     when false, 'No'
-      capture do
-        concat content_tag :span, nil, class: 'icon-cross o-color--danger' if include_icon
-        concat ' No'
+      if include_content_tag
+        capture do
+          concat content_tag :span, nil, class: 'icon-cross o-color--danger' if include_icon
+          concat ' No'
+        end
+      else
+        'No'
       end
     when 'Refused'
-      capture do
-        concat content_tag :span, nil, class: 'icon-warning o-color--warning' if include_icon
-        concat ' Refused/Unsure'
+      if include_content_tag
+        capture do
+          concat content_tag :span, nil, class: 'icon-warning o-color--warning' if include_icon
+          concat ' Refused/Unsure'
+        end
+      else
+        'Refused/Unsure'
       end
     end
   end
@@ -148,10 +160,13 @@ module ApplicationHelper
     end
   end
 
-  def masked_ssn(number)
+  def masked_ssn(number, include_content_tag: true)
     # pad with leading 0s if we don't have enough characters
     number = number.to_s.rjust(9, '0') if number.present?
-    content_tag :span, number.to_s.gsub(HudUtility2024::SSN_RGX, 'XXX-XX-\3')
+    value = number.to_s.gsub(HudUtility2024::SSN_RGX, 'XXX-XX-\3')
+    return value unless include_content_tag
+
+    ActionController::Base.helpers.content_tag :span, number.to_s.gsub(HudUtility2024::SSN_RGX, 'XXX-XX-\3')
   end
 
   def beautify_option(_key, value)

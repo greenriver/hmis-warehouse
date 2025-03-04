@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -5,7 +7,7 @@
 ###
 
 module HudSpmReport::Fy2023
-  class Episode < GrdaWarehouseBase
+  class Episode < HudReports::ReportClientBase
     self.table_name = 'hud_report_spm_episodes'
     include Detail
 
@@ -31,6 +33,10 @@ module HudSpmReport::Fy2023
 
     def enrollment
       enrollments.first
+    end
+
+    def project_id
+      enrollment.project_id
     end
 
     # TODO: convert include_self_reported_and_ph to include_self_report_from_project_types so we can be explicit about which types we want to use when looking for time prior to entry

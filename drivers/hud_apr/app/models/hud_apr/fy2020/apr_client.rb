@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -46,6 +48,10 @@ module HudApr::Fy2020
       return detail_headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
 
       detail_headers.except('first_name', 'last_name', 'dob', 'ssn')
+    end
+
+    def display_value(col, pii_policy:, include_content_tag: true)
+      super
     end
   end
 end

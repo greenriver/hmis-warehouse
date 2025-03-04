@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -215,6 +217,7 @@ module HudPathReport::Generators::Fy2024
             newly_enrolled_client: newly_enrolled_in_path(enrollment),
             date_of_determination: enrollment.DateOfPATHStatus,
             reason_not_enrolled: enrollment.ReasonNotEnrolled,
+            project_id: enrollment.project.id,
             project_type: enrollment.project.ProjectType,
             first_date_in_program: enrollment.EntryDate,
             last_date_in_program: enrollment.exit&.ExitDate,

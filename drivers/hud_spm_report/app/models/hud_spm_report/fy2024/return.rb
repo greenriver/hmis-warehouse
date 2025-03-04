@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -5,7 +7,7 @@
 ###
 
 module HudSpmReport::Fy2024
-  class Return < GrdaWarehouseBase
+  class Return < HudReports::ReportClientBase
     self.table_name = 'hud_report_spm_returns'
     include Detail
 
@@ -46,6 +48,10 @@ module HudSpmReport::Fy2024
       columns.map do |col|
         [col, header_label(col)]
       end.to_h
+    end
+
+    def project_id
+      exit_enrollment&.enrollment&.project_id || return_enrollment&.enrollment&.project_id
     end
 
     def compute_return(enrollments)

@@ -28,7 +28,10 @@
             - @headers.each_value do |header|
               %th= header
         %tbody.thead-dark
+          - current_user.policy_context.preload_project_dependencies(@clients.map(&:project_id).uniq) 
           - @clients.each.with_index do |client, i|
+            - pii_policy = current_user.policy_for(nil, policy_class: GrdaWarehouse::AuthPolicies::DefaultPiiPolicy)
+            - pii_policy = current_user.policy_for(client.project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if client.project_id
             %tr
               %th= i + 1
               - @headers.each_key do |k|
@@ -39,8 +42,8 @@
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - else
-                    = formatted_cell(cell_value(client, k), k)
-  = content_for :page_js do
+                    = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
+  = content_for :page_jexits do
     :javascript
       table = $('.datatable').DataTable({
         paging: false,

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -8,12 +10,12 @@
 module HudSpmReport::Generators::Fy2024
   class MeasureOne < MeasureBase
     def self.question_number
-      'Measure 1'.freeze
+      'Measure 1'
     end
 
     def self.client_class
       HudSpmReport::Fy2024::Episode.
-        joins(:enrollments).preload(:enrollments)
+        joins(:enrollments).preload(:enrollments, enrollments: { enrollment: :project })
     end
 
     def self.table_descriptions
