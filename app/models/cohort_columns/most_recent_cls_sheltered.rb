@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class MostRecentClsSheltered < ReadOnly
     attribute :column, String, lazy: true, default: :most_recent_cls_sheltered
@@ -23,6 +25,10 @@ module CohortColumns
     def text_value(cohort_client)
       # NOTE: while this relies exclusively on the Boston calculator, the calculator simply looks for CLS
       GrdaWarehouse::CasProjectClientCalculator::Boston.new.majority_sheltered(cohort_client.client) || false
+    end
+
+    def analytics_value
+      text_value(cohort_client)
     end
   end
 end
