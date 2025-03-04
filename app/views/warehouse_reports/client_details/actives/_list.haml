@@ -9,9 +9,16 @@
         %th Exit Date
     %tbody
       - list.preload(:client).each do |enrollment|
-        - client = enrollment.client
+        :ruby
+          client = enrollment.client
+          policy = current_user.policy_for(client)
+          pii = GrdaWarehouse::PiiProvider.new(client, policy: policy)
         %tr
-          %td= link_to_if current_user.can_view_clients?, "#{client.FirstName} #{client.LastName}", appropriate_client_path(id: client.id)
+          %td
+            - if policy.can_view?
+              = link_to pii.brief_name, appropriate_client_path(id: client.id)
+            -else
+              = pii.brief_name
           %td= HudUtility2024.project_type(enrollment.project_type)
           %td= enrollment.project.name(current_user)
           %td= enrollment.first_date_in_program

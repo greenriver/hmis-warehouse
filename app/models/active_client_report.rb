@@ -39,7 +39,7 @@ class ActiveClientReport
       with_service_between(start_date: @filter.start, end_date: @filter.end).
       open_between(start_date: @filter.start, end_date: @filter.end).
       distinct.
-      order(first_date_in_program: :asc)
+      order(first_date_in_program: :asc, last_date_in_program: :asc)
   end
 
   def residential_service_history_source

@@ -1318,8 +1318,16 @@ module GrdaWarehouse::Hud
       end
     end
 
-    memoize def pii_provider(user:)
-      policy = user.policy_for(self)
+    memoize def pii_provider(user:, context: :browse)
+      case context.to_sym
+      when :download
+        allowed = ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+        policy = allowed ? user.policy_for(self) : GrdaWarehouse::AuthPolicies::NullClientPolicy.instance
+      when :browse
+        policy = user.policy_for(self)
+      else
+        raise ArguementError, "Bad context #{context}"
+      end
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
     end
 
