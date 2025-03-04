@@ -36,7 +36,6 @@ class ActiveClientReport
 
   def enrollment_scope
     residential_service_history_source.joins(:client, :enrollment, :project).
-      includes(:client, :enrollment, :project).
       with_service_between(start_date: @filter.start, end_date: @filter.end).
       open_between(start_date: @filter.start, end_date: @filter.end).
       distinct.
