@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -32,19 +34,13 @@ class ActiveClientReport
     value
   end
 
-  # FIXME - these are not enrollments but grouped enrollments. Enrollments could be huge; unknown why this is memoized
-  def enrollments
-    @enrollments ||= active_client_service_history
-  end
-
-  def clients
-    @clients ||= GrdaWarehouse::Hud::Client.where(id: enrollments.keys).
-      preload(:source_clients).
-      index_by(&:id)
-  end
-
-  def active_client_service_history
-    enrollment_scope.distinct.group_by(&:client_id)
+  def unique_enrollments
+    id_subquery = residential_service_history_source.joins(:client, :enrollment, :project).
+      with_service_between(start_date: @filter.start, end_date: @filter.end).
+      open_between(start_date: @filter.start, end_date: @filter.end).
+      select('DISTINCT ON (service_history_enrollments.client_id) service_history_enrollments.id').
+      order(client_id: :asc, first_date_in_program: :desc) # order so that the most recent enrollment is chosen
+    GrdaWarehouse::ServiceHistoryEnrollment.where(id: id_subquery)
   end
 
   def enrollment_scope

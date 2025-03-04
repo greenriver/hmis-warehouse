@@ -9,7 +9,7 @@
 .row.mb-5
   .col-8
     %p
-      = "The following #{number_with_delimiter(@report.enrollments.count)} clients with #{number_with_delimiter(@report.enrollments.values.flatten(1).count)} enrollments, have at least one day of service between #{@filter.start} and #{@filter.end}."
+      = "The following #{number_with_delimiter(@report.unique_enrollments.count)} clients with #{number_with_delimiter(@report.enrollment_scope.count)} enrollments, have at least one day of service between #{@filter.start} and #{@filter.end}."
       %br
       This report was built to provide supporting details to the "Active Clients" section of the Population Dashboards.
   - if can_view_clients?
@@ -17,4 +17,4 @@
       = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: warehouse_reports_client_details_actives_path({format: :xlsx}.merge(link_params)), excel_download_tooltip: 'Download includes the following additional fields: Length of Stay (to-date), Living Situation, Destination, Race.'
 
 .my-5= render 'warehouse_reports/limited_by_project_note'
-= render_paginated_list(scope: @report.enrollment_scope, item_name: 'data set', list_partial: 'list')
+= render_paginated_list(scope: @report.unique_enrollments, item_name: 'data set', list_partial: 'list')
