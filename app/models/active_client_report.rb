@@ -32,6 +32,7 @@ class ActiveClientReport
     value
   end
 
+  # FIXME - these are not enrollments but grouped enrollments. Enrollments could be huge; unknown why this is memoized
   def enrollments
     @enrollments ||= active_client_service_history
   end
@@ -46,7 +47,7 @@ class ActiveClientReport
     enrollment_scope.distinct.group_by(&:client_id)
   end
 
-  private def enrollment_scope
+  def enrollment_scope
     residential_service_history_source.joins(:client, :enrollment, :project).
       includes(:client, :enrollment, :project).
       with_service_between(start_date: @filter.start, end_date: @filter.end).
