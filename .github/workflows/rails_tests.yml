@@ -36,7 +36,7 @@ jobs:
       matrix: ${{fromJson(needs.determine_matrix.outputs.matrix)}}
 
     # Containers must run in Linux based operating systems
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
