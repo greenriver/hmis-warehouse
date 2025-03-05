@@ -8,7 +8,7 @@
 
 # Some reports now require a pii policy. In cases where that is not available, this policy matches
 # the system behavior prior to this implementation, allowing all fields to be visible.
-class GrdaWarehouse::AuthPolicies::DefaultPiiPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
+class GrdaWarehouse::AuthPolicies::LegacyPiiPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
   [
     [:can_view_client_name, :can_view_name?],
     [:can_view_client_photo, :can_view_photo?],

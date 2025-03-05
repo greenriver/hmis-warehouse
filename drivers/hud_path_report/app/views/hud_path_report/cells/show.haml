@@ -25,7 +25,7 @@
         %tbody.thead-dark
           - current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id)) 
           - @clients.each.with_index do |client, i|
-            - pii_policy = current_user.policy_for(nil, policy_class: GrdaWarehouse::AuthPolicies::DefaultPiiPolicy)
+            - pii_policy = current_user.policy_for(nil, policy_class: GrdaWarehouse::AuthPolicies::LegacyPiiPolicy)
             - pii_policy = current_user.policy_for(client.project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if client.project_id
             %tr
               %th= i + 1

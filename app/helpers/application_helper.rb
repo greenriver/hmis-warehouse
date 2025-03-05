@@ -35,34 +35,28 @@ module ApplicationHelper
   def yes_no(boolean, include_icon: true, include_content_tag: true)
     return 'Not Specified' if boolean.nil?
 
-    case boolean
+    text = case boolean
     when true, 'Yes'
-      if include_content_tag
-        capture do
-          concat content_tag :span, nil, class: 'icon-checkmark o-color--positive' if include_icon
-          concat ' Yes'
-        end
-      else
-        'Yes'
-      end
+      'Yes'
     when false, 'No'
-      if include_content_tag
-        capture do
-          concat content_tag :span, nil, class: 'icon-cross o-color--danger' if include_icon
-          concat ' No'
-        end
-      else
-        'No'
-      end
+      'No'
     when 'Refused'
-      if include_content_tag
-        capture do
-          concat content_tag :span, nil, class: 'icon-warning o-color--warning' if include_icon
-          concat ' Refused/Unsure'
-        end
-      else
-        'Refused/Unsure'
-      end
+      'Refused/Unsure'
+    end
+    return text unless include_content_tag
+
+    css_classes = case text
+    when 'Yes'
+      'icon-checkmark o-color--positive'
+    when 'No'
+      'icon-cross o-color--danger'
+    when 'Refused/Unsure'
+      'icon-warning o-color--warning'
+    end
+
+    capture do
+      concat content_tag :span, nil, class: css_classes if include_icon
+      concat " #{text}"
     end
   end
 
@@ -166,7 +160,7 @@ module ApplicationHelper
     value = number.to_s.gsub(HudUtility2024::SSN_RGX, 'XXX-XX-\3')
     return value unless include_content_tag
 
-    ActionController::Base.helpers.content_tag :span, number.to_s.gsub(HudUtility2024::SSN_RGX, 'XXX-XX-\3')
+    content_tag :span, number.to_s.gsub(HudUtility2024::SSN_RGX, 'XXX-XX-\3')
   end
 
   def beautify_option(_key, value)

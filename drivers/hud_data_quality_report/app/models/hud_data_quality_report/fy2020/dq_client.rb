@@ -44,9 +44,5 @@ module HudDataQualityReport::Fy2020
 
       detail_headers.except('first_name', 'last_name', 'dob', 'ssn')
     end
-
-    def display_value(col, pii_policy:, include_content_tag: true)
-      super
-    end
   end
 end

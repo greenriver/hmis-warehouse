@@ -32,7 +32,7 @@
               %th= header
         %tbody.thead-dark
           - records.each.with_index do |record, i|
-            - pii_policy = current_user.policy_for(nil, policy_class: GrdaWarehouse::AuthPolicies::DefaultPiiPolicy)
+            - pii_policy = current_user.policy_for(nil, policy_class: GrdaWarehouse::AuthPolicies::LegacyPiiPolicy)
             - pii_policy = current_user.policy_for(record.project_id.to_i, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if record.project_id
             %tr
               %th= i + 1
