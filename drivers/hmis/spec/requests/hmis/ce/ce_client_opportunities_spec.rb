@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
@@ -101,10 +103,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               status
               expiresAt
               candidates {
-                id
-                priorityScore
-                client {
+                nodes {
                   id
+                  priorityScore
+                  client {
+                    id
+                  }
                 }
               }
             }
@@ -139,8 +143,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(opportunity_ids).not_to include(closed_opportunity.id.to_s)
 
         first_opportunity = opportunities.first
-        expect(first_opportunity['candidates']).to be_an(Array)
-        expect(first_opportunity['candidates'].first).to include(
+        expect(first_opportunity['candidates']['nodes']).to be_an(Array)
+        expect(first_opportunity['candidates']['nodes'].first).to include(
           'priorityScore' => kind_of(Integer),
           'client' => { 'id' => client.id.to_s },
         )
