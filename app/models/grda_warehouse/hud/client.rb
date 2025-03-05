@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 require 'memery'
 require 'restclient'
 
@@ -28,6 +30,7 @@ module GrdaWarehouse::Hud
     include ClientSearch
     include ClientImageConsumer
     include VeteranStatusCalculator
+    include ClientRaceAndEthnicityMixin
     include NotifierConfig
     has_paper_trail
 
@@ -213,7 +216,7 @@ module GrdaWarehouse::Hud
     has_many :window_notes, class_name: 'GrdaWarehouse::ClientNotes::WindowNote'
     has_many :anomaly_notes, class_name: 'GrdaWarehouse::ClientNotes::AnomalyNote'
     has_many :cohort_notes, class_name: 'GrdaWarehouse::ClientNotes::CohortNote'
-    has_many :alert_notes, class_name: 'GrdaWarehouse::ClientNotes::Alert'
+    has_many :alert_notes, -> { active }, class_name: 'GrdaWarehouse::ClientNotes::Alert'
 
     has_many :anomalies, class_name: 'GrdaWarehouse::Anomaly'
 
@@ -756,26 +759,6 @@ module GrdaWarehouse::Hud
       names = source_clients.map(&:full_name).uniq
       names -= [full_name]
       names.join(',')
-    end
-
-    def client_names(user:, health: false)
-      names = source_clients_searchable_to(user).map do |client|
-        {
-          ds: client.data_source&.short_name,
-          ds_id: client.data_source&.id,
-          name: client.pii_provider(user: user).full_name,
-          health: client.data_source&.authoritative_type == 'health',
-        }
-      end
-
-      if health && names.none? { |name| name[:health].present? } && patient.present?
-        names << {
-          ds: 'Health',
-          ds_id: GrdaWarehouse::DataSource.health_authoritative_id,
-          name: patient.pii_provider(user: user).brief_name,
-        }
-      end
-      names.uniq
     end
 
     # client has a disability response in the affirmative

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class BaseJob < ApplicationJob
   include NotifierConfig
 
@@ -39,14 +41,22 @@ class BaseJob < ApplicationJob
 
     def before_handler(job)
       self.start_time = Time.current
-      DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: job.queue_name, priority: job.priority, status: 'started', job_name: job.class.name })
+      DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: job_queue_name(job), priority: job.priority, status: 'started', job_name: job.class.name })
     end
 
     def after_handler(job)
-      DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: job.queue_name, priority: job.priority, status: 'success', job_name: job.class.name })
+      DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: job_queue_name(job), priority: job.priority, status: 'success', job_name: job.class.name })
       DjMetrics.instance.dj_job_run_length_seconds_metric.observe(Time.current - start_time, labels: { job_name: job.class.name })
       # This causes an exception related to string encoding that I couldn't figure out
       # DjMetrics.instance.refresh_queue_sizes!
+    end
+
+    # Normalize the queue name so calling the job through .perform_later and Delayed::Job.enqueue
+    # are both able to determine the appropriate queue
+    private def job_queue_name(job)
+      return job.queue_name if job.respond_to?(:queue_name)
+
+      job.queue
     end
   end
 

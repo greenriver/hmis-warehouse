@@ -4,6 +4,8 @@ class RemoveCurrentLivingSituationVerifiedByLimit3 < ActiveRecord::Migration[7.0
   # 1. Drop the view
   # 2. Modify the column size
   # 3. Recreate the view
+
+  # No longer in use
   def up
     # # Bi::ViewMaintainer.new.safe_create_role
     # Bi::ViewMaintainer.new.non_client_view(GrdaWarehouse::Hud::CurrentLivingSituation)

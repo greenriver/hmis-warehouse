@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 # ### HIPAA Risk Assessment
 # Risk: Relates to a patient and contains PHI
 # Control: PHI attributes documented

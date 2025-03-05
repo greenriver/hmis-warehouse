@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 # Currently this is 1:1 with client records; it is automatically generated from canonical ROIs attrs the client
 # However in the future we plan to support multiple ROIs and this will likely become the canonical source for ROI
 module GrdaWarehouse

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 require 'rails_helper'
 
 RSpec.describe 'Applies overrides as expected', type: :model do
@@ -137,6 +139,10 @@ RSpec.describe 'Applies overrides as expected', type: :model do
       expect(override.applies?(funder.attributes)).to eq(false)
       # No change
       expect(override.apply(funder).Funder).to eq('2')
+    end
+
+    it 'Updates last_used_on' do
+      expect(HmisCsvImporter::ImportOverride.pluck(:last_used_on).uniq).to include(Date.current)
     end
   end
 

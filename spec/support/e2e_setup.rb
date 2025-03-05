@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: false
+
 if ENV['RUN_SYSTEM_TESTS']
   require_relative './e2e_tests'
   E2eTests::Setup.perform
@@ -109,6 +117,10 @@ RSpec.shared_context 'SystemSpecHelper' do
 
   def mui_expect_selected_tab(tab_selector)
     expect(page).to have_css("#{tab_selector}[role=\"tab\"][aria-selected=\"true\"]")
+  end
+
+  def mui_click_menu_item(label)
+    find("[role='menuitem']", text: label).click
   end
 
   def with_hidden

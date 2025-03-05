@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 module ClientAccessControl
   class EnrollmentArbiter
     include ArelHelper
@@ -109,26 +111,31 @@ module ClientAccessControl
       client_scope.where(where_clause)
     end
 
+    # @param user [User] user to use for to determine authorized searchable clients
+    # @param client_ids [Array<ids>] source client ids, restricts returned scope
     # Access to client in search results via:
     # 1. Enrollment at project where appropriate permission has been passed and the user has matching access control
     # 2. Client has an ROI that would expose data to this user via an access control
     # 3. authoritative data source directly assigned to user (these have no enrollments/projects)
     private def searchable_client_scope(user, client_ids: nil)
+      client_ids = client_ids.presence
       client_scope = unscoped_clients.source
-      client_scope = client_scope.where(id: client_ids) if client_ids.present?
+      client_scope = client_scope.where(id: client_ids) if client_ids
 
       # Active Record is doing some odd things with some of these, and sometimes
       # "none" is returning as "" which blows things up terribly.
-      from_assigned_projects_query = searchable_enrollments_from_access_controls(user).joins(:client).select(c_t[:id]).to_sql
-      from_rois_query = searchable_enrollments_from_rois(user).joins(:client).select(c_t[:id]).to_sql
-      from_authoritative_ds = authoritative_viewable_ds_ids(user, permission: :can_search_own_clients)
+      union_parts = [
+        searchable_enrollments_from_access_controls(user).joins(:client),
+        searchable_enrollments_from_rois(user).joins(:client),
+      ]
+      from_authoritative_ds = authoritative_viewable_ds_ids(user, permission: :can_search_own_clients).presence
+      union_parts << client_scope.where(c_t[:data_source_id].in(from_authoritative_ds)) if from_authoritative_ds
+      union_sql = union_parts.compact.map do |scope|
+        scope = scope.where(c_t[:id].in(client_ids)) if client_ids
+        scope.select(c_t[:id]).to_sql
+      end.join(' UNION ')
 
-      where_clause = c_t[:id].in([]) # generates 1=0
-      where_clause = where_clause.or(c_t[:id].in(Arel.sql(from_assigned_projects_query))) if from_assigned_projects_query.present?
-      where_clause = where_clause.or(c_t[:id].in(Arel.sql(from_rois_query))) if from_rois_query.present?
-      where_clause = where_clause.or(c_t[:data_source_id].in(from_authoritative_ds)) if from_authoritative_ds.any?
-
-      client_scope.where(where_clause)
+      client_scope.where(Arel.sql("#{c_t[:id].to_sql} IN (#{union_sql})"))
     end
 
     # Given a user, access controls, and consent status of clients

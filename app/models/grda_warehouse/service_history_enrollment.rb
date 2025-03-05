@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -11,6 +13,7 @@
 #   created by GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
 class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   include RailsDrivers::Extensions
+  include ClientRaceAndEthnicityMixin
   include ArelHelper
 
   alias_attribute :entry_date, :first_date_in_program

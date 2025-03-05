@@ -278,7 +278,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -6909,7 +6909,8 @@ CREATE TABLE public.client_notes (
     sent_at timestamp without time zone,
     alert_active boolean DEFAULT true NOT NULL,
     service_id bigint,
-    project_id bigint
+    project_id bigint,
+    expiration_date date
 );
 
 
@@ -18456,7 +18457,8 @@ CREATE TABLE public.hmis_csv_importer_logs (
     completed_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    upload_id integer
+    upload_id integer,
+    phase_metrics jsonb
 );
 
 
@@ -22086,7 +22088,8 @@ CREATE TABLE public.import_overrides (
     deleted_at timestamp without time zone,
     description character varying,
     created_by bigint,
-    expires_on date
+    expires_on date,
+    last_used_on date
 );
 
 
@@ -52438,6 +52441,12 @@ CREATE UNIQUE INDEX idx_tpc_uniqueness ON public.enrollment_extras USING btree (
 
 
 --
+-- Name: idx_youth_eds_hud_keys; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_youth_eds_hud_keys ON public."YouthEducationStatus" USING btree ("EnrollmentID", data_source_id, "PersonalID");
+
+--
 -- Name: income_benefits_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -65845,6 +65854,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250117174547'),
 ('20250121204933'),
 ('20250203142317'),
-('20250213173031');
+('20250213173031'),
+('20250221151129'),
+('20250222234500'),
+('20250226211623'),
+('20250226212117'),
+('20250226145730');
 
 

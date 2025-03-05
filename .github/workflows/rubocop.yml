@@ -1,6 +1,6 @@
 name: Rubocop
 on:
-  push:
+  pull_request:
     branches:
       - '*'
       - '**/*'
@@ -12,10 +12,10 @@ jobs:
   rubocop:
     name: Rubocop
     # Containers must run in Linux based operating systems
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     # Docker Hub image that the job executes in
-    container: ruby:3.1.6-alpine3.20
+    container: ruby:3.3.7-alpine3.20
     steps:
       - uses: actions/checkout@v4
 
