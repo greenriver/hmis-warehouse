@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
@@ -83,14 +85,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             status
             expiresAt
             candidates {
-              id
-              priorityScore
-              client {
+              nodes {
                 id
-                firstName
-                lastName
-                dateOfBirth: dob
-                veteranStatus
+                priorityScore
+                client {
+                  id
+                  firstName
+                  lastName
+                  dateOfBirth: dob
+                  veteranStatus
+                }
               }
             }
             activeReferral {
@@ -119,7 +123,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'status' => opportunity.status,
         )
 
-        candidates = result.dig('data', 'ceOpportunity', 'candidates')
+        candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
 
         expect(candidates).to be_an(Array)
         expect(candidates.length).to eq(2) # Should only include 2 candidates (excluding the one with active referral)
@@ -146,7 +150,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'excludes clients with active referrals' do
         _, result = post_graphql(**variables) { query }
-        candidates = result.dig('data', 'ceOpportunity', 'candidates')
+        candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
 
         candidate_client_ids = candidates.map { |c| c.dig('client', 'id') }
         expect(candidate_client_ids).not_to include(client_with_active_referral.id.to_s)
@@ -174,7 +178,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'returns an empty candidates array' do
         _, result = post_graphql(**empty_pool_variables) { query }
-        candidates = result.dig('data', 'ceOpportunity', 'candidates')
+        candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
 
         expect(candidates).to be_an(Array)
         expect(candidates).to be_empty

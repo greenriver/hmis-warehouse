@@ -113,6 +113,7 @@ module Types
     field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false, description: 'Occurrence Point data collection features that are enabled for this Project (e.g. Current Living Situations, Events)'
     field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, method: :occurrence_point_form_instances, description: 'Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)'
     field :service_types, [Types::HmisSchema::ServiceType], null: false, method: :available_service_types, description: 'Service types that are collected for this Project'
+    field :ce_opportunities, Types::HmisSchema::CeOpportunity.page_type, null: false
 
     def hud_id
       object.project_id
@@ -250,6 +251,12 @@ module Types
       form_definition_identifier = args.delete(:form_definition_identifier)
       scope = scope.where(definition: { identifier: form_definition_identifier }) if form_definition_identifier
       resolve_external_form_submissions(scope, **args)
+    end
+
+    def ce_opportunities
+      raise unless Hmis::Ce.configuration.enabled?
+
+      load_ar_association(object, :ce_opportunities)
     end
 
     private def check_enrollment_details_access

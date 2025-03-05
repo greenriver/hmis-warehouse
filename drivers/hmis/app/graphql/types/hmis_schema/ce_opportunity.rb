@@ -13,17 +13,22 @@ module Types
     field :status, String, null: false
     field :expires_at, GraphQL::Types::ISO8601DateTime, null: true
     field :active_referral, Types::HmisSchema::CeReferral, null: true
-    field :candidates, [Types::HmisSchema::CeCandidate], null: false
+    field :accepted_referral, Types::HmisSchema::CeReferral, null: true
+    field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false
+    field :project_id, ID, null: false
 
     def candidates
       Hmis::Ce::Match::Candidate.
         for_opportunity(object).
-        order(priority_score: :desc, client_id: :desc).
-        limit(50) # FIXME: add pagination. Just limit to top 50 for now
+        order(priority_score: :desc, client_id: :desc)
     end
 
     def active_referral
       object.referrals.order(:id).viewable_by(current_user).active.first
+    end
+
+    def accepted_referral
+      object.referrals.order(:id).viewable_by(current_user).accepted.first
     end
   end
 end

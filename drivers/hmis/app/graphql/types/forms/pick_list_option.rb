@@ -161,6 +161,13 @@ module Types
           pluck(:OtherFunder).uniq.sort.map do |other_funder|
             { code: other_funder, label: other_funder }
           end
+      when 'WORKFLOW_DEFINITION_TEMPLATES'
+        return [] unless Hmis::Ce.configuration.enabled?
+
+        # FIXME - templates are shared across data sources. For now this is acceptable since GR manages templates
+        Hmis::WorkflowDefinition::Template.all.map do |template|
+          { code: template.id, label: template.name }
+        end
       end
     end
 

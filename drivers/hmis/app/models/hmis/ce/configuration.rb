@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # accessor API for CE configuration
 module Hmis::Ce
   class Configuration
@@ -27,11 +29,11 @@ module Hmis::Ce
     def values
       @values ||= AppConfigProperty.
         where(key: PROPERTIES.map { |attr| key_for(attr) }).
-        index_by { |p| p.key.to_sym }
+        index_by(&:key)
     end
 
-    def value_for(_attr)
-      values[key_for(:enabled)]
+    def value_for(attr)
+      values[key_for(attr)]
     end
 
     def key_for(attr)

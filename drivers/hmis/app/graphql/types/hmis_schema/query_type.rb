@@ -294,11 +294,13 @@ module Types
         root_can perm
       end
       field :can_view_my_dashboard, Boolean, null: false
+      field :can_view_coordinated_entry, Boolean, null: false
     end
 
     def access
       {
         can_view_my_dashboard: current_user.can_view_my_dashboard?,
+        can_view_coordinated_entry: Hmis::Ce.configuration.enabled?,
       }
     end
 

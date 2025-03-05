@@ -51,5 +51,6 @@ module Types
     value 'ELIGIBLE_STAFF_ASSIGNMENT_USERS', 'Current users who are eligible for staff assignment'
     value 'AUDITABLE_USERS', 'Current and historical user accounts'
     value 'CONTINUUM_PROJECTS', 'Continuum Projects'
+    value 'WORKFLOW_DEFINITION_TEMPLATES', 'Templates for CE workflow definitions'
   end
 end
