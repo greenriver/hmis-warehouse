@@ -1,0 +1,6 @@
+UserID,UserFirstName,UserLastName,UserPhone,UserExtension,UserEmail,DateCreated,DateUpdated,DateDeleted,ExportID
+"23","J","Faker",,,"j.faker@example.com",2020-08-17 17:43:50,2025-02-04 11:20:45,,"8251"
+"278","K","Faker",,,"k.faker@example.com",2020-09-04 06:40:58,2025-01-08 11:10:40,,"8251"
+"733","DD","Faker",,,"dd.faker@example.com",2020-12-22 13:16:17,2025-01-08 10:20:01,,"8251"
+"899","JJ","Faker",,,"jj.faker@example.com",2021-09-17 09:58:45,2025-02-04 17:23:51,,"8251"
+"1226","M","Faker",,,"m.faker@example.com",2023-02-01 16:35:25,2024-11-18 15:31:19,,"8251"
