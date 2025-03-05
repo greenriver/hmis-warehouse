@@ -52,7 +52,7 @@ module ReportGenerators::DataQuality::Fy2017
         project_name: she_t[:project_name],
         RelationshipToHoH: e_t[:RelationshipToHoH],
         household_id: she_t[:household_id],
-        CoCCode: ec_t[:CoCCode],
+        CoCCode: e_t[:enrollment_coc],
         DisablingCondition: e_t[:DisablingCondition],
       }
     end
@@ -65,7 +65,7 @@ module ReportGenerators::DataQuality::Fy2017
     def client_batch_scope
       active_client_scope.
         distinct.
-        includes(enrollment: :enrollment_coc_at_entry).
+        includes(:enrollment).
         joins(:project)
     end
 

@@ -42,6 +42,9 @@ Rails.application.configure do
     config.cache_store = :redis_cache_store, redis_config
   end
 
+  # it is helpful to turn off caching for development
+  config.cache_store = :null_store if ENV.fetch('DISABLE_RAILS_CACHE', 'false') == 'true'
+
   # Store uploaded files on the local file system (see config/storage.yml for options).
   # config.active_storage.service = :local
   # Store files on local Amazon S3.

@@ -28,8 +28,8 @@ module PerformanceDashboard::Household::Coc
   end
 
   def coc_query(key)
-    return '0=1' unless key
+    return '0=1' unless key.present?
 
-    ec_t[:CoCCode].eq(key.to_s)
+    e_t[:enrollment_coc].eq(key.to_s)
   end
 end

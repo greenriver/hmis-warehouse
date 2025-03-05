@@ -212,7 +212,6 @@ module HudPit::Generators::Pit::Fy2024
           enrollment: [
             :disabilities,
             :project,
-            :enrollment_coc_at_entry,
             :health_and_dvs,
             :exit,
           ],

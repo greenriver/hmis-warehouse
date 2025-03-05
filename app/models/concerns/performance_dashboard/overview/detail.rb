@@ -126,7 +126,7 @@ module PerformanceDashboard::Overview::Detail
     end
     columns['Project Type'] = she_t[project_type_col] if options[:project_type]
     columns['Days Homeless Last Three Years'] = wcp_t[:days_homeless_last_three_years] if options[:lot_homeless]
-    columns['CoC'] = ec_t[:CoCCode] if options[:coc]
+    columns['CoC'] = e_t[:enrollment_coc] if options[:coc]
     columns
   end
 end
