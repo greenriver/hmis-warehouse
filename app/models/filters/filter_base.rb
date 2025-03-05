@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -10,7 +12,6 @@ module Filters
     include AvailableSubPopulations
     include ArelHelper
     include ApplicationHelper
-    include Filter::FilterScopes
     include ActionView::Helpers::TagHelper
     include ActionView::Context
 
@@ -546,6 +547,8 @@ module Filters
       all_project_scope.where(id: effective_project_ids)
     end
 
+    # This filter supports project-level reports (as opposed to enrollment-level);
+    # it's also used in non-reporting context by project group
     def effective_project_ids
       @effective_project_ids ||= begin
         project_ids = effective_project_ids_from_projects
@@ -565,6 +568,7 @@ module Filters
       effective_project_ids.reject { |m| m&.zero? }.present?
     end
 
+    # This filter supports project-level reports (as opposed to enrollment-level)
     def anded_effective_project_ids
       @anded_effective_project_ids ||= begin
         ids = []
@@ -574,73 +578,47 @@ module Filters
         ids << effective_project_ids_from_data_sources
         ids << effective_project_ids_from_coc_codes
         ids << effective_project_ids_from_project_types
+
         ids.reject(&:empty?).reduce(&:&)
       end
     end
 
+    def apply_criteria(scope, tags:, except: [], **opts)
+      # default configuration options.
+      defaults = {
+        project_types: @project_types,
+        all_project_types: nil,
+        include_date_range: true,
+        chronic_at_entry: true,
+        report_scope_source: nil,
+        join_clients_method: :client,
+      }
+      config = ::Filters::Criteria::Configuration.new(**defaults.merge(opts))
+
+      # instantiate criteria
+      criteria = ::Filters::Criteria.classes_for_tags(tags).map do |criteria_class|
+        criteria_class.new(input: self, config: config)
+      end
+
+      # remove any explicitly excluded criteria.
+      criteria.reject! { |c| except.include?(c.id) } if except.any?
+
+      # apply only criteria that are applicable.
+      criteria.filter(&:applies?).reduce(scope) do |result, criterion|
+        criterion.apply(result)
+      end
+    end
+
     # Apply all known scopes
-    # NOTE: by default we use coc_codes, if you need to filter by the coc_code singular, take note
-    def apply(scope, report_scope_source, all_project_types: nil, multi_coc_code_filter: true, include_date_range: true, chronic_at_entry: true)
-      @report_scope_source = report_scope_source
-      @filter = self
-
-      scope = apply_project_level_restrictions(scope, all_project_types: all_project_types, multi_coc_code_filter: multi_coc_code_filter, include_date_range: include_date_range)
-      scope = apply_client_level_restrictions(scope, chronic_at_entry: chronic_at_entry)
-      scope
-    end
-
-    def apply_client_level_restrictions(scope, chronic_at_entry: true)
-      @filter = self
-      scope = filter_for_household_type(scope)
-      scope = filter_for_head_of_household(scope)
-      scope = filter_for_age(scope)
-      scope = filter_for_gender(scope)
-      scope = filter_for_race(scope)
-      scope = filter_for_veteran_status(scope)
-      scope = filter_for_sub_population(scope)
-      scope = filter_for_prior_living_situation(scope)
-      scope = filter_for_destination(scope)
-      scope = filter_for_disabilities(scope)
-      scope = filter_for_indefinite_disabilities(scope)
-      scope = filter_for_dv_status(scope)
-      scope = filter_for_dv_currently_fleeing(scope)
-      scope = if chronic_at_entry
-        filter_for_chronic_at_entry(scope)
-      else
-        filter_for_chronic_status(scope)
-      end
-      scope = filter_for_rrh_move_in(scope)
-      scope = filter_for_psh_move_in(scope)
-      scope = filter_for_first_time_homeless_in_past_two_years(scope)
-      scope = filter_for_returned_to_homelessness_from_permanent_destination(scope)
-      scope = filter_for_ca_homeless(scope)
-      scope = filter_for_ce_cls_homeless(scope)
-      scope = filter_for_cohorts(scope)
-      scope = filter_for_active_roi(scope)
-      scope = filter_for_times_homeless(scope)
-      scope = filter_for_days_since_contact(scope)
-      scope
-    end
-
-    def apply_project_level_restrictions(scope, all_project_types: nil, multi_coc_code_filter: true, include_date_range: true)
-      @filter = self
-      scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope) if include_date_range
-      scope = if multi_coc_code_filter
-        filter_for_cocs(scope)
-      else
-        filter_for_coc(scope)
-      end
-      scope = filter_for_project_type(scope, all_project_types: all_project_types)
-      scope = filter_for_projects(scope)
-      scope = filter_for_funders(scope)
-      scope = filter_for_data_sources(scope)
-      scope = filter_for_organizations(scope)
-      scope
-    end
-
-    def report_scope_source
-      @report_scope_source ||= GrdaWarehouse::ServiceHistoryEnrollment.entry
+    def apply(scope, report_scope_source, all_project_types: nil, include_date_range: true, chronic_at_entry: true)
+      apply_criteria(
+        scope,
+        tags: [:warehouse],
+        report_scope_source: report_scope_source,
+        all_project_types: all_project_types,
+        include_date_range: include_date_range,
+        chronic_at_entry: chronic_at_entry,
+      )
     end
 
     def all_projects?
@@ -984,67 +962,6 @@ module Filters
 
     def available_age_ranges
       self.class.available_age_ranges
-    end
-
-    def self.age_range(description)
-      case description
-      when :zero_to_four
-        0..4
-      when :five_to_nine
-        5..9
-      when :five_to_ten
-        5..10
-      when :ten_to_fourteen
-        10..14
-      when :eleven_to_fourteen
-        11..14
-      when :fifteen_to_seventeen
-        15..17
-      when :under_eighteen
-        0..17
-      when :eighteen_to_twenty_four
-        18..24
-      when :twenty_five_to_twenty_nine
-        25..29
-      when :twenty_five_to_thirty_four
-        25..34
-      when :thirty_to_thirty_four
-        30..34
-      when :thirty_five_to_thirty_nine
-        35..39
-      when :thirty_five_to_forty_four
-        35..44
-      when :thirty_to_thirty_nine
-        30..39
-      when :forty_to_forty_four
-        40..44
-      when :forty_five_to_forty_nine
-        45..49
-      when :forty_five_to_fifty_four
-        45..54
-      when :forty_to_forty_nine
-        40..49
-      when :fifty_to_fifty_four
-        50..54
-      when :fifty_five_to_fifty_nine
-        55..59
-      when :fifty_five_to_sixty_four
-        55..64
-      when :sixty_to_sixty_one
-        60..61
-      when :sixty_two_to_sixty_four
-        62..64
-      when :over_sixty_one
-        62..110
-      when :over_sixty_four
-        65..110
-      when :sixty_five_to_seventy_four
-        65..74
-      when :seventy_five_to_eighty_four
-        75..84
-      when :eighty_five_plus
-        85..110
-      end
     end
 
     def available_inactivity_days
