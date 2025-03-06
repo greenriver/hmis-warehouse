@@ -308,36 +308,56 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  describe 'AVAILABLE_UNITS_FOR_ENROLLMENT' do
+  describe 'unit picklists' do
     let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-    let!(:un1) { create :hmis_unit, project: p1 }
-    let!(:un2) { create :hmis_unit, project: p1 }
-    let!(:un3) { create :hmis_unit } # in another project
+    let!(:br1) { create :hmis_unit_type, description: '1 BR' }
+    let!(:br2) { create :hmis_unit_type, description: '2 BR' }
+
+    let!(:un1) { create :hmis_unit, project: p1, unit_type: br1 }
+    let!(:un2) { create :hmis_unit, project: p1, unit_type: br1 }
+    let!(:un3) { create :hmis_unit, project: p1, unit_type: br2 }
+
+    # cruft: units in other projects
+    let!(:un4) { create :hmis_unit, unit_type: br1 }
+    let!(:un5) { create :hmis_unit, unit_type: br2 }
+    let!(:un6) { create :hmis_unit }
 
     # assign e1 to un1
     let!(:uo1) { create :hmis_unit_occupancy, unit: un1, enrollment: e1, start_date: 1.week.ago }
 
-    def picklist_option_codes(project, household_id = nil)
+    def picklist_option_codes(project, picklist: 'AVAILABLE_UNITS_FOR_ENROLLMENT', household_id: nil)
       Types::Forms::PickListOption.options_for_type(
-        'AVAILABLE_UNITS_FOR_ENROLLMENT',
+        picklist,
         user: hmis_user,
         project_id: project.id,
         household_id: household_id,
       ).map { |opt| opt[:code] }
     end
 
-    it 'resolves available units for project' do
-      expect(picklist_option_codes(p1)).to contain_exactly(un2.id)
+    context 'AVAILABLE_UNITS_FOR_ENROLLMENT' do
+      it 'resolves available units for project' do
+        expect(picklist_option_codes(p1)).to contain_exactly(un2.id, un3.id)
+      end
+
+      it 'includes units that are currently occupied by the household, plus other units of the same type' do
+        result = picklist_option_codes(p1, household_id: e1.household_id)
+        expect(result).to contain_exactly(un1.id, un2.id)
+      end
+
+      it 'if household unit doesn\'t have a type, includes all available units' do
+        un1.update!(unit_type: nil)
+        expect(picklist_option_codes(p1, household_id: e1.household_id)).to contain_exactly(un1.id, un2.id, un3.id)
+      end
     end
 
-    it 'includes units that are currently occupied by the household' do
-      expect(picklist_option_codes(p1, e1.household_id)).to contain_exactly(un1.id, un2.id)
-    end
+    context 'ADMIN_AVAILABLE_UNITS_FOR_ENROLLMENT' do
+      it 'resolves available units for project' do
+        expect(picklist_option_codes(p1)).to contain_exactly(un2.id, un3.id)
+      end
 
-    it 'if household is occupied by a unit that has a type, excludes other unit typoes from list' do
-      un1.unit_type = create(:hmis_unit_type)
-      un1.save!
-      expect(picklist_option_codes(p1, e1.household_id)).to contain_exactly(un1.id)
+      it 'includes units with differing unit types' do
+        expect(picklist_option_codes(p1, picklist: 'ADMIN_AVAILABLE_UNITS_FOR_ENROLLMENT', household_id: e1.household_id)).to contain_exactly(un1.id, un2.id, un3.id)
+      end
     end
   end
 

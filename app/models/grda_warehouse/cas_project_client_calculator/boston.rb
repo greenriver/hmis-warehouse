@@ -33,6 +33,10 @@ module GrdaWarehouse::CasProjectClientCalculator
       end
     end
 
+    def handles_days_homeless?
+      true
+    end
+
     def unrelated_columns
       [
         :vispdat_score,
@@ -61,7 +65,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         cas_assessment_collected_at: 'Date the assessment was collected', # note this is really just assessment_collected_at
         majority_sheltered: 'Most recent current living situation was sheltered',
         assessment_score_for_cas: 'Days homeless in the past 3 years for pathways, score for transfer assessments',
-        tie_breaker_date: 'Date pathways was collected, or Financial Assistance End Date for transfer assessments',
+        tie_breaker_date: 'Date pathways was collected for Pathways 2023, First Date Homeless for Pathways 2024, or Financial Assistance End Date for Transfer Assessments',
         financial_assistance_end_date: 'Latest Date Eligible for Financial Assistance response from the most recent pathways assessment',
         assessor_first_name: 'First name of the user who completed the most recent pathways assessment',
         assessor_last_name: 'Last name of the user who completed the most recent pathways assessment',
@@ -73,6 +77,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         days_homeless_for_vispdat_prioritization: 'Unused',
         hiv_positive: 'HIV/AIDS response from the most recent pathways assessment',
         meth_production_conviction: 'Meth production response from the most recent pathways assessment',
+        lifetime_sex_offender: 'Registered sex offender (level 1,2,3) - lifetime registration (SORI)',
         requires_wheelchair_accessibility: 'Does the client need a wheelchair accessible unit response from the most recent pathways assessment',
         income_maximization_assistance_requested: 'Did the client request income maximization services response from the most recent pathways assessment',
         sro_ok: 'Is the client ok with an SRO response from the most recent pathways assessment',
@@ -94,7 +99,6 @@ module GrdaWarehouse::CasProjectClientCalculator
         hiv_positive: 'c_housing_HIV',
         income_maximization_assistance_requested: 'c_interest_income_max',
         sro_ok: 'c_singleadult_sro',
-        evicted: 'c_pathways_barrier_eviction',
         rrh_desired: 'c_interested_rrh',
         housing_barrier: 'c_pathways_barriers_yn',
       }.freeze
@@ -143,6 +147,13 @@ module GrdaWarehouse::CasProjectClientCalculator
         :calculated_homeless_nights_unsheltered,
         :total_homeless_nights_sheltered,
         :total_homeless_nights_unsheltered,
+        :date_of_first_service,
+        :psh_required,
+        :meth_production_conviction,
+        :lifetime_sex_offender,
+        :evicted,
+        :days_homeless,
+        :hmis_days_homeless_all_time,
       ]
     end
     # memoize :pathways_questions
@@ -183,6 +194,23 @@ module GrdaWarehouse::CasProjectClientCalculator
       return true if conviction
 
       # Otherwise, unknown
+      nil
+    end
+
+    private def lifetime_sex_offender(client)
+      most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_transfer_barrier_SORI', '1').present?
+    end
+
+    private def evicted(client)
+      evicted = most_recent_pathways_or_transfer(client).question_matching_requirement('c_pathways_barrier_meth', '1').present?
+      return true if evicted
+
+      evicted = most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_transfer_barrier_PHAterm', '1').present?
+      return true if evicted
+
+      # Otherwise unknown
       nil
     end
 
@@ -321,6 +349,18 @@ module GrdaWarehouse::CasProjectClientCalculator
       pre_calculated_days
     end
 
+    # Overrides the usual calculation for first date homeless if available
+    # If the question doesn't exist on the assessment or is empty, use the usual definition
+    private def date_of_first_service(client)
+      field_name = 'c_pathways_first_date_homeless'
+      answer = most_recent_pathways_or_transfer(client).
+        question_matching_requirement(field_name)&.AssessmentAnswer
+
+      return client.date_of_first_service if answer.blank?
+
+      answer.to_date
+    end
+
     # If a client has more than 548 self-reported days (combination of sheltered and unsheltered)
     # and does not have a verification uploaded, count unsheltered days first, then count sheltered days UP TO 548.
     # If the self reported days are verified, use the provided amounts.
@@ -396,10 +436,44 @@ module GrdaWarehouse::CasProjectClientCalculator
         question_matching_requirement('c_pathways_nights_sheltered_warehouse_added_total')&.AssessmentAnswer.to_i || 0
     end
 
+    # all-time days homeless
+    def days_homeless(client)
+      overall_nights_homeless(client)
+    end
+
+    # this seems to be calculated many different ways
+    def hmis_days_homeless_all_time(client)
+      overall_nights_homeless(client)
+    end
+
+    private def overall_nights_homeless(client)
+      most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_new_boston_homeless_nights_total')&.AssessmentAnswer.to_i ||
+          client.days_homeless
+    end
+
     private def default_shelter_agency_contacts(client)
       contact_emails = client.client_contacts.shelter_agency_contacts.where.not(email: nil).pluck(:email)
       contact_emails << client.source_assessments.max_by(&:assessment_date)&.user&.user_email
       contact_emails.compact.uniq
+    end
+
+    # 0 = No PSH
+    # 1 = PSH required
+    # 2 = Either
+    # Default to either if we don't have an answer
+    # CAS uses `yes`, `no`, `maybe` strings
+    private def psh_required(client)
+      value = most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_rrh_transfer_needs_subsidized_housing_resource')&.AssessmentAnswer.to_i || 2
+      case value
+      when 0
+        'no'
+      when 1
+        'yes'
+      else
+        'maybe'
+      end
     end
 
     private def contact_info_for_rrh_assessment(client)
@@ -419,6 +493,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         1 => 'IdentifiedPathwaysVersionThreePathways',
         2 => 'IdentifiedPathwaysVersionThreeTransfer',
         3 => 'IdentifiedPathwaysVersionFourPathways',
+        4 => 'IdentifiedPathwaysVersionFourTransfer',
       }[value.to_i] || 'IdentifiedClientAssessment'
     end
 
@@ -447,21 +522,42 @@ module GrdaWarehouse::CasProjectClientCalculator
         question_matching_requirement('c_latest_date_financial_assistance_eligibility_rrh')&.AssessmentAnswer
     end
 
+    # For 2024/2025 score calculations are:
+    # Individual Pathways Assessment: days homeless in the past 3 years, prefer Pathways answer clamped to 1,096, use
+    # days in the past three years from the warehouse if not available.
+    # Family Pathways Assessment: overall days homeless (all time), prefer Pathways answer, use client.days_homeless if
+    # not available.
+    # Transfer Assessment: use assessment score.
     private def assessment_score_for_cas(client)
       case cas_assessment_name(client)
       when 'IdentifiedPathwaysVersionThreePathways', 'IdentifiedPathwaysVersionFourPathways'
-        days_homeless_in_last_three_years_cached(client)
-      when 'IdentifiedPathwaysVersionThreeTransfer'
+        if most_recent_pathways_or_transfer(client).family_pathways_2024?
+          # Family
+          overall_days_homeless(client)
+        else
+          # Individual
+          days_homeless_in_last_three_years_cached(client)
+        end
+
+        # all time homeless days (no cap on total, but self-report limited to 548 if no verification)
+        # Also need a mechanism to identify family Pathways assessments/AssessmentQuestions
+      when 'IdentifiedPathwaysVersionThreeTransfer', 'IdentifiedPathwaysVersionFourTransfer'
         assessment_score(client)
       end
     end
 
+    # Various tie-breaker dates used for prioritization in CAS when all else is equal
+    # For Pathways V3, use the date the assessment was collected
+    # For the V3 Transfer assessment, use the financial assistance end date
+    # For Pathways V4, use the first date of homelessness
     private def tie_breaker_date(client)
       case cas_assessment_name(client)
-      when 'IdentifiedPathwaysVersionThreePathways', 'IdentifiedPathwaysVersionFourPathways'
+      when 'IdentifiedPathwaysVersionThreePathways'
         cas_assessment_collected_at(client)
-      when 'IdentifiedPathwaysVersionThreeTransfer'
+      when 'IdentifiedPathwaysVersionThreeTransfer', 'IdentifiedPathwaysVersionFourTransfer'
         financial_assistance_end_date(client)
+      when 'IdentifiedPathwaysVersionFourPathways'
+        date_of_first_service(client)
       end
     end
 

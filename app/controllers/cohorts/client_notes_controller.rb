@@ -83,7 +83,7 @@ module Cohorts
     end
 
     def flash_interpolation_options
-      { resource_name: "Note for #{@note.client.name}" }
+      { resource_name: "Note for #{@note.client.pii_provider(user: current_user).full_name}" }
     end
   end
 end

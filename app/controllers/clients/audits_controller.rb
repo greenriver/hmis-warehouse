@@ -28,6 +28,6 @@ class Clients::AuditsController < ApplicationController
   end
 
   def title_for_show
-    "#{@client.name} - Audit"
+    "#{@client.pii_provider(user: current_user).full_name} - Audit"
   end
 end

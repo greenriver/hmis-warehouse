@@ -8641,6 +8641,49 @@ ALTER SEQUENCE public.exports_id_seq OWNED BY public.exports.id;
 
 
 --
+-- Name: external_hmis_configurations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.external_hmis_configurations (
+    id bigint NOT NULL,
+    data_source_id bigint,
+    vendor character varying,
+    base_url character varying,
+    path_client character varying,
+    path_enrollment character varying,
+    path_project character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN external_hmis_configurations.path_client; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.external_hmis_configurations.path_client IS 'something like: /clients/:client_token:/profile';
+
+
+--
+-- Name: external_hmis_configurations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.external_hmis_configurations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: external_hmis_configurations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.external_hmis_configurations_id_seq OWNED BY public.external_hmis_configurations.id;
+
+
+--
 -- Name: external_ids; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -29573,6 +29616,13 @@ ALTER TABLE ONLY public.exports_ad_hocs ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: external_hmis_configurations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_hmis_configurations ALTER COLUMN id SET DEFAULT nextval('public.external_hmis_configurations_id_seq'::regclass);
+
+
+--
 -- Name: external_ids id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -33040,6 +33090,14 @@ ALTER TABLE ONLY public.exports_ad_hocs
 
 ALTER TABLE ONLY public.exports
     ADD CONSTRAINT exports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: external_hmis_configurations external_hmis_configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_hmis_configurations
+    ADD CONSTRAINT external_hmis_configurations_pkey PRIMARY KEY (id);
 
 
 --
@@ -54493,6 +54551,13 @@ CREATE INDEX index_exports_on_export_id ON public.exports USING btree (export_id
 
 
 --
+-- Name: index_external_hmis_configurations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_hmis_configurations_on_data_source_id ON public.external_hmis_configurations USING btree (data_source_id);
+
+
+--
 -- Name: index_external_ids_on_external_request_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58256,6 +58321,20 @@ CREATE INDEX index_project_pass_fails_projects_on_project_pass_fail_id ON public
 --
 
 CREATE INDEX index_project_pass_fails_projects_on_updated_at ON public.project_pass_fails_projects USING btree (updated_at);
+
+
+--
+-- Name: index_project_project_groups_on_project_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_project_project_groups_on_project_group_id ON public.project_project_groups USING btree (project_group_id) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: index_project_project_groups_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_project_project_groups_on_project_id ON public.project_project_groups USING btree (project_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -65692,6 +65771,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241216184819'),
 ('20241217210211'),
 ('20250116145506'),
-('20250117174547');
+('20250117174547'),
+('20250203142317'),
+('20250213173031');
 
 

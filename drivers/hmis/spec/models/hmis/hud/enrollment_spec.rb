@@ -273,14 +273,14 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     let(:legacy_expected_struct) do
       have_attributes(
         legacy: true,
-        definition: definition,
+        definition: have_attributes(identifier: 'move_in_date'), # default form seeded by JsonForms.seed_all
         data_collected_about: 'ALL_CLIENTS',
       )
     end
 
     before(:all) do
-      Hmis::Form::Definition.delete_all
-      Hmis::Form::Instance.delete_all
+      # seed default FormDefinitions so that the default move_in_date form is present
+      ::HmisUtil::JsonForms.seed_all
     end
 
     it 'does not return the form when no instance exists' do
@@ -297,7 +297,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       expect(hoh_enrollment.occurrence_point_forms).to be_empty
     end
 
-    context 'when there is no instance, but there is legacy data' do
+    context 'when there is no instance, but Enrollment has a MoveInDate value' do
       let!(:spouse_enrollment) do
         create(
           :hmis_hud_enrollment,
@@ -309,7 +309,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         )
       end
 
-      it 'does return the form' do
+      it 'does return the default move_in_date form' do
         expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
       end
 
@@ -319,7 +319,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         let!(:instance3) { create(:hmis_form_instance, role: role, project_type: 4, active: true, definition: definition) }
         let!(:inactive_instance) { create(:hmis_form_instance, role: role, project_type: 6, active: false, definition: definition) }
 
-        it 'returns the form, with no duplicates' do
+        it 'returns the default move_in_date form, with no duplicates' do
           expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
         end
       end
@@ -327,7 +327,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       context 'when a draft version of the form does not collect the same data' do
         let!(:draft_definition) { create(:occurrence_point_form, version: 2, status: :draft) }
 
-        it 'returns the form' do
+        it 'returns the default move_in_date form' do
           expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
         end
       end
@@ -351,6 +351,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
             definition: definition,
             data_collected_about: 'ALL_CLIENTS',
           )
+          # binding.pry
           expect(hoh_enrollment.occurrence_point_forms).to contain_exactly(expected)
           expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(expected)
         end
@@ -382,32 +383,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
           )
         end
 
-        it 'returns the form for non-HoH' do
-          expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
-        end
-      end
-
-      context 'when legacy data exists on a CDED' do
-        let!(:definition_json) do
-          {
-            'item': [
-              {
-                'text': 'Foo data element',
-                'type': 'STRING',
-                'link_id': 'foo',
-                'mapping': {
-                  'custom_field_key': 'foo',
-                  'record_type': 'ENROLLMENT',
-                },
-              },
-            ],
-          }
-        end
-        let!(:definition) { create :occurrence_point_form, definition: definition_json }
-        let!(:cded) { create :hmis_custom_data_element_definition, key: 'foo', data_source: ds1, owner_type: 'Hmis::Hud::Enrollment', repeats: false }
-        let!(:cde) { create :hmis_custom_data_element, data_element_definition: cded, owner: spouse_enrollment, data_source: ds1, value_string: 'bar' }
-
-        it 'returns the form for non-HoH' do
+        it 'returns the default form for non-HoH' do
           expect(spouse_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
         end
       end
@@ -425,6 +401,50 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
         it 'does not return the form' do
           expect(spouse_enrollment.occurrence_point_forms).to be_empty
+        end
+      end
+    end
+
+    context 'PATH Status form' do
+      let(:legacy_expected_struct) do
+        have_attributes(
+          legacy: true,
+          definition: have_attributes(identifier: 'path_status'), # default form seeded by JsonForms.seed_all
+          data_collected_about: 'ALL_CLIENTS',
+        )
+      end
+
+      context 'when DateOfPATHStatus does not exist' do
+        it 'does not return PATH status form' do
+          expect(hoh_enrollment.occurrence_point_forms).to be_empty
+        end
+      end
+      context 'when DateOfPATHStatus exists' do
+        before(:each) { hoh_enrollment.update!(date_of_path_status: 3.weeks.ago) }
+        it 'returns the default PATH status form' do
+          expect(hoh_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
+        end
+      end
+    end
+
+    context 'Date of Engagement form' do
+      let(:legacy_expected_struct) do
+        have_attributes(
+          legacy: true,
+          definition: have_attributes(identifier: 'date_of_engagement'), # default form seeded by JsonForms.seed_all
+          data_collected_about: 'ALL_CLIENTS',
+        )
+      end
+
+      context 'when DateOfEngagement does not exist' do
+        it 'does not return Date of engagement form' do
+          expect(hoh_enrollment.occurrence_point_forms).to be_empty
+        end
+      end
+      context 'when DateOfEngagement exists' do
+        before(:each) { hoh_enrollment.update!(date_of_engagement: 3.weeks.ago) }
+        it 'returns the default Date of engagement form' do
+          expect(hoh_enrollment.occurrence_point_forms).to contain_exactly(legacy_expected_struct)
         end
       end
     end

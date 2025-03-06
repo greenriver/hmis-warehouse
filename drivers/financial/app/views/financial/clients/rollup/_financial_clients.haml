@@ -17,7 +17,7 @@
       %tbody
         - clients.each do |client|
           %tr
-            %td= client.name
+            %td= client.pii_provider(user: current_user).full_name
             %td= yes_no(client.head_of_household == 1)
             %td.date-cell= client.date_of_referral_to_agency&.to_date
             %td.date-cell= client.date_of_referral_to_wit&.to_date
