@@ -26,7 +26,7 @@ module PerformanceDashboard::Overview::Coc
   end
 
   def coc_bucket(coc)
-    coc.presence || 'N/A'
+    coc.presence || 'Data not collected'
   end
 
   def coc_query(key)

@@ -4,6 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+#####
+# DEPRECATED 🚨
+# The EnrollmentCoC class has been deprecated as of 10/1/2024. The class is still needed by
+# the importer to handle data from sources that ship in older formats.
+#####
+
 # NOTE: This provides an unscoped duplicate of Enrollment for use with exports
 # that should ignore acts as paranoid completely
 module GrdaWarehouse::Hud::WithDeleted

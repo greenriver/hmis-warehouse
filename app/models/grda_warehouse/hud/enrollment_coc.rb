@@ -8,8 +8,8 @@
 
 #####
 # DEPRECATED 🚨
-# The EnrollmentCoC class has been deprecated as of 2024. The class is still needed by the
-# importer to handle data from sources that ship in older formats.
+# The EnrollmentCoC class has been deprecated as of 10/1/2024. The class is still needed by
+# the importer to handle data from sources that ship in older formats.
 #####
 module GrdaWarehouse::Hud
   class EnrollmentCoc < Base
