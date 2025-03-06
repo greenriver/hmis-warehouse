@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -487,7 +489,7 @@ module HudApr::Generators::Shared::Fy2021
             e_t[:enrollment_coc].in(@report.coc_codes),
             e_t[:enrollment_coc].eq(nil),
             e_t[:enrollment_coc].not_in(HudUtility.cocs.keys), # catching invalid coc codes I guess?
-          ].reduce(&:or)
+          ].reduce(&:or),
         )
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope

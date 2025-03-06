@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 I18n.config.available_locales = :en
 require 'active_support/core_ext/integer/time'
 
