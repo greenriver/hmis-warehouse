@@ -1318,16 +1318,26 @@ module GrdaWarehouse::Hud
       end
     end
 
-    memoize def pii_provider(user:, context: :browse)
-      case context.to_sym
+    # pii provider for use on client dashboard
+    memoize def pii_provider(user:)
+      policy = user.policy_for(self)
+      GrdaWarehouse::PiiProvider.new(self, policy: policy)
+    end
+
+    # pii provider for use in reports and bulk view
+    def project_pii_provider(project:, user:, mode: )
+      allowed = false
+      case mode.to_sym
       when :download
         allowed = ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-        policy = allowed ? user.policy_for(self) : GrdaWarehouse::AuthPolicies::NullClientPolicy.instance
       when :browse
-        policy = user.policy_for(self)
+        allowed = true
       else
-        raise ArguementError, "Bad context #{context}"
+        raise ArgumentError, "Bad mode #{mode}"
       end
+
+      policy = user.policy_for(project, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if allowed
+      policy ||= GrdaWarehouse::AuthPolicies::NullClientPolicy.instance
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
     end
 

@@ -21,6 +21,11 @@ class GrdaWarehouse::AuthPolicies::ProjectPiiPolicy < GrdaWarehouse::AuthPolicie
     end
   end
 
+  def initialize(context:, resource:)
+    resource_id = resource.is_a?(GrdaWarehouse::Hud::Project) ? resource.id : resource
+    super(context: context, resource: resource_id)
+  end
+
   protected
 
   def validate_resource!(arg)
