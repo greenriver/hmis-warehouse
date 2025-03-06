@@ -1325,7 +1325,7 @@ module GrdaWarehouse::Hud
     end
 
     # pii provider for use in reports and bulk view
-    def project_pii_provider(project:, user:, mode: )
+    def project_pii_provider(project:, user:, mode:)
       allowed = false
       case mode.to_sym
       when :download
@@ -1337,7 +1337,7 @@ module GrdaWarehouse::Hud
       end
 
       policy = user.policy_for(project, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if allowed
-      policy ||= GrdaWarehouse::AuthPolicies::NullClientPolicy.instance
+      policy ||= GrdaWarehouse::AuthPolicies::NullPiiPolicy.instance
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
     end
 
