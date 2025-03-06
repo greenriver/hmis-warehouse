@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module InactiveClientReport
   class Report
@@ -12,6 +12,7 @@ module InactiveClientReport
     include Filter::FilterScopes
     include ActionView::Helpers::NumberHelper
     include ArelHelper
+    include Memery
 
     attr_accessor :filter
     attr_accessor :client_ids # used to speed up calculations when paginated
@@ -71,11 +72,11 @@ module InactiveClientReport
     end
 
     def clients
-      @clients ||= GrdaWarehouse::Hud::Client.where(id: report_scope.select(:client_id)).
+      @clients ||= GrdaWarehouse::Hud::Client.where(id: report_scope_client_ids).
         preload(
           :processed_service_history,
           service_history_entry_ongoing: :project,
-        )
+        ).to_a
     end
 
     def days_since_most_recent_contact(client)
@@ -122,7 +123,7 @@ module InactiveClientReport
     # Clients the user can see an enrollment for who are also in the report scope
     # This ignores report scope to look for contacts at any project viewable by the user
     def client_scope
-      c_ids = client_ids.presence || report_scope.select(:client_id)
+      c_ids = client_ids.presence || report_scope_client_ids
       GrdaWarehouse::Hud::Client.
         where(id: c_ids).
         joins(service_history_entries: :enrollment).
@@ -208,14 +209,15 @@ module InactiveClientReport
         to_h # Keeps the last instance for each client_id
     end
 
+    memoize def report_scope_client_ids(limited: false)
+      report_scope(limited: limited).pluck(:client_id)
+    end
+
     def report_scope(limited: false)
-      @report_scope ||= {}
-      @report_scope[limited] ||= begin
-        filter.personal_ids_for_days_since_contact_calculations = personal_ids if limited
-        scope = filter.apply(report_scope_base, report_scope_base, include_date_range: false)
-        # Apply a single date filter
-        scope.ongoing(on_date: filter.on)
-      end
+      filter.personal_ids_for_days_since_contact_calculations = personal_ids if limited
+      scope = filter.apply(report_scope_base, report_scope_base, include_date_range: false)
+      # Apply a single date filter
+      scope.ongoing(on_date: filter.on)
     end
 
     def report_scope_base
