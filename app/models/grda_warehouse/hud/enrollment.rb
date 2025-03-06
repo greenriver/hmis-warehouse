@@ -52,6 +52,15 @@ module GrdaWarehouse::Hud
     has_many :current_living_situations, **hud_enrollment_belongs('CurrentLivingSituation'), inverse_of: :enrollment
     has_many :youth_education_statuses, **hud_enrollment_belongs('YouthEducationStatus'), inverse_of: :enrollment
 
+    #####
+    # DEPRECATED 🚨
+    # The EnrollmentCoC class has been deprecated as of 10/1/2024. The class is sill needed by
+    # the importer to handle data from sources that ship in older formats.
+    #####
+    has_one :enrollment_coc_at_entry, -> do
+      where(DataCollectionStage: 1)
+    end, **hud_enrollment_belongs('EnrollmentCoc')
+
     # Income benefits at various stages
     has_one :income_benefits_at_entry, -> do
       # NOTE: the join enrollment here seems to work only sometimes, so it is also in IncomeBenefit

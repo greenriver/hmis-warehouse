@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -139,7 +137,7 @@ module HudDataQualityReport::Generators::Fy2020
             drug_abuse_entry: [2, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             drug_abuse_exit: [2, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
             drug_abuse_latest: [2, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
-            enrollment_coc: enrollment.enrollment_coc,
+            enrollment_coc: enrollment.enrollment_coc_at_entry&.CoCCode,
             enrollment_created: enrollment.DateCreated,
             ethnicity: source_client.Ethnicity,
             exit_created: exit_record&.exit&.DateCreated,
@@ -267,6 +265,7 @@ module HudDataQualityReport::Generators::Fy2020
           :income_benefits_at_exit,
           :income_benefits_at_entry,
           :income_benefits_annual_update,
+          :enrollment_coc_at_entry,
           :health_and_dvs,
           :exit,
         ],

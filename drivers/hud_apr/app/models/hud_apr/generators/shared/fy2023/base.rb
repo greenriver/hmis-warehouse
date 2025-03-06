@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -212,7 +210,7 @@ module HudApr::Generators::Shared::Fy2023
             drug_abuse_entry: [2, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             drug_abuse_exit: [2, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
             drug_abuse_latest: [2, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
-            enrollment_coc: enrollment.enrollment_coc,
+            enrollment_coc: enrollment.enrollment_coc_at_entry&.CoCCode,
             enrollment_created: enrollment.DateCreated || enrollment.DateUpdated || DateTime.current,
             ethnicity: source_client.Ethnicity,
             exit_created: exit_record&.exit&.DateCreated,
@@ -472,6 +470,7 @@ module HudApr::Generators::Shared::Fy2023
           :income_benefits_at_exit,
           :income_benefits_at_entry,
           :income_benefits_annual_update,
+          :enrollment_coc_at_entry,
           :health_and_dvs,
           :exit,
           :assessments,
@@ -493,13 +492,11 @@ module HudApr::Generators::Shared::Fy2023
         entry.
         open_between(start_date: @report.start_date, end_date: @report.end_date).
         joins(:enrollment).
-        left_outer_joins(:enrollment).
-        where(
-          [
-            e_t[:enrollment_coc].in(@report.coc_codes),
-            e_t[:enrollment_coc].eq(nil),
-            e_t[:enrollment_coc].not_in(HudUtility.cocs.keys), # catching invalid coc codes I guess?
-          ].reduce(&:or),
+        left_outer_joins(enrollment: :enrollment_coc_at_entry).
+        merge(
+          GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: @report.coc_codes).
+          or(GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: nil)).
+          or(GrdaWarehouse::Hud::EnrollmentCoc.where.not(CoCCode: HudUtility.cocs.keys)),
         )
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
