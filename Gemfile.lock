@@ -926,7 +926,6 @@ GEM
       unicode-display_width (>= 2.4.0, < 4.0)
     rubocop-ast (1.38.0)
       parser (>= 3.3.1.0)
-    ruby-filemagic (0.7.3)
     ruby-graphviz (1.2.5)
       rexml
     ruby-mailchecker (6.0.15)
@@ -1236,6 +1235,7 @@ DEPENDENCIES
   lograge
   logstop
   loofah
+  marcel
   maxminddb
   memery
   memory_profiler
@@ -1301,7 +1301,6 @@ DEPENDENCIES
   rspec-mocks
   rspec-rails
   rubocop
-  ruby-filemagic
   ruby-mailchecker
   ruby-prof
   rubyXL
@@ -1690,7 +1689,6 @@ CHECKSUMS
   rspec-support (3.13.2) sha256=cea3a2463fd9b84b9dcc9685efd80ea701aa8f7b3decb3b3ce795ed67737dbec
   rubocop (1.72.1) sha256=4306ae64c6e7e1026d2a90ed755a113c7b9bf0ac21037b8046fbc826a87daaa5
   rubocop-ast (1.38.0) sha256=4fdf6792fe443a9a18acb12dbc8225d0d64cd1654e41fedb30e79c18edbb26ae
-  ruby-filemagic (0.7.3) sha256=9dedfac69c737be29efb4542a280e345a70ba2b6ba905a518abd9998c8f3a7d9
   ruby-graphviz (1.2.5) sha256=1c2bb44e3f6da9e2b829f5e7fd8d75a521485fb6b4d1fc66ff0f93f906121504
   ruby-mailchecker (6.0.15) sha256=d98e8bbd2a80db3e79da512eeaf07c751ff5a18febe8640afd99850963afa82a
   ruby-next-core (1.1.1) sha256=37886d41cf91072a0f14fa53b3e7e650adce1fe3b1227842bae32034dcce1d5f
