@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -212,7 +214,6 @@ module HudPit::Generators::Pit::Fy2024
           enrollment: [
             :disabilities,
             :project,
-            :enrollment_coc_at_entry,
             :health_and_dvs,
             :exit,
           ],

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 I18n.config.available_locales = :en
 require 'active_support/core_ext/integer/time'
 
@@ -41,6 +43,9 @@ Rails.application.configure do
     redis_config = Rails.application.config_for(:cache_store).merge({ expires_in: 5.minutes, race_condition_ttl: 1.minute, ssl: cache_ssl, namespace: cache_namespace })
     config.cache_store = :redis_cache_store, redis_config
   end
+
+  # it is helpful to turn off caching for development
+  config.cache_store = :null_store if ENV.fetch('DISABLE_RAILS_CACHE', 'false') == 'true'
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
   # config.active_storage.service = :local

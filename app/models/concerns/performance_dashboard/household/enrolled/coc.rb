@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -12,10 +14,10 @@ module PerformanceDashboard::Household::Enrolled::Coc
     @enrolled_by_coc ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = coc_buckets.map { |b| [b, []] }.to_h
       counted = {}
-      enrolled.joins(:enrollment_coc_at_entry).
+      enrolled.joins(:enrollment).
         joins(:client).
         order(first_date_in_program: :desc).
-        pluck(:household_id, ec_t[:CoCCode], :first_date_in_program).each do |id, coc, _|
+        pluck(:household_id, e_t[:enrollment_coc], :first_date_in_program).each do |id, coc, _|
           counted[coc_bucket(coc)] ||= Set.new
           buckets[coc_bucket(coc)] ||= []
           buckets[coc_bucket(coc)] << id unless counted[coc_bucket(coc)].include?(id)
@@ -48,10 +50,11 @@ module PerformanceDashboard::Household::Enrolled::Coc
     else
       enrolled_by_coc.values.flatten
     end
-    details = enrolled.joins(:client, enrollment: :enrollment_coc_at_entry).
+    details = enrolled.joins(:client, :enrollment).
       where(household_id: ids).
       order(she_t[:first_date_in_program].desc)
     details = details.where(coc_query(sub_key)) if sub_key
+
     details.pluck(*detail_columns(options).values).
       map do |row|
         row[-1] = "#{HudUtility2024.coc_name(row.last)} (#{row.last})"
