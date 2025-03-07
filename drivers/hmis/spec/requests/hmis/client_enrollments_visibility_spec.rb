@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -50,6 +52,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 id
                 entryDate # summary-access
                 projectName # summary-access
+                lastContact { # summary-access
+                  contactDate
+                  contactType
+                }
                 access {
                   canViewEnrollmentDetails # summary-access
                 }
@@ -111,6 +117,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(resolved_e2['sexualOrientation']).to be_nil # redacted due to permissions
           expect(resolved_e2['entryDate']).to be_present
           expect(resolved_e2['projectName']).to be_present
+          expect(resolved_e2['lastContact']['contactDate']).to eq(s2.date_provided.strftime('%Y-%m-%d'))
+          expect(resolved_e2['lastContact']['contactType']).to eq('BED_NIGHT')
           expect(resolved_e2['access']['canViewEnrollmentDetails']).to eq(false)
         end
 

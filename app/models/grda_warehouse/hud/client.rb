@@ -30,6 +30,7 @@ module GrdaWarehouse::Hud
     include ClientSearch
     include ClientImageConsumer
     include VeteranStatusCalculator
+    include ClientRaceAndEthnicityMixin
     include NotifierConfig
     has_paper_trail
 
@@ -215,7 +216,7 @@ module GrdaWarehouse::Hud
     has_many :window_notes, class_name: 'GrdaWarehouse::ClientNotes::WindowNote'
     has_many :anomaly_notes, class_name: 'GrdaWarehouse::ClientNotes::AnomalyNote'
     has_many :cohort_notes, class_name: 'GrdaWarehouse::ClientNotes::CohortNote'
-    has_many :alert_notes, class_name: 'GrdaWarehouse::ClientNotes::Alert'
+    has_many :alert_notes, -> { active }, class_name: 'GrdaWarehouse::ClientNotes::Alert'
 
     has_many :anomalies, class_name: 'GrdaWarehouse::Anomaly'
 

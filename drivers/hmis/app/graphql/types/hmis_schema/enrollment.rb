@@ -96,6 +96,7 @@ module Types
     summary_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
     summary_field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     summary_field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
+    summary_field :last_contact, HmisSchema::LastContact, null: true
     summary_field :auto_exited, Boolean, null: false
 
     field :last_service_date, GraphQL::Types::ISO8601Date, null: true do
@@ -448,6 +449,54 @@ module Types
 
     def exit_assessment
       load_ar_association(object, :exit_assessment)
+    end
+
+    def last_contact
+      last_contact_entity = [
+        load_ar_association(
+          object,
+          :services,
+          scope: Hmis::Hud::Service.where.not(date_provided: nil).order(date_provided: :asc),
+        ).last,
+        # CustomService DateProvided is guaranteed non-null by DB
+        load_ar_association(object, :custom_services, scope: Hmis::Hud::CustomService.order(:date_provided)).last,
+        # CLS InformationDate is guaranteed non-null by DB
+        load_ar_association(object, :current_living_situations, scope: Hmis::Hud::CurrentLivingSituation.order(:information_date)).last,
+        # AssessmentDate is guaranteed non-null by DB
+        load_ar_association(object, :custom_assessments, scope: Hmis::Hud::CustomAssessment.order(:assessment_date)).last,
+        # CustomCaseNote's information_date can be null in DB
+        load_ar_association(
+          object,
+          :custom_case_notes,
+          scope: Hmis::Hud::CustomCaseNote.where.not(information_date: nil).order(information_date: :asc),
+        ).last,
+      ].compact.
+        max_by { |entity| Hmis::Hud::Enrollment.contact_date_for_entity(entity) }
+
+      return nil unless last_contact_entity
+
+      contact_date = Hmis::Hud::Enrollment.contact_date_for_entity(last_contact_entity)
+
+      contact_type = case last_contact_entity
+      when Hmis::Hud::Service
+        last_contact_entity.record_type == 200 ? 'BED_NIGHT' : 'SERVICE'
+      when Hmis::Hud::CustomService
+        'SERVICE'
+      when Hmis::Hud::CurrentLivingSituation
+        'CURRENT_LIVING_SITUATION'
+      when Hmis::Hud::CustomAssessment
+        assessment_name = HudUtility2024.assessment_name_by_data_collection_stage[last_contact_entity.data_collection_stage]
+        assessment_name.present? ? Types::BaseEnum.to_enum_key(assessment_name) : 'ASSESSMENT'
+      when Hmis::Hud::CustomCaseNote
+        'CASE_NOTE'
+      else
+        raise
+      end
+
+      {
+        contact_date: contact_date,
+        contact_type: contact_type,
+      }
     end
   end
 end

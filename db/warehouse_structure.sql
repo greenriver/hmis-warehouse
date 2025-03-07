@@ -6909,7 +6909,8 @@ CREATE TABLE public.client_notes (
     sent_at timestamp without time zone,
     alert_active boolean DEFAULT true NOT NULL,
     service_id bigint,
-    project_id bigint
+    project_id bigint,
+    expiration_date date
 );
 
 
@@ -22087,7 +22088,8 @@ CREATE TABLE public.import_overrides (
     deleted_at timestamp without time zone,
     description character varying,
     created_by bigint,
-    expires_on date
+    expires_on date,
+    last_used_on date
 );
 
 
@@ -65853,5 +65855,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250121204933'),
 ('20250203142317'),
 ('20250213173031'),
+('20250221151129'),
 ('20250222234500'),
+('20250226211623'),
+('20250226212117'),
 ('20250226145730');
+
+
