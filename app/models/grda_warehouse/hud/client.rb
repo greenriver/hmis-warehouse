@@ -1337,7 +1337,7 @@ module GrdaWarehouse::Hud
       end
 
       policy = user.policy_for(project, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if allowed
-      policy ||= GrdaWarehouse::AuthPolicies::NullPiiPolicy.instance
+      policy ||= GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
     end
 

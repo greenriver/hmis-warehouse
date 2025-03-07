@@ -6,7 +6,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class GrdaWarehouse::AuthPolicies::NullPiiPolicy
+class GrdaWarehouse::AuthPolicies::DenyPiiPolicy
   include Singleton
   [
     :can_view,

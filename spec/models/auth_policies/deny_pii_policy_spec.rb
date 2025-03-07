@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe GrdaWarehouse::AuthPolicies::NullPiiPolicy, type: :model do
+RSpec.describe GrdaWarehouse::AuthPolicies::DenyPiiPolicy, type: :model do
   let(:policy) { described_class.instance }
   it 'denies all PII permissions' do
     expect(policy.can_view_name?).to be false
