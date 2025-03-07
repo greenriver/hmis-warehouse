@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module
   CoreDemographicsReport::HighAcuityCalculations
   extend ActiveSupport::Concern
@@ -125,7 +127,7 @@ module
             initialize_high_acuity_client_counts(clients, coc_code.to_sym)
 
             scope = report_scope.distinct
-            scope = scope.in_coc(coc_code: coc_code) unless coc_code == base_count_sym
+            scope = scope.in_enrollment_coc(coc_code: coc_code) unless coc_code == base_count_sym
             scope.
               joins(:client, enrollment: :disabilities).
               pluck(:client_id, :id, e_t[:TimesHomelessPastThreeYears], e_t[:DisablingCondition], d_t[:DisabilityType], d_t[:DisabilityResponse], d_t[:IndefiniteAndImpairs]).
