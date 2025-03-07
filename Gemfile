@@ -79,9 +79,9 @@ gem 'carrierwave-i18n'
 gem 'carrierwave-aws', git: 'https://github.com/greenriver/carrierwave-aws.git', branch: 'gr-1.4.0-without-deprecations'
 gem 'image_processing', '~> 1.13.0' # higher requires mini_magick 5, which appears to be incompatible with carrierwave 1.4
 
-gem 'ruby-filemagic' unless ENV['SKIP_FILEMAGIC'].to_s == 'true'
 gem 'mini_magick'
 gem 'mimemagic'
+gem 'marcel'
 # there are no obvious breaking changes but
 # since there are no tests for this
 # it should be tested manually
