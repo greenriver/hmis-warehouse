@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe IdentifyExternalClientsJob, type: :job do
@@ -97,7 +99,7 @@ RSpec.describe IdentifyExternalClientsJob, type: :job do
       allow(Rails.logger).to receive(:error)
 
       described_class.perform_now(s3: s3, inbox_path: inbox_path, outbox_path: outbox_path, external_id_field: external_id_field)
-      expect(Rails.logger).to have_received(:error).with(/CSV parsing error/).once
+      expect(Rails.logger).to have_received(:error).with(/invalid content type/).once
     end
 
     # Disabled, for now since we aren't checking the content type

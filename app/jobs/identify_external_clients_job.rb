@@ -40,7 +40,7 @@ class IdentifyExternalClientsJob < BaseJob
         input_key = input_object.key
 
         data_string = s3.get_as_io(key: input_key)&.read
-        content_type = Marcel::MimeType.for(data_string)
+        content_type = Marcel::MimeType.for(data_string, name: File.basename(input_key))
         # If we didn't find a file (or are looking at a directory), just skip
         next if content_type == 'application/x-empty'
 

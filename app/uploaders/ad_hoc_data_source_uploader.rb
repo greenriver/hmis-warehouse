@@ -100,7 +100,7 @@ class AdHocDataSourceUploader < CarrierWave::Uploader::Base
   end
 
   private def content_type_from_bytes(_file_to_test = file)
-    Marcel::MimeType.for(file.read)
+    Marcel::MimeType.for(file.read, name: file.name)
   rescue StandardError
     nil
   end
