@@ -6,6 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Policy that always denys PII access.
+# Used in cases where we never want to show PII (see include_pii_in_detail_downloads config)
 class GrdaWarehouse::AuthPolicies::DenyPiiPolicy
   include Singleton
   [
