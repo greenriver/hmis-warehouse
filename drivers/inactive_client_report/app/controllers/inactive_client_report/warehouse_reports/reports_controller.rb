@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module InactiveClientReport::WarehouseReports
   class ReportsController < ApplicationController
     include WarehouseReportAuthorization
@@ -35,7 +37,7 @@ module InactiveClientReport::WarehouseReports
     end
 
     def data
-      @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name))
+      @pagy, @clients = pagy_array(@report.clients.sort_by { |c| [c.last_name, c.first_name] }, page: page, params: @filter.for_params)
     end
 
     private def set_report

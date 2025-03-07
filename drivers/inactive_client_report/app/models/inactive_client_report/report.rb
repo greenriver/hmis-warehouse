@@ -71,8 +71,8 @@ module InactiveClientReport
       @total_client_count ||= clients.count
     end
 
-    def clients
-      @clients ||= GrdaWarehouse::Hud::Client.where(id: report_scope_client_ids).
+    memoize def clients
+      GrdaWarehouse::Hud::Client.where(id: report_scope.select(:client_id)).
         preload(
           :processed_service_history,
           service_history_entry_ongoing: :project,
@@ -123,7 +123,7 @@ module InactiveClientReport
     # Clients the user can see an enrollment for who are also in the report scope
     # This ignores report scope to look for contacts at any project viewable by the user
     def client_scope
-      c_ids = client_ids.presence || report_scope_client_ids
+      c_ids = client_ids.presence || report_scope.select(:client_id)
       GrdaWarehouse::Hud::Client.
         where(id: c_ids).
         joins(service_history_entries: :enrollment).
@@ -207,10 +207,6 @@ module InactiveClientReport
         order(entry_date: :asc).
         pluck(:client_id, :entry_date).
         to_h # Keeps the last instance for each client_id
-    end
-
-    memoize def report_scope_client_ids(limited: false)
-      report_scope(limited: limited).pluck(:client_id)
     end
 
     def report_scope(limited: false)
