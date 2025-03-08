@@ -1,3 +1,6 @@
+
+# frozen_string_literal: true
+
 class AddCohortCacheTables < ActiveRecord::Migration[7.0]
   def change
     create_table :cohort_client_data do |t|

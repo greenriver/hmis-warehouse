@@ -15,14 +15,18 @@ module GrdaWarehouse::Cohorts
       transaction do
         where(cohort_id: cohort.id).delete_all
         cohort.cohort_tabs.each do |tab|
-          batch = cohort.clients_for_tab(User.system_user, tab.name, tab).pluck(:id).map do |client_id|
-            {
-              cohort_id: cohort.id,
-              cohort_client_id: client_id,
-              tab_name: tab.name,
-            }
-          end
-          insert_all!(batch) if batch.present?
+          cohort.clients_for_tab(User.system_user, tab.name, tab).
+            pluck(:id).
+            each_slice(1_000) do |client_ids|
+              batch = client_ids.map do |client_id|
+                {
+                  cohort_id: cohort.id,
+                  cohort_client_id: client_id,
+                  tab_name: tab.name,
+                }
+              end
+              insert_all!(batch) if batch.present?
+            end
         end
       end
     end

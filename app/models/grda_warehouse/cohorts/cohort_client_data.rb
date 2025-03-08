@@ -18,29 +18,31 @@ module GrdaWarehouse::Cohorts
     def self.maintain_data(cohort)
       transaction do
         where(cohort_id: cohort.id).delete_all
-        batch = []
-        cohort.cohort_clients.preload(*cohort.preloads).each do |client|
-          cohort.active_columns.each do |col|
-            next if col.class.in?(cohort.class.excluded_from_analytics)
+        cohort.cohort_clients.preload(*cohort.preloads).find_in_batches do |client_batch|
+          batch = []
+          client_batch.each do |client|
+            cohort.active_columns.each do |col|
+              next if col.class.in?(cohort.class.excluded_from_analytics)
 
-            col.cohort = cohort
-            col.cohort_client = client
-            col.current_user = User.system_user
-            batch << {
-              cohort_id: cohort.id,
-              cohort_client_id: client.id,
-              data_type: col.analytics_data_type,
-              column_name: col.column,
-              value_integer: nil,
-              value_boolean: nil,
-              value_string: nil,
-              value_text: nil,
-              value_date: nil,
-              value_json: nil,
-            }.merge(text_value(col))
+              col.cohort = cohort
+              col.cohort_client = client
+              col.current_user = User.system_user
+              batch << {
+                cohort_id: cohort.id,
+                cohort_client_id: client.id,
+                data_type: col.analytics_data_type,
+                column_name: col.column,
+                value_integer: nil,
+                value_boolean: nil,
+                value_string: nil,
+                value_text: nil,
+                value_date: nil,
+                value_json: nil,
+              }.merge(text_value(col))
+            end
           end
+          insert_all!(batch) if batch.present?
         end
-        insert_all!(batch) if batch.present?
       end
     end
 
