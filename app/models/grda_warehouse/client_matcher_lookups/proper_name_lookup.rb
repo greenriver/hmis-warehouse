@@ -38,8 +38,9 @@ module GrdaWarehouse::ClientMatcherLookups
     def normalize(str)
       return nil unless str.present?
 
-      # Convert to UTF-8 as the regex expects it
-      str = str.encode('UTF-8', 'ASCII-8BIT', invalid: :replace, undef: :replace, replace: '')
+      # Convert to UTF-8 if we received as ASCII-8BIT as I18n.transliterate expects UTF-8
+      # This conversion will strip weirdly encoded characters silently
+      str = str.encode('UTF-8', 'ASCII-8BIT', invalid: :replace, undef: :replace, replace: '') if str.encoding == 'ASCII-8BIT'
 
       str = I18n.transliterate(str) if transliterate
       str.downcase.strip.gsub(/[^a-z0-9]/, '').presence
