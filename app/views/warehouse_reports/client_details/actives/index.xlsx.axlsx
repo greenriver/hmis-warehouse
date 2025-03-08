@@ -1,7 +1,8 @@
+# frozen_string_literal: true
 
 wb = xlsx_package.workbook
 wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@filter.sub_population]}"[0..30]) do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row([
     'Warehouse Client ID',
     'First Name',
@@ -15,9 +16,14 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
     'Living Situation',
     'Destination',
   ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudUtility2024.race(m).gsub('None', 'Race None') }, style: title)
-  @report.enrollments.each do |client_id, enrollments|
-    enrollments.each do |enrollment|
+
+  @report.enrollment_scope.preload(:client, :project, :enrollment).in_batches(of: 5_000).each do |batch|
+    current_user.policy_context.preload_project_dependencies(batch.map { |e| e.project.id })
+    batch.each do |enrollment|
       client = enrollment.client
+      project = enrollment.project
+      pii = client.project_pii_provider(project: project, user: current_user, mode: :download)
+
       length_of_stay = if enrollment.last_date_in_program
         enrollment.last_date_in_program - enrollment.first_date_in_program
       else
@@ -25,11 +31,11 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
       end
 
       row = [
-        client_id,
-        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
-        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
+        enrollment.client_id,
+        pii.first_name,
+        pii.last_name,
         HudUtility2024.project_type(enrollment.project_type),
-        enrollment.project.name(current_user),
+        project.name(current_user),
         enrollment.first_date_in_program,
         enrollment.last_date_in_program,
         length_of_stay.to_i,
