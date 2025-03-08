@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::ClientMatcherLookups
   class ProperNameLookup < BaseLookup
     attr_accessor :transliterate
@@ -35,6 +37,9 @@ module GrdaWarehouse::ClientMatcherLookups
 
     def normalize(str)
       return nil unless str.present?
+
+      # Convert to UTF-8 as the regex expects it
+      str = str.encode('UTF-8', 'ASCII-8BIT', invalid: :replace, undef: :replace, replace: '')
 
       str = I18n.transliterate(str) if transliterate
       str.downcase.strip.gsub(/[^a-z0-9]/, '').presence
