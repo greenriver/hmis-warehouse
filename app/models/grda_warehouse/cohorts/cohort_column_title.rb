@@ -15,6 +15,8 @@ module GrdaWarehouse::Cohorts
       transaction do
         where(cohort_id: cohort.id).delete_all
         batch = cohort.active_columns.map do |col|
+          next if col.class.in?(cohort.class.excluded_from_analytics)
+
           {
             cohort_id: cohort.id,
             data_type: col.analytics_data_type,
@@ -22,7 +24,7 @@ module GrdaWarehouse::Cohorts
             title: col.title,
             description: col.description,
           }
-        end
+        end.compact
         insert_all!(batch) if batch.present?
       end
     end
