@@ -1,4 +1,3 @@
-
 # frozen_string_literal: true
 
 class CreateAnalyticsCohortClientTabs < ActiveRecord::Migration[7.0]
