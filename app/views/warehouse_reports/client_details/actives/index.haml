@@ -5,14 +5,17 @@
   .col-sm-8
     %h1= title
 = render 'filter'
-.d-flex
-  .ml-auto.mb-2
-    - if can_view_clients?
+
+.row.mb-5
+  .col-8
+    %p
+      - unique_clients = @report.enrollment_scope.distinct.count(:client_id)
+      = "The following #{number_with_delimiter(unique_clients)} clients with #{number_with_delimiter(@report.enrollment_scope.count)} enrollments, have at least one day of service between #{@filter.start} and #{@filter.end}."
+      %br
+      This report was built to provide supporting details to the "Active Clients" section of the Population Dashboards.
+  - if can_view_clients?
+    .col-4.text-right
       = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: warehouse_reports_client_details_actives_path({format: :xlsx}.merge(link_params)), excel_download_tooltip: 'Download includes the following additional fields: Length of Stay (to-date), Living Situation, Destination, Race.'
-= render 'background_render', url: render_section_warehouse_reports_client_details_actives_path, fetch_params: { filter: @filter.for_params[:filters] } do
-  .rollup
-    .rollup-container.well
 
-= render 'common/section_not_loading', path_to_section: section_warehouse_reports_client_details_actives_path(link_params)
-
--# = render 'report'
+.my-5= render 'warehouse_reports/limited_by_project_note'
+= render_paginated_list(scope: @report.enrollment_scope, item_name: 'data set', list_partial: 'list')
