@@ -376,7 +376,7 @@ module GrdaWarehouse::CasProjectClientCalculator
 
       days += warehouse_unsheltered_days
       days += warehouse_sheltered_days
-      days
+      days.clamp(0, max_possible_days(client))
     end
 
     # Individual Pathways and transfer assessments would be capped at 3 years
@@ -397,7 +397,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     # For family pathways, this is limited to 548 if there is no certification on file, no limit otherwise
     private def max_extra_homeless_days(client)
       start_date = GrdaWarehouse::Config.get(:self_report_start_date)
-      return 548 unless ce_self_certification_client_ids.include?(client.id) || start_date&.past?
+      return MAX_UNVERIFIED_ADDITIONAL_DAYS unless ce_self_certification_client_ids.include?(client.id) || start_date&.past?
 
       max_possible_days(client)
     end
@@ -408,9 +408,13 @@ module GrdaWarehouse::CasProjectClientCalculator
     def additional_homeless_nights_sheltered(client)
       sheltered = most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer.to_i || 0
-      return sheltered if ce_self_certification_client_ids.include?(client.id)
 
       unsheltered = additional_homeless_nights_unsheltered(client)
+      # 2. Find the maximum amount of sheltered days to count based on the total unsheltered days.
+      #    The combination of the two cannot exceed max_possible_days.
+      available_nights = max_possible_days(client) - unsheltered
+      return sheltered.clamp(0, available_nights) if ce_self_certification_client_ids.include?(client.id)
+
       # 2. Find the maximum amount of sheltered days to count based on the total unsheltered days.
       #    The combination of the two cannot exceed 548.
       available_nights = MAX_UNVERIFIED_ADDITIONAL_DAYS - unsheltered

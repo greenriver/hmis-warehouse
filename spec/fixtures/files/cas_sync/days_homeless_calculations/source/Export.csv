@@ -1,2 +1,2 @@
-ExportID,SourceType,SourceID,SourceName,SourceContactFirst,SourceContactLast,SourceContactPhone,SourceContactExtension,SourceContactEmail,ExportDate,ExportStartDate,ExportEndDate,SoftwareName,SoftwareVersion,CSVVersion,ExportPeriodType,ExportDirective,HashStatus,ImplementationID
-"8251",1,"MA-500","https://example.com","Fake","Fakerson",,,"fake@example.com",2025-02-05 10:53:09,2024-11-01,2025-02-05,"OP","1.0","2024 v1.4",3,2,1,"1"
+"ExportID","SourceType","SourceID","SourceName","SourceContactFirst","SourceContactLast","SourceContactPhone","SourceContactExtension","SourceContactEmail","ExportDate","ExportStartDate","ExportEndDate","SoftwareName","SoftwareVersion","CSVVersion","ExportPeriodType","ExportDirective","HashStatus","ImplementationID"
+8251,1,MA-500,https://example.com,Fake,Fakerson,,,fake@example.com,2025-02-05 10:53:09,2024-11-01,2025-02-05,OP,1.0,2024 v1.4,3,2,1,1

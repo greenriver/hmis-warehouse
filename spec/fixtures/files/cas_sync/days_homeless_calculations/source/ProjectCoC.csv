@@ -1,2 +1,1 @@
-ProjectCoCID,ProjectID,CoCCode,Geocode,Address1,Address2,City,State,ZIP,GeographyType,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
-"1169","1149","XX-500",,"1 Main Street",,"Hometown","MA","11122",3,2023-12-07 15:20:43,2023-12-07 15:20:43,"23",,"8251"
+"ProjectCoCID","ProjectID","CoCCode","Geocode","Address1","Address2","City","State","ZIP","GeographyType","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
