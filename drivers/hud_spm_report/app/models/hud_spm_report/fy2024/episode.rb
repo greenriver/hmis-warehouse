@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# A homeless episode that has a formal definition in the HUD SPM spec.
 module HudSpmReport::Fy2024
   class Episode < GrdaWarehouseBase
     self.table_name = 'hud_report_spm_episodes'
@@ -107,12 +108,12 @@ module HudSpmReport::Fy2024
         )
       end
 
-      dates = filtered_bed_nights.map(&:last)
+      first_date, last_date = filtered_bed_nights.map(&:last).minmax
       assign_attributes(
-        first_date: dates.first, # dates is sorted in filter_bed_nights, so first/last should be min/max
-        last_date: dates.last,
+        first_date: first_date,
+        last_date: last_date,
         days_homeless: filtered_bed_nights.count,
-        literally_homeless_at_entry: literally_homeless_at_entry(filtered_bed_nights, dates.first),
+        literally_homeless_at_entry: literally_homeless_at_entry(filtered_bed_nights, first_date),
       )
 
       {

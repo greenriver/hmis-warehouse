@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :grda_warehouse_data_source, class: 'GrdaWarehouse::DataSource' do
-    name { 'Green River' }
+    sequence(:name) { |n| "Green River #{n}" }
     short_name { 'GR' }
     # association :client, factory: :grda_warehouse_hud_client
     source_type { nil }

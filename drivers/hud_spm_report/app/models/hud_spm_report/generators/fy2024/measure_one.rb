@@ -197,6 +197,7 @@ module HudSpmReport::Generators::Fy2024
     end
 
     private def compute_row(universe)
+      #  HudSpmReport::Fy2024::Episode.where().pluck(:days_homeless)
       a_t = HudSpmReport::Fy2024::Episode.arel_table
       persons = universe.count
       return [0, 0, 0] unless persons.positive?

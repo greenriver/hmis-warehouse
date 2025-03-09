@@ -78,7 +78,7 @@ RSpec.configure do |config|
 
     example_file_paths = RSpec.world.filtered_examples.values.flatten.map { |e| e.metadata[:file_path] }.uniq
     # load fixpoints if we're running tests that may need them
-    if example_file_paths.grep(%r{/drivers/(hud_path_report|hud_spm_report|hud_data_quality_report)/}).any? # rubocop:disable Style/RegexpLiteral
+    if example_file_paths.grep(%r{/drivers/(hud_path_report|hud_data_quality_report)/}).any? # rubocop:disable Style/RegexpLiteral
       Dir.glob('{drivers,spec}/**/fixpoints/*.yml').each do |filename|
         FileUtils.rm(filename)
       end
