@@ -9,8 +9,11 @@
 module HudSpmReport::Generators::Fy2024
   class MeasureBase < ::HudReports::QuestionBase
     def self.client_class
-      HudSpmReport::Fy2024::SpmEnrollment.
-        preload(enrollment: :project)
+      HudSpmReport::Fy2024::SpmEnrollment
+    end
+
+    def self.client_scope
+      client_class.preload(enrollment: :project)
     end
 
     private def enrollment_set

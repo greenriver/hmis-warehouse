@@ -14,8 +14,11 @@ module HudSpmReport::Generators::Fy2024
     end
 
     def self.client_class
-      HudSpmReport::Fy2024::Episode.
-        joins(:enrollments).preload(enrollments: { enrollment: :project })
+      HudSpmReport::Fy2024::Episode
+    end
+
+    def self.client_scope
+      client_class.joins(:enrollments).preload(enrollments: { enrollment: :project })
     end
 
     def self.table_descriptions
