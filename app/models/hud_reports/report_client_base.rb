@@ -14,7 +14,7 @@ module HudReports
     has_many :report_clients, as: :universe_membership, dependent: :destroy
 
     def display_value(col, pii_policy:, include_content_tag: true)
-      # We are expecting some columns to com through with a dot notation.
+      # We are expecting some columns to come through with a dot notation.
       # This will separate the object and method in order to call the appropriate column/method
       # while similarly allowing the method to be called if the column is not passed using dot notation.
       cell = col.to_s.split('.').inject(self) do |obj, method|

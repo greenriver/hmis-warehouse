@@ -4,8 +4,8 @@ wb.add_worksheet(name: @name.slice(0,30).gsub(':', ' ')) do |sheet|
   sheet.add_row(@headers.values, style: title)
   current_user.policy_context.preload_project_dependencies(@clients.map(&:project_id).uniq)
   @clients.each do |client|
-    pii_policy = current_user.policy_for(nil, policy_class: GrdaWarehouse::AuthPolicies::LegacyPiiPolicy)
-    pii_policy = current_user.policy_for(client.project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if client.project_id
+    pii_policy = GrdaWarehouse::AuthPolicies::LegacyPiiPolicy.instance if client.project_id.blank?
+    pii_policy ||= current_user.policy_for(client.project_id.to_i, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
     row = []
     @headers.each_key do |k|
       row << client.display_value(k, pii_policy: pii_policy, include_content_tag: false)

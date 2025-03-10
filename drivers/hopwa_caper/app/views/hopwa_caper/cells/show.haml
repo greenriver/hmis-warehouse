@@ -32,13 +32,13 @@
               %th= header
         %tbody.thead-dark
           - records.each.with_index do |record, i|
-            - pii_policy = current_user.policy_for(nil, policy_class: GrdaWarehouse::AuthPolicies::LegacyPiiPolicy)
-            - pii_policy = current_user.policy_for(record.project_id.to_i, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if record.project_id
+            - pii_policy = GrdaWarehouse::AuthPolicies::LegacyPiiPolicy.instance if record.project_id.blank?
+            - pii_policy ||= current_user.policy_for(record.project_id.to_i, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
             %tr
               %th= i + 1
               - headers.each_key do |field|
                 %td{style: 'max-width: 600px;'}
-                  =# formatted_cell(record.send(field))
+                  = formatted_cell(record.send(field))
                   = record.display_value(field, pii_policy: pii_policy, include_content_tag: true)
 - if !seen
   .none-found No records found.

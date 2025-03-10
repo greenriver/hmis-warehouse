@@ -30,8 +30,8 @@
         %tbody.thead-dark
           - current_user.policy_context.preload_project_dependencies(@clients.map(&:project_id).uniq) 
           - @clients.each.with_index do |client, i|
-            - pii_policy = current_user.policy_for(nil, policy_class: GrdaWarehouse::AuthPolicies::LegacyPiiPolicy)
-            - pii_policy = current_user.policy_for(client.project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if client.project_id
+            - pii_policy = GrdaWarehouse::AuthPolicies::LegacyPiiPolicy.instance if client.project_id.blank?
+            - pii_policy ||= current_user.policy_for(client.project_id.to_i, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
             %tr
               %th= i + 1
               - @headers.each_key do |k|
@@ -43,7 +43,7 @@
                       %i.icon-info
                   - else
                     = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
-  = content_for :page_jexits do
+  = content_for :page_js do
     :javascript
       table = $('.datatable').DataTable({
         paging: false,
