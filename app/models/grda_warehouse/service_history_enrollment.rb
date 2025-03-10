@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # = GrdaWarehouse::ServiceHistoryEnrollment
 #
@@ -217,6 +217,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   scope :in_coc, ->(coc_code:) do
     joins(project: :project_cocs).
       merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_code))
+  end
+
+  scope :in_enrollment_coc, ->(coc_code:) do
+    joins(:enrollment).
+      where(e_t[:enrollment_coc].eq(coc_code))
   end
 
   scope :coc_funded_in, ->(coc_code:) do
