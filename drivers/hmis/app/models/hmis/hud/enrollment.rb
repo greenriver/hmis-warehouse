@@ -348,6 +348,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
         assessments.exists?
       when :CASE_NOTE
         custom_case_notes.exists?
+      when :CE_REFERRAL_STEP
+        false
       else
         raise "Unexpected data collection feature role: #{role}"
       end

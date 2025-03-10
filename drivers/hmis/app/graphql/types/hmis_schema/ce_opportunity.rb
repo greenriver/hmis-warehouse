@@ -16,6 +16,7 @@ module Types
     field :accepted_referral, Types::HmisSchema::CeReferral, null: true
     field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false
     field :project_id, ID, null: false
+    field :project_name, String, null: false
 
     def candidates
       Hmis::Ce::Match::Candidate.
@@ -29,6 +30,10 @@ module Types
 
     def accepted_referral
       object.referrals.order(:id).viewable_by(current_user).accepted.first
+    end
+
+    def project_name
+      load_ar_association(object, :project).project_name
     end
   end
 end

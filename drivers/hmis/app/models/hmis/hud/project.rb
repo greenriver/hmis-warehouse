@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class Hmis::Hud::Project < Hmis::Hud::Base
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
@@ -53,7 +55,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :hmis_services, through: :enrollments
   has_many :current_living_situations, through: :enrollments
   has_many :project_staff_assignment_configs, class_name: 'Hmis::ProjectStaffAssignmentConfig'
-  has_many :ce_opportunities, class_name: 'Hmis::Ce::Opportunity', foreign_key: :project_id, dependent: :destroy
+  has_many :ce_opportunities, class_name: 'Hmis::Ce::Opportunity', foreign_key: :project_id, dependent: :destroy, inverse_of: :project
 
   has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
 
@@ -271,6 +273,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
         external_referral_requests.exists? # Also a special case, see above
       when :EXTERNAL_FORM
         false # Relies on instances only; see comment in HmisSchema::Project.external_form_submissions
+      when :CE_REFERRAL_STEP
+        false
       else
         raise "Unexpected data collection feature role: #{role}"
       end

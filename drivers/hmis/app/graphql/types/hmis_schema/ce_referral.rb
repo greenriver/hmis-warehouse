@@ -11,7 +11,8 @@ module Types
     field :id, ID, null: false
     field :opportunity, HmisSchema::CeOpportunity, null: false
     field :steps, [HmisSchema::CeReferralStep], null: false
-    field :status, String, null: false
+    field :status, HmisSchema::Enums::CeReferralStatus, null: false
+    field :client, Types::HmisSchema::Client, null: false
 
     def steps
       instance = object.workflow_instance

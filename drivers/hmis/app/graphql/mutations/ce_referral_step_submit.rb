@@ -4,12 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class CeReferralStepSubmit < CleanBaseMutation
     argument :referral_id, ID, required: true
     argument :step_id, ID, required: true
     argument :input, Types::JsonObject, required: true
     field :step, Types::HmisSchema::CeReferralStep, null: false
+    field :referral, Types::HmisSchema::CeReferral, null: false # return the referral so the UI can respond appropriately if the referral's overall status has changed
 
     def resolve(referral_id:, step_id:, input:)
       raise unless Hmis::Ce.configuration.enabled?
@@ -21,7 +24,10 @@ module Mutations
         step = engine.active_steps.find(step_id)
         engine.complete_step!(step, user: current_user, submitted_values: input)
       end
-      { step: step }
+      {
+        step: step,
+        referral: referral.reload,
+      }
     end
   end
 end
