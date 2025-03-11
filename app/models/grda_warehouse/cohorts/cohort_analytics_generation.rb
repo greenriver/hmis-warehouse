@@ -18,38 +18,33 @@ module GrdaWarehouse::Cohorts
     end
 
     def self.maintain_titles
-      GrdaWarehouse::Cohort.find_each do |cohort|
-        generator = create!(
-          cohort_id: cohort.id,
-          started_at: Time.current,
-          process_name: __method__,
-        )
+      act_on_each_cohort(__method__) do |cohort|
         GrdaWarehouse::Cohorts::CohortColumnTitle.maintain_titles(cohort)
         GrdaWarehouse::Cohorts::CohortClientTab.maintain_tabs(cohort)
-        generator.update!(completed_at: Time.current)
       end
     end
 
     def self.maintain_tabs
-      GrdaWarehouse::Cohort.find_each do |cohort|
-        generator = create!(
-          cohort_id: cohort.id,
-          started_at: Time.current,
-          process_name: __method__,
-        )
+      act_on_each_cohort(__method__) do |cohort|
         GrdaWarehouse::Cohorts::CohortClientTab.maintain_tabs(cohort)
-        generator.update!(completed_at: Time.current)
       end
     end
 
     def self.maintain_data
+      act_on_each_cohort(__method__) do |cohort|
+        GrdaWarehouse::Cohorts::CohortClientData.maintain_data(cohort)
+      end
+    end
+
+    # yield or each cohort and log processing time
+    def self.act_on_each_cohort(action)
       GrdaWarehouse::Cohort.find_each do |cohort|
         generator = create!(
           cohort_id: cohort.id,
           started_at: Time.current,
-          process_name: __method__,
+          process_name: action,
         )
-        GrdaWarehouse::Cohorts::CohortClientData.maintain_data(cohort)
+        yield(cohort)
         generator.update!(completed_at: Time.current)
       end
     end
