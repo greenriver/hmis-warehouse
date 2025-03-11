@@ -1,0 +1,29 @@
+.card
+  %table.mb-0.table.table-striped
+    %thead
+      %tr
+        %th Client
+        %th Project Type
+        %th Project
+        %th Entry Date
+        %th Exit Date
+    %tbody
+      :ruby
+        list = list.preload(:client)
+        current_user.policy_context.preload_project_dependencies(list.map { |e| e.project.id })
+      - list.each do |enrollment|
+        :ruby
+          client = enrollment.client
+          project = enrollment.project
+          pii = client.project_pii_provider(project: project, user: current_user, mode: :browse)
+        %tr
+          %td
+            -# use the full client policy to check visibility
+            - if current_user.policy_for(client).can_view?
+              = link_to pii.brief_name, appropriate_client_path(id: client.id)
+            -else
+              = pii.brief_name
+          %td= HudUtility2024.project_type(enrollment.project_type)
+          %td= project.name(current_user)
+          %td= enrollment.first_date_in_program
+          %td= enrollment.last_date_in_program
