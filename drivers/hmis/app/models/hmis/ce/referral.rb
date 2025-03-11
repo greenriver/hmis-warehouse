@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # A referral of an individual client to an opportunity
 module Hmis::Ce
   class Referral < GrdaWarehouseBase
@@ -9,7 +11,7 @@ module Hmis::Ce
     belongs_to :client, class_name: 'Hmis::Hud::Client'
     belongs_to :referred_by, class_name: 'Hmis::User'
 
-    # FIXME: permissions
+    # TODO(#7395): permissions
     scope :viewable_by, ->(_user) { all }
 
     scope :active, -> { where.not(status: ['accepted', 'rejected']) }

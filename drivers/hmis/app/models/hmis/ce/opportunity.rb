@@ -38,7 +38,7 @@ module Hmis::Ce
       end
     end
 
-    # FIXME: permissions
+    # TODO(#7395): permissions
     scope :viewable_by, ->(_user) { all }
 
     scope :active, -> { where.not(status: 'closed') }

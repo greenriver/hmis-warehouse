@@ -11,7 +11,7 @@ module Hmis::WorkflowExecution
     belongs_to :node, class_name: 'Hmis::WorkflowDefinition::Node'
     has_many :assignments, class_name: 'Hmis::WorkflowExecution::StepAssignment', dependent: :destroy
 
-    # FIXME: permissions
+    # TODO(#7395): permissions
     scope :viewable_by, ->(_user) { all }
 
     # note, step status is not intended to be manipulated outside of the workflow engine

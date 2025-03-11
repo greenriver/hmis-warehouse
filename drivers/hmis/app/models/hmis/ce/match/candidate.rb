@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # an eligible, prioritized client for a given candidate pool
 module Hmis::Ce::Match
   class Candidate < GrdaWarehouseBase
@@ -5,7 +7,7 @@ module Hmis::Ce::Match
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool'
     belongs_to :client, class_name: 'Hmis::Hud::Client'
 
-    # FIXME: permissions
+    # TODO(#7395): permissions
     scope :viewable_by, ->(_user) { all }
 
     # order by descending priority, NULL values last. Use id as a tie-breaker
