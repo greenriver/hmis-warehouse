@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 namespace :grda_warehouse do
   desc 'Setup a sample GRDA warehouse database'
   task setup: [:migrate, :seed_data_sources]
@@ -355,6 +357,12 @@ namespace :grda_warehouse do
 
     stats_collector = AppResourceMonitor::CollectStatsJob.new
     AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
+
+    if DateTime.current.hour == 3
+      GrdaWarehouse::Cohorts::CohortAnalyticsGeneration.
+        delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).
+        maintain_cohort_intermediate_data
+    end
 
     BuildTranslationCacheJob.perform_later
 

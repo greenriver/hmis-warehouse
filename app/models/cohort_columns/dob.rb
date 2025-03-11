@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class Dob < ReadOnly
     attribute :column, String, lazy: true, default: :dob
@@ -22,6 +24,11 @@ module CohortColumns
 
     def value(cohort_client) # OK
       cohort_client.client.DOB
+    end
+
+    # Don't report PII in Cohort Data, this can be obtained from the PII store
+    def analytics_value
+      nil
     end
   end
 end
