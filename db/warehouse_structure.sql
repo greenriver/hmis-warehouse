@@ -848,14 +848,14 @@ CREATE TABLE public.cohort_client_data (
     id bigint NOT NULL,
     cohort_id bigint NOT NULL,
     cohort_client_id bigint NOT NULL,
-    column_name character varying,
+    column_name character varying NOT NULL,
     value_integer integer,
     value_boolean boolean,
     value_string character varying,
     value_text text,
     value_date date,
     value_json jsonb,
-    data_type character varying
+    data_type character varying NOT NULL
 );
 
 
@@ -1163,10 +1163,10 @@ CREATE VIEW analytics.cohort_clients AS
 
 
 --
--- Name: cohort_column_titles; Type: TABLE; Schema: public; Owner: -
+-- Name: cohort_column_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.cohort_column_titles (
+CREATE TABLE public.cohort_column_metadata (
     id bigint NOT NULL,
     cohort_id bigint NOT NULL,
     name character varying,
@@ -1177,17 +1177,17 @@ CREATE TABLE public.cohort_column_titles (
 
 
 --
--- Name: cohort_column_titles; Type: VIEW; Schema: analytics; Owner: -
+-- Name: cohort_column_metadata; Type: VIEW; Schema: analytics; Owner: -
 --
 
-CREATE VIEW analytics.cohort_column_titles AS
+CREATE VIEW analytics.cohort_column_metadata AS
  SELECT id,
     cohort_id,
     name,
     title,
     description,
     data_type
-   FROM public.cohort_column_titles;
+   FROM public.cohort_column_metadata;
 
 
 --
@@ -7123,6 +7123,25 @@ ALTER SEQUENCE public.cohort_clients_id_seq OWNED BY public.cohort_clients.id;
 
 
 --
+-- Name: cohort_column_metadata_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cohort_column_metadata_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cohort_column_metadata_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cohort_column_metadata_id_seq OWNED BY public.cohort_column_metadata.id;
+
+
+--
 -- Name: cohort_column_options; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -7154,25 +7173,6 @@ CREATE SEQUENCE public.cohort_column_options_id_seq
 --
 
 ALTER SEQUENCE public.cohort_column_options_id_seq OWNED BY public.cohort_column_options.id;
-
-
---
--- Name: cohort_column_titles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.cohort_column_titles_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: cohort_column_titles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.cohort_column_titles_id_seq OWNED BY public.cohort_column_titles.id;
 
 
 --
@@ -29398,17 +29398,17 @@ ALTER TABLE ONLY public.cohort_clients ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: cohort_column_metadata id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cohort_column_metadata ALTER COLUMN id SET DEFAULT nextval('public.cohort_column_metadata_id_seq'::regclass);
+
+
+--
 -- Name: cohort_column_options id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.cohort_column_options ALTER COLUMN id SET DEFAULT nextval('public.cohort_column_options_id_seq'::regclass);
-
-
---
--- Name: cohort_column_titles id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cohort_column_titles ALTER COLUMN id SET DEFAULT nextval('public.cohort_column_titles_id_seq'::regclass);
 
 
 --
@@ -32877,19 +32877,19 @@ ALTER TABLE ONLY public.cohort_clients
 
 
 --
+-- Name: cohort_column_metadata cohort_column_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cohort_column_metadata
+    ADD CONSTRAINT cohort_column_metadata_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: cohort_column_options cohort_column_options_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.cohort_column_options
     ADD CONSTRAINT cohort_column_options_pkey PRIMARY KEY (id);
-
-
---
--- Name: cohort_column_titles cohort_column_titles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cohort_column_titles
-    ADD CONSTRAINT cohort_column_titles_pkey PRIMARY KEY (id);
 
 
 --
@@ -54226,10 +54226,10 @@ CREATE INDEX index_cohort_clients_on_deleted_at ON public.cohort_clients USING b
 
 
 --
--- Name: index_cohort_column_titles_on_cohort_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_cohort_column_metadata_on_cohort_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_cohort_column_titles_on_cohort_id ON public.cohort_column_titles USING btree (cohort_id);
+CREATE INDEX index_cohort_column_metadata_on_cohort_id ON public.cohort_column_metadata USING btree (cohort_id);
 
 
 --

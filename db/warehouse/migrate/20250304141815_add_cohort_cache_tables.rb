@@ -5,7 +5,7 @@ class AddCohortCacheTables < ActiveRecord::Migration[7.0]
     create_table :cohort_client_data do |t|
       t.references :cohort, null: false # included to streamline maintenance
       t.references :cohort_client, null: false
-      t.string :column_name
+      t.string :column_name, null: false
 
       t.integer :value_integer
       t.boolean :value_boolean
@@ -14,10 +14,10 @@ class AddCohortCacheTables < ActiveRecord::Migration[7.0]
       t.date :value_date
       t.jsonb :value_json
 
-      t.string :data_type, comment: 'Indicates which column is in-use for this row of data'
+      t.string :data_type, comment: 'Indicates which column is in-use for this row of data', null: false
     end
 
-    create_table :cohort_column_titles do |t|
+    create_table :cohort_column_metadata do |t|
       t.references :cohort, null: false
       t.string :name
       t.string :title

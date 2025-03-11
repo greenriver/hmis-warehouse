@@ -19,7 +19,7 @@ module GrdaWarehouse::Cohorts
 
     def self.maintain_titles
       act_on_each_cohort(__method__) do |cohort|
-        GrdaWarehouse::Cohorts::CohortColumnTitle.maintain_titles(cohort)
+        GrdaWarehouse::Cohorts::CohortColumnMetadata.maintain_titles(cohort)
         GrdaWarehouse::Cohorts::CohortClientTab.maintain_tabs(cohort)
       end
     end

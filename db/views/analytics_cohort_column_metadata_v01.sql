@@ -4,4 +4,4 @@ SELECT id,
   title,
   description,
   data_type
-FROM cohort_column_titles
+FROM cohort_column_metadata

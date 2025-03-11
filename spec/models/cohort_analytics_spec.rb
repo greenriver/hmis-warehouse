@@ -35,9 +35,9 @@ RSpec.describe GrdaWarehouse::Cohorts::CohortAnalyticsGeneration, type: :model d
 
     it 'places data as expected' do
       aggregate_failures do
-        expect(GrdaWarehouse::Cohorts::CohortColumnTitle.count).to be > 5
+        expect(GrdaWarehouse::Cohorts::CohortColumnMetadata.count).to be > 5
         active_columns = cohort.active_columns.map(&:class) - cohort.class.excluded_from_analytics.to_a
-        expect(GrdaWarehouse::Cohorts::CohortColumnTitle.count).to eq(active_columns.count)
+        expect(GrdaWarehouse::Cohorts::CohortColumnMetadata.count).to eq(active_columns.count)
 
         expect(GrdaWarehouse::Cohorts::CohortClientTab.count).to be > 0
         expect(GrdaWarehouse::Cohorts::CohortClientTab.pluck(:cohort_client_id)).to contain_exactly(*cohort_clients.pluck(:id))

@@ -10,11 +10,11 @@
 # The table is maintained by a script and is in the shape we expect to exist after the
 # next cohort rewrite.
 module GrdaWarehouse::Cohorts
-  class CohortColumnTitle < GrdaWarehouseBase
+  class CohortColumnMetadata < GrdaWarehouseBase
     def self.maintain_titles(cohort)
       transaction do
         where(cohort_id: cohort.id).delete_all
-        batch = cohort.active_columns.map do |col|
+        batch = cohort.active_columns.filter_map do |col|
           next if col.class.in?(cohort.class.excluded_from_analytics)
 
           {
@@ -24,7 +24,7 @@ module GrdaWarehouse::Cohorts
             title: col.title,
             description: col.description,
           }
-        end.compact
+        end
         insert_all!(batch) if batch.present?
       end
     end
