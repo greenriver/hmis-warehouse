@@ -17,22 +17,18 @@ class Filters::Criteria::FilterForDaysSinceContact < Filters::Criteria::Base
     max_assessment_dates = max_date_per_warehouse_client_id_cte(
       join: { source: :direct_assessments },
       date_column: arel.as_t[:AssessmentDate],
-      merge_class: GrdaWarehouse::Hud::Assessment,
     )
     max_service_dates = max_date_per_warehouse_client_id_cte(
       join: { source: :direct_services },
       date_column: arel.s_t[:DateProvided],
-      merge_class: GrdaWarehouse::Hud::Service,
     )
     max_enrollment_dates = max_date_per_warehouse_client_id_cte(
       join: { source: :enrollments },
       date_column: arel.e_t[:EntryDate],
-      merge_class: GrdaWarehouse::Hud::Enrollment,
     )
     max_cls_dates = max_date_per_warehouse_client_id_cte(
       join: { source: :direct_current_living_situations },
       date_column: arel.cls_t[:InformationDate],
-      merge_class: GrdaWarehouse::Hud::CurrentLivingSituation,
     )
     range = input.days_since_contact_min..input.days_since_contact_max
     on_date = input.on
@@ -67,11 +63,11 @@ class Filters::Criteria::FilterForDaysSinceContact < Filters::Criteria::Base
 
   protected
 
-  def max_date_per_warehouse_client_id_cte(join:, date_column:, merge_class:)
-    p_ids = input.personal_ids_for_days_since_contact_calculations
+  def max_date_per_warehouse_client_id_cte(join:, date_column:)
+    c_ids = input.destination_client_ids_for_days_since_contact_calculations
     query = GrdaWarehouse::WarehouseClient.
       joins(**join)
-    query = query.merge(merge_class.where(PersonalID: p_ids)) if p_ids.any?
+    query = query.where(destination_id: c_ids) if c_ids.any?
     query.group(:destination_id).
       select(
         :destination_id,
