@@ -201,7 +201,8 @@ module InactiveClientReport
     end
 
     private def max_entries_by_client_id
-      scope = report_scope.where(client_id: client_ids) if client_ids.present?
+      scope = report_scope
+      scope = scope.where(client_id: client_ids) if client_ids.present?
       scope.
         order(entry_date: :asc).
         pluck(:client_id, :entry_date).
