@@ -3,7 +3,7 @@
 class Filters::Criteria::Base
   attr_accessor :input, :config
 
-  def id = Filters::Criteria::IDS_BY_CLASS.fetch(self.class)
+  def id = Filters::Criteria::IDS_BY_CLASS.fetch(self.class.name)
   def arel = Hmis::ArelHelper.instance
   def user = input.user
 
