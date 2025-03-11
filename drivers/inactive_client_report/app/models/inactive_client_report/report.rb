@@ -71,12 +71,12 @@ module InactiveClientReport
       @total_client_count ||= clients.count
     end
 
-    memoize def clients
+    def clients
       GrdaWarehouse::Hud::Client.where(id: report_scope.select(:client_id)).
         preload(
           :processed_service_history,
           service_history_entry_ongoing: :project,
-        ).to_a
+        )
     end
 
     def days_since_most_recent_contact(client)
