@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Represents a message generated during workflow execution that may trigger actions or external state changes
 
 # A message consists of:
@@ -13,4 +15,5 @@
 #   )
 module Hmis::WorkflowExecution
   Message = Struct.new(:type, :params, :step, keyword_init: true)
+  # todo @martha - this may be where the flexibility lives?
 end

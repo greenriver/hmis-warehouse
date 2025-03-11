@@ -40,8 +40,9 @@ module Hmis::Ce
       @workflow_engine ||= Hmis::WorkflowExecution::Engine.new(
         workflow_instance,
         message_handler: Hmis::Ce::ReferralMessageHandler.new(self),
+        stepper: Hmis::Ce::ReferralEngineStepper.new,
         assignment_handler: Hmis::Ce::ReferralTaskAssignmentHandler.new(self),
-        dry_run: false,
+        audit_logger: Hmis::Ce::ReferralAuditLogger.new(workflow_instance),
       )
     end
   end

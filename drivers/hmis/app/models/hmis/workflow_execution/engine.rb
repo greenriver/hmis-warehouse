@@ -6,49 +6,45 @@ require 'dentaku'
 # task assignments, and message processing according to the workflow template.
 module Hmis::WorkflowExecution
   class Engine
-    attr_reader :template, :instance, :message_handler, :assignment_handler, :dry_run
+    attr_reader :template, :instance, :message_handler, :stepper, :assignment_handler, :audit_logger
 
-    def initialize(workflow_instance, message_handler:, assignment_handler:, dry_run:)
+    def initialize(workflow_instance, message_handler:, stepper:, assignment_handler: nil, audit_logger: nil)
       @instance = workflow_instance
       @template = workflow_instance.template
       @message_handler = message_handler
+      @stepper = stepper
       @assignment_handler = assignment_handler
-      @dry_run = dry_run
-      @dry_run_values = {}
+      @audit_logger = audit_logger
+      @current_step_values = {} # todo @martha - this isn't really ideal, need to find a better solution
+      # or at least add some comments. the point here is that the all_submitted_values needs to return values
+      # from any step, but in dry-run mode, it needs to be sure to return the values from the currently submitting
+      # step, even if that step isn't actually saved as "completed".
     end
 
     def active_steps
       instance.steps.where(status: ['available', 'in_progress'])
     end
 
+    # todo @martha - exclamation marks in this file are somewhat confusing - now that we have a dry run mode, they don't always accurately indicate data mutation like they are supposed to
     def start_workflow!(user:)
       template.nodes.entrypoints.each do |node|
         visit_node(node)
       end
-      log_event('start_workflow', user: user)
+      audit_logger&.call('start_workflow', user: user)
     end
 
     def start_step!(step, user:)
-      step.start!
+      stepper.call(step, 'start')
       process_triggers(step.node, 'start_step')
-      log_event('start_step', user: user, step: step)
+      audit_logger&.call('start_step', user: user, step: step)
     end
 
     def complete_step!(step, user:, submitted_values:)
+      @current_step_values = submitted_values
       step.submitted_values = submitted_values
-      step.complete!
+      stepper.call(step, 'complete')
       process_triggers(step.node, 'complete_step')
-      log_event('complete_step', user: user, step: step, event_data: submitted_values)
-      traverse_node(step.node)
-    end
-
-    def dry_run_step(step, submitted_values: {})
-      # there is no reason to dry-run starting a step, only completing a step.
-      # we are only ever dry-running a single step. so we only need to keep track of the current submitted values,
-      # along with previously submitted from all_submitted_values.
-      @dry_run_values = submitted_values
-      step.complete
-      process_triggers(step.node, 'complete_step')
+      audit_logger&.call('complete_step', user: user, step: step, event_data: submitted_values)
       traverse_node(step.node)
     end
 
@@ -56,9 +52,11 @@ module Hmis::WorkflowExecution
     def undo_complete_step!(step, user:)
       raise ArgumentError, 'cannot rollback step' unless may_undo_complete_step?(step)
 
-      next_task_steps(step).each(&:disable!)
-      log_event('undo_complete_step', user: user, step: step)
-      step.undo_complete_step!
+      next_task_steps(step).each do |next_step|
+        stepper.call(next_step, 'disable')
+      end
+      audit_logger&.call('undo_complete_step', user: user, step: step)
+      stepper.call(step, 'undo_complete_step')
     end
 
     def may_undo_complete_step?(step)
@@ -92,7 +90,7 @@ module Hmis::WorkflowExecution
           type: trigger.message,
           params: trigger.params,
         )
-        log_event('message_sent', event_data: trigger.to_h)
+        audit_logger&.call('message_sent', event_data: trigger.to_h)
       end
     end
 
@@ -120,8 +118,7 @@ module Hmis::WorkflowExecution
       case node
       when Hmis::WorkflowDefinition::Task
         step = instance.steps.new(node: node)
-        step.enable! unless dry_run # these conditionals are maybe a bit messy, another way around them could be creating a whole separate engine class that has some common inheritance?
-        # with submit_form mutation, it waits to do all the saving until the very end, but that has led us down some unpleasant roads too
+        stepper.call(step, 'enable')
         assign_task!(step)
       when Hmis::WorkflowDefinition::Gateway
         traverse_node(node)
@@ -136,9 +133,7 @@ module Hmis::WorkflowExecution
     end
 
     def assign_task!(step)
-      return unless assignment_handler # the dry run engine doesn't have an assignment handler
-
-      assignment_handler.call(step.node).each do |user|
+      assignment_handler&.call(step.node)&.each do |user|
         step.assignments.create!(user: user)
       end
     end
@@ -163,12 +158,7 @@ module Hmis::WorkflowExecution
         step = steps_by_node_id[node.id]
         result.merge!(step.submitted_values) if step&.completed?
       end
-      all_step_values.merge!(@dry_run_values)
-    end
-
-    def log_event(event_type, user: nil, event_data: nil, step: nil)
-      # could add a dry-run logger when initializing if we don't want to use a conditional, does this all start to feel like overkill hm maybe
-      instance.audit_events.create!(event_type: event_type, user: user, event_data: event_data, step: step) unless dry_run
+      all_step_values.merge!(@current_step_values)
     end
   end
 end

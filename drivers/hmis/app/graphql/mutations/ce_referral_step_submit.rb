@@ -23,20 +23,21 @@ module Mutations
       errors = HmisErrors::Errors.new
 
       unless confirmed
+        # dependency injection style engine
         dry_run_engine = Hmis::WorkflowExecution::Engine.new(
           referral.workflow_instance,
           message_handler: Hmis::Ce::DryRunMessageHandler.new,
+          stepper: Hmis::Ce::DryRunEngineStepper.new,
           assignment_handler: nil, # dry runner does not do any assignment
-          # it feels weird to BOTH create the "dry run engine" AND call the "dry run" method.
-          # it feels like what you want is just to either
-          # - initialize the engine and then call it, and then if there are errors return them, or
-          # - get the same (regular) engine, and then call its dry run function, which handles everything internally.
-          dry_run: true,
+          audit_logger: nil, # or log audit events
         )
 
         step = dry_run_engine.active_steps.find(step_id)
-        dry_run_engine.dry_run_step(step, submitted_values: input)
+        dry_run_engine.complete_step!(step, user: current_user, submitted_values: input)
 
+        # todo @martha -
+        # this isn't flexible enough, it needs to be configurable which types of messages require a warning.
+        # example with admin denials - we don't need to warn the admin that they are moving the referral to 'rejected,' we need to warn the non-admin that they are sending the referral to an admin for review
         if dry_run_engine.message_handler.collected_messages.map(&:type).include?('reject_referral')
           errors.add(:root, message: 'This will decline the referral', severity: :warning)
           return { errors: errors }
