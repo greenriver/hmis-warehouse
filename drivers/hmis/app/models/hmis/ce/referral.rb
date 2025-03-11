@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # A referral of an individual client to an opportunity
 module Hmis::Ce
   class Referral < GrdaWarehouseBase
@@ -39,6 +41,7 @@ module Hmis::Ce
         workflow_instance,
         message_handler: Hmis::Ce::ReferralMessageHandler.new(self),
         assignment_handler: Hmis::Ce::ReferralTaskAssignmentHandler.new(self),
+        dry_run: false,
       )
     end
   end

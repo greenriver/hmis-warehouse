@@ -6,13 +6,15 @@ require 'dentaku'
 # task assignments, and message processing according to the workflow template.
 module Hmis::WorkflowExecution
   class Engine
-    attr_reader :template, :instance, :message_handler, :assignment_handler
+    attr_reader :template, :instance, :message_handler, :assignment_handler, :dry_run
 
-    def initialize(workflow_instance, message_handler:, assignment_handler:)
+    def initialize(workflow_instance, message_handler:, assignment_handler:, dry_run:)
       @instance = workflow_instance
       @template = workflow_instance.template
       @message_handler = message_handler
       @assignment_handler = assignment_handler
+      @dry_run = dry_run
+      @dry_run_values = {}
     end
 
     def active_steps
@@ -37,6 +39,16 @@ module Hmis::WorkflowExecution
       step.complete!
       process_triggers(step.node, 'complete_step')
       log_event('complete_step', user: user, step: step, event_data: submitted_values)
+      traverse_node(step.node)
+    end
+
+    def dry_run_step(step, submitted_values: {})
+      # there is no reason to dry-run starting a step, only completing a step.
+      # we are only ever dry-running a single step. so we only need to keep track of the current submitted values,
+      # along with previously submitted from all_submitted_values.
+      @dry_run_values = submitted_values
+      step.complete
+      process_triggers(step.node, 'complete_step')
       traverse_node(step.node)
     end
 
@@ -108,7 +120,8 @@ module Hmis::WorkflowExecution
       case node
       when Hmis::WorkflowDefinition::Task
         step = instance.steps.new(node: node)
-        step.enable!
+        step.enable! unless dry_run # these conditionals are maybe a bit messy, another way around them could be creating a whole separate engine class that has some common inheritance?
+        # with submit_form mutation, it waits to do all the saving until the very end, but that has led us down some unpleasant roads too
         assign_task!(step)
       when Hmis::WorkflowDefinition::Gateway
         traverse_node(node)
@@ -123,6 +136,8 @@ module Hmis::WorkflowExecution
     end
 
     def assign_task!(step)
+      return unless assignment_handler # the dry run engine doesn't have an assignment handler
+
       assignment_handler.call(step.node).each do |user|
         step.assignments.create!(user: user)
       end
@@ -144,14 +159,16 @@ module Hmis::WorkflowExecution
     def all_submitted_values
       instance.steps.reset
       steps_by_node_id = instance.steps.index_by(&:node_id)
-      template.graph.walk.each.with_object({}) do |node, result|
+      all_step_values = template.graph.walk.each.with_object({}) do |node, result|
         step = steps_by_node_id[node.id]
         result.merge!(step.submitted_values) if step&.completed?
       end
+      all_step_values.merge!(@dry_run_values)
     end
 
     def log_event(event_type, user: nil, event_data: nil, step: nil)
-      instance.audit_events.create!(event_type: event_type, user: user, event_data: event_data, step: step)
+      # could add a dry-run logger when initializing if we don't want to use a conditional, does this all start to feel like overkill hm maybe
+      instance.audit_events.create!(event_type: event_type, user: user, event_data: event_data, step: step) unless dry_run
     end
   end
 end
