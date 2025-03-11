@@ -2271,11 +2271,6 @@ enum DataCollectionFeatureRole {
   CE_EVENT
 
   """
-  CE referral step
-  """
-  CE_REFERRAL_STEP
-
-  """
   Current living situation
   """
   CURRENT_LIVING_SITUATION

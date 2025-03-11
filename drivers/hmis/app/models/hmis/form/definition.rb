@@ -93,7 +93,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :REFERRAL,
     :REFERRAL_REQUEST,
     :EXTERNAL_FORM,
-    :CE_REFERRAL_STEP,
   ].freeze
 
   # Static Forms
@@ -117,6 +116,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :CLIENT_DETAIL,
     # Other/misc forms
     :FILE, # should maybe be considered a data collection feature, but different because its at Client-level (not Project)
+    :CE_REFERRAL_STEP,
   ].freeze
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
