@@ -10,8 +10,7 @@ wb.add_worksheet(name: @name.slice(0,30).gsub(':', ' ')) do |sheet|
 
     sheet.add_row(headers.values, style: title)
     records.each do |record|
-      pii_policy = GrdaWarehouse::AuthPolicies::LegacyPiiPolicy.instance if record.project_id.blank?
-      pii_policy ||= current_user.policy_for(record.project_id.to_i, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
+      pii_policy = current_user.reporting_policy_for_project(project_id: record.project_id)
       row = []
       headers.each_key do |k|
         row << record.display_value(k, pii_policy: pii_policy, include_content_tag: false)

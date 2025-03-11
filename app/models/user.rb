@@ -225,6 +225,12 @@ class User < ApplicationRecord
     roles.map(&:name).uniq
   end
 
+  memoize def reporting_policy_for_project(project_id:)
+    return GrdaWarehouse::AuthPolicies::LegacyPiiPolicy.instance if project_id.blank?
+
+    policy_for(project_id.to_i, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
+  end
+
   memoize def policy_for(resource, policy_class: nil)
     if policy_class
       policy_class.new(resource: resource, context: policy_context)
