@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
@@ -124,6 +132,31 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
             [new_source_client.id, client_in_destination.id],
           ].sort
           expect(ids_from_warehouse_clients).to eq(ids_from_clients)
+        end
+      end
+    end
+
+    describe 'When the client has non-ascii characters in their name' do
+      before do
+        client_in_destination.update(first_name: 'José')
+        client_in_source.update(first_name: 'José')
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.identify_duplicates
+      end
+      it 'runs without error and generates one warehouse client record' do
+        expect(GrdaWarehouse::WarehouseClient.count).to eq(1)
+      end
+      describe 'second run' do
+        let!(:new_source_client) { create :grda_warehouse_hud_client, data_source: source_data_source, first_name: 'Jose' }
+        before do
+          # identify duplicates is not setup to "transliterate" so does not see Jose and José as the same
+          GrdaWarehouse::Tasks::IdentifyDuplicates.new.identify_duplicates
+        end
+        it 'does not connect the new client to the existing destination client' do
+          aggregate_failures do
+            expect(GrdaWarehouse::WarehouseClient.count).to eq(2)
+            expect(GrdaWarehouse::Hud::Client.destination.count).to eq(2)
+            expect(client_in_destination.source_client_ids).to_not include(new_source_client.id)
+          end
         end
       end
     end

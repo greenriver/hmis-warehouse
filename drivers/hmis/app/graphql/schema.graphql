@@ -3367,6 +3367,7 @@ type Enrollment {
   juvenileJusticeMonths: Int
   juvenileJusticeYears: RHYNumberofYears
   lastBedNightDate: ISO8601Date
+  lastContact: LastContact
   lastCurrentLivingSituation: CurrentLivingSituation
   lastServiceDate(serviceTypeId: ID!): ISO8601Date
   lengthOfStay: ResidencePriorLengthOfStay
@@ -5665,6 +5666,63 @@ scalar JsonObject
 type KeyValue {
   key: String!
   value: String
+}
+
+type LastContact {
+  contactDate: ISO8601Date!
+  contactType: LastContactType!
+}
+
+enum LastContactType {
+  """
+  Annual Assessment
+  """
+  ANNUAL_ASSESSMENT
+
+  """
+  Assessment
+  """
+  ASSESSMENT
+
+  """
+  Bed Night
+  """
+  BED_NIGHT
+
+  """
+  Case Note
+  """
+  CASE_NOTE
+
+  """
+  Current Living Situation
+  """
+  CURRENT_LIVING_SITUATION
+
+  """
+  Exit Assessment
+  """
+  EXIT_ASSESSMENT
+
+  """
+  Intake Assessment
+  """
+  INTAKE_ASSESSMENT
+
+  """
+  Post-Exit Assessment
+  """
+  POST_EXIT_ASSESSMENT
+
+  """
+  Service
+  """
+  SERVICE
+
+  """
+  Update Assessment
+  """
+  UPDATE_ASSESSMENT
 }
 
 """

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class Base < ::ModelForm
     include ActionView::Helpers
@@ -78,6 +80,22 @@ module CohortColumns
 
     def renderer
       'text'
+    end
+
+    def analytics_data_type
+      return default_input_type.to_s if default_input_type.to_s.in?(['boolean', 'integer', 'string'])
+      return 'string' if default_input_type.to_s == 'read_only'
+      return 'integer' if renderer == 'numeric'
+      return 'text' if renderer == 'html'
+      return 'string' if renderer == 'dropdown'
+
+      renderer
+    end
+
+    # Requires setting attributes for cohort, cohort_client, and current_user
+    # Used to send data to OP Analytics
+    def analytics_value
+      display_read_only(current_user)
     end
 
     # momentjs compatible

@@ -1,0 +1,21 @@
+# frozen_string_literal: true
+
+class Filters::Criteria::FilterForReturnedToHomelessnessFromPermanentDestination < Filters::Criteria::Base
+  def applies? = input.returned_to_homelessness_from_permanent_destination
+
+  def apply(scope)
+    scope = super(scope)
+    visible_enrollments = scope.joins(:project).merge(viewable_project_scope)
+    exits = visible_enrollments.
+      select(:id, :client_id, :last_date_in_program, :destination).
+      joins(enrollment: :exit).
+      ended_between(start_date: input.start - 2.years, end_date: input.start).
+      define_window(:client_window).
+      partition_by(:client_id, order_by: { last_date_in_program: :desc }).
+      select_window(:row_number, over: :client_window, as: :row_id)
+    client_ids_with_recent_permanent_exits = GrdaWarehouse::ServiceHistoryEnrollment.from(exits).
+      where('row_id = 1 AND destination IN (?)', HudUtility2024.permanent_destinations)
+
+    scope.homeless.where(client_id: client_ids_with_recent_permanent_exits.select(:client_id))
+  end
+end
