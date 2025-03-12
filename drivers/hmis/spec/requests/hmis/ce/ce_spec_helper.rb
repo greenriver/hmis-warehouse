@@ -45,7 +45,7 @@ RSpec.shared_context 'ce spec helper' do
       template: workflow_template,
       name: 'Client Acceptance',
       swimlane: case_manager_swimlane,
-      form_definition: create(:hmis_form_definition),
+      form_definition: create(:ce_referral_step_definition),
     )
   end
 

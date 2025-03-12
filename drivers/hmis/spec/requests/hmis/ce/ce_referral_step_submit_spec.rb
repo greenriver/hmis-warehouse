@@ -33,8 +33,8 @@ RSpec.describe Mutations::CeReferralStepSubmit, type: :request do
   before do
     client_acceptance_task.outflows.destroy_all
     client_acceptance_task.connect_to!(acceptance_gateway)
-    acceptance_gateway.connect_to!(reject_referral, condition: 'accepted = 0')
-    acceptance_gateway.connect_to!(accept_referral, condition: 'accepted = 1')
+    acceptance_gateway.connect_to!(reject_referral, condition: 'client_accepted = 0')
+    acceptance_gateway.connect_to!(accept_referral, condition: 'client_accepted = 1')
   end
 
   describe 'submit step mutation' do
@@ -90,8 +90,9 @@ RSpec.describe Mutations::CeReferralStepSubmit, type: :request do
         {
           **base_variables,
           input: {
-            'accepted': 1,
-          },
+            contact_date: 1.day.ago,
+            client_accepted: 1,
+          }.stringify_keys,
         }
       end
 
@@ -111,8 +112,9 @@ RSpec.describe Mutations::CeReferralStepSubmit, type: :request do
         {
           **base_variables,
           input: {
-            'accepted': 0,
-          },
+            contact_date: 1.day.ago,
+            client_accepted: 0,
+          }.stringify_keys,
         }
       end
 
@@ -144,21 +146,21 @@ RSpec.describe Mutations::CeReferralStepSubmit, type: :request do
         {
           **base_variables,
           input: {
-            'foo': 'bar',
-            # input doesn't say whether client was accepted or rejected
-          },
+            contact_date: 1.day.ago,
+            client_accepted: nil,
+          }.stringify_keys,
         }
       end
 
       it 'returns validation errors' do
-        # todo @martha - get this test passing
         expect do
-          response, result = post_graphql(**variables) { mutation }
+          response, result = post_graphql(**variables, confirmed: true) { mutation }
           expect(response.status).to eq(200), result&.inspect
           errors = result.dig('data', 'submitCeReferralStep', 'errors')
           expect(errors.count).to eq(1)
           expect(errors.first['severity']).to eq('error')
-          expect(errors.first['message']).to eq('missing required field')
+          expect(errors.first['linkId']).to eq('client_accepted')
+          expect(errors.first['message']).to eq('must exist')
           step.reload
         end.to not_change(step, :status)
       end
