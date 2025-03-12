@@ -13,9 +13,6 @@
 
 module Types
   class HmisSchema::Enums::CeReferralStepStatus < Types::BaseEnum
-    value 'unavailable'
-    value 'available'
-    value 'in_progress'
-    value 'completed'
+    Hmis::WorkflowExecution::Step.aasm.states.each { |state| value state.name }
   end
 end
