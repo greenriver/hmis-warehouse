@@ -273,8 +273,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
         external_referral_requests.exists? # Also a special case, see above
       when :EXTERNAL_FORM
         false # Relies on instances only; see comment in HmisSchema::Project.external_form_submissions
-      when :CE_REFERRAL_STEP
-        false
       else
         raise "Unexpected data collection feature role: #{role}"
       end

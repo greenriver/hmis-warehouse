@@ -13,9 +13,6 @@
 
 module Types
   class HmisSchema::Enums::CeReferralStatus < Types::BaseEnum
-    value 'initialized'
-    value 'in_progress'
-    value 'accepted'
-    value 'rejected'
+    Hmis::Ce::Referral.aasm.states.each { |state| value state.name }
   end
 end

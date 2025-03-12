@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # STI Base class for all workflow nodes (tasks, events, gateways).
 # Nodes are the building blocks of a workflow template and represent points where work is performed, decisions are made, or events occur.
 module Hmis::WorkflowDefinition
@@ -5,6 +7,7 @@ module Hmis::WorkflowDefinition
     belongs_to :template, class_name: 'Hmis::WorkflowDefinition::Template'
     has_many :outflows, class_name: 'Hmis::WorkflowDefinition::Flow', foreign_key: 'source_node_id', dependent: :destroy
     has_many :inflows, class_name: 'Hmis::WorkflowDefinition::Flow', foreign_key: 'target_node_id', dependent: :destroy
+    belongs_to :swimlane, class_name: 'Hmis::WorkflowDefinition::Swimlane', optional: true # only relevant for Task!
 
     validate :check_trigger_config_format
 

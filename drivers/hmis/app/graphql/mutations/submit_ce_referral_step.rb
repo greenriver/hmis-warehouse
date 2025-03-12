@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module Mutations
-  class CeReferralStepSubmit < CleanBaseMutation
+  class SubmitCeReferralStep < CleanBaseMutation
     argument :referral_id, ID, required: true
     argument :step_id, ID, required: true
     argument :input, Types::JsonObject, required: true

@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
 
-RSpec.describe Mutations::CeReferralCreate, type: :request do
+RSpec.describe Mutations::CreateCeReferral, type: :request do
   include_context 'hmis base setup'
 
   let!(:ds_access_control) do

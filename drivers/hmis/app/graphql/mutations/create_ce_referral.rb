@@ -4,8 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
-  class CeReferralCreate < CleanBaseMutation
+  class CreateCeReferral < CleanBaseMutation
     argument :opportunity_id, ID, required: true
     argument :client_id, ID, required: true
     field :referral, Types::HmisSchema::CeReferral, null: false

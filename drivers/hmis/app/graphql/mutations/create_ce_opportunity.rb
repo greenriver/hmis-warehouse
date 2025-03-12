@@ -4,8 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
-  class CeOpportunityCreate < CleanBaseMutation
+  class CreateCeOpportunity < CleanBaseMutation
     argument :project_id, ID, required: true
     argument :input, Types::HmisSchema::CeOpportunityInput, required: true
     field :opportunity, Types::HmisSchema::CeOpportunity, null: false

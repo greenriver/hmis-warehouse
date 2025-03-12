@@ -4,7 +4,7 @@ require 'rails_helper'
 require_relative '../login_and_permissions'
 require_relative './ce_spec_helper'
 
-RSpec.describe Mutations::CeReferralStepStart, type: :request do
+RSpec.describe Mutations::StartCeReferralStep, type: :request do
   include_context 'ce spec helper'
 
   describe 'start step mutation' do
