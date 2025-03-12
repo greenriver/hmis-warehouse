@@ -29,7 +29,7 @@ module Types
     end
 
     def swimlane
-      load_ar_association(object, :node).swimlane.name
+      load_ar_association(object, :swimlane)&.name
     end
   end
 end

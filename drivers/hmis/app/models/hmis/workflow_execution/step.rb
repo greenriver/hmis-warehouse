@@ -10,6 +10,7 @@ module Hmis::WorkflowExecution
     belongs_to :instance, class_name: 'Hmis::WorkflowExecution::Instance'
     belongs_to :node, class_name: 'Hmis::WorkflowDefinition::Node'
     has_many :assignments, class_name: 'Hmis::WorkflowExecution::StepAssignment', dependent: :destroy
+    has_one :swimlane, through: :node, class_name: 'Hmis::WorkflowDefinition::Swimlane'
 
     # TODO(#7395): permissions
     scope :viewable_by, ->(_user) { all }

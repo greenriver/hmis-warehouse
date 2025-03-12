@@ -18,13 +18,11 @@ task ce_starter_pack_20250302: [:environment] do
   no_task_template.name = 'No Tasks'
   no_task_template.version = 0
   no_task_template.save! if no_task_template.changed?
-  case_managers = no_task_template.swimlanes.find_or_create_by!(name: 'Case Managers')
 
   start_workflow_event = Hmis::WorkflowDefinition::StartEvent.find_or_initialize_by(
     name: 'start referral',
     template_id: no_task_template.id,
   )
-  start_workflow_event.swimlane_id = case_managers.id
   start_workflow_event.trigger_config = [
     {
       event: 'start_workflow',
@@ -37,7 +35,6 @@ task ce_starter_pack_20250302: [:environment] do
     name: 'accept referral',
     template_id: no_task_template.id,
   )
-  accept_workflow_event.swimlane_id = case_managers.id
   accept_workflow_event.trigger_config = [
     {
       event: 'end_workflow',
