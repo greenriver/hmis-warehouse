@@ -7,14 +7,12 @@
 # frozen_string_literal: true
 
 module Mutations
-  class CeReferralStepSubmit < CleanBaseMutation
+  class StartCeReferralStep < CleanBaseMutation
     argument :referral_id, ID, required: true
     argument :step_id, ID, required: true
-    argument :input, Types::JsonObject, required: true
     field :step, Types::HmisSchema::CeReferralStep, null: false
-    field :referral, Types::HmisSchema::CeReferral, null: false # return the referral so the UI can respond appropriately if the referral's overall status has changed
 
-    def resolve(referral_id:, step_id:, input:)
+    def resolve(referral_id:, step_id:)
       raise unless Hmis::Ce.configuration.enabled?
 
       referral = Hmis::Ce::Referral.viewable_by(current_user).find(referral_id)
@@ -22,12 +20,9 @@ module Mutations
       referral.opportunity.with_lock do
         engine = referral.workflow_engine
         step = engine.active_steps.find(step_id)
-        engine.complete_step!(step, user: current_user, submitted_values: input)
+        engine.start_step!(step, user: current_user)
       end
-      {
-        step: step,
-        referral: referral.reload,
-      }
+      { step: step }
     end
   end
 end
