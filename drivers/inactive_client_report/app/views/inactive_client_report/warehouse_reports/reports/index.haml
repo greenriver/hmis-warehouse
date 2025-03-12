@@ -12,7 +12,7 @@
     .top-nav-prs1
       %h1.mb-5= title
     .main-inner-prs1
-      - if params[:render_inline] == "1" && Rails.env.development?
+      - if params[:render_inline] == "1"
         = render "report"
       - else
         = render 'background_render', url: render_section_inactive_client_report_warehouse_reports_reports_path, fetch_params: { filter: @filter.for_params[:filters], query_string: params } do

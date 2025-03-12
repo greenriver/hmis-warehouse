@@ -28,9 +28,8 @@ module InactiveClientReport::WarehouseReports
       @excel_export = ::InactiveClientReport::DocumentExports::ReportExcelExport.new
       respond_to do |format|
         format.html do
-          # This is being set so the render_inline feature can be used in development
-          # to override the background running of the report
-          set_pagy_data if params[:render_inline] == '1' && Rails.env.development?
+          # This needs to be set here so that the pagy data is accessible when the render_inline functionality is utilized
+          set_pagy_data if params[:render_inline] == '1'
         end
         format.xlsx do
           @report.client_ids = @report.clients.map(&:id)
