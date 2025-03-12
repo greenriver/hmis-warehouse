@@ -86,6 +86,7 @@ module HudSpmReport::Fy2024
         # when not including 3.917
         []
       end
+      # note, a this point the array is no-longer sorted
       filtered_bed_nights += pre_entry_dates
       return unless filtered_bed_nights.present?
 
@@ -110,11 +111,9 @@ module HudSpmReport::Fy2024
         )
       end
 
-      first_date, last_date, days_homeless = compute_min_max_and_unique(filtered_bed_nights.map(&:last))
-
-      # filtered_bed_nights appears to be an array of [enrollment, index(?), date]
-      literally_homeless_at_entry = filtered_bed_nights.any? do |enrollment, _, date|
-        enrollment_literally_homeless_at_entry(enrollment) if date == first_date
+      first_date, last_date, days_homeless, first_date_enrollments = compute_episode_statistics(filtered_bed_nights)
+      literally_homeless_at_entry = first_date_enrollments.any? do |enrollment|
+        enrollment_literally_homeless_at_entry(enrollment)
       end
 
       assign_attributes(
@@ -132,24 +131,31 @@ module HudSpmReport::Fy2024
       }
     end
 
-    # Efficiently find min, max, and unique count of values
-    private def compute_min_max_and_unique(values)
-      min_val = values[0]
-      max_val = values[0]
+    # @param bed_nights [Array] an array of [enrollment, index(?), date]
+    private def compute_episode_statistics(bed_nights)
+      min_val = bed_nights[0].last # The date component
+      max_val = bed_nights[0].last
       distinct = {}
       distinct_count = 0
+      first_date_enrollments = Set.new
 
-      values.each do |num|
-        min_val = num if num < min_val
-        max_val = num if num > max_val
+      bed_nights.each do |enrollment, _, date|
+        if date < min_val
+          min_val = date
+          first_date_enrollments = Set.new([enrollment]) # Reset to just this enrollment
+        elsif date == min_val
+          first_date_enrollments.add(enrollment) # Add to enrollments for first date
+        end
+        max_val = date if date > max_val
 
-        next if distinct.key?(num)
+        next if distinct.key?(date)
 
-        distinct[num] = true
+        distinct[date] = true
         distinct_count += 1
       end
 
-      [min_val, max_val, distinct_count]
+      # Return min date, max date, count of distinct dates, and enrollments for min date
+      [min_val, max_val, distinct_count, first_date_enrollments]
     end
 
     private def candidate_bed_nights(enrollments, project_types, include_self_reported_and_ph)
