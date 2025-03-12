@@ -132,20 +132,17 @@ module HudSpmReport::Fy2024
       }
     end
 
-    # efficiently find min, max, and unique count of elements
+    # Efficiently find min, max, and unique count of values
     private def compute_min_max_and_unique(values)
-      # Initialize min and max to the first element
       min_val = values[0]
       max_val = values[0]
       distinct = {}
       distinct_count = 0
 
       values.each do |num|
-        # Update min and max in one check each
         min_val = num if num < min_val
         max_val = num if num > max_val
 
-        # Count distinct numbers using a hash for O(1) lookups
         next if distinct.key?(num)
 
         distinct[num] = true
