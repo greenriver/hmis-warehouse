@@ -6,6 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module
   CoreDemographicsReport::HouseholdTypeCalculations
   extend ActiveSupport::Concern
@@ -133,7 +135,7 @@ module
         @households[coc_code.to_sym] = {}
 
         # Ignore client-specific filters so we can calculate household type based on who was there, not who is available for reporting
-        household_scope = filter.apply_criteria(report_scope_source.in_coc(coc_code: coc_code), tags: [:warehouse, :project])
+        household_scope = filter.apply_criteria(report_scope_source.in_enrollment_coc(coc_code: coc_code), tags: [:warehouse, :project])
         # use she.client (destination client) for DOB/Age, sometimes QA has weird data
         set_household_counts(household_scope, coc_code.to_sym)
       end
@@ -144,7 +146,7 @@ module
 
     private def set_household_counts(household_scope, coc_code = base_count_sym)
       scope = household_scope.joins(enrollment: :client).preload(:client, enrollment: :client).distinct
-      scope = scope.in_coc(coc_code: coc_code) unless coc_code.to_sym == base_count_sym
+      scope = scope.in_enrollment_coc(coc_code: coc_code) unless coc_code.to_sym == base_count_sym
       scope.find_each(batch_size: 1_000) do |enrollment|
         date = [enrollment.entry_date, filter.start_date].max
         age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.client&.DOB&.to_date)

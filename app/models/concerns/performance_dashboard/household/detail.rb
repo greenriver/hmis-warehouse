@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -87,7 +89,7 @@ module PerformanceDashboard::Household::Detail
       columns['Other Clients over 25'] = she_t[:other_clients_over_25]
     end
     columns['Project Type'] = she_t[project_type_col] if options[:project_type]
-    columns['CoC'] = ec_t[:CoCCode] if options[:coc]
+    columns['CoC'] = e_t[:enrollment_coc] if options[:coc]
     columns
   end
 end
