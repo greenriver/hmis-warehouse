@@ -37,9 +37,7 @@ module InactiveClientReport::WarehouseReports
     end
 
     def data
-      query_string = params[:query_string]
-      page = query_string[:page] if query_string
-      @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name), page: page, params: @filter.for_params)
+      @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name))
     end
 
     private def set_report
