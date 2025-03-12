@@ -221,5 +221,17 @@ module HudSpmReport::Generators::Fy2024
       end
       values.sort[selected - 1] # Adjust for 0-based array
     end
+
+    private def median(values)
+      sorted = values.sort
+      len = sorted.length
+
+      if len.even?
+        # Average of position (len/2) and (len/2 + 1)
+        (sorted[len/2 - 1] + sorted[len/2]) / 2.0
+      else
+        sorted[len/2]
+      end
+    end
   end
 end

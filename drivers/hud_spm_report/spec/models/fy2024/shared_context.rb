@@ -22,45 +22,53 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
   let!(:organization) { create(:hud_organization, data_source: data_source) }
 
   def create_project(project_type:, coc_code: 'MA-500')
-    project = create(:hud_project,
-                     ProjectType: project_type,
-                     organization: organization,
-                     data_source: data_source,
-                     ContinuumProject: 1)
+    project = create(
+      :hud_project,
+      project_type: project_type,
+      organization: organization,
+      data_source: data_source,
+      ContinuumProject: 1,
+    )
 
-    create(:hud_project_coc,
-           ProjectID: project.ProjectID,
-           data_source: data_source,
-           CoCCode: coc_code)
+    create(
+      :hud_project_coc,
+      project_id: project.project_id,
+      data_source: data_source,
+      coc_code: coc_code,
+    )
 
     project
   end
 
   def create_client_with_warehouse_link
-    client = create(:hud_client, PersonalID: SecureRandom.uuid, data_source: data_source)
+    client = create(:hud_client, data_source: data_source)
     destination_client = create(:hud_client, data_source: destination_data_source)
     create(:warehouse_client, destination_id: destination_client.id, source_id: client.id)
     client
   end
 
-  def create_enrollment(client:, project:, entry_date:, exit_date: nil, head_of_household: true,
-    date_to_street_essh: nil, household_id: SecureRandom.uuid, living_situation: nil)
-    enrollment = create(:hud_enrollment,
-                        PersonalID: client.PersonalID,
-                        project: project,
-                        data_source: data_source,
-                        EntryDate: entry_date,
-                        DateToStreetESSH: date_to_street_essh,
-                        RelationshipToHoH: head_of_household ? 1 : 3, # 1 = HoH, 3 = Child
-                        HouseholdID: household_id,
-                        LivingSituation: living_situation)
+  def create_enrollment(client:, project:, entry_date:, exit_date: nil, relationship_to_ho_h: 1,
+    date_to_street_essh: nil, household_id: Hmis::Hud::Base.generate_uuid, living_situation: nil)
+    enrollment = create(
+      :hud_enrollment,
+      client: client,
+      project: project,
+      data_source: data_source,
+      entry_date: entry_date,
+      date_to_street_essh: date_to_street_essh,
+      relationship_to_ho_h: relationship_to_ho_h,
+      household_id: household_id,
+      living_situation: living_situation,
+    )
 
     if exit_date.present?
-      create(:hud_exit,
-             enrollment: enrollment,
-             ExitDate: exit_date,
-             data_source: data_source,
-             PersonalID: client.PersonalID)
+      create(
+        :hud_exit,
+        enrollment: enrollment,
+        exit_date: exit_date,
+        data_source: data_source,
+        personal_id: client.personal_id,
+      )
     end
 
     enrollment

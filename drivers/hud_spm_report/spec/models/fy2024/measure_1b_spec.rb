@@ -251,5 +251,102 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         expect(episode.days_homeless).to be >= 40
       end
     end
+    context 'with multi-member household' do
+      before do
+        # Create an ES project
+        @es_project = create_project(project_type: 0) # ES-EE
+
+        # Create household members
+        @head_of_household = create_client_with_warehouse_link
+        @child = create_client_with_warehouse_link
+        @adult_member = create_client_with_warehouse_link
+
+        # Create household ID
+        household_id = 'test_household_123'
+
+        # Create head of household enrollment with prior living situation date
+        create_enrollment(
+          client: @head_of_household,
+          project: @es_project,
+          entry_date: '2022-11-01'.to_date,
+          exit_date: '2023-01-15'.to_date,
+          date_to_street_essh: '2022-10-01'.to_date,
+          relationship_to_ho_h: 1,
+          household_id: household_id,
+        )
+
+        # Create child enrollment (same dates as HoH, but no prior living situation)
+        create_enrollment(
+          client: @child,
+          project: @es_project,
+          entry_date: '2022-11-01'.to_date,
+          exit_date: '2023-01-15'.to_date,
+          relationship_to_ho_h: 3,
+          household_id: household_id,
+        )
+
+        # Create adult member enrollment (joined later, left earlier, with different prior living situation)
+        create_enrollment(
+          client: @adult_member,
+          project: @es_project,
+          entry_date: '2022-11-15'.to_date,
+          exit_date: '2023-01-10'.to_date,
+          date_to_street_essh: '2022-10-15'.to_date,
+          relationship_to_ho_h: 2,
+          household_id: household_id,
+        )
+
+        # Setup and run the report
+        @report = setup_report([@es_project.id])
+        run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
+      end
+
+      it 'correctly propagates prior living situation from head of household to child' do
+        # Verify that all household members are in the universe
+        expect(@report.universe('m1b1').members.count).to eq(3)
+
+        # Find episodes for each household member
+        episodes = @report.universe('m1b1').members.map(&:universe_membership)
+        hoh_episode = episodes.find { |e| e.client_id == @head_of_household.destination_client.id }
+        child_episode = episodes.find { |e| e.client_id == @child.destination_client.id }
+        adult_episode = episodes.find { |e| e.client_id == @adult_member.destination_client.id }
+
+        # Expected first date for head of household: Oct 1 (prior living situation)
+        expect(hoh_episode.first_date).to eq('2022-10-01'.to_date)
+
+        # Expected days homeless for head of household: Oct 1 to Jan 14 = 106 days
+        expect(hoh_episode.days_homeless).to eq(106)
+
+        # Child should inherit HoH's prior living situation date
+        # Expected first date for child: Oct 1 (inherited from HoH)
+        expect(child_episode.first_date).to eq('2022-10-01'.to_date)
+
+        # Expected days homeless for child: Oct 1 to Jan 14 = 106 days (same as HoH)
+        expect(child_episode.days_homeless).to eq(106)
+
+        # Adult should use their own prior living situation date
+        # Expected first date for adult: Oct 15 (own prior living situation)
+        expect(adult_episode.first_date).to eq('2022-10-15'.to_date)
+
+        # Expected days homeless for adult: Oct 15 to Jan 9 = 87 days
+        expect(adult_episode.days_homeless).to eq(87)
+      end
+
+      it 'correctly calculates average and median length of time homeless' do
+        # Verify that the appropriate metrics were calculated
+        answer_b1 = @report.answer(question: '1b', cell: 'B1')
+        answer_d1 = @report.answer(question: '1b', cell: 'D1')
+        answer_g1 = @report.answer(question: '1b', cell: 'G1')
+
+        # Should have a count of 3 people
+        expect(answer_b1.summary.to_i).to eq(3)
+
+        # Average should be (106 + 106 + 87) / 3 = 99.67 days
+        expect(answer_d1.summary.to_f).to be_within(1).of(99.67)
+
+        # Median should be 106 days
+        expect(answer_g1.summary.to_i).to eq(106)
+      end
+    end
   end
 end
