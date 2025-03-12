@@ -288,7 +288,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
 
         # Create household members
         @head_of_household = create_client_with_warehouse_link
-        @child = create_client_with_warehouse_link
+        @child = create_client_with_warehouse_link(dob: '2020-06-01')
         @adult_member = create_client_with_warehouse_link
 
         # Create household ID

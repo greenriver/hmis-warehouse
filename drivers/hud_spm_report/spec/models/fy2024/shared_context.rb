@@ -40,8 +40,8 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
     project
   end
 
-  def create_client_with_warehouse_link
-    client = create(:hud_client, data_source: data_source)
+  def create_client_with_warehouse_link(dob: '1995-04-05'.to_date)
+    client = create(:hud_client, data_source: data_source, dob: dob)
     destination_client = create(:hud_client, data_source: destination_data_source)
     create(:warehouse_client, destination_id: destination_client.id, source_id: client.id)
     client

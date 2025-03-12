@@ -197,7 +197,6 @@ module HudSpmReport::Generators::Fy2024
     end
 
     private def compute_row(universe)
-      #  HudSpmReport::Fy2024::Episode.where().pluck(:days_homeless)
       a_t = HudSpmReport::Fy2024::Episode.arel_table
       persons = universe.count
       return [0, 0, 0] unless persons.positive?
@@ -211,15 +210,6 @@ module HudSpmReport::Generators::Fy2024
 
     private def mean(num, denom)
       format('%1.2f', (num / denom.to_f).round(2))
-    end
-
-    private def median(values)
-      selected = if values.count.even?
-        (values.count / 2) + 1
-      else
-        values.count / 2
-      end
-      values.sort[selected - 1] # Adjust for 0-based array
     end
 
     private def median(values)
