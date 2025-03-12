@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :grda_warehouse_data_source, class: 'GrdaWarehouse::DataSource' do
     sequence(:name) { |n| "Green River #{n}" }

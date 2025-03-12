@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -8,7 +10,7 @@
 module HudSpmReport::Generators::Fy2024
   class MeasureOne < MeasureBase
     def self.question_number
-      'Measure 1'.freeze
+      'Measure 1'
     end
 
     def self.client_class
@@ -218,9 +220,9 @@ module HudSpmReport::Generators::Fy2024
 
       if len.even?
         # Average of position (len/2) and (len/2 + 1)
-        (sorted[len/2 - 1] + sorted[len/2]) / 2.0
+        (sorted[len / 2 - 1] + sorted[len / 2]) / 2.0
       else
-        sorted[len/2]
+        sorted[len / 2]
       end
     end
   end
