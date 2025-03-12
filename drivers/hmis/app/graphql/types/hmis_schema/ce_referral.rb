@@ -21,5 +21,9 @@ module Types
         steps_by_node_id[node.id] || instance.steps.new(node: node).freeze
       end
     end
+
+    def client
+      load_ar_association(object, :client)
+    end
   end
 end

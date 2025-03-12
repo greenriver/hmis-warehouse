@@ -805,9 +805,17 @@ enum CeReferralStatus {
 
 type CeReferralStep {
   formDefinition: FormDefinition!
+
+  """
+  unique identifier for this step based on node and instance
+  """
   id: ID!
   name: String!
   status: CeReferralStepStatus!
+
+  """
+  the DB identifier of this step, if it is persisted
+  """
   stepId: ID
   submittedValues: JsonObject
   swimlane: String!

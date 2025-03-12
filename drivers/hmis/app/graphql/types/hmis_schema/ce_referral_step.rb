@@ -10,8 +10,8 @@ module Types
   class HmisSchema::CeReferralStep < Types::BaseObject
     # object is a Hmis::WorkflowExecution::Step
 
-    field :id, ID, null: false # unique identifier for this step based on node and instance
-    field :step_id, ID, null: true # the DB identifier of this step, if it is persisted
+    field :id, ID, null: false, description: 'unique identifier for this step based on node and instance'
+    field :step_id, ID, null: true, method: :id, description: 'the DB identifier of this step, if it is persisted'
     field :form_definition, Types::Forms::FormDefinition, null: false
     field :name, String, null: false
     field :status, HmisSchema::Enums::CeReferralStepStatus, null: false
@@ -22,10 +22,6 @@ module Types
     def id
       # the step may not yet be persisted, such as when it isn't yet available in the workflow
       "#{object.node_id}:#{object.instance_id}"
-    end
-
-    def step_id
-      object.id
     end
 
     def workflow_node
