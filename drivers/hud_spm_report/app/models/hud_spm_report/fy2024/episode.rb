@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -108,12 +110,18 @@ module HudSpmReport::Fy2024
         )
       end
 
-      first_date, last_date = filtered_bed_nights.map(&:last).minmax
+      first_date, last_date, days_homeless = compute_min_max_and_unique(filtered_bed_nights.map(&:last))
+
+      # filtered_bed_nights appears to be an array of [enrollment, index(?), date]
+      literally_homeless_at_entry = filtered_bed_nights.any? do |enrollment, _, date|
+        enrollment_literally_homeless_at_entry(enrollment) if date == first_date
+      end
+
       assign_attributes(
         first_date: first_date,
         last_date: last_date,
-        days_homeless: filtered_bed_nights.count,
-        literally_homeless_at_entry: literally_homeless_at_entry(filtered_bed_nights, first_date),
+        days_homeless: days_homeless,
+        literally_homeless_at_entry: literally_homeless_at_entry,
       )
 
       {
@@ -122,6 +130,29 @@ module HudSpmReport::Fy2024
         enrollment_links: enrollment_links_array,
         any_bed_nights_in_report_range: any_bed_nights_in_report_range,
       }
+    end
+
+    # efficiently find min, max, and unique count of elements
+    private def compute_min_max_and_unique(values)
+      # Initialize min and max to the first element
+      min_val = values[0]
+      max_val = values[0]
+      distinct = {}
+      distinct_count = 0
+
+      values.each do |num|
+        # Update min and max in one check each
+        min_val = num if num < min_val
+        max_val = num if num > max_val
+
+        # Count distinct numbers using a hash for O(1) lookups
+        next if distinct.key?(num)
+
+        distinct[num] = true
+        distinct_count += 1
+      end
+
+      [min_val, max_val, distinct_count]
     end
 
     private def candidate_bed_nights(enrollments, project_types, include_self_reported_and_ph)
@@ -291,10 +322,6 @@ module HudSpmReport::Fy2024
 
       # Finally, return the selected dates
       calculated_bed_nights[index ..]
-    end
-
-    private def literally_homeless_at_entry(bed_nights, first_date)
-      enrollment_literally_homeless_at_entry(bed_nights.detect { |_, _, date| date == first_date }.first)
     end
 
     private def enrollment_literally_homeless_at_entry(enrollment)
