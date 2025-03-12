@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class ClientNotes < Base
     attribute :column, String, lazy: true, default: :client_notes
@@ -59,6 +61,10 @@ module CohortColumns
     def text_value(cohort_client)
       self.cohort_client = cohort_client
       comments
+    end
+
+    def analytics_value
+      text_value(cohort_client)
     end
   end
 end

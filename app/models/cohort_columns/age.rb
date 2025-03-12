@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class Age < ReadOnly
     attribute :column, String, lazy: true, default: :age
@@ -29,6 +31,10 @@ module CohortColumns
 
     def value(cohort_client) # OK
       cohort_client.client.age_on(effective_date)
+    end
+
+    def analytics_data_type
+      'integer'
     end
   end
 end
