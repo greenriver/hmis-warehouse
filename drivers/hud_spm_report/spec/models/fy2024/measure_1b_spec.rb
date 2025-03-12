@@ -51,18 +51,20 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         # Should have a count of 1 person
         expect(answer_b1.summary.to_i).to eq(1)
 
+        # Expected days homeless: Oct 15 to Jan 15 = 92 days
+        expected_days = 92
+
         # Should have calculated the average length of time
-        expect(answer_d1.summary.to_f).to be > 0
+        expect(answer_d1.summary.to_f).to eq(expected_days)
 
         # Should have calculated the median length of time
-        expect(answer_g1.summary.to_i).to be > 0
+        expect(answer_g1.summary.to_i).to eq(expected_days)
 
         # Verify that the self-reported homelessness date is included
         episode = @report.universe('m1b1').members.first.universe_membership
         expect(episode.first_date).to eq('2022-10-15'.to_date)
 
-        # Expected days homeless: Oct 15 to Jan 15 = 92 days
-        expect(episode.days_homeless).to eq(92)
+        expect(episode.days_homeless).to eq(expected_days)
       end
     end
 
