@@ -44,6 +44,7 @@ module InactiveClientReport::WarehouseReports
     end
 
     def data
+      @excel_export = ::InactiveClientReport::DocumentExports::ReportExcelExport.new
       set_pagy_data
     end
 
