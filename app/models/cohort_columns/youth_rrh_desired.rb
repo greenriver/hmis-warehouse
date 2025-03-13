@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class YouthRrhDesired < ReadOnly
     attribute :column, String, lazy: true, default: :youth_rrh_desired
@@ -26,6 +28,14 @@ module CohortColumns
 
     def text_value(cohort_client)
       cohort_client.client.youth_rrh_desired
+    end
+
+    def analytics_value
+      text_value(cohort_client)
+    end
+
+    def analytics_data_type
+      'boolean'
     end
   end
 end

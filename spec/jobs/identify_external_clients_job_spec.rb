@@ -40,6 +40,7 @@ RSpec.describe IdentifyExternalClientsJob, type: :job do
       ['ssn does not match', 0, [{ ssn: '111111234' }]],
       ['dob does not match', 0, [{ dob: '2002-02-02' }]],
       ['ssn does not match and name matches if transliterated', 0, [{ first_name: 'Jóhn', ssn: '111111234' }]],
+      ['ssn does not match and name does not match if transliterated and encoding is ASCII-8BIT', nil, [{ first_name: 'Jóhn'.dup.force_encoding('ASCII-8BIT'), ssn: '111111234' }]],
       ['name and ssn does not match', nil, [{ first_name: 'Eve', ssn: '111111234' }]],
       ['name and dob does not match', nil, [{ first_name: 'Eve', dob: '2002-02-02' }]],
       ['dob and ssn does not match', nil, [{ dob: '2002-02-02', ssn: '111111234' }]],

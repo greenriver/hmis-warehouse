@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'memery'
 
 module GrdaWarehouse
@@ -161,7 +163,7 @@ module GrdaWarehouse
       cohort_tabs.find_by(name: 'Active Clients')
     end
 
-    private def clients_for_tab(user, population, tab = nil)
+    def clients_for_tab(user, population, tab = nil)
       active_tab = tab || active_tab(user, population)
       cohort_clients.joins(:client).
         send(active_tab.base_scope).
@@ -176,7 +178,11 @@ module GrdaWarehouse
         @client_search_scope
       end
 
-      @client_search_result = scope.preload(
+      @client_search_result = scope.preload(*preloads)
+    end
+
+    def preloads
+      [
         :cohort_client_changes,
         {
           cohort_client_notes: :user,
@@ -201,7 +207,7 @@ module GrdaWarehouse
             },
           ],
         },
-      )
+      ]
     end
 
     def sanitized_name
@@ -276,10 +282,13 @@ module GrdaWarehouse
     def visible_columns(user:)
       return self.class.default_visible_columns unless column_state.present?
 
-      columns = column_state&.select(&:visible)&.presence || self.class.available_columns
-      columns.each do |column|
+      active_columns.each do |column|
         column.current_user = user
       end
+    end
+
+    def active_columns
+      column_state&.select(&:visible)&.presence || self.class.default_visible_columns
     end
 
     def self.default_visible_columns
@@ -299,6 +308,18 @@ module GrdaWarehouse
           ::CohortColumns::Gender,
           ::CohortColumns::Ssn,
           ::CohortColumns::ClientId,
+        ],
+      )
+    end
+
+    def self.excluded_from_analytics
+      Set.new(
+        [
+          ::CohortColumns::LastName,
+          ::CohortColumns::FirstName,
+          ::CohortColumns::Dob,
+          ::CohortColumns::Ssn,
+          ::CohortColumns::Delete,
         ],
       )
     end
