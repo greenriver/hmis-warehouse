@@ -86,7 +86,7 @@ module HudSpmReport::Fy2024
         # when not including 3.917
         []
       end
-      # note, a this point the array is no-longer sorted
+      # note, at this point the array is no-longer sorted
       filtered_bed_nights += pre_entry_dates
       return unless filtered_bed_nights.present?
 
