@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module Mutations
-  class StartCeReferralStep < CleanBaseMutation
+  class Ce::StartCeReferralStep < CleanBaseMutation
     argument :referral_id, ID, required: true
     argument :step_id, ID, required: true
     field :step, Types::HmisSchema::CeReferralStep, null: false

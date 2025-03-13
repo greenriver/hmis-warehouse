@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module Mutations
-  class CreateCeReferral < CleanBaseMutation
+  class Ce::CreateCeReferral < CleanBaseMutation
     argument :opportunity_id, ID, required: true
     argument :client_id, ID, required: true
     field :referral, Types::HmisSchema::CeReferral, null: false

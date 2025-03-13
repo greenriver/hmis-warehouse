@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module Mutations
-  class CreateCeOpportunity < CleanBaseMutation
+  class Ce::CreateCeOpportunity < CleanBaseMutation
     argument :project_id, ID, required: true
     argument :input, Types::HmisSchema::CeOpportunityInput, required: true
     field :opportunity, Types::HmisSchema::CeOpportunity, null: false

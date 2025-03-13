@@ -4,7 +4,7 @@ require 'rails_helper'
 require_relative '../login_and_permissions'
 require_relative './ce_spec_helper'
 
-RSpec.describe Mutations::SubmitCeReferralStep, type: :request do
+RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
   include_context 'ce spec helper'
 
   let(:acceptance_gateway) do
