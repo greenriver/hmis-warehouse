@@ -4,8 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudSpmReport::Fy2023
-  class Return < GrdaWarehouseBase
+  class Return < HudReports::ReportClientBase
     self.table_name = 'hud_report_spm_returns'
     include Detail
 
@@ -15,6 +17,10 @@ module HudSpmReport::Fy2023
     belongs_to :return_enrollment, class_name: 'HudSpmReport::Fy2023::SpmEnrollment', optional: true
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
+
+    def project_id
+      exit_enrollment&.enrollment&.project_id || return_enrollment&.enrollment&.project_id
+    end
 
     def self.client_ids_with_permanent_exits(report, enrollments)
       filter = ::Filters::HudFilterBase.new(user_id: report.user.id).update(report.options)
