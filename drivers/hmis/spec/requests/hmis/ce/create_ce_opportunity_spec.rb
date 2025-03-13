@@ -4,7 +4,7 @@ require 'rails_helper'
 require_relative '../login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
 
-RSpec.describe Mutations::CreateCeOpportunity, type: :request do
+RSpec.describe Mutations::Ce::CreateCeOpportunity, type: :request do
   include_context 'hmis base setup'
 
   let!(:ds_access_control) do

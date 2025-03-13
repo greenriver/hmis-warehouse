@@ -6,8 +6,13 @@
 
 # frozen_string_literal: true
 
+#  Copyright 2016 - 2024 Green River Data Analysis, LLC
+#
+#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+#
+
 module Mutations
-  class SubmitCeReferralStep < CleanBaseMutation
+  class Ce::SubmitCeReferralStep < CleanBaseMutation
     argument :referral_id, ID, required: true
     argument :step_id, ID, required: true
     argument :input, Types::JsonObject, required: true
