@@ -17,7 +17,7 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
     'Destination',
   ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudUtility2024.race(m).gsub('None', 'Race None') }, style: title)
 
-  @report.enrollment_scope.preload(:client, :project, :enrollment).in_batches(of: 5_000).each do |batch|
+  @report.enrollment_scope.preload(:client, :project, :enrollment).in_batches(of: 1_000).each do |batch|
     current_user.policy_context.preload_project_dependencies(batch.map { |e| e.project.id })
     batch.each do |enrollment|
       client = enrollment.client
