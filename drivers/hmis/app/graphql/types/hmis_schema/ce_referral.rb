@@ -11,7 +11,8 @@ module Types
     field :id, ID, null: false
     field :opportunity, HmisSchema::CeOpportunity, null: false
     field :steps, [HmisSchema::CeReferralStep], null: false
-    field :status, String, null: false
+    field :status, HmisSchema::Enums::CeReferralStatus, null: false
+    field :client, Types::HmisSchema::Client, null: false
 
     def steps
       instance = object.workflow_instance
@@ -19,6 +20,10 @@ module Types
       instance.template.graph.walk.filter(&:task?).map do |node|
         steps_by_node_id[node.id] || instance.steps.new(node: node).freeze
       end
+    end
+
+    def client
+      load_ar_association(object, :client)
     end
   end
 end

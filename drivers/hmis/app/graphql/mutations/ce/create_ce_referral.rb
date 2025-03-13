@@ -4,8 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+#  Copyright 2016 - 2024 Green River Data Analysis, LLC
+#
+#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+#
+
 module Mutations
-  class CeReferralCreate < CleanBaseMutation
+  class Ce::CreateCeReferral < CleanBaseMutation
     argument :opportunity_id, ID, required: true
     argument :client_id, ID, required: true
     field :referral, Types::HmisSchema::CeReferral, null: false

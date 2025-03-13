@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # STI Base class for all workflow nodes (tasks, events, gateways).
 # Nodes are the building blocks of a workflow template and represent points where work is performed, decisions are made, or events occur.
 module Hmis::WorkflowDefinition

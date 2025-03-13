@@ -543,5 +543,14 @@ module Types
 
       Hmis::Ce::Opportunity.viewable_by(current_user).find(id)
     end
+
+    field :ce_referral_step, HmisSchema::CeReferralStep, null: false do
+      argument :id, ID, required: true
+    end
+    def ce_referral_step(id:)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      Hmis::WorkflowExecution::Step.viewable_by(current_user).find(id)
+    end
   end
 end

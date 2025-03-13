@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 # An opportunity is the availability of a resource (housing or other services)
 
 module Hmis::Ce
   class Opportunity < GrdaWarehouseBase
     include AASM
 
-    belongs_to :project, class_name: 'Hmis::Hud::Project'
+    belongs_to :project, class_name: 'Hmis::Hud::Project', inverse_of: :ce_opportunities
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
     belongs_to :workflow_template,
                -> { published },
@@ -36,7 +38,7 @@ module Hmis::Ce
       end
     end
 
-    # FIXME: permissions
+    # TODO(#7395): permissions
     scope :viewable_by, ->(_user) { all }
 
     scope :active, -> { where.not(status: 'closed') }

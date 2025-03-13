@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'dentaku'
 
 # Manages the execution of workflow instances, handling state transitions,
@@ -136,7 +138,7 @@ module Hmis::WorkflowExecution
 
       calculator = Dentaku::Calculator.new
       defaults = calculator.dependencies(expression).to_h { |k| [k.to_sym, nil] }
-      calculator.evaluate!(expression, **defaults.merge(all_submitted_values))
+      calculator.evaluate!(expression, **defaults.merge(all_submitted_values.transform_keys(&:to_sym)))
     end
 
     def all_submitted_values
