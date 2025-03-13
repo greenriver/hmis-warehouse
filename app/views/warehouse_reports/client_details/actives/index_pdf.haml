@@ -19,7 +19,8 @@
 
 %section
   %p
-    = "The following #{@report.enrollments.count} clients with #{@report.enrollments.values.flatten(1).count} enrollments, have at least one day of service between #{@filter.start} and #{@filter.end}."
+    - unique_clients = @report.enrollment_scope.distinct.count(:client_id)
+    = "The following #{number_with_delimiter(unique_clients)} clients with #{number_with_delimiter(@report.enrollment_scope.count)} enrollments, have at least one day of service between #{@filter.start} and #{@filter.end}."
 
   %table.table.table-striped
     %thead
@@ -31,13 +32,17 @@
         %th Entry Date
         %th Exit Date
     %tbody
-      - @report.enrollments.each do |client_id, enrollments|
-        - enrollments.each do |enrollment|
-          - client = enrollment.client
+      - @report.enrollment_scope.preload(:client, :project, :enrollment).in_batches(of: 1_000).each do |batch|
+        - current_user.policy_context.preload_project_dependencies(batch.map { |e| e.project.id })
+        - batch.each do |enrollment|
+          :ruby
+            client = enrollment.client
+            project = enrollment.project
+            pii = client.project_pii_provider(project: project, user: current_user, mode: :download)
           %tr
-            %td= ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted'
-            %td= ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted'
+            %td= pii.first_name
+            %td= pii.last_name
             %td= HudUtility2024.project_type(enrollment.project_type)
-            %td= enrollment.project.name(current_user)
+            %td= project.name(current_user)
             %td= enrollment.first_date_in_program
             %td= enrollment.last_date_in_program
