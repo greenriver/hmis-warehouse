@@ -18,7 +18,7 @@ module GrdaWarehouse::Cohorts
     def self.maintain_data(cohort)
       transaction do
         where(cohort_id: cohort.id).delete_all
-        cohort.cohort_clients.preload(*cohort.preloads).find_in_batches do |client_batch|
+        cohort.cohort_clients.joins(:client).preload(*cohort.preloads).find_in_batches do |client_batch|
           batch = []
           client_batch.each do |client|
             cohort.active_columns.each do |col|
