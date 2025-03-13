@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# handle workflow execution messages
-
 module Hmis::Ce
   class ReferralAuditLogger
     attr_reader :instance

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# todo @martha - add comments
 module Hmis::Ce
   class DryRunMessageHandler
     attr_reader :collected_messages

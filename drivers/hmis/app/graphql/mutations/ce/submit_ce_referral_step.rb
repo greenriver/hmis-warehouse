@@ -44,8 +44,7 @@ module Mutations
 
         dry_run_engine.complete_step!(step, user: current_user, submitted_values: input)
 
-        # todo @martha -
-        # this isn't flexible enough, it needs to be configurable which types of messages require a warning.
+        # todo @martha - this isn't flexible enough, it needs to be configurable which types of messages require a warning.
         # example with admin denials - we don't need to warn the admin that they are moving the referral to 'rejected,' we need to warn the non-admin that they are sending the referral to an admin for review
         if dry_run_engine.message_handler.collected_messages.map(&:type).include?('reject_referral')
           errors.add(:base, :information, message: 'This will decline the referral', severity: :warning)
@@ -69,8 +68,6 @@ module Mutations
       }
     end
 
-    # todo @martha - with the addition of definition.validate_form_values (called from the form processor), I am starting to wonder whether referral steps should not be owners of form processors?
-    # if so how? does the referral engine make that relationship or here in the mutation
     def validate(step, submitted_values)
       definition = step.node.form_definition
       return unless definition && submitted_values
