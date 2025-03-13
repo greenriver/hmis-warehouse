@@ -6,8 +6,7 @@
 module Hmis::WorkflowDefinition
   class Task < Node
     belongs_to :form_definition, class_name: 'Hmis::Form::Definition'
-    # swimlane assoc is defined on Node, even though it is only relevant on Task, so that Step can join through
-    # belongs_to :swimlane, class_name: 'Hmis::WorkflowDefinition::Swimlane', optional: true
+    belongs_to :swimlane, class_name: 'Hmis::WorkflowDefinition::Swimlane', optional: true
 
     validates :name, presence: true
 

@@ -183,7 +183,6 @@ task ce_starter_pack_20250302: [:environment] do
   # orgs and projects in their local dbs they can use for testing -- but it's helpful for the sake of the starter pack
   # to have this script create a project/org whose existence it can rely on
   puts 'Creating CE Test Org and Ce Test Project'
-  hmis_ds = GrdaWarehouse::DataSource.hmis.first
   system_user = Hmis::Hud::User.system_user(data_source_id: hmis_ds.id)
   ce_org = Hmis::Hud::Organization.find_or_initialize_by(
     data_source_id: hmis_ds.id,
@@ -220,7 +219,7 @@ task ce_starter_pack_20250302: [:environment] do
   Hmis::Ce::Match::CandidatePoolBuilder.new.perform
 
   puts 'Running the CE match engine'
-  clients = Hmis::Hud::Client.all.limit(100) # modify this if you want to include different or specific clients
+  clients = Hmis::Hud::Client.hmis.limit(100) # modify this if you want to include different or specific clients
   Hmis::Ce::Match::CandidatePool.all.each do |pool|
     Hmis::Ce::Match::Engine.call(pool, clients)
   end
