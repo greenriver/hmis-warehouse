@@ -528,7 +528,7 @@ GEM
       mini_portile2 (~> 2.7)
     graphiql-rails (1.10.1)
       railties
-    graphql (2.3.20)
+    graphql (2.3.21)
       base64
       fiber-storage
     grover (1.2.3)
@@ -590,7 +590,7 @@ GEM
       thor (>= 0.14, < 2.0)
     jsbundling-rails (1.3.1)
       railties (>= 6.0.0)
-    json (2.10.1)
+    json (2.10.2)
     json_schemer (2.3.0)
       bigdecimal
       hana (~> 1.3)
@@ -1210,7 +1210,7 @@ DEPENDENCIES
   gmail
   gpgme
   graphiql-rails
-  graphql (= 2.3.20)
+  graphql (= 2.3.21)
   grover
   haml (~> 5.2.2)
   haml-rails
@@ -1517,7 +1517,7 @@ CHECKSUMS
   gmail_xoauth (0.4.3) sha256=eda5f59bd60564a6e8dd091a896ab221e8457472ab422d5d1282931ac7ae45fb
   gpgme (2.0.24) sha256=53eccd7042abb4fd5c78f30bc9ed075b1325e6450eab207f2f6a1e7e28ae3b64
   graphiql-rails (1.10.1) sha256=d43d9ed812bf0bd0f213a0314301ffd8ccb05a681f6225c1b9ad6e66e3561429
-  graphql (2.3.20) sha256=ddf3600c45431c2e205b323ab87e1c3c9e889f13efc399a063b9e059899ed64b
+  graphql (2.3.21) sha256=af39f7695ce84cb8b096cd75d8b07ffb5736e4df3bd0f18b6e60b9e7724cbd0b
   grover (1.2.3) sha256=84d4c5d0d3e225da4e6059f6d3376044a1890ab49ea7b41bf40d71b14490bfd7
   haml (5.2.2) sha256=6e759246556145642ef832d670fc06f9bd8539159a0e600847a00291dd7aae0c
   haml-rails (2.1.0) sha256=273ba0189e2f82ce4b2385019dd9138884017e3103cc2eaebeee7f45186f59ea
@@ -1544,7 +1544,7 @@ CHECKSUMS
   jquery-rails (4.6.0) sha256=3c4e6bf47274340b44d836b8aa1b5472c6d451e2739af5ec094421f39025a7e2
   jquery-ui-rails (7.0.0)
   jsbundling-rails (1.3.1) sha256=0fa03f6d051c694cbf55a022d8be53399879f2c4cf38b2968f86379c62b1c2ca
-  json (2.10.1) sha256=ddc88ad91a1baf3f0038c174f253af3b086d30dc74db17ca4259bbde982f94dc
+  json (2.10.2) sha256=34e0eada93022b2a0a3345bb0b5efddb6e9ff5be7c48e409cfb54ff8a36a8b06
   json_schemer (2.3.0) sha256=9f1fa173b859ca520f15e9e8d08b0892ffca80b78dd8221feb3e360ff4cdeb35
   jsonpath (1.1.5) sha256=29f70467193a2dc93ab864ec3d3326d54267961acc623f487340eb9c34931dbe
   jwt (2.10.1) sha256=e6424ae1d813f63e761a04d6284e10e7ec531d6f701917fadcd0d9b2deaf1cc5
@@ -1776,4 +1776,4 @@ CHECKSUMS
   zeitwerk (2.7.2) sha256=842e067cb11eb923d747249badfb5fcdc9652d6f20a1f06453317920fdcd4673
 
 BUNDLED WITH
-   2.6.3
+   2.6.5
