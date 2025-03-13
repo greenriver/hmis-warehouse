@@ -15,17 +15,19 @@ module Hmis::WorkflowExecution
       @stepper = stepper
       @assignment_handler = assignment_handler
       @audit_logger = audit_logger
-      @current_step_values = {} # todo @martha - this isn't really ideal, need to find a better solution
-      # or at least add some comments. the point here is that the all_submitted_values needs to return values
-      # from any step, but in dry-run mode, it needs to be sure to return the values from the currently submitting
-      # step, even if that step isn't actually saved as "completed".
+
+      # @current_step_values is stored globally to ensure that all_submitted_values returns all values, including
+      # those for the current step, even if the current step hasn't been persisted as "completed" yet
+      # (for example, in dry-run mode).
+      @current_step_values = {}
     end
 
     def active_steps
       instance.steps.where(status: ['available', 'in_progress'])
     end
 
-    # todo @martha - exclamation marks in this file are somewhat confusing - now that we have a dry run mode, they don't always accurately indicate data mutation like they are supposed to
+    # These methods are marked with ! because they can persist data, although they don't always - for example,
+    # when the workflow steps are run in dry-run mode.
     def start_workflow!(user:)
       template.nodes.entrypoints.each do |node|
         visit_node(node)

@@ -46,6 +46,8 @@ module Mutations
 
         # todo @martha - this isn't flexible enough, it needs to be configurable which types of messages require a warning.
         # example with admin denials - we don't need to warn the admin that they are moving the referral to 'rejected,' we need to warn the non-admin that they are sending the referral to an admin for review
+        # binding.pry
+
         if dry_run_engine.message_handler.collected_messages.map(&:type).include?('reject_referral')
           errors.add(:base, :information, message: 'This will decline the referral', severity: :warning)
           return { errors: errors }
