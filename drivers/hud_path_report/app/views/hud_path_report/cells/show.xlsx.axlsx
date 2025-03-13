@@ -4,7 +4,7 @@ wb.add_worksheet(name: @name.slice(0,30).gsub(':', ' ')) do |sheet|
   sheet.add_row(HudPathReport::Fy2020::PathClient.detail_headers_for_export.values, style: title)
   current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id))
   @clients.each do |client|
-    pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
+    pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id, mode: :download)
     row = []
     HudPathReport::Fy2020::PathClient.detail_headers_for_export.each_key do |k|
       if k == 'contacts'

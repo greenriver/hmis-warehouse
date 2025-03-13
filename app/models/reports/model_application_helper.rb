@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-class ModelApplicationHelper
+class Reports::ModelApplicationHelper
   include ActionView::Helpers
   include ActionView::Context
   include ApplicationHelper

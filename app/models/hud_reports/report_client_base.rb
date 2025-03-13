@@ -26,7 +26,7 @@ module HudReports
       end
 
       return ActionController::Base.helpers.content_tag(:pre, JSON.pretty_generate(cell)) if include_content_tag && (cell.is_a?(Array) || cell.is_a?(Hash))
-      return ModelApplicationHelper.new.yes_no(cell, include_content_tag: include_content_tag) if cell.in?([true, false])
+      return Reports::ModelApplicationHelper.new.yes_no(cell, include_content_tag: include_content_tag) if cell.in?([true, false])
 
       case col.to_s
       when /project_type$/
@@ -40,7 +40,7 @@ module HudReports
       when /.*length_of_stay$/
         HudUtility2024.residence_prior_length_of_stay(cell)
       when /^ssn$/
-        ModelApplicationHelper.new.masked_ssn(cell, include_content_tag: include_content_tag)
+        GrdaWarehouse::PiiProvider.viewable_ssn(cell, policy: pii_policy)
       when /^dob$/
         GrdaWarehouse::PiiProvider.viewable_dob(cell, policy: pii_policy)
       when /ssn_quality$/

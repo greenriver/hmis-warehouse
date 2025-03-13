@@ -4,7 +4,7 @@ wb.add_worksheet(name: @name.slice(0,30).gsub(':', ' ')) do |sheet|
   sheet.add_row(@headers.values, style: title)
   current_user.policy_context.preload_project_dependencies(@clients.map(&:project_id).uniq)
   @clients.each do |client|
-    pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
+    pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id, mode: :download)
     row = []
     @headers.each_key do |k|
       row << client.display_value(k, pii_policy: pii_policy, include_content_tag: false)

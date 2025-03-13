@@ -8,7 +8,7 @@
 
 # Some reports now require a pii policy. In cases where that is not available, this policy matches
 # the system behavior prior to this implementation, allowing all fields to be visible.
-class GrdaWarehouse::AuthPolicies::LegacyPiiPolicy
+class GrdaWarehouse::AuthPolicies::AllowPiiPolicy
   include Singleton
   [
     :can_view,
