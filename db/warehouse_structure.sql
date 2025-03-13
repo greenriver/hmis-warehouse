@@ -278,7 +278,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -18456,7 +18456,8 @@ CREATE TABLE public.hmis_csv_importer_logs (
     completed_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    upload_id integer
+    upload_id integer,
+    phase_metrics jsonb
 );
 
 
@@ -19541,6 +19542,41 @@ UNION
      LEFT JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND (data_sources.id = "Project".data_source_id))))
      LEFT JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND (data_sources.id = "Organization".data_source_id))))
   WHERE (((hmis_group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (hmis_group_viewable_entities.deleted_at IS NULL));
+
+
+--
+-- Name: hmis_household_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_household_events (
+    id bigint NOT NULL,
+    "HouseholdID" character varying NOT NULL,
+    data_source_id bigint NOT NULL,
+    event_type character varying NOT NULL,
+    event_details jsonb,
+    user_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_household_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_household_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_household_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_household_events_id_seq OWNED BY public.hmis_household_events.id;
 
 
 --
@@ -31044,6 +31080,13 @@ ALTER TABLE ONLY public.hmis_group_viewable_entities ALTER COLUMN id SET DEFAULT
 
 
 --
+-- Name: hmis_household_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_household_events ALTER COLUMN id SET DEFAULT nextval('public.hmis_household_events_id_seq'::regclass);
+
+
+--
 -- Name: hmis_import_configs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -34722,6 +34765,14 @@ ALTER TABLE ONLY public.hmis_forms
 
 ALTER TABLE ONLY public.hmis_group_viewable_entities
     ADD CONSTRAINT hmis_group_viewable_entities_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_household_events hmis_household_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_household_events
+    ADD CONSTRAINT hmis_household_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -52360,6 +52411,13 @@ CREATE INDEX idx_hmis_external_referral_postings_user_2 ON public.hmis_external_
 
 
 --
+-- Name: idx_hmis_household_events_on_household_and_data_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_hmis_household_events_on_household_and_data_source ON public.hmis_household_events USING btree ("HouseholdID", data_source_id);
+
+
+--
 -- Name: idx_inbound_api_configurations_uniq; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52379,6 +52437,12 @@ CREATE INDEX idx_services_hud_types ON public."Services" USING btree ("RecordTyp
 
 CREATE UNIQUE INDEX idx_tpc_uniqueness ON public.enrollment_extras USING btree (hud_enrollment_id, entry_date, vispdat_ended_at, project_name, agency_name, community, data_source_id);
 
+
+--
+-- Name: idx_youth_eds_hud_keys; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_youth_eds_hud_keys ON public."YouthEducationStatus" USING btree ("EnrollmentID", data_source_id, "PersonalID");
 
 --
 -- Name: income_benefits_date_created; Type: INDEX; Schema: public; Owner: -
@@ -57040,6 +57104,20 @@ CREATE INDEX index_hmis_group_viewable_entities_on_collection_id ON public.hmis_
 --
 
 CREATE INDEX index_hmis_group_viewable_entities_on_entity ON public.hmis_group_viewable_entities USING btree (entity_type, entity_id);
+
+
+--
+-- Name: index_hmis_household_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_household_events_on_data_source_id ON public.hmis_household_events USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_household_events_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_household_events_on_user_id ON public.hmis_household_events USING btree (user_id);
 
 
 --
@@ -65772,7 +65850,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241217210211'),
 ('20250116145506'),
 ('20250117174547'),
+('20250121204933'),
 ('20250203142317'),
-('20250213173031');
-
-
+('20250213173031'),
+('20250222234500'),
+('20250226145730');

@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 gem 'rails', '~> 7.0.8.5'
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
 # gem 'rails_drivers', path: '/usr/local/bundle/tmp/rails_drivers'
-gem 'rack', '>= 2.2.8.1'
+gem 'rack', '>= 2.2.11'
 
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc

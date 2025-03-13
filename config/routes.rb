@@ -748,6 +748,7 @@ Rails.application.routes.draw do
         post :un_expire
         post :confirm
         post :impersonate
+        patch :expire_password
       end
       collection do
         post :stop_impersonating
