@@ -328,6 +328,75 @@ module GrdaWarehouse::CasProjectClientCalculator
       CasAccess::Neighborhood.neighborhood_ids_from_names(names)
     end
 
+    # # From HMIS/Warehouse
+    # calculated_homeless_nights_unsheltered
+    # calculated_homeless_nights_sheltered
+    #
+    # Self-report
+    # additional_homeless_nights_unsheltered
+    # additional_homeless_nights_sheltered
+    #
+    # # Calculated based on setup
+    # total_homeless_nights_unsheltered
+    # total_homeless_nights_sheltered
+
+    # Unsheltered days homeless from HMIS data - unsheltered days exclude any day the client was also sheltered
+    # For Individual Pathways, this is limited to the last 3 years
+    # For Family Pathways, this is for "all time" which we are limiting to the last 20 years for performance
+    # See https://docs.google.com/spreadsheets/d/1A9zMLGI-nxnSRfuwn1akSS7B_tLJYzMKuSaIIMghTnE/edit?gid=0#gid=0 for spec
+    def calculated_homeless_nights_unsheltered(client)
+      return client.unsheltered_days_homeless_last_three_years unless most_recent_pathways_or_transfer(client).family_pathways_2024?
+
+      end_date = Date.current
+      start_date = end_date - 20.years
+      client.unsheltered_days_homeless(start_date: start_date, end_date: end_date).count
+    end
+
+    # Sheltered days homeless from HMIS data
+    # For Individual Pathways, this is limited to the last 3 years
+    # For Family Pathways, this is for "all time" which we are limiting to the last 20 years for performance
+    # See https://docs.google.com/spreadsheets/d/1A9zMLGI-nxnSRfuwn1akSS7B_tLJYzMKuSaIIMghTnE/edit?gid=0#gid=0 for spec
+    def calculated_homeless_nights_sheltered(client)
+      return client.sheltered_days_homeless_last_three_years unless most_recent_pathways_or_transfer(client).family_pathways_2024?
+
+      end_date = Date.current
+      start_date = end_date - 20.years
+      client.sheltered_homeless_dates(start_date: start_date, end_date: end_date).count
+    end
+
+    # See https://docs.google.com/spreadsheets/d/1A9zMLGI-nxnSRfuwn1akSS7B_tLJYzMKuSaIIMghTnE/edit?gid=0#gid=0 for spec
+    # Allowed Self-Report Unsheltered
+    # The lesser of max_possible_self_report_homeless_days(client) and days from pathways
+    def additional_homeless_nights_unsheltered(client)
+      unsheltered = most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer.to_i || 0
+
+      [unsheltered, max_possible_self_report_homeless_days(client)].min
+    end
+
+    # See https://docs.google.com/spreadsheets/d/1A9zMLGI-nxnSRfuwn1akSS7B_tLJYzMKuSaIIMghTnE/edit?gid=0#gid=0 for spec
+    # Allowed Self-Report Sheltered
+    # min of (max_possible_self_report_homeless_days(client) - self-report unsheltered) and self-reported sheltered
+    #
+    def additional_homeless_nights_sheltered(client)
+      sheltered = most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer.to_i || 0
+      # binding.pry
+      allowed_sheltered_self_report = max_possible_self_report_homeless_days(client) - additional_homeless_nights_unsheltered(client)
+      [allowed_sheltered_self_report, sheltered].min
+    end
+
+    # Cap total homeless unsheltered nights at 1,096, incorporate clamp on self-report
+    # See https://docs.google.com/spreadsheets/d/1A9zMLGI-nxnSRfuwn1akSS7B_tLJYzMKuSaIIMghTnE/edit?gid=0#gid=0 for spec
+    private def total_homeless_nights_unsheltered(client)
+      calculated_homeless_nights_unsheltered(client) + additional_homeless_nights_unsheltered(client)
+    end
+
+    # See https://docs.google.com/spreadsheets/d/1A9zMLGI-nxnSRfuwn1akSS7B_tLJYzMKuSaIIMghTnE/edit?gid=0#gid=0 for spec
+    def total_homeless_nights_sheltered(client)
+      calculated_homeless_nights_sheltered(client) + additional_homeless_nights_sheltered(client)
+    end
+
     # NOTE: this is also used in cohorts
     def days_homeless_in_last_three_years_cached(client)
       assessment = most_recent_pathways_or_transfer(client)
@@ -338,6 +407,32 @@ module GrdaWarehouse::CasProjectClientCalculator
       return pathways_days if pathways_days.positive?
 
       pre_calculated_days
+    end
+
+    # For individual pathways, assessments, extra days are limited to 1,096 if a certification is on file, 548 if not
+    # For family pathways, this is limited to 548 if there is no certification on file, no limit otherwise
+    # Self-report days are only available if the overall number of warehouse/calculated/HMIS days does not meet the maximum
+    private def max_possible_self_report_homeless_days(client)
+      # Ignore clamping prior to the start date
+      start_date = GrdaWarehouse::Config.get(:self_report_start_date)
+
+      allowed_days = (max_possible_days(client) - warehouse_days_from_hmis(client)).clamp(0, MAX_UNVERIFIED_ADDITIONAL_DAYS)
+      return allowed_days unless ce_self_certification_client_ids.include?(client.id) || start_date&.past?
+
+      (max_possible_days(client) - warehouse_days_from_hmis(client)).clamp(0, max_possible_days(client))
+    end
+
+    # Individual Pathways and transfer assessments would be capped at 3 years
+    # Family Pathways has no official cap, we're setting it to 20 years
+    private def max_possible_days(client)
+      return 1_096 unless most_recent_pathways_or_transfer(client).family_pathways_2024?
+
+      # 20 years
+      7_300
+    end
+
+    private def warehouse_days_from_hmis(client)
+      calculated_homeless_nights_unsheltered(client) + calculated_homeless_nights_sheltered(client)
     end
 
     private def literally_homeless_last_three_years_cached(client)
@@ -369,7 +464,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     private def pathways_days_homeless(client)
       unsheltered_days = additional_homeless_nights_unsheltered(client)
       sheltered_days = additional_homeless_nights_sheltered(client)
-      days = (unsheltered_days + sheltered_days).clamp(0, max_extra_homeless_days(client))
+      days = (unsheltered_days + sheltered_days).clamp(0, max_possible_self_report_homeless_days(client))
 
       warehouse_unsheltered_days = calculated_homeless_nights_unsheltered(client)
       warehouse_sheltered_days = calculated_homeless_nights_sheltered(client)
@@ -379,102 +474,17 @@ module GrdaWarehouse::CasProjectClientCalculator
       days.clamp(0, max_possible_days(client))
     end
 
-    # Individual Pathways and transfer assessments would be capped at 3 years
-    # Family Pathways has no official cap, we're setting it to 20 years
-    private def max_possible_days(client)
-      return 1_096 unless most_recent_pathways_or_transfer(client).family_pathways_2024?
-
-      # 20 years
-      7_300
-    end
-
-    # Cap total homeless unsheltered nights at 1,096, incorporate clamp on self-report
-    private def total_homeless_nights_unsheltered(client)
-      (calculated_homeless_nights_unsheltered(client) + additional_homeless_nights_unsheltered(client)).clamp(0, max_possible_days(client))
-    end
-
-    # For individual pathways, assessments, extra days are limited to 1,096 if a certification is on file, 548 if not
-    # For family pathways, this is limited to 548 if there is no certification on file, no limit otherwise
-    private def max_extra_homeless_days(client)
-      start_date = GrdaWarehouse::Config.get(:self_report_start_date)
-      return MAX_UNVERIFIED_ADDITIONAL_DAYS unless ce_self_certification_client_ids.include?(client.id) || start_date&.past?
-
-      max_possible_days(client)
-    end
-
-    # IF a client has less than 548 self-reported days (combination of sheltered and unsheltered) use the values provided regardless of whether a verification is uploaded
-    # IF a client has more than 548 self-reported days (combination of sheltered and unsheltered) AND has a verification uploaded, use the values provided
-    # IF a client has more than 548 self-reported days (combination of sheltered and unsheltered) AND does NOT have a verification uploaded, COUNT unsheltered days FIRST, THEN COUNT sheltered days UP TO 548.
-    def additional_homeless_nights_sheltered(client)
-      sheltered = most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer.to_i || 0
-
-      unsheltered = additional_homeless_nights_unsheltered(client)
-      # 2. Find the maximum amount of sheltered days to count based on the total unsheltered days.
-      #    The combination of the two cannot exceed max_possible_days.
-      available_nights = max_possible_days(client) - unsheltered
-      return sheltered.clamp(0, available_nights) if ce_self_certification_client_ids.include?(client.id)
-
-      # 2. Find the maximum amount of sheltered days to count based on the total unsheltered days.
-      #    The combination of the two cannot exceed 548.
-      available_nights = MAX_UNVERIFIED_ADDITIONAL_DAYS - unsheltered
-      # 3. Cap the sheltered days counted at the calculated max if it exceeds that amount.
-      sheltered.clamp(0, available_nights)
-    end
-
-    # IF a client has less than 548 self-reported days (combination of sheltered and unsheltered) use the values provided regardless of whether a verification is uploaded
-    # IF a client has more than 548 self-reported days (combination of sheltered and unsheltered) AND has a verification uploaded, use the values provided
-    # IF a client has more than 548 self-reported days (combination of sheltered and unsheltered) AND does NOT have a verification uploaded, COUNT unsheltered days FIRST, THEN COUNT sheltered days UP TO 548.
-    def additional_homeless_nights_unsheltered(client)
-      unsheltered = most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer.to_i || 0
-      return unsheltered if ce_self_certification_client_ids.include?(client.id)
-
-      # 1. Cap the total unsheltered at 548 days if it is greater than this amount.
-      unsheltered.clamp(0, MAX_UNVERIFIED_ADDITIONAL_DAYS)
-    end
-
-    # Sheltered days homeless from HMIS data
-    # For Individual Pathways, this is limited to the last 3 years
-    # For Family Pathways, this is for "all time" which we are limiting to the last 20 years for performance
-    def calculated_homeless_nights_sheltered(client)
-      return client.sheltered_days_homeless_last_three_years unless most_recent_pathways_or_transfer(client).family_pathways_2024?
-
-      end_date = Date.current
-      start_date = end_date - 20.years
-      client.sheltered_homeless_dates(start_date: start_date, end_date: end_date).count
-    end
-
-    # Unsheltered days homeless from HMIS data - unsheltered days exclude any day the client was also sheltered
-    # For Individual Pathways, this is limited to the last 3 years
-    # For Family Pathways, this is for "all time" which we are limiting to the last 20 years for performance
-    def calculated_homeless_nights_unsheltered(client)
-      return client.unsheltered_days_homeless_last_three_years unless most_recent_pathways_or_transfer(client).family_pathways_2024?
-
-      end_date = Date.current
-      start_date = end_date - 20.years
-      client.unsheltered_days_homeless(start_date: start_date, end_date: end_date).count
-    end
-
-    def total_homeless_nights_sheltered(client)
-      most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_pathways_nights_sheltered_warehouse_added_total')&.AssessmentAnswer.to_i || 0
-    end
-
     # all-time days homeless
     def days_homeless(client)
       overall_nights_homeless(client)
     end
 
-    # this seems to be calculated many different ways
     def hmis_days_homeless_all_time(client)
       overall_nights_homeless(client)
     end
 
     private def overall_nights_homeless(client)
-      most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_new_boston_homeless_nights_total')&.AssessmentAnswer.to_i ||
-          client.days_homeless
+      total_homeless_nights_unsheltered(client) + total_homeless_nights_sheltered(client)
     end
 
     private def default_shelter_agency_contacts(client)
