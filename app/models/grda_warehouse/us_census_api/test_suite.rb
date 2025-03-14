@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Code initially written for and funded by Delaware Health and Social Services.
 # Used and modified with permission.
 #
@@ -41,7 +43,7 @@ module GrdaWarehouse
       # end
 
       def test_00_state_chosen
-        if ENV['RELEVANT_COC_STATE'].blank?
+        if GrdaWarehouse::Config.get(:relevant_state_codes).blank?
           $stdout.puts '[FAIL] Set RELEVANT_COC_STATE'
           exit 1
         else
