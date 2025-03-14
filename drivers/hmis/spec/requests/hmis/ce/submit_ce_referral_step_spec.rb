@@ -125,7 +125,7 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
           errors = result.dig('data', 'submitCeReferralStep', 'errors')
           expect(errors.count).to eq(1)
           expect(errors.first['severity']).to eq('warning')
-          expect(errors.first['message']).to eq('This will decline the referral')
+          expect(errors.first['fullMessage']).to eq('This will decline the referral')
           referral.reload
         end.to not_change(referral, :status)
 
