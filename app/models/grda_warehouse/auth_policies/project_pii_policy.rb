@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -19,6 +21,11 @@ class GrdaWarehouse::AuthPolicies::ProjectPiiPolicy < GrdaWarehouse::AuthPolicie
     define_method(method_name) do
       resource_permissions.include?(permission)
     end
+  end
+
+  def initialize(context:, resource:)
+    resource_id = resource.is_a?(GrdaWarehouse::Hud::Project) ? resource.id : resource
+    super(context: context, resource: resource_id)
   end
 
   protected

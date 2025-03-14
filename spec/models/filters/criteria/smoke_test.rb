@@ -70,6 +70,10 @@ RSpec.describe 'Filters::Criteria smoke test' do
         )
       end
 
+      it 'has the correct id' do
+        expect(criteria.id).to eq(criterion_id)
+      end
+
       it 'runs apply() without raising an error' do
         expect { criteria.apply(scope) }.not_to raise_error
       end

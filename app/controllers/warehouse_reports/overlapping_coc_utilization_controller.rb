@@ -4,15 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module WarehouseReports
   class OverlappingCoCUtilizationController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
 
-    CACHE_VERSION = '1aa'.freeze
+    CACHE_VERSION = '1aa'
     CACHE_LIFETIME = 30.minutes.freeze
 
-    RELEVANT_COC_STATE = ENV.fetch('RELEVANT_COC_STATE') do
+    RELEVANT_COC_STATE = GrdaWarehouse::Config.get(:relevant_state_codes) do
       GrdaWarehouse::Shape::Coc.order(Arel.sql('random()')).limit(2).pluck(:st).join(',')
     rescue StandardError
       'UNKNOWN'
