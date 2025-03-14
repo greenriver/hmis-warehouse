@@ -169,12 +169,6 @@ window.App.Cohorts.Cohort = class Cohort {
             return false;
           }
         }
-        // the onCellValueChanged callback doesn't get fired consistently, especially if you
-        // are clearing a value, instead we'll handle this in onCellEditingStopped
-        // onCellValueChanged: (params) =>
-        //   cohort_client_id = params.data[params.colDef.field].cohort_client_id
-        //   # console.log 'changed', params.oldValue, 'to', params.newValue, cohort_client_id
-        //   @after_edit(params.colDef.field, cohort_client_id, params.oldValue, params.newValue)
       };
       // no sort or filter on delete buttons
       if (column.field == 'delete') {
@@ -240,31 +234,17 @@ window.App.Cohorts.Cohort = class Cohort {
 
   // work around our text based date format
   sort_dates(a, b) {
-    if (a === b) {
-      return 0;
-    }
-    if (moment(a, 'MMM DD, YYYY').format('YYYYMMDD') > moment(b, 'MMM DD, YYYY').format('YYYYMMDD')) { return 1; } else { return -1; }
+    const dateA = moment(a, 'MMM DD, YYYY').format('YYYYMMDD');
+    const dateB = moment(b, 'MMM DD, YYYY').format('YYYYMMDD');
+    if (!dateA || !dateB) return 0; // Prevent sorting errors
+    return dateA.localeCompare(dateB);
   }
 
   sort_everything_else(a, b) {
-    let left, left1;
-    if (a === null) {
-      return -1;
-    }
-    if (b === null) {
-      return 1;
-    }
-    // Both are numbers, subtract b from a
-    if (!isNaN(a) && !isNaN(b)) {
-      return Number(a) - Number(b);
-    }
-    // Otherwise treat them both as strings
-    a = a.toString().toLowerCase();
-    b = b.toString().toLowerCase();
-
-    return a < b ? -1 : a > b ? 1 : 0;
-
-    // return (left = a < b) != null ? left : -{ 1: (left1 = a > b) != null ? left1 : { 1: 0 } };
+    if (a == null) return -1;
+    if (b == null) return 1;
+    if (!isNaN(a) && !isNaN(b)) return Number(a) - Number(b);
+    return a.toString().localeCompare(b.toString());
   }
 
   enable_searching() {
@@ -411,7 +391,7 @@ window.App.Cohorts.Cohort = class Cohort {
       url,
       success: data => {
         const client = data[0];
-        const rowNode = this.grid_options.api.getRowNode(client.meta.cohort_client_id);
+        const rowNode = this.table.getRowNode(client.meta.cohort_client_id);
         return rowNode.setData(client);
       }
     });
