@@ -531,6 +531,7 @@ module PerformanceMeasurement::Details
           table: '1a',
           cell: 'D2',
           detail_columns: [
+
             'days_homeless_es_sh_th',
           ],
         },

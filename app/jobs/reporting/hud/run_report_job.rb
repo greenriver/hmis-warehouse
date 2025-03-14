@@ -37,7 +37,7 @@ module Reporting::Hud
         end
       end
 
-      puts "Running: #{@generator.class.name} Report ID: #{report_id}"
+      # puts "Running: #{@generator.class.name} Report ID: #{report_id}"
 
       capture_failure(report) do
         @generator.prepare_report

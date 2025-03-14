@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -297,10 +299,12 @@ module PerformanceMeasurement
           cells.each do |cell|
             next if spec[:static_spm_available]
 
+            # members could be enrollments, episodes, or returns
             members = cell_members(spec[:report], *cell)
             # Force household calculation for cell members
             calculate_households_for_spm(members)
             members.each do |member|
+              # byebug if cell[0] == '1a'
               hud_client = member.client
               spm_enrollments = spm_enrollments_from_answer_member(member)
               report_client = report_clients[hud_client.id] || Client.new(report_id: id, client_id: hud_client.id)
@@ -314,6 +318,7 @@ module PerformanceMeasurement
               hud_project_ids = spm_enrollments.map { |e| e.enrollment.project.id }.uniq
               involved_projects += hud_project_ids
               parts[:questions].each do |question|
+                # read the cell value from the SPM report SPM value from
                 report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(member)
                 hud_project_ids.each do |project_id|
                   pc_data = {
@@ -1104,7 +1109,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1a', 'B2']],
+          cells: [['1a', 'D2']],
           title: 'Length of Time Homeless in ES, SH, TH',
           measure: :m1,
           history_source: :m1_history,
@@ -1116,7 +1121,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1b', 'B2']],
+          cells: [['1b', 'D2']],
           title: 'Length of Time Homeless in ES, SH, TH, PH',
           measure: :m1,
           history_source: :m1_history,
