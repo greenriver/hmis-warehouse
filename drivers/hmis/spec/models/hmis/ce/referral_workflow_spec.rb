@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Referral, type: :model do
@@ -238,6 +240,43 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
         expect(second_task_step).to be_completed
         expect(engine.may_undo_complete_step?(first_task_step)).to eq(false)
       end
+    end
+  end
+
+  describe 'a workflow that loops back to a previous node' do
+    let(:client_acceptance_task) do
+      create(:hmis_workflow_definition_task, template: template, name: 'client acceptance task')
+    end
+
+    let(:admin_approve_denial_task) do
+      create(:hmis_workflow_definition_task, template: template, name: 'admin approve denial')
+    end
+
+    let!(:gw1) { create(:hmis_workflow_definition_gateway, template: template, gateway_type: 'exclusive', name: 'gw1') }
+
+    before do
+      start_event.connect_to!(client_acceptance_task)
+      client_acceptance_task.connect_to!(admin_approve_denial_task)
+      admin_approve_denial_task.connect_to!(gw1)
+      gw1.connect_to!(client_acceptance_task, condition: 'review_denial_decision = 0')
+      gw1.connect_to!(reject_referral, condition: 'review_denial_decision = 1')
+
+      engine.start_workflow!(user: user)
+      client_step = engine.active_steps.sole
+      engine.start_step!(client_step, user: user)
+      engine.complete_step!(client_step, user: user, submitted_values: {})
+    end
+
+    it 'allows the previous step to be reopened' do
+      client_step = instance.steps.where(node: client_acceptance_task).sole
+
+      expect do
+        admin_step = engine.active_steps.sole
+        engine.start_step!(admin_step, user: user)
+        engine.complete_step!(admin_step, user: user, submitted_values: { 'review_denial_decision': 0 })
+        client_step.reload
+      end.to change(client_step, :status).from('completed').to('available').
+        and not_change(instance.steps, :count)
     end
   end
 end
