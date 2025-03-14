@@ -84,21 +84,15 @@ window.App.Cohorts.Cohort = class Cohort {
       // enableSorting: true,
       // enableFilter: true,
       singleClickEdit: true,
-      rowSelection: 'multiple',
-      suppressRowDeselection: false,
-      getRowNodeId(data) {
-        return data.meta.cohort_client_id;
+      rowSelection: {
+        mode: 'multiRow',
+        enableClickSelection: true,
+        checkboxes: false,
+        headerCheckbox: false,
       },
-      onSortChanged(data) {
-        // data.api.refreshCells()
-        // Use the more expensive redrawRows to preserve the thresholds
-        return data.api.redrawRows();
-      },
-      onFilterChanged(data) {
-        // data.api.refreshCells()
-        // Use the more expensive redrawRows to preserve the thresholds
-        return data.api.redrawRows();
-      },
+      getRowId: params => params.data.meta.cohort_client_id.toString(),
+      onSortChanged: data => data.api.redrawRows(),
+      onFilterChanged: data => data.api.redrawRows(),
       onCellEditingStarted: params => {
         this.editing_field_name = params.colDef.field;
         this.editing_cohort_client_id = params.data[params.colDef.field].cohort_client_id;
@@ -137,11 +131,12 @@ window.App.Cohorts.Cohort = class Cohort {
         htmlCellRenderer: HtmlCellRenderer,
       }
     };
-    return this.table = agGrid.createGrid($(this.table_selector)[0], this.grid_options);
+
+    this.table = agGrid.createGrid($(this.table_selector)[0], this.grid_options);
   }
 
   resize_columns() {
-    return this.grid_options.columnApi.autoSizeColumns(this.grid_options.columnApi.getAllColumns());
+    return this.table.autoSizeAllColumns();
   }
 
   set_grid_column_headers() {
@@ -151,7 +146,8 @@ window.App.Cohorts.Cohort = class Cohort {
       valueGetter(params) {
         return params.node.rowIndex + 1;
       },
-      suppressMenu: true,
+      suppressHeaderMenuButton: true,
+      filter: false,
       sortable: false,
       cellStyle: { color: 'rgba(0, 0, 0, 0.54)', 'background-color': '#f5f7f7' }
     };
@@ -180,6 +176,11 @@ window.App.Cohorts.Cohort = class Cohort {
         //   # console.log 'changed', params.oldValue, 'to', params.newValue, cohort_client_id
         //   @after_edit(params.colDef.field, cohort_client_id, params.oldValue, params.newValue)
       };
+      // no sort or filter on delete buttons
+      if (column.field == 'delete') {
+        header.filter = false
+        header.sortable = false
+      }
       // Set the default sort on the second column
       if (index === 1) {
         header.sort = this.sort_direction;
@@ -233,10 +234,8 @@ window.App.Cohorts.Cohort = class Cohort {
   }
   // This is to work around a bug in sorting checkboxes
   sort_checkboxes(a, b) {
-    if (a === b) {
-      return 0;
-    }
-    if (a) { return 1; } else { return -1; }
+    if (a === b) return 0;
+    return a ? 1 : -1;
   }
 
   // work around our text based date format
@@ -262,14 +261,17 @@ window.App.Cohorts.Cohort = class Cohort {
     // Otherwise treat them both as strings
     a = a.toString().toLowerCase();
     b = b.toString().toLowerCase();
-    return (left = a < b) != null ? left : -{ 1: (left1 = a > b) != null ? left1 : { 1: 0 } };
+
+    return a < b ? -1 : a > b ? 1 : 0;
+
+    // return (left = a < b) != null ? left : -{ 1: (left1 = a > b) != null ? left1 : { 1: 0 } };
   }
 
   enable_searching() {
     const searchField = $(this.search_selector)[0];
     $(searchField).removeAttr('disabled');
     return $(searchField).on('keyup', e => {
-      return this.grid_options.api.setQuickFilter($(searchField).val());
+      return this.table.setGridOption('quickFilterText', $(searchField).val());
     });
   }
 
@@ -279,13 +281,13 @@ window.App.Cohorts.Cohort = class Cohort {
     const cc_id_field = $(form).find('input.cohort_client_ids');
     return $(button).on('click', e => {
       e.preventDefault();
-      const cohort_client_ids = $.map(this.grid_options.api.getSelectedRows(), (column, index) => {
+      const cohort_client_ids = $.map(this.table.getSelectedRows(), (column, index) => {
         return column.meta.cohort_client_id;
       });
       if (cohort_client_ids.length > 0) {
         cc_id_field.attr('value', cohort_client_ids);
       }
-      return $(form).submit();
+      return $(form).trigger('submit');
     });
   }
 
@@ -296,8 +298,8 @@ window.App.Cohorts.Cohort = class Cohort {
     return this.load_page().then(() => {
       // When we're all done fetching...
       $(this.loading_selector).addClass('hidden');
-      // console.log @raw_data
-      this.grid_options.api.setRowData(this.raw_data);
+      // console.log(this.raw_data, this.table);
+      this.table.setGridOption('rowData', this.raw_data);
       this.set_rank_order();
 
       this.refresh_rate = 10000;
@@ -331,7 +333,7 @@ window.App.Cohorts.Cohort = class Cohort {
 
   set_rank_order() {
     const ids = [];
-    this.grid_options.api.forEachNodeAfterFilterAndSort(data => {
+    this.table.forEachNodeAfterFilterAndSort(data => {
       return ids.push(data.data.meta.cohort_client_id);
     });
     $('#rank_order').val(ids.join(','));
