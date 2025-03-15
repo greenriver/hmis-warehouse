@@ -35,7 +35,7 @@ jobs:
       - id: rubocop
         name: Run Rubocop
         # only run there are changed files
-        if: ${{steps.changed-files.outputs.rb}}
+        # if: ${{steps.changed-files.outputs.ruby}}
         env:
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.ruby }}
         run: |
