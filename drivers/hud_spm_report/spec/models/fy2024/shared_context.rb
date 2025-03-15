@@ -47,8 +47,7 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
     client
   end
 
-  def create_enrollment(client:, project:, entry_date:, exit_date: nil, relationship_to_ho_h: 1,
-    date_to_street_essh: nil, household_id: Hmis::Hud::Base.generate_uuid, living_situation: nil)
+  def create_enrollment(client:, project:, entry_date:, exit_date: nil, relationship_to_ho_h: 1, date_to_street_essh: nil, household_id: Hmis::Hud::Base.generate_uuid, living_situation: nil, destination: nil, move_in_date: nil)
     enrollment = create(
       :hud_enrollment,
       client: client,
@@ -59,6 +58,7 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
       relationship_to_ho_h: relationship_to_ho_h,
       household_id: household_id,
       living_situation: living_situation,
+      move_in_date: move_in_date
     )
 
     if exit_date.present?
@@ -68,6 +68,7 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
         exit_date: exit_date,
         data_source: data_source,
         personal_id: client.personal_id,
+        destination: destination
       )
     end
 

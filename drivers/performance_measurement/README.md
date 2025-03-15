@@ -15,11 +15,11 @@ The report models persist performance data independent of the underlying SPM rep
 
 The report is a summary view based primarily on SPM calculations, providing a one-year snapshot with comparison to the prior year. It runs with privileged access to include all relevant projects in the specified CoC(s), while limiting client-level drill-downs based on user project access permissions.
 
-## System Architecture
+## High-Level System Architecture
 
 ```mermaid
 graph TD
-    A[HUD Report Instance] -->|HUD SPM| B[Performance Measurement Report]
+    A[HUD Report Instance] -->|Report & Comparison SPMs| B[Performance Measurement Report]
     Z[External System] -->|Static SPM| B
     B --> C[Result Calculation]
     C --> D[Results Storage]
@@ -30,6 +30,19 @@ graph TD
     D --> I[Visualizations]
     F --> I
     H --> I
+```
+
+## Detailed Data Flow
+
+```mermaid
+flowchart TD
+    A[SPM Report Generation] --> B[SPM Data]
+    B --> C[PM Report: add_clients]
+    C --> D[Client/ClientProject Records]
+    D --> E[Result Calculation]
+    E --> F[Results Storage]
+    F --> G[Dashboard View]
+    H[Goal Configuration] --> E
 ```
 
 ## Key Components
@@ -60,7 +73,74 @@ The report supports two primary types of metrics:
 
 ## Implementation Details
 
-### Static SPM Support
+### 1. SPM Report Generation
+
+* The system first generates a standard HUD System Performance Measures report
+* This creates SPM data in tables like Measure 1, Measure 2, etc.
+* Data includes clients, enrollments, episodes, returns, etc.
+
+### 2. PM Report Data Import (`add_clients`)
+
+The `add_clients` method in `PerformanceMeasurement::Report` is the critical bridge between SPM data and the Performance Measurement system:
+
+* Retrieves SPM data (enrollments, episodes, returns)
+* Maps this data to PM-specific fields and clients
+* Creates `Client` and `ClientProject` records
+
+### 3. Configuration-driven Processing
+
+The system uses several configuration hashes that define what data is extracted:
+
+| Configuration | Purpose |
+|--------------|---------|
+| `spm_fields` | Maps SPM measures to PM client fields |
+| `extra_calculations` | Adds data not directly from SPMs |
+| `summary_calculations` | Derives additional metrics from collected data |
+| `detail_hash` | Defines metrics that will be calculated |
+
+### 4. Result Calculation Process
+
+Once client data is stored, the `ResultCalculation` module creates the actual metrics:
+
+1. For each metric defined in `detail_hash`
+2. Pull relevant client data based on `calculation_column` specified in the metric
+3. Perform calculations across system or project level
+4. Compare against goals if applicable
+5. Store in `Result` records
+
+## Mapping Between Systems
+
+### SPM to PM Client Fields
+
+The data flow from SPM to PM happens in these key steps:
+
+1. **SPM Report Generation**: Creates SPM enrollments/episodes with data from HMIS
+2. **PM Data Extraction**: Uses `spm_fields` to map SPM data to PM client fields
+   ```ruby
+   spm_fields.each do |parts|
+     cells = parts[:cells]  # e.g., [['1a', 'D2']]
+     cells.each do |cell|
+       members = cell_members(spec[:report], *cell)
+       members.each do |member|
+         # Maps data from SPM member to PM client fields
+         # Creates PM Client, ClientProject records
+       end
+     end
+   end
+   ```
+3. **Extra Data Computation**: Adds more data not in SPMs via `extra_calculations`
+4. **Summary Field Derivation**: Uses `summary_calculations` to derive additional fields
+
+### Client Fields to Metrics
+
+After client data is stored, the system:
+
+1. Uses `ResultCalculation` module's methods (one per metric)
+2. Each method (e.g., `moved_in_positive_destinations`) extracts relevant client data
+3. Calculates metrics based on the logic defined in `detail_hash`
+4. Returns `Result` objects with calculated values
+
+## Static SPM Support
 
 The dashboard includes support for comparing against externally-generated SPMs through the Static SPM functionality, allowing communities to incorporate SPM data from outside their HMIS.
 
@@ -72,4 +152,3 @@ When maintaining this system, pay attention to:
 2. **Metric Mappings** - The `detail_hash` in `Details` module defines metric properties
 3. **Goal Configurations** - Goals may need adjustment to align with community priorities
 4. **Data Transformations** - Complex logic in `ResultCalculation` module
-5. **System vs. Project Metrics** - Ensure proper handling of CoC-level vs. project-level metrics
