@@ -1,25 +1,23 @@
 export class HtmlCellRenderer {
-  constructor() {
-    this.params = null;
-    this.row = null;
-    this.eGui = null;
-  }
+  private params: ICellRendererParams | null = null;
+  private row: any | null = null;
+  private eGui: HTMLElement | null = null;
 
-  init(params) {
+  init(params: ICellRendererParams): void {
     this.params = params;
     this.row = params.data[params.colDef.field];
     this.refresh(params);
   }
 
-  getGui() {
+  getGui(): HTMLElement | null {
     return this.eGui;
   }
 
-  refresh(params) {
+  refresh(params: ICellRendererParams): boolean {
     const wrapper = document.createElement('div');
     wrapper.className = '';
-    wrapper.innerHTML = this.params.value;
-    if (this.row.comments) {
+    wrapper.innerHTML = this.params?.value || '';
+    if (this.row?.comments) {
       wrapper.setAttribute('data-toggle', 'tooltip');
       wrapper.setAttribute('data-title', this.row.comments);
       wrapper.setAttribute('data-placement', 'left');
@@ -31,7 +29,7 @@ export class HtmlCellRenderer {
     return true;
   }
 
-  destroy() {
+  destroy(): void {
     // Cleanup logic if needed
   }
 }

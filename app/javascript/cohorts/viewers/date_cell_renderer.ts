@@ -1,22 +1,26 @@
+import { ICellRendererParams } from 'ag-grid-community';
+
 export class DateCellRenderer {
+  private eGui: HTMLElement | null;
+
   constructor() {
     this.eGui = null;
   }
 
-  init(params) {
+  init(params: ICellRendererParams): void {
     this.eGui = this.content(params);
   }
 
-  getGui() {
+  getGui(): HTMLElement | null {
     return this.eGui;
   }
 
-  refresh(params) {
+  refresh(params: ICellRendererParams): boolean {
     // Tell the grid to rebuild
     return false;
   }
 
-  content(params) {
+  content(params: ICellRendererParams): HTMLElement {
     const wrapper = document.createElement('div');
     wrapper.className = 'd-flex';
 
@@ -36,7 +40,7 @@ export class DateCellRenderer {
     return wrapper;
   }
 
-  destroy() {
+  destroy(): void {
     // Cleanup logic if needed
   }
 }
