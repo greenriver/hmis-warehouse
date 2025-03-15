@@ -16,6 +16,9 @@ jobs:
 
     # Docker Hub image that the job executes in
     container: ruby:3.3.7-alpine3.20
+    outputs:
+      all: ${{ steps.changed-files.outputs.all}}
+      ruby: ${{ steps.changed-files.outputs.ruby }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
@@ -29,17 +32,18 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: yumemi-inc/changed-files@50f2544ad88b4f274eace9689431b7281132304c # v3
-        with:
-          patterns: |
-            **/*.rb
-          exclude-statuses: 'removed'
+        run: |
+          echo "::set-output name=all::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs)"
+          echo "::set-output name=ruby::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .rb$ | xargs)"
 
       - id: rubocop
         name: Run Rubocop
+        # only run there are changed files
+        if: ${{steps.changed-files.outputs.rb}}
         env:
-          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.files }}
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.ruby }}
         run: |
+          echo ${{steps.changed-files.outputs.ruby}}
           ignore_patterns="db/schema.rb\|bin/rails\|bin/rake\|bin/bundle"
           files=`echo "${ALL_CHANGED_FILES}" | tr " " "\n" | grep -v $ignore_patterns | grep "**/*.rb" | tr "\n" " ./"`
           num=`echo $files | wc -w`
