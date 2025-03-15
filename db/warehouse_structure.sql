@@ -7372,7 +7372,8 @@ CREATE TABLE public.configs (
     enable_auto_deduplication boolean DEFAULT true,
     number_lms_courses_required integer DEFAULT '-1'::integer,
     rds_s3_integration_role_arn character varying,
-    default_lms_email_to_warehouse_email boolean
+    default_lms_email_to_warehouse_email boolean,
+    relevant_state_codes character varying DEFAULT 'MA'::character varying NOT NULL
 );
 
 
@@ -65943,6 +65944,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250304141815'),
 ('20250304143644'),
 ('20250304143654'),
-('20250304143714');
+('20250304143714'),
+('20250313125655');
 
 

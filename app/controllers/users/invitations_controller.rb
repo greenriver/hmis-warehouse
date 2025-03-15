@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Users::InvitationsController < Devise::InvitationsController
   prepend_before_action :require_can_edit_users!, only: [:new, :create]
   include ViewableEntities # TODO: START_ACL remove when ACL transition complete
@@ -67,19 +69,19 @@ class Users::InvitationsController < Devise::InvitationsController
     user.update!(invite_params)
     user.set_viewables(viewable_params.to_h.map { |k, a| [k.to_sym, a] }.to_h) # TODO: START_ACL remove when ACL transition complete
     # if we have a user to copy user groups from, add them
-    copy_user_groups if user.using_acls?
+    copy_user_groups(user: user) if user.using_acls?
     return user
   end
 
-  private def copy_user_groups
-    return unless @user
+  private def copy_user_groups(user:)
+    return unless user
     return unless invite_params[:copy_form_id].present?
 
     source_user = User.active.not_system.find(invite_params[:copy_form_id].to_i)
     return unless source_user
 
     source_user.user_groups.each do |group|
-      group.add(@user)
+      group.add(user)
     end
   end
 
