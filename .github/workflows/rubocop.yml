@@ -27,14 +27,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      # - name: Get changed files
-      #   id: changed-files
-      #   uses: tj-actions/changed-files@v44
+      - name: Get changed files
+        id: changed-files
+        uses: yumemi-inc/changed-files@50f2544ad88b4f274eace9689431b7281132304c # v3
+        with:
+          patterns: |
+            **/*.rb
+          exclude-statuses: 'removed'
 
       - id: rubocop
         name: Run Rubocop
         env:
-          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.files }}
         run: |
           ignore_patterns="db/schema.rb\|bin/rails\|bin/rake\|bin/bundle"
           files=`echo "${ALL_CHANGED_FILES}" | tr " " "\n" | grep -v $ignore_patterns | grep "**/*.rb" | tr "\n" " ./"`
