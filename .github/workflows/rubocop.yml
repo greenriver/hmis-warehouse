@@ -40,6 +40,7 @@ jobs:
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.ruby }}
         run: |
           echo ${{steps.changed-files.outputs.ruby}}
+          echo $ALL_CHANGED_FILES
           ignore_patterns="db/schema.rb\|bin/rails\|bin/rake\|bin/bundle"
           files=`echo "${ALL_CHANGED_FILES}" | tr " " "\n" | grep -v $ignore_patterns | grep "**/*.rb" | tr "\n" " ./"`
           num=`echo $files | wc -w`
