@@ -1,6 +1,11 @@
 // Date Editor
+import { ICellEditorParams } from 'ag-grid-community';
+
 export class DateCellEditor {
-  init(params) {
+  private eInput: HTMLInputElement;
+  private cancelBeforeStart: boolean = false;
+
+  init(params: ICellEditorParams): void {
     // create the cell
     this.eInput = document.createElement('input');
     this.eInput.value = params.value;
@@ -13,32 +18,32 @@ export class DateCellEditor {
       autoclose: true,
       clearBtn: true
       // eslint-disable-next-line no-unused-vars
-    }).on('hide', function (e) {
+    }).on('hide', (e) => {
       params.stopEditing();
     });
   }
 
-  getGui() {
+  getGui(): HTMLElement {
     return this.eInput;
   }
 
-  afterGuiAttached() {
+  afterGuiAttached(): void {
     this.eInput.focus();
     this.eInput.select();
   }
 
-  isCancelBeforeStart() {
+  isCancelBeforeStart(): boolean {
     return this.cancelBeforeStart;
   }
 
-  getValue() {
+  getValue(): string {
     return this.eInput.value;
   }
 
-  destroy() {
+  destroy(): void {
   }
 
-  isPopup() {
+  isPopup(): boolean {
     // and we could leave this method out also, false is the default
     return false;
   }

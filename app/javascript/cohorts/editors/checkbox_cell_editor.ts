@@ -1,9 +1,7 @@
 export class CheckboxCellEditor {
-  constructor() {
-    this.eGui = null;
-  }
+  private eGui: HTMLElement | null = null;
 
-  init(params) {
+  init(params: { value: string | boolean }) {
     const wrapper = document.createElement('div');
     wrapper.className = 'text-center';
 
@@ -16,24 +14,27 @@ export class CheckboxCellEditor {
     this.eGui = wrapper;
   }
 
-  getGui() {
+  getGui(): HTMLElement | null {
     return this.eGui;
   }
 
-  afterGuiAttached() {
+  afterGuiAttached(): void {
     // this.eGui.focus();
   }
 
-  getValue() {
+  getValue(): string {
+    if (!this.eGui) {
+      return "false"; // Default value if the editor is unmounted
+    }
     const checkbox = $(this.eGui).find('input[type="checkbox"]');
     return $(checkbox).is(':checked').toString();
   }
 
-  destroy() {
+  destroy(): void {
     // Cleanup logic if needed
   }
 
-  isPopup() {
+  isPopup(): boolean {
     return false;
   }
 }

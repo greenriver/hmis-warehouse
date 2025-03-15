@@ -1,19 +1,17 @@
 export class DropdownCellEditor {
-  constructor() {
-    this.params = null;
-    this.selectedValue = null;
-    this.originalSelectedValue = null;
-    this.focusAfterAttached = false;
-    this.available_options = [];
-    this.eGui = null;
-  }
+  private params: ICellEditorParams | null = null;
+  private selectedValue: string | null = null;
+  private originalSelectedValue: string | null = null;
+  private focusAfterAttached: boolean = false;
+  private available_options: string[] = [];
+  private eGui: HTMLElement | null = null;
 
-  init(params) {
+  init(params: ICellEditorParams): void {
     this.params = params;
     this.selectedValue = params.value;
     this.originalSelectedValue = params.value;
     this.focusAfterAttached = params.cellStartedEdit;
-    this.available_options = params.values;
+    this.available_options = params.values || [];
 
     if (this.available_options.length === 0) {
       return;
@@ -23,7 +21,7 @@ export class DropdownCellEditor {
     this.makeClickable();
   }
 
-  getUI() {
+  getUI(): HTMLElement {
     const wrapper = document.createElement('div');
     wrapper.className = 'dropdown-wrapper';
     const list = document.createElement('ol');
@@ -45,16 +43,19 @@ export class DropdownCellEditor {
     return wrapper;
   }
 
-  makeClickable() {
-    $(this.getGui()).on('click', 'li', (e) => {
+  makeClickable(): void {
+    const gui = this.getGui();
+    if (!gui) return;
+
+    $(gui).on('click', 'li', (e) => {
       e.preventDefault();
       const value = $(e.currentTarget).text();
       this.setSelectedValue(value);
-      this.params.stopEditing();
+      this.params?.stopEditing();
     });
   }
 
-  setSelectedValue(value) {
+  setSelectedValue(value: string): void {
     if (this.selectedValue !== value) {
       const index = this.available_options.indexOf(value);
       if (index >= 0) {
@@ -63,21 +64,21 @@ export class DropdownCellEditor {
     }
   }
 
-  getGui() {
+  getGui(): HTMLElement | null {
     return this.eGui;
   }
 
-  afterGuiAttached() {
-    // this.eGui.focus();
+  afterGuiAttached(): void {
+    // this.eGui?.focus();
   }
 
-  getValue() {
+  getValue(): string | null {
     return this.selectedValue;
   }
 
-  destroy() { }
+  destroy(): void { }
 
-  isPopup() {
+  isPopup(): boolean {
     return true;
   }
 }
