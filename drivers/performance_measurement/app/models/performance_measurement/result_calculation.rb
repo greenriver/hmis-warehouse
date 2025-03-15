@@ -119,12 +119,13 @@ module PerformanceMeasurement::ResultCalculation
 
     def client_sum(field, period, project_id: nil)
       column = "#{period}_#{field}"
-      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).sum(column) if project_id.blank?
+      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).distinct.sum(column) if project_id.blank?
 
       @client_sums ||= {}
       @client_sums[column] ||= clients.joins(:client_projects).
         merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field).where.not(project_id: nil)).
         group(:project_id).
+        distinct.
         sum(column)
       @client_sums[column][project_id] || 0
     end

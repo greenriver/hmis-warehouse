@@ -304,7 +304,6 @@ module PerformanceMeasurement
             # Force household calculation for cell members
             calculate_households_for_spm(members)
             members.each do |member|
-              # byebug if cell[0] == '1a'
               hud_client = member.client
               spm_enrollments = spm_enrollments_from_answer_member(member)
               report_client = report_clients[hud_client.id] || Client.new(report_id: id, client_id: hud_client.id)

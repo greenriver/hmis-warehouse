@@ -1,6 +1,6 @@
 
 require 'rails_helper'
-require_relative './shared_context'
+require_relative '../../../../hud_spm_report/spec/models/fy2024/shared_context'
 
 RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
   include_context 'SPM test setup'
@@ -19,6 +19,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
         @client3 = create_client_with_warehouse_link
 
         # Client 1: Simple ES stay
+        # 75 days
         create_enrollment(
           client: @client1,
           project: @es_project,
@@ -27,6 +28,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
         )
 
         # Client 2: ES stay followed by TH stay with gap
+        # 61 days
         create_enrollment(
           client: @client2,
           project: @es_project,
@@ -34,6 +36,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
           exit_date: '2022-12-15'.to_date
         )
 
+        # 31 days
         create_enrollment(
           client: @client2,
           project: @th_project,
@@ -42,13 +45,13 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
         )
 
         # Client 3: Overlapping ES stays
+        # 61 days ~ 106 total w days overlap
         create_enrollment(
           client: @client3,
           project: @es_project,
           entry_date: '2022-10-01'.to_date,
           exit_date: '2022-12-01'.to_date
         )
-
         create_enrollment(
           client: @client3,
           project: @es_project,
