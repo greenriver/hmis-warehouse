@@ -937,7 +937,6 @@ module PerformanceMeasurement
     end
 
     PERMANENT_DESTINATIONS = HudSpmReport::Generators::Fy2023::MeasureSeven::PERMANENT_DESTINATIONS
-    PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [0]).freeze
     PERMANENT_TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS = (
       PERMANENT_DESTINATIONS +
       HudSpmReport::Generators::Fy2023::MeasureSeven::TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS
@@ -959,9 +958,19 @@ module PerformanceMeasurement
         {
           key: :retention_or_positive_destination,
           value_calculation: ->(client, variant_name) {
+            # Check for permanent destinations from SO
             return true if PERMANENT_DESTINATIONS.include?(client.send("#{variant_name}_so_destination"))
+
+            # Check for permanent destinations from ES/SH/TH/RRH
             return true if PERMANENT_DESTINATIONS.include?(client.send("#{variant_name}_es_sh_th_rrh_destination"))
-            return true if PERMANENT_DESTINATIONS_OR_STAYER.include?(client.send("#{variant_name}_moved_in_destination"))
+
+            # For PH clients with move-in, check for:
+            # 1. Permanent destinations for leavers
+            return true if PERMANENT_DESTINATIONS.include?(client.send("#{variant_name}_moved_in_destination"))
+
+            # 2. Stayer status (identified by exit_date rather than destination)
+            return true if client.send("#{variant_name}_stayer") == true &&
+                project_type&.include?('PH')
 
             false
           },
@@ -1200,21 +1209,34 @@ module PerformanceMeasurement
           history_source: :m7b_history,
           questions: [
             {
-              name: :moved_in_destination, # NOTE: destination 0 == stayer in the SPM
-              value_calculation: destination_calculation,
+              name: :moved_in_destination,
+              value_calculation: ->(spm_enrollment) {
+                # For stayers (no exit date or exit after report end)
+                return nil if spm_enrollment.exit_date.nil? || spm_enrollment.exit_date > filter.end
+
+                # For others, return the destination value
+                destination_calculation.call(spm_enrollment)
+              },
             },
           ],
           client_project_rows: [
             ->(spm_enrollment) {
-              return unless destination_calculation.call(spm_enrollment)
-
+              # Basic mapping for all relevant enrollments
               {
                 project_id: spm_enrollment.enrollment.project.id,
                 for_question: :moved_in_destination,
               }
             },
             ->(spm_enrollment) {
-              return unless destination_calculation.call(spm_enrollment).in?(PERMANENT_DESTINATIONS_OR_STAYER)
+              # Two ways to qualify as positive outcome:
+              # 1. Stayer: exit_date is nil or after report end date
+              is_stayer = spm_enrollment.exit_date.nil? || spm_enrollment.exit_date > filter.end
+
+              # 2. Leaver with permanent destination
+              has_permanent_destination = destination_calculation.call(spm_enrollment).in?(PERMANENT_DESTINATIONS)
+
+              # Only create the record if either condition is met
+              return unless is_stayer || has_permanent_destination
 
               {
                 project_id: spm_enrollment.enrollment.project.id,

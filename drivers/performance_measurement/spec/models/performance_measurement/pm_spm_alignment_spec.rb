@@ -7,7 +7,6 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
   include_context 'SPM test setup'
 
   # Shared context for running both reports with the same data
-  # Shared context for running both reports with the same data
   shared_context 'report generation' do
     before do
       # Generate the service history records for enrollments
@@ -24,7 +23,6 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       @pm_report.filter = spm_report_filter
       @pm_report.update_goal_configuration!
       @pm_report.save!
-      @pm_report.update_goal_configuration!
       @pm_report.run_and_save!
       @pm_report.reload
 
@@ -184,7 +182,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       expect(pm_percentage).to be_within(0.1).of(spm_percentage)
     end
 
-    xit 'has the same PH retention or exit rate in both reports' do
+    it 'has the same PH retention or exit rate in both reports' do
       # SPM report retention percentage for PH projects
       spm_percentage = @spm_report.answer(question: '7b.2', cell: 'C4').summary.to_f
 
@@ -272,7 +270,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       expect(pm_percentage.round).to eq(spm_percentage.round)
     end
 
-    xit 'has the same 12-month return rate in both reports' do
+    it 'has the same 12-month return rate in both reports' do
       # SPM report 12-month return percentage (includes 0-6 months and 6-12 months)
       spm_percentage = @spm_report.answer(question: '2a and 2b', cell: 'F7').summary.to_f
 
