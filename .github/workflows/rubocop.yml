@@ -30,7 +30,7 @@ jobs:
       - name: Get changed files
         id: changed-files
         run: |
-          echo "{ruby}={$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .rb$ | xargs)}"
+          echo "ruby=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .rb$ | xargs)" >> $GITHUB_OUTPUT
 
       - id: rubocop
         name: Run Rubocop
