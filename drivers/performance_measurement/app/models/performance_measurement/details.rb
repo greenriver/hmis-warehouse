@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -182,7 +184,7 @@ module PerformanceMeasurement::Details
 
       project_scope = PerformanceMeasurement::ClientProject.where(period: period, for_question: field)
       project_scope = project_scope.where(project_id: project_id.to_i) if project_id
-      clients.joins(:client_projects).merge(project_scope)
+      clients.joins(:client_projects).merge(project_scope).distinct
     end
     memoize :clients_for_question
 
@@ -531,7 +533,6 @@ module PerformanceMeasurement::Details
           table: '1a',
           cell: 'D2',
           detail_columns: [
-
             'days_homeless_es_sh_th',
           ],
         },

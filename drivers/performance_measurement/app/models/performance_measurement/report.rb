@@ -317,7 +317,7 @@ module PerformanceMeasurement
               hud_project_ids = spm_enrollments.map { |e| e.enrollment.project.id }.uniq
               involved_projects += hud_project_ids
               parts[:questions].each do |question|
-                # read the cell value from the SPM report SPM value from
+                # read the cell value from the SPM report
                 report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(member)
                 hud_project_ids.each do |project_id|
                   pc_data = {

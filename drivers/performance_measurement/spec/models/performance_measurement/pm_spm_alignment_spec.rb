@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative '../../../../hud_spm_report/spec/models/fy2024/shared_context'
@@ -24,7 +25,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
           client: @client1,
           project: @es_project,
           entry_date: '2022-11-01'.to_date,
-          exit_date: '2023-01-15'.to_date
+          exit_date: '2023-01-15'.to_date,
         )
 
         # Client 2: ES stay followed by TH stay with gap
@@ -33,7 +34,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
           client: @client2,
           project: @es_project,
           entry_date: '2022-10-15'.to_date,
-          exit_date: '2022-12-15'.to_date
+          exit_date: '2022-12-15'.to_date,
         )
 
         # 31 days
@@ -41,7 +42,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
           client: @client2,
           project: @th_project,
           entry_date: '2022-12-20'.to_date,
-          exit_date: '2023-01-20'.to_date
+          exit_date: '2023-01-20'.to_date,
         )
 
         # Client 3: Overlapping ES stays
@@ -50,13 +51,13 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
           client: @client3,
           project: @es_project,
           entry_date: '2022-10-01'.to_date,
-          exit_date: '2022-12-01'.to_date
+          exit_date: '2022-12-01'.to_date,
         )
         create_enrollment(
           client: @client3,
           project: @es_project,
           entry_date: '2022-11-15'.to_date,
-          exit_date: '2023-01-15'.to_date
+          exit_date: '2023-01-15'.to_date,
         )
 
         # Generate the service history records for these enrollments
@@ -69,7 +70,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
         @spm_report = HudReports::ReportInstance.from_filter(
           spm_report_filter,
           'System Performance Measures - FY 2024',
-          build_for_questions: ['Measure 1']
+          build_for_questions: ['Measure 1'],
         )
         @spm_report.question_names = ['Measure 1']
         @spm_report.save!
@@ -83,7 +84,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
 
         # Step 2: Run the Performance Measurement report with the same data
         @pm_report = PerformanceMeasurement::Report.new(
-          user_id: user.id
+          user_id: user.id,
         )
         @pm_report.filter = spm_report_filter
         @pm_report.update_goal_configuration!
@@ -91,12 +92,6 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
         @pm_report.update_goal_configuration!
         @pm_report.run_and_save!
         @pm_report.reload
-      end
-
-      after(:all) do
-        # Clean up
-        HmisCsvImporter::Utility.clear!
-        GrdaWarehouse::Utility.clear!
       end
 
       it 'has the same client count in both reports' do
@@ -135,8 +130,6 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       end
 
       it 'has aligned days homeless for each client' do
-        # Get the raw client data from both reports to compare
-
         # SPM report - get the days homeless from the episodes
         spm_episodes = @spm_report.universe('m1a2').members.map(&:universe_membership)
         spm_client_days = spm_episodes.map do |episode|
@@ -152,45 +145,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
         # Check if the days match for each client
         spm_client_days.each do |client_id, days|
           expect(pm_client_days[client_id]).to eq(days),
-            "Client #{client_id} has #{pm_client_days[client_id]} days in PM report but #{days} days in SPM"
-        end
-      end
-
-      it 'tracks client processing through add_clients method' do
-        # This test will manually run a part of the process to trace how values are calculated
-
-        # Setup a mini report to trace through data
-        tracer_report = PerformanceMeasurement::Report.new(user_id: user.id)
-        tracer_report.filter = default_filter.dup
-        tracer_report.filter.update(project_ids: [@es_project.id, @th_project.id])
-        tracer_report.update_goal_configuration!
-        tracer_report.save!
-
-        # Get the SPM report
-        spm_report = @spm_report
-
-        # Manually trace the add_clients process for a single SPM data value
-        spm_fields = tracer_report.send(:spm_fields)
-        measure_1_field = spm_fields.find { |f| f[:title] == 'Length of Time Homeless in ES, SH, TH' }
-
-        # Get the members from the SPM report
-        cell = measure_1_field[:cells].first
-        members = tracer_report.send(:cell_members, spm_report, *cell)
-
-        # Process client data
-        report_clients = {}
-        variant_name = :reporting
-
-        # Manual calculation for each member
-        members.each do |member|
-          hud_client = member.client
-          spm_enrollments = tracer_report.send(:spm_enrollments_from_answer_member, member)
-          days_homeless = member.days_homeless
-
-          # Check what's used for days calculation
-          measure_1_field[:questions].each do |question|
-            value = question[:value_calculation].call(member)
-          end
+                                               "Client #{client_id} has #{pm_client_days[client_id]} days in PM report but #{days} days in SPM"
         end
       end
     end
