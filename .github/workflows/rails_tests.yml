@@ -45,7 +45,7 @@ jobs:
     # Service containers to run with job
     services:
       postgres:
-        image: postgis/postgis:16-3.4-alpine
+        image: index.docker.io/postgis/postgis@sha256:681931a625df344215e9b8998bf34daf146b6a395ceacee4439eb9c85869239f # 16-3.4-alpine
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
@@ -61,7 +61,7 @@ jobs:
           - 5432:5432
 
       redis:
-        image: redis:alpine
+        image: index.docker.io/library/redis@sha256:02419de7eddf55aa5bcf49efb74e88fa8d931b4d77c07eff8a6b2144472b6952 # alpine
         ports:
           - 6379:6379
 
@@ -84,7 +84,7 @@ jobs:
         ports:
           - '9000:9000'
       chrome:
-        image: browserless/chrome:1-chrome-stable
+        image: index.docker.io/browserless/chrome@sha256:efac47cfff3830d9a50b27d29f8bbb61949058ae336c823fbe9bd3c0d1debcc8 # 1-chrome-stable
         ports:
           - 3333:3333
         env:
@@ -136,7 +136,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: 'Container Setup'
         id: container-setup
@@ -164,7 +164,7 @@ jobs:
 
       # fetch some closed source files
       - name: 'Fetch testkit source files'
-        uses: keithweaver/aws-s3-github-action@v1.0.0
+        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
           source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2024 }}
@@ -180,7 +180,7 @@ jobs:
       # 3. Re-run the tests  rspec drivers/hud_apr/spec/models/fy2024/datalab_2_0_spec.rb
       # 4. Update the fixpoint in S3 from the newly generated file
       - name: 'Fetch testkit fixpoint files'
-        uses: keithweaver/aws-s3-github-action@v1.0.0
+        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
           source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2024 }}
@@ -191,7 +191,7 @@ jobs:
           flags: --recursive
 
       - name: 'Fetch result files'
-        uses: keithweaver/aws-s3-github-action@v1.0.0
+        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
           source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_FY_2024 }}
@@ -202,7 +202,7 @@ jobs:
           flags: --recursive
 
       - name: 'Fetch 2022 -> 2024 source files'
-        uses: keithweaver/aws-s3-github-action@v1.0.0
+        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
           source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2024 }}/merged/source
@@ -278,7 +278,7 @@ jobs:
 
       - name: Archive artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
           if-no-files-found: ignore
           name: artifacts-${{ matrix.test_group.id}}
