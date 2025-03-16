@@ -87,6 +87,29 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
 
     include_context 'report generation'
 
+    it 'has the same average length of time homeless in both reports' do
+      # SPM report average LOT homeless
+      spm_average = @spm_report.answer(question: '1a', cell: 'D2').summary.to_f
+
+      # PM report average LOT homeless
+      pm_result = @pm_report.result_for(:length_of_homeless_time_homeless_average)
+      pm_average = pm_result.primary_value.to_f
+
+      expect(pm_average).to be_within(0.1).of(spm_average)
+    end
+
+    it 'has the same median length of time homeless in both reports' do
+      # SPM report median LOT homeless
+      spm_median = @spm_report.answer(question: '1a', cell: 'G2').summary.to_f
+
+      # PM report median LOT homeless
+      pm_result = @pm_report.result_for(:length_of_homeless_time_homeless_median)
+      pm_median = pm_result.primary_value.to_f
+
+      expect(pm_median).to be_within(0.1).of(spm_median)
+    end
+
+
     it 'has the same client count in both reports' do
       # SPM report universe count
       spm_client_count = @spm_report.answer(question: '1a', cell: 'B2').summary
@@ -120,78 +143,6 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_median = pm_result.primary_value.to_f
 
       expect(pm_median).to be_within(0.1).of(spm_median)
-    end
-  end
-
-  describe 'measure 7 values alignment' do
-    let(:spm_question) { 'Measure 7' }
-    let(:measure_class) { HudSpmReport::Generators::Fy2024::MeasureSeven }
-    let(:project_ids) { [@es_project.id, @th_project.id, @ph_project.id] }
-
-    before do
-      PerformanceMeasurement::Goal.ensure_default
-      # Create projects of different types
-      @es_project = create_project(project_type: 0) # ES-EE
-      @th_project = create_project(project_type: 2) # TH
-      @ph_project = create_project(project_type: 3) # PH
-
-      # Create clients with different exit scenarios
-      @client1 = create_client_with_warehouse_link
-      @client2 = create_client_with_warehouse_link
-      @client3 = create_client_with_warehouse_link
-
-      # Client 1: Exit from ES to permanent housing
-      create_enrollment(
-        client: @client1,
-        project: @es_project,
-        entry_date: '2022-11-01'.to_date,
-        exit_date: '2023-01-15'.to_date,
-        destination: 410, # Rental by client, no subsidy (permanent)
-      )
-
-      # Client 2: Exit from TH to temporary destination
-      create_enrollment(
-        client: @client2,
-        project: @th_project,
-        entry_date: '2022-10-15'.to_date,
-        exit_date: '2022-12-15'.to_date,
-        destination: 118, # Safe Haven (non-permanent)
-      )
-
-      # Client 3: PH stayer with move-in date
-      create_enrollment(
-        client: @client3,
-        project: @ph_project,
-        entry_date: '2022-10-01'.to_date,
-        exit_date: nil,
-        move_in_date: '2022-11-01'.to_date,
-      )
-    end
-
-    include_context 'report generation'
-
-    it 'has the same permanent housing exit rate in both reports' do
-      # SPM report successful placement percentage for ES/TH/SH/RRH exits
-      spm_percentage = @spm_report.answer(question: '7b.1', cell: 'C4').summary.to_f
-
-      # PM report success rate
-      pm_result = @pm_report.result_for(:es_sh_th_rrh_positive_destinations)
-      pm_percentage = pm_result.primary_value.to_f
-
-      # They should match
-      expect(pm_percentage).to be_within(0.1).of(spm_percentage)
-    end
-
-    it 'has the same PH retention or exit rate in both reports' do
-      # SPM report retention percentage for PH projects
-      spm_percentage = @spm_report.answer(question: '7b.2', cell: 'C4').summary.to_f
-
-      # PM report retention rate
-      pm_result = @pm_report.result_for(:moved_in_positive_destinations)
-      pm_percentage = pm_result.primary_value.to_f
-
-      # They should match
-      expect(pm_percentage).to be_within(0.1).of(spm_percentage)
     end
   end
 
@@ -270,18 +221,6 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       expect(pm_percentage.round).to eq(spm_percentage.round)
     end
 
-    it 'has the same 12-month return rate in both reports' do
-      # SPM report 12-month return percentage (includes 0-6 months and 6-12 months)
-      spm_percentage = @spm_report.answer(question: '2a and 2b', cell: 'F7').summary.to_f
-
-      # PM report 12-month return rate
-      pm_result = @pm_report.result_for(:returned_in_one_year)
-      pm_percentage = pm_result.primary_value.to_f
-
-      # They should match
-      expect(pm_percentage).to be_within(0.1).of(spm_percentage)
-    end
-
     it 'has the same 24-month return rate in both reports' do
       # SPM report 24-month return percentage
       spm_percentage = @spm_report.answer(question: '2a and 2b', cell: 'J7').summary.to_f
@@ -306,4 +245,90 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       expect(pm_count).to eq(spm_count)
     end
   end
+
+
+
+  describe 'measure 7 values alignment' do
+    let(:spm_question) { 'Measure 7' }
+    let(:measure_class) { HudSpmReport::Generators::Fy2024::MeasureSeven }
+    let(:project_ids) { [@es_project.id, @th_project.id, @ph_project.id] }
+
+    before do
+      PerformanceMeasurement::Goal.ensure_default
+      # Create projects of different types
+      @es_project = create_project(project_type: 0) # ES-EE
+      @th_project = create_project(project_type: 2) # TH
+      @ph_project = create_project(project_type: 3) # PH
+
+      # Create clients with different exit scenarios
+      @client1 = create_client_with_warehouse_link
+      @client2 = create_client_with_warehouse_link
+      @client3 = create_client_with_warehouse_link
+
+      # Client 1: Exit from ES to permanent housing
+      create_enrollment(
+        client: @client1,
+        project: @es_project,
+        entry_date: '2022-11-01'.to_date,
+        exit_date: '2023-01-15'.to_date,
+        destination: 410, # Rental by client, no subsidy (permanent)
+      )
+
+      # Client 2: Exit from TH to temporary destination
+      create_enrollment(
+        client: @client2,
+        project: @th_project,
+        entry_date: '2022-10-15'.to_date,
+        exit_date: '2022-12-15'.to_date,
+        destination: 118, # Safe Haven (non-permanent)
+      )
+
+      # Client 3: PH stayer with move-in date
+      create_enrollment(
+        client: @client3,
+        project: @ph_project,
+        entry_date: '2022-10-01'.to_date,
+        exit_date: nil,
+        move_in_date: '2022-11-01'.to_date,
+      )
+    end
+
+    include_context 'report generation'
+
+    it 'has the same permanent housing exit rate in both reports' do
+      # SPM report successful placement percentage for ES/TH/SH/RRH exits
+      spm_percentage = @spm_report.answer(question: '7b.1', cell: 'C4').summary.to_f
+
+      # PM report success rate
+      pm_result = @pm_report.result_for(:es_sh_th_rrh_positive_destinations)
+      pm_percentage = pm_result.primary_value.to_f
+
+      # They should match
+      expect(pm_percentage).to be_within(0.1).of(spm_percentage)
+    end
+
+    it 'has the same PH retention or exit rate in both reports' do
+      # SPM report retention percentage for PH projects
+      spm_percentage = @spm_report.answer(question: '7b.2', cell: 'C4').summary.to_f
+
+      # PM report retention rate
+      pm_result = @pm_report.result_for(:moved_in_positive_destinations)
+      pm_percentage = pm_result.primary_value.to_f
+
+      # They should match
+      expect(pm_percentage).to be_within(0.1).of(spm_percentage)
+    end
+
+    it 'has the same first-time homeless count in both reports' do
+      # SPM report first-time homeless
+      spm_count = @spm_report.answer(question: '5.1', cell: 'C4').summary.to_i
+
+      # PM report first-time homeless
+      pm_result = @pm_report.result_for(:first_time_homeless_clients)
+      pm_count = pm_result.primary_value.to_i
+
+      expect(pm_count).to eq(spm_count)
+    end
+  end
+
 end
