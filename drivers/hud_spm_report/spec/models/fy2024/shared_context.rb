@@ -58,7 +58,7 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
       relationship_to_ho_h: relationship_to_ho_h,
       household_id: household_id,
       living_situation: living_situation,
-      move_in_date: move_in_date
+      move_in_date: move_in_date,
     )
 
     if exit_date.present?
@@ -68,7 +68,7 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
         exit_date: exit_date,
         data_source: data_source,
         personal_id: client.personal_id,
-        destination: destination
+        destination: destination,
       )
     end
 

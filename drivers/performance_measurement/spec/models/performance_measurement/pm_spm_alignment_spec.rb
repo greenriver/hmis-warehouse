@@ -22,22 +22,30 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
     )
   end
 
-  # Helper method for comparing SPM and PM values consistently
-  def compare_spm_and_pm_values(spm_value, pm_value)
+  # Helper method for comparing SPM and PM values consistently with expected values
+  def compare_spm_and_pm_values(spm_value, pm_value, expected_value)
     # Format values for output in case of failure
     formatted_spm = "#{spm_value} (#{spm_value.class})"
     formatted_pm = "#{pm_value} (#{pm_value.class})"
+    formatted_expected = "#{expected_value} (#{expected_value.class})"
 
     # Convert to appropriate numeric type if needed
     spm_value = spm_value.to_f if spm_value.is_a?(String)
     pm_value = pm_value.to_f if pm_value.is_a?(String)
-    expect(spm_value).to be > 0
+    expected_value = expected_value.to_f if expected_value.is_a?(String)
 
     # For counts or values that should match exactly
     rounded_spm = spm_value.round
     rounded_pm = pm_value.round
+    rounded_expected = expected_value.round
 
-    expect(rounded_pm).to eq(rounded_spm), "Original values: SPM=#{formatted_spm}, PM=#{formatted_pm}"
+    # Check that SPM and PM values match each other
+    expect(rounded_pm).to eq(rounded_spm),
+                          "SPM and PM values don't match. SPM=#{formatted_spm}, PM=#{formatted_pm}"
+
+    # Check that both match our expected value
+    expect(rounded_spm).to eq(rounded_expected),
+                           "Values don't match expected. SPM=#{formatted_spm}, PM=#{formatted_pm}, Expected=#{formatted_expected}"
   end
 
   # Method to create and run both reports
@@ -96,11 +104,11 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
         client: @client3,
         project: @es_nbn_project,
         entry_date: test_start_date + 1.day,
-        exit_date: test_start_date + 60.days,
+        exit_date: test_start_date + 61.days,
       )
 
       # Add bed nights for night-by-night shelter
-      (test_start_date + 1.day..test_start_date + 60.days).each do |date|
+      (test_start_date + 1.day..test_start_date + 61.days).each do |date|
         create_bed_night_service(enrollment: enrollment, date: date)
       end
 
@@ -124,7 +132,11 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_result = @pm_report.result_for(:length_of_homeless_time_homeless_average)
       pm_average = pm_result.primary_value
 
-      compare_spm_and_pm_values(spm_average, pm_average)
+      # Client 1: 75 days
+      # Client 2: 90 days (60 days in ES + 30 days in TH)
+      # Client 3: 110 days (60 days in ES-NbN + 50 days in ES)
+      # Average = (75 + 90 + 110) / 3 = 91.67 days
+      compare_spm_and_pm_values(spm_average, pm_average, 92)
     end
 
     it 'has the same median length of time homeless in both reports' do
@@ -135,7 +147,11 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_result = @pm_report.result_for(:length_of_homeless_time_homeless_median)
       pm_median = pm_result.primary_value
 
-      compare_spm_and_pm_values(spm_median, pm_median)
+      # Client 1: 75 days
+      # Client 2: 90 days
+      # Client 3: 110 days
+      # Median = 90 days
+      compare_spm_and_pm_values(spm_median, pm_median, 90)
     end
 
     it 'has the same client count in both reports' do
@@ -147,6 +163,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
 
       # Both should have 3 clients
       expect(pm_client_count).to eq(spm_client_count.to_i)
+      expect(pm_client_count).to eq(3)
     end
   end
 
@@ -216,7 +233,8 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_result = @pm_report.result_for(:returned_in_six_months)
       pm_percentage = pm_result.primary_value
 
-      compare_spm_and_pm_values(spm_percentage, pm_percentage)
+      # 2 out of 3 clients returned within 6 months (66.6%)
+      compare_spm_and_pm_values(spm_percentage, pm_percentage, 67)
     end
 
     it 'has the same 24-month return rate in both reports' do
@@ -227,7 +245,8 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_result = @pm_report.result_for(:returned_in_two_years)
       pm_percentage = pm_result.primary_value
 
-      compare_spm_and_pm_values(spm_percentage, pm_percentage)
+      # 2 out of 3 clients returned within 24 months (66.67%)
+      compare_spm_and_pm_values(spm_percentage, pm_percentage, 67)
     end
 
     it 'has the same count of total exits to permanent housing' do
@@ -239,6 +258,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_count = pm_result.reporting_denominator
 
       expect(pm_count).to eq(spm_count.to_i)
+      expect(pm_count).to eq(3) # All 3 clients had PH exits
     end
   end
 
@@ -288,7 +308,8 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_result = @pm_report.result_for(:count_of_homeless_clients_in_range)
       pm_count = pm_result.primary_value
 
-      compare_spm_and_pm_values(spm_count, pm_count)
+      # 3 total homeless clients but only 2 in ES
+      compare_spm_and_pm_values(spm_count, pm_count, 2)
     end
 
     it 'has the same count of sheltered homeless clients' do
@@ -299,7 +320,8 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_result = @pm_report.result_for(:count_of_sheltered_homeless_clients)
       pm_count = pm_result.primary_value
 
-      compare_spm_and_pm_values(spm_count, pm_count)
+      # 2 sheltered clients (clients 1 and 2 in ES)
+      compare_spm_and_pm_values(spm_count, pm_count, 2)
     end
   end
 
@@ -415,7 +437,8 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_result = @pm_report.result_for(:stayers_with_increased_income)
       pm_percentage = pm_result.primary_value
 
-      compare_spm_and_pm_values(spm_percentage, pm_percentage)
+      # 1 out of 2 stayers had increased income (50%)
+      compare_spm_and_pm_values(spm_percentage, pm_percentage, 50)
     end
 
     it 'has the same rate of income increase for leavers in both reports' do
@@ -426,7 +449,8 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_result = @pm_report.result_for(:leavers_with_increased_income)
       pm_percentage = pm_result.primary_value
 
-      compare_spm_and_pm_values(spm_percentage, pm_percentage)
+      # 1 out of 1 leavers had increased income (100%)
+      compare_spm_and_pm_values(spm_percentage, pm_percentage, 100)
     end
 
     it 'has the same count of stayers' do
@@ -438,6 +462,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_count = pm_result.reporting_denominator
 
       expect(pm_count).to eq(spm_count.to_i)
+      expect(pm_count).to eq(2) # Clients 1 and 3 are stayers
     end
   end
 
@@ -470,6 +495,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       )
 
       # Client 2: First-time homeless in PH
+      # - not counted as first-time
       create_enrollment(
         client: @client2,
         project: @ph_project,
@@ -496,7 +522,8 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_result = @pm_report.result_for(:first_time_homeless_clients)
       pm_count = pm_result.primary_value
 
-      compare_spm_and_pm_values(spm_count, pm_count)
+      # 2 first-time homeless clients, client1 and client 3
+      compare_spm_and_pm_values(spm_count, pm_count, 2)
     end
 
     it 'counts the same total entries in the reporting period' do
@@ -509,6 +536,8 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
 
       expect(pm_count).to be > 0
       expect(pm_count).to eq(spm_count.to_i)
+      # Should be 2 clients (clients 1 and 3 in ES/TH)
+      expect(pm_count).to eq(2)
     end
   end
 
@@ -575,7 +604,8 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_result = @pm_report.result_for(:so_positive_destinations)
       pm_percentage = pm_result.primary_value
 
-      compare_spm_and_pm_values(spm_percentage, pm_percentage)
+      # 1 out of 1 SO exits to temporary destination (100%)
+      compare_spm_and_pm_values(spm_percentage, pm_percentage, 100)
     end
 
     it 'has the same permanent housing exit rate for ES, SH, TH, RRH in both reports' do
@@ -586,7 +616,8 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_result = @pm_report.result_for(:es_sh_th_rrh_positive_destinations)
       pm_percentage = pm_result.primary_value
 
-      compare_spm_and_pm_values(spm_percentage, pm_percentage)
+      # 2 out of 2 exits to permanent housing (client 2 from ES and client 4 from RRH) (100%)
+      compare_spm_and_pm_values(spm_percentage, pm_percentage, 100)
     end
 
     it 'has the same PH retention or exit rate in both reports' do
@@ -597,7 +628,8 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_result = @pm_report.result_for(:moved_in_positive_destinations)
       pm_percentage = pm_result.primary_value
 
-      compare_spm_and_pm_values(spm_percentage, pm_percentage)
+      # 2 out of 2 PH clients (client 3 is a stayer with move-in date and client 4 exited to permanent) (100%)
+      compare_spm_and_pm_values(spm_percentage, pm_percentage, 100)
     end
 
     it 'has the same exit count for ES, SH, TH, RRH in both reports' do
@@ -609,6 +641,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_count = pm_result.reporting_denominator
 
       expect(pm_count).to eq(spm_count.to_i)
+      expect(pm_count).to eq(2) # 2 exits (client 2 from ES and client 4 from RRH)
     end
   end
 end

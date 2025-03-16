@@ -79,10 +79,11 @@ module PerformanceMeasurement::ResultCalculation
       ((numerator / denominator.to_f) * 100).round
     end
 
+    # it appears we only store integers so round the average
     def average(value, count)
       return 0 unless count.positive?
 
-      value.to_f / count
+      (value.to_f / count).round
     end
 
     def median(values)
