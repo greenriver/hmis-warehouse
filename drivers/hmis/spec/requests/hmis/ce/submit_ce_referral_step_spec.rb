@@ -118,7 +118,7 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
         }
       end
 
-      it 'returns a warning, then succeeds when confirmed flag is passed' do
+      it 'returns a warning' do
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result&.inspect
@@ -128,7 +128,9 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
           expect(errors.first['fullMessage']).to eq('This will decline the referral')
           referral.reload
         end.to not_change(referral, :status)
+      end
 
+      it 'succeeds when confirmed flag is passed' do
         expect do
           response, result = post_graphql(**variables, confirmed: true) { mutation }
           expect(response.status).to eq(200), result&.inspect
@@ -137,7 +139,9 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
           referral_response = result.dig('data', 'submitCeReferralStep', 'referral')
           expect(referral_response['status']).to eq('rejected')
           referral.reload
-        end.to change(referral, :status).from('in_progress').to('rejected')
+          opportunity.reload
+        end.to change(referral, :status).from('in_progress').to('rejected').
+          and change(opportunity, :status).from('locked').to('open')
       end
     end
 

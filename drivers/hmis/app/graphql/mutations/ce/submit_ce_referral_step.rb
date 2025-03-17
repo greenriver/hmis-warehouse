@@ -63,6 +63,8 @@ module Mutations
         engine.complete_step!(step, user: current_user, submitted_values: input)
       end
 
+      referral.opportunity.release! if referral.status.to_sym == :rejected
+
       {
         step: step,
         referral: referral.reload,
