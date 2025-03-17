@@ -16,7 +16,7 @@ module WarehouseReports
 
     private def state_coc_shapes
       GrdaWarehouse::Shape::Coc.where(
-        st: GrdaWarehouse::Config.get(:relevant_state_codes),
+        st: GrdaWarehouse::Config.relevant_state_codes,
       )
     end
 
