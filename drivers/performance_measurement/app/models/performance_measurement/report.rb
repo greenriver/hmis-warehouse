@@ -1066,6 +1066,27 @@ module PerformanceMeasurement
       end
     end
 
+    # The spm_fields method defines mappings between SPM (System Performance Measures) report data
+    # and Performance Measurement client fields. This configuration determines which SPM data
+    # to extract and how to transform it for the dashboard.
+    #
+    # Each entry in the array contains:
+    #   - cells: SPM table and cell identifiers to extract (e.g., ['1a', 'D2'])
+    #   - title: Description of the data
+    #   - measure: Associated SPM measure
+    #   - questions: Client field mappings with:
+    #     - name: Client field to populate
+    #     - value_calculation: Function to extract/transform SPM data
+    #   - client_project_rows: Optional lambdas that generate ClientProject records by:
+    #     - Taking an SPM entity (enrollment, episode, return) as input
+    #     - Returning either nil (no record created) or a hash with:
+    #       - project_id: The associated project ID
+    #       - for_question: Symbol identifying what the record represents
+    #       - (Additional attributes may be included as needed)
+    #
+    # The structure links SPM report cells directly to dashboard metrics while
+    # maintaining the relationships between projects and clients.
+    #
     def spm_fields
       default_calculation = lambda(&:present?)
       days_homeless_calculation = lambda(&:days_homeless)
