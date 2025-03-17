@@ -183,6 +183,7 @@ task ce_starter_pack_20250302: [:environment] do
   # orgs and projects in their local dbs they can use for testing -- but it's helpful for the sake of the starter pack
   # to have this script create a project/org whose existence it can rely on
   puts 'Creating CE Test Org and Ce Test Project'
+  hmis_ds = GrdaWarehouse::DataSource.hmis.first
   system_user = Hmis::Hud::User.system_user(data_source_id: hmis_ds.id)
   ce_org = Hmis::Hud::Organization.find_or_initialize_by(
     data_source_id: hmis_ds.id,
