@@ -381,7 +381,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     def additional_homeless_nights_sheltered(client)
       sheltered = most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer.to_i || 0
-      # binding.pry
+
       allowed_sheltered_self_report = max_possible_self_report_homeless_days(client) - additional_homeless_nights_unsheltered(client)
       [allowed_sheltered_self_report, sheltered].min
     end
