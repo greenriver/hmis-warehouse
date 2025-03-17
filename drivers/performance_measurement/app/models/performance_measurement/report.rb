@@ -937,7 +937,7 @@ module PerformanceMeasurement
     end
 
     PERMANENT_DESTINATIONS = HudSpmReport::Generators::Fy2023::MeasureSeven::PERMANENT_DESTINATIONS
-    # PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [0]).freeze
+    PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [nil]).freeze
     PERMANENT_TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS = (
       PERMANENT_DESTINATIONS +
       HudSpmReport::Generators::Fy2023::MeasureSeven::TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS
@@ -961,7 +961,7 @@ module PerformanceMeasurement
           value_calculation: ->(client, variant_name) {
             return true if PERMANENT_DESTINATIONS.include?(client.send("#{variant_name}_so_destination"))
             return true if PERMANENT_DESTINATIONS.include?(client.send("#{variant_name}_es_sh_th_rrh_destination"))
-            return true if client.send("#{variant_name}_stayer")
+            return true if PERMANENT_DESTINATIONS_OR_STAYER.include?(client.send("#{variant_name}_moved_in_destination"))
 
             false
           },
@@ -1194,12 +1194,6 @@ module PerformanceMeasurement
               name: :es_sh_th_rrh_destination,
               value_calculation: destination_calculation,
             },
-            {
-              name: :stayer,
-              value_calculation: ->(spm_enrollment) {
-                spm_enrollment.exit_date.nil? || spm_enrollment.exit_date > filter.end
-              },
-            },
           ],
           client_project_rows: [
             ->(spm_enrollment) {
@@ -1233,6 +1227,11 @@ module PerformanceMeasurement
           ],
           client_project_rows: [
             ->(spm_enrollment) {
+              # we know this the cell universe is PH here
+              is_stayer = spm_enrollment.exit_date.nil? || spm_enrollment.exit_date > filter.end
+              has_any_destination = destination_calculation.call(spm_enrollment)
+              return unless is_stayer || has_any_destination
+
               {
                 project_id: spm_enrollment.enrollment.project.id,
                 for_question: :moved_in_destination,
