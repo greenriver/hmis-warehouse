@@ -8,12 +8,18 @@ module Hmis::WorkflowExecution
   class Engine
     attr_reader :template, :instance, :message_handler, :stepper, :assignment_handler, :audit_logger
 
-    def initialize(workflow_instance, message_handler:, stepper:, assignment_handler: nil, audit_logger: nil)
+    def initialize(
+      workflow_instance,
+      message_handler:,
+      assignment_handler:,
+      stepper: Hmis::Ce::ReferralEngineStepper.new,
+      audit_logger: Hmis::Ce::ReferralAuditLogger.new(workflow_instance)
+    )
       @instance = workflow_instance
       @template = workflow_instance.template
       @message_handler = message_handler
-      @stepper = stepper
       @assignment_handler = assignment_handler
+      @stepper = stepper
       @audit_logger = audit_logger
 
       # @current_step_values is stored globally to ensure that all_submitted_values returns all values, including

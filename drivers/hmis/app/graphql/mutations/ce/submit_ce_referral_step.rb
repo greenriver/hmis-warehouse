@@ -32,8 +32,8 @@ module Mutations
         dry_run_engine = Hmis::WorkflowExecution::Engine.new(
           referral.workflow_instance,
           message_handler: Hmis::Ce::DryRunMessageHandler.new,
-          stepper: Hmis::Ce::DryRunEngineStepper.new,
           assignment_handler: nil, # dry runner does not do any assignment
+          stepper: Hmis::Ce::DryRunEngineStepper.new,
           audit_logger: nil, # or log audit events
         )
 
