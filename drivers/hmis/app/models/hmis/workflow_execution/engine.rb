@@ -112,7 +112,7 @@ module Hmis::WorkflowExecution
     def visit_node(node)
       case node
       when Hmis::WorkflowDefinition::Task
-        step = instance.steps.new(node: node)
+        step = instance.steps.find_or_initialize_by(node: node)
         step.enable!
         assign_task!(step)
       when Hmis::WorkflowDefinition::Gateway

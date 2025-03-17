@@ -267,16 +267,27 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       engine.complete_step!(client_step, user: user, submitted_values: {})
     end
 
-    it 'allows the previous step to be reopened' do
+    it 'allows the previous step to be reopened and closed again' do
       client_step = instance.steps.where(node: client_acceptance_task).sole
+      admin_step = instance.steps.where(node: admin_approve_denial_task).sole
 
       expect do
-        admin_step = engine.active_steps.sole
-        engine.start_step!(admin_step, user: user)
-        engine.complete_step!(admin_step, user: user, submitted_values: { 'review_denial_decision': 0 })
+        current_step = engine.active_steps.sole
+        engine.start_step!(current_step, user: user)
+        engine.complete_step!(current_step, user: user, submitted_values: { 'review_denial_decision': 0 })
         client_step.reload
+        admin_step.reload
       end.to change(client_step, :status).from('completed').to('available').
         and not_change(instance.steps, :count)
+
+      expect do
+        current_step = engine.active_steps.sole
+        engine.start_step!(current_step, user: user)
+        engine.complete_step!(current_step, user: user, submitted_values: {})
+        client_step.reload
+        admin_step.reload
+      end.to change(client_step, :status).from('available').to('completed').
+        and change(admin_step, :status).from('completed').to('available')
     end
   end
 end
