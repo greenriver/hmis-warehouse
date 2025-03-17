@@ -1,14 +1,13 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# A homeless episode that has a formal definition in the HUD SPM spec.
+# frozen_string_literal: true
+
 module HudSpmReport::Fy2024
-  class Episode < GrdaWarehouseBase
+  class Episode < HudReports::ReportClientBase
     self.table_name = 'hud_report_spm_episodes'
     include Detail
 
@@ -22,6 +21,10 @@ module HudSpmReport::Fy2024
 
     attr_accessor :report # FIXME?
     attr_writer :filter, :services
+
+    def project_id
+      enrollment.project_id
+    end
 
     def self.detail_headers
       client_columns = ['client_id', 'enrollment.first_name', 'enrollment.last_name', 'enrollment.personal_id']

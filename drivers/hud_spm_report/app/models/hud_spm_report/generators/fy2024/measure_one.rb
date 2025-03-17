@@ -6,6 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # HUD SPM Report Generator: Length of Time Persons Remain Homeless
 module HudSpmReport::Generators::Fy2024
   class MeasureOne < MeasureBase
@@ -14,8 +16,11 @@ module HudSpmReport::Generators::Fy2024
     end
 
     def self.client_class
-      HudSpmReport::Fy2024::Episode.
-        joins(:enrollments).preload(:enrollments)
+      HudSpmReport::Fy2024::Episode
+    end
+
+    def self.client_scope
+      client_class.joins(:enrollments).preload(enrollments: { enrollment: :project })
     end
 
     def self.table_descriptions

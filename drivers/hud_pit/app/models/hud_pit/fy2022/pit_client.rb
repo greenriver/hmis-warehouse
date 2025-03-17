@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudPit::Fy2022
   class PitClient < ::HudReports::ReportClientBase
     self.table_name = 'hud_report_pit_clients'

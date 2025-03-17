@@ -32,25 +32,31 @@ module ApplicationHelper
     ::Menu::Menu.new(user: current_user, context: self).site_menu
   end
 
-  def yes_no(boolean, include_icon: true)
-    case boolean
-    when nil
-      'Not Specified'
+  def yes_no(boolean, include_icon: true, include_content_tag: true)
+    return 'Not Specified' if boolean.nil?
+
+    text = case boolean
     when true, 'Yes'
-      capture do
-        concat content_tag :span, nil, class: 'icon-checkmark o-color--positive' if include_icon
-        concat ' Yes'
-      end
+      'Yes'
     when false, 'No'
-      capture do
-        concat content_tag :span, nil, class: 'icon-cross o-color--danger' if include_icon
-        concat ' No'
-      end
+      'No'
     when 'Refused'
-      capture do
-        concat content_tag :span, nil, class: 'icon-warning o-color--warning' if include_icon
-        concat ' Refused/Unsure'
-      end
+      'Refused/Unsure'
+    end
+    return text unless include_content_tag
+
+    css_classes = case text
+    when 'Yes'
+      'icon-checkmark o-color--positive'
+    when 'No'
+      'icon-cross o-color--danger'
+    when 'Refused/Unsure'
+      'icon-warning o-color--warning'
+    end
+
+    capture do
+      concat content_tag :span, nil, class: css_classes if include_icon
+      concat " #{text}"
     end
   end
 
@@ -148,9 +154,12 @@ module ApplicationHelper
     end
   end
 
-  def masked_ssn(number)
+  def masked_ssn(number, include_content_tag: true)
     # pad with leading 0s if we don't have enough characters
     number = number.to_s.rjust(9, '0') if number.present?
+    value = number.to_s.gsub(HudUtility2024::SSN_RGX, 'XXX-XX-\3')
+    return value unless include_content_tag
+
     content_tag :span, number.to_s.gsub(HudUtility2024::SSN_RGX, 'XXX-XX-\3')
   end
 
