@@ -1,7 +1,7 @@
-# Date Homelessness Started Data Quality Report
+# "Date Homelessness Started" Data Quality Report
 
 ## Overview
-This operational report analyzes the relationship between a client's self-reported date homelessness started (DateToStreetESSH) and their program entry date (EntryDate) for records in the live HMIS data. The report helps identify potential data quality issues and patterns in how homelessness history is being recorded.
+This data quality report analyzes the relationship between a client's self-reported date homelessness started (DateToStreetESSH) and their program entry date (EntryDate) for records in the live HMIS data. The report helps identify potential data quality issues and patterns in how homelessness history is being recorded.
 
 ## Purpose
 - Identify discrepancies between when clients report becoming homeless and when they enter programs
