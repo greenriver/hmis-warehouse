@@ -584,6 +584,7 @@ module Filters
     end
 
     def apply_criteria(scope, tags:, except: [], **opts)
+      except = Array.wrap(except)
       # default configuration options.
       defaults = {
         project_types: @project_types,
