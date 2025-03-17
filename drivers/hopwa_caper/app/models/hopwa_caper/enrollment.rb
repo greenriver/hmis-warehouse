@@ -21,7 +21,7 @@ module HopwaCaper
     belongs_to :enrollment, -> { with_deleted }, class_name: 'GrdaWarehouse::Hud::Enrollment'
 
     def project_id
-      enrollment.project_id
+      enrollment.project.id
     end
 
     def self.as_report_members
