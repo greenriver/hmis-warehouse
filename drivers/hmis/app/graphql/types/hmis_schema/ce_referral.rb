@@ -21,11 +21,15 @@ module Types
       graph = instance.template.graph(preloads: :inflows) # preload inflows so we can check conditions without n+1
       graph.
         # Stop the search when the node doesn't exist yet and is conditional. We don't want to return this node, or any of its children, if it won't definitely happen.
-        walk(stop_when: ->(node) { steps_by_node_id[node.id].nil? && node.inflows.map(&:condition).any? }).
+        walk(stop_when: ->(node) { steps_by_node_id[node.id].nil? && node.conditional_inflows? }).
         filter(&:task?).
         map do |node|
-        # If this node exists already, return it; otherwise, return a non-persisted version, ONLY IF it has no conditionals (will definitely happen).
-        steps_by_node_id[node.id] || (node.inflows.map(&:condition).any? ? nil : instance.steps.new(node: node).freeze)
+        next steps_by_node_id[node.id] if steps_by_node_id[node.id] # task instance already exists
+
+        next nil if node.conditional_inflows? # task is conditional, don't show it yet
+
+        # initialize step to display in the UI
+        instance.steps.new(node: node).freeze
       end.compact
     end
 

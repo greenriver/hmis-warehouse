@@ -123,7 +123,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         gateway.connect_to!(accept_referral, condition: 'needs_provider_acceptance = 0')
       end
 
-      it 'does not return the conditional step until it is enabled' do
+      it 'does not return the conditional step' do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
         steps = result.dig('data', 'ceReferral', 'steps')
@@ -201,14 +201,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       context 'when there are many steps' do
         before do
           50.times do |i|
-            task = create(
+            conditional_task = create(
               :hmis_workflow_definition_task,
               template: workflow_template,
-              name: "task #{i}",
+              name: "conditional task #{i}",
               swimlane: case_manager_swimlane,
               form_definition: create(:hmis_form_definition),
             )
-            gateway.connect_to!(task, condition: 'needs_provider_acceptance = 1')
+            gateway.connect_to!(conditional_task, condition: 'needs_provider_acceptance = 1')
+
+            non_conditional_task = create(
+              :hmis_workflow_definition_task,
+              template: workflow_template,
+              name: "nonconditional task #{i}",
+              swimlane: case_manager_swimlane,
+              form_definition: create(:hmis_form_definition),
+            )
+            start_event.connect_to!(non_conditional_task)
           end
         end
 
@@ -217,7 +226,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             response, result = post_graphql(**variables) { query }
             expect(response.status).to eq(200), result.inspect
             steps = result.dig('data', 'ceReferral', 'steps')
-            expect(steps.length).to eq(1)
+            expect(steps.length).to eq(51)
           end.to make_database_queries(count: 10..15)
         end
       end

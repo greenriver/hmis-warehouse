@@ -25,7 +25,7 @@ module Types
     end
 
     def workflow_node
-      object.node
+      load_ar_association(object, :node)
     end
 
     def swimlane
@@ -33,7 +33,8 @@ module Types
     end
 
     def form_definition
-      load_ar_association(object.node, :form_definition)
+      node = load_ar_association(object, :node)
+      load_ar_association(node, :form_definition)
     end
   end
 end
