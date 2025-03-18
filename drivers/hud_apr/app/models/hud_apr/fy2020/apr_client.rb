@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Fy2020
   class AprClient < ::HudReports::ReportClientBase
     self.table_name = 'hud_report_apr_clients'

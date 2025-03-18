@@ -28,7 +28,9 @@
             - @headers.each_value do |header|
               %th= header
         %tbody.thead-dark
+          - current_user.policy_context.preload_project_dependencies(@clients.map(&:project_id).uniq) 
           - @clients.each.with_index do |client, i|
+            - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
             %tr
               %th= i + 1
               - @headers.each_key do |k|
@@ -39,7 +41,7 @@
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - else
-                    = formatted_cell(cell_value(client, k), k)
+                    = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
   = content_for :page_js do
     :javascript
       table = $('.datatable').DataTable({
