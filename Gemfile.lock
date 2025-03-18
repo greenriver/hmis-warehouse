@@ -73,8 +73,6 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
-    aasm (5.5.0)
-      concurrent-ruby (~> 1.0)
     abbrev (0.1.2)
     actioncable (7.0.8.7)
       actionpack (= 7.0.8.7)
@@ -1122,7 +1120,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  aasm
   abbrev
   active_median
   active_record_distinct_on
@@ -1359,7 +1356,6 @@ DEPENDENCIES
   yabeda-rails
 
 CHECKSUMS
-  aasm (5.5.0) sha256=e3a2c6e621308b813ff59afc1cafc3ccce2953db57bb67fd9cc785106fbbd0f6
   abbrev (0.1.2) sha256=ad1b4eaaaed4cb722d5684d63949e4bde1d34f2a95e20db93aecfe7cbac74242
   actioncable (7.0.8.7) sha256=4034513841df2fd09dbbf38f37c1a00fc6c841122a8714e5d6916b8d6ce2f162
   actionmailbox (7.0.8.7) sha256=940eeaa3d8e85dcd9fc6069e39571e13c5a4bdb0db52c7ab96d14da81d6ac1c2
