@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class LastName < ReadOnly
     attribute :column, String, lazy: true, default: :last_name
@@ -38,6 +40,11 @@ module CohortColumns
       end
       html += link_to_if(user.can_access_some_version_of_clients?, value(cohort_client), appropriate_client_path(cohort_client.client), target: '_blank')
       html
+    end
+
+    # Don't report PII in Cohort Data, this can be obtained from the PII store
+    def analytics_value
+      nil
     end
   end
 end

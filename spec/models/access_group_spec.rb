@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # TODO: START_ACL remove after ACL migration
 require 'rails_helper'
 

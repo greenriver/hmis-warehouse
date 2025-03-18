@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -43,8 +45,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before do
     # Mock RELEVANT_COC_STATE response
-    allow(ENV).to receive(:[]).and_call_original
-    allow(ENV).to receive(:[]).with('RELEVANT_COC_STATE').and_return('VT')
+    allow(GrdaWarehouse::Config).to receive(:get).and_call_original
+    allow(GrdaWarehouse::Config).to receive(:get).with(:relevant_state_codes).and_return('VT')
   end
 
   it 'returns CoC pick list' do
