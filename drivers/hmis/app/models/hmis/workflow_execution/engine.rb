@@ -32,6 +32,11 @@ module Hmis::WorkflowExecution
       log_event('start_step', user: user, step: step)
     end
 
+    def validate_step(step, submitted_values:)
+      definition = step.node.form_definition
+      definition.validate_form_values(submitted_values)
+    end
+
     def complete_step!(step, user:, submitted_values:)
       step.submitted_values = submitted_values
       step.complete!
@@ -107,7 +112,7 @@ module Hmis::WorkflowExecution
     def visit_node(node)
       case node
       when Hmis::WorkflowDefinition::Task
-        step = instance.steps.new(node: node)
+        step = instance.steps.find_or_initialize_by(node: node)
         step.enable!
         assign_task!(step)
       when Hmis::WorkflowDefinition::Gateway
