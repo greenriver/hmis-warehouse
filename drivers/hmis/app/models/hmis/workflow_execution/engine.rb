@@ -34,7 +34,7 @@ module Hmis::WorkflowExecution
 
     def validate_step(step, submitted_values:)
       definition = step.node.form_definition
-      definition.validate_form_values(submitted_values) if definition.present? && submitted_values.present?
+      definition.validate_form_values(submitted_values) 
     end
 
     def complete_step!(step, user:, submitted_values:)
