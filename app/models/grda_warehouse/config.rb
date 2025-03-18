@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse
   class Config < GrdaWarehouseBase
     serialize :client_details, Array
@@ -17,7 +19,7 @@ module GrdaWarehouse
 
     def self.relevant_state_codes
       # NOTE: memoized class variable, only changes on restart/redeploy
-      @relevant_state_codes ||= ENV['RELEVANT_COC_STATE']&.split(',') || ['MA']
+      @relevant_state_codes ||= GrdaWarehouse::Config.get(:relevant_state_codes)&.split(',') || ['MA']
     end
 
     def self.available_cas_methods
@@ -316,6 +318,7 @@ module GrdaWarehouse
         :chronic_adult_only_cohort,
         :enable_auto_deduplication,
         :rds_s3_integration_role_arn,
+        :relevant_state_codes,
         client_details: [],
       ]
     end

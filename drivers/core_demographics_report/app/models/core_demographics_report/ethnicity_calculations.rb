@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module
   CoreDemographicsReport::EthnicityCalculations
   extend ActiveSupport::Concern
@@ -93,7 +95,7 @@ module
           available_coc_codes.each do |coc_code|
             client_coc_scope = GrdaWarehouse::Hud::Client.in_coc(coc_code: coc_code).where(id: distinct_client_ids)
             cache_coc_client = GrdaWarehouse::Hud::Client.new
-            distinct_client_ids.in_coc(coc_code: coc_code).pluck(:client_id).each do |client_id|
+            distinct_client_ids.in_enrollment_coc(coc_code: coc_code).pluck(:client_id).each do |client_id|
               clients[coc_code.to_sym][client_id] = cache_coc_client.ethnicity_slug(scope_limit: client_coc_scope, include_none_reason: true, destination_id: client_id)
             end
           end

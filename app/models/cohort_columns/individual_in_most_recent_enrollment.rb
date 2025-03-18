@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class IndividualInMostRecentEnrollment < ReadOnly
     attribute :column, String, lazy: true, default: :individual_in_most_recent_homeless_enrollment
@@ -22,6 +24,14 @@ module CohortColumns
 
     def value(cohort_client) # OK
       checkmark_or_x(cohort_client.individual_in_most_recent_homeless_enrollment)
+    end
+
+    def analytics_value
+      text_value(cohort_client)
+    end
+
+    def analytics_data_type
+      'boolean'
     end
   end
 end

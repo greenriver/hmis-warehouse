@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class ActiveInCasMatch < ReadOnly
     attribute :column, String, lazy: true, default: :active_in_cas_match
@@ -30,6 +32,14 @@ module CohortColumns
 
     def text_value(cohort_client)
       cohort_client.client.processed_service_history&.active_in_cas_match || false
+    end
+
+    def analytics_value
+      text_value(cohort_client)
+    end
+
+    def analytics_data_type
+      'boolean'
     end
   end
 end

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Generators::Shared::Fy2024::Dq::QuestionTwo
   extend ActiveSupport::Concern
 
@@ -191,8 +193,11 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionTwo
       universe_members.find_each do |u_member|
         member = u_member.universe_membership
         race_array = member.race_multi_include_race_none
+        # For [race and ethnicity], include records with an 8 or 9 indicated even if
+        # there is also a value of 1, 2, 3, 4, 5, 6, or 7 in the same field.
         dkr_member_ids << u_member.id if (race_array & [8, 9]).present?
-        m_member_ids << u_member.id if (race_array & [99]).present?
+        # count of clients where [race and ethnicity] is missing.
+        m_member_ids << u_member.id if member.race_multi == '99'
       end
 
       # Race DK/R / compute missing

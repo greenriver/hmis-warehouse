@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class Delete < Base
     include ArelHelper
@@ -48,6 +50,10 @@ module CohortColumns
           content_tag(:i, '', class: 'icon-cross')
         end
       end
+    end
+
+    def analytics_value
+      nil
     end
   end
 end

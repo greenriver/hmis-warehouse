@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # ### HIPAA Risk Assessment
 # Risk: Describes an insurance eligibility response and contains PHI
 # Control: PHI attributes documented
@@ -64,6 +66,15 @@ module MedicaidHmisInterchange::Health
       parsed, result = parser.read(Stupidedi::Reader.build(response))
       result.explain { |reason| raise reason + " at #{result.position.inspect}" } if result.fatal?
       return parsed
+    end
+
+    # Helper method for reporting
+    # subscribers.count will tell you how many patients were attempted
+    # matched_subscribers.count will tell you how many of those were successfully matched
+    def matched_subscribers
+      @matched_subscribers ||= subscribers.select do |subscriber|
+        medicaid_id(subscriber).present?
+      end
     end
   end
 end
