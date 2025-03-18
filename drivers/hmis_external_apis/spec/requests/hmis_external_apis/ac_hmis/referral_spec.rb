@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require 'faker'
 
@@ -83,7 +85,16 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
             state: 'VT',
             county: '',
             zip: '05301',
-            use: 'work',
+            use: 'home',
+          },
+          {
+            line1: '456 Main st',
+            line2: '',
+            city: 'Brattleboro',
+            state: 'VT',
+            county: '',
+            zip: '05301',
+            use: 'Mailing',
           },
         ],
         phone_numbers: [
@@ -309,7 +320,9 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       expect(referral.household_members.size).to(eq(household.size))
       client = mci.find_client_by_mci(mci_id)
       expect(client).to(be_present)
-      expect(client.addresses.size).to(eq(1))
+      expect(client.addresses.size).to(eq(2))
+      expect(client.addresses.where(use: 'mail').count).to eq(1)
+      expect(client.addresses.where(use: 'home').count).to eq(1)
       expect(client.contact_points.group_by(&:system)['phone'].size).to(eq(1))
       expect(client.contact_points.group_by(&:system)['email'].size).to(eq(1))
 
@@ -358,7 +371,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
         end
       end
       expect(client.names.size).to(eq(2))
-      expect(client.addresses.size).to(eq(1))
+      expect(client.addresses.size).to(eq(2))
       expect(client.contact_points.group_by(&:system)['phone'].size).to(eq(1))
       expect(client.contact_points.group_by(&:system)['email'].size).to(eq(1))
     end
