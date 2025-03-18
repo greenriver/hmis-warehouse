@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Admin
   class CollectionsController < ApplicationController
     include AjaxModalRails::Controller
@@ -110,10 +112,7 @@ module Admin
         :name,
         :description,
         :collection_type,
-        coc_codes: [],
-      ).tap do |result|
-        result[:coc_codes] ||= []
-      end
+      )
     end
 
     private def viewable_params
