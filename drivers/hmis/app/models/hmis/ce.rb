@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Hmis::Ce
   def self.table_name_prefix
     'ce_'

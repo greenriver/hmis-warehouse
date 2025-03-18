@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Free-form notes a referral
 module Hmis::Ce
   class ReferralNote < GrdaWarehouseBase

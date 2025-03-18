@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :hmis_workflow_definition_task, class: 'Hmis::WorkflowDefinition::Task' do
     sequence(:name) { |n| "Step #{n}" }

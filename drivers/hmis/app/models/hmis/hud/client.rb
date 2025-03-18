@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -211,7 +213,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def ssn_serial
-    self.SSN&.[](-4..-1)
+    self.SSN&.[](-4..)
   end
 
   def warehouse_id

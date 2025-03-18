@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Provides graph traversal and analysis capabilities for workflow templates.
 # - Used for validating workflow structure and determining execution paths.
 # - Does not consider conditions or other conditions on flows.

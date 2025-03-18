@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Represents decision points in the workflow where the process path splits or merges based on conditions or parallel execution rules.
 #
 # node.gateway_type determines flow behavior, it supports a subset of BPMN gate way behavior

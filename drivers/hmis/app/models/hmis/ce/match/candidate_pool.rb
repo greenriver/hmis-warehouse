@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Describes the eligibility requirements and prioritization for a client.
 
 module Hmis::Ce::Match

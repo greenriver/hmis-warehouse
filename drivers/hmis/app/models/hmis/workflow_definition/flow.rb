@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Represents connections between nodes in a workflow.
 # Flows define the possible paths through the workflow and may include conditions that determine which path is taken.
 module Hmis::WorkflowDefinition

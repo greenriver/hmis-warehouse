@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Represents the assignment of a user to a step/task in a workflow
 module Hmis::WorkflowExecution
   class StepAssignment < GrdaWarehouseBase

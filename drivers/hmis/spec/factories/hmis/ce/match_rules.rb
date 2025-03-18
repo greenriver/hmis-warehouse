@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :hmis_ce_match_rule, class: 'Hmis::Ce::Match::Rule' do
     sequence(:name) { |n| "Rule #{n}" }

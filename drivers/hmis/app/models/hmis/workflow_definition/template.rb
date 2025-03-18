@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Represents a reusable workflow template that defines the structure and rules
 # of a workflow process. Templates contain nodes (tasks, events, gateways) connected
 # by flows that determine the sequence of execution.
