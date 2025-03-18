@@ -11,6 +11,7 @@
   .col-6
     = f.input :name, required: true, disabled: @collection.entities_locked?
     = f.input :description, disabled: @collection.entities_locked?
+    = f.hidden_field :coc_codes, multiple: true, value: @collection.coc_codes
 
 - if @collection.legacy? && @collection.persisted?
   .row
