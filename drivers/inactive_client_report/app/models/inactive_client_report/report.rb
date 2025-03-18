@@ -4,12 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module InactiveClientReport
   class Report
     include Filter::ControlSections
     include Filter::FilterScopes
     include ActionView::Helpers::NumberHelper
     include ArelHelper
+    include Memery
 
     attr_accessor :filter
     attr_accessor :client_ids # used to speed up calculations when paginated
@@ -198,7 +201,7 @@ module InactiveClientReport
     end
 
     private def max_entries_by_client_id
-      scope = report_scope(limited: true)
+      scope = report_scope
       scope = scope.where(client_id: client_ids) if client_ids.present?
       scope.
         order(entry_date: :asc).
@@ -206,11 +209,20 @@ module InactiveClientReport
         to_h # Keeps the last instance for each client_id
     end
 
-    def report_scope(limited: false)
-      filter.personal_ids_for_days_since_contact_calculations = personal_ids if limited
+    def report_scope
+      filter.destination_client_ids_for_days_since_contact_calculations = possible_destination_client_id
       scope = filter.apply(report_scope_base, report_scope_base, include_date_range: false)
       # Apply a single date filter
       scope.ongoing(on_date: filter.on)
+    end
+
+    # Return scope of destination client_ids for people enrolled on the filter date
+    # in the effective projects for the filter.
+    # This is only used to hint the sub queries for performance, no permission check is done.
+    private def possible_destination_client_id
+      filter.apply_criteria(report_scope_base, tags: [:project], include_date_range: false).
+        ongoing(on_date: filter.on).
+        pluck(:client_id)
     end
 
     def report_scope_base

@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :project_group, class: 'GrdaWarehouse::ProjectGroup' do
-    # name
+    sequence(:name) { |n| "project-group#{n}" }
   end
 end

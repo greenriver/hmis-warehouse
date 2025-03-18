@@ -279,6 +279,18 @@ acorn@^8.14.0:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.14.0.tgz#063e2c70cac5fb4f6467f0b11152e04c682795b0"
   integrity sha512-cl669nCJTZBsL97OF4kUQm5g5hC2uihk0NxY3WENAC0TYdILVkAyHymAntgxGkl7K+t0cXIrH5siy5S4XkFycA==
 
+ag-charts-types@11.1.1:
+  version "11.1.1"
+  resolved "https://registry.yarnpkg.com/ag-charts-types/-/ag-charts-types-11.1.1.tgz#2d5132978248c9422b7129df6d2c3537c1ad99c5"
+  integrity sha512-bRmUcf5VVhEEekhX8Vk0NSwa8Te8YM/zchjyYKR2CX4vDYiwoohM1Jg9RFvbIhVbLC1S6QrPEbx5v2C6RDfpSA==
+
+ag-grid-community@^33.1.1:
+  version "33.1.1"
+  resolved "https://registry.yarnpkg.com/ag-grid-community/-/ag-grid-community-33.1.1.tgz#04f0317317ea1d35f128dc1a4f8e70a04aa27774"
+  integrity sha512-CNubIro0ipj4nfQ5WJPG9Isp7UI6MMDvNzrPdHNf3W+IoM8Uv3RUhjEn7xQqpQHuu6o/tMjrqpacipMUkhzqnw==
+  dependencies:
+    ag-charts-types "11.1.1"
+
 agent-base@6:
   version "6.0.2"
   resolved "https://registry.yarnpkg.com/agent-base/-/agent-base-6.0.2.tgz#49fff58577cfee3f37176feab4c22e00f86d7f77"
@@ -1532,6 +1544,11 @@ type-check@^0.4.0, type-check@~0.4.0:
   integrity sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==
   dependencies:
     prelude-ls "^1.2.1"
+
+typescript@^5.8.2:
+  version "5.8.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.8.2.tgz#8170b3702f74b79db2e5a96207c15e65807999e4"
+  integrity sha512-aJn6wq13/afZp/jT9QZmwEjDqqvSGp1VT5GVg+f/t6/oVyrgXM6BY1h9BRh/O5p3PlUPAe+WuiEZOmb/49RqoQ==
 
 unbzip2-stream@1.4.3:
   version "1.4.3"
