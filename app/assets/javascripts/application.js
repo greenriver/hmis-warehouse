@@ -39,6 +39,7 @@
 //= require inputmask/dist/min/jquery.inputmask.bundle.min
 //= require inputmask/dist/min/inputmask/bindings/inputmask.binding.min
 //= require billboard.js/dist/billboard.min
+//= require ag-grid-community/dist/ag-grid-community.min.noStyle.js
 //= require moment/moment
 //= require bootstrap-datetimepicker
 //= require stimulus/dist/stimulus.umd
@@ -83,11 +84,11 @@
 //= require_directory ./warehouse_reports
 //= require_directory ./d3_charts
 //= require_directory ./clients
-//= require_directory ./cohorts
+
 //= require_directory ./window/clients
 //= require_directory ./users
-//= require_directory ./cohorts/viewers
-//= require_directory ./cohorts/editors
+
+
 //= require_directory ./data_quality_reports
 //= require affix
 //= require list_search
