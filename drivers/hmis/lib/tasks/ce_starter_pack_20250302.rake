@@ -10,11 +10,19 @@ def create_template(name, identifier)
   template
 end
 
-def create_event(template, event, message)
-  workflow_event = Hmis::WorkflowDefinition::StartEvent.find_or_initialize_by(
-    name: message,
+def create_start_event(*args)
+  create_event(Hmis::WorkflowDefinition::StartEvent, *args)
+end
+
+def create_end_event(*args)
+  create_event(Hmis::WorkflowDefinition::EndEvent, *args)
+end
+
+def create_event(klass, template, name, event, message)
+  workflow_event = klass.find_or_initialize_by(
+    name: name,
     template_id: template.id,
-  )
+    )
   workflow_event.trigger_config = [
     {
       event: event,
@@ -60,16 +68,16 @@ task ce_starter_pack_20250302: [:environment] do
 
   puts '- Creating No Tasks template, a simple template with no tasks, just a start event and referral acceptance.'
   no_task_template = create_template('No Tasks', 'no_tasks')
-  start_workflow_event = create_event(no_task_template, 'start_workflow', 'start_referral')
-  accept_workflow_event = create_event(no_task_template, 'end_workflow', 'accept_referral')
+  start_workflow_event = create_start_event(no_task_template, 'start referral', 'start_workflow', 'start_referral')
+  accept_workflow_event = create_end_event(no_task_template, 'accept referral', 'end_workflow', 'accept_referral')
   start_workflow_event.connect_to!(accept_workflow_event) unless start_workflow_event.outflows.where(target_node_id: accept_workflow_event.id).exists?
 
   puts '- Creating One Task template, another simple template that has 1 task, which can cause the referral to either succeed or fail.'
   one_task_template = create_template('One Task', 'one_task')
   case_managers = one_task_template.swimlanes.find_or_create_by!(name: 'Case Managers')
-  start_workflow_event = create_event(one_task_template, 'start_workflow', 'start_referral')
-  accept_workflow_event = create_event(one_task_template, 'end_workflow', 'accept_referral')
-  reject_workflow_event = create_event(one_task_template, 'end_workflow', 'reject_referral')
+  start_workflow_event = create_start_event(one_task_template, 'start referral', 'start_workflow', 'start_referral')
+  accept_workflow_event = create_end_event(one_task_template, 'accept referral', 'end_workflow', 'accept_referral')
+  reject_workflow_event = create_end_event(one_task_template, 'reject referral', 'end_workflow', 'reject_referral')
 
   client_accepts_form_def = Hmis::Form::Definition.find_or_initialize_by(
     identifier: 'confirm_client_accepts_referral',
@@ -133,9 +141,9 @@ task ce_starter_pack_20250302: [:environment] do
   case_managers = admin_approval_template.swimlanes.find_or_create_by!(name: 'Case Managers')
   admins = admin_approval_template.swimlanes.find_or_create_by!(name: 'Admins')
 
-  start_workflow_event = create_event(admin_approval_template, 'start_workflow', 'start_referral')
-  accept_workflow_event = create_event(admin_approval_template, 'end_workflow', 'accept_referral')
-  reject_workflow_event = create_event(admin_approval_template, 'end_workflow', 'reject_referral')
+  start_workflow_event = create_start_event(admin_approval_template, 'start referral', 'start_workflow', 'start_referral')
+  accept_workflow_event = create_end_event(admin_approval_template, 'accept referral', 'end_workflow', 'accept_referral')
+  reject_workflow_event = create_end_event(admin_approval_template, 'reject referral', 'end_workflow', 'reject_referral')
 
   client_acceptance_task = create_task(client_accepts_form_def, admin_approval_template,  'Confirm Client Accepts Referral', case_managers)
 

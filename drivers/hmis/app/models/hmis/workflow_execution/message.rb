@@ -15,5 +15,4 @@
 #   )
 module Hmis::WorkflowExecution
   Message = Struct.new(:type, :params, :step, keyword_init: true)
-  # todo @martha - this may be where the flexibility lives?
 end

@@ -6,47 +6,42 @@ require 'dentaku'
 # task assignments, and message processing according to the workflow template.
 module Hmis::WorkflowExecution
   class Engine
-    attr_reader :template, :instance, :message_handler, :stepper, :assignment_handler, :audit_logger
+    attr_reader :template, :instance, :message_handler, :assignment_handler
 
-    def initialize(workflow_instance, message_handler:, stepper:, assignment_handler: nil, audit_logger: nil)
+    def initialize(workflow_instance, message_handler:, assignment_handler:)
       @instance = workflow_instance
       @template = workflow_instance.template
       @message_handler = message_handler
-      @stepper = stepper
       @assignment_handler = assignment_handler
-      @audit_logger = audit_logger
-
-      # @current_step_values is stored globally to ensure that all_submitted_values returns all values, including
-      # those for the current step, even if the current step hasn't been persisted as "completed" yet
-      # (for example, in dry-run mode).
-      @current_step_values = {}
     end
 
     def active_steps
       instance.steps.where(status: ['available', 'in_progress'])
     end
 
-    # These methods are marked with ! because they can persist data, although they don't always - for example,
-    # when the workflow steps are run in dry-run mode.
     def start_workflow!(user:)
       template.nodes.entrypoints.each do |node|
         visit_node(node)
       end
-      audit_logger&.call('start_workflow', user: user)
+      log_event('start_workflow', user: user)
     end
 
     def start_step!(step, user:)
-      stepper.call(step, 'start')
+      step.start!
       process_triggers(step.node, 'start_step')
-      audit_logger&.call('start_step', user: user, step: step)
+      log_event('start_step', user: user, step: step)
+    end
+
+    def validate_step(step, submitted_values:)
+      definition = step.node.form_definition
+      definition.validate_form_values(submitted_values)
     end
 
     def complete_step!(step, user:, submitted_values:)
-      @current_step_values = submitted_values
       step.submitted_values = submitted_values
-      stepper.call(step, 'complete')
+      step.complete!
       process_triggers(step.node, 'complete_step')
-      audit_logger&.call('complete_step', user: user, step: step, event_data: submitted_values)
+      log_event('complete_step', user: user, step: step, event_data: submitted_values)
       traverse_node(step.node)
     end
 
@@ -54,11 +49,9 @@ module Hmis::WorkflowExecution
     def undo_complete_step!(step, user:)
       raise ArgumentError, 'cannot rollback step' unless may_undo_complete_step?(step)
 
-      next_task_steps(step).each do |next_step|
-        stepper.call(next_step, 'disable')
-      end
-      audit_logger&.call('undo_complete_step', user: user, step: step)
-      stepper.call(step, 'undo_complete_step')
+      next_task_steps(step).each(&:disable!)
+      log_event('undo_complete_step', user: user, step: step)
+      step.undo_complete_step!
     end
 
     def may_undo_complete_step?(step)
@@ -92,7 +85,7 @@ module Hmis::WorkflowExecution
           type: trigger.message,
           params: trigger.params,
         )
-        audit_logger&.call('message_sent', event_data: trigger.to_h)
+        log_event('message_sent', event_data: trigger.to_h)
       end
     end
 
@@ -119,8 +112,8 @@ module Hmis::WorkflowExecution
     def visit_node(node)
       case node
       when Hmis::WorkflowDefinition::Task
-        step = instance.steps.find_or_initialize_by(node: node) # it's possible to return to a previous step, for example admin denying a denial
-        stepper.call(step, 'enable')
+        step = instance.steps.find_or_initialize_by(node: node)
+        step.enable!
         assign_task!(step)
       when Hmis::WorkflowDefinition::Gateway
         traverse_node(node)
@@ -135,7 +128,7 @@ module Hmis::WorkflowExecution
     end
 
     def assign_task!(step)
-      assignment_handler&.call(step.node)&.each do |user|
+      assignment_handler.call(step.node).each do |user|
         step.assignments.create!(user: user)
       end
     end
@@ -156,11 +149,14 @@ module Hmis::WorkflowExecution
     def all_submitted_values
       instance.steps.reset
       steps_by_node_id = instance.steps.index_by(&:node_id)
-      all_step_values = template.graph.walk.each.with_object({}) do |node, result|
+      template.graph.walk.each.with_object({}) do |node, result|
         step = steps_by_node_id[node.id]
         result.merge!(step.submitted_values) if step&.completed?
       end
-      all_step_values.merge!(@current_step_values)
+    end
+
+    def log_event(event_type, user: nil, event_data: nil, step: nil)
+      instance.audit_events.create!(event_type: event_type, user: user, event_data: event_data, step: step)
     end
   end
 end

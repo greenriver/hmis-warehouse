@@ -107,44 +107,6 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
       end
     end
 
-    context 'if the submission will reject the referral' do
-      let(:variables) do
-        {
-          **base_variables,
-          input: {
-            contact_date: 1.day.ago,
-            client_accepted: 0,
-          }.stringify_keys,
-        }
-      end
-
-      it 'returns a warning' do
-        expect do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result&.inspect
-          errors = result.dig('data', 'submitCeReferralStep', 'errors')
-          expect(errors.count).to eq(1)
-          expect(errors.first['severity']).to eq('warning')
-          expect(errors.first['fullMessage']).to eq('This will decline the referral')
-          referral.reload
-        end.to not_change(referral, :status)
-      end
-
-      it 'succeeds when confirmed flag is passed' do
-        expect do
-          response, result = post_graphql(**variables, confirmed: true) { mutation }
-          expect(response.status).to eq(200), result&.inspect
-          errors = result.dig('data', 'submitCeReferralStep', 'errors')
-          expect(errors.count).to eq(0)
-          referral_response = result.dig('data', 'submitCeReferralStep', 'referral')
-          expect(referral_response['status']).to eq('rejected')
-          referral.reload
-          opportunity.reload
-        end.to change(referral, :status).from('in_progress').to('rejected').
-          and change(opportunity, :status).from('locked').to('open')
-      end
-    end
-
     context 'with invalid input' do
       let(:variables) do
         {
