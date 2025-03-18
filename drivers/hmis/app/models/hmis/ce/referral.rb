@@ -3,7 +3,8 @@
 # A referral of an individual client to an opportunity
 module Hmis::Ce
   class Referral < GrdaWarehouseBase
-    include AASM
+    include SimpleStateMachine
+
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
     belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance'
     has_many :notes, class_name: 'Hmis::Ce::ReferralNote'

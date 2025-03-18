@@ -1,132 +1,104 @@
+# frozen_string_literal: true
 
-require 'spec_helper'
-require 'active_record'
+require 'rails_helper'
 
-# Set up in-memory database for testing
-ActiveRecord::Base.establish_connection(
-  adapter: 'sqlite3',
-  database: ':memory:'
-)
-
-# Create a test model
-ActiveRecord::Schema.define do
-  create_table :workflows do |t|
-    t.string :status
-    t.timestamps
-  end
-end
-
-class Workflow < ActiveRecord::Base
+# Test model that includes SimpleStateMachine
+class SimpleStateMachineTestRecord < ActiveRecord::Base
   include SimpleStateMachine
+  aasm column: 'status' do
+    state :open, initial: true
+    state :locked
+    state :closed
 
-  state_machine column: 'status' do
-    state :unavailable, initial: true
-    state :available
-    state :in_progress
-    state :completed
-
-    event :enable do
-      transitions from: :unavailable, to: :available
+    event :close do
+      transitions from: [:open, :locked], to: :closed
     end
 
-    event :disable do
-      transitions from: :available, to: :unavailable
+    event :reserve do
+      transitions from: :open, to: :locked
     end
 
-    event :start do
-      transitions from: :available, to: :in_progress
-    end
-
-    event :cancel do
-      transitions from: :in_progress, to: :available
-    end
-
-    event :complete do
-      transitions from: :in_progress, to: :completed
-    end
-
-    event :undo_complete_step do
-      transitions from: :completed, to: :in_progress
+    event :release do
+      transitions from: :locked, to: :open
     end
   end
 end
 
 RSpec.describe SimpleStateMachine do
-  let(:workflow) { Workflow.new }
-
-  describe "initialization" do
-    it "sets the initial state" do
-      expect(workflow.status).to eq('unavailable')
-    end
-
-    it "responds to state predicate methods" do
-      expect(workflow.unavailable?).to be true
-      expect(workflow.available?).to be false
+  before(:all) do
+    ActiveRecord::Base.connection.create_table :simple_state_machine_test_records, force: true do |t|
+      t.string :status
+      t.timestamps
     end
   end
 
-  describe "transitions" do
-    context "valid transitions" do
-      it "transitions from unavailable to available" do
-        expect(workflow.may_enable?).to be true
-        expect(workflow.enable).to be true
-        expect(workflow.status).to eq('available')
-      end
+  after(:all) do
+    ActiveRecord::Base.connection.drop_table :simple_state_machine_test_records
+  end
 
-      it "follows a complete workflow path" do
-        workflow.enable
-        expect(workflow.available?).to be true
+  let(:record) { SimpleStateMachineTestRecord.create! }
 
-        workflow.start
-        expect(workflow.in_progress?).to be true
-
-        workflow.complete
-        expect(workflow.completed?).to be true
-
-        workflow.undo_complete_step
-        expect(workflow.in_progress?).to be true
-      end
+  describe 'state definitions' do
+    it 'sets the initial state' do
+      expect(record.status).to eq('open')
+      expect(record.open?).to be true
     end
 
-    context "invalid transitions" do
-      it "cannot transition directly from unavailable to in_progress" do
-        expect(workflow.may_start?).to be false
-        expect(workflow.start).to be false
-        expect(workflow.status).to eq('unavailable')
-      end
-
-      it "raises error with bang method on invalid transition" do
-        expect { workflow.start! }.to raise_error(/cannot transition/)
-      end
+    it 'defines state query methods' do
+      expect(record).to respond_to(:open?)
+      expect(record).to respond_to(:locked?)
+      expect(record).to respond_to(:closed?)
     end
   end
 
-  describe "complex transition paths" do
-    it "allows transitioning back and forth between states" do
-      workflow.enable
-      expect(workflow.available?).to be true
+  describe 'event transitions' do
+    it 'transitions from open to locked' do
+      expect do
+        record.reserve!
+      end.to change { record.status }.from('open').to('locked')
+    end
 
-      workflow.disable
-      expect(workflow.unavailable?).to be true
+    it 'transitions from locked to open' do
+      record.reserve!
+      expect do
+        record.release!
+      end.to change { record.status }.from('locked').to('open')
+    end
 
-      workflow.enable
-      workflow.start
-      expect(workflow.in_progress?).to be true
+    it 'transitions from open to closed' do
+      expect do
+        record.close!
+      end.to change { record.status }.from('open').to('closed')
+    end
 
-      workflow.cancel
-      expect(workflow.available?).to be true
+    it 'transitions from locked to closed' do
+      record.reserve!
+      expect do
+        record.close!
+      end.to change { record.status }.from('locked').to('closed')
+    end
+
+    it 'returns false for invalid transitions' do
+      record.close!
+      expect(record.closed?).to be true
+      expect(record.reserve!).to be false
+      expect(record.release!).to be false
+      expect(record.closed?).to be true
     end
   end
 
-  describe "persistence" do
-    it "persists state changes to the database" do
-      workflow.save!
-      workflow.enable
+  describe 'may_* predicate methods' do
+    it 'returns true when transition is allowed' do
+      expect(record.may_close?).to be true
+      expect(record.may_reserve?).to be true
+      expect(record.may_release?).to be false
+    end
 
-      # Reload from database
-      reloaded = Workflow.find(workflow.id)
-      expect(reloaded.status).to eq('available')
-      expect(reloaded.available?).to be true
+    it 'returns false when transition is not allowed' do
+      record.close!
+      expect(record.may_close?).to be false
+      expect(record.may_reserve?).to be false
+      expect(record.may_release?).to be false
     end
   end
 end

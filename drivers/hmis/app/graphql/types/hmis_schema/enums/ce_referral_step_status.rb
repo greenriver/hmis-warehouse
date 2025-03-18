@@ -13,6 +13,6 @@
 
 module Types
   class HmisSchema::Enums::CeReferralStepStatus < Types::BaseEnum
-    Hmis::WorkflowExecution::Step.aasm.states.each { |state| value state.name }
+    Hmis::WorkflowExecution::Step.aasm_state_names.each { |state| value state.name }
   end
 end

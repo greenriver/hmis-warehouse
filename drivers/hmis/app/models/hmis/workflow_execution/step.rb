@@ -5,7 +5,7 @@
 # task node.
 module Hmis::WorkflowExecution
   class Step < GrdaWarehouseBase
-    include AASM
+    include SimpleStateMachine
 
     belongs_to :instance, class_name: 'Hmis::WorkflowExecution::Instance'
     belongs_to :node, class_name: 'Hmis::WorkflowDefinition::Node'
