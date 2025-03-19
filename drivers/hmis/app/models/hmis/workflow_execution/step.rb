@@ -18,7 +18,7 @@ module Hmis::WorkflowExecution
     scope :viewable_by, ->(_user) { all }
 
     # note, step status is not intended to be manipulated outside of the workflow engine
-    aasm column: 'status' do
+    state_machine_config column: 'status' do
       state :unavailable, initial: true
       state :available
       state :in_progress

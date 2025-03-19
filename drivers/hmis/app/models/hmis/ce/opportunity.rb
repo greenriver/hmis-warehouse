@@ -21,7 +21,7 @@ module Hmis::Ce
 
     validates :name, presence: true
 
-    aasm column: 'status' do
+    state_machine_config column: 'status' do
       state :open, initial: true
       state :locked
       state :closed

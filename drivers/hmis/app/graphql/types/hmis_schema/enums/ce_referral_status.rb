@@ -13,6 +13,6 @@
 
 module Types
   class HmisSchema::Enums::CeReferralStatus < Types::BaseEnum
-    Hmis::Ce::Referral.aasm_state_names.each { |name| value name }
+    Hmis::Ce::Referral.state_machine_states.each { |name| value name }
   end
 end

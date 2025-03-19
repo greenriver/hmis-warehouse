@@ -17,7 +17,7 @@ module Hmis::Ce
 
     scope :active, -> { where.not(status: ['accepted', 'rejected']) }
 
-    aasm column: 'status' do
+    state_machine_config column: 'status' do
       state :initialized, initial: true
       state :in_progress
       state :accepted

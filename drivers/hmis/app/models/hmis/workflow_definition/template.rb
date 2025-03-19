@@ -17,7 +17,7 @@ module Hmis::WorkflowDefinition
     validates :status, presence: true
     validates :version, presence: true
 
-    aasm column: 'status' do
+    state_machine_config column: 'status' do
       state :draft, initial: true
       state :retired
       state :published

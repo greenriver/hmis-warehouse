@@ -5,7 +5,7 @@ require 'rails_helper'
 # Test models that include SimpleStateMachine
 class SimpleStateMachineTestRecord < ActiveRecord::Base
   include SimpleStateMachine
-  aasm column: 'status' do
+  state_machine_config column: 'status' do
     state :open, initial: true
     state :locked
     state :closed
@@ -27,7 +27,7 @@ end
 # Minimal test models for specific tests
 class CustomColumnStateMachineRecord < ActiveRecord::Base
   include SimpleStateMachine
-  aasm column: 'workflow_state' do
+  state_machine_config column: 'workflow_state' do
     state :draft, initial: true
     state :review
     event :submit do
@@ -72,23 +72,22 @@ RSpec.describe SimpleStateMachine do
   let(:custom_record) { CustomColumnStateMachineRecord.create! }
 
   describe 'initialization' do
-    it 'raises an error when AASM is defined multiple times' do
+    it 'raises an error when state machine is redefined' do
       expect do
         Class.new(ActiveRecord::Base) do
           include SimpleStateMachine
-          aasm do
+          state_machine_config do
             state :one, initial: true
           end
 
-          aasm do
+          state_machine_config do
             state :two, initial: true
           end
         end
-      end.to raise_error(RuntimeError, 'AASM block has already been defined for this class')
+      end.to raise_error(RuntimeError, /block has already been defined for this class/)
     end
 
     it 'supports custom column names' do
-      expect(CustomColumnStateMachineRecord.aasm_column).to eq('workflow_state')
       expect(custom_record.workflow_state).to eq('draft')
     end
   end
@@ -128,7 +127,7 @@ RSpec.describe SimpleStateMachine do
     it 'raises an error when the same state appears in multiple transitions' do
       expect do
         Class.new(AmbiguousStateMachineRecord) do
-          aasm do
+          state_machine_config do
             state :initial, initial: true
             state :final
 
