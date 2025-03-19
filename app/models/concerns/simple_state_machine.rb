@@ -29,24 +29,24 @@ module SimpleStateMachine
       end
 
       # Define event methods
-      aasm_events.each do |event_name, transitions|
+      aasm_events.each do |event_name, transition_map|
         # Define bang method that performs the transition
         define_method("#{event_name}!") do
-          current_state = self[aasm_column]&.to_sym
+          current_state = self[aasm_column]&.to_s
 
           # Find a valid transition
-          transition = transitions.detect { |t| t[:from].include?(current_state) }
-          return false unless transition
+          transition_to = transition_map[current_state]
+          return false unless transition_to
 
-          self[aasm_column] = transition[:to].to_s
+          self[aasm_column] = transition_to
           save!
           true
         end
 
         # Define predicate method for checking if transition is possible
         define_method("may_#{event_name}?") do
-          current_state = self[aasm_column]&.to_sym
-          transitions.any? { |t| t[:from].include?(current_state) }
+          current_state = self[aasm_column]&.to_s
+          transition_map.key?(current_state)
         end
       end
 
@@ -79,17 +79,16 @@ module SimpleStateMachine
     def event(name, &block)
       event_dsl = EventDSL.new
       event_dsl.instance_eval(&block)
-      @klass.aasm_events[name] = event_dsl.transition_list
+      @klass.aasm_events[name] = event_dsl.transition_map
     end
   end
 
   # DSL for configuring events
   class EventDSL
-    attr_reader :transition_list
+    attr_reader :transition_map
 
     def initialize
-      @transition_list = []
-      @defined_from_states = {}
+      @transition_map = {}
     end
 
     # Defines a transition
@@ -97,16 +96,12 @@ module SimpleStateMachine
     # @param to [Symbol] state to which the transition goes
     # @raise [ArgumentError] if ambiguous transitions are defined
     def transitions(from:, to:)
-      from_states = Array(from)
+      Array(from).each do |state|
+        state = state.to_s
+        raise ArgumentError, "Ambiguous transition defined: '#{state}' has multiple possible transitions in the same event" if @transition_map.key?(state)
 
-      # Check for ambiguous transitions
-      from_states.each do |state|
-        raise ArgumentError, "Ambiguous transition defined: '#{state}' has multiple possible transitions in the same event" if @defined_from_states[state]
-
-        @defined_from_states[state] = to
+        @transition_map[state] = to.to_s
       end
-
-      @transition_list << { from: from_states, to: to }
     end
   end
 

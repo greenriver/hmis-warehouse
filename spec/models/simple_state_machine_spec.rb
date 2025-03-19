@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-# Test model that includes SimpleStateMachine
+# Test models that include SimpleStateMachine
 class SimpleStateMachineTestRecord < ActiveRecord::Base
   include SimpleStateMachine
   aasm column: 'status' do
@@ -24,19 +24,74 @@ class SimpleStateMachineTestRecord < ActiveRecord::Base
   end
 end
 
+# Minimal test models for specific tests
+class CustomColumnStateMachineRecord < ActiveRecord::Base
+  include SimpleStateMachine
+  aasm column: 'workflow_state' do
+    state :draft, initial: true
+    state :review
+    event :submit do
+      transitions from: :draft, to: :review
+    end
+  end
+end
+
+class AmbiguousStateMachineRecord < ActiveRecord::Base
+  include SimpleStateMachine
+end
+
 RSpec.describe SimpleStateMachine do
   before(:all) do
-    ActiveRecord::Base.connection.create_table :simple_state_machine_test_records, force: true do |t|
-      t.string :status
-      t.timestamps
+    # Create tables for all test models
+    tables = {
+      simple_state_machine_test_records: { column: :status },
+      custom_column_state_machine_records: { column: :workflow_state },
+      ambiguous_state_machine_records: { column: :state },
+    }
+
+    tables.each do |table_name, options|
+      ActiveRecord::Base.connection.create_table table_name, force: true do |t|
+        t.string options[:column]
+        t.timestamps
+      end
     end
   end
 
   after(:all) do
-    ActiveRecord::Base.connection.drop_table :simple_state_machine_test_records
+    # Drop all test tables
+    [
+      :simple_state_machine_test_records,
+      :custom_column_state_machine_records,
+      :ambiguous_state_machine_records,
+    ].each do |table_name|
+      ActiveRecord::Base.connection.drop_table table_name
+    end
   end
 
   let(:record) { SimpleStateMachineTestRecord.create! }
+  let(:custom_record) { CustomColumnStateMachineRecord.create! }
+
+  describe 'initialization' do
+    it 'raises an error when AASM is defined multiple times' do
+      expect do
+        Class.new(ActiveRecord::Base) do
+          include SimpleStateMachine
+          aasm do
+            state :one, initial: true
+          end
+
+          aasm do
+            state :two, initial: true
+          end
+        end
+      end.to raise_error(RuntimeError, 'AASM block has already been defined for this class')
+    end
+
+    it 'supports custom column names' do
+      expect(CustomColumnStateMachineRecord.aasm_column).to eq('workflow_state')
+      expect(custom_record.workflow_state).to eq('draft')
+    end
+  end
 
   describe 'state definitions' do
     it 'sets the initial state' do
@@ -51,31 +106,40 @@ RSpec.describe SimpleStateMachine do
     end
   end
 
+  describe 'ambiguous transitions' do
+    it 'raises an error when the same state appears in multiple transitions' do
+      expect do
+        Class.new(AmbiguousStateMachineRecord) do
+          aasm do
+            state :initial, initial: true
+            state :final
+
+            event :ambiguous do
+              transitions from: :initial, to: :final
+              transitions from: :initial, to: :initial # Should raise error
+            end
+          end
+        end
+      end.to raise_error(ArgumentError, /Ambiguous transition defined/)
+    end
+  end
+
   describe 'event transitions' do
-    it 'transitions from open to locked' do
-      expect do
-        record.reserve!
-      end.to change { record.status }.from('open').to('locked')
-    end
+    it 'transitions between states correctly' do
+      # Test open -> locked transition
+      expect { record.reserve! }.to change { record.status }.from('open').to('locked')
 
-    it 'transitions from locked to open' do
+      # Test locked -> open transition
+      expect { record.release! }.to change { record.status }.from('locked').to('open')
+
+      # Test open -> closed transition
+      record = SimpleStateMachineTestRecord.create!
+      expect { record.close! }.to change { record.status }.from('open').to('closed')
+
+      # Test locked -> closed transition
+      record = SimpleStateMachineTestRecord.create!
       record.reserve!
-      expect do
-        record.release!
-      end.to change { record.status }.from('locked').to('open')
-    end
-
-    it 'transitions from open to closed' do
-      expect do
-        record.close!
-      end.to change { record.status }.from('open').to('closed')
-    end
-
-    it 'transitions from locked to closed' do
-      record.reserve!
-      expect do
-        record.close!
-      end.to change { record.status }.from('locked').to('closed')
+      expect { record.close! }.to change { record.status }.from('locked').to('closed')
     end
 
     it 'returns false for invalid transitions' do
@@ -83,7 +147,20 @@ RSpec.describe SimpleStateMachine do
       expect(record.closed?).to be true
       expect(record.reserve!).to be false
       expect(record.release!).to be false
-      expect(record.closed?).to be true
+    end
+
+    it 'handles multiple from states and persists changes' do
+      # Test multiple from states
+      open_record = SimpleStateMachineTestRecord.create!
+      locked_record = SimpleStateMachineTestRecord.create!
+      locked_record.reserve!
+
+      expect(open_record.close!).to be true
+      expect(locked_record.close!).to be true
+
+      # Test persistence
+      reloaded = SimpleStateMachineTestRecord.find(locked_record.id)
+      expect(reloaded.status).to eq('closed')
     end
   end
 
