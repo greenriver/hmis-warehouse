@@ -10,7 +10,7 @@ module Types
   class HmisSchema::CeOpportunity < Types::BaseObject
     field :id, ID, null: false
     field :name, String, null: false
-    field :status, String, null: false
+    field :status, HmisSchema::Enums::CeOpportunityStatus, null: false
     field :expires_at, GraphQL::Types::ISO8601DateTime, null: true
     field :active_referral, Types::HmisSchema::CeReferral, null: true
     field :accepted_referral, Types::HmisSchema::CeReferral, null: true

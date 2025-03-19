@@ -757,13 +757,19 @@ type CeOpportunity {
   projectId: ID!
   projectName: String!
   rules: [CeMatchRule!]
-  status: String!
+  status: CeOpportunityStatus!
   topCandidate: CeCandidate
 }
 
 input CeOpportunityInput {
   name: String!
   templateId: ID!
+}
+
+enum CeOpportunityStatus {
+  closed
+  locked
+  open
 }
 
 type CeParticipation {
