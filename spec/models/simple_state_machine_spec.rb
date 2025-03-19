@@ -104,6 +104,24 @@ RSpec.describe SimpleStateMachine do
       expect(record).to respond_to(:locked?)
       expect(record).to respond_to(:closed?)
     end
+
+    it 'scopes return correct records' do
+      klass = SimpleStateMachineTestRecord
+      open_record = klass.create!
+      locked_record = klass.create!
+      locked_record.reserve!
+      closed_record = klass.create!
+      closed_record.close!
+
+      expect(klass.open.to_a).to include(open_record)
+      expect(klass.open.to_a).not_to include(locked_record, closed_record)
+
+      expect(klass.locked.to_a).to include(locked_record)
+      expect(klass.locked.to_a).not_to include(open_record, closed_record)
+
+      expect(klass.closed.to_a).to include(closed_record)
+      expect(klass.closed.to_a).not_to include(open_record, locked_record)
+    end
   end
 
   describe 'ambiguous transitions' do

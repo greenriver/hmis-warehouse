@@ -26,6 +26,9 @@ module SimpleStateMachine
       # Define state query methods
       aasm_states.each_key do |state_name|
         define_method("#{state_name}?") { self[aasm_column] == state_name.to_s }
+
+        # Class-level scope
+        scope state_name, -> { where(aasm_column => state_name.to_s) }
       end
 
       # Define event methods
