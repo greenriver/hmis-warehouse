@@ -725,6 +725,18 @@ type CeCandidatesPaginated {
   pagesCount: Int!
 }
 
+type CeMatchRule {
+  id: ID!
+  name: String!
+  ownerType: String!
+  type: CeMatchRuleType!
+}
+
+enum CeMatchRuleType {
+  eligibility_requirement
+  priority_scheme
+}
+
 type CeOpportunitiesPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -744,7 +756,9 @@ type CeOpportunity {
   name: String!
   projectId: ID!
   projectName: String!
+  rules: [CeMatchRule!]
   status: String!
+  topCandidate: CeCandidate
 }
 
 input CeOpportunityInput {

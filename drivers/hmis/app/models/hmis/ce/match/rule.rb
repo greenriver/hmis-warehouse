@@ -22,7 +22,7 @@ module Hmis::Ce::Match
     end
 
     def applies_to_opportunity?(opportunity)
-      config = applicability_config || {}
+      config = applicability_config.symbolize_keys || {}
       applicability = OpportunityApplicability.new(
         owner: owner,
         project_types: config[:project_types],
@@ -30,5 +30,23 @@ module Hmis::Ce::Match
       )
       applicability.call(opportunity)
     end
+
+    def self.for_opportunity(opportunity)
+      all_rules = Hmis::Ce::Match::Rule.order(:owner_type, :id).to_a
+      all_rules.filter { |rule| rule.applies_to_opportunity?(opportunity) }
+    end
+
+    # todo @martha - discuss, this makes many fewer db queries, but we probably don't want to introduce the complexity?
+    # scope :for_opportunity, ->(opportunity) do
+    #   project = opportunity.project
+    #
+    #   base_scope = where(owner: opportunity).
+    #     or(where(owner: project)).
+    #     or(where(owner: project.organization))
+    #
+    #   base_scope.
+    #     where("applicability_config -> 'project_types' @> '[#{project.project_type}]'::jsonb OR applicability_config -> 'project_types' IS NULL").
+    #     where("applicability_config -> 'project_funders' @> '#{project.funders.map(&:id)}'::jsonb OR applicability_config -> 'project_funders' IS NULL")
+    # end
   end
 end

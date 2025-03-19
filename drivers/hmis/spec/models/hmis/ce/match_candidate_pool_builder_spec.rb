@@ -10,23 +10,8 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
   describe '#perform' do
     context 'with active opportunities' do
-      let!(:rule1) do
-        create(
-          :hmis_ce_match_rule,
-          rule_type: 'eligibility_requirement',
-          expression: 'current_age >= 18',
-          owner: organization,
-        )
-      end
-
-      let!(:rule2) do
-        create(
-          :hmis_ce_match_rule,
-          rule_type: 'priority_scheme',
-          expression: 'days_homeless',
-          owner: organization,
-        )
-      end
+      let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: organization) }
+      let!(:rule2) { create(:hmis_ce_priority_scheme, owner: organization) }
 
       before do
         allow_any_instance_of(Hmis::Ce::Match::Rule).to receive(:applies_to_opportunity?).and_return(true)

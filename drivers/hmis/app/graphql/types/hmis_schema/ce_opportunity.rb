@@ -15,13 +15,19 @@ module Types
     field :active_referral, Types::HmisSchema::CeReferral, null: true
     field :accepted_referral, Types::HmisSchema::CeReferral, null: true
     field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false
+    field :top_candidate, Types::HmisSchema::CeCandidate, null: true
     field :project_id, ID, null: false
     field :project_name, String, null: false
+    field :rules, [HmisSchema::CeMatchRule], null: true
 
     def candidates
       Hmis::Ce::Match::Candidate.
         for_opportunity(object).
         order(priority_score: :desc, client_id: :desc)
+    end
+
+    def top_candidate
+      Hmis::Ce::Match::Candidate.for_opportunity(object).order(priority_score: :desc, client_id: :desc).first
     end
 
     def active_referral
@@ -34,6 +40,11 @@ module Types
 
     def project_name
       load_ar_association(object, :project).project_name
+    end
+
+    def rules
+      # not to be used in batch
+      Hmis::Ce::Match::Rule.for_opportunity(object)
     end
   end
 end
