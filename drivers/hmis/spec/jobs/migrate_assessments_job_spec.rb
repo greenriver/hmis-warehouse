@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -67,8 +69,10 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         [1, 2, 3].each do |dcs|
           assessment = e1.custom_assessments.where(data_collection_stage: dcs).first!
           expected_records = records_by_data_collaction_stage[dcs]
-          # Assessment Date should be MIN from records
-          expected_assmt_date = expected_records.map { |r| r.respond_to?(:information_date) ? r.information_date : r.exit_date }.min
+          # Assessment Date should be MIN from records' information dates, except...
+          information_date = expected_records.pluck(:information_date).compact.min
+          exit_date = expected_records.pluck(:exit_date).compact.max
+          expected_assmt_date = exit_date || information_date # ...if exit_date is provided, it's prioritized even if it isn't the mine
           expect(assessment.assessment_date).to eq(expected_assmt_date)
           # User should be the most recent updated
           expect(assessment.user).to eq(expected_records.max_by(&:date_updated).user)
@@ -156,6 +160,22 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         expect { annual_assessment.reload }.to raise_error(ActiveRecord::RecordNotFound, /Couldn't find Hmis::Hud::CustomAssessment/)
         fully_custom_assessment.reload
         expect(fully_custom_assessment.enrollment).to eq(e1)
+      end
+
+      context 'when there is an ExitDate and another record with earlier information date' do
+        let!(:today) { Date.current }
+        let!(:exit) { create(:hmis_hud_exit, exit_date: today - 2.weeks, enrollment: e1) }
+        let!(:income_benefit) { create(:hmis_income_benefit, enrollment: e1, data_collection_stage: 3, information_date: today - 3.weeks) }
+        let!(:records_by_data_collaction_stage) { nil }
+
+        it 'prefers ExitDate over other information date' do
+          expect do
+            Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id)
+          end.to change(Hmis::Hud::CustomAssessment.exits, :count).from(0).to(1)
+
+          exit_assessment = Hmis::Hud::CustomAssessment.exits.sole
+          expect(exit_assessment.assessment_date).to eq(exit.exit_date)
+        end
       end
     end
 
