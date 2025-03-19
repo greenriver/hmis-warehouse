@@ -6,7 +6,14 @@
 
 # frozen_string_literal: true
 
-module GrdaWarehouse
-  class AssessmentAnswerLookup < GrdaWarehouseBase
+module CohortColumns
+  class ReadOnlyDate < ReadOnly
+    def date_format
+      'll'
+    end
+
+    def renderer
+      'date'
+    end
   end
 end
