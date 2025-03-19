@@ -32,8 +32,8 @@ module Hmis::WorkflowDefinition
 
     scope :viewable_by, ->(_user) { all }
 
-    def graph
-      Hmis::WorkflowDefinition::Graph.new(nodes.preload(:outflows))
+    def graph(preloads: nil) # Caller can optionally pass additional attributes to preload, to avoid n+1s
+      Hmis::WorkflowDefinition::Graph.new(nodes.preload(:outflows, *preloads))
     end
   end
 end

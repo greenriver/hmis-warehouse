@@ -41,7 +41,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     context 'when workflow is initialized' do
       it 'returns expected structure with correct steps' do
         _, result = post_graphql(**variables) { query }
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result.inspect
         referral_data = result.dig('data', 'ceReferral')
 
         expect(referral_data['id']).to eq(referral.id.to_s)
@@ -80,7 +80,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'shows first step as available' do
         _, result = post_graphql(**variables) { query }
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result.inspect
         steps = result.dig('data', 'ceReferral', 'steps')
 
         expect(steps[0]['status']).to eq('available')
@@ -98,11 +98,137 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'shows second step as available' do
         _, result = post_graphql(**variables) { query }
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result.inspect
         steps = result.dig('data', 'ceReferral', 'steps')
 
         expect(steps[0]['status']).to eq('completed')
         expect(steps[1]['status']).to eq('available')
+      end
+    end
+
+    context 'when workflow includes a conditional step' do
+      let(:gateway) do
+        create(
+          :hmis_workflow_definition_gateway,
+          template: workflow_template,
+          gateway_type: 'exclusive',
+          name: 'conditional gw',
+        )
+      end
+
+      before do
+        client_acceptance_task.outflows.destroy_all
+        client_acceptance_task.connect_to!(gateway)
+        gateway.connect_to!(provider_acceptance_task, condition: 'needs_provider_acceptance = 1')
+        gateway.connect_to!(accept_referral, condition: 'needs_provider_acceptance = 0')
+      end
+
+      it 'does not return the conditional step' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+        steps = result.dig('data', 'ceReferral', 'steps')
+        expect(steps.length).to eq(1) # Should only include the task that is definitely happening, not the conditional task
+
+        expect(steps[0]).to include('name' => 'Client Acceptance')
+      end
+
+      context 'when the condition is met and the step is enabled' do
+        before do
+          referral.workflow_engine.start_workflow!(user: hmis_user)
+          step = referral.workflow_engine.active_steps.first
+          referral.workflow_engine.start_step!(step, user: hmis_user)
+          referral.workflow_engine.complete_step!(step, user: hmis_user, submitted_values: { needs_provider_acceptance: 1 })
+        end
+
+        it 'returns the conditional step' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          steps = result.dig('data', 'ceReferral', 'steps')
+          expect(steps.length).to eq(2)
+
+          expect(steps[0]).to include('name' => 'Client Acceptance')
+          expect(steps[1]).to include('name' => 'Provider Acceptance')
+        end
+      end
+
+      context 'when there is another step after the conditional step' do
+        let!(:post_provider_acceptance) do
+          create(
+            :hmis_workflow_definition_task,
+            template: workflow_template,
+            name: 'Post Provider Acceptance',
+            swimlane: case_manager_swimlane,
+            form_definition: create(:hmis_form_definition),
+          )
+        end
+
+        before do
+          provider_acceptance_task.outflows.destroy_all
+          provider_acceptance_task.connect_to!(post_provider_acceptance)
+          post_provider_acceptance.connect_to!(accept_referral)
+        end
+
+        it 'does not return the conditional step OR the step after it' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          steps = result.dig('data', 'ceReferral', 'steps')
+          expect(steps.length).to eq(1) # Should only include the task that is definitely happening, not the conditional task
+
+          expect(steps[0]).to include('name' => 'Client Acceptance')
+        end
+
+        context 'when the condition is met and the step is enabled' do
+          before do
+            referral.workflow_engine.start_workflow!(user: hmis_user)
+            step = referral.workflow_engine.active_steps.first
+            referral.workflow_engine.start_step!(step, user: hmis_user)
+            referral.workflow_engine.complete_step!(step, user: hmis_user, submitted_values: { needs_provider_acceptance: 1 })
+          end
+
+          it 'returns the conditional step AND the step after' do
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
+            steps = result.dig('data', 'ceReferral', 'steps')
+            expect(steps.length).to eq(3)
+
+            expect(steps[0]).to include('name' => 'Client Acceptance')
+            expect(steps[1]).to include('name' => 'Provider Acceptance')
+            expect(steps[2]).to include('name' => 'Post Provider Acceptance')
+          end
+        end
+      end
+
+      context 'when there are many steps' do
+        before do
+          50.times do |i|
+            conditional_task = create(
+              :hmis_workflow_definition_task,
+              template: workflow_template,
+              name: "conditional task #{i}",
+              swimlane: case_manager_swimlane,
+              form_definition: create(:hmis_form_definition),
+            )
+            gateway.connect_to!(conditional_task, condition: 'needs_provider_acceptance = 1')
+
+            non_conditional_task = create(
+              :hmis_workflow_definition_task,
+              template: workflow_template,
+              name: "nonconditional task #{i}",
+              swimlane: case_manager_swimlane,
+              form_definition: create(:hmis_form_definition),
+            )
+            start_event.connect_to!(non_conditional_task)
+          end
+        end
+
+        it 'does not result in n+1 query' do
+          expect do
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
+            steps = result.dig('data', 'ceReferral', 'steps')
+            expect(steps.length).to eq(51)
+          end.to make_database_queries(count: 10..15)
+        end
       end
     end
   end
