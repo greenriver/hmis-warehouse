@@ -67,7 +67,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:rule3) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_types: [project.project_type] }) }
 
       let!(:funder) { create(:hmis_hud_funder, project: project, data_source: project.data_source) }
-      let!(:rule4) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_funders: [funder.id] }) }
+      let!(:rule4) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_funders: [funder.funder] }) }
 
       it 'returns rules with their correct ownerTypes' do
         response, result = post_graphql(**variables) { query }

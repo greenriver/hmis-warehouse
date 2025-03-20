@@ -87,15 +87,15 @@ RSpec.describe Hmis::Ce::Match::Rule, type: :model do
     end
 
     context 'when the rule has applicability config regarding funders' do
-      let!(:funder1) { create(:hmis_hud_funder, project: project1, data_source: project1.data_source) }
-      let!(:funder2) { create(:hmis_hud_funder, project: project2, data_source: project2.data_source) }
+      let!(:funder1) { create(:hmis_hud_funder, funder: 20, project: project1, data_source: project1.data_source) }
+      let!(:funder2) { create(:hmis_hud_funder, funder: 30, project: project2, data_source: project2.data_source) }
 
       let!(:rule) do
         create(
           :hmis_ce_eligibility_requirement,
           owner: organization,
           applicability_config: {
-            project_funders: [funder1.id],
+            project_funders: [funder1.funder],
           },
         )
       end
@@ -129,7 +129,7 @@ RSpec.describe Hmis::Ce::Match::Rule, type: :model do
               :hmis_ce_eligibility_requirement,
               owner: organization,
               applicability_config: {
-                project_funders: [funder1.id],
+                project_funders: [funder1.funder],
               },
             )
           end

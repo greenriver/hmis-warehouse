@@ -30,7 +30,7 @@ module Hmis::Ce::Match
     end
 
     def matches_project_funders?(project)
-      project_funders.blank? || (project_funders & project.funders.map(&:id)).any?
+      project_funders.blank? || (project_funders & project.funders.map(&:funder)).any?
     end
   end
 end
