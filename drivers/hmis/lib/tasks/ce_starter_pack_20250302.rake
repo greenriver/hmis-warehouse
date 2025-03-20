@@ -255,7 +255,7 @@ task ce_starter_pack_20250302: [:environment] do
   days_homeless_priority.applicability_config = {}
   days_homeless_priority.save! if days_homeless_priority.changed?
 
-  if Hmis::Ce::Opportunity.any?
+  if Hmis::Ce::Opportunity.open.any?
     # if there are any Opportunities in the database, create an example of a match rule owned by the opportunity
     aha_score_priority = Hmis::Ce::Match::Rule.find_or_initialize_by(name: 'AHA score')
     aha_score_priority.expression = 'aha_score'

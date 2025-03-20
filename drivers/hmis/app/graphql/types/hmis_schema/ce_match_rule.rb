@@ -13,19 +13,16 @@ module Types
     field :type, HmisSchema::Enums::CeMatchRuleType, null: false, method: :rule_type
     field :owner_type, String, null: false
 
-    def owner_type # todo @martha - discuss
-      # config = object.applicability_config.symbolize_keys
-      # if config[:project_funders]
-      #   funders = Hmis::Hud::Funder.where(id: config[:project_funders])
-      #   return funders.map(&:funder).join(', ')
-      # end
-      #
-      # if config[:project_types]
-      #   project_types = GrdaWarehouse::Lookups::ProjectType.where(id: config[:project_types])
-      #   return project_types.map(&:name).join(', ')
-      # end
+    def owner_type
+      applicability_config = object.applicability_config.symbolize_keys
 
-      object.owner_type.demodulize
+      if applicability_config[:project_types]&.any?
+        'Project Type'
+      elsif applicability_config[:project_funders]&.any?
+        'Funder'
+      else
+        object.owner_type.demodulize
+      end
     end
   end
 end

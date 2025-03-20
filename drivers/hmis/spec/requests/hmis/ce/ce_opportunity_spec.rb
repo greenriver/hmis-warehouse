@@ -48,6 +48,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
               status
             }
+            rules {
+              id
+              name
+              ownerType
+            }
           }
         }
       GRAPHQL
@@ -59,7 +64,29 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
     end
 
-    describe 'when the opportunity has candidates and an active referral' do
+    context 'when the opportunity has rules' do
+      let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: opportunity) }
+      let!(:rule2) { create(:hmis_ce_eligibility_requirement, owner: project) }
+      let!(:rule3) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_types: [project.project_type] }) }
+
+      let!(:funder) { create(:hmis_hud_funder, project: project, data_source: project.data_source) }
+      let!(:rule4) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_funders: [funder.id] }) }
+
+      it 'returns rules with their correct ownerTypes' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        rules = result.dig('data', 'ceOpportunity', 'rules')
+        expect(rules).to contain_exactly(
+          a_hash_including('id' => rule1.id.to_s, 'ownerType' => 'Opportunity'),
+          a_hash_including('id' => rule2.id.to_s, 'ownerType' => 'Project'),
+          a_hash_including('id' => rule3.id.to_s, 'ownerType' => 'Project Type'),
+          a_hash_including('id' => rule4.id.to_s, 'ownerType' => 'Funder'),
+        )
+      end
+    end
+
+    context 'when the opportunity has candidates and an active referral' do
       let!(:ds_access_control) do
         create_access_control(
           hmis_user,
