@@ -8,6 +8,7 @@
 
 module Types
   class HmisSchema::CeMatchRule < Types::BaseObject
+    # object is a Hmis::Ce::Match::Rule
     field :id, ID, null: false
     field :name, String, null: false
     field :type, HmisSchema::Enums::CeMatchRuleType, null: false, method: :rule_type
