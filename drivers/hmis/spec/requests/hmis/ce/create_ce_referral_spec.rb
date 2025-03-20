@@ -109,5 +109,16 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
         expect(instance.template).to eq(template)
       end
     end
+
+    context 'if the client is in a different data source' do
+      let!(:ds2) { create :hmis_data_source }
+      let(:client) { create :hmis_hud_client, data_source: ds2 }
+
+      it 'raises an error' do
+        expect do
+          expect_gql_error post_graphql(**variables) { mutation }
+        end.not_to change(Hmis::Ce::Referral, :count)
+      end
+    end
   end
 end
