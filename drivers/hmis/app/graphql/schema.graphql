@@ -711,6 +711,7 @@ type CeAssessmentsPaginated {
 
 type CeCandidate {
   client: Client
+  clientId: ID!
   id: ID!
   priorityScore: Int!
 }
@@ -800,7 +801,8 @@ type CeParticipationsPaginated {
 }
 
 type CeReferral {
-  client: Client!
+  client: Client
+  clientId: ID!
   id: ID!
   opportunity: CeOpportunity!
   status: CeReferralStatus!

@@ -9,6 +9,7 @@
 module Types
   class HmisSchema::CeCandidate < Types::BaseObject
     field :id, ID, null: false
+    field :client_id, ID, null: false
     field :client, HmisSchema::Client, null: true
     field :priority_score, Integer, null: false
 
