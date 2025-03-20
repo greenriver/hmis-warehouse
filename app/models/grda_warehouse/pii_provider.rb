@@ -4,12 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Bag of PII accessors. Attributes are masked conditionally based on the policy
 class GrdaWarehouse::PiiProvider
   attr_reader :policy, :record
 
-  NAME_REDACTED = 'Name Redacted'.freeze
-  REDACTED = 'Redacted'.freeze
+  NAME_REDACTED = 'Name Redacted'
+  REDACTED = 'Redacted'
 
   def self.viewable_name(value, policy:, replacement: REDACTED)
     return replacement unless policy.can_view_name?
@@ -25,6 +27,12 @@ class GrdaWarehouse::PiiProvider
 
   def self.viewable_dob(value, policy:, replacement: REDACTED)
     return replacement unless policy.can_view_full_dob?
+
+    value.presence
+  end
+
+  def self.viewable_hiv_status(value, policy:, replacement: REDACTED)
+    return replacement unless policy.can_view_hiv_status?
 
     value.presence
   end
