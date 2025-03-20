@@ -225,6 +225,33 @@ class User < ApplicationRecord
     roles.map(&:name).uniq
   end
 
+  # Retrieve the user's PII Policy for a specific project. To account for reports where the project record
+  # does not exist or did not at the time the report was run, a blank project_id will return the AllowPiiPolicy.
+  # This is to remain consistent with the how reports were responding prior to the PII policies being implemented.
+  #
+  # Note: if multiple projects will need retrieving, preloading the policies may be helpful
+  # preloaded projects example:
+  #   current_user.client_view_accessor.preload_project_dependencies(project_ids)
+  #   project_ids.each do |project_id|
+  #     pii_policy = current_user.reporting_policy_for_project(project_id)
+  #   end
+  def reporting_policy_for_project(project_id:, mode: :browse)
+    return GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance if project_id.nil?
+
+    allowed = false
+    case mode.to_sym
+    when :download
+      allowed = ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+    when :browse
+      allowed = true
+    else
+      raise ArgumentError, "Bad mode #{mode}"
+    end
+
+    policy = policy_for(project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if allowed
+    policy || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+  end
+
   memoize def policy_for(resource, policy_class: nil)
     if policy_class
       policy_class.new(resource: resource, context: policy_context)

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudSpmReport::Generators::Fy2023
   class Generator < ::HudReports::GeneratorBase
     cattr_accessor :write_detail_path
@@ -17,7 +19,7 @@ module HudSpmReport::Generators::Fy2023
     end
 
     def self.short_name
-      'SPM'.freeze
+      'SPM'
     end
 
     def self.default_project_type_codes
@@ -53,6 +55,10 @@ module HudSpmReport::Generators::Fy2023
 
     def self.client_class(question)
       questions[question].client_class
+    end
+
+    def self.client_scope(question)
+      questions[question].client_scope
     end
 
     def self.pii_columns

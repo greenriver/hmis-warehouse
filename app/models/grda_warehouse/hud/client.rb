@@ -1327,18 +1327,7 @@ module GrdaWarehouse::Hud
 
     # pii provider for use in reports and bulk view
     def project_pii_provider(project:, user:, mode:)
-      allowed = false
-      case mode.to_sym
-      when :download
-        allowed = ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-      when :browse
-        allowed = true
-      else
-        raise ArgumentError, "Bad mode #{mode}"
-      end
-
-      policy = user.policy_for(project, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if allowed
-      policy ||= GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+      policy = user.reporting_policy_for_project(project, mode: mode)
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
     end
 
@@ -2498,14 +2487,17 @@ module GrdaWarehouse::Hud
     def unsheltered_days_homeless_last_three_years
       end_date = Date.current
       start_date = end_date - 3.years
+      unsheltered_days_homeless(start_date: start_date, end_date: end_date).count
+    end
+
+    def unsheltered_days_homeless(start_date:, end_date:)
       service_history_services.
         homeless_unsheltered.
         where(date: start_date..end_date).
         where.not(date: service_history_services.non_homeless.where(date: start_date..end_date).select(:date).distinct).
         where.not(date: sheltered_homeless_dates(start_date: start_date, end_date: end_date)).
         select(:date).
-        distinct.
-        count
+        distinct
     end
 
     # TH or PH
