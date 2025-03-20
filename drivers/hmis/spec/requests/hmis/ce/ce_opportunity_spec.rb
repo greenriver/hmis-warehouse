@@ -26,9 +26,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             name
             status
             expiresAt
-            topCandidate {
-              id
-            }
             candidates {
               nodesCount
               nodes {
@@ -158,7 +155,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'status' => opportunity.status,
           )
 
-          top_candidate = result.dig('data', 'ceOpportunity', 'topCandidate')
           candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
 
           expect(candidates).to be_an(Array)
@@ -174,7 +170,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               'id' => client_2.id.to_s,
             ),
           )
-          expect(top_candidate['id']).to eq(candidates[0]['id'])
 
           # Verify second candidate
           expect(candidates[1]).to include(
@@ -222,12 +217,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         response, result = post_graphql(**empty_pool_variables) { query }
         expect(response.status).to eq(200), result.inspect
 
-        top_candidate = result.dig('data', 'ceOpportunity', 'topCandidate')
         candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
 
         expect(candidates).to be_an(Array)
         expect(candidates).to be_empty
-        expect(top_candidate).to be_nil
       end
     end
 
