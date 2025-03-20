@@ -72,7 +72,7 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
           # Assessment Date should be MIN from records' information dates, except...
           information_date = expected_records.pluck(:information_date).compact.min
           exit_date = expected_records.pluck(:exit_date).compact.max
-          expected_assmt_date = exit_date || information_date # ...if exit_date is provided, it's prioritized even if it isn't the mine
+          expected_assmt_date = exit_date || information_date # ...if exit_date is provided, it's prioritized even if it isn't the minimum
           expect(assessment.assessment_date).to eq(expected_assmt_date)
           # User should be the most recent updated
           expect(assessment.user).to eq(expected_records.max_by(&:date_updated).user)
