@@ -36,14 +36,14 @@ RSpec.describe Admin::CollectionsController, type: :request do
 
   def run_entity_tests(collection:, coc_codes: [], data_sources: [], organizations: [], projects: [], project_groups: [], project_access_groups: [], reports: [], cohorts: [])
     collection.reload
-    expect(collection.reload.coc_codes).to eq(coc_codes)
-    expect(collection.reload.data_source_ids).to eq(data_sources)
-    expect(collection.reload.organization_ids).to eq(organizations)
-    expect(collection.reload.project_ids).to eq(projects)
-    expect(collection.reload.project_group_ids).to eq(project_groups)
-    expect(collection.reload.project_access_group_ids).to eq(project_access_groups)
-    expect(collection.reload.report_ids).to eq(reports)
-    expect(collection.reload.cohort_ids).to eq(cohorts)
+    expect(collection.coc_codes).to eq(coc_codes)
+    expect(collection.data_source_ids).to eq(data_sources)
+    expect(collection.organization_ids).to eq(organizations)
+    expect(collection.project_ids).to eq(projects)
+    expect(collection.project_group_ids).to eq(project_groups)
+    expect(collection.project_access_group_ids).to eq(project_access_groups)
+    expect(collection.report_ids).to eq(reports)
+    expect(collection.cohort_ids).to eq(cohorts)
   end
 
   # Creating current collection #create
@@ -69,7 +69,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
     let(:viewable_params) do
       {
         collection: {
-          coc_codes: ['XX-500', 'XX-501'],
+          coc_codes: [project_coc.coc_code],
           data_sources: [data_source.id],
           organizations: [organization.id],
           projects: [project.id],
@@ -82,6 +82,29 @@ RSpec.describe Admin::CollectionsController, type: :request do
     end
 
     it 'Updates collection name & description #update' do
+      # Set some base vieawables. We want to make sure these dont change.
+      project_collection.coc_codes = [project_coc.coc_code]
+      project_collection.set_viewables({
+                                         data_sources: [data_source.id],
+                                         organizations: [organization.id],
+                                         projects: [project.id],
+                                         project_groups: [project_group_2.id],
+                                         project_access_groups: [project_group.id],
+                                         reports: [report.id],
+                                         cohorts: [cohort.id],
+                                       })
+      project_collection.save!
+      # make sure the viewables exist
+      run_entity_tests(collection: project_collection,
+                       coc_codes: [project_coc.coc_code],
+                       data_sources: [data_source.id],
+                       organizations: [organization.id],
+                       projects: [project.id],
+                       project_groups: [project_group_2.id],
+                       project_access_groups: [project_group.id],
+                       reports: [report.id],
+                       cohorts: [cohort.id])
+
       patch admin_collection_path(project_collection), params: {
         collection: {
           name: 'Updated Name',
@@ -90,6 +113,17 @@ RSpec.describe Admin::CollectionsController, type: :request do
       }
       expect(project_collection.reload.name).to eq('Updated Name')
       expect(project_collection.reload.description).to eq('Updated Description')
+
+      # make sure the viewables are not changed
+      run_entity_tests(collection: project_collection,
+                       coc_codes: [project_coc.coc_code],
+                       data_sources: [data_source.id],
+                       organizations: [organization.id],
+                       projects: [project.id],
+                       project_groups: [project_group_2.id],
+                       project_access_groups: [project_group.id],
+                       reports: [report.id],
+                       cohorts: [cohort.id])
     end
 
     it 'Updating legacy collection name & description #update' do
@@ -183,7 +217,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
     it 'Updating current collection viewables #bulk_entities' do
       expected = {}
 
-      coc_codes['XX-001'] = '1'
+      coc_codes[project_coc.coc_code] = '1'
       data_sources[data_source.id.to_s] = '1'
       organizations[organization.id.to_s] = '1'
       projects[project.id.to_s] = '1'
@@ -215,7 +249,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
       end
 
       # We are now going to remove each entity and ensure that only the entity being removed is affected
-      coc_codes['XX-001'] = '0'
+      coc_codes[project_coc.coc_code] = '0'
       data_sources[data_source.id.to_s] = '0'
       organizations[organization.id.to_s] = '0'
       projects[project.id.to_s] = '0'
