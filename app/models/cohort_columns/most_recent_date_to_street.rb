@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class MostRecentDateToStreet < ReadOnly
     attribute :column, String, lazy: true, default: :most_recent_date_to_street
@@ -21,7 +23,11 @@ module CohortColumns
       return unless date.present?
 
       days = (Date.current - date).to_i
-      "#{date&.to_s} (#{days} days)"
+      "#{date} (#{days} days)"
+    end
+
+    def analytics_data_type
+      'date'
     end
   end
 end

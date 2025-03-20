@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # A role/user who is participating in the referral process
 module Hmis::Ce
   class ReferralParticipant < GrdaWarehouseBase

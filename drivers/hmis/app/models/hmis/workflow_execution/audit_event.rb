@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Track the events that occur in a workflow execution
 module Hmis::WorkflowExecution
   class AuditEvent < GrdaWarehouseBase

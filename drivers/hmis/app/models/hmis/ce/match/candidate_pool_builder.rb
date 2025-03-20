@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # update candidate pools to reflect the current opportunities, requirements and priority configuration
 
 module Hmis::Ce::Match

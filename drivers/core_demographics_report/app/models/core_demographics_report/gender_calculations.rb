@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module
   CoreDemographicsReport::GenderCalculations
   extend ActiveSupport::Concern
@@ -165,7 +167,7 @@ module
             end
           available_coc_codes.each do |coc_code|
             report_scope.joins(:client).order(first_date_in_program: :desc).
-              distinct.in_coc(coc_code: coc_code).
+              distinct.in_enrollment_coc(coc_code: coc_code).
               pluck(:client_id, age_calculation, :first_date_in_program, *genders.keys.map { |col| c_t[col] }).
               each do |row|
                 client_id, age, _, *gender_values = row

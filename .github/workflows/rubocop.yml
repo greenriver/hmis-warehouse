@@ -12,29 +12,30 @@ jobs:
   rubocop:
     name: Rubocop
     # Containers must run in Linux based operating systems
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     # Docker Hub image that the job executes in
     container: ruby:3.3.7-alpine3.20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: 'Container Setup'
         id: container-setup
         uses: ./.github/workflows/container_setup
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v44
+        run: |
+          echo "ruby=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .rb$ | xargs)" >> $GITHUB_OUTPUT
 
       - id: rubocop
         name: Run Rubocop
         env:
-          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.ruby }}
         run: |
           ignore_patterns="db/schema.rb\|bin/rails\|bin/rake\|bin/bundle"
           files=`echo "${ALL_CHANGED_FILES}" | tr " " "\n" | grep -v $ignore_patterns | grep "**/*.rb" | tr "\n" " ./"`

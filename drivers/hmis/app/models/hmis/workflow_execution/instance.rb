@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Represents a running instance of a workflow template.
 # Tracks the current state of the process and maintains the context data for the workflow execution.
 module Hmis::WorkflowExecution

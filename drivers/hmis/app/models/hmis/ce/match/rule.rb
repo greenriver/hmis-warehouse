@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # requirement configuration for opportunities
 
 module Hmis::Ce::Match
@@ -7,8 +9,8 @@ module Hmis::Ce::Match
     belongs_to :owner, polymorphic: true
 
     validates :name, presence: true
-    ELIGIBILITY_REQUIREMENT = 'eligibility_requirement'.freeze
-    PRIORITY_SCHEME = 'priority_scheme'.freeze
+    ELIGIBILITY_REQUIREMENT = 'eligibility_requirement'
+    PRIORITY_SCHEME = 'priority_scheme'
     validates :rule_type, presence: true, inclusion: { in: [ELIGIBILITY_REQUIREMENT, PRIORITY_SCHEME] }
 
     def eligibility_requirement?

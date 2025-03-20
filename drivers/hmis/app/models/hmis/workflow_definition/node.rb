@@ -38,6 +38,10 @@ module Hmis::WorkflowDefinition
       )
     end
 
+    def conditional_inflows?
+      inflows.map(&:condition).any?
+    end
+
     protected
 
     def check_trigger_config_format

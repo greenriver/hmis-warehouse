@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'dentaku'
 
 module Hmis::Ce::Match

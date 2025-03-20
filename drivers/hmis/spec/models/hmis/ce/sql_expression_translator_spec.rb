@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe Hmis::Ce::Match::SqlExpressionTranslator do
   let(:field_map) { Hmis::Ce::Match::FieldMap.new }
 

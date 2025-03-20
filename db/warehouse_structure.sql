@@ -811,6 +811,105 @@ CREATE VIEW analytics.coc_codes AS
 
 
 --
+-- Name: cohort_client_changes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cohort_client_changes (
+    id integer NOT NULL,
+    cohort_client_id integer NOT NULL,
+    cohort_id integer NOT NULL,
+    user_id integer NOT NULL,
+    change character varying,
+    changed_at timestamp without time zone NOT NULL,
+    reason character varying
+);
+
+
+--
+-- Name: cohort_client_changes; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cohort_client_changes AS
+ SELECT id,
+    cohort_client_id,
+    cohort_id,
+    user_id,
+    change,
+    changed_at,
+    reason
+   FROM public.cohort_client_changes;
+
+
+--
+-- Name: cohort_client_data; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cohort_client_data (
+    id bigint NOT NULL,
+    cohort_id bigint NOT NULL,
+    cohort_client_id bigint NOT NULL,
+    column_name character varying NOT NULL,
+    value_integer integer,
+    value_boolean boolean,
+    value_string character varying,
+    value_text text,
+    value_date date,
+    value_json jsonb,
+    data_type character varying NOT NULL
+);
+
+
+--
+-- Name: COLUMN cohort_client_data.data_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.cohort_client_data.data_type IS 'Indicates which column is in-use for this row of data';
+
+
+--
+-- Name: cohort_client_data; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cohort_client_data AS
+ SELECT id,
+    cohort_id,
+    cohort_client_id,
+    column_name,
+    value_integer,
+    value_boolean,
+    value_string,
+    value_text,
+    value_date,
+    value_json,
+    data_type
+   FROM public.cohort_client_data;
+
+
+--
+-- Name: cohort_client_tabs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cohort_client_tabs (
+    id bigint NOT NULL,
+    cohort_id bigint NOT NULL,
+    cohort_client_id bigint NOT NULL,
+    tab_name character varying
+);
+
+
+--
+-- Name: cohort_client_tabs; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cohort_client_tabs AS
+ SELECT id,
+    cohort_id,
+    cohort_client_id,
+    tab_name
+   FROM public.cohort_client_tabs;
+
+
+--
 -- Name: cohort_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1058,235 +1157,37 @@ CREATE VIEW analytics.cohort_clients AS
     cohort_id,
     client_id,
     created_at,
-    updated_at,
-    deleted_at,
-    agency,
-    case_manager,
-    housing_manager,
-    housing_search_agency,
-    housing_opportunity,
-    legal_barriers,
-    criminal_record_status,
-    document_ready,
-    sif_eligible,
-    sensory_impaired,
-    housed_date,
-    destination,
-    sub_population,
-    rank,
-    st_francis_house,
-    last_group_review_date,
-    pre_contemplative_last_date_approached,
-    va_eligible,
-    vash_eligible,
-    chapter_115,
-    first_date_homeless,
-    last_date_approached,
-    chronic,
-    dnd_rank,
-    veteran,
-    housing_track_suggested,
-    housing_track_enrolled,
-    adjusted_days_homeless,
-    housing_navigator,
-    status,
-    ssvf_eligible,
-    location,
-    location_type,
-    vet_squares_confirmed,
-    active,
-    provider,
-    next_step,
-    housing_plan,
-    document_ready_on,
-    new_lease_referral,
-    vulnerability_rank,
-    ineligible,
-    adjusted_days_homeless_last_three_years,
-    original_chronic,
-    not_a_vet,
-    primary_housing_track_suggested,
-    minimum_bedroom_size,
-    special_needs,
-    adjusted_days_literally_homeless_last_three_years,
-    reported,
-    calculated_days_homeless_on_effective_date,
-    days_homeless_last_three_years_on_effective_date,
-    days_literally_homeless_last_three_years_on_effective_date,
-    destination_from_homelessness,
-    related_users,
-    disability_verification_date,
-    missing_documents,
-    sleeping_location,
-    exit_destination,
-    lgbtq,
-    school_district,
-    user_string_1,
-    user_string_2,
-    user_string_3,
-    user_string_4,
-    user_boolean_1,
-    user_boolean_2,
-    user_boolean_3,
-    user_boolean_4,
-    user_select_1,
-    user_select_2,
-    user_select_3,
-    user_select_4,
-    user_date_1,
-    user_date_2,
-    user_date_3,
-    user_date_4,
-    assessment_score,
-    vispdat_score_manual,
-    user_numeric_1,
-    user_numeric_2,
-    user_numeric_3,
-    user_numeric_4,
-    user_string_5,
-    user_string_6,
-    user_string_7,
-    user_string_8,
-    hmis_destination,
-    user_boolean_5,
-    user_boolean_6,
-    user_boolean_7,
-    user_boolean_8,
-    user_boolean_9,
-    user_boolean_10,
-    user_boolean_11,
-    user_boolean_12,
-    user_boolean_13,
-    user_boolean_14,
-    user_boolean_15,
-    lgbtq_from_hmis,
-    days_homeless_plus_overrides,
-    user_numeric_5,
-    user_numeric_6,
-    user_numeric_7,
-    user_numeric_8,
-    user_numeric_9,
-    user_numeric_10,
-    user_select_5,
-    user_select_6,
-    user_select_7,
-    user_select_8,
-    user_select_9,
-    user_select_10,
-    user_date_5,
-    user_date_6,
-    user_date_7,
-    user_date_8,
-    user_date_9,
-    user_date_10,
-    user_select_11,
-    user_select_12,
-    user_select_13,
-    user_select_14,
-    user_select_15,
-    user_select_16,
-    user_select_17,
-    user_select_18,
-    user_select_19,
-    user_select_20,
-    user_select_21,
-    user_select_22,
-    user_select_23,
-    user_select_24,
-    user_select_25,
-    user_select_26,
-    user_select_27,
-    user_select_28,
-    user_select_29,
-    user_select_30,
-    user_boolean_16,
-    user_boolean_17,
-    user_boolean_18,
-    user_boolean_19,
-    user_boolean_20,
-    user_boolean_21,
-    user_boolean_22,
-    user_boolean_23,
-    user_boolean_24,
-    user_boolean_25,
-    user_boolean_26,
-    user_boolean_27,
-    user_boolean_28,
-    user_boolean_29,
-    user_boolean_30,
-    date_added_to_cohort,
-    individual_in_most_recent_homeless_enrollment,
-    user_date_11,
-    user_date_12,
-    user_date_13,
-    user_date_14,
-    user_date_15,
-    user_date_16,
-    user_date_17,
-    user_date_18,
-    user_date_19,
-    user_date_20,
-    user_date_21,
-    user_date_22,
-    user_date_23,
-    user_date_24,
-    user_date_25,
-    user_date_26,
-    user_date_27,
-    user_date_28,
-    user_date_29,
-    user_date_30,
-    most_recent_date_to_street,
-    user_boolean_31,
-    user_boolean_32,
-    user_boolean_33,
-    user_boolean_34,
-    user_boolean_35,
-    user_boolean_36,
-    user_boolean_37,
-    user_boolean_38,
-    user_boolean_39,
-    user_boolean_40,
-    user_boolean_41,
-    user_boolean_42,
-    user_boolean_43,
-    user_boolean_44,
-    user_boolean_45,
-    user_boolean_46,
-    user_boolean_47,
-    user_boolean_48,
-    user_boolean_49,
-    sheltered_days_homeless_last_three_years,
-    unsheltered_days_homeless_last_three_years,
-    user_string_9,
-    user_string_10,
-    user_string_11,
-    user_string_12,
-    user_string_13,
-    user_string_14,
-    user_string_15,
-    user_string_16,
-    user_string_17,
-    user_string_18,
-    user_string_19,
-    user_string_20,
-    user_string_21,
-    user_string_22,
-    user_string_23,
-    user_string_24,
-    user_string_25,
-    user_string_26,
-    user_string_27,
-    user_string_28,
-    user_string_29,
-    user_string_30,
-    most_recent_cls,
-    most_recent_prior_living_situation,
-    most_recent_household_type,
-    most_recent_self_report_months_homeless,
-    most_recent_disabling_condition
+    updated_at
    FROM public.cohort_clients
   WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: cohort_column_metadata; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cohort_column_metadata (
+    id bigint NOT NULL,
+    cohort_id bigint NOT NULL,
+    name character varying,
+    title character varying,
+    description character varying,
+    data_type character varying
+);
+
+
+--
+-- Name: cohort_column_metadata; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cohort_column_metadata AS
+ SELECT id,
+    cohort_id,
+    name,
+    title,
+    description,
+    data_type
+   FROM public.cohort_column_metadata;
 
 
 --
@@ -7383,18 +7284,35 @@ ALTER SEQUENCE public.coc_pit_counts_id_seq OWNED BY public.coc_pit_counts.id;
 
 
 --
--- Name: cohort_client_changes; Type: TABLE; Schema: public; Owner: -
+-- Name: cohort_analytics_generations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.cohort_client_changes (
-    id integer NOT NULL,
-    cohort_client_id integer NOT NULL,
-    cohort_id integer NOT NULL,
-    user_id integer NOT NULL,
-    change character varying,
-    changed_at timestamp without time zone NOT NULL,
-    reason character varying
+CREATE TABLE public.cohort_analytics_generations (
+    id bigint NOT NULL,
+    cohort_id bigint,
+    process_name character varying,
+    started_at timestamp(6) without time zone,
+    completed_at timestamp(6) without time zone
 );
+
+
+--
+-- Name: cohort_analytics_generations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cohort_analytics_generations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cohort_analytics_generations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cohort_analytics_generations_id_seq OWNED BY public.cohort_analytics_generations.id;
 
 
 --
@@ -7414,6 +7332,25 @@ CREATE SEQUENCE public.cohort_client_changes_id_seq
 --
 
 ALTER SEQUENCE public.cohort_client_changes_id_seq OWNED BY public.cohort_client_changes.id;
+
+
+--
+-- Name: cohort_client_data_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cohort_client_data_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cohort_client_data_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cohort_client_data_id_seq OWNED BY public.cohort_client_data.id;
 
 
 --
@@ -7452,6 +7389,25 @@ ALTER SEQUENCE public.cohort_client_notes_id_seq OWNED BY public.cohort_client_n
 
 
 --
+-- Name: cohort_client_tabs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cohort_client_tabs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cohort_client_tabs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cohort_client_tabs_id_seq OWNED BY public.cohort_client_tabs.id;
+
+
+--
 -- Name: cohort_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -7468,6 +7424,25 @@ CREATE SEQUENCE public.cohort_clients_id_seq
 --
 
 ALTER SEQUENCE public.cohort_clients_id_seq OWNED BY public.cohort_clients.id;
+
+
+--
+-- Name: cohort_column_metadata_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cohort_column_metadata_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cohort_column_metadata_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cohort_column_metadata_id_seq OWNED BY public.cohort_column_metadata.id;
 
 
 --
@@ -7701,7 +7676,8 @@ CREATE TABLE public.configs (
     enable_auto_deduplication boolean DEFAULT true,
     number_lms_courses_required integer DEFAULT '-1'::integer,
     rds_s3_integration_role_arn character varying,
-    default_lms_email_to_warehouse_email boolean
+    default_lms_email_to_warehouse_email boolean,
+    relevant_state_codes character varying DEFAULT 'MA'::character varying NOT NULL
 );
 
 
@@ -30024,10 +30000,24 @@ ALTER TABLE ONLY public.coc_pit_counts ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: cohort_analytics_generations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cohort_analytics_generations ALTER COLUMN id SET DEFAULT nextval('public.cohort_analytics_generations_id_seq'::regclass);
+
+
+--
 -- Name: cohort_client_changes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.cohort_client_changes ALTER COLUMN id SET DEFAULT nextval('public.cohort_client_changes_id_seq'::regclass);
+
+
+--
+-- Name: cohort_client_data id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cohort_client_data ALTER COLUMN id SET DEFAULT nextval('public.cohort_client_data_id_seq'::regclass);
 
 
 --
@@ -30038,10 +30028,24 @@ ALTER TABLE ONLY public.cohort_client_notes ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: cohort_client_tabs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cohort_client_tabs ALTER COLUMN id SET DEFAULT nextval('public.cohort_client_tabs_id_seq'::regclass);
+
+
+--
 -- Name: cohort_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.cohort_clients ALTER COLUMN id SET DEFAULT nextval('public.cohort_clients_id_seq'::regclass);
+
+
+--
+-- Name: cohort_column_metadata id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cohort_column_metadata ALTER COLUMN id SET DEFAULT nextval('public.cohort_column_metadata_id_seq'::regclass);
 
 
 --
@@ -33597,11 +33601,27 @@ ALTER TABLE ONLY public.coc_pit_counts
 
 
 --
+-- Name: cohort_analytics_generations cohort_analytics_generations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cohort_analytics_generations
+    ADD CONSTRAINT cohort_analytics_generations_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: cohort_client_changes cohort_client_changes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.cohort_client_changes
     ADD CONSTRAINT cohort_client_changes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cohort_client_data cohort_client_data_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cohort_client_data
+    ADD CONSTRAINT cohort_client_data_pkey PRIMARY KEY (id);
 
 
 --
@@ -33613,11 +33633,27 @@ ALTER TABLE ONLY public.cohort_client_notes
 
 
 --
+-- Name: cohort_client_tabs cohort_client_tabs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cohort_client_tabs
+    ADD CONSTRAINT cohort_client_tabs_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: cohort_clients cohort_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.cohort_clients
     ADD CONSTRAINT cohort_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cohort_column_metadata cohort_column_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cohort_column_metadata
+    ADD CONSTRAINT cohort_column_metadata_pkey PRIMARY KEY (id);
 
 
 --
@@ -53281,6 +53317,7 @@ CREATE UNIQUE INDEX idx_tpc_uniqueness ON public.enrollment_extras USING btree (
 
 CREATE INDEX idx_youth_eds_hud_keys ON public."YouthEducationStatus" USING btree ("EnrollmentID", data_source_id, "PersonalID");
 
+
 --
 -- Name: income_benefits_date_created; Type: INDEX; Schema: public; Owner: -
 --
@@ -55060,6 +55097,13 @@ CREATE INDEX index_coc_pit_counts_on_goal_id ON public.coc_pit_counts USING btre
 
 
 --
+-- Name: index_cohort_analytics_generations_on_cohort_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cohort_analytics_generations_on_cohort_id ON public.cohort_analytics_generations USING btree (cohort_id);
+
+
+--
 -- Name: index_cohort_client_changes_on_change; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -55074,6 +55118,20 @@ CREATE INDEX index_cohort_client_changes_on_changed_at ON public.cohort_client_c
 
 
 --
+-- Name: index_cohort_client_data_on_cohort_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cohort_client_data_on_cohort_client_id ON public.cohort_client_data USING btree (cohort_client_id);
+
+
+--
+-- Name: index_cohort_client_data_on_cohort_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cohort_client_data_on_cohort_id ON public.cohort_client_data USING btree (cohort_id);
+
+
+--
 -- Name: index_cohort_client_notes_on_cohort_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -55085,6 +55143,20 @@ CREATE INDEX index_cohort_client_notes_on_cohort_client_id ON public.cohort_clie
 --
 
 CREATE INDEX index_cohort_client_notes_on_deleted_at ON public.cohort_client_notes USING btree (deleted_at);
+
+
+--
+-- Name: index_cohort_client_tabs_on_cohort_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cohort_client_tabs_on_cohort_client_id ON public.cohort_client_tabs USING btree (cohort_client_id);
+
+
+--
+-- Name: index_cohort_client_tabs_on_cohort_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cohort_client_tabs_on_cohort_id ON public.cohort_client_tabs USING btree (cohort_id);
 
 
 --
@@ -55106,6 +55178,13 @@ CREATE INDEX index_cohort_clients_on_cohort_id ON public.cohort_clients USING bt
 --
 
 CREATE INDEX index_cohort_clients_on_deleted_at ON public.cohort_clients USING btree (deleted_at);
+
+
+--
+-- Name: index_cohort_column_metadata_on_cohort_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cohort_column_metadata_on_cohort_id ON public.cohort_column_metadata USING btree (cohort_id);
 
 
 --
@@ -67123,6 +67202,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250213173031'),
 ('20250221151129'),
 ('20250222234500'),
+('20250226145730'),
 ('20250226211623'),
 ('20250226212117'),
-('20250226145730');
+('20250304140538'),
+('20250304141538'),
+('20250304141815'),
+('20250304143644'),
+('20250304143654'),
+('20250304143714'),
+('20250313125655');

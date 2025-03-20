@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Swimlanes help organize tasks by responsibility and are used to determine task assignments.
 module Hmis::WorkflowDefinition
   class Swimlane < GrdaWarehouseBase

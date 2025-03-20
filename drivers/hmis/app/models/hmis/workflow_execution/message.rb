@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Represents a message generated during workflow execution that may trigger actions or external state changes
 
 # A message consists of:

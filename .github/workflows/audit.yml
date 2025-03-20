@@ -12,13 +12,13 @@ jobs:
   # Label of the container job
   audit:
     # Containers must run in Linux based operating systems
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     # Docker Hub image that the job executes in
     container: ruby:3.3.7-alpine3.20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: 'Container Setup'
         id: container-setup

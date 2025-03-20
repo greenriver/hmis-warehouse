@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :hmis_ce_referral, class: 'Hmis::Ce::Referral' do
     association(:opportunity, factory: :hmis_ce_opportunity)

@@ -30,6 +30,7 @@ module GrdaWarehouse::Hud
     include ClientSearch
     include ClientImageConsumer
     include VeteranStatusCalculator
+    include ClientRaceAndEthnicityMixin
     include NotifierConfig
     has_paper_trail
 
@@ -1318,8 +1319,26 @@ module GrdaWarehouse::Hud
       end
     end
 
+    # pii provider for use on client dashboard
     memoize def pii_provider(user:)
       policy = user.policy_for(self)
+      GrdaWarehouse::PiiProvider.new(self, policy: policy)
+    end
+
+    # pii provider for use in reports and bulk view
+    def project_pii_provider(project:, user:, mode:)
+      allowed = false
+      case mode.to_sym
+      when :download
+        allowed = ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      when :browse
+        allowed = true
+      else
+        raise ArgumentError, "Bad mode #{mode}"
+      end
+
+      policy = user.policy_for(project, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if allowed
+      policy ||= GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
     end
 

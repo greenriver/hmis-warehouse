@@ -26,7 +26,7 @@ module Hmis::WorkflowExecution
 
       # node can be started by a user
       event :enable do
-        transitions from: :unavailable, to: :available
+        transitions from: [:unavailable, :completed], to: :available
       end
 
       # node can be disabled due to previous step being un-completed

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Given a workflow task, determine users to be assigned
 module Hmis::Ce
   class ReferralTaskAssignmentHandler

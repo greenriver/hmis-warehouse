@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # * Find all clients that match the given pools's eligibility requirements.
 # * Score each client based on that pools's prioritization formula.
 # * Persist the results as MatchCandidate records to be consumed by opportunities.
