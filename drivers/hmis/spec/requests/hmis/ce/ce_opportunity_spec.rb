@@ -41,6 +41,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                   dateOfBirth: dob
                   veteranStatus
                 }
+                clientId
               }
             }
             activeReferral {
@@ -270,8 +271,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         candidate2 = candidates.second
         expect(candidate1.dig('id')).to eq(anonymous_candidate.id.to_s)
         expect(candidate1.dig('client')).to be_nil
+        expect(candidate1.dig('clientId')).to eq(anonymous_client.id.to_s)
         expect(candidate2.dig('id')).to eq(permissioned_candidate.id.to_s)
         expect(candidate2.dig('client', 'id')).to eq(permissioned_client.id.to_s)
+        expect(candidate2.dig('clientId')).to eq(permissioned_client.id.to_s)
       end
     end
   end
