@@ -17,7 +17,8 @@ module Types
     field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false
     field :project_id, ID, null: false
     field :project_name, String, null: false
-    field :rules, [HmisSchema::CeMatchRule], null: true
+    field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
+    field :priority_scheme, HmisSchema::CeMatchRule, null: true
 
     def candidates
       Hmis::Ce::Match::Candidate.
@@ -37,9 +38,14 @@ module Types
       load_ar_association(object, :project).project_name
     end
 
-    def rules
+    def eligibility_requirements
       # not to be used in batch
-      Hmis::Ce::Match::Rule.for_opportunity(object)
+      Hmis::Ce::Match::Rule.eligibility_requirement.for_opportunity(object)
+    end
+
+    def priority_scheme
+      # not to be used in batch
+      Hmis::Ce::Match::Rule.priority_scheme.for_opportunity(object).first # there should only be 1
     end
   end
 end

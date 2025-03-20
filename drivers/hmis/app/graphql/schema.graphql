@@ -755,12 +755,13 @@ type CeOpportunity {
   acceptedReferral: CeReferral
   activeReferral: CeReferral
   candidates(limit: Int, offset: Int): CeCandidatesPaginated!
+  eligibilityRequirements: [CeMatchRule!]
   expiresAt: ISO8601DateTime
   id: ID!
   name: String!
+  priorityScheme: CeMatchRule
   projectId: ID!
   projectName: String!
-  rules: [CeMatchRule!]
   status: CeOpportunityStatus!
 }
 

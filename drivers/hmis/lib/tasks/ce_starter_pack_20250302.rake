@@ -255,17 +255,6 @@ task ce_starter_pack_20250302: [:environment] do
   days_homeless_priority.applicability_config = {}
   days_homeless_priority.save! if days_homeless_priority.changed?
 
-  if Hmis::Ce::Opportunity.open.any?
-    # if there are any Opportunities in the database, create an example of a match rule owned by the opportunity
-    aha_score_priority = Hmis::Ce::Match::Rule.find_or_initialize_by(name: 'AHA score')
-    aha_score_priority.expression = 'aha_score'
-    aha_score_priority.rule_type = 'priority_scheme'
-    aha_score_priority.owner = Hmis::Ce::Opportunity.open.order(:id).first
-    aha_score_priority.name = 'AHA score'
-    aha_score_priority.applicability_config = {}
-    aha_score_priority.save! if aha_score_priority.changed?
-  end
-
   # Create candidates for opportunities. First create some opportunities using the frontend
   puts 'Building a candidate pool'
   Hmis::Ce::Match::CandidatePoolBuilder.new.perform

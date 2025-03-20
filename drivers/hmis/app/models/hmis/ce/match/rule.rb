@@ -17,8 +17,16 @@ module Hmis::Ce::Match
       rule_type == ELIGIBILITY_REQUIREMENT
     end
 
+    scope :eligibility_requirement, -> do
+      where(rule_type: ELIGIBILITY_REQUIREMENT)
+    end
+
     def priority_scheme?
       rule_type == PRIORITY_SCHEME
+    end
+
+    scope :priority_scheme, -> do
+      where(rule_type: PRIORITY_SCHEME)
     end
 
     def applies_to_opportunity?(opportunity)
