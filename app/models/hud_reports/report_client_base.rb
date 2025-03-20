@@ -55,8 +55,10 @@ module HudReports
         HudUtility2024.relationship_to_hoh(cell)
       when /.*disabling_condition$/
         HudUtility2024.disability_response(cell)
-      when 'first_name', 'last_name', 'middle_name', 'full_name', 'brief_name'
+      when /.*first_name$/, /.*last_name$/, /.*middle_name$/, /.*full_name$/, /.*brief_name$/
         GrdaWarehouse::PiiProvider.viewable_name(cell, policy: pii_policy)
+      when /.*hiv_aids/
+        GrdaWarehouse::PiiProvider.viewable_hiv_status(cell, policy: pii_policy)
       else
         cell
       end
