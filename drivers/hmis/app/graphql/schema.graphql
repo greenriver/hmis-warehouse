@@ -710,6 +710,9 @@ type CeAssessmentsPaginated {
 }
 
 type CeCandidate {
+  """
+  Null if the user lacks permission to view the client
+  """
   client: Client
   clientId: ID!
   id: ID!
@@ -759,7 +762,6 @@ type CeOpportunity {
   projectName: String!
   rules: [CeMatchRule!]
   status: CeOpportunityStatus!
-  topCandidate: CeCandidate
 }
 
 input CeOpportunityInput {
