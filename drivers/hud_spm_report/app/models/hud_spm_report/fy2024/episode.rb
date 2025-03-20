@@ -89,6 +89,7 @@ module HudSpmReport::Fy2024
         # when not including 3.917
         []
       end
+      # note, at this point the array is no-longer sorted
       filtered_bed_nights += pre_entry_dates
       return unless filtered_bed_nights.present?
 
@@ -113,12 +114,16 @@ module HudSpmReport::Fy2024
         )
       end
 
-      dates = filtered_bed_nights.map(&:last)
+      first_date, last_date, days_homeless, first_date_enrollments = compute_episode_statistics(filtered_bed_nights)
+      literally_homeless_at_entry = first_date_enrollments.any? do |enrollment|
+        enrollment_literally_homeless_at_entry(enrollment)
+      end
+
       assign_attributes(
-        first_date: dates.first, # dates is sorted in filter_bed_nights, so first/last should be min/max
-        last_date: dates.last,
-        days_homeless: filtered_bed_nights.count,
-        literally_homeless_at_entry: literally_homeless_at_entry(filtered_bed_nights, dates.first),
+        first_date: first_date,
+        last_date: last_date,
+        days_homeless: days_homeless,
+        literally_homeless_at_entry: literally_homeless_at_entry,
       )
 
       {
@@ -127,6 +132,33 @@ module HudSpmReport::Fy2024
         enrollment_links: enrollment_links_array,
         any_bed_nights_in_report_range: any_bed_nights_in_report_range,
       }
+    end
+
+    # @param bed_nights [Array] an array of [enrollment, index(?), date]
+    private def compute_episode_statistics(bed_nights)
+      min_val = bed_nights[0].last # The date component
+      max_val = bed_nights[0].last
+      distinct = {}
+      distinct_count = 0
+      first_date_enrollments = Set.new
+
+      bed_nights.each do |enrollment, _, date|
+        if date < min_val
+          min_val = date
+          first_date_enrollments = Set.new([enrollment]) # Reset to just this enrollment
+        elsif date == min_val
+          first_date_enrollments.add(enrollment) # Add to enrollments for first date
+        end
+        max_val = date if date > max_val
+
+        next if distinct.key?(date)
+
+        distinct[date] = true
+        distinct_count += 1
+      end
+
+      # Return min date, max date, count of distinct dates, and enrollments for min date
+      [min_val, max_val, distinct_count, first_date_enrollments]
     end
 
     private def candidate_bed_nights(enrollments, project_types, include_self_reported_and_ph)
@@ -296,10 +328,6 @@ module HudSpmReport::Fy2024
 
       # Finally, return the selected dates
       calculated_bed_nights[index ..]
-    end
-
-    private def literally_homeless_at_entry(bed_nights, first_date)
-      enrollment_literally_homeless_at_entry(bed_nights.detect { |_, _, date| date == first_date }.first)
     end
 
     private def enrollment_literally_homeless_at_entry(enrollment)
