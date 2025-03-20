@@ -34,7 +34,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
     admin.legacy_roles << admin_role
   end
 
-  def run_entity_tests(collection:, coc_codes:, data_sources:, organizations:, projects:, project_groups:, project_access_groups:, reports:, cohorts:)
+  def run_entity_tests(collection:, coc_codes: [], data_sources: [], organizations: [], projects: [], project_groups: [], project_access_groups: [], reports: [], cohorts: [])
     collection.reload
     expect(collection.reload.coc_codes).to eq(coc_codes)
     expect(collection.reload.data_source_ids).to eq(data_sources)
@@ -181,6 +181,8 @@ RSpec.describe Admin::CollectionsController, type: :request do
     end
 
     it 'Updating current collection viewables #bulk_entities' do
+      expected = {}
+
       coc_codes['XX-001'] = '1'
       data_sources[data_source.id.to_s] = '1'
       organizations[organization.id.to_s] = '1'
@@ -190,110 +192,29 @@ RSpec.describe Admin::CollectionsController, type: :request do
       reports[report.id.to_s] = '1'
       cohorts[cohort.id.to_s] = '1'
 
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'coc_codes')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: ['XX-001'],
-        data_sources: [],
-        organizations: [],
-        projects: [],
-        project_groups: [],
-        project_access_groups: [],
-        reports: [],
-        cohorts: [],
-      )
+      # Each entity should only be updating their corresponding viewable on the collection and should not be changing the values of the other entities
+      ['coc_codes', 'data_sources', 'organizations', 'projects', 'project_groups', 'project_access_groups', 'reports', 'cohorts'].each do |entity|
+        # Set the expected value for this specific entity. Any entity that had previously been set will remain, but all future entities in the loop will still be expected to have a [] value.
+        # This will help ensure that only the expected entity is being updated.
+        expected[entity.to_sym] = bulk_entities_params[:collection][entity.to_sym].keys.select { |k| bulk_entities_params[:collection][entity.to_sym][k] == '1' }
+        expected[entity.to_sym] = expected[entity.to_sym].map(&:to_i) unless entity == 'coc_codes'
+        # Update the entity on the collection
+        patch bulk_entities_admin_collection_path(project_collection), params: bulk_entities_params.merge(entities: entity)
+        # Verify the updated collection
+        run_entity_tests(
+          collection: project_collection,
+          coc_codes: expected[:coc_codes] || [],
+          data_sources: expected[:data_sources] || [],
+          organizations: expected[:organizations] || [],
+          projects: expected[:projects] || [],
+          project_groups: expected[:project_groups] || [],
+          project_access_groups: expected[:project_access_groups] || [],
+          reports: expected[:reports] || [],
+          cohorts: expected[:cohorts] || [],
+        )
+      end
 
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'data_sources')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: ['XX-001'],
-        data_sources: [data_source.id],
-        organizations: [],
-        projects: [],
-        project_groups: [],
-        project_access_groups: [],
-        reports: [],
-        cohorts: [],
-      )
-
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'organizations')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: ['XX-001'],
-        data_sources: [data_source.id],
-        organizations: [organization.id],
-        projects: [],
-        project_groups: [],
-        project_access_groups: [],
-        reports: [],
-        cohorts: [],
-      )
-
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'projects')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: ['XX-001'],
-        data_sources: [data_source.id],
-        organizations: [organization.id],
-        projects: [project.id],
-        project_groups: [],
-        project_access_groups: [],
-        reports: [],
-        cohorts: [],
-      )
-
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'project_groups')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: ['XX-001'],
-        data_sources: [data_source.id],
-        organizations: [organization.id],
-        projects: [project.id],
-        project_groups: [project_group.id],
-        project_access_groups: [],
-        reports: [],
-        cohorts: [],
-      )
-
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'project_access_groups')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: ['XX-001'],
-        data_sources: [data_source.id],
-        organizations: [organization.id],
-        projects: [project.id],
-        project_groups: [project_group.id],
-        project_access_groups: [project_group.id],
-        reports: [],
-        cohorts: [],
-      )
-
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'reports')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: ['XX-001'],
-        data_sources: [data_source.id],
-        organizations: [organization.id],
-        projects: [project.id],
-        project_groups: [project_group.id],
-        project_access_groups: [project_group.id],
-        reports: [report.id],
-        cohorts: [],
-      )
-
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'cohorts')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: ['XX-001'],
-        data_sources: [data_source.id],
-        organizations: [organization.id],
-        projects: [project.id],
-        project_groups: [project_group.id],
-        project_access_groups: [project_group.id],
-        reports: [report.id],
-        cohorts: [cohort.id],
-      )
-
+      # We are now going to remove each entity and ensure that only the entity being removed is affected
       coc_codes['XX-001'] = '0'
       data_sources[data_source.id.to_s] = '0'
       organizations[organization.id.to_s] = '0'
@@ -303,109 +224,25 @@ RSpec.describe Admin::CollectionsController, type: :request do
       reports[report.id.to_s] = '0'
       cohorts[cohort.id.to_s] = '0'
 
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'coc_codes')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: [],
-        data_sources: [data_source.id],
-        organizations: [organization.id],
-        projects: [project.id],
-        project_groups: [project_group.id],
-        project_access_groups: [project_group.id],
-        reports: [report.id],
-        cohorts: [cohort.id],
-      )
-
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'data_sources')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: [],
-        data_sources: [],
-        organizations: [organization.id],
-        projects: [project.id],
-        project_groups: [project_group.id],
-        project_access_groups: [project_group.id],
-        reports: [report.id],
-        cohorts: [cohort.id],
-      )
-
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'organizations')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: [],
-        data_sources: [],
-        organizations: [],
-        projects: [project.id],
-        project_groups: [project_group.id],
-        project_access_groups: [project_group.id],
-        reports: [report.id],
-        cohorts: [cohort.id],
-      )
-
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'projects')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: [],
-        data_sources: [],
-        organizations: [],
-        projects: [],
-        project_groups: [project_group.id],
-        project_access_groups: [project_group.id],
-        reports: [report.id],
-        cohorts: [cohort.id],
-      )
-
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'project_groups')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: [],
-        data_sources: [],
-        organizations: [],
-        projects: [],
-        project_groups: [],
-        project_access_groups: [project_group.id],
-        reports: [report.id],
-        cohorts: [cohort.id],
-      )
-
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'project_access_groups')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: [],
-        data_sources: [],
-        organizations: [],
-        projects: [],
-        project_groups: [],
-        project_access_groups: [],
-        reports: [report.id],
-        cohorts: [cohort.id],
-      )
-
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'reports')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: [],
-        data_sources: [],
-        organizations: [],
-        projects: [],
-        project_groups: [],
-        project_access_groups: [],
-        reports: [],
-        cohorts: [cohort.id],
-      )
-
-      patch bulk_entities_admin_collection_path(legacy_project_collection), params: bulk_entities_params.merge(entities: 'cohorts')
-      run_entity_tests(
-        collection: legacy_project_collection,
-        coc_codes: [],
-        data_sources: [],
-        organizations: [],
-        projects: [],
-        project_groups: [],
-        project_access_groups: [],
-        reports: [],
-        cohorts: [],
-      )
+      ['coc_codes', 'data_sources', 'organizations', 'projects', 'project_groups', 'project_access_groups', 'reports', 'cohorts'].each do |entity|
+        # Set the expected value for this specific entity to []. Any entity that had previously been set will also be an empty array, but all future entities in the
+        # loop will still be expected to have a previously set value. This will help ensure that only the expected entity is being updated.
+        expected[entity.to_sym] = []
+        # Update the entity on the collection
+        patch bulk_entities_admin_collection_path(project_collection), params: bulk_entities_params.merge(entities: entity)
+        # Verify the updated collection
+        run_entity_tests(
+          collection: project_collection,
+          coc_codes: expected[:coc_codes] || [],
+          data_sources: expected[:data_sources] || [],
+          organizations: expected[:organizations] || [],
+          projects: expected[:projects] || [],
+          project_groups: expected[:project_groups] || [],
+          project_access_groups: expected[:project_access_groups] || [],
+          reports: expected[:reports] || [],
+          cohorts: expected[:cohorts] || [],
+        )
+      end
     end
   end
 end
