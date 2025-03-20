@@ -721,6 +721,11 @@ Rails.application.routes.draw do
   end
 
   namespace :admin do
+    if Rails.env.staging? || Rails.env.development?
+      get 'console', to: 'console#index'
+      post 'console/execute', to: 'console#execute'
+    end
+
     # resolves route clash w/ devise
     resources :users, except: [:show, :new, :create] do
       resource :resend_invitation, only: :create

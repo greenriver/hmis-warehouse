@@ -1,0 +1,229 @@
+
+<!-- app/views/admin/console/index.html.erb -->
+<div class="console-container">
+  <h1>Rails Console</h1>
+
+  <div class="console-output" id="console-output">
+    <!-- Content will be added here dynamically -->
+  </div>
+
+  <div class="console-form">
+    <div class="input-wrapper">
+      <span class="prompt">&gt;</span>
+      <input type="text" id="console-input" autofocus>
+    </div>
+    <button id="execute-btn" class="execute-btn">Execute</button>
+  </div>
+</div>
+
+<style>
+  .console-container {
+    background: #2b2b2b;
+    color: #f8f8f2;
+    font-family: monospace;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .console-output {
+    height: 400px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #1e1e1e;
+  }
+
+  .console-command {
+    color: #a6e22e;
+    margin-bottom: 5px;
+  }
+
+  .console-result {
+    color: #e6db74;
+    margin-bottom: 15px;
+    white-space: pre-wrap;
+  }
+
+  .console-form {
+    display: flex;
+    width: 100%;
+  }
+
+  .input-wrapper {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    background: #1e1e1e;
+    padding: 5px;
+  }
+
+  .prompt {
+    color: #a6e22e;
+    margin-right: 5px;
+  }
+
+  #console-input {
+    background: transparent;
+    border: none;
+    color: #f8f8f2;
+    font-family: monospace;
+    width: 100%;
+    outline: none;
+  }
+
+  .execute-btn {
+    background: #a6e22e;
+    color: #272822;
+    border: none;
+    padding: 0 15px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .error {
+    color: #f92672;
+  }
+
+  .loading {
+    color: #66d9ef;
+    font-style: italic;
+  }
+</style>
+
+<% content_for(:page_js) do %>
+<script>
+  $(document).ready(function() {
+    const consoleOutput = $('#console-output');
+    const consoleInput = $('#console-input');
+    const executeBtn = $('#execute-btn');
+
+    let commandHistory = JSON.parse(sessionStorage.getItem('railsConsoleHistory') || '[]');
+    let historyPosition = commandHistory.length;
+
+    // Display command history in the console output
+    commandHistory.forEach(cmd => {
+      consoleOutput.append($('<div class="console-command">').text('> ' + cmd));
+    });
+
+    // Scroll to bottom of console output
+    consoleOutput.scrollTop(consoleOutput[0].scrollHeight);
+
+    // Set focus to input field
+    consoleInput.focus();
+
+    // Function to execute code
+    function executeCode() {
+      const code = consoleInput.val().trim();
+      if (!code) return;
+
+      // Add command to output
+      consoleOutput.append($('<div class="console-command">').text('> ' + code));
+
+      // Add loading indicator
+      const loadingElement = $('<div class="loading">').text('Executing...');
+      consoleOutput.append(loadingElement);
+      consoleOutput.scrollTop(consoleOutput[0].scrollHeight);
+
+      // Disable input while executing
+      consoleInput.prop('disabled', true);
+      executeBtn.prop('disabled', true);
+
+      // Send AJAX request
+      $.ajax({
+        url: <%= admin_console_execute_path(token: params[:token]).to_json.html_safe %>,
+        type: 'POST',
+        data: {
+          code: code,
+          authenticity_token: <%= form_authenticity_token&.to_json.html_safe %>
+        },
+        dataType: 'json',
+        success: function(data) {
+          // Remove loading indicator
+          loadingElement.remove();
+
+          // Display result
+          const resultClass = data.error ? 'console-result error' : 'console-result';
+          consoleOutput.append($('<pre class="' + resultClass + '">').text(data.output));
+
+          // Add command to history if not a duplicate of last command
+          if (commandHistory.length === 0 || commandHistory[commandHistory.length - 1] !== code) {
+            commandHistory.push(code);
+            // Limit history size
+            if (commandHistory.length > 100) {
+              commandHistory = commandHistory.slice(-100);
+            }
+            sessionStorage.setItem('railsConsoleHistory', JSON.stringify(commandHistory));
+          }
+          historyPosition = commandHistory.length;
+
+          // Clear input
+          consoleInput.val('');
+
+          // Scroll to bottom
+          consoleOutput.scrollTop(consoleOutput[0].scrollHeight);
+        },
+        error: function(xhr, status, error) {
+          // Remove loading indicator
+          loadingElement.remove();
+
+          // Display error
+          consoleOutput.append($('<pre class="console-result error">').text('Request failed: ' + error));
+
+          // Scroll to bottom
+          consoleOutput.scrollTop(consoleOutput[0].scrollHeight);
+        },
+        complete: function() {
+          // Re-enable input
+          consoleInput.prop('disabled', false);
+          executeBtn.prop('disabled', false);
+          consoleInput.focus();
+        }
+      });
+    }
+
+    // Execute on button click
+    executeBtn.click(function(e) {
+      e.preventDefault();
+      executeCode();
+    });
+
+    // Execute on Enter key
+    consoleInput.keydown(function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        executeCode();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (historyPosition > 0) {
+          historyPosition--;
+          consoleInput.val(commandHistory[historyPosition]);
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyPosition < commandHistory.length - 1) {
+          historyPosition++;
+          consoleInput.val(commandHistory[historyPosition]);
+        } else if (historyPosition === commandHistory.length - 1) {
+          historyPosition++;
+          consoleInput.val('');
+        }
+      }
+    });
+
+    // Reset history position when input changes (except arrow keys)
+    consoleInput.on('input', function() {
+      historyPosition = commandHistory.length;
+    });
+
+    // Focus on input when clicking anywhere in the console container
+    $('.console-container').click(function(e) {
+      if (e.target === this || $(e.target).hasClass('console-output')) {
+        consoleInput.focus();
+      }
+    });
+  });
+</script>
+
+<% end %>
