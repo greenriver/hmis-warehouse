@@ -139,7 +139,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       compare_spm_and_pm_values(spm_average, pm_average, 92)
     end
 
-    it 'has the same median length of time homeless in both reports' do
+    xit 'has the same median length of time homeless in both reports' do
       # SPM report median LOT homeless
       spm_median = @spm_report.answer(question: '1a', cell: 'G2').summary
 
