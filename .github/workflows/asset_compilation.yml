@@ -57,8 +57,8 @@ jobs:
           - gha_production_load_17
           - gha_production_load_18
 
-    runs-on: ubuntu-20.04
-    container: ruby:3.1.6-alpine3.20
+    runs-on: ubuntu-22.04
+    container: ruby:3.3.7-alpine3.20
 
     steps:
     - name: Checkout

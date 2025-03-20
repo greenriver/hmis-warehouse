@@ -1,10 +1,10 @@
-- akas = client_aliases(client)
+- akas = current_user.client_view_accessor.searchable_client_names(client)
 - if akas.any?
   .clients__client-additional-names
-    - akas.each_with_index do | aka, i |
+    - akas.each do |aka|
       .client__client-name
         .client-aka
-          = aka
+          = render_client_alias(aka)
 .ml-auto.mt-4.text-muted.text-small.h3
   Warehouse ID:
   = client.id

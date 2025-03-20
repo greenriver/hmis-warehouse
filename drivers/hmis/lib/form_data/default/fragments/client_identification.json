@@ -57,7 +57,8 @@
                 "record_type": "CLIENT",
                 "field_name": "dobDataQuality"
               },
-              "pick_list_reference": "DOBDataQuality"
+              "pick_list_reference": "DOBDataQuality",
+              "size": "MEDIUM"
             }
           ],
           "enable_when": [
@@ -118,7 +119,8 @@
                 "record_type": "CLIENT",
                 "field_name": "ssnDataQuality"
               },
-              "pick_list_reference": "SSNDataQuality"
+              "pick_list_reference": "SSNDataQuality",
+              "size": "MEDIUM"
             }
           ],
           "enable_when": [

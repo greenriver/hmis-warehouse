@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 require 'memery'
 require 'restclient'
 
@@ -756,26 +758,6 @@ module GrdaWarehouse::Hud
       names = source_clients.map(&:full_name).uniq
       names -= [full_name]
       names.join(',')
-    end
-
-    def client_names(user:, health: false)
-      names = source_clients_searchable_to(user).map do |client|
-        {
-          ds: client.data_source&.short_name,
-          ds_id: client.data_source&.id,
-          name: client.pii_provider(user: user).full_name,
-          health: client.data_source&.authoritative_type == 'health',
-        }
-      end
-
-      if health && names.none? { |name| name[:health].present? } && patient.present?
-        names << {
-          ds: 'Health',
-          ds_id: GrdaWarehouse::DataSource.health_authoritative_id,
-          name: patient.pii_provider(user: user).brief_name,
-        }
-      end
-      names.uniq
     end
 
     # client has a disability response in the affirmative

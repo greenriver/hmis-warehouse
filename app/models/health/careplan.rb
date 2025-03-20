@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 # ### HIPAA Risk Assessment
 # Risk: Relates to a patient and contains PHI
 # Control: PHI attributes documented
@@ -251,12 +253,6 @@ module Health
     # If we have the patient signature, and they just signed, it was just finished
     def just_finished?
       patient_signed_on.present? && patient_signed_on_changed?
-    end
-
-    # We need both signatures, and one of must have just been done
-    # FIXME: Left until HelloSign is removed
-    def just_signed?
-      (patient_signed_on.present? && provider_signed_on.present?) && (patient_signed_on_changed? || provider_signed_on_changed?)
     end
 
     def ncm_just_approved?

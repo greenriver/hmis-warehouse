@@ -211,9 +211,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         form_definition_id: fd1.id.to_s,
         values: {
           'exit_date' => today.to_fs(:db),
+          'exit_destination' => 'NO_EXIT_INTERVIEW_COMPLETED',
         },
         hud_values: {
           'Exit.exitDate' => today.to_fs(:db),
+          'Exit.destination' => 'NO_EXIT_INTERVIEW_COMPLETED',
         },
       }
     end
@@ -242,7 +244,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq(200), result.inspect
         errors = result.dig('data', 'submitAssessment', 'errors')
         expected = Hmis::Hud::Validators::BaseValidator.after_project_end_message(p1.operating_end_date)
-        expect(errors).to include(a_hash_including('message' => expected))
+        expect(errors).to contain_exactly(a_hash_including('message' => expected))
       end
     end
 
@@ -253,7 +255,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq(200), result.inspect
         errors = result.dig('data', 'submitAssessment', 'errors')
         expected = Hmis::Hud::Validators::BaseValidator.before_project_start_message(p1.operating_start_date)
-        expect(errors).to include(a_hash_including('message' => expected))
+        expect(errors).to contain_exactly(a_hash_including('message' => expected))
+      end
+    end
+
+    # regression test for validation error being duplicated
+    context 'where proposed exit date is before entry date' do
+      let(:today) { 1.week.ago } # update test_input
+      before(:each) { e1.update!(entry_date: 2.days.ago) }
+      it 'should error if exit date is before entry date' do
+        response, result = post_graphql(input: { input: test_input }) { mutation }
+        expect(response.status).to eq(200), result.inspect
+        errors = result.dig('data', 'submitAssessment', 'errors')
+        expected = Hmis::Hud::Validators::BaseValidator.before_entry_message(e1.entry_date)
+        expect(errors).to contain_exactly(a_hash_including('message' => expected))
       end
     end
   end
@@ -390,7 +405,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           )
           a_hash_including(attrs)
         end
-        expect(errors).to match(expected_match)
+        expect(errors).to contain_exactly(*expected_match)
       end
     end
   end

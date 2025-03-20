@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Reads objects from the inbox S3 bucket, processes each CSV file, matches clients to warehouse db, and then writes the results to the outbox S3 bucket.
 class IdentifyExternalClientsJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
@@ -38,9 +40,9 @@ class IdentifyExternalClientsJob < BaseJob
         input_key = input_object.key
 
         data_string = s3.get_as_io(key: input_key)&.read
-        content_type = FileMagic.new(FileMagic::MAGIC_MIME_TYPE).buffer(data_string)
+        content_type = Marcel::MimeType.for(data_string, name: File.basename(input_key))
         # If we didn't find a file (or are looking at a directory), just skip
-        next if content_type == 'application/x-empty'
+        next if content_type.in?(['application/x-empty', 'application/octet-stream'])
 
         if ! content_type.in?(['text/csv', 'text/plain'])
           log("invalid content type #{content_type}", object_key: input_key)
