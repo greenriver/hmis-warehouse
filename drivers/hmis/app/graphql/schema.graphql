@@ -710,7 +710,7 @@ type CeAssessmentsPaginated {
 }
 
 type CeCandidate {
-  client: Client!
+  client: Client
   id: ID!
   priorityScore: Int!
 }

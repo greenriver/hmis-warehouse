@@ -7,18 +7,6 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
-  let!(:ds_access_control) do
-    create_access_control(
-      hmis_user,
-      ds1,
-      with_permission: [
-        :can_view_clients,
-        :can_view_project,
-        :can_view_enrollment_details,
-      ],
-    )
-  end
-
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
     hmis_login(user)
@@ -28,52 +16,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
   let(:candidate_pool) { create :hmis_ce_match_candidate_pool }
   let(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool }
-
-  let!(:client_1) do
-    create(:hmis_hud_client, data_source: ds1)
-  end
-  let!(:client_2) do
-    create(:hmis_hud_client, data_source: ds1)
-  end
-  let!(:client_with_active_referral) do
-    create(:hmis_hud_client, data_source: ds1)
-  end
-
-  # Create candidates in the pool
-  let!(:candidate1) do
-    create(
-      :hmis_ce_match_candidate,
-      candidate_pool: candidate_pool,
-      client: client_1,
-      priority_score: 80,
-    )
-  end
-  let!(:candidate2) do
-    create(
-      :hmis_ce_match_candidate,
-      candidate_pool: candidate_pool,
-      client: client_2,
-      priority_score: 100,
-    )
-  end
-  let!(:candidate3) do
-    create(
-      :hmis_ce_match_candidate,
-      candidate_pool: candidate_pool,
-      client: client_with_active_referral,
-      priority_score: 90,
-    )
-  end
-
-  # Create an active referral for one client
-  let!(:active_referral) do
-    create(
-      :hmis_ce_referral,
-      opportunity: opportunity,
-      client: client_with_active_referral,
-      status: 'in_progress',
-    )
-  end
 
   describe 'ce_opportunity query' do
     let(:query) do
@@ -88,6 +30,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
             }
             candidates {
+              nodesCount
               nodes {
                 id
                 priorityScore
@@ -115,66 +58,126 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
     end
 
-    context 'when querying an opportunity' do
-      it 'returns basic opportunity expected results' do
-        response, result = post_graphql(**variables) { query }
-        expect(response.status).to eq(200), result.inspect
-
-        opportunity_data = result.dig('data', 'ceOpportunity')
-
-        expect(opportunity_data).to include(
-          'id' => opportunity.id.to_s,
-          'name' => opportunity.name,
-          'status' => opportunity.status,
-        )
-
-        top_candidate = result.dig('data', 'ceOpportunity', 'topCandidate')
-        candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
-
-        expect(candidates).to be_an(Array)
-        expect(candidates.length).to eq(2) # Should only include 2 candidates (excluding the one with active referral)
-
-        # Verify candidates are ordered by priority score
-        expect(candidates.map { |c| c['priorityScore'] }).to eq([100, 80])
-
-        # Verify first candidate (highest priority)
-        expect(candidates[0]).to include(
-          'priorityScore' => 100,
-          'client' => include(
-            'id' => client_2.id.to_s,
-          ),
-        )
-        expect(top_candidate['id']).to eq(candidates[0]['id'])
-
-        # Verify second candidate
-        expect(candidates[1]).to include(
-          'priorityScore' => 80,
-          'client' => include(
-            'id' => client_1.id.to_s,
-          ),
+    describe 'when the opportunity has candidates and an active referral' do
+      let!(:ds_access_control) do
+        create_access_control(
+          hmis_user,
+          ds1,
+          with_permission: [
+            :can_view_clients,
+            :can_view_project,
+            :can_view_enrollment_details,
+          ],
         )
       end
 
-      it 'excludes clients with active referrals' do
-        response, result = post_graphql(**variables) { query }
-        expect(response.status).to eq(200), result.inspect
-
-        candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
-
-        candidate_client_ids = candidates.map { |c| c.dig('client', 'id') }
-        expect(candidate_client_ids).not_to include(client_with_active_referral.id.to_s)
+      let!(:client_1) do
+        create(:hmis_hud_client, data_source: ds1)
+      end
+      let!(:client_2) do
+        create(:hmis_hud_client, data_source: ds1)
+      end
+      let!(:client_with_active_referral) do
+        create(:hmis_hud_client, data_source: ds1)
       end
 
-      it 'returns the active referral' do
-        response, result = post_graphql(**variables) { query }
-        expect(response.status).to eq(200), result.inspect
-
-        active_referral_data = result.dig('data', 'ceOpportunity', 'activeReferral')
-
-        expect(active_referral_data).to include(
-          'id' => active_referral.id.to_s,
-          'status' => 'in_progress',
+      # Create candidates in the pool
+      let!(:candidate1) do
+        create(
+          :hmis_ce_match_candidate,
+          candidate_pool: candidate_pool,
+          client: client_1,
+          priority_score: 80,
         )
+      end
+      let!(:candidate2) do
+        create(
+          :hmis_ce_match_candidate,
+          candidate_pool: candidate_pool,
+          client: client_2,
+          priority_score: 100,
+        )
+      end
+      let!(:candidate3) do
+        create(
+          :hmis_ce_match_candidate,
+          candidate_pool: candidate_pool,
+          client: client_with_active_referral,
+          priority_score: 90,
+        )
+      end
+
+      # Create an active referral for one client
+      let!(:active_referral) do
+        create(
+          :hmis_ce_referral,
+          opportunity: opportunity,
+          client: client_with_active_referral,
+          status: 'in_progress',
+        )
+      end
+
+      context 'when querying an opportunity' do
+        it 'returns basic opportunity expected results' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          opportunity_data = result.dig('data', 'ceOpportunity')
+
+          expect(opportunity_data).to include(
+            'id' => opportunity.id.to_s,
+            'name' => opportunity.name,
+            'status' => opportunity.status,
+          )
+
+          top_candidate = result.dig('data', 'ceOpportunity', 'topCandidate')
+          candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+
+          expect(candidates).to be_an(Array)
+          expect(candidates.length).to eq(2) # Should only include 2 candidates (excluding the one with active referral)
+
+          # Verify candidates are ordered by priority score
+          expect(candidates.map { |c| c['priorityScore'] }).to eq([100, 80])
+
+          # Verify first candidate (highest priority)
+          expect(candidates[0]).to include(
+            'priorityScore' => 100,
+            'client' => include(
+              'id' => client_2.id.to_s,
+            ),
+          )
+          expect(top_candidate['id']).to eq(candidates[0]['id'])
+
+          # Verify second candidate
+          expect(candidates[1]).to include(
+            'priorityScore' => 80,
+            'client' => include(
+              'id' => client_1.id.to_s,
+            ),
+          )
+        end
+
+        it 'excludes clients with active referrals' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+
+          candidate_client_ids = candidates.map { |c| c.dig('client', 'id') }
+          expect(candidate_client_ids).not_to include(client_with_active_referral.id.to_s)
+        end
+
+        it 'returns the active referral' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          active_referral_data = result.dig('data', 'ceOpportunity', 'activeReferral')
+
+          expect(active_referral_data).to include(
+            'id' => active_referral.id.to_s,
+            'status' => 'in_progress',
+          )
+        end
       end
     end
 
@@ -197,6 +200,78 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(candidates).to be_an(Array)
         expect(candidates).to be_empty
         expect(top_candidate).to be_nil
+      end
+    end
+
+    context 'when the opportunity has lots of candidates' do
+      before do
+        200.times do
+          client = create(:hmis_hud_client, data_source: ds1)
+          create(:hmis_ce_match_candidate, candidate_pool: candidate_pool, client: client, priority_score: rand(80..100))
+        end
+      end
+
+      it 'queries the db a reasonable amount' do
+        expect do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodesCount')).to eq(200)
+        end.to make_database_queries(count: 30..40)
+      end
+    end
+
+    context 'when the opportunity has some candidates the current user lacks permission to view' do
+      let(:candidate_pool_with_anonymous) { create :hmis_ce_match_candidate_pool }
+      let(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool_with_anonymous }
+
+      let!(:permissioned_project) { create :hmis_hud_project, data_source: ds1, user: u1 }
+      let!(:other_project) { create :hmis_hud_project, data_source: ds1, user: u1 }
+
+      let!(:project_access_control) do
+        create_access_control(
+          hmis_user,
+          permissioned_project,
+          with_permission: [
+            :can_view_clients,
+            :can_view_project,
+            :can_view_enrollment_details,
+          ],
+        )
+      end
+
+      let!(:permissioned_client) { create(:hmis_hud_client, data_source: ds1, with_enrollment_at: permissioned_project) }
+      let!(:anonymous_client) { create(:hmis_hud_client, data_source: ds1, with_enrollment_at: other_project) }
+
+      let!(:permissioned_candidate) do
+        create(
+          :hmis_ce_match_candidate,
+          candidate_pool: candidate_pool_with_anonymous,
+          client: permissioned_client,
+          priority_score: 80,
+        )
+      end
+      let!(:anonymous_candidate) do
+        create(
+          :hmis_ce_match_candidate,
+          candidate_pool: candidate_pool_with_anonymous,
+          client: anonymous_client,
+          priority_score: 100,
+        )
+      end
+
+      it 'returns some candidates without clients' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
+        expect(candidates.length).to eq(2)
+
+        candidate1 = candidates.first
+        candidate2 = candidates.second
+        expect(candidate1.dig('id')).to eq(anonymous_candidate.id.to_s)
+        expect(candidate1.dig('client')).to be_nil
+        expect(candidate2.dig('id')).to eq(permissioned_candidate.id.to_s)
+        expect(candidate2.dig('client', 'id')).to eq(permissioned_client.id.to_s)
       end
     end
   end
