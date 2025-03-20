@@ -23,9 +23,9 @@ module Hmis::Ce::Match
     def _perform
       grouped = {}
 
-      all_rules = Hmis::Ce::Match::Rule.order(:owner_type, :id).to_a
+      all_rules = Hmis::Ce::Match::Rule.preload(:owner).order(:owner_type, :id).to_a
       # group opportunities by unique priority and eligibility rules
-      active_opportunities.each do |opportunity|
+      active_opportunities.preload(project: [:organization, :funders]).each do |opportunity|
         rules = all_rules.filter { |rule| rule.applies_to_opportunity?(opportunity) }
         key = []
         key << (rules.filter(&:priority_scheme?).first&.expression || '0')

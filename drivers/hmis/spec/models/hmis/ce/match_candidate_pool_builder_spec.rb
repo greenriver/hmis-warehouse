@@ -57,4 +57,18 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       builder.perform
     end
   end
+
+  describe 'when there are many rules' do
+    before do
+      50.times { create(:hmis_ce_eligibility_requirement, owner: opportunity) }
+      50.times { create(:hmis_ce_eligibility_requirement, owner: project) }
+      50.times { create(:hmis_ce_eligibility_requirement, owner: organization) }
+    end
+
+    it 'queries the db a reasonable amount' do
+      expect do
+        builder.perform
+      end.to make_database_queries(count: 10..20)
+    end
+  end
 end

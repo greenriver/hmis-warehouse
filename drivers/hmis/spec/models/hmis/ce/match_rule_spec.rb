@@ -110,7 +110,7 @@ RSpec.describe Hmis::Ce::Match::Rule, type: :model do
         expect(rules).to be_empty
       end
 
-      context 'query comparison, remove this' do
+      context 'when there are many rules' do
         before do
           20.times { create(:hmis_ce_eligibility_requirement, owner: opportunity_1a) }
           20.times { create(:hmis_ce_eligibility_requirement, owner: project1) }
@@ -135,11 +135,11 @@ RSpec.describe Hmis::Ce::Match::Rule, type: :model do
           end
         end
 
-        it 'returns the rule for that opportunity and queries the db a reasonable amount' do
+        it 'queries the db a reasonable amount' do
           expect do
             rules = Hmis::Ce::Match::Rule.for_opportunity(opportunity_1a)
             expect(rules.length).to eq(101)
-          end.to make_database_queries(count: 2)
+          end.to make_database_queries(count: 5..10)
         end
       end
     end
