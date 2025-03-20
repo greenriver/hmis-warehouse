@@ -1,8 +1,6 @@
-# frozen_string_literal: true
-
 FactoryBot.define do
   factory :grda_warehouse_data_source, class: 'GrdaWarehouse::DataSource' do
-    sequence(:name) { |n| "Green River #{n}" }
+    name { 'Green River' }
     short_name { 'GR' }
     # association :client, factory: :grda_warehouse_hud_client
     source_type { nil }
