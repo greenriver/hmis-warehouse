@@ -41,7 +41,10 @@ module Admin
     end
 
     def update
-      @collection.update(collection_params)
+      update_params = collection_params
+      update_params = legacy_collection_params if @collection.legacy?
+
+      @collection.update(update_params)
       # Only update viewbles on legacy collections
       @collection.set_viewables(viewable_params) if @collection.legacy?
       @collection.save
@@ -105,6 +108,14 @@ module Admin
 
     private def collection_scope
       Collection.general
+    end
+
+    private def legacy_collection_params
+      collection_params.merge(
+        params.require(:collection).permit(coc_codes: []),
+      ).tap do |result|
+        result[:coc_codes] ||= []
+      end
     end
 
     private def collection_params
