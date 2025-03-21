@@ -316,11 +316,16 @@ module HudSpmReport::Fy2024
 
       # Sort by date to ensure chronological order
       calculated_bed_nights = calculated_bed_nights.sort_by(&:last)
-      # First, filter out any bed nights that occur before the lookback date
-      # UNLESS they are associated with an enrollment whose entry date is >= lookback_date
-      calculated_bed_nights = calculated_bed_nights.reject do |enrollment, _, date|
-        date < lookback_date && enrollment.entry_date < lookback_date
+      # Keep bed nights that are:
+      # - on or after the lookback date
+      # - OR associated with an enrollment that started on or after the lookback date
+      calculated_bed_nights = calculated_bed_nights.select do |enrollment, _, bed_night_date|
+        bed_night_on_or_after_lookback = bed_night_date >= lookback_date
+        enrollment_on_or_after_lookback = enrollment.entry_date >= lookback_date
+
+        bed_night_on_or_after_lookback || enrollment_on_or_after_lookback
       end
+
       # If we've filtered out all bed nights, return nil
       return if calculated_bed_nights.empty?
 
