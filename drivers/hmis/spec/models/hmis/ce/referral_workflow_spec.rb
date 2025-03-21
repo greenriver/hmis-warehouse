@@ -87,13 +87,15 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     end
 
     [
-      [{ 'client_accepted': 1 }, 'accepted'],
-      [{ 'client_accepted': 0 }, 'rejected'],
-    ].each do |task_data, expected_end_status|
-      it "completes with \"#{expected_end_status}\" status when #{task_data.inspect}" do
+      [{ 'client_accepted': 1 }, 'accepted', 'closed'],
+      [{ 'client_accepted': 0 }, 'rejected', 'open'],
+    ].each do |task_data, expected_referral_end_status, expected_opportunity_end_status|
+      it "completes with \"#{expected_referral_end_status}\" status when #{task_data.inspect}" do
+        expect(opportunity.status).to eq('open')
         expect do
           engine.start_workflow!(user: user)
-        end.to change(engine.active_steps, :count).from(0).to(1)
+        end.to change(engine.active_steps, :count).from(0).to(1).
+          and change(opportunity, :status).from('open').to('locked')
         expect(referral).to be_in_progress
 
         current_step = engine.active_steps.sole
@@ -107,7 +109,8 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
         expect(current_step).to be_completed
 
         expect(engine.active_steps.count).to be_zero
-        expect(referral.status).to eq(expected_end_status)
+        expect(referral.status).to eq(expected_referral_end_status)
+        expect(opportunity.reload.status).to eq(expected_opportunity_end_status)
       end
     end
   end
