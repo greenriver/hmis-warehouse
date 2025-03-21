@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Exporters::HmisExportFetcher, type: :model do
@@ -11,6 +13,6 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::HmisExportFetcher, type: :mo
 
   it 'makes a zipped file' do
     subject.run!
-    expect(subject.content).to start_with('PK')
+    expect(subject.export.hmis_zip.download).to start_with('PK')
   end
 end

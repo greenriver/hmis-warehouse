@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # job = HmisExternalApis::AcHmis::DataWarehouseUploadJob.new
 module HmisExternalApis::AcHmis
   class DataWarehouseUploadJob < BaseJob
@@ -85,11 +87,12 @@ module HmisExternalApis::AcHmis
       export = HmisExternalApis::AcHmis::Exporters::HmisExportFetcher.new
       export.run!
 
-      hash = Digest::MD5.hexdigest(export.content)
+      content = export.hmis_zip.download
+      hash = Digest::MD5.hexdigest(content)
 
       uploader = Exporters::DataWarehouseUploader.new(
         filename_format: "%Y-%m-%d-HMIS-#{hash}-hudcsv.zip",
-        pre_zipped_data: export.content,
+        pre_zipped_data: content,
       )
 
       uploader.run!
@@ -99,11 +102,12 @@ module HmisExternalApis::AcHmis
       export = HmisExternalApis::AcHmis::Exporters::HmisExportFetcher.new
       export.run!(start_date: 10.years.ago.to_date)
 
-      hash = Digest::MD5.hexdigest(export.content)
+      content = export.hmis_zip.download
+      hash = Digest::MD5.hexdigest(content)
 
       uploader = Exporters::DataWarehouseUploader.new(
         filename_format: "%Y-%m-%d-HMIS-full-refresh-#{hash}-hudcsv.zip",
-        pre_zipped_data: export.content,
+        pre_zipped_data: content,
       )
 
       uploader.run!
