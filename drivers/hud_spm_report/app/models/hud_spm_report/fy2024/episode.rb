@@ -314,20 +314,30 @@ module HudSpmReport::Fy2024
     private def filter_episode(calculated_bed_nights)
       return unless calculated_bed_nights.present?
 
+      # Sort by date to ensure chronological order
       calculated_bed_nights = calculated_bed_nights.sort_by(&:last)
+      # First, filter out any bed nights that occur before the lookback date
+      # UNLESS they are associated with an enrollment whose entry date is >= lookback_date
+      calculated_bed_nights = calculated_bed_nights.reject do |enrollment, _, date|
+        date < lookback_date && enrollment.entry_date < lookback_date
+      end
+      # If we've filtered out all bed nights, return nil
+      return if calculated_bed_nights.empty?
+
+      # Now find the client's end date based on the remaining bed nights
       client_end_date = calculated_bed_nights.last.last
       client_start_date = client_end_date - 365.days
 
       # Include contiguous dates before the calculated client start date:
       # First, find as close to the start date as possible in the array
       index = 0
-      index += 1 while calculated_bed_nights[index].last <= client_start_date
+      index += 1 while index < calculated_bed_nights.length && calculated_bed_nights[index].last <= client_start_date
 
       # Then walk back until there is a break
       index -= 1 while index.positive? && calculated_bed_nights[index - 1].last == calculated_bed_nights[index].last - 1.day
 
       # Finally, return the selected dates
-      calculated_bed_nights[index ..]
+      calculated_bed_nights[index..]
     end
 
     private def enrollment_literally_homeless_at_entry(enrollment)

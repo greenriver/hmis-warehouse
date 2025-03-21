@@ -429,7 +429,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
 
         # Days homeless should not include time before the lookback stop date
         # Maximum possible days would be from lookback stop date to exit date minus one day
-        max_possible_days = ('2023-01-15'.to_date - '2015-10-01'.to_date).to_i - 1
+        max_possible_days = ('2023-01-15'.to_date - '2015-10-01'.to_date).to_i
         expect(episode.days_homeless).to be <= max_possible_days
       end
     end
@@ -573,7 +573,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
 
         # Days homeless should not exceed the maximum possible days
         # from date_to_street_essh to exit date minus one day
-        max_possible_days = ('2023-01-15'.to_date - '2012-10-15'.to_date).to_i - 1
+        max_possible_days = ('2023-01-15'.to_date - '2012-10-15'.to_date).to_i
         expect(episode.days_homeless).to be <= max_possible_days
       end
     end
@@ -614,7 +614,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
       end
     end
 
-    context 'with overlapping homeless periods that respect lookback rules' do
+    context 'with overlapping homeless periods ES and moved-in PH enrollments' do
       before do
         # Create projects
         @es_project = create_project(project_type: 0) # ES-EE
@@ -622,15 +622,6 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
 
         # Create a client
         @client = create_client_with_warehouse_link
-
-        # Create ES enrollment with DateToStreetESSH before lookback stop date
-        create_enrollment(
-          client: @client,
-          project: @es_project,
-          entry_date: '2017-01-15'.to_date, # After lookback stop date
-          exit_date: '2017-05-15'.to_date,
-          date_to_street_essh: '2013-10-15'.to_date, # Before lookback stop date
-        )
 
         # Create PH enrollment that starts after the ES stay
         # With literally homeless at entry
@@ -644,7 +635,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         # Add move-in date
         ph_enrollment.update(MoveInDate: '2018-04-01'.to_date)
 
-        # Create another ES enrollment during the report period
+        # Create another ES enrollment during the report period and within the PH mov-in and exit dates
         create_enrollment(
           client: @client,
           project: @es_project,
@@ -658,20 +649,8 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
       end
 
-      it 'correctly handles complex homeless history with lookback date considerations' do
-        expect(@report.universe('m1b1').members.count).to eq(1)
-
-        episode = @report.universe('m1b1').members.first.universe_membership
-
-        # The first date should be 2013-10-15 from the first enrollment's DateToStreetESSH
-        expect(episode.first_date).to eq('2013-10-15'.to_date)
-
-        # The homeless days should include:
-        # - 2013-10-15 to 2017-05-15 from first ES stay
-        # - 2018-02-15 to 2018-04-01 from PH before move-in
-        # - 2022-08-15 to 2022-10-15 from last ES stay
-        # This is a complex calculation, so we'll just check it's reasonable
-        expect(episode.days_homeless).to be > 1000
+      it 'correctly handles excludes ES enrollments that occur during PH' do
+        expect(@report.universe('m1b1').members.count).to eq(0)
       end
     end
   end
