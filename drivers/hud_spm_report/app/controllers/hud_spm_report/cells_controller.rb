@@ -27,7 +27,8 @@ module HudSpmReport
       @clients = generator.client_scope(@question).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id))
+        merge(::HudReports::ReportInstance.where(id: @report.id)).
+        distinct
 
       respond_to do |format|
         format.html {}
