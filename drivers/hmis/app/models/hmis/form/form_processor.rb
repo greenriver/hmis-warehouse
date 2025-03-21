@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -86,6 +88,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
           processor.process_custom_field(field, value)
         elsif mapped_record_form_fields[container].include?(field)
           # Process the field value, which will assign the value to the record
+
+          # Here is where we might want to add some validation "globally",
+          # but at this point we only know the type of the value we've received,
+          # not the type of the field we're trying to save onto.
           processor.process(field, value)
         else
           raise unknown_field_error(definition)

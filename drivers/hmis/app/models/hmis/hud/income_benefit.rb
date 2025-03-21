@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -18,4 +20,5 @@ class Hmis::Hud::IncomeBenefit < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   validates_with Hmis::Hud::Validators::IncomeBenefitValidator
+  validates :unemployment_amount, numericality: { only_integer: true }
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -476,6 +478,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       is_data_not_collected = value == 'DATA_NOT_COLLECTED'
       field_name = item.mapping&.field_name || item.mapping&.custom_field_key
 
+      # This checks numeric values, but it doesn't validate enums. Should it?
       numeric_validator.call(item, value)&.each do |error_message|
         errors.add field_name || :base, message: error_message, **error_context
       end

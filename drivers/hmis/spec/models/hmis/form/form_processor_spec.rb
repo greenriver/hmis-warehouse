@@ -183,6 +183,23 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.form_processor.errors.where(:benefits_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::BENEFIT_SOURCES_UNSPECIFIED)
       expect(assessment.form_processor.errors.where(:insurance_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED)
     end
+
+    it 'raises when receiving a string value for an int col (regression #6868)' do
+      # This succeeds thanks to the newly added validation in IncomeBenefit,
+      # but there are many many other fields on which we would have to add model validations, if we take this approach.
+      # Doesn't really seem worth it, since the definition validator already checks for numericality.
+      # And it doesn't help us achieve the goal of preventing silent errors in the future,
+      # since adding the model validator would become one more thing to remember.
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'IncomeBenefit.incomeFromAnySource' => 'YES',
+        'IncomeBenefit.unemploymentAmount' => 'bad string',
+        'IncomeBenefit.otherIncomeAmount' => 100,
+      }
+
+      assessment.form_processor.run!(user: hmis_user)
+      expect(assessment.form_processor.valid?(:form_submission)).to be false
+    end
   end
 
   describe 'HealthAndDV processor' do
@@ -469,6 +486,26 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       # Substance Use
       expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
       expect(disabilities.find_by(disability_type: 10).indefinite_and_impairs).to eq(99) # nil is saved as 99
+    end
+
+    it 'raises when receiving an unrecognized string value for an int col (regression #6868)' do
+      # This is just an example; we don't have to commit this test to the main branch.
+      # See `attribute_value_for_enum`:
+      # My understanding is that the original bug with Viral Load Source was that the enum wasn't found,
+      # but as long as there *is* an enum, `value_for` will raise if it isn't a correct value.
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+
+      assessment.form_processor.hud_values = {
+        'DisabilityGroup.hivAids' => 'YES',
+        'DisabilityGroup.viralLoadAvailable' => 'AVAILABLE',
+        'DisabilityGroup.viralLoadSource' => 'an unrecognized string',
+        'Enrollment.disablingCondition' => 'YES',
+      }
+
+      expect do
+        assessment.form_processor.run!(user: hmis_user)
+        assessment.save_not_in_progress
+      end.to raise_error(RuntimeError, /Unrecognized key/)
     end
   end
 

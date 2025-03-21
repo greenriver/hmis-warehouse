@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -435,6 +437,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     _resp, result = post_graphql(input: { input: input.merge(validate_only: true) }) { submit_assessment_mutation }
     errors = result.dig('data', 'submitAssessment', 'errors')
     expect(errors).to contain_exactly(a_hash_including(expected_error))
+  end
+
+  it 'prevents saving IncomeBenefit with invalid strings' do
+    # Even though the form processor `run` silently swallows strings and saves them as 0, the validators don't allow it.
+    # (In other words, this test didn't need any code change to pass)
+    definition = Hmis::Form::Definition.find_by(role: :ANNUAL)
+    unemployment_item = definition.link_id_item_hash.values.find { |item| item.mapping&.field_name == 'unemploymentAmount' }
+    input = {
+      enrollment_id: e1.id,
+      form_definition_id: definition.id,
+      **build_minimum_values(
+        definition,
+        values: { unemployment_item.link_id => 'bad string' },
+        hud_values: { 'IncomeBenefit.insuranceFromAnySource': 'YES' },
+      ),
+      confirmed: false,
+    }
+    _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+    errors = result.dig('data', 'submitAssessment', 'errors')
+    expected_error = {
+      'severity' => 'error',
+      'attribute' => 'unemploymentAmount',
+      'fullMessage' => /Unemployment Insurance not a valid currency amount/,
+    }
+    expect(errors).to include(a_hash_including(expected_error))
   end
 end
 
