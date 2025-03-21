@@ -45,7 +45,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
               status
             }
-            rules {
+            eligibilityRequirements {
               id
               name
               ownerType
@@ -73,7 +73,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
 
-        rules = result.dig('data', 'ceOpportunity', 'rules')
+        rules = result.dig('data', 'ceOpportunity', 'eligibilityRequirements')
         expect(rules).to contain_exactly(
           a_hash_including('id' => rule1.id.to_s, 'ownerType' => 'Opportunity'),
           a_hash_including('id' => rule2.id.to_s, 'ownerType' => 'Project'),
