@@ -58,7 +58,7 @@ module Export::Exporter
     def upload_zip
       @export.hmis_zip.attach(
         io: Pathname.new(zip_path).open,
-        filename: zip_path.basename,
+        filename: File.basename(zip_path),
       )
       @export.file = 'See S3'
       @export.save
