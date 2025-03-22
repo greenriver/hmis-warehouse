@@ -120,16 +120,13 @@ module PerformanceMeasurement::ResultCalculation
       @client_count_present[column][project_id] || 0
     end
 
+    # Calculates the sum of a specific field across clients, properly deduplicating client records
     def client_sum(field, period, project_id: nil)
-      column = "#{period}_#{field}"
-      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).distinct.sum(column) if project_id.blank?
+      return PerformanceMeasurement::UniqueClientMetricsQuery.new(clients, field, period).execute_sum if project_id.blank?
 
       @client_sums ||= {}
-      @client_sums[column] ||= clients.joins(:client_projects).
-        merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field).where.not(project_id: nil)).
-        group(:project_id).
-        distinct.
-        sum(column)
+      column = "#{period}_#{field}"
+      @client_sums[column] ||= PerformanceMeasurement::UniqueClientMetricsQuery.new(clients, field, period, group_by_project: true).execute_sum
       @client_sums[column][project_id] || 0
     end
 
@@ -166,22 +163,26 @@ module PerformanceMeasurement::ResultCalculation
       @client_ids.dig(key, project_id) || []
     end
 
+    # Retrieves raw client data for a specific field, properly deduplicating client records
+    #
+    # @return [Array] An array of values for the specified field from deduplicated clients
     def client_data(field, period, project_id: nil)
       key = [period, field]
-      column = key.join('_')
-      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).pluck(column) if project_id.blank?
+
+      return PerformanceMeasurement::UniqueClientMetricsQuery.new(clients, field, period).execute_pluck if project_id.blank?
 
       @client_data ||= {}
       existing = @client_data.dig(key)
       return existing.dig(project_id) || [] if existing.present?
 
-      clients.joins(:client_projects).
-        merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field).where.not(project_id: nil)).
-        distinct.pluck(:project_id, column).each do |p_id, value|
-          @client_data[key] ||= {}
+      @client_data[key] ||= {}
+
+      PerformanceMeasurement::UniqueClientMetricsQuery.new(clients, field, period, group_by_project: true).
+        execute_pluck.each do |p_id, value|
           @client_data[key][p_id] ||= []
           @client_data[key][p_id] << value
         end
+
       @client_data.dig(key, project_id) || []
     end
 
