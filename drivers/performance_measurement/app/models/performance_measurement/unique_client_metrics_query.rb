@@ -17,7 +17,7 @@ module PerformanceMeasurement
     # @param clients_scope [ActiveRecord::Relation] The initial scope of clients
     # @param field [String | Symbol] The question/metric field name
     # @param period [String | Symbol] The reporting period identifier
-    # @param project_id [Boolean, Integer, nil] When true, group by all projects; when nil, ignore projects
+    # @param group_by_project [Boolean] When true, group by all projects; when false, ignore projects
     def initialize(clients_scope, field, period, group_by_project: false)
       @clients_scope = clients_scope
       @field = field
