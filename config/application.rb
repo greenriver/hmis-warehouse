@@ -136,5 +136,10 @@ module BostonHmis
         GrdaWarehouse::Tasks::ClientCleanup.new(destination_ids: batch).run!
       end
     end
+
+    # Migrate from collections.coc_codes JSON column to using GrdaWarehouse::Lookups::CocCode
+    config.queued_tasks[:migrate_collection_coc_codes] = -> do
+      ::Collection.migrate_from_local_coc_codes
+    end
   end
 end

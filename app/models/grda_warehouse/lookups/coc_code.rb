@@ -4,10 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
-  belongs_to :project_coc, class_name: '::GrdaWarehouse::Hud::ProjectCoc', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :lookup_coc, optional: true
-  belongs_to :overridden_project_coc, class_name: '::GrdaWarehouse::Hud::ProjectCoc', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :overridden_lookup_coc, optional: true
-  belongs_to :enrollment_coc, class_name: '::GrdaWarehouse::Hud::EnrollmentCoc', primary_key: :hud_coc_code, foreign_key: :coc_code, inverse_of: :lookup_coc, optional: true
+  has_many :project_cocs, class_name: '::GrdaWarehouse::Hud::ProjectCoc', foreign_key: :CoCCode, primary_key: :coc_code, inverse_of: :lookup_coc
+  has_many :projects, through: :project_cocs
 
   scope :active, -> do
     where(active: true)
@@ -51,8 +52,12 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
 
   def as_select_option
     [
-      "#{preferred_name || official_name} (#{coc_code})",
+      name,
       coc_code,
     ]
+  end
+
+  def name
+    "#{preferred_name || official_name} (#{coc_code})"
   end
 end
