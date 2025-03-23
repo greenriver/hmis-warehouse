@@ -4,8 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
-  class PathwaysV3AssessmentDate < ReadOnly
+  class PathwaysV3AssessmentDate < ReadOnlyDate
     attribute :column, String, lazy: true, default: :pathways_v3_assessment_date
     attribute :translation_key, String, lazy: true, default: 'Pathways V3 Assessment Date'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
@@ -14,14 +16,6 @@ module CohortColumns
 
     def available_for_rules?
       false
-    end
-
-    def date_format
-      'll'
-    end
-
-    def renderer
-      'date'
     end
 
     def value(cohort_client) # OK

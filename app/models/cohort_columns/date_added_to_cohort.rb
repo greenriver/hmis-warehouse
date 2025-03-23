@@ -4,8 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
-  class DateAddedToCohort < ReadOnly
+  class DateAddedToCohort < ReadOnlyDate
     attribute :column, String, lazy: true, default: :date_added_to_cohort
     attribute :translation_key, String, lazy: true, default: 'Date Added to Cohort'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
@@ -14,14 +16,6 @@ module CohortColumns
 
     def cast_value(val)
       val.to_date
-    end
-
-    def date_format
-      'll'
-    end
-
-    def renderer
-      'date'
     end
 
     def value(cohort_client) # OK

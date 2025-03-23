@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module CohortColumns
-  class Dob < ReadOnly
+  class Dob < ReadOnlyDate
     attribute :column, String, lazy: true, default: :dob
     attribute :translation_key, String, lazy: true, default: 'DOB'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
