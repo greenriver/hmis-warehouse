@@ -14,11 +14,13 @@
 - if @clients.blank?
   .none-found No records found.
 - else
-  .w-50
-    .input-group
-      %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
-      %span.input-group-append
-        %button.btn.btn-secondary Search
+  .d-flex.align-items-end
+    .w-50
+      .input-group
+        %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
+        %span.input-group-append
+          %button.btn.btn-secondary Search
+    .pl-2.ml-auto= "#{number_with_delimiter @clients.count} clients"
   .card
     .overflow-x-scroll{style: "height: 800px"}
       %table.table.table-sm.table-bordered.table-fixed.datatable
@@ -28,7 +30,9 @@
             - @headers.each_value do |header|
               %th= header
         %tbody.thead-dark
-          - @clients.each.with_index do |client, i|
+          - current_user.policy_context.preload_project_dependencies(@clients.map(&:project_id).uniq)
+          - @clients.find_each.with_index do |client, i|
+            - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
             %tr
               %th= i + 1
               - @headers.each_key do |k|
@@ -39,7 +43,7 @@
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - else
-                    = formatted_cell(cell_value(client, k), k)
+                    = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
   = content_for :page_js do
     :javascript
       table = $('.datatable').DataTable({

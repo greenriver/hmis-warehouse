@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # require 'get_process_mem'
 module HudDataQualityReport::Generators::Fy2022
   class Base < ::HudReports::QuestionBase
@@ -213,6 +215,7 @@ module HudDataQualityReport::Generators::Fy2022
             prior_living_situation: enrollment.LivingSituation,
             project_tracking_method: last_service_history_enrollment.project_tracking_method,
             project_type: last_service_history_enrollment.project_type,
+            project_id: last_service_history_enrollment.project.id,
             race: calculate_race(source_client),
             relationship_to_hoh: enrollment.RelationshipToHoH,
             ssn_quality: source_client.SSNDataQuality,

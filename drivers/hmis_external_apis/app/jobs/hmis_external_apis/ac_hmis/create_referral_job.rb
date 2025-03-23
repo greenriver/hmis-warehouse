@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisExternalApis::AcHmis
   class CreateReferralJob < BaseJob
     queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
@@ -188,15 +190,16 @@ module HmisExternalApis::AcHmis
       old_addresses = client.addresses
       new_addresses = []
       params[:addresses].to_a.each do |values|
+        address_use = normalize_address_use(values[:use])
         address = Hmis::Hud::CustomClientAddress.new(
           postal_code: values[:zip],
           district: values[:county],
+          use: address_use,
           **values.slice(
             :line1,
             :line2,
             :city,
             :state,
-            :use,
           ),
           **common_client_attrs(client),
         )
@@ -298,6 +301,19 @@ module HmisExternalApis::AcHmis
       end.to_h
       attributes[:RaceNone] = (codes & [8, 9, 99]).first || 99 if attributes.values.sum.zero?
       attributes
+    end
+
+    private def normalize_address_use(use_str)
+      return unless use_str
+
+      value = use_str.downcase
+      expected_values = Hmis::Hud::CustomClientAddress::USE_VALUES.map(&:to_s)
+      if expected_values.include?(value)
+        value
+      elsif value == 'mailing'
+        'mail'
+      end
+      # ignore unknown values
     end
   end
 end
