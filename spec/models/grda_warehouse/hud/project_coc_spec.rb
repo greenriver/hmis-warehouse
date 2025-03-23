@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https: //github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 model = GrdaWarehouse::Hud::ProjectCoc
@@ -44,7 +52,7 @@ RSpec.describe model, type: :model do
 
       describe 'user assigned to coc foo' do
         before do
-          coc_code_collection.update(coc_codes: ['foo'])
+          coc_code_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['foo']).pluck(:id) })
           setup_access_control(user, can_view_projects, coc_code_collection)
         end
         it 'sees pc1' do

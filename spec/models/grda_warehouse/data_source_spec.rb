@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 model = GrdaWarehouse::DataSource
@@ -118,12 +126,12 @@ RSpec.describe model, type: :model do
 
       describe 'user assigned to CoC XX-500' do
         it 'sees ds1' do
-          empty_collection.update(coc_codes: ['XX-500'])
+          empty_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-500']).pluck(:id) })
           setup_access_control(user, can_view_projects, empty_collection)
           expect(user_ids[user]).to eq ids[ds1]
         end
         it 'sees ds1 and ds2' do
-          empty_collection.update(coc_codes: ['XX-500', 'XX-501'])
+          empty_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-500', 'XX-501']).pluck(:id) })
           setup_access_control(user, can_view_projects, empty_collection)
           expect(user_ids[user]).to eq ids[ds1, ds2]
         end

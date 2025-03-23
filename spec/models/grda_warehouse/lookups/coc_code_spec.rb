@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https: //github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Lookups::CocCode, type: :model do
@@ -57,7 +65,7 @@ RSpec.describe GrdaWarehouse::Lookups::CocCode, type: :model do
       # * XX-501 through a CoC code assignment
       # * no access to XX-502
       collection.set_viewables({ projects: [project_1.id] })
-      collection.update(coc_codes: ['XX-501'])
+      collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-501']).pluck(:id) })
       user_group.add(acl_user)
     end
 
