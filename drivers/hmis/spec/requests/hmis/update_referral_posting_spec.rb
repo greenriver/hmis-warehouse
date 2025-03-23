@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -17,7 +19,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:link_creds) do
     create(:ac_hmis_link_credential)
   end
-  let!(:coc) { create :hud_project_coc, data_source: ds1, project_id: destination_project.project_id, state: 'MA' }
+  let!(:coc) { create :hud_project_coc, data_source: ds1, project_id: destination_project.project_id, state: 'MA', coc_code: 'MA-500' }
   let!(:source_enrollment) do
     create :hmis_hud_enrollment, data_source: ds1, project: source_project, client: c1, user: u1
   end
