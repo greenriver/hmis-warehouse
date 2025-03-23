@@ -2678,7 +2678,8 @@ CREATE VIEW analytics.exits AS
     "InPersonGroup",
     "CMExitReason",
     "DestinationSubsidyType",
-    auto_exited
+    auto_exited,
+    (auto_exited IS NOT NULL) AS is_auto_exited
    FROM public."Exit"
   WHERE ("DateDeleted" IS NULL);
 
