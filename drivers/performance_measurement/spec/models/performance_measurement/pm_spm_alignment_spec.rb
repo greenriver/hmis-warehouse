@@ -710,9 +710,16 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       expected_result = @days_homeless_value * 2 # 60
 
       # Check that we're getting the correct sum (both clients' values)
-      expect(sum_result).to eq(expected_result),
-                            "Expected sum to be #{expected_result} (sum of all client values), but got #{sum_result} " +
-                            '(which suggests only distinct values are being summed)'
+      expect(sum_result).to eq(expected_result)
+    end
+
+    it 'should correctly sum values from different clients with different values' do
+      @pm_report.clients.first.update!(reporting_days_homeless_es_sh_th: @days_homeless_value - 1)
+      sum_result = @pm_report.client_sum(:days_homeless_es_sh_th, :reporting)
+
+      expected_result = (@days_homeless_value * 2) - 1
+
+      expect(sum_result).to eq(expected_result)
     end
   end
 
