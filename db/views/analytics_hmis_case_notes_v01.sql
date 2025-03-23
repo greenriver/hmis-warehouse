@@ -8,8 +8,8 @@ SELECT
     content,
     "UserID" AS user_id,
     "DateCreated" AS date_created,
-    --"DateUpdated" AS date_updated,
-    "DateDeleted" AS date_deleted,
+    "DateUpdated" AS date_updated,
+    --"DateDeleted" AS date_deleted,
     information_date
 FROM
     public."CustomCaseNote"

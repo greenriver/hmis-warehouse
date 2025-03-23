@@ -2960,7 +2960,7 @@ CREATE VIEW analytics.hmis_case_notes AS
     content,
     "UserID" AS user_id,
     "DateCreated" AS date_created,
-    "DateDeleted" AS date_deleted,
+    "DateUpdated" AS date_updated,
     information_date
    FROM public."CustomCaseNote"
   WHERE ("DateDeleted" IS NULL);
