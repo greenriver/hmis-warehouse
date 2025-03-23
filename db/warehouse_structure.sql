@@ -376,6 +376,18 @@ CREATE VIEW analytics.affiliations AS
 
 
 --
+-- Name: app_users; Type: TABLE; Schema: analytics; Owner: -
+--
+
+CREATE TABLE analytics.app_users (
+    id bigint NOT NULL,
+    first_name character varying,
+    last_name character varying,
+    email character varying
+);
+
+
+--
 -- Name: AssessmentQuestions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -607,6 +619,48 @@ CREATE VIEW analytics.ch_enrollments AS
     created_at,
     updated_at
    FROM public.ch_enrollments;
+
+
+--
+-- Name: clh_locations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.clh_locations (
+    id bigint NOT NULL,
+    client_id bigint,
+    source_type character varying,
+    source_id bigint,
+    located_on date,
+    lat double precision,
+    lon double precision,
+    collected_by character varying,
+    processed_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    enrollment_id bigint,
+    located_at timestamp(6) without time zone
+);
+
+
+--
+-- Name: client_geolocations; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.client_geolocations AS
+ SELECT id,
+    client_id,
+    source_type,
+    source_id,
+    located_on,
+    lat,
+    lon,
+    created_at,
+    updated_at,
+    enrollment_id,
+    located_at
+   FROM public.clh_locations
+  WHERE ((deleted_at IS NULL) AND (lat IS NOT NULL) AND (lon IS NOT NULL));
 
 
 --
@@ -2602,7 +2656,6 @@ CREATE VIEW analytics.exits AS
     "DateCreated",
     "DateUpdated",
     "UserID",
-    "DateDeleted",
     "ExportID",
     data_source_id,
     id,
@@ -2634,8 +2687,6 @@ CREATE VIEW analytics.exits AS
     "InPersonIndividual",
     "InPersonGroup",
     "CMExitReason",
-    source_hash,
-    pending_date_deleted,
     "DestinationSubsidyType",
     auto_exited
    FROM public."Exit"
@@ -2887,6 +2938,115 @@ CREATE VIEW analytics.health_and_dvs AS
 
 
 --
+-- Name: CustomCaseNote; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomCaseNote" (
+    id bigint NOT NULL,
+    "CustomCaseNoteID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "EnrollmentID" character varying,
+    data_source_id bigint NOT NULL,
+    content text NOT NULL,
+    "UserID" character varying,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "DateDeleted" timestamp without time zone,
+    information_date date
+);
+
+
+--
+-- Name: hmis_case_notes; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.hmis_case_notes AS
+ SELECT id,
+    "CustomCaseNoteID" AS custom_case_note_id,
+    "PersonalID" AS personal_id,
+    "EnrollmentID" AS enrollment_id,
+    data_source_id,
+    content,
+    "UserID" AS user_id,
+    "DateCreated" AS date_created,
+    "DateDeleted" AS date_deleted,
+    information_date
+   FROM public."CustomCaseNote"
+  WHERE ("DateDeleted" IS NULL);
+
+
+--
+-- Name: hmis_client_alerts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_client_alerts (
+    id bigint NOT NULL,
+    note text NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    expiration_date date,
+    created_by_id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    priority character varying
+);
+
+
+--
+-- Name: hmis_client_alerts; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.hmis_client_alerts AS
+ SELECT id,
+    note,
+    created_at,
+    updated_at,
+    expiration_date,
+    created_by_id,
+    client_id,
+    priority
+   FROM public.hmis_client_alerts
+  WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: hmis_external_form_submissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_form_submissions (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    submitted_at timestamp without time zone,
+    spam_score double precision,
+    status character varying DEFAULT 'new'::character varying NOT NULL,
+    definition_id bigint NOT NULL,
+    object_key character varying NOT NULL,
+    raw_data jsonb NOT NULL,
+    notes text,
+    enrollment_id bigint
+);
+
+
+--
+-- Name: hmis_external_form_submissions; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.hmis_external_form_submissions AS
+ SELECT id,
+    created_at,
+    updated_at,
+    submitted_at,
+    spam_score,
+    status,
+    definition_id,
+    object_key,
+    notes,
+    enrollment_id
+   FROM public.hmis_external_form_submissions;
+
+
+--
 -- Name: hmis_form_definitions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3057,6 +3217,71 @@ CREATE VIEW analytics.hmis_participations AS
     source_hash
    FROM public."HMISParticipation"
   WHERE ("DateDeleted" IS NULL);
+
+
+--
+-- Name: hmis_staff_assignment_relationships; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_staff_assignment_relationships (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN hmis_staff_assignment_relationships.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_staff_assignment_relationships.name IS 'name of role, such as "Case Manager" or "Housing Navigator"';
+
+
+--
+-- Name: hmis_staff_assignment_relationships; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.hmis_staff_assignment_relationships AS
+ SELECT id,
+    name,
+    created_at,
+    updated_at
+   FROM public.hmis_staff_assignment_relationships
+  WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: hmis_staff_assignments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_staff_assignments (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    household_id character varying,
+    hmis_staff_assignment_relationship_id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_staff_assignments; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.hmis_staff_assignments AS
+ SELECT id,
+    user_id,
+    household_id,
+    hmis_staff_assignment_relationship_id,
+    data_source_id,
+    created_at,
+    updated_at
+   FROM public.hmis_staff_assignments
+  WHERE (deleted_at IS NULL);
 
 
 --
@@ -4209,25 +4434,6 @@ CREATE SEQUENCE public."CustomAssessments_id_seq"
 --
 
 ALTER SEQUENCE public."CustomAssessments_id_seq" OWNED BY public."CustomAssessments".id;
-
-
---
--- Name: CustomCaseNote; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."CustomCaseNote" (
-    id bigint NOT NULL,
-    "CustomCaseNoteID" character varying NOT NULL,
-    "PersonalID" character varying NOT NULL,
-    "EnrollmentID" character varying,
-    data_source_id bigint NOT NULL,
-    content text NOT NULL,
-    "UserID" character varying,
-    "DateCreated" timestamp without time zone,
-    "DateUpdated" timestamp without time zone,
-    "DateDeleted" timestamp without time zone,
-    information_date date
-);
 
 
 --
@@ -6672,28 +6878,6 @@ CREATE SEQUENCE public.chronics_id_seq
 --
 
 ALTER SEQUENCE public.chronics_id_seq OWNED BY public.chronics.id;
-
-
---
--- Name: clh_locations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.clh_locations (
-    id bigint NOT NULL,
-    client_id bigint,
-    source_type character varying,
-    source_id bigint,
-    located_on date,
-    lat double precision,
-    lon double precision,
-    collected_by character varying,
-    processed_at timestamp without time zone,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    enrollment_id bigint,
-    located_at timestamp(6) without time zone
-);
 
 
 --
@@ -14529,23 +14713,6 @@ ALTER SEQUENCE public.hmis_case_notes_id_seq OWNED BY public.hmis_case_notes.id;
 
 
 --
--- Name: hmis_client_alerts; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_client_alerts (
-    id bigint NOT NULL,
-    note text NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    expiration_date date,
-    created_by_id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    priority character varying
-);
-
-
---
 -- Name: hmis_client_alerts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -19093,25 +19260,6 @@ ALTER SEQUENCE public.hmis_external_form_publications_id_seq OWNED BY public.hmi
 
 
 --
--- Name: hmis_external_form_submissions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_external_form_submissions (
-    id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    submitted_at timestamp without time zone,
-    spam_score double precision,
-    status character varying DEFAULT 'new'::character varying NOT NULL,
-    definition_id bigint NOT NULL,
-    object_key character varying NOT NULL,
-    raw_data jsonb NOT NULL,
-    notes text,
-    enrollment_id bigint
-);
-
-
---
 -- Name: hmis_external_form_submissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -19860,26 +20008,6 @@ CREATE TABLE public.hmis_staff (
 
 
 --
--- Name: hmis_staff_assignment_relationships; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_staff_assignment_relationships (
-    id bigint NOT NULL,
-    name character varying NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: COLUMN hmis_staff_assignment_relationships.name; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.hmis_staff_assignment_relationships.name IS 'name of role, such as "Case Manager" or "Housing Navigator"';
-
-
---
 -- Name: hmis_staff_assignment_relationships_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -19896,22 +20024,6 @@ CREATE SEQUENCE public.hmis_staff_assignment_relationships_id_seq
 --
 
 ALTER SEQUENCE public.hmis_staff_assignment_relationships_id_seq OWNED BY public.hmis_staff_assignment_relationships.id;
-
-
---
--- Name: hmis_staff_assignments; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_staff_assignments (
-    id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    household_id character varying,
-    hmis_staff_assignment_relationship_id bigint NOT NULL,
-    data_source_id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
 
 
 --
@@ -36521,6 +36633,13 @@ ALTER TABLE ONLY public.youth_intakes
 
 ALTER TABLE ONLY public.youth_referrals
     ADD CONSTRAINT youth_referrals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: index_analytics.app_users_on_id; Type: INDEX; Schema: analytics; Owner: -
+--
+
+CREATE UNIQUE INDEX "index_analytics.app_users_on_id" ON analytics.app_users USING btree (id);
 
 
 --
@@ -64084,6 +64203,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250304143654'),
 ('20250304143714'),
 ('20250313125655'),
-('20250313153011');
+('20250313153011'),
+('20250319023546'),
+('20250323134302');
 
 

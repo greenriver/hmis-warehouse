@@ -4,6 +4,9 @@ require 'rails_helper'
 RSpec.describe GrdaWarehouse::Tasks::SyncAnalysisDataTask do
   let(:task) { described_class.new }
   let(:connection) { GrdaWarehouseBase.connection }
+  before do
+    User.delete_all
+  end
 
   it 'exports users to analytics.app_users' do
     user = create(:user, first_name: 'Alice', last_name: 'Smith', email: 'alice@example.com')
@@ -11,7 +14,7 @@ RSpec.describe GrdaWarehouse::Tasks::SyncAnalysisDataTask do
     expect {
       task.perform
     }.to change {
-      connection.exec_query("SELECT COUNT(*) FROM analytics.app_users").first['count']
+      connection.select_value("SELECT COUNT(*) FROM analytics.app_users")
     }.from(0).to(1)
 
     exported = connection.exec_query("SELECT * FROM analytics.app_users WHERE id = #{user.id}").first
