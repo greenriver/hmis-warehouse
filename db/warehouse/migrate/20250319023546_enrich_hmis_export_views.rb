@@ -3,10 +3,9 @@
 class EnrichHmisExportViews < ActiveRecord::Migration[7.0]
   def up
     update_view('analytics.exits', version: 2)
-    new_views.each { |view|
-    puts view
-    create_view(view)
-  }
+    new_views.each do |view|
+      create_view(view)
+    end
   end
 
   def down

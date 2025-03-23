@@ -365,7 +365,7 @@ namespace :grda_warehouse do
     end
 
     begin
-      GrdaWarehouse::Tasks::SyncAnalysisAppDataTask.perform
+      GrdaWarehouse::Tasks::SyncAnalysisDataTask.perform
     rescue StandardError => e
       Sentry.capture_exception(e)
       Rails.logger.error(e.message)

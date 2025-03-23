@@ -14,13 +14,16 @@
 #
 module GrdaWarehouse::Tasks
   class SyncAnalysisDataTask
-    def self.perform(...)
-      new.perform(...)
+    def self.perform
+      new.perform
     end
 
     def perform
       with_lock do
-        sync_app_users
+        GrdaWarehouseBase.transaction do
+          sync_app_users
+          prune_removed_users
+        end
       end
     end
 
@@ -45,19 +48,35 @@ module GrdaWarehouse::Tasks
       end
     end
 
+    def prune_removed_users
+      current_user_ids = User.pluck(:id).map do |id|
+        connection.quote(id)
+      end
+
+      if current_user_ids.any?
+        id_list = current_user_ids.join(',')
+        connection.execute(<<~SQL)
+          DELETE FROM analytics.app_users
+          WHERE id NOT IN (#{id_list})
+        SQL
+      else
+        connection.execute('TRUNCATE TABLE analytics.app_users')
+      end
+    end
+
     def connection
       GrdaWarehouseBase.connection
     end
 
     def sanitize_sql_for_insert(user)
-      ActiveRecord::Base.send(
-        :sanitize_sql_array, [
+      ActiveRecord::Base.sanitize_sql_array(
+        [
           '(?, ?, ?, ?)',
           user.id,
           user.first_name,
           user.last_name,
           user.email,
-        ]
+        ],
       )
     end
 
