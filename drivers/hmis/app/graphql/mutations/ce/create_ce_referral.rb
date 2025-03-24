@@ -17,7 +17,9 @@ module Mutations
       raise unless Hmis::Ce.configuration.enabled?
 
       opportunity = Hmis::Ce::Opportunity.viewable_by(current_user).find(opportunity_id)
-      client = Hmis::Hud::Client.viewable_by(current_user).find(client_id)
+      client = Hmis::Hud::Client.find(client_id) # Doesn't need to be viewable by the current user
+      access_denied! unless client.data_source_id == current_user.hmis_data_source_id # Needs to be in the same data source, though
+
       swimlanes = opportunity.workflow_template.swimlanes.index_by(&:id).stringify_keys
       referral = nil
       opportunity.with_lock do

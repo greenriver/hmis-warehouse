@@ -710,7 +710,11 @@ type CeAssessmentsPaginated {
 }
 
 type CeCandidate {
-  client: Client!
+  """
+  Null if the user lacks permission to view the client
+  """
+  client: Client
+  clientId: ID!
   id: ID!
   priorityScore: Int!
 }
@@ -723,6 +727,12 @@ type CeCandidatesPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+type CeMatchRule {
+  id: ID!
+  name: String!
+  ownerType: String!
 }
 
 type CeOpportunitiesPaginated {
@@ -739,17 +749,25 @@ type CeOpportunity {
   acceptedReferral: CeReferral
   activeReferral: CeReferral
   candidates(limit: Int, offset: Int): CeCandidatesPaginated!
+  eligibilityRequirements: [CeMatchRule!]
   expiresAt: ISO8601DateTime
   id: ID!
   name: String!
+  priorityScheme: CeMatchRule
   projectId: ID!
   projectName: String!
-  status: String!
+  status: CeOpportunityStatus!
 }
 
 input CeOpportunityInput {
   name: String!
   templateId: ID!
+}
+
+enum CeOpportunityStatus {
+  closed
+  locked
+  open
 }
 
 type CeParticipation {
@@ -780,7 +798,8 @@ type CeParticipationsPaginated {
 }
 
 type CeReferral {
-  client: Client!
+  client: Client
+  clientId: ID!
   id: ID!
   opportunity: CeOpportunity!
   status: CeReferralStatus!

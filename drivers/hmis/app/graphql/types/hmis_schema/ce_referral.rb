@@ -12,7 +12,8 @@ module Types
     field :opportunity, HmisSchema::CeOpportunity, null: false
     field :steps, [HmisSchema::CeReferralStep], null: false
     field :status, HmisSchema::Enums::CeReferralStatus, null: false
-    field :client, Types::HmisSchema::Client, null: false
+    field :client_id, ID, null: false
+    field :client, Types::HmisSchema::Client, null: true
 
     def steps
       instance = object.workflow_instance
@@ -34,7 +35,7 @@ module Types
     end
 
     def client
-      load_ar_association(object, :client)
+      load_ar_association(object, :client, scope: Hmis::Hud::Client.viewable_by(current_user))
     end
   end
 end

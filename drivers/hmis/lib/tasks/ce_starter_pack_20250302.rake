@@ -217,16 +217,43 @@ task ce_starter_pack_20250302: [:environment] do
   ce_project.project_type ||= 3
   ce_project.save! if ce_project.changed?
 
+  ce_project_funder = ce_project.funders.find_or_initialize_by(funder: 20)
+  ce_project_funder.user = system_user
+  ce_project_funder.data_source = ce_project.data_source
+  ce_project_funder.start_date ||= 3.years.ago
+  ce_project_funder.grant_id = 'grant ID'
+  ce_project_funder.save! if ce_project_funder.changed?
+
   # Set up match rules in this project
   puts 'Creating match rules'
-  ce_match_rule = Hmis::Ce::Match::Rule.find_or_initialize_by(
-    name: 'Over 18',
+  age_requirement = Hmis::Ce::Match::Rule.find_or_initialize_by(
+    expression: 'current_age >= 18',
+    rule_type: 'eligibility_requirement',
     owner: ce_project,
   )
-  ce_match_rule.rule_type = 'eligibility_requirement'
-  ce_match_rule.expression = 'current_age >= 18'
-  ce_match_rule.applicability_config ||= {}
-  ce_match_rule.save! if ce_match_rule.changed?
+  age_requirement.name = 'Must be 18+ years old'
+  age_requirement.applicability_config = {}
+  age_requirement.save! if age_requirement.changed?
+
+  veteran_requirement = Hmis::Ce::Match::Rule.find_or_initialize_by(
+    expression: 'veteran_status == 1',
+    rule_type: 'eligibility_requirement',
+    owner: ce_project,
+  )
+  veteran_requirement.name = 'Must be veteran'
+  veteran_requirement.applicability_config = {
+    'project_funders': [ce_project_funder.id]
+  }
+  veteran_requirement.save! if veteran_requirement.changed?
+
+  days_homeless_priority = Hmis::Ce::Match::Rule.find_or_initialize_by(
+    expression: 'days_homeless',
+    rule_type: 'priority_scheme',
+    owner: ce_project,
+  )
+  days_homeless_priority.name = 'Total Days Homeless'
+  days_homeless_priority.applicability_config = {}
+  days_homeless_priority.save! if days_homeless_priority.changed?
 
   # Create candidates for opportunities. First create some opportunities using the frontend
   puts 'Building a candidate pool'

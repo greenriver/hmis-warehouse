@@ -26,11 +26,11 @@ module Hmis::Ce::Match
     end
 
     def matches_project_type?(project)
-      project_types.blank? || project.project_type.in(project_types)
+      project_types.blank? || project_types.include?(project.project_type)
     end
 
     def matches_project_funders?(project)
-      project_funders.blank? || project_funder_ids & project.project_funders.map(&:funder_id)
+      project_funders.blank? || (project_funders & project.funders.map(&:funder)).any?
     end
   end
 end
