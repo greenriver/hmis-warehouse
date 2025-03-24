@@ -19,6 +19,11 @@ module Types
     field :project_name, String, null: false
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
     field :priority_scheme, HmisSchema::CeMatchRule, null: true
+    field :categories, [String], null: false
+
+    available_filter_options do
+      arg :status, [HmisSchema::Enums::CeOpportunityStatus]
+    end
 
     def candidates
       Hmis::Ce::Match::Candidate.
@@ -46,6 +51,10 @@ module Types
     def priority_scheme
       # not to be used in batch
       Hmis::Ce::Match::Rule.priority_scheme.for_opportunity(object).first # there should only be 1
+    end
+
+    def categories
+      load_ar_association(object, :categories, scope: Hmis::Ce::OpportunityCategory.order(:name)).map(&:name)
     end
   end
 end

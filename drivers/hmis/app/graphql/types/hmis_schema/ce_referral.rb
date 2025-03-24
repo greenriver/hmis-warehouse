@@ -8,12 +8,19 @@
 
 module Types
   class HmisSchema::CeReferral < Types::BaseObject
+    # object is a Hmis::Ce::Referral
     field :id, ID, null: false
     field :opportunity, HmisSchema::CeOpportunity, null: false
     field :steps, [HmisSchema::CeReferralStep], null: false
     field :status, HmisSchema::Enums::CeReferralStatus, null: false
     field :client_id, ID, null: false
     field :client, Types::HmisSchema::Client, null: true
+    field :date_started, GraphQL::Types::ISO8601Date, null: false, method: :created_at
+    field :current_step, Types::HmisSchema::CeReferralStep, null: true
+
+    available_filter_options do
+      arg :status, [HmisSchema::Enums::CeReferralStatus]
+    end
 
     def steps
       instance = object.workflow_instance
@@ -36,6 +43,16 @@ module Types
 
     def client
       load_ar_association(object, :client, scope: Hmis::Hud::Client.viewable_by(current_user))
+    end
+
+    def current_step
+      instance = load_ar_association(object, :workflow_instance)
+      steps = load_ar_association(instance, :steps, scope: Hmis::WorkflowExecution::Step.where(status: ['available', 'in_progress']))
+      steps.first # There can be multiple steps currently in progress, but we're only going to show one in the project referrals table
+    end
+
+    def opportunity
+      load_ar_association(object, :opportunity)
     end
   end
 end
