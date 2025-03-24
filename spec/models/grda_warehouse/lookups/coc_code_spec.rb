@@ -64,8 +64,7 @@ RSpec.describe GrdaWarehouse::Lookups::CocCode, type: :model do
       # * XX-500 through project 1
       # * XX-501 through a CoC code assignment
       # * no access to XX-502
-      collection.set_viewables({ projects: [project_1.id] })
-      collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-501']).pluck(:id) })
+      collection.set_viewables({ projects: [project_1.id], coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-501']).pluck(:id) })
       user_group.add(acl_user)
     end
 

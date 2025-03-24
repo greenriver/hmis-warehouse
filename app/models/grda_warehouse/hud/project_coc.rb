@@ -82,7 +82,7 @@ module GrdaWarehouse::Hud
           group_ids = user.collections_for_permission(permission)
           return none if group_ids.empty?
 
-          coc_codes = Collection.where(id: group_ids).pluck(:coc_codes).flatten
+          coc_codes = Collection.where(id: group_ids).preload(:coc_codes).flat_map { |c| c.coc_codes.map(&:coc_code) }.uniq
           GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes)
         end
       else

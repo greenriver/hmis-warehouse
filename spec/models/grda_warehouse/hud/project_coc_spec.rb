@@ -19,8 +19,8 @@ RSpec.describe model, type: :model do
   let!(:p1) { create :hud_project, data_source_id: ds1.id }
   let!(:p2) { create :hud_project, data_source_id: ds1.id }
 
-  let!(:pc1) { create :hud_project_coc, CoCCode: 'foo', data_source_id: ds1.id, project: p1 }
-  let!(:pc2) { create :hud_project_coc, CoCCode: 'bar', data_source_id: ds1.id, project: p2 }
+  let!(:pc1) { create :hud_project_coc, CoCCode: 'XX-500', data_source_id: ds1.id, project: p1 }
+  let!(:pc2) { create :hud_project_coc, CoCCode: 'XX-501', data_source_id: ds1.id, project: p2 }
 
   let!(:can_view_projects) { create :role, can_view_projects: true }
   let!(:coc_code_collection) { create :collection }
@@ -50,9 +50,9 @@ RSpec.describe model, type: :model do
         end
       end
 
-      describe 'user assigned to coc foo' do
+      describe 'user assigned to coc XX-500' do
         before do
-          coc_code_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['foo']).pluck(:id) })
+          coc_code_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-500']).pluck(:id) })
           setup_access_control(user, can_view_projects, coc_code_collection)
         end
         it 'sees pc1' do
