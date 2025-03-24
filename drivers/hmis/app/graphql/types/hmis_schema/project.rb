@@ -262,7 +262,7 @@ module Types
     def ce_opportunities(filters: nil)
       raise unless Hmis::Ce.configuration.enabled?
 
-      scope = load_ar_association(object, :ce_opportunities)
+      scope = object.ce_opportunities
       scope = scope.where(status: filters&.status) if filters&.status.present?
       scope.order(created_at: :desc)
     end
