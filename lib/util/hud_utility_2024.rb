@@ -615,6 +615,9 @@ module HudUtility2024
       test_codes['ZZ-000'] = 'Test CoC ZZ-000'
       test_codes['ZZ-100'] = 'Test CoC ZZ-100'
       test_codes['ZZ-999'] = 'Test CoC ZZ-999'
+      (0..100).to_a.each do |n|
+        test_codes["XX-#{n.to_s.rjust(3, '0')}"] = "Test CoC XX-#{n.to_s.rjust(3, '0')}"
+      end
     end
     invalid_codes = ENV['INVALID_COC_CODES'].to_s.split(',')
     test_codes.delete_if { |k, _| invalid_codes&.include?(k) }

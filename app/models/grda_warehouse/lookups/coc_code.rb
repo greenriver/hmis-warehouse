@@ -9,6 +9,7 @@
 class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
   has_many :project_cocs, class_name: '::GrdaWarehouse::Hud::ProjectCoc', foreign_key: :CoCCode, primary_key: :coc_code, inverse_of: :lookup_coc
   has_many :projects, through: :project_cocs
+  has_many :data_sources, through: :project_cocs
 
   scope :active, -> do
     where(active: true)

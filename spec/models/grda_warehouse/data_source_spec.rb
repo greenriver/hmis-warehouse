@@ -128,6 +128,7 @@ RSpec.describe model, type: :model do
         it 'sees ds1' do
           empty_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-500']).pluck(:id) })
           setup_access_control(user, can_view_projects, empty_collection)
+
           expect(user_ids[user]).to eq ids[ds1]
         end
         it 'sees ds1 and ds2' do
