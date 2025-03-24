@@ -98,10 +98,6 @@ module HudSpmReport::Generators::Fy2024
           0
         when :decimal
           0.0
-        when :date
-          Date.today.strftime('%Y-%m-%d')
-        when :datetime
-          Time.now.strftime('%Y-%m-%d %H:%M:%S')
         when :string
           ''
         else
@@ -310,6 +306,8 @@ module HudSpmReport::Generators::Fy2024
         @reports[section] ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:rrh))
       when :so
         @reports[section] ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:so))
+      else
+        raise ArgumentError, "Unknown DQ section: #{section.inspect}"
       end
 
       # prevent retrying reports that don't have any projects
