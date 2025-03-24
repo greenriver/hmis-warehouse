@@ -19,6 +19,7 @@ module Hmis::Ce
         accept_referral
       when 'reject_referral'
         referral.reject!
+        referral.opportunity.release!
       when 'send_notification'
         send_notification(message)
       when 'create_ce_event'

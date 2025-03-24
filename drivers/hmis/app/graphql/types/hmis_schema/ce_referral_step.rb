@@ -17,7 +17,7 @@ module Types
     field :status, HmisSchema::Enums::CeReferralStepStatus, null: false
     field :swimlane, String, null: false
     field :submitted_values, JsonObject, null: true
-    delegate :name, :form_definition, to: :workflow_node
+    delegate :name, to: :workflow_node
 
     def id
       # the step may not yet be persisted, such as when it isn't yet available in the workflow
@@ -25,11 +25,16 @@ module Types
     end
 
     def workflow_node
-      object.node
+      load_ar_association(object, :node)
     end
 
     def swimlane
       load_ar_association(object, :swimlane)&.name
+    end
+
+    def form_definition
+      node = load_ar_association(object, :node)
+      load_ar_association(node, :form_definition)
     end
   end
 end

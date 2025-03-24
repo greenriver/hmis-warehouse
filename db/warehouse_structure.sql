@@ -1345,6 +1345,36 @@ CREATE VIEW analytics.current_living_situations AS
 
 
 --
+-- Name: assessment_answer_lookups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.assessment_answer_lookups (
+    id bigint NOT NULL,
+    assessment_question character varying,
+    response_code character varying,
+    response_text character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    data_source_id integer
+);
+
+
+--
+-- Name: custom_assessment_answer_lookups; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.custom_assessment_answer_lookups AS
+ SELECT id,
+    assessment_question,
+    response_code,
+    response_text,
+    created_at,
+    updated_at,
+    data_source_id
+   FROM public.assessment_answer_lookups;
+
+
+--
 -- Name: CustomAssessments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5246,21 +5276,6 @@ CREATE TABLE public.ar_internal_metadata (
     value character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: assessment_answer_lookups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.assessment_answer_lookups (
-    id bigint NOT NULL,
-    assessment_question character varying,
-    response_code character varying,
-    response_text character varying,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    data_source_id integer
 );
 
 
@@ -21436,7 +21451,8 @@ CREATE TABLE public.hud_report_dq_clients (
     veteran_status integer,
     annual_assessment_in_window boolean,
     gender_multi character varying,
-    personal_id character varying
+    personal_id character varying,
+    project_id integer
 );
 
 
@@ -21849,7 +21865,8 @@ CREATE TABLE public.hud_report_path_clients (
     race_multi character varying,
     newly_enrolled_client boolean DEFAULT false,
     cmh_service_provided boolean DEFAULT false NOT NULL,
-    cmh_referral_provided_and_attained boolean DEFAULT false NOT NULL
+    cmh_referral_provided_and_attained boolean DEFAULT false NOT NULL,
+    project_id integer
 );
 
 
@@ -67211,4 +67228,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250304143644'),
 ('20250304143654'),
 ('20250304143714'),
-('20250313125655');
+('20250313125655'),
+('20250313153011'),
+('20250319125533');

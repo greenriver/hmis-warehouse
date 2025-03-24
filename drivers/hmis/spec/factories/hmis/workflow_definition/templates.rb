@@ -5,5 +5,6 @@ FactoryBot.define do
     sequence(:name) { |n| "Workflow #{n}" }
     sequence(:identifier) { |n| "workflow_#{n}" }
     version { 0 }
+    status { 'published' }
   end
 end

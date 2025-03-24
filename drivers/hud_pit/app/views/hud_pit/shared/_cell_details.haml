@@ -23,7 +23,9 @@
             - column_headings.each_value do |header|
               %th= header
         %tbody.thead-dark
+          - current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id)) 
           - @clients.preload(:source_client).each.with_index do |client, i|
+            - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
             %tr
               %th= i + 1
               - column_headings.each_key do |k|
@@ -35,4 +37,4 @@
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - else
-                    = formatted_cell(client.public_send(k))
+                    = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
