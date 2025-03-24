@@ -12,10 +12,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# HUD SPM Report Generator: Measure 2a and 2b: The Extent to which Persons Who Exit Homelessness
-# to Permanent Housing Destinations Return to Homelessness within 6, 12,
-# and 24 months.
 module HudSpmReport::Generators::Fy2024
+  # HdxUpload - Generates CSV data for HUD's HDX 2.0 upload format
+  #
+  # This class creates a standardized CSV output that combines data from
+  # multiple System Performance Measures and Data Quality reports into
+  # the format required by HDX 2.0 for direct upload.
+  #
+  # The CSV format follows HUD's specifications for SPM data submission
+  # with two rows (column names and values) and strictly defined data types
+  # for each field.
+  #
   class HdxUpload < MeasureBase
     def self.question_number
       'HDX Upload'
@@ -250,7 +257,7 @@ module HudSpmReport::Generators::Fy2024
 
       # Set the values in row 2
       COLUMNS.each do |column|
-        # Get and format the value in one step
+        # Get the formatted the value
         raw_value = column.get_raw_value(self)
         formatted_value = column.format_value(raw_value)
 

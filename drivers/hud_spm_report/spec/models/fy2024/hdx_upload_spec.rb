@@ -6,7 +6,6 @@ require_relative './shared_context'
 RSpec.describe HudSpmReport::Generators::Fy2024::HdxUpload, type: :model do
   include_context 'SPM test setup'
 
-  # We'll test against the CSV column definitions
   let(:hdx_columns) do
     # HudSpmReport::Generators::Fy2024::HdxUpload::COLUMNS changed structure. This is the old definition which is left
     # in the test for now to ensure we haven't made accidental changes the col defs
