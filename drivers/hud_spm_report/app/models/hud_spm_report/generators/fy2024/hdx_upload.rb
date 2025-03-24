@@ -215,7 +215,7 @@ module HudSpmReport::Generators::Fy2024
       when :string
         value.presence || ''
       else
-        raise ArgumentError, "data type \"#{date_type}\" not supported"
+        raise ArgumentError, "data type \"#{data_type}\" not supported"
       end
     end
 
