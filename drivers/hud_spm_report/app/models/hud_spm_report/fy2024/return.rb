@@ -18,8 +18,9 @@ module HudSpmReport::Fy2024
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
 
+    # duck-types to enrollment
     def project_id
-      exit_enrollment&.enrollment&.project_id || return_enrollment&.enrollment&.project_id
+      [exit_enrollment, return_enrollment].detect(&:present?)&.enrollment&.project&.id
     end
 
     def self.client_ids_with_permanent_exits(report, enrollments)
