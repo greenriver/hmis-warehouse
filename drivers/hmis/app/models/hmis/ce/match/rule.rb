@@ -40,7 +40,7 @@ module Hmis::Ce::Match
     end
 
     def self.for_opportunity(opportunity)
-      all_rules = Hmis::Ce::Match::Rule.preload(:owner).order(:owner_type, :id).to_a
+      all_rules = preload(:owner).order(:owner_type, :id).to_a
       all_rules.filter { |rule| rule.applies_to_opportunity?(opportunity) }
     end
   end
