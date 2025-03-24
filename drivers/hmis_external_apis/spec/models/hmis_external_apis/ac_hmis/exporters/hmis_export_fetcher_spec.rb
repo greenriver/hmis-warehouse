@@ -13,6 +13,6 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::HmisExportFetcher, type: :mo
 
   it 'makes a zipped file' do
     subject.run!
-    expect(subject.export.hmis_zip.download).to start_with('PK')
+    expect(subject.content).to start_with('PK')
   end
 end

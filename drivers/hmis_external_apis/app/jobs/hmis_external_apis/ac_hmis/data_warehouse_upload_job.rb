@@ -87,12 +87,11 @@ module HmisExternalApis::AcHmis
       export = HmisExternalApis::AcHmis::Exporters::HmisExportFetcher.new
       export.run!
 
-      content = export.hmis_zip.download
-      hash = Digest::MD5.hexdigest(content)
+      hash = Digest::MD5.hexdigest(export.content)
 
       uploader = Exporters::DataWarehouseUploader.new(
         filename_format: "%Y-%m-%d-HMIS-#{hash}-hudcsv.zip",
-        pre_zipped_data: content,
+        pre_zipped_data: export.content,
       )
 
       uploader.run!
@@ -102,12 +101,11 @@ module HmisExternalApis::AcHmis
       export = HmisExternalApis::AcHmis::Exporters::HmisExportFetcher.new
       export.run!(start_date: 10.years.ago.to_date)
 
-      content = export.hmis_zip.download
-      hash = Digest::MD5.hexdigest(content)
+      hash = Digest::MD5.hexdigest(export.content)
 
       uploader = Exporters::DataWarehouseUploader.new(
         filename_format: "%Y-%m-%d-HMIS-full-refresh-#{hash}-hudcsv.zip",
-        pre_zipped_data: content,
+        pre_zipped_data: export.content,
       )
 
       uploader.run!
