@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -229,6 +231,7 @@ module Hmis
 
         # Build CustomAssessment with appropriate metadata
         metadata_attributes = value.extract!(:user_id, :date_created, :date_updated, :assessment_date)
+        metadata_attributes[:assessment_date] = value.delete :exit_date if value.key?(:exit_date)
         assessment = Hmis::Hud::CustomAssessment.new(
           **uniq_attributes.merge(metadata_attributes),
           user: hud_users_by_id[metadata_attributes[:user_id]] || system_user,
@@ -358,11 +361,11 @@ module Hmis
 
     def merge_metadata(old_hash, values)
       metadata = old_hash&.slice(:user_id, :date_created, :date_updated, :assessment_date) || {}
-      # Rename information_date and exit_date to assessment_date, these will be used to set assmt date (for Entry and Exit only)
+      # Rename information_date to assessment_date, these will be used to set assmt date (for Entry and Exit only).
+      # Don't rename exit date here; keep it separate, so we can prioritize it over information date.
       values[:assessment_date] = values.delete :information_date
-      values[:assessment_date] = values.delete :exit_date if values.key?(:exit_date)
 
-      new_metadata = values.slice(:user_id, :date_created, :date_updated, :assessment_date).compact.transform_values(&:first)
+      new_metadata = values.slice(:user_id, :date_created, :date_updated, :assessment_date, :exit_date).compact.transform_values(&:first)
 
       # User that most recently updated
       user_latest_updated = [metadata, new_metadata].reject { |v| v[:date_updated].nil? || v[:user_id].nil? }.
@@ -377,6 +380,8 @@ module Hmis
           [oldval, newval].compact.map(&:to_datetime).max
         when :assessment_date
           [oldval, newval].compact.map(&:to_datetime).min
+        when :exit_date
+          [oldval, newval].compact.map(&:to_datetime).max
         when :user_id
           user_latest_updated
         else

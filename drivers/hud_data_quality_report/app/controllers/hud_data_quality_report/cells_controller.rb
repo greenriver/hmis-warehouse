@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudDataQualityReport
   class CellsController < HudDataQualityReport::QuestionsController
     before_action :set_report
@@ -24,12 +26,5 @@ module HudDataQualityReport
         end
       end
     end
-
-    def formatted_cell(cell)
-      return cell.to_json if cell.is_a?(Array) || cell.is_a?(Hash)
-
-      cell
-    end
-    helper_method :formatted_cell
   end
 end

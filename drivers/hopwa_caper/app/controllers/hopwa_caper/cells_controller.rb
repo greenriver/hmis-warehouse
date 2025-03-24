@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HopwaCaper
   class CellsController < HopwaCaper::QuestionsController
     before_action :set_report
@@ -13,11 +15,11 @@ module HopwaCaper
       @cell = @report.valid_cell_name(params[:id])
       @table = @report.valid_table_name(params[:table])
       @enrollments = @report.hopwa_caper_enrollments.
-        preload(:enrollment).
+        preload(enrollment: :project).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell))
       @services = @report.hopwa_caper_services.
-        preload(enrollment: :enrollment).
+        preload(enrollment: { enrollment: :project }).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell))
       @name = "#{generator.file_prefix} #{@question} #{@cell}"

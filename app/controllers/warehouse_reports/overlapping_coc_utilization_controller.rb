@@ -14,15 +14,9 @@ module WarehouseReports
     CACHE_VERSION = '1aa'
     CACHE_LIFETIME = 30.minutes.freeze
 
-    RELEVANT_COC_STATE = GrdaWarehouse::Config.get(:relevant_state_codes) do
-      GrdaWarehouse::Shape::Coc.order(Arel.sql('random()')).limit(2).pluck(:st).join(',')
-    rescue StandardError
-      'UNKNOWN'
-    end.split(',')
-
     private def state_coc_shapes
       GrdaWarehouse::Shape::Coc.where(
-        st: RELEVANT_COC_STATE,
+        st: GrdaWarehouse::Config.relevant_state_codes,
       )
     end
 

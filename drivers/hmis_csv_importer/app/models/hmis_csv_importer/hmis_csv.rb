@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -87,7 +89,7 @@ module HmisCsvImporter::HmisCsv
       phase = message.to_s.gsub(/!$/, '')
       importer_log&.log_phase(phase, started_at: Time.current)
 
-      memory_used = -> { `ps -o rss= -p #{Process.pid}`.to_i }
+      memory_used = -> { File.read("/proc/#{Process.pid}/status")[/VmRSS:\s+(\d+)/, 1].to_i }
       memory_before = memory_used.call
 
       ret = nil

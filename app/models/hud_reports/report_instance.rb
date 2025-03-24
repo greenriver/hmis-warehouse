@@ -1,10 +1,18 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# A HUD Report instance, identified by report name (e.g., report_name: 'CE APR - 2020')
+# A HUD Report instance
+#
+# While the model supports STI, this is not commonly used to identify report type. Instead, the report_name is used to
+# indicate the type of report. For example:
+#  - "Annual PATH Report - FY 2024",
+#  - "HMIS Data Quality Report - FY 2024",
+#  - "System Performance Measures - FY 2024"
 module HudReports
   class ReportInstance < GrdaWarehouseBase
     acts_as_paranoid

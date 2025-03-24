@@ -4,17 +4,23 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # HUD SPM Report Generator: Measure 2a and 2b: The Extent to which Persons Who Exit Homelessness
 # to Permanent Housing Destinations Return to Homelessness within 6, 12,
 # and 24 months.
 module HudSpmReport::Generators::Fy2023
   class MeasureTwo < MeasureBase
     def self.question_number
-      'Measure 2'.freeze
+      'Measure 2'
     end
 
     def self.client_class
-      HudSpmReport::Fy2023::Return.
+      HudSpmReport::Fy2023::Return
+    end
+
+    def self.client_scope
+      client_class.
         left_outer_joins(:exit_enrollment, :return_enrollment).
         preload(exit_enrollment: { enrollment: :project }, return_enrollment: { enrollment: :project })
     end
