@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -10,13 +12,20 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# HUD SPM Report Generator: Measure 2a and 2b: The Extent to which Persons Who Exit Homelessness
-# to Permanent Housing Destinations Return to Homelessness within 6, 12,
-# and 24 months.
 module HudSpmReport::Generators::Fy2024
+  # HdxUpload - Generates CSV data for HUD's HDX 2.0 upload format
+  #
+  # This class creates a standardized CSV output that combines data from
+  # multiple System Performance Measures and Data Quality reports into
+  # the format required by HDX 2.0 for direct upload.
+  #
+  # The CSV format follows HUD's specifications for SPM data submission
+  # with two rows (column names and values) and strictly defined data types
+  # for each field.
+  #
   class HdxUpload < MeasureBase
     def self.question_number
-      'HDX Upload'.freeze
+      'HDX Upload'
     end
 
     def self.table_descriptions
@@ -44,150 +53,217 @@ module HudSpmReport::Generators::Fy2024
       2 => 'Variable Value',
     }.freeze
 
-    COLUMNS = {
-      A: ['CocCode', :metadata],
-      B: ['ReportDateTime', :metadata],
-      C: ['ReportStartDate', :metadata],
-      D: ['ReportEndDate', :metadata],
-      E: ['SoftwareName', :metadata],
-      F: ['SourceContactFirst', :metadata],
-      G: ['SourceContactLast', :metadata],
-      H: ['SourceContactEmail', :metadata],
+    HdxColumn = Struct.new(
+      :column_letter, # The Excel column letter (A, B, C, etc.)
+      :variable_name,   # The name used in HDX (e.g., 'CocCode')
+      :source_type,     # Where to get data from (:metadata, :spm, :essh, etc.)
+      :source_table,    # For SPM/DQ, which table to look at (e.g., '1a', 'Q1')
+      :source_cell,     # For SPM/DQ, which cell to get data from (e.g., :B1)
+      :data_type,       # Format type (:string, :integer, :decimal, :date, :datetime)
+      :max_length,      # For strings, maximum allowed length (optional)
+      keyword_init: true,
+    ) do
+      # Get the raw value for this column
+      def get_raw_value(context)
+        case source_type
+        when :metadata
+          context.metadata(source_table)
+        when :spm
+          context.spm(source_table, source_cell)
+        else
+          context.dq(source_type, source_table, source_cell)
+        end
+      end
 
-      I: ['ESSHUniverse_1A', :spm, '1a', :B1],
-      J: ['ESSHAvgTime_1A', :spm, '1a', :D1],
-      K: ['ESSHMedianTime_1A', :spm, '1a', :G1],
-      L: ['ESSHTHUniverse_1A', :spm, '1a', :B2],
-      M: ['ESSHTHAvgTime_1A', :spm, '1a', :D2],
-      N: ['ESSHTHMedianTime_1A', :spm, '1a', :G2],
+      # Format value based on data type and constraints
+      def format_value(value)
+        # Handle nil/blank values first
+        return default_value if value.blank?
 
-      O: ['ESSHUniverse_1B', :spm, '1b', :B1],
-      P: ['ESSHAvgTime_1B', :spm, '1b', :D1],
-      Q: ['ESSHMedianTime_1B', :spm, '1b', :G1],
-      R: ['ESSHTHUniverse_1B', :spm, '1b', :B2],
-      S: ['ESSHTHAvgTime_1B', :spm, '1b', :D2],
-      T: ['ESSHTHMedianTime_1B', :spm, '1b', :G2],
+        case data_type
+        when :integer
+          value.to_i
+        when :decimal
+          value.to_f.round(2)
+        when :date
+          value.is_a?(Date) ? value.strftime('%Y-%m-%d') : value.to_s
+        when :datetime
+          value.is_a?(Time) ? value.strftime('%Y-%m-%d %H:%M:%S') : value.to_s
+        when :string
+          formatted_string = value.to_s
+          formatted_string = formatted_string[0...max_length] if max_length.present?
+          formatted_string
+        else
+          raise ArgumentError, "data type \"#{data_type}\" not supported"
+        end
+      end
 
-      U: ['SOExitPH_2', :spm, '2a and 2b', :B2],
-      V: ['SOReturn0to180_2', :spm, '2a and 2b', :C2],
-      W: ['SOReturn181to365_2', :spm, '2a and 2b', :E2],
-      X: ['SOReturn366to730_2', :spm, '2a and 2b', :G2],
-      Y: ['ESExitPH_2', :spm, '2a and 2b', :B3],
-      Z: ['ESReturn0to180_2', :spm, '2a and 2b', :C3],
-      AA: ['ESReturn181to365_2', :spm, '2a and 2b', :E3],
-      AB: ['ESReturn366to730_2', :spm, '2a and 2b', :G3],
-      AC: ['THExitPH_2', :spm, '2a and 2b', :B4],
-      AD: ['THReturn0to180_2', :spm, '2a and 2b', :C4],
-      AE: ['THReturn181to365_2', :spm, '2a and 2b', :E4],
-      AF: ['THReturn366to730_2', :spm, '2a and 2b', :G4],
-      AG: ['SHExitPH_2', :spm, '2a and 2b', :B5],
-      AH: ['SHReturn0to180_2', :spm, '2a and 2b', :C5],
-      AI: ['SHReturn181to365_2', :spm, '2a and 2b', :E5],
-      AJ: ['SHReturn366to730_2', :spm, '2a and 2b', :G5],
-      AK: ['PHExitPH_2', :spm, '2a and 2b', :B6],
-      AL: ['PHReturn0to180_2', :spm, '2a and 2b', :C6],
-      AM: ['PHReturn181to365_2', :spm, '2a and 2b', :E6],
-      AN: ['PHReturn366to730_2', :spm, '2a and 2b', :G6],
+      # Default value for this column's data type
+      def default_value
+        case data_type
+        when :integer
+          0
+        when :decimal
+          0.0
+        when :string
+          ''
+        else
+          raise ArgumentError, "data type \"#{data_type}\" not supported"
+        end
+      end
+    end
+    private_constant :HdxColumn
 
-      AO: ['TotalAnnual_3', :spm, '3.2', :C2],
-      AP: ['ESAnnual_3', :spm, '3.2', :C3],
-      AQ: ['SHAnnual_3', :spm, '3.2', :C4],
-      AR: ['THAnnual_3', :spm, '3.2', :C5],
+    COLUMNS = [
+      # Metadata fields
+      { column_letter: 'A', variable_name: 'CocCode', source_type: :metadata, source_table: 'CocCode', data_type: :string, max_length: 6 },
+      { column_letter: 'B', variable_name: 'ReportDateTime', source_type: :metadata, source_table: 'ReportDateTime', data_type: :datetime },
+      { column_letter: 'C', variable_name: 'ReportStartDate', source_type: :metadata, source_table: 'ReportStartDate', data_type: :date },
+      { column_letter: 'D', variable_name: 'ReportEndDate', source_type: :metadata, source_table: 'ReportEndDate', data_type: :date },
+      { column_letter: 'E', variable_name: 'SoftwareName', source_type: :metadata, source_table: 'SoftwareName', data_type: :string, max_length: 50 },
+      { column_letter: 'F', variable_name: 'SourceContactFirst', source_type: :metadata, source_table: 'SourceContactFirst', data_type: :string, max_length: 50 },
+      { column_letter: 'G', variable_name: 'SourceContactLast', source_type: :metadata, source_table: 'SourceContactLast', data_type: :string, max_length: 50 },
+      { column_letter: 'H', variable_name: 'SourceContactEmail', source_type: :metadata, source_table: 'SourceContactEmail', data_type: :string, max_length: 50 },
 
-      AS: ['AdultStayers_4', :spm, '4.1', :C2],
-      AT: ['IncreaseEarned4_1', :spm, '4.1', :C3],
+      # Measure 1a fields
+      { column_letter: 'I', variable_name: 'ESSHUniverse_1A', source_type: :spm, source_table: '1a', source_cell: :B1, data_type: :integer },
+      { column_letter: 'J', variable_name: 'ESSHAvgTime_1A', source_type: :spm, source_table: '1a', source_cell: :D1, data_type: :decimal },
+      { column_letter: 'K', variable_name: 'ESSHMedianTime_1A', source_type: :spm, source_table: '1a', source_cell: :G1, data_type: :decimal },
+      { column_letter: 'L', variable_name: 'ESSHTHUniverse_1A', source_type: :spm, source_table: '1a', source_cell: :B2, data_type: :integer },
+      { column_letter: 'M', variable_name: 'ESSHTHAvgTime_1A', source_type: :spm, source_table: '1a', source_cell: :D2, data_type: :decimal },
+      { column_letter: 'N', variable_name: 'ESSHTHMedianTime_1A', source_type: :spm, source_table: '1a', source_cell: :G2, data_type: :decimal },
 
-      AU: ['IncreaseOther4_2', :spm, '4.2', :C3],
+      # Measure 1b fields
+      { column_letter: 'O', variable_name: 'ESSHUniverse_1B', source_type: :spm, source_table: '1b', source_cell: :B1, data_type: :integer },
+      { column_letter: 'P', variable_name: 'ESSHAvgTime_1B', source_type: :spm, source_table: '1b', source_cell: :D1, data_type: :decimal },
+      { column_letter: 'Q', variable_name: 'ESSHMedianTime_1B', source_type: :spm, source_table: '1b', source_cell: :G1, data_type: :decimal },
+      { column_letter: 'R', variable_name: 'ESSHTHUniverse_1B', source_type: :spm, source_table: '1b', source_cell: :B2, data_type: :integer },
+      { column_letter: 'S', variable_name: 'ESSHTHAvgTime_1B', source_type: :spm, source_table: '1b', source_cell: :D2, data_type: :decimal },
+      { column_letter: 'T', variable_name: 'ESSHTHMedianTime_1B', source_type: :spm, source_table: '1b', source_cell: :G2, data_type: :decimal },
 
-      AV: ['IncreaseTotal4_3', :spm, '4.3', :C3],
+      # Measure 2 fields
+      { column_letter: 'U', variable_name: 'SOExitPH_2', source_type: :spm, source_table: '2a and 2b', source_cell: :B2, data_type: :integer },
+      { column_letter: 'V', variable_name: 'SOReturn0to180_2', source_type: :spm, source_table: '2a and 2b', source_cell: :C2, data_type: :integer },
+      { column_letter: 'W', variable_name: 'SOReturn181to365_2', source_type: :spm, source_table: '2a and 2b', source_cell: :E2, data_type: :integer },
+      { column_letter: 'X', variable_name: 'SOReturn366to730_2', source_type: :spm, source_table: '2a and 2b', source_cell: :G2, data_type: :integer },
+      { column_letter: 'Y', variable_name: 'ESExitPH_2', source_type: :spm, source_table: '2a and 2b', source_cell: :B3, data_type: :integer },
+      { column_letter: 'Z', variable_name: 'ESReturn0to180_2', source_type: :spm, source_table: '2a and 2b', source_cell: :C3, data_type: :integer },
+      { column_letter: 'AA', variable_name: 'ESReturn181to365_2', source_type: :spm, source_table: '2a and 2b', source_cell: :E3, data_type: :integer },
+      { column_letter: 'AB', variable_name: 'ESReturn366to730_2', source_type: :spm, source_table: '2a and 2b', source_cell: :G3, data_type: :integer },
+      { column_letter: 'AC', variable_name: 'THExitPH_2', source_type: :spm, source_table: '2a and 2b', source_cell: :B4, data_type: :integer },
+      { column_letter: 'AD', variable_name: 'THReturn0to180_2', source_type: :spm, source_table: '2a and 2b', source_cell: :C4, data_type: :integer },
+      { column_letter: 'AE', variable_name: 'THReturn181to365_2', source_type: :spm, source_table: '2a and 2b', source_cell: :E4, data_type: :integer },
+      { column_letter: 'AF', variable_name: 'THReturn366to730_2', source_type: :spm, source_table: '2a and 2b', source_cell: :G4, data_type: :integer },
+      { column_letter: 'AG', variable_name: 'SHExitPH_2', source_type: :spm, source_table: '2a and 2b', source_cell: :B5, data_type: :integer },
+      { column_letter: 'AH', variable_name: 'SHReturn0to180_2', source_type: :spm, source_table: '2a and 2b', source_cell: :C5, data_type: :integer },
+      { column_letter: 'AI', variable_name: 'SHReturn181to365_2', source_type: :spm, source_table: '2a and 2b', source_cell: :E5, data_type: :integer },
+      { column_letter: 'AJ', variable_name: 'SHReturn366to730_2', source_type: :spm, source_table: '2a and 2b', source_cell: :G5, data_type: :integer },
+      { column_letter: 'AK', variable_name: 'PHExitPH_2', source_type: :spm, source_table: '2a and 2b', source_cell: :B6, data_type: :integer },
+      { column_letter: 'AL', variable_name: 'PHReturn0to180_2', source_type: :spm, source_table: '2a and 2b', source_cell: :C6, data_type: :integer },
+      { column_letter: 'AM', variable_name: 'PHReturn181to365_2', source_type: :spm, source_table: '2a and 2b', source_cell: :E6, data_type: :integer },
+      { column_letter: 'AN', variable_name: 'PHReturn366to730_2', source_type: :spm, source_table: '2a and 2b', source_cell: :G6, data_type: :integer },
 
-      AW: ['AdultLeavers_4', :spm, '4.4', :C2],
-      AX: ['IncreaseEarned4_4', :spm, '4.4', :C3],
+      # Measure 3 fields
+      { column_letter: 'AO', variable_name: 'TotalAnnual_3', source_type: :spm, source_table: '3.2', source_cell: :C2, data_type: :integer },
+      { column_letter: 'AP', variable_name: 'ESAnnual_3', source_type: :spm, source_table: '3.2', source_cell: :C3, data_type: :integer },
+      { column_letter: 'AQ', variable_name: 'SHAnnual_3', source_type: :spm, source_table: '3.2', source_cell: :C4, data_type: :integer },
+      { column_letter: 'AR', variable_name: 'THAnnual_3', source_type: :spm, source_table: '3.2', source_cell: :C5, data_type: :integer },
 
-      AY: ['IncreaseOther4_5', :spm, '4.5', :C3],
+      # Measure 4 fields
+      { column_letter: 'AS', variable_name: 'AdultStayers_4', source_type: :spm, source_table: '4.1', source_cell: :C2, data_type: :integer },
+      { column_letter: 'AT', variable_name: 'IncreaseEarned4_1', source_type: :spm, source_table: '4.1', source_cell: :C3, data_type: :integer },
+      { column_letter: 'AU', variable_name: 'IncreaseOther4_2', source_type: :spm, source_table: '4.2', source_cell: :C3, data_type: :integer },
+      { column_letter: 'AV', variable_name: 'IncreaseTotal4_3', source_type: :spm, source_table: '4.3', source_cell: :C3, data_type: :integer },
+      { column_letter: 'AW', variable_name: 'AdultLeavers_4', source_type: :spm, source_table: '4.4', source_cell: :C2, data_type: :integer },
+      { column_letter: 'AX', variable_name: 'IncreaseEarned4_4', source_type: :spm, source_table: '4.4', source_cell: :C3, data_type: :integer },
+      { column_letter: 'AY', variable_name: 'IncreaseOther4_5', source_type: :spm, source_table: '4.5', source_cell: :C3, data_type: :integer },
+      { column_letter: 'AZ', variable_name: 'IncreaseTotal4_6', source_type: :spm, source_table: '4.6', source_cell: :C3, data_type: :integer },
 
-      AZ: ['IncreaseTotal4_6', :spm, '4.6', :C3],
+      # Measure 5 fields
+      { column_letter: 'BA', variable_name: 'EnterESSHTH5_1', source_type: :spm, source_table: '5.1', source_cell: :C2, data_type: :integer },
+      { column_letter: 'BB', variable_name: 'ESSHTHWithPriorSvc5_1', source_type: :spm, source_table: '5.1', source_cell: :C3, data_type: :integer },
+      { column_letter: 'BC', variable_name: 'EnterESSHTHPH5_2', source_type: :spm, source_table: '5.2', source_cell: :C2, data_type: :integer },
+      { column_letter: 'BD', variable_name: 'ESSHTHPHWithPriorSvc5_2', source_type: :spm, source_table: '5.2', source_cell: :C3, data_type: :integer },
 
-      BA: ['EnterESSHTH5_1', :spm, '5.1', :C2],
-      BB: ['ESSHTHWithPriorSvc5_1', :spm, '5.1', :C3],
+      # Measure 6 fields
+      { column_letter: 'BE', variable_name: 'THExitPH_6', source_type: :spm, source_table: '6a.1 and 6b.1', source_cell: :B4, data_type: :integer },
+      { column_letter: 'BF', variable_name: 'THReturn0to180_6', source_type: :spm, source_table: '6a.1 and 6b.1', source_cell: :C4, data_type: :integer },
+      { column_letter: 'BG', variable_name: 'THReturn181to365_6', source_type: :spm, source_table: '6a.1 and 6b.1', source_cell: :E4, data_type: :integer },
+      { column_letter: 'BH', variable_name: 'THReturn366to730_6', source_type: :spm, source_table: '6a.1 and 6b.1', source_cell: :G4, data_type: :integer },
+      { column_letter: 'BI', variable_name: 'SHExitPH_6', source_type: :spm, source_table: '6a.1 and 6b.1', source_cell: :B5, data_type: :integer },
+      { column_letter: 'BJ', variable_name: 'SHReturn0to180_6', source_type: :spm, source_table: '6a.1 and 6b.1', source_cell: :C5, data_type: :integer },
+      { column_letter: 'BK', variable_name: 'SHReturn181to365_6', source_type: :spm, source_table: '6a.1 and 6b.1', source_cell: :E5, data_type: :integer },
+      { column_letter: 'BL', variable_name: 'SHReturn366to730_6', source_type: :spm, source_table: '6a.1 and 6b.1', source_cell: :G5, data_type: :integer },
+      { column_letter: 'BM', variable_name: 'PHExitPH_6', source_type: :spm, source_table: '6a.1 and 6b.1', source_cell: :B6, data_type: :integer },
+      { column_letter: 'BN', variable_name: 'PHReturn0to180_6', source_type: :spm, source_table: '6a.1 and 6b.1', source_cell: :C6, data_type: :integer },
+      { column_letter: 'BO', variable_name: 'PHReturn181to365_6', source_type: :spm, source_table: '6a.1 and 6b.1', source_cell: :E6, data_type: :integer },
+      { column_letter: 'BP', variable_name: 'PHReturn366to730_6', source_type: :spm, source_table: '6a.1 and 6b.1', source_cell: :G6, data_type: :integer },
+      { column_letter: 'BQ', variable_name: 'SHTHRRHCat3Leavers_6', source_type: :spm, source_table: '6c.1', source_cell: :C2, data_type: :integer },
+      { column_letter: 'BR', variable_name: 'SHTHRRHCat3ExitPH_6', source_type: :spm, source_table: '6c.1', source_cell: :C3, data_type: :integer },
+      { column_letter: 'BS', variable_name: 'PSHCat3Clients_6', source_type: :spm, source_table: '6c.2', source_cell: :C2, data_type: :integer },
+      { column_letter: 'BT', variable_name: 'PSHCat3StayOrExitPH_6', source_type: :spm, source_table: '6c.2', source_cell: :C3, data_type: :integer },
 
-      BC: ['EnterESSHTHPH5_2', :spm, '5.2', :C2],
-      BD: ['ESSHTHPHWithPriorSvc5_2', :spm, '5.2', :C3],
+      # Measure 7 fields
+      { column_letter: 'BU', variable_name: 'SOExit_7', source_type: :spm, source_table: '7a.1', source_cell: :C2, data_type: :integer },
+      { column_letter: 'BV', variable_name: 'SOExitTempInst_7', source_type: :spm, source_table: '7a.1', source_cell: :C3, data_type: :integer },
+      { column_letter: 'BW', variable_name: 'SOExitPH_7', source_type: :spm, source_table: '7a.1', source_cell: :C4, data_type: :integer },
+      { column_letter: 'BX', variable_name: 'ESSHTHRRHExit_7', source_type: :spm, source_table: '7b.1', source_cell: :C2, data_type: :integer },
+      { column_letter: 'BY', variable_name: 'ESSHTHRRHToPH_7', source_type: :spm, source_table: '7b.1', source_cell: :C3, data_type: :integer },
+      { column_letter: 'BZ', variable_name: 'PHClients_7', source_type: :spm, source_table: '7b.2', source_cell: :C2, data_type: :integer },
+      { column_letter: 'CA', variable_name: 'PHClientsStayOrExitPH_7', source_type: :spm, source_table: '7b.2', source_cell: :C3, data_type: :integer },
 
-      BE: ['THExitPH_6', :spm, '6a.1 and 6b.1', :B4],
-      BF: ['THReturn0to180_6', :spm, '6a.1 and 6b.1', :C4],
-      BG: ['THReturn181to365_6', :spm, '6a.1 and 6b.1', :E4],
-      BH: ['THReturn366to730_6', :spm, '6a.1 and 6b.1', :G4],
-      BI: ['SHExitPH_6', :spm, '6a.1 and 6b.1', :B5],
-      BJ: ['SHReturn0to180_6', :spm, '6a.1 and 6b.1', :C5],
-      BK: ['SHReturn181to365_6', :spm, '6a.1 and 6b.1', :E5],
-      BL: ['SHReturn366to730_6', :spm, '6a.1 and 6b.1', :G5],
-      BM: ['PHExitPH_6', :spm, '6a.1 and 6b.1', :B6],
-      BN: ['PHReturn0to180_6', :spm, '6a.1 and 6b.1', :C6],
-      BO: ['PHReturn181to365_6', :spm, '6a.1 and 6b.1', :E6],
-      BP: ['PHReturn366to730_6', :spm, '6a.1 and 6b.1', :G6],
+      # Data Quality Report fields - ES-SH
+      { column_letter: 'CB', variable_name: 'ESSH_UndupHMIS_DQ', source_type: :essh, source_table: 'Q1', source_cell: :B2, data_type: :integer },
+      { column_letter: 'CG', variable_name: 'ESSH_LeaversHMIS_DQ', source_type: :essh, source_table: 'Q1', source_cell: :B6, data_type: :integer },
+      { column_letter: 'CL', variable_name: 'ESSH_DkRMHMIS_DQ', source_type: :essh, source_table: 'Q4', source_cell: :E2, data_type: :integer },
 
-      BQ: ['SHTHRRHCat3Leavers_6', :spm, '6c.1', :C2],
-      BR: ['SHTHRRHCat3ExitPH_6', :spm, '6c.1', :C3],
+      # Data Quality Report fields - TH
+      { column_letter: 'CC', variable_name: 'TH_UndupHMIS_DQ', source_type: :th, source_table: 'Q1', source_cell: :B2, data_type: :integer },
+      { column_letter: 'CH', variable_name: 'TH_LeaversHMIS_DQ', source_type: :th, source_table: 'Q1', source_cell: :B6, data_type: :integer },
+      { column_letter: 'CM', variable_name: 'TH_DkRMHMIS_DQ', source_type: :th, source_table: 'Q4', source_cell: :E2, data_type: :integer },
 
-      BS: ['PSHCat3Clients_6', :spm, '6c.2', :C2],
-      BT: ['PSHCat3StayOrExitPH_6', :spm, '6c.2', :C3],
+      # Data Quality Report fields - PSH/OPH
+      { column_letter: 'CD', variable_name: 'PSHOPH_UndupHMIS_DQ', source_type: :pshoph, source_table: 'Q1', source_cell: :B2, data_type: :integer },
+      { column_letter: 'CI', variable_name: 'PSHOPH_LeaversHMIS_DQ', source_type: :pshoph, source_table: 'Q1', source_cell: :B6, data_type: :integer },
+      { column_letter: 'CN', variable_name: 'PSHOPH_DkRMHMIS_DQ', source_type: :pshoph, source_table: 'Q4', source_cell: :E2, data_type: :integer },
 
-      BU: ['SOExit_7', :spm, '7a.1', :C2],
-      BV: ['SOExitTempInst_7', :spm, '7a.1', :C3],
-      BW: ['SOExitPH_7', :spm, '7a.1', :C4],
+      # Data Quality Report fields - RRH
+      { column_letter: 'CE', variable_name: 'RRH_UndupHMIS_DQ', source_type: :rrh, source_table: 'Q1', source_cell: :B2, data_type: :integer },
+      { column_letter: 'CJ', variable_name: 'RRH_LeaversHMIS_DQ', source_type: :rrh, source_table: 'Q1', source_cell: :B6, data_type: :integer },
+      { column_letter: 'CO', variable_name: 'RRH_DkRMHMIS_DQ', source_type: :rrh, source_table: 'Q4', source_cell: :E2, data_type: :integer },
 
-      BX: ['ESSHTHRRHExit_7', :spm, '7b.1', :C2],
-      BY: ['ESSHTHRRHToPH_7', :spm, '7b.1', :C3],
+      # Data Quality Report fields - Street Outreach
+      { column_letter: 'CF', variable_name: 'StOutreach_UndupHMIS_DQ', source_type: :so, source_table: 'Q1', source_cell: :B2, data_type: :integer },
+      { column_letter: 'CK', variable_name: 'StOutreach_LeaversHMIS_DQ', source_type: :so, source_table: 'Q1', source_cell: :B6, data_type: :integer },
+      { column_letter: 'CP', variable_name: 'StOutreach_DkRMHMIS_DQ', source_type: :so, source_table: 'Q4', source_cell: :E2, data_type: :integer },
+    ].map { |attrs| HdxColumn.new(attrs).freeze }.freeze
 
-      BZ: ['PHClients_7', :spm, '7b.2', :C2],
-      CA: ['PHClientsStayOrExitPH_7', :spm, '7b.2', :C3],
-
-      CB: ['ESSH_UndupHMIS_DQ', :essh, 'Q1', :B2],
-      CC: ['TH_UndupHMIS_DQ', :th, 'Q1', :B2],
-      CD: ['PSHOPH_UndupHMIS_DQ', :pshoph, 'Q1', :B2],
-      CE: ['RRH_UndupHMIS_DQ', :rrh, 'Q1', :B2],
-      CF: ['StOutreach_UndupHMIS_DQ', :so, 'Q1', :B2],
-      CG: ['ESSH_LeaversHMIS_DQ', :essh, 'Q1', :B6],
-      CH: ['TH_LeaversHMIS_DQ', :th, 'Q1', :B6],
-      CI: ['PSHOPH_LeaversHMIS_DQ', :pshoph, 'Q1', :B6],
-      CJ: ['RRH_LeaversHMIS_DQ', :rrh, 'Q1', :B6],
-      CK: ['StOutreach_LeaversHMIS_DQ', :so, 'Q1', :B6],
-
-      CL: ['ESSH_DkRMHMIS_DQ', :essh, 'Q4', :E2],
-      CM: ['TH_DkRMHMIS_DQ', :th, 'Q4', :E2],
-      CN: ['PSHOPH_DkRMHMIS_DQ', :pshoph, 'Q4', :E2],
-      CO: ['RRH_DkRMHMIS_DQ', :rrh, 'Q4', :E2],
-      CP: ['StOutreach_DkRMHMIS_DQ', :so, 'Q4', :E2],
-    }.freeze
-
-    private def run_csv(table_name)
+    def run_csv(table_name)
+      # Setup table structure
       prepare_table(
         table_name,
         ROWS,
-        COLUMNS,
-        hide_column_header: true, # Column headers are part of the table
+        COLUMNS.map { |col| [col.column_letter.to_sym, col.variable_name] }.to_h,
+        hide_column_header: true,
         external_column_header: false,
         external_row_label: true,
       )
 
-      COLUMNS.transform_values(&:first).each do |column, label|
-        answer = @report.answer(question: table_name, cell: column.to_s + '1')
-        answer.update(summary: label)
+      # Set the column headers in row 1
+      COLUMNS.each do |column|
+        answer = @report.answer(question: table_name, cell: "#{column.column_letter}1")
+        answer.update(summary: column.variable_name)
       end
 
-      COLUMNS.each do |column, (label, section, *args)|
-        cell_value = case section
-        when :metadata
-          metadata(label)
-        when :spm
-          spm(*args)
-        else
-          dq(section, *args)
-        end
+      # Set the values in row 2
+      COLUMNS.each do |column|
+        # Get the formatted the value
+        raw_value = column.get_raw_value(self)
+        formatted_value = column.format_value(raw_value)
 
-        answer = @report.answer(question: table_name, cell: column.to_s + '2')
-        answer.update(summary: cell_value)
+        # Update the report cell
+        answer = @report.answer(question: table_name, cell: "#{column.column_letter}2")
+        answer.update(summary: formatted_value)
       end
     end
 
@@ -237,6 +313,8 @@ module HudSpmReport::Generators::Fy2024
         @reports[section] ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:rrh))
       when :so
         @reports[section] ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:so))
+      else
+        raise ArgumentError, "Unknown DQ section: #{section.inspect}"
       end
 
       # prevent retrying reports that don't have any projects
@@ -246,7 +324,7 @@ module HudSpmReport::Generators::Fy2024
 
     private def generate_dq(project_types)
       dq_filter = filter.deep_dup
-      # The DQ version differs from the SPM version
+      # The DQ version may differ from the SPM version
       dq_filter.report_version = :fy2024
 
       # limit DQ report to projects in the appropriate project types that were in this SPM
