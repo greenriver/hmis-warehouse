@@ -11,10 +11,11 @@ module Types
     # object is a Hmis::Ce::Match::Rule
     field :id, ID, null: false
     field :name, String, null: false
-    field :type, HmisSchema::Enums::CeMatchRuleType, null: false, method: :rule_type
     field :owner_type, String, null: false
 
     def owner_type
+      # TODO(#7166) revisit the difference between "owner" and "applicability". See:
+      # https://github.com/greenriver/hmis-warehouse/pull/5218#discussion_r2008342245
       applicability_config = object.applicability_config.symbolize_keys
 
       if applicability_config[:project_types]&.any?

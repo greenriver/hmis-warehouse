@@ -733,12 +733,6 @@ type CeMatchRule {
   id: ID!
   name: String!
   ownerType: String!
-  type: CeMatchRuleType!
-}
-
-enum CeMatchRuleType {
-  eligibility_requirement
-  priority_scheme
 }
 
 type CeOpportunitiesPaginated {
