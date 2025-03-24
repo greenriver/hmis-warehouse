@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Tasks
   class PushClientsToCas
     include NotifierConfig
@@ -340,6 +342,8 @@ module GrdaWarehouse::Tasks
     def value_display_for(key, value)
       if value.in?([true, false])
         ApplicationController.helpers.yes_no(value)
+      elsif value.in?(['yes', 'no'])
+        ApplicationController.helpers.yes_no(value == 'yes')
       elsif key.in?([:veteran_status])
         HudUtility2024.no_yes_reasons_for_missing_data(value)
       elsif key == :neighborhood_interests
@@ -384,6 +388,7 @@ module GrdaWarehouse::Tasks
           sro_ok: 'SRO OK',
           dv_rrh_desired: 'DV RRH Desired',
           rrh_th_desired: 'RRH TH Desired',
+          psh_required: 'PSH Required',
           active_cohort_ids: 'Active Cohorts',
           dv_date: 'Most recent date of DV',
           th_desired: 'TH Desired',
