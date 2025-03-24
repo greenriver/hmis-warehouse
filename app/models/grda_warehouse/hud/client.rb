@@ -1327,7 +1327,7 @@ module GrdaWarehouse::Hud
 
     # pii provider for use in reports and bulk view
     def project_pii_provider(project:, user:, mode:)
-      policy = user.reporting_policy_for_project(project, mode: mode)
+      policy = user.reporting_policy_for_project(project_id: project.id, mode: mode)
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
     end
 
