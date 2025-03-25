@@ -31,6 +31,7 @@
               %th= header
         %tbody.thead-dark
           - current_user.policy_context.preload_project_dependencies(@clients.map(&:project_id).uniq)
+          - # @clients are either Episodes or Returns
           - @clients.find_each.with_index do |client, i|
             - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
             %tr

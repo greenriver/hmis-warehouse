@@ -18,6 +18,8 @@ module HudReports
       # This will separate the object and method in order to call the appropriate column/method
       # while similarly allowing the method to be called if the column is not passed using dot notation.
       cell = col.to_s.split('.').inject(self) do |obj, method|
+        break nil if obj.nil? # stop chaining if nil is reached
+
         if obj.class.column_names.include?(method)
           obj[method]
         else
