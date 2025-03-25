@@ -5,7 +5,7 @@
 # task node.
 module Hmis::WorkflowExecution
   class Step < GrdaWarehouseBase
-    include AASM
+    include SimpleStateMachine
 
     belongs_to :instance, class_name: 'Hmis::WorkflowExecution::Instance'
     belongs_to :node, class_name: 'Hmis::WorkflowDefinition::Node'
@@ -18,7 +18,7 @@ module Hmis::WorkflowExecution
     scope :viewable_by, ->(_user) { all }
 
     # note, step status is not intended to be manipulated outside of the workflow engine
-    aasm column: 'status' do
+    state_machine_config column: 'status' do
       state :unavailable, initial: true
       state :available
       state :in_progress
