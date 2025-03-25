@@ -42,10 +42,6 @@ interface GridOptions {
     filter: boolean;
     resizable: boolean;
   };
-  SizeColumnsToContentStrategy: {
-    type: 'fitCellContents',
-    skipHeader?: true,
-  }
   singleClickEdit: boolean;
   rowSelection: {
     mode: string;
