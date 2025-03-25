@@ -242,7 +242,6 @@ gem 'ansi'
 gem 'parallel'
 gem 'todo_or_die'
 
-gem 'aasm'
 gem 'dentaku', require: false
 gem 'business_time', '~> 0.10.0'
 gem 'cable_ready', '>= 5.0.0.rc2'

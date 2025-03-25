@@ -4,7 +4,7 @@
 
 module Hmis::Ce
   class Opportunity < GrdaWarehouseBase
-    include AASM
+    include SimpleStateMachine
 
     belongs_to :project, class_name: 'Hmis::Hud::Project', inverse_of: :ce_opportunities
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
@@ -21,7 +21,7 @@ module Hmis::Ce
 
     validates :name, presence: true
 
-    aasm column: 'status' do
+    state_machine_config column: 'status' do
       state :open, initial: true
       state :locked
       state :closed
