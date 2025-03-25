@@ -21,6 +21,7 @@ class BackgroundRender::InactiveClientReportJob < BackgroundRenderJob
     InactiveClientReport::WarehouseReports::ReportsController.render(
       partial: 'report',
       assigns: {
+        excel_export: ::InactiveClientReport::DocumentExports::ReportExcelExport.new,
         report: @report,
         filter: @filter,
         clients: @clients,
