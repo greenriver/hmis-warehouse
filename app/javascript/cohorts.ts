@@ -19,7 +19,6 @@ interface CohortOptions {
   column_order: string[];
   column_headers: Array<{ headerName: string; headerTooltip: string; field: string; editable: boolean; renderer?: string; available_options?: string[]; }>;
   column_options: any;
-  column_widths: number[];
   size_toggle_class: string;
   include_inactive: boolean;
   client_path: string;
@@ -43,6 +42,10 @@ interface GridOptions {
     filter: boolean;
     resizable: boolean;
   };
+  SizeColumnsToContentStrategy: {
+    type: 'fitCellContents',
+    skipHeader?: true,
+  }
   singleClickEdit: boolean;
   rowSelection: {
     mode: string;
@@ -78,7 +81,6 @@ window.App.Cohorts.Cohort = class Cohort {
   private column_order: string[];
   private column_headers: Array<{ headerName: string; headerTooltip: string; field: string; editable: boolean; renderer?: string; available_options?: string[]; }>;
   private column_options: any;
-  private column_widths: number[];
   private size_toggle_class: string;
   private include_inactive: boolean;
   private client_path: string;
@@ -127,7 +129,6 @@ window.App.Cohorts.Cohort = class Cohort {
     this.column_order = options['column_order'];
     this.column_headers = options['column_headers'];
     this.column_options = options['column_options'];
-    this.column_widths = options['column_widths'];
     this.size_toggle_class = options['size_toggle_class'];
     this.include_inactive = options['include_inactive'];
     this.client_path = options['client_path'];
@@ -360,6 +361,7 @@ window.App.Cohorts.Cohort = class Cohort {
     return this.load_page().then(() => {
       $(this.loading_selector).addClass('hidden');
       this.table.setGridOption('rowData', this.raw_data);
+      this.resize_columns();
       this.set_rank_order();
 
       const refresh_rate = 10000;
