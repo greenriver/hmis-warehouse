@@ -44,10 +44,15 @@
                   - else
                     = render 'admin/inactive_users/user_status', user: user
                 %br
-                - if user.last_sign_in_at.present?
-                  Last login: #{user.last_sign_in_at}
-                - else
-                  Never logged in
+                - last_warehouse_login = most_recent_warehouse_login(user)
+                - last_hmis_login = most_recent_hmis_login(user)
+                - if last_warehouse_login.present?
+                  - label = HmisEnforcement.hmis_enabled? ? 'Last Warehouse Login' : 'Last Login'
+                  %div #{label}: #{last_warehouse_login}
+                - if last_hmis_login.present?
+                  %div Last HMIS Login: #{last_hmis_login}
+                - if !last_warehouse_login && !last_hmis_login
+                  %div Never logged in
             %td
               = link_to user_permission_report_warehouse_reports_user_path(user), data: {loads_in_pjax_modal: true}, class: 'btn btn-xs btn-primary btn-muted btn-hmis' do
                 View Details
