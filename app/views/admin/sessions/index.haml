@@ -26,6 +26,6 @@
           %td= user.last_activity_at
           %td= user.last_activity_at + user.timeout_in
           %td
-            = link_to admin_session_path(user),  method: :delete, data: {confirm: "Would you really like to end the session for #{user.name}?"}, class: 'btn btn-sm btn-danger mb-2 text-nowrap' do
+            = link_to admin_session_path(user),  method: :delete, data: {confirm: "Are you sure you want to end the session for #{user.name}? This action will immediately log the user out#{HmisEnforcement.hmis_enabled? ? ' of both HMIS and Warehouse' : ''}."}, class: 'btn btn-sm btn-danger mb-2 text-nowrap' do
               %i.icon-cross
               End Session
