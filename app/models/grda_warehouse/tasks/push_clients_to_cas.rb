@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Tasks
   class PushClientsToCas
     include NotifierConfig
@@ -72,7 +74,8 @@ module GrdaWarehouse::Tasks
             GrdaWarehouse::Hud::Project.find_each do |project|
               safe_project_names[project.id] = project.safe_project_name
             end
-            client_source.preload(preloads).
+            TodoOrDie('test behavior after rails upgrade', if: Rails.version !~ /\A7\.0/)
+            client_source.lazy_preload(preloads).
               where(id: client_id_batch).find_each do |client|
               project_client = project_clients[client.id] || CasAccess::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
               project_client.assign_attributes(attributes_for_cas_project_client(client))
@@ -340,6 +343,8 @@ module GrdaWarehouse::Tasks
     def value_display_for(key, value)
       if value.in?([true, false])
         ApplicationController.helpers.yes_no(value)
+      elsif value.in?(['yes', 'no'])
+        ApplicationController.helpers.yes_no(value == 'yes')
       elsif key.in?([:veteran_status])
         HudUtility2024.no_yes_reasons_for_missing_data(value)
       elsif key == :neighborhood_interests
@@ -384,6 +389,7 @@ module GrdaWarehouse::Tasks
           sro_ok: 'SRO OK',
           dv_rrh_desired: 'DV RRH Desired',
           rrh_th_desired: 'RRH TH Desired',
+          psh_required: 'PSH Required',
           active_cohort_ids: 'Active Cohorts',
           dv_date: 'Most recent date of DV',
           th_desired: 'TH Desired',

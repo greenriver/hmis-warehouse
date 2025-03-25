@@ -176,6 +176,7 @@ GEM
     ansi (1.5.0)
     anyway_config (2.7.0)
       ruby-next-core (~> 1.0)
+    ar_lazy_preload (2.1.0)
     ast (2.4.2)
     attr_encrypted (4.0.0)
       encryptor (~> 3.0.0)
@@ -1125,6 +1126,7 @@ DEPENDENCIES
   ajax_modal_rails (~> 1.0)
   amazing_print
   ansi
+  ar_lazy_preload
   attr_encrypted (~> 4.0.0)
   attribute_normalizer
   authtrail
@@ -1372,6 +1374,7 @@ CHECKSUMS
   amazing_print (1.6.0) sha256=9903e93daadc15411c854239f8ca1ca6ce78be279ed99d43fec2bd3b0aa37397
   ansi (1.5.0) sha256=5408253274e33d9d27d4a98c46d2998266fd51cba58a7eb9d08f50e57ed23592
   anyway_config (2.7.0) sha256=0ebbe4a7952da7a43e5c596f1c670a1ff61ee18243292b92cef68ddaef3cdd7e
+  ar_lazy_preload (2.1.0) sha256=03effc2aac5aef2a1be8ff3ed4bb60f4e92e57f192dde61750bd8ea2131ad517
   ast (2.4.2) sha256=1e280232e6a33754cde542bc5ef85520b74db2aac73ec14acef453784447cc12
   attr_encrypted (4.0.0) sha256=ccbe4abd2b6973929f119af3b50a3fa10dba51bd69a7b4076a57a59d57359d0c
   attribute_normalizer (1.2.0) sha256=580df3f316d7f0a2cc068fd655377f4769848643328d0c6c6c685ea98ac181c4
