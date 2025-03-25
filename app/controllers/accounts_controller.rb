@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class AccountsController < ApplicationController
   before_action :set_user
 
@@ -28,7 +30,7 @@ class AccountsController < ApplicationController
   end
 
   def locations
-    @pagy, @locations = pagy(@user.login_activities.order(created_at: :desc), items: 50)
+    @pagy, @locations = pagy(@user.all_login_activities.order(created_at: :desc), items: 50)
   end
 
   private def account_params

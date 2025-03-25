@@ -54,8 +54,12 @@ module UserConcern
     has_many :access_grants, class_name: 'Doorkeeper::AccessGrant', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
     has_many :access_tokens, class_name: 'Doorkeeper::AccessToken', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
 
-    # Connect users to login attempts
+    # Connect users to login attempts.
+    # Only includes Warehouse activity when called on User record, and only HMIS activity for Hmis::User record.
     has_many :login_activities, as: :user
+
+    # All login activities for user, including both HMIS and Warehouse login activity
+    has_many :all_login_activities, class_name: 'LoginActivity', foreign_key: 'user_id'
 
     # TODO: START_ACL remove when ACL transition complete
     # Ensure that users have a user-specific access group
@@ -138,9 +142,10 @@ module UserConcern
       active.not_system.where(exclude_from_directory: false)
     end
 
+    # users that have currently active sessions (either in the warehouse or in HMIS)
     scope :has_recent_activity, -> do
       where(last_activity_at: timeout_in.ago..Time.current).
-        where.not(unique_session_id: nil)
+        where.not(unique_session_id: nil, hmis_unique_session_id: nil)
     end
 
     scope :using_acls, -> do
@@ -166,6 +171,17 @@ module UserConcern
 
       # Find most recent HMIS login using cached map of LoginActivities
       LoginActivity.latest_hmis_logins[id]
+    end
+
+    # whether the user's most recent login was to the Warehouse or HMIS
+    def last_login_application
+      if last_warehouse_login && last_hmis_login
+        last_warehouse_login > last_hmis_login ? 'Warehouse' : 'HMIS'
+      elsif last_warehouse_login
+        'Warehouse'
+      elsif last_hmis_login
+        'HMIS'
+      end
     end
 
     def using_acls?
