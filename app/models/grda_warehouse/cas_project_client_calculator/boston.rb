@@ -531,7 +531,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     # 1 = Yes Set-Asides
     private def interested_in_set_asides(client)
       value = most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_pathways_Fam_set_aside')&.AssessmentAnswer.to_i
+        question_matching_requirement('c_pathways_Fam_set_aside')&.AssessmentAnswer&.to_i
       case value
       when 0
         'no'
