@@ -22,4 +22,26 @@ class LoginActivity < ApplicationRecord
     description += country if country
     description
   end
+
+  # Class method to preload the most recent successful Warehouse login for each user.
+  # Uses caching to avoid N+1 in reports.
+  def self.latest_warehouse_logins
+    Rails.cache.fetch('latest_warehouse_logins', expires_in: 1.minute) do
+      LoginActivity.successful.warehouse_logins.
+        select('DISTINCT ON (user_id) user_id, created_at').
+        order(:user_id, created_at: :desc).
+        map { |r| [r.user_id, r.created_at] }.to_h
+    end
+  end
+
+  # Class method to preload the most recent successful HMIS login for each user.
+  # Uses caching to avoid N+1 in reports.
+  def self.latest_hmis_logins
+    Rails.cache.fetch('latest_hmis_logins', expires_in: 1.minute) do
+      LoginActivity.successful.hmis_logins.
+        select('DISTINCT ON (user_id) user_id, created_at').
+        order(:user_id, created_at: :desc).
+        map { |r| [r.user_id, r.created_at] }.to_h
+    end
+  end
 end

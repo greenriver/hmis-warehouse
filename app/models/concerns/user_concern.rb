@@ -151,6 +151,23 @@ module UserConcern
       where(permission_context: [nil, 'role_based'])
     end
 
+    # datetime of most recent warehouse login
+    def last_warehouse_login
+      # for non-HMIS installations, we can use the devise current_sign_in_at directly because there is only one scope
+      return current_sign_in_at unless HmisEnforcement.hmis_enabled?
+
+      # Find most recent Warehouse login using cached map of LoginActivities
+      LoginActivity.latest_warehouse_logins[id]
+    end
+
+    # datetime of most recent HMIS login
+    def last_hmis_login
+      return unless HmisEnforcement.hmis_enabled?
+
+      # Find most recent HMIS login using cached map of LoginActivities
+      LoginActivity.latest_hmis_logins[id]
+    end
+
     def using_acls?
       # Note using hash syntax to get around lack of column for some data migrations
       self[:permission_context].to_s == 'acls'

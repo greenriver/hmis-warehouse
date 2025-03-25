@@ -61,7 +61,7 @@ module UserPermissionReport::WarehouseReports
             email: user.email,
             user_id: user.id,
             status: warehouse_users[user.id].overall_status(current_user).join('; '),
-            last_hmis_login: most_recent_hmis_login(user)&.to_time&.to_fs(:db),
+            last_hmis_login: user.last_hmis_login&.to_time&.to_fs(:db),
             role_name: access_control.role.name,
             collection_name: access_control.access_group.name,
             inherited_from_user_group: access_control.user_group.name,
@@ -82,32 +82,5 @@ module UserPermissionReport::WarehouseReports
 
       @entities_by_collection_id[collection_id]
     end
-
-    private def most_recent_hmis_login(user)
-      return unless HmisEnforcement.hmis_enabled?
-
-      # Most recent successful HMIS login for each user
-      @recent_hmis_logins ||= LoginActivity.successful.hmis_logins.
-        select('DISTINCT ON (user_id) user_id, created_at').
-        order(:user_id, created_at: :desc).
-        map { |r| [r.user_id, r.created_at] }.to_h
-
-      @recent_hmis_logins[user.id]
-    end
-    helper_method :most_recent_hmis_login
-
-    private def most_recent_warehouse_login(user)
-      # for non-HMIS installations, we can use the devise current_sign_in_at directly because there is only one scope
-      return user.current_sign_in_at unless HmisEnforcement.hmis_enabled?
-
-      # Most recent successful Warehouse login for each user
-      @recent_warehouse_logins ||= LoginActivity.successful.warehouse_logins.
-        select('DISTINCT ON (user_id) user_id, created_at').
-        order(:user_id, created_at: :desc).
-        map { |r| [r.user_id, r.created_at] }.to_h
-
-      @recent_warehouse_logins[user.id]
-    end
-    helper_method :most_recent_warehouse_login
   end
 end
