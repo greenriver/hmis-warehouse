@@ -97,8 +97,8 @@ module UserPermissionReport::WarehouseReports
     helper_method :most_recent_hmis_login
 
     private def most_recent_warehouse_login(user)
-      # for non-HMIS installations, we can use the devise last_sign_in_at directly because there is only one scope
-      return user.last_sign_in_at unless HmisEnforcement.hmis_enabled?
+      # for non-HMIS installations, we can use the devise current_sign_in_at directly because there is only one scope
+      return user.current_sign_in_at unless HmisEnforcement.hmis_enabled?
 
       # Most recent successful Warehouse login for each user
       @recent_warehouse_logins ||= LoginActivity.successful.warehouse_logins.
