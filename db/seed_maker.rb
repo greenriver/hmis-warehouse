@@ -258,10 +258,7 @@ class SeedMaker
   end
 
   def maintain_lookups
-    HudUtility2024.cocs.each do |code, name|
-      coc = GrdaWarehouse::Lookups::CocCode.where(coc_code: code).first_or_initialize
-      coc.update(official_name: name)
-    end
+    GrdaWarehouse::Lookups::CocCode.maintain!
     GrdaWarehouse::Lookups::YesNoEtc.transaction do
       GrdaWarehouse::Lookups::YesNoEtc.delete_all
       columns = [:value, :text]

@@ -102,11 +102,11 @@ RSpec.configure do |config|
     end
 
     AccessGroup.maintain_system_groups
-    SeedMaker.new.maintain_lookups
   end
 
   config.before(:all) do
-    SeedMaker.new.maintain_lookups if GrdaWarehouse::Lookups::CocCode.none?
+    # Ensure we _always_ have all appropriate CoCs
+    GrdaWarehouse::Lookups::CocCode.maintain!
   end
 end
 
