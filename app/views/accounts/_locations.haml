@@ -4,16 +4,12 @@
     %table.table.table-striped
       %thead
         %tr
-          - if HmisEnforcement.hmis_enabled?
-            %th Application
           %th Login Time
           %th IP Address
           %th Location
       %tbody
         - @locations.each do |location|
           %tr
-            - if HmisEnforcement.hmis_enabled?
-              %td= location.scope == 'hmis_user' ? 'HMIS' : 'Warehouse'
             %td= location.created_at
             %td= location.ip
             %td= location.location_description

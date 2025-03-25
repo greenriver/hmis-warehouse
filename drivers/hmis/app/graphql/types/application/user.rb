@@ -32,10 +32,14 @@ module Types
       argument(:filters, Types::Application::EnrollmentAccessSummary.filter_options_type, required: false)
     end
 
+    # History of HMIS login activity
+    field :login_activities, Types::Application::LoginActivity.page_type, null: true
+
     field :recent_items, [Types::HmisSchema::OmnisearchResult], null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
+    field :manage_account_url, String, null: false
 
     field :staff_assignments, HmisSchema::StaffAssignment.page_type, null: true
 
@@ -49,6 +53,17 @@ module Types
     )
 
     EXCLUDED_RECORD_TYPES_FOR_AUDIT = ['Hmis::Wip'].freeze
+
+    def login_activities
+      object.login_activities.hmis_logins.
+        successful.
+        where.not(created_at: nil).
+        order(created_at: :desc)
+    end
+
+    def manage_account_url
+      "https://#{ENV['FQDN']}/admin/users/#{object.id}/edit"
+    end
 
     def audit_history(filters: nil)
       v_t = GrdaWarehouse.paper_trail_versions.arel_table
