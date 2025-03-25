@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'faker'
 
 # To use SeedMaker outside of `db:seed` call `require ./db/seed_maker`
