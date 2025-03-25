@@ -107,6 +107,9 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
   end
 
   def run_measure(report, measure_class)
+    report.started_at ||= Time.current
+    report.save! if report.changed?
+
     generator = HudSpmReport::Generators::Fy2024::Generator.new(report)
     measure = measure_class.new(generator, report)
     measure.run_question!
