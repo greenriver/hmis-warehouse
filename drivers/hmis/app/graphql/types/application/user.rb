@@ -54,17 +54,6 @@ module Types
 
     EXCLUDED_RECORD_TYPES_FOR_AUDIT = ['Hmis::Wip'].freeze
 
-    def login_activities
-      object.login_activities.hmis_logins.
-        successful.
-        where.not(created_at: nil).
-        order(created_at: :desc)
-    end
-
-    def manage_account_url
-      "https://#{ENV['FQDN']}/admin/users/#{object.id}/edit"
-    end
-
     def audit_history(filters: nil)
       v_t = GrdaWarehouse.paper_trail_versions.arel_table
       scope = GrdaWarehouse.paper_trail_versions.
@@ -123,6 +112,19 @@ module Types
         viewable_by(current_user).
         open_on_date. # This will include households that exited today
         order(created_at: :desc, id: :desc)
+    end
+
+    def manage_account_url
+      "https://#{ENV['FQDN']}/admin/users/#{object.id}/edit"
+    end
+
+    def login_activities
+      access_denied! unless current_user.can_audit_users?
+
+      object.login_activities.hmis_logins.
+        successful.
+        where.not(created_at: nil).
+        order(created_at: :desc)
     end
   end
 end
