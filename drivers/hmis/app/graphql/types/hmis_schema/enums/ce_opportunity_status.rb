@@ -8,6 +8,6 @@
 
 module Types
   class HmisSchema::Enums::CeOpportunityStatus < Types::BaseEnum
-    Hmis::Ce::Opportunity.aasm.states.each { |state| value state.name }
+    Hmis::Ce::Opportunity.state_machine_states.each { |state| value state.name }
   end
 end
