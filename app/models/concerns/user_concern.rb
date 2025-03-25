@@ -666,7 +666,7 @@ module UserConcern
 
     def coc_codes(force_calculation: false)
       key = [self.class.name, __method__, id]
-      Rails.cache.delete(key) if force_calculation || Rails.test.env?
+      Rails.cache.delete(key) if force_calculation || Rails.env.test?
       Rails.cache.fetch(key, expires_in: 1.minutes) do
         # TODO: START_ACL cleanup after ACL migration is complete
         if using_acls?
