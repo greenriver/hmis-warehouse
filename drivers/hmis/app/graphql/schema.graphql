@@ -805,8 +805,8 @@ type CeParticipationsPaginated {
 type CeReferral {
   client: Client
   clientId: ID!
-  currentStep: CeReferralStep
-  dateStarted: ISO8601Date!
+  createdAt: ISO8601DateTime!
+  currentStepName: String
   id: ID!
   opportunity: CeOpportunity!
   status: CeReferralStatus!

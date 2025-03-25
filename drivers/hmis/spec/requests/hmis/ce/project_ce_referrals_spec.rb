@@ -25,14 +25,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               nodes {
                 id
                 status
-                dateStarted
+                createdAt
                 opportunity {
                   id
                   name
                 }
-                currentStep {
-                  name
-                }
+                currentStepName
               }
             }
           }
@@ -90,9 +88,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         before do
           50.times do
             create(:hmis_ce_referral, project: project)
-            create(:hmis_ce_referral, status: :in_progress, project: project)
             create(:hmis_ce_referral, status: :accepted, project: project)
             create(:hmis_ce_referral, status: :rejected, project: project)
+
+            in_progress_referral = create(:hmis_ce_referral, project: project, workflow_template: workflow_template)
+            in_progress_referral.workflow_engine.start_workflow!(user: hmis_user) # start workflow so that it has a step in progress
           end
         end
 
@@ -101,7 +101,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             response, result = post_graphql(**variables) { query }
             expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'project', 'ceReferrals', 'nodesCount')).to eq(102)
-          end.to make_database_queries(count: 20..25)
+          end.to make_database_queries(count: 15..20)
         end
       end
     end

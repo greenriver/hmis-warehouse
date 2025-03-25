@@ -259,7 +259,7 @@ module Types
       resolve_external_form_submissions(scope, **args)
     end
 
-    def ce_opportunities(filters: nil)
+    def ce_opportunities(filters: nil) # not for batch
       raise unless Hmis::Ce.configuration.enabled?
 
       scope = object.ce_opportunities
@@ -267,10 +267,10 @@ module Types
       scope.order(created_at: :desc)
     end
 
-    def ce_referrals(filters: nil)
+    def ce_referrals(filters: nil) # not for batch
       raise unless Hmis::Ce.configuration.enabled?
 
-      scope = load_ar_association(object, :ce_referrals)
+      scope = object.ce_referrals
       scope = scope.where(status: filters&.status) if filters&.status.present?
       scope.order(created_at: :desc)
     end

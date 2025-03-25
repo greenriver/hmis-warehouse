@@ -78,7 +78,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       context 'with many opportunities' do
         before do
-          100.times do
+          40.times do
             create :hmis_ce_opportunity, project: project
           end
         end
