@@ -14,6 +14,10 @@ module UserPermissionReport::WarehouseReports
       @users = User.
         order(:last_name, :first_name).
         includes(:roles, access_groups: @group_associations.keys)
+
+      @include_hmis_report = HmisEnforcement.hmis_enabled? &&
+        current_user.as_hmis_user.can_audit_users? # can audit HMIS users
+
       respond_to do |format|
         format.html do
           @users = @users.text_search(params[:q]) if params[:q].present?

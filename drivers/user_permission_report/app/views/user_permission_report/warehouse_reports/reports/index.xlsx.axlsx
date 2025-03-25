@@ -32,7 +32,7 @@ wb.add_worksheet(name: 'User Permissions') do |sheet|
   end
 end
 
-if HmisEnforcement.hmis_enabled?
+if @include_hmis_report
   wb.add_worksheet(name: 'HMIS User Permissions') do |sheet|
     title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
     data_cell = sheet.styles.add_style(alignment: { horizontal: :left, vertical: :top, wrap_text: true })
