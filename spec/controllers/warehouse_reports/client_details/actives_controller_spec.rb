@@ -10,7 +10,6 @@ RSpec.describe WarehouseReports::ClientDetails::ActivesController, type: :contro
     {
       start: Date.new(2023, 1, 1),
       end: Date.new(2023, 12, 31),
-      # project_type_codes: [1],
       project_type_codes: ['es'],
       sub_population: 'clients',
       hoh_only: '0',
