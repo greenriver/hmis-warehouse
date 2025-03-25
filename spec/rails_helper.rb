@@ -104,6 +104,10 @@ RSpec.configure do |config|
     AccessGroup.maintain_system_groups
     SeedMaker.new.maintain_lookups
   end
+
+  config.before(:all) do
+    SeedMaker.new.maintain_lookups if GrdaWarehouse::Lookups::CocCode.none?
+  end
 end
 
 # Drivers
