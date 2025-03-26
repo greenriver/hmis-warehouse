@@ -264,4 +264,21 @@ task ce_starter_pack_20250302: [:environment] do
   Hmis::Ce::Match::CandidatePool.all.each do |pool|
     Hmis::Ce::Match::Engine.call(pool, clients)
   end
+
+  if Hmis::Ce::Opportunity.open.any?
+    # Create some opportunities with Opportunity Categories, just to show how it looks in the UI
+    sro = Hmis::Ce::OpportunityCategory.create!(name: 'SRO')
+    sro_opportunity = Hmis::Ce::Opportunity.open.first
+    Hmis::Ce::OpportunityCategorization.create!(
+      opportunity: sro_opportunity,
+      category: sro
+    )
+
+    accessible_sro = Hmis::Ce::OpportunityCategory.create!(name: 'Accessible SRO')
+    accessible_sro_opportunity = Hmis::Ce::Opportunity.open.last
+    Hmis::Ce::OpportunityCategorization.create!(
+      opportunity: accessible_sro_opportunity,
+      category: accessible_sro
+    )
+  end
 end

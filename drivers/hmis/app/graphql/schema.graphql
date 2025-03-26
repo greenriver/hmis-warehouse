@@ -749,6 +749,7 @@ type CeOpportunity {
   acceptedReferral: CeReferral
   activeReferral: CeReferral
   candidates(limit: Int, offset: Int): CeCandidatesPaginated!
+  categories: [String!]!
   eligibilityRequirements: [CeMatchRule!]
   expiresAt: ISO8601DateTime
   id: ID!
@@ -757,6 +758,10 @@ type CeOpportunity {
   projectId: ID!
   projectName: String!
   status: CeOpportunityStatus!
+}
+
+input CeOpportunityFilterOptions {
+  status: [CeOpportunityStatus!]
 }
 
 input CeOpportunityInput {
@@ -800,10 +805,16 @@ type CeParticipationsPaginated {
 type CeReferral {
   client: Client
   clientId: ID!
+  createdAt: ISO8601DateTime!
+  currentStepName: String
   id: ID!
   opportunity: CeOpportunity!
   status: CeReferralStatus!
   steps: [CeReferralStep!]!
+}
+
+input CeReferralFilterOptions {
+  status: [CeReferralStatus!]
 }
 
 input CeReferralInput {
@@ -845,6 +856,16 @@ enum CeReferralStepStatus {
   completed
   in_progress
   unavailable
+}
+
+type CeReferralsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CeReferral!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -8838,8 +8859,9 @@ type Project {
   active: Boolean!
   affiliatedProjects: [Project!]!
   assessments(filters: AssessmentsForProjectFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
-  ceOpportunities(limit: Int, offset: Int): CeOpportunitiesPaginated!
+  ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int): CeOpportunitiesPaginated!
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
+  ceReferrals(filters: CeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   contactInformation: String
   continuumProject: NoYes
   createdBy: ApplicationUser
