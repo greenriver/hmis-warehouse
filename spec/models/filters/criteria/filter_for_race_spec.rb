@@ -22,10 +22,11 @@ RSpec.describe Filters::Criteria::FilterForRace do
   let!(:client_doesnt_know) { create(:hud_client, White: 0, BlackAfAmerican: 0, Asian: 0, AmIndAKNative: 0, NativeHIPacific: 0, MidEastNAfrican: 0, RaceNone: 8, data_source_id: data_source.id) }
   let!(:client_refused) { create(:hud_client, White: 0, BlackAfAmerican: 0, Asian: 0, AmIndAKNative: 0, NativeHIPacific: 0, MidEastNAfrican: 0, RaceNone: 9, data_source_id: data_source.id) }
   let!(:data_not_collected) { create(:hud_client, White: 0, BlackAfAmerican: 0, Asian: 0, AmIndAKNative: 0, NativeHIPacific: 0, MidEastNAfrican: 0, RaceNone: 99, data_source_id: data_source.id) }
+  let!(:all_race_null_client) { create(:hud_client, White: nil, BlackAfAmerican: nil, Asian: nil, AmIndAKNative: nil, NativeHIPacific: nil, MidEastNAfrican: nil, RaceNone: nil, data_source_id: data_source.id) }
 
   # Create service history enrollments for each client
   let!(:enrollments) do
-    [white_client, black_client, asian_client, asian_multi_racial_client, non_asian_multi_racial_client, race_none_client, client_doesnt_know, client_refused, data_not_collected].map do |client|
+    [white_client, black_client, asian_client, asian_multi_racial_client, non_asian_multi_racial_client, race_none_client, client_doesnt_know, client_refused, data_not_collected, all_race_null_client].map do |client|
       create_enrollment_for_client(client)
     end
   end
@@ -50,13 +51,6 @@ RSpec.describe Filters::Criteria::FilterForRace do
       # Should return white and black clients only
       expect(result.count).to eq(2)
       expect(result.pluck(:client_id)).to contain_exactly(white_client.id, black_client.id)
-      expect(result.pluck(:client_id)).not_to include(
-        asian_client.id,
-        race_none_client.id,
-        client_doesnt_know.id,
-        client_refused.id,
-        data_not_collected.id,
-      )
     end
 
     context 'when filtering for MultiRacial' do
@@ -92,12 +86,13 @@ RSpec.describe Filters::Criteria::FilterForRace do
         result = criteria.apply(scope)
 
         # Should return race_none client and all clients with data quality issues
-        expect(result.count).to eq(4)
+        expect(result.count).to eq(5)
         expect(result.pluck(:client_id)).to contain_exactly(
           race_none_client.id,
           client_doesnt_know.id,
           client_refused.id,
           data_not_collected.id,
+          all_race_null_client.id,
         )
       end
     end
@@ -109,7 +104,7 @@ RSpec.describe Filters::Criteria::FilterForRace do
         result = criteria.apply(scope)
 
         # Should return all clients
-        expect(result.count).to eq(9)
+        expect(result.count).to eq(10)
         expect(result.pluck(:client_id)).to contain_exactly(
           white_client.id,
           black_client.id,
@@ -120,6 +115,7 @@ RSpec.describe Filters::Criteria::FilterForRace do
           client_doesnt_know.id,
           client_refused.id,
           data_not_collected.id,
+          all_race_null_client.id,
         )
       end
     end
