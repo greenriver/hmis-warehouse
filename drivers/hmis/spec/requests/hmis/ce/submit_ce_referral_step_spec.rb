@@ -2,10 +2,14 @@
 
 require 'rails_helper'
 require_relative '../login_and_permissions'
-require_relative './ce_spec_helper'
+require_relative '../../../support/ce_spec_helper'
 
 RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
   include_context 'ce spec helper'
+
+  before(:each) do
+    hmis_login(user)
+  end
 
   let(:acceptance_gateway) do
     create(
