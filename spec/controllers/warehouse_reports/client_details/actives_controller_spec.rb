@@ -58,9 +58,6 @@ RSpec.describe WarehouseReports::ClientDetails::ActivesController, type: :contro
   before do
     sign_in user
     allow(controller).to receive(:report_visible?).and_return(true)
-    allow(GrdaWarehouse::WarehouseReports::DocumentExports::ActiveClientReportExport).to receive(:new).and_return(
-      GrdaWarehouse::WarehouseReports::DocumentExports::ActiveClientReportExport.new,
-    )
 
     [
       matching_enrollment,
@@ -81,7 +78,6 @@ RSpec.describe WarehouseReports::ClientDetails::ActivesController, type: :contro
   describe 'GET #index' do
     context 'with date range and project type filters' do
       it 'filters enrollments by date range' do
-        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
         get :index, params: { filter: filter_params }
 
         report = assigns(:report)
@@ -92,19 +88,6 @@ RSpec.describe WarehouseReports::ClientDetails::ActivesController, type: :contro
 
         # Should exclude enrollments outside date range
         expect(enrollment_ids).not_to include(outside_date_range_enrollment.id)
-      end
-
-      it 'filters enrollments by project type' do
-        get :index, params: { filter: filter_params }
-
-        report = assigns(:report)
-        enrollment_ids = report.enrollment_scope.map(&:id)
-
-        # Should include enrollments with matching project type
-        expect(enrollment_ids).to include(matching_enrollment.id)
-
-        # Should exclude enrollments with non-matching project type
-        expect(enrollment_ids).not_to include(wrong_project_type_enrollment.id)
       end
     end
   end

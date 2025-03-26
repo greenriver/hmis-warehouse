@@ -49,7 +49,8 @@ class Filters::Criteria::FilterForRace < Filters::Criteria::Base
 
   def race_none_alternative
     data_quality_values = [1, 8, 9, 99]
-    config.report_scope_source.joins(config.join_clients_method).where(arel.c_t[:RaceNone].in(data_quality_values))
+    config.report_scope_source.joins(config.join_clients_method).
+      where(arel.c_t[:RaceNone].in(data_quality_values))
   end
 
   def all_races_selected?(races)
