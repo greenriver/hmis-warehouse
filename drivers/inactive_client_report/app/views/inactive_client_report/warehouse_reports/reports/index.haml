@@ -12,6 +12,8 @@
     .top-nav-prs1
       %h1.mb-5= title
     .main-inner-prs1
+      = render 'number_clients'	
+      = render 'report_download'	
       - if params[:render_inline] == "1"
         = render "report"
       - else
