@@ -11,6 +11,9 @@ module Hmis::Ce
     has_many :participants, class_name: 'Hmis::Ce::ReferralParticipant'
     belongs_to :client, class_name: 'Hmis::Hud::Client'
     belongs_to :referred_by, class_name: 'Hmis::User'
+    # Referral belongs_to household, not enrollment, because we don't want to lose the association if the originally
+    # referred member leaves the household but other household members are still occupying the unit.
+    belongs_to :target_household, class_name: 'Hmis::Hud::Household', optional: true
 
     # TODO(#7395): permissions
     scope :viewable_by, ->(_user) { all }
