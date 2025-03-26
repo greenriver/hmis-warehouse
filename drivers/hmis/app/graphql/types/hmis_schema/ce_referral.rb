@@ -17,6 +17,7 @@ module Types
     field :client, Types::HmisSchema::Client, null: true
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :current_step_name, String, null: true
+    field :target_household, Types::HmisSchema::Household, null: true
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeReferralStatus]
