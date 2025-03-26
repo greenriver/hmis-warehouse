@@ -2487,14 +2487,17 @@ module GrdaWarehouse::Hud
     def unsheltered_days_homeless_last_three_years
       end_date = Date.current
       start_date = end_date - 3.years
+      unsheltered_days_homeless(start_date: start_date, end_date: end_date).count
+    end
+
+    def unsheltered_days_homeless(start_date:, end_date:)
       service_history_services.
         homeless_unsheltered.
         where(date: start_date..end_date).
         where.not(date: service_history_services.non_homeless.where(date: start_date..end_date).select(:date).distinct).
         where.not(date: sheltered_homeless_dates(start_date: start_date, end_date: end_date)).
         select(:date).
-        distinct.
-        count
+        distinct
     end
 
     # TH or PH
