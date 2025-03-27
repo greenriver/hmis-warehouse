@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ###
-# Copyright  - 2025 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -56,9 +56,9 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
         engine.complete_step!(current_step, user: hmis_user, submitted_values: {})
         referral.reload
       end.to change(Hmis::Hud::Enrollment, :count).by(1).
-        and change(referral, :target_household).from(nil)
+        and change(referral, :target_enrollment).from(nil)
 
-      enrollment = referral.target_household.enrollments.sole
+      enrollment = referral.target_enrollment
       expect(enrollment.project).to eq(project)
       expect(enrollment.client).to eq(client)
       expect(enrollment.in_progress?).to be_truthy
@@ -71,7 +71,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
       it 'creates an enrollment that is not WIP' do
         engine.complete_step!(engine.active_steps.sole, user: hmis_user, submitted_values: {})
         referral.reload
-        expect(referral.target_household.any_wip?).to be_falsey
+        expect(referral.target_enrollment.in_progress?).to be_falsey
       end
     end
 
@@ -132,8 +132,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
           referral.reload
         end.to change(Hmis::Hud::Enrollment, :count).by(1)
 
-        enrollment = referral.target_household.enrollments.sole
-        expect(enrollment.enrollment_coc).to eq(coc2.coc_code)
+        expect(referral.target_enrollment.enrollment_coc).to eq(coc2.coc_code)
       end
     end
 
@@ -190,10 +189,9 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
           engine.complete_step!(current_step, user: hmis_user, submitted_values: { 'move_in_date': move_in_date })
           referral.reload
         end.to change(Hmis::Hud::Enrollment, :count).by(1).
-          and change(referral, :target_household).from(nil)
+          and change(referral, :target_enrollment).from(nil)
 
-        enrollment = referral.target_household.enrollments.sole
-        expect(enrollment.move_in_date).to eq(move_in_date)
+        expect(referral.target_enrollment.move_in_date).to eq(move_in_date)
       end
 
       context 'if enrollment does not exist yet' do
@@ -218,7 +216,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
             current_step = engine.active_steps.sole
             engine.complete_step!(current_step, user: hmis_user, submitted_values: { 'move_in_date': 2.weeks.ago.to_date })
             referral.reload
-          end.to raise_error(RuntimeError, /does not have a target household yet/).
+          end.to raise_error(RuntimeError, /does not have a target enrollment yet/).
             and not_change(Hmis::Hud::Enrollment, :count)
         end
       end
@@ -284,9 +282,9 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
         engine.complete_step!(engine.active_steps.sole, user: hmis_user, submitted_values: { 'client_accepts': 1 })
         referral.reload
       end.to change(Hmis::Hud::Enrollment, :count).by(1).
-        and change(referral, :target_household).from(nil)
+        and change(referral, :target_enrollment).from(nil)
 
-      enrollment = referral.target_household.enrollments.sole
+      enrollment = referral.target_enrollment
       expect(enrollment.project).to eq(project)
       expect(enrollment.client).to eq(client)
       expect(enrollment.in_progress?).to be_truthy
@@ -298,7 +296,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
         engine.complete_step!(engine.active_steps.sole, user: hmis_user, submitted_values: { 'client_accepts': 0 })
         referral.reload
       end.to not_change(Hmis::Hud::Enrollment, :count).
-        and not_change(referral, :target_household).from(nil)
+        and not_change(referral, :target_enrollment).from(nil)
     end
   end
 end

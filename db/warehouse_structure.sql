@@ -6498,7 +6498,7 @@ CREATE TABLE public.ce_referrals (
     completed_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    target_household_id character varying
+    target_enrollment_id bigint
 );
 
 
@@ -53666,6 +53666,13 @@ CREATE INDEX index_ce_referrals_on_referred_by_id ON public.ce_referrals USING b
 
 
 --
+-- Name: index_ce_referrals_on_target_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_referrals_on_target_enrollment_id ON public.ce_referrals USING btree (target_enrollment_id);
+
+
+--
 -- Name: index_ce_referrals_on_workflow_instance_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -65200,6 +65207,14 @@ ALTER TABLE ONLY public.wfd_swimlanes
 
 ALTER TABLE ONLY public."Client"
     ADD CONSTRAINT fk_rails_4f7ec0cedf FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
+
+
+--
+-- Name: ce_referrals fk_rails_5336ef5847; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_referrals
+    ADD CONSTRAINT fk_rails_5336ef5847 FOREIGN KEY (target_enrollment_id) REFERENCES public."Enrollment"(id);
 
 
 --

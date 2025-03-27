@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # A referral of an individual client to an opportunity
 module Hmis::Ce
   class Referral < GrdaWarehouseBase
@@ -13,7 +19,7 @@ module Hmis::Ce
     belongs_to :referred_by, class_name: 'Hmis::User'
     # Referral belongs_to household, not enrollment, because we don't want to lose the association if the originally
     # referred member leaves the household but other household members are still occupying the unit.
-    belongs_to :target_household, class_name: 'Hmis::Hud::Household', optional: true
+    belongs_to :target_enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
 
     # TODO(#7395): permissions
     scope :viewable_by, ->(_user) { all }
