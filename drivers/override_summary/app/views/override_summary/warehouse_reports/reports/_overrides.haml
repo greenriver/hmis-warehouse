@@ -25,7 +25,7 @@
                       = override.description
                   .created-by= markdown.render(override.describe_created).html_safe
                 %td
-                  - if projects.blank?
+                  - if projects.blank? && override.requires_project?
                     .text.text-danger.d-flex
                       %i.icon-warning.mt-2.mr-2
                       %span= override.incorrect_warning
@@ -35,7 +35,11 @@
                     - projects.each do |project|
                       .project= link_to_if can_view_imports_projects_or_organizations?, project.name(current_user), project_path(project)
                 %td= link_to_if can_view_imports_projects_or_organizations?, override.data_source.name, data_source_path(override.data_source)
-                %td= override.describe_expiration
+                %td
+                  = override.describe_expiration
+                  - unless override.recently_used?
+                    .mt-2
+                      %i= override.describe_last_use
                 - if can_upload_hud_zips?
                   %td
                     = link_to hmis_csv_importer_data_source_import_override_path(override.data_source, override, redirect_to_report: true), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger', data: { confirm: "Really delete override for #{override.replaces_column}?"} do

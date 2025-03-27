@@ -244,7 +244,7 @@ gem 'todo_or_die'
 
 gem 'business_time'
 gem 'cable_ready', '>= 5.0.0.rc2'
-gem 'graphql', '= 2.3.20'
+gem 'graphql', '= 2.3.21'
 gem 'sentry-rails', '~> 5.5'
 gem 'sentry-ruby'
 gem 'sentry-delayed_job'

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 module HmisCsvTwentyTwentyFour::Importer::ImportConcern
   extend ActiveSupport::Concern
   # A place to store the overrides for this class so we don't keep going back to the database
@@ -55,6 +57,10 @@ module HmisCsvTwentyTwentyFour::Importer::ImportConcern
     def self.apply_import_overrides(row)
       import_overrides.each do |override|
         row = override.apply(row)
+        # note that this override has been used
+        # also note that event though we're calling this in a tight loop, it should only save once
+        # per override per day (update doesn't save unless there is a change)
+        override.update(last_used_on: Date.current)
       end
       row
     end
