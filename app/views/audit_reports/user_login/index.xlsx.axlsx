@@ -3,22 +3,17 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: 'User Logins') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
 
-  headers = [
-    'First Name',
-    'Last Name',
-    'Email',
-    'ID',
-    'Agency',
-  ]
-
-  if HmisEnforcement.hmis_enabled?
-    headers << 'Last Warehouse Login'
-    headers << 'Last HMIS Login'
-  else
-    headers << 'Last Login'
-  end
-
-  sheet.add_row(headers, style: title)
+  sheet.add_row(
+    [
+      'First Name',
+      'Last Name',
+      'Email',
+      'ID',
+      'Agency',
+      'Last Login',
+    ],
+    style: title,
+  )
 
   @users.each do |user|
     row = [
@@ -27,15 +22,8 @@ wb.add_worksheet(name: 'User Logins') do |sheet|
       user.email,
       user.id,
       user.agency.name,
+      user.current_sign_in_at,
     ]
-
-    if HmisEnforcement.hmis_enabled?
-      row << user.last_warehouse_login&.to_time&.to_fs(:db)
-      row << user.last_hmis_login&.to_time&.to_fs(:db)
-    else
-      row << user.last_warehouse_login&.to_time&.to_fs(:db)
-    end
-
     sheet.add_row(row)
   end
 end

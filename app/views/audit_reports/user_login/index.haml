@@ -21,11 +21,7 @@
           %th Last Name
           %th Email
           %th Agency
-          - if HmisEnforcement.hmis_enabled?
-            %th Last Warehouse Login
-            %th Last HMIS Login
-          - else
-            %th Last Login
+          %th Last Login
       %tbody
         - @users.each do |user|
           - highlight = 'table-warning' if user.stale_account?
@@ -34,11 +30,7 @@
             %td= link_to user.last_name, admin_user_audit_path(user)
             %td= user.email
             %td= user.agency.name
-            - if HmisEnforcement.hmis_enabled?
-              %td= user.last_warehouse_login || 'Never logged in'
-              %td= user.last_hmis_login || 'Never logged in'
-            - else
-              %td= user.last_warehouse_login
+            %td= user.current_sign_in_at
   = render 'common/pagination_bottom', item_name: 'user'
 - else
   .none-found No users found.

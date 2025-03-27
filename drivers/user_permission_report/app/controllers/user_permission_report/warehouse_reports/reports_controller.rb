@@ -65,7 +65,8 @@ module UserPermissionReport::WarehouseReports
             email: user.email,
             user_id: user.id,
             status: warehouse_users[user.id].overall_status(current_user).join('; '),
-            last_hmis_login: user.last_hmis_login&.to_time&.to_fs(:db),
+            # TODO(#7486) include last sign in date for HMIS specifically
+            # last_hmis_login: user.last_hmis_login&.to_time&.to_fs(:db),
             role_name: access_control.role.name,
             collection_name: access_control.access_group.name,
             inherited_from_user_group: access_control.user_group.name,

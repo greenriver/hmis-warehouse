@@ -17,12 +17,13 @@
       %th Force Logout
     %tbody
       - @users.each do |user|
+        - last_login_activity = user.all_login_activities.successful.last
         %tr
           %td= link_to_if can_edit_users?, user.name, edit_admin_user_path(user)
           %td
-            = [user.last_warehouse_login, user.last_hmis_login].compact.max
-            = "(#{user.last_login_application})" if HmisEnforcement.hmis_enabled?
-          %td= user.all_login_activities.successful.last&.location_description
+            = user.current_sign_in_at
+            = "(HMIS)" if last_login_activity&.hmis?
+          %td= last_login_activity&.location_description
           %td= user.last_activity_at
           %td= user.last_activity_at + user.timeout_in
           %td
