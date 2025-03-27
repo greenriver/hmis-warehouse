@@ -48,6 +48,7 @@ class SecureFilesController < ApplicationController
     end
 
     recipients = file_params[:recipients]&.select(&:present?)&.map(&:to_i)
+    send_notifications = file_params[:send_notifications] == '1'
     begin
       @secure_file = file_source.new
       recipients.each do |recipient_id|
@@ -57,8 +58,12 @@ class SecureFilesController < ApplicationController
           name: file_params[:name],
         )
         @secure_file.secure_file.attach(file_params[:file])
+        NotifyUser.secure_file_received(recipient_id).deliver_later if send_notifications
       end
-      flash[:notice] = Translation.translate("Upload successful, please let the #{'recipient'.pluralize(recipients.count)} know the file has been sent.")
+      message = 'Upload successful'
+      message += ", please let the #{'recipient'.pluralize(recipients.count)} know the file has been sent." unless send_notifications
+      message += ', notifications have been sent' if send_notifications
+      flash[:notice] = message
       redirect_to action: :index
     rescue StandardError
       flash[:alert] = Translation.translate('Upload failed, did you attach a file and choose a recipient?')

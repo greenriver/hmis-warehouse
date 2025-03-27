@@ -39,7 +39,7 @@ module GrdaWarehouse
     end
 
     scope :unexpired, -> do
-      where(arel_table[:created_at].gteq(102.months.ago))
+      where(arel_table[:created_at].gteq(1.months.ago))
     end
 
     scope :diet_select, -> do
