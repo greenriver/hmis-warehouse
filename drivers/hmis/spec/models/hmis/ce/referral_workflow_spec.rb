@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ###
-# Copyright  - 2025 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -322,7 +322,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
           engine.start_step!(client_step, user: user)
           engine.complete_step!(client_step, user: user, submitted_values: {})
         end.to change(Hmis::Hud::Enrollment, :count).by(1).
-          and change(referral, :target_household).from(nil)
+          and change(referral, :target_enrollment).from(nil)
 
         expect do
           engine.start_step!(admin_step, user: user)
