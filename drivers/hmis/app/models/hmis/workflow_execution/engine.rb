@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+###
+# Copyright  - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'dentaku'
 
 # Manages the execution of workflow instances, handling state transitions,
@@ -115,6 +121,17 @@ module Hmis::WorkflowExecution
       case node
       when Hmis::WorkflowDefinition::Task
         step = instance.steps.find_or_initialize_by(node: node)
+
+        # If the step has already been completed, it may be re-openable
+        if step.status == 'completed'
+          step_side_effects = step.node.trigger_config&.map { |config| config['message'] } || []
+
+          # but _only_ if it didn't have any irreversible side effects
+          if (Hmis::Ce::ReferralMessageHandler::IRREVERSIBLE & step_side_effects).any? # rubocop:disable Style/IfUnlessModifier
+            raise "Failed to reopen step #{step.id} because it had an irreversible side effect. This indicates a misconfigured workflow."
+          end
+        end
+
         step.enable!
         assign_task!(step)
       when Hmis::WorkflowDefinition::Gateway

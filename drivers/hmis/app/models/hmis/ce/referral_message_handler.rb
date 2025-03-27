@@ -1,9 +1,21 @@
 # frozen_string_literal: true
 
+###
+# Copyright  - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # handle workflow execution messages
 
 module Hmis::Ce
   class ReferralMessageHandler
+    IRREVERSIBLE = [
+      'create_enrollment',
+      'accept_referral',
+      'reject_referral',
+    ].freeze
+
     attr_reader :referral
     def initialize(referral)
       @referral = referral

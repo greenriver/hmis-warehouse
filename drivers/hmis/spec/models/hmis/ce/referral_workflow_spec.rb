@@ -1,14 +1,22 @@
 # frozen_string_literal: true
 
+###
+# Copyright  - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Referral, type: :model do
   let!(:template) { create(:hmis_workflow_definition_template) }
-  let(:user) { create(:hmis_user) }
-  let(:client) { create(:hmis_hud_client) }
-  let(:opportunity) { create(:hmis_ce_opportunity, workflow_template: template) }
+  let!(:data_source) { create(:hmis_data_source) }
+  let!(:project) { create(:hmis_hud_project, data_source: data_source) }
+  let!(:client) { create(:hmis_hud_client, data_source: data_source) }
+  let(:user) { create(:hmis_user, data_source: data_source) }
+  let(:opportunity) { create(:hmis_ce_opportunity, workflow_template: template, project: project) }
   let(:instance) { opportunity.workflow_template.instances.create! }
-  let(:referral) { create(:hmis_ce_referral, opportunity: opportunity, workflow_instance: instance, referred_by: user) }
+  let(:referral) { create(:hmis_ce_referral, client: client, opportunity: opportunity, workflow_instance: instance, referred_by: user) }
   let(:engine) { referral.workflow_engine }
 
   # common nodes
@@ -265,32 +273,62 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       gw1.connect_to!(reject_referral, condition: 'review_denial_decision = 1')
 
       engine.start_workflow!(user: user)
-      client_step = engine.active_steps.sole
-      engine.start_step!(client_step, user: user)
-      engine.complete_step!(client_step, user: user, submitted_values: {})
     end
 
+    let(:client_step) { instance.steps.where(node: client_acceptance_task).sole }
+    let(:admin_step) { instance.steps.where(node: admin_approve_denial_task).sole }
+
     it 'allows the previous step to be reopened and closed again' do
-      client_step = instance.steps.where(node: client_acceptance_task).sole
-      admin_step = instance.steps.where(node: admin_approve_denial_task).sole
+      engine.start_step!(client_step, user: user)
+      engine.complete_step!(client_step, user: user, submitted_values: {})
 
       expect do
-        current_step = engine.active_steps.sole
-        engine.start_step!(current_step, user: user)
-        engine.complete_step!(current_step, user: user, submitted_values: { 'review_denial_decision': 0 })
+        engine.start_step!(admin_step, user: user)
+        engine.complete_step!(admin_step, user: user, submitted_values: { 'review_denial_decision': 0 })
         client_step.reload
         admin_step.reload
       end.to change(client_step, :status).from('completed').to('available').
         and not_change(instance.steps, :count)
 
       expect do
-        current_step = engine.active_steps.sole
-        engine.start_step!(current_step, user: user)
-        engine.complete_step!(current_step, user: user, submitted_values: {})
+        engine.start_step!(client_step, user: user)
+        engine.complete_step!(client_step, user: user, submitted_values: {})
         client_step.reload
         admin_step.reload
       end.to change(client_step, :status).from('available').to('completed').
         and change(admin_step, :status).from('completed').to('available')
+    end
+
+    context 'when the step getting restarted had irreversible side effects' do
+      let!(:access_control) { create_access_control(user, project, with_permission: [:can_edit_enrollments, :can_enroll_clients]) }
+      let!(:coc1) { create(:hmis_hud_project_coc, data_source: project.data_source, project: project, coc_code: 'CO-500') }
+
+      let(:client_acceptance_task) do
+        create(
+          :hmis_workflow_definition_task,
+          template: template,
+          name: 'client acceptance task',
+          trigger_config: [
+            {
+              event: 'complete_step',
+              message: 'create_enrollment',
+            },
+          ],
+        )
+      end
+
+      it 'throws an error, indicating misconfigured workflow' do
+        expect do
+          engine.start_step!(client_step, user: user)
+          engine.complete_step!(client_step, user: user, submitted_values: {})
+        end.to change(Hmis::Hud::Enrollment, :count).by(1).
+          and change(referral, :target_household).from(nil)
+
+        expect do
+          engine.start_step!(admin_step, user: user)
+          engine.complete_step!(admin_step, user: user, submitted_values: { 'review_denial_decision': 0 })
+        end.to raise_error(RuntimeError, /Failed to reopen step/)
+      end
     end
   end
 end
