@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module Hmis::Ce
   class ReferralEnroller
     attr_reader :referral
@@ -35,7 +41,7 @@ module Hmis::Ce
       # TODO(#6709) - assign enrollment to unit
 
       enrollment.save_new_enrollment! # Saves as WIP or non-WIP, depending on auto-enter rules in the project
-      referral.update!(target_household: enrollment.household)
+      referral.update!(target_enrollment: enrollment)
     end
 
     def set_move_in_date(message, user)
@@ -47,9 +53,9 @@ module Hmis::Ce
       date_string = submitted_values ? submitted_values[:move_in_date] : nil
       return unless date_string.present?
 
-      raise "Trying to set move-in date, but referral #{referral.id} does not have a target household yet. This probably indicates a mistake in the workflow configuration." unless referral.target_household.present?
+      enrollment = referral.target_enrollment
+      raise "Trying to set move-in date, but referral #{referral.id} does not have a target enrollment yet. This probably indicates a mistake in the workflow configuration." unless enrollment.present?
 
-      enrollment = referral.target_household.enrollments.where(relationship_to_hoh: 1).order(:id).first
       date = HmisUtil::Dates.safe_parse_date(date_string: date_string)
       enrollment.update!(move_in_date: date)
     end
