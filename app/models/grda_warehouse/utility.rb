@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -202,6 +204,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::DataSource,
       GrdaWarehouse::Hud::Client,
       GrdaWarehouse::Hud::Project,
+      GrdaWarehouse::Hud::Enrollment,
       GrdaWarehouse::Hud::User,
       GrdaWarehouse::ServiceHistoryEnrollment,
       ActiveStorage::Attachment,
