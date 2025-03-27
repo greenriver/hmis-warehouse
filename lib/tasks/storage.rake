@@ -27,6 +27,7 @@ namespace :storage do
   task :move_to_s3, [] => [:environment] do
     {
       GrdaWarehouse::HmisExport => :with_attached_hmis_zip,
+      GrdaWarehouse::SecureFile => :with_attached_secure_file,
 
       # The following are classes that remain to be moved
       # GrdaWarehouse::AdHocBatch
@@ -34,7 +35,6 @@ namespace :storage do
       # GrdaWarehouse::NonHmisUpload
       # GrdaWarehouse::PublicFile
       # GrdaWarehouse::ReportResultFile
-      # GrdaWarehouse::SecureFile
       # GrdaWarehouse::HealthEmergency::TestBatch
       # Health::EdIpVisitFile
       # Health::EligibilityResponse
