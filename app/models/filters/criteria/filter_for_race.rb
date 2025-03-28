@@ -32,8 +32,6 @@ class Filters::Criteria::FilterForRace < Filters::Criteria::Base
       scope = scope.where(id: mr_scope.select(:id))
     end
 
-    # raise scope.select(:id).to_sql
-
     scope
   end
 
