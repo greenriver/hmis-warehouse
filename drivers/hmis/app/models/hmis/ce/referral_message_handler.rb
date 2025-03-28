@@ -15,7 +15,7 @@ module Hmis::Ce
     end
 
     # route the message to the appropriate handler method
-    def call(message, user)
+    def call(message)
       # need to set move-in date on enrollment also
       case message.type
       when 'start_referral'
@@ -30,10 +30,10 @@ module Hmis::Ce
       when 'create_ce_event'
         create_ce_event(message)
       when 'create_enrollment'
-        referral_enroller.create_enrollment(message, user)
+        referral_enroller.create_enrollment(message)
       when 'set_move_in_date'
         # Can be triggered on the same step as create_enrollment, or a later step
-        referral_enroller.set_move_in_date(message, user)
+        referral_enroller.set_move_in_date(message)
       else
         raise "Got unhandled message type #{message.type}"
       end
