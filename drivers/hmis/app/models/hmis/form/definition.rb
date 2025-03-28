@@ -1,10 +1,10 @@
-# frozen_string_literal: false
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: false
 
 # Versioned form definition. Contains a structured list of questions, information about how to render them, and information about available options and initial values. Nested recursive structure similar to FHIR Questionnaire.
 #
@@ -478,7 +478,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       is_data_not_collected = value == 'DATA_NOT_COLLECTED'
       field_name = item.mapping&.field_name || item.mapping&.custom_field_key
 
-      # This checks numeric values, but it doesn't validate enums. Should it?
       numeric_validator.call(item, value)&.each do |error_message|
         errors.add field_name || :base, message: error_message, **error_context
       end

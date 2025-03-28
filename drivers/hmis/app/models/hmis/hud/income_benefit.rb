@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 class Hmis::Hud::IncomeBenefit < Hmis::Hud::Base
   self.table_name = :IncomeBenefits
@@ -20,5 +20,5 @@ class Hmis::Hud::IncomeBenefit < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   validates_with Hmis::Hud::Validators::IncomeBenefitValidator
-  validates :unemployment_amount, numericality: { only_integer: true }
+  validates :unemployment_amount, numericality: { only_integer: true }, allow_nil: true # todo @martha - move into the validator, use a loop
 end

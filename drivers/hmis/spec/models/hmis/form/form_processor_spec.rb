@@ -195,10 +195,24 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'IncomeBenefit.incomeFromAnySource' => 'YES',
         'IncomeBenefit.unemploymentAmount' => 'bad string',
         'IncomeBenefit.otherIncomeAmount' => 100,
+        'IncomeBenefit.alimonyAmount' => nil,
       }
 
       assessment.form_processor.run!(user: hmis_user)
       expect(assessment.form_processor.valid?(:form_submission)).to be false
+    end
+
+    it 'does not raise when receiving a string that can be converted to an int' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'IncomeBenefit.incomeFromAnySource' => 'YES',
+        'IncomeBenefit.unemploymentAmount' => '200',
+        'IncomeBenefit.otherIncomeAmount' => 100,
+        'IncomeBenefit.alimonyAmount' => nil,
+      }
+
+      assessment.form_processor.run!(user: hmis_user)
+      expect(assessment.form_processor.valid?(:form_submission)).to be true
     end
   end
 
