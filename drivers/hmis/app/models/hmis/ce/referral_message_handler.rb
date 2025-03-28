@@ -4,7 +4,12 @@
 
 module Hmis::Ce
   class ReferralMessageHandler
+    # In general, when accessing `submitted_values` from the message handler, use safe accessor because:
+    # - `step` could be nil, when the message is triggered by an event that doesn't involve a step, such as `start_workflow`, `end_workflow`, or `pass_gateway`.
+    # - `submitted_values` could be nil, when the step hasn't been submitted yet, for example if the message is triggered by the `start_step` event
+
     attr_reader :referral
+
     def initialize(referral)
       @referral = referral
     end
