@@ -502,11 +502,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(disabilities.find_by(disability_type: 10).indefinite_and_impairs).to eq(99) # nil is saved as 99
     end
 
-    it 'raises when receiving an unrecognized string value for an int col (regression #6868)' do
-      # This is just an example; we don't have to commit this test to the main branch.
-      # See `attribute_value_for_enum`:
-      # My understanding is that the original bug with Viral Load Source was that the enum wasn't found,
-      # but as long as there *is* an enum, `value_for` will raise if it isn't a correct value.
+    it 'raises when receiving an unrecognized string value for an enum col (regression #6868)' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
 
       assessment.form_processor.hud_values = {

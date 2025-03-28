@@ -440,8 +440,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'prevents saving IncomeBenefit with invalid strings' do
-    # Even though the form processor `run` silently swallows strings and saves them as 0, the validators don't allow it.
-    # (In other words, this test didn't need any code change to pass)
     definition = Hmis::Form::Definition.find_by(role: :ANNUAL)
     unemployment_item = definition.link_id_item_hash.values.find { |item| item.mapping&.field_name == 'unemploymentAmount' }
     input = {
