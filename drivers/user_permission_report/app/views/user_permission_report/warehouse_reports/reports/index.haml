@@ -44,8 +44,8 @@
                   - else
                     = render 'admin/inactive_users/user_status', user: user
                 %br
-                - if user.last_sign_in_at.present?
-                  Last login: #{user.last_sign_in_at}
+                - if user.current_sign_in_at.present?
+                  Last login: #{user.current_sign_in_at}
                 - else
                   Never logged in
             %td
@@ -53,7 +53,9 @@
                 View Details
             %td
               - if user.using_acls?
-                TODO
+                %ul
+                  - user.roles.map{|r| link_to_if can_edit_roles?, r.name, edit_admin_role_path(r)}.uniq.each do |role_name|
+                    %li= role_name
               - else
                 - if user.legacy_roles.count == Role.count
                   All Roles
