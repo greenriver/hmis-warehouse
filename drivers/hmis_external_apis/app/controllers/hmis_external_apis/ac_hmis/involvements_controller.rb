@@ -14,7 +14,6 @@ module HmisExternalApis::AcHmis
       involvement, json_payload = log_request_with_truncation do
         involvement = ClientInvolvement.new(client_params)
         involvement.validate_request!
-        # Return both involvement and its JSON representation as a tuple (array)
         [involvement, involvement.to_json]
       end
 
