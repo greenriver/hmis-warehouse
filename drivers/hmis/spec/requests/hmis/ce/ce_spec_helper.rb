@@ -1,8 +1,3 @@
-#  Copyright 2016 - 2024 Green River Data Analysis, LLC
-#
-#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
-
 # frozen_string_literal: true
 
 RSpec.shared_context 'ce spec helper' do
