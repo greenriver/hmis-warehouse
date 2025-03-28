@@ -127,7 +127,7 @@ module Hmis::WorkflowExecution
           step_side_effects = step.node.trigger_config&.map { |config| config['message'] } || []
 
           # but _only_ if it didn't have any irreversible side effects
-          if (Hmis::Ce::ReferralMessageHandler::IRREVERSIBLE & step_side_effects).any? # rubocop:disable Style/IfUnlessModifier
+          if @message_handler.contains_irreversible_message?(step_side_effects) # rubocop:disable Style/IfUnlessModifier
             raise "Failed to reopen step #{step.id} because it had an irreversible side effect. This indicates a misconfigured workflow."
           end
         end
