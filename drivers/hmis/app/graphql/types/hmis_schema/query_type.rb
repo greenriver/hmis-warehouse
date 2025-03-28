@@ -294,11 +294,13 @@ module Types
         root_can perm
       end
       field :can_view_my_dashboard, Boolean, null: false
+      field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
     end
 
     def access
       {
         can_view_my_dashboard: current_user.can_view_my_dashboard?,
+        can_edit_users_in_warehouse: User.find(current_user.id).can_edit_users?,
       }
     end
 
