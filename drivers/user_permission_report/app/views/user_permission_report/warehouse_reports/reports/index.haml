@@ -54,7 +54,7 @@
             %td
               - if user.using_acls?
                 %ul
-                  - user.legacy_roles.map{|r| link_to_if can_edit_roles?, r.name, edit_admin_role_path(r)}.uniq.each do |role_name|
+                  - user.roles.map{|r| link_to_if can_edit_roles?, r.name, edit_admin_role_path(r)}.uniq.each do |role_name|
                     %li= role_name
               - else
                 - if user.legacy_roles.count == Role.count
