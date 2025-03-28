@@ -34,7 +34,7 @@ module Hmis::WorkflowExecution
 
     def start_step!(step, user:)
       step.start!
-      process_triggers(step.node, 'start_step', user, step)
+      process_triggers(node: step.node, event_type: 'start_step', user: user, step: step)
       log_event('start_step', user: user, step: step)
     end
 
@@ -46,7 +46,7 @@ module Hmis::WorkflowExecution
     def complete_step!(step, user:, submitted_values:)
       step.submitted_values = submitted_values
       step.complete!
-      process_triggers(step.node, 'complete_step', user, step)
+      process_triggers(node: step.node, event_type: 'complete_step', user: user, step: step)
       log_event('complete_step', user: user, step: step, event_data: submitted_values)
       traverse_node(step.node, user)
     end
@@ -78,20 +78,20 @@ module Hmis::WorkflowExecution
       nodes.map { |node| steps_by_node_id[node.id] }.compact
     end
 
-    def send_message(user, ...)
+    def send_message(...)
       message = Hmis::WorkflowExecution::Message.new(...)
-      message_handler.call(message, user)
+      message_handler.call(message)
     end
 
-    def process_triggers(node, event_type, user, step = nil)
+    def process_triggers(node:, event_type:, user:, step: nil)
       node.triggers.each do |trigger|
         next unless event_type == trigger.event
 
         send_message(
-          user,
           type: trigger.message,
           params: trigger.params,
           step: step,
+          user: user,
         )
         log_event('message_sent', event_data: trigger.to_h)
       end
@@ -113,7 +113,7 @@ module Hmis::WorkflowExecution
 
       raise "Node (#{node.id}) blocks flow. It should have a default outflow" if outflows.empty?
 
-      process_triggers(node, 'pass_gateway', user) if node.gateway?
+      process_triggers(node: node, event_type: 'pass_gateway', user: user) if node.gateway?
       outflows.each { |flow| visit_node(flow.target_node, user) }
     end
 
@@ -137,10 +137,10 @@ module Hmis::WorkflowExecution
       when Hmis::WorkflowDefinition::Gateway
         traverse_node(node, user)
       when Hmis::WorkflowDefinition::StartEvent
-        process_triggers(node, 'start_workflow', user)
+        process_triggers(node: node, event_type: 'start_workflow', user: user)
         traverse_node(node, user)
       when Hmis::WorkflowDefinition::EndEvent
-        process_triggers(node, 'end_workflow', user)
+        process_triggers(node: node, event_type: 'end_workflow', user: user)
       else
         raise "Got unhandled node #{node.class.name}"
       end

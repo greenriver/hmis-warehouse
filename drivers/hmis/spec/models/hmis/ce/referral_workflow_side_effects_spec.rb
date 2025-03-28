@@ -28,7 +28,8 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
   let!(:coc1) { create :hmis_hud_project_coc, data_source: ds1, project: project, coc_code: 'CO-500' }
 
   describe 'workflow with side effect that creates an enrollment' do
-    let!(:provider_acceptance_task) do # Modify task set up in 'ce spec helper' to have a side effect that creates an enrollment
+    let!(:provider_acceptance_task) do
+      # Modify task set up in 'ce spec helper' to have a side effect that creates an enrollment
       create(
         :hmis_workflow_definition_task,
         template: workflow_template,
@@ -194,7 +195,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
         expect(referral.target_enrollment.move_in_date).to eq(move_in_date)
       end
 
-      context 'if enrollment does not exist yet' do
+      context 'if enrollment is not created on the same task' do
         let!(:provider_acceptance_task) do
           create(
             :hmis_workflow_definition_task,
@@ -211,13 +212,41 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
           )
         end
 
-        it 'raises an exception, indicating a workflow configuration issue' do
-          expect do
-            current_step = engine.active_steps.sole
-            engine.complete_step!(current_step, user: hmis_user, submitted_values: { 'move_in_date': 2.weeks.ago.to_date })
-            referral.reload
-          end.to raise_error(RuntimeError, /does not have a target enrollment yet/).
-            and not_change(Hmis::Hud::Enrollment, :count)
+        context 'if enrollment does not exist' do
+          it 'raises an exception, indicating a workflow configuration issue' do
+            expect do
+              current_step = engine.active_steps.sole
+              engine.complete_step!(current_step, user: hmis_user, submitted_values: { 'move_in_date': 2.weeks.ago.to_date })
+              referral.reload
+            end.to raise_error(RuntimeError, /does not have a target enrollment yet/).
+              and not_change(Hmis::Hud::Enrollment, :count)
+          end
+        end
+
+        context 'if the enrollment already has a move-in date' do
+          let!(:move_in_date) { 2.days.ago }
+          let!(:target_enrollment) do
+            create(
+              :hmis_hud_enrollment,
+              project: project,
+              client: referral.client,
+              entry_date: 2.weeks.ago,
+              move_in_date: move_in_date,
+            )
+          end
+
+          before do
+            referral.update!(target_enrollment: target_enrollment)
+          end
+
+          it 'does not overwrite the move-in date if the input is not parseable' do
+            expect do
+              current_step = engine.active_steps.sole
+              engine.complete_step!(current_step, user: hmis_user, submitted_values: { 'move_in_date': 'bad string' })
+              target_enrollment.reload
+            end.to not_change(Hmis::Hud::Enrollment, :count).
+              and not_change(target_enrollment, :move_in_date)
+          end
         end
       end
     end
