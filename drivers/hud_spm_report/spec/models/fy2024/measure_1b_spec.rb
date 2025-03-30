@@ -597,65 +597,6 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
     end
 
     context 'with client having PSH before the report period' do
-      let(:default_filter) do
-        ::Filters::HudFilterBase.new(
-          {
-            user_id: User.setup_system_user.id,
-            start: Date.parse('2023-10-1'),
-            end: Date.parse('2024-09-30'),
-            coc_codes: ['MA-500'],
-          },
-        )
-      end
-      before do
-        # Create projects of different types
-        @psh_project = create_project(project_type: 3) # PSH
-        @nbn_project = create_project(project_type: 1) # ES-NBN
-
-        # Create a client
-        @client = create_client_with_warehouse_link(dob: '1990-01-01')
-
-        create_enrollment(
-          client: @client,
-          project: @psh_project,
-          date_to_street_essh: '2015-06-01'.to_date,
-          entry_date: '2022-06-01'.to_date,
-          move_in_date: '2022-08-01'.to_date,
-          exit_date: '2023-04-30'.to_date, # exit before reporting period
-          living_situation: 116, # literally homeless
-        )
-
-        # NBN enrollment
-        nbn_enrollment1 = create_enrollment(
-          client: @client,
-          project: @nbn_project,
-          date_to_street_essh: '2024-01-01'.to_date,
-          entry_date: '2024-08-15'.to_date,
-        )
-        # Add a bed night for the NBN enrollment
-        create_bed_night_service(enrollment: nbn_enrollment1, date: '2024-08-15'.to_date)
-
-        # Setup and run the report
-        @report = setup_report([@psh_project.id, @nbn_project.id])
-        run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
-      end
-
-      it 'correctly calculates homelessness period' do
-        expect(@report.universe('m1b1').members.count).to eq(1)
-
-        episode = @report.universe('m1b1').members.first.universe_membership
-
-        expect(episode.first_date).to eq('2024-01-01'.to_date)
-
-        # nbn date to street - exit
-        expected_days = 228 # how many days?
-        expect(episode.days_homeless).to eq(expected_days)
-        answer = @report.answer(question: '1b', cell: 'D1')
-        expect(answer.summary.to_f).to eq(expected_days)
-      end
-    end
-
-    context 'with client having PSH before the report period' do
       before do
         # Create projects of different types
         @psh_project = create_project(project_type: 3) # PSH
