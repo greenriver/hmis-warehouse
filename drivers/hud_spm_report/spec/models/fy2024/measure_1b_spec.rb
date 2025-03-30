@@ -694,9 +694,13 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
 
         episode = @report.universe('m1b1').members.first.universe_membership
 
+        # Episode should start from the date_to_street_essh of the NBN enrollment
+        # NOT from the earlier PSH enrollment, which is irrelevant due to the
+        # break in homelessness (client was housed in PSH)
         expect(episode.first_date).to eq('2023-01-01'.to_date)
 
-        # nbn date to street - exit
+        # Calculate expected days: From date_to_street_essh (2023-01-01) to the end of this episode
+        # This should include self-reported homeless time before the ES-NBN bed night
         expected_days = 227 # how many days?
         expect(episode.days_homeless).to eq(expected_days)
         answer = @report.answer(question: '1b', cell: 'D1')
@@ -704,7 +708,6 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
       end
     end
 
-    # note to self, check that PH enrollments included correctly in step 1 c
     context 'with client having PSH overlapping the report period' do
       before do
         # Create projects of different types
@@ -745,8 +748,14 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
 
         episode = @report.universe('m1b1').members.first.universe_membership
 
+        # First date of homelessness should be the earliest date_to_street_essh
+        # Since the PSH enrollment overlaps with the report period, per SPM rules
+        # we should count from the earliest start of homelessness
         expect(episode.first_date).to eq('2014-06-01'.to_date)
 
+        # Expected days homeless calculation:
+        # - Time from date_to_street_essh (2014-06-01) to PSH move-in (2022-10-03)
+        # - Plus time from NBN date_to_street_essh (2023-01-01) to the bed night (2023-08-15)
         expected_days = 3273 # how many days?
         expect(episode.days_homeless).to eq(expected_days)
         answer = @report.answer(question: '1b', cell: 'D1')

@@ -83,7 +83,6 @@ module HudSpmReport::Fy2024
       # Step 1
       inclusion_dates = allowed_bed_nights
       # 1b additionally checks time before entry for PH projects
-      # 6/1/2015-8/15/2024
       inclusion_dates += pre_entry_inclusion_dates
       # Step 2 D
       # note, inclusion dates are only used to check if these enrollments should be used, this variable is not used below
