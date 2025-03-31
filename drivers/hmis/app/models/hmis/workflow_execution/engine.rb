@@ -84,17 +84,22 @@ module Hmis::WorkflowExecution
     end
 
     def process_triggers(node:, event_type:, user:, step: nil)
-      node.triggers.each do |trigger|
+      results = node.triggers.map do |trigger|
         next unless event_type == trigger.event
 
-        send_message(
+        result = send_message(
           type: trigger.message,
           params: trigger.params,
           step: step,
           user: user,
         )
-        log_event('message_sent', event_data: trigger.to_h)
+
+        log_event('message_sent', event_data: trigger.to_h) if result[:success?]
+        result
       end
+
+      step&.update!(reversible: false) unless results.compact.all?(&:reversible?)
+      results
     end
 
     def traverse_node(node, user)
@@ -122,14 +127,9 @@ module Hmis::WorkflowExecution
       when Hmis::WorkflowDefinition::Task
         step = instance.steps.find_or_initialize_by(node: node)
 
-        # If the step has already been completed, it may be re-openable
-        if step.status == 'completed'
-          step_side_effects = step.node.trigger_config&.map { |config| config['message'] } || []
-
-          # but _only_ if it didn't have any irreversible side effects
-          if @message_handler.contains_irreversible_message?(step_side_effects) # rubocop:disable Style/IfUnlessModifier
-            raise "Failed to reopen step #{step.id} because it had an irreversible side effect. This indicates a misconfigured workflow."
-          end
+        # If the step has already been completed, it may be re-openable, but _only_ if it didn't have any irreversible side effects
+        if step.status == 'completed' && !step.reversible? # rubocop:disable Style/IfUnlessModifier
+          raise "Failed to reopen step #{step.id} because it had an irreversible side effect. This indicates a misconfigured workflow."
         end
 
         step.enable!

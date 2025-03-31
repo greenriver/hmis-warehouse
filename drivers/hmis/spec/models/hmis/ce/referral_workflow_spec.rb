@@ -256,7 +256,17 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
   describe 'a workflow that loops back to a previous node' do
     let(:client_acceptance_task) do
-      create(:hmis_workflow_definition_task, template: template, name: 'client acceptance task')
+      create(
+        :hmis_workflow_definition_task,
+        template: template,
+        name: 'client acceptance task',
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'send_notification', # it has a side effect, but not one that makes the step irreversible
+          },
+        ],
+      )
     end
 
     let(:admin_approve_denial_task) do

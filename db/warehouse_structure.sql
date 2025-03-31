@@ -28735,7 +28735,8 @@ CREATE TABLE public.wfe_steps (
     completed_at timestamp(6) without time zone,
     submitted_values json,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    reversible boolean DEFAULT true NOT NULL
 );
 
 
@@ -66015,4 +66016,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250313125655'),
 ('20250313153011'),
 ('20250319125533'),
-('20250325205806');
+('20250325205806'),
+('20250331121904');
