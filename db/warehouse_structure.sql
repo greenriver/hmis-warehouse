@@ -614,7 +614,6 @@ CREATE VIEW analytics.client_geolocations AS
     lon,
     created_at,
     updated_at,
-    enrollment_id,
     located_at
    FROM public.clh_locations
   WHERE ((deleted_at IS NULL) AND (lat IS NOT NULL) AND (lon IS NOT NULL));
@@ -2626,23 +2625,10 @@ CREATE VIEW analytics.exits AS
     "ExitDate",
     "Destination",
     "OtherDestination",
-    "AssessmentDisposition",
-    "OtherDisposition",
     "HousingAssessment",
     "SubsidyInformation",
-    "ConnectionWithSOAR",
-    "WrittenAftercarePlan",
-    "AssistanceMainstreamBenefits",
-    "PermanentHousingPlacement",
-    "TemporaryShelterPlacement",
-    "ExitCounseling",
-    "FurtherFollowUpServices",
-    "ScheduledFollowUpContacts",
-    "ResourcePackage",
-    "OtherAftercarePlanOrAction",
     "ProjectCompletionStatus",
     "EarlyExitReason",
-    "FamilyReunificationAchieved",
     "DateCreated",
     "DateUpdated",
     "UserID",
@@ -2953,7 +2939,6 @@ CREATE TABLE public."CustomCaseNote" (
 
 CREATE VIEW analytics.hmis_case_notes AS
  SELECT id,
-    "CustomCaseNoteID" AS custom_case_note_id,
     "PersonalID" AS personal_id,
     "EnrollmentID" AS enrollment_id,
     data_source_id,
@@ -3231,19 +3216,6 @@ COMMENT ON COLUMN public.hmis_staff_assignment_relationships.name IS 'name of ro
 
 
 --
--- Name: hmis_staff_assignment_relationships; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.hmis_staff_assignment_relationships AS
- SELECT id,
-    name,
-    created_at,
-    updated_at
-   FROM public.hmis_staff_assignment_relationships
-  WHERE (deleted_at IS NULL);
-
-
---
 -- Name: hmis_staff_assignments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3264,15 +3236,16 @@ CREATE TABLE public.hmis_staff_assignments (
 --
 
 CREATE VIEW analytics.hmis_staff_assignments AS
- SELECT id,
-    user_id,
-    household_id,
-    hmis_staff_assignment_relationship_id,
-    data_source_id,
-    created_at,
-    updated_at
-   FROM public.hmis_staff_assignments
-  WHERE (deleted_at IS NULL);
+ SELECT hmis_staff_assignments.id,
+    hmis_staff_assignments.user_id,
+    hmis_staff_assignments.household_id,
+    hmis_staff_assignment_relationships.name,
+    hmis_staff_assignments.data_source_id,
+    hmis_staff_assignments.created_at,
+    hmis_staff_assignments.updated_at
+   FROM (public.hmis_staff_assignments
+     LEFT JOIN public.hmis_staff_assignment_relationships ON (((hmis_staff_assignment_relationships.deleted_at IS NULL) AND (hmis_staff_assignment_relationships.id = hmis_staff_assignments.hmis_staff_assignment_relationship_id))))
+  WHERE (hmis_staff_assignments.deleted_at IS NULL);
 
 
 --

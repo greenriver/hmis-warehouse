@@ -1,7 +1,7 @@
 -- rename from custom_case_notes to hmis_case_notes
 SELECT
     id,
-    "CustomCaseNoteID" AS custom_case_note_id,
+    -- "CustomCaseNoteID" AS custom_case_note_id,
     "PersonalID" AS personal_id,
     "EnrollmentID" AS enrollment_id,
     data_source_id,

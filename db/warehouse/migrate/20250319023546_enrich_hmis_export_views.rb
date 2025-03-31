@@ -19,7 +19,6 @@ class EnrichHmisExportViews < ActiveRecord::Migration[7.0]
       'analytics.hmis_case_notes',
       'analytics.hmis_external_form_submissions',
       'analytics.hmis_staff_assignments',
-      'analytics.hmis_staff_assignment_relationships',
       'analytics.hmis_client_alerts',
     ]
   end

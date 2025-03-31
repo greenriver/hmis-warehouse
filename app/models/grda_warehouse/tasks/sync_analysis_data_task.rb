@@ -30,7 +30,7 @@ module GrdaWarehouse::Tasks
     protected
 
     def sync_app_users(batch_size: 500)
-      User.find_in_batches(batch_size: batch_size) do |batch|
+      User.with_deleted.find_in_batches(batch_size: batch_size) do |batch|
         values_sql = batch.map do |user|
           sanitize_sql_for_insert(user)
         end.join(",\n")
