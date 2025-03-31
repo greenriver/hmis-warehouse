@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::Hud::Base < ::GrdaWarehouseBase
   self.abstract_class = true
   include ::Hmis::Concerns::HmisArelHelper
@@ -24,6 +26,26 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   end
 
   before_validation :ensure_id
+
+  def self.strict_attributes!
+    columns.each do |column|
+      case column.type
+      when :integer
+        attribute column.name, Hmis::StrictInteger.new
+      when :decimal
+        attribute column.name, Hmis::StrictDecimal.new
+      end
+    end
+  end
+
+  # # First tried,
+  # def self.inherited(subclass)
+  #   super
+  #   subclass.strict_attributes! if subclass.table_exists?
+  # end
+  # # Doesn't work because table doesn't exist yet at the point when the class inherits.
+  # # (Rails loads models before establishing connection to the database?)
+  # # The only 2 classes that this works for are Client and Service -- what is special about those?
 
   scope :viewable_by, ->(_) do
     none

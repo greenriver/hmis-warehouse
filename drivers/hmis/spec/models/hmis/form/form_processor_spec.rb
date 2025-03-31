@@ -184,12 +184,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.form_processor.errors.where(:insurance_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED)
     end
 
-    it 'raises when receiving a string value for an int col (regression #6868)' do
-      # This succeeds thanks to the newly added validation in IncomeBenefit,
-      # but there are many many other fields on which we would have to add model validations, if we take this approach.
-      # Doesn't really seem worth it, since the definition validator already checks for numericality.
-      # And it doesn't help us achieve the goal of preventing silent errors in the future,
-      # since adding the model validator would become one more thing to remember.
+    it 'raises when receiving a string value for a decimal col (regression #6868)' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
         'IncomeBenefit.incomeFromAnySource' => 'YES',
@@ -199,7 +194,10 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       }
 
       assessment.form_processor.run!(user: hmis_user)
-      expect(assessment.form_processor.valid?(:form_submission)).to be false
+      expect do
+        assessment.form_processor.save!
+      end.to raise_error(ArgumentError, /Invalid decimal value/).
+        and not_change(Hmis::Hud::IncomeBenefit, :count)
     end
 
     it 'does not raise when receiving a string that can be converted to an int' do
