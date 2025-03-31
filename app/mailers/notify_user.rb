@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class NotifyUser < DatabaseMailer
   def vispdat_completed(vispdat_id)
     @vispdat = GrdaWarehouse::Vispdat::Base.where(id: vispdat_id).first
@@ -244,5 +246,12 @@ class NotifyUser < DatabaseMailer
     @paused = params[:paused]
     subject = 'HMIS Import Status Update'
     mail(to: @user.email, subject: subject)
+  end
+
+  def secure_file_received(user_id)
+    @user = User.find(user_id)
+    return unless @user.active?
+
+    mail(to: @user.email, subject: 'You have received a Secure File')
   end
 end

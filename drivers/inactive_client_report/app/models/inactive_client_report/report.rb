@@ -201,16 +201,15 @@ module InactiveClientReport
     end
 
     private def max_entries_by_client_id
-      scope = report_scope
-      scope = scope.where(client_id: client_ids) if client_ids.present?
-      scope.
-        order(entry_date: :asc).
-        pluck(:client_id, :entry_date).
-        to_h # Keeps the last instance for each client_id
+      @max_entries_by_client_id ||= batch_fetch_items(
+        join: { source_enrollments: :project },
+        column: e_t[:EntryDate],
+        merge: GrdaWarehouse::Hud::Enrollment.where(PersonalID: personal_ids),
+      )
     end
 
     def report_scope
-      filter.destination_client_ids_for_days_since_contact_calculations = possible_destination_client_id
+      filter.destination_client_ids_for_days_since_contact_calculations = possible_destination_client_ids
       scope = filter.apply(report_scope_base, report_scope_base, include_date_range: false)
       # Apply a single date filter
       scope.ongoing(on_date: filter.on)
@@ -219,7 +218,7 @@ module InactiveClientReport
     # Return scope of destination client_ids for people enrolled on the filter date
     # in the effective projects for the filter.
     # This is only used to hint the sub queries for performance, no permission check is done.
-    private def possible_destination_client_id
+    private def possible_destination_client_ids
       filter.apply_criteria(report_scope_base, tags: [:project], include_date_range: false).
         ongoing(on_date: filter.on).
         pluck(:client_id)

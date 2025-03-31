@@ -4,22 +4,33 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class SecureFilesController < ApplicationController
   before_action :require_can_view_some_secure_files!, only: [:show]
   before_action :set_file, only: [:show, :destroy]
 
   def index
     @secure_file = file_source.new
-    @secure_files = file_scope.order(created_at: :desc).diet_select
   end
 
   def show
-    filename = @secure_file.file&.file&.filename&.to_s || 'secure_file'
-    send_data(
-      @secure_file.content,
-      type: @secure_file.content_type,
-      filename: File.basename(filename),
-    )
+    secure_file = @secure_file.secure_file
+    # Use ActiveStorage version if we have it
+    if secure_file.present?
+      send_data(
+        secure_file.download,
+        type: secure_file.content_type,
+        filename: secure_file.filename.to_s,
+      )
+    else
+      filename = 'secure_file'
+      send_data(
+        @secure_file.content,
+        type: @secure_file.content_type,
+        filename: File.basename(filename),
+      )
+    end
   end
 
   def destroy
@@ -35,32 +46,54 @@ class SecureFilesController < ApplicationController
       render(:index)
       return
     end
-    file = file_params[:file]
-    @secure_file = file_source.new(
-      file_params.merge(
-        sender_id: current_user.id,
-        content_type: file.content_type,
-        content: file.read,
-      ),
-    )
-    if @secure_file.save
-      flash[:notice] = Translation.translate('Upload successful, please let the recipient know the file has been sent.')
+
+    recipients = file_params[:recipients]&.select(&:present?)&.map(&:to_i)
+    send_notifications = file_params[:send_notifications] == '1'
+    begin
+      @secure_file = file_source.new
+      recipients.each do |recipient_id|
+        @secure_file = file_source.create!(
+          sender_id: current_user.id,
+          recipient_id: recipient_id,
+          name: file_params[:name],
+        )
+        @secure_file.secure_file.attach(file_params[:file])
+        NotifyUser.secure_file_received(recipient_id).deliver_later if send_notifications
+      end
+      message = 'Upload successful'
+      message += ", please let the #{'recipient'.pluralize(recipients.count)} know the file has been sent." unless send_notifications
+      message += ', notifications have been sent' if send_notifications
+      flash[:notice] = message
       redirect_to action: :index
-    else
-      flash[:alert] = Translation.translate('Upload failed, did you attach a file?')
-      @secure_files = file_scope
+    rescue StandardError
+      flash[:alert] = Translation.translate('Upload failed, did you attach a file and choose a recipient?')
       render :index
     end
   end
 
   private def file_params
     params.require(:secure_file).
-      permit(:file, :name, :recipient_id)
+      permit(
+        :file,
+        :name,
+        :send_notifications,
+        recipients: [],
+      )
   end
 
   private def set_file
     @secure_file = file_scope.find(params[:id].to_i)
   end
+
+  def secure_files
+    file_scope.order(created_at: :desc).diet_select
+  end
+  helper_method :secure_files
+
+  def sent_secure_files
+    GrdaWarehouse::SecureFile.where(sender_id: current_user.id).order(created_at: :desc).diet_select
+  end
+  helper_method :sent_secure_files
 
   def file_scope
     GrdaWarehouse::SecureFile.visible_by?(current_user)

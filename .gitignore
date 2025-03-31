@@ -168,6 +168,7 @@ lib/data/*.xlsx
 
 # Development ENV
 /dev**
+/storage/**
 /app/assets/builds/**
 /drivers/hud_spm_report/spec/fixpoints/enrollment_universe/warehouse_app_test.sql
 /drivers/hud_spm_report/spec/fixpoints/enrollment_universe/warehouse_test.sql
