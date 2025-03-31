@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 # A referral of an individual client to an opportunity
@@ -11,6 +17,8 @@ module Hmis::Ce
     has_many :participants, class_name: 'Hmis::Ce::ReferralParticipant'
     belongs_to :client, class_name: 'Hmis::Hud::Client'
     belongs_to :referred_by, class_name: 'Hmis::User'
+    belongs_to :target_enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
+    has_one :target_project, class_name: 'Hmis::Hud::Project', through: :opportunity, source: :project
 
     # TODO(#7395): permissions
     scope :viewable_by, ->(_user) { all }

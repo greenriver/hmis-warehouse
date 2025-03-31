@@ -6,12 +6,14 @@
 
 # frozen_string_literal: true
 
-require 'rails_helper'
-require_relative '../login_and_permissions'
-require_relative './ce_spec_helper'
+require_relative '../../../support/ce_spec_helper'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'ce spec helper'
+
+  before(:each) do
+    hmis_login(user)
+  end
 
   describe 'project ceReferrals query' do
     let(:query) do

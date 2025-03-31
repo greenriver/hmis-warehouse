@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,6 +17,7 @@ module Types
     field :client, Types::HmisSchema::Client, null: true
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :current_step_name, String, null: true
+    field :target_enrollment, Types::HmisSchema::Enrollment, null: true # Don't resolve in batch
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeReferralStatus]

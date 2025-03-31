@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'rails_helper'
+require_relative '../requests/hmis/login_and_permissions'
+
 RSpec.shared_context 'ce spec helper' do
   include_context 'hmis base setup'
 
@@ -9,7 +12,6 @@ RSpec.shared_context 'ce spec helper' do
 
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
-    hmis_login(user)
   end
 
   let(:client) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
@@ -40,7 +42,7 @@ RSpec.shared_context 'ce spec helper' do
       template: workflow_template,
       name: 'Client Acceptance',
       swimlane: case_manager_swimlane,
-      form_definition: create(:ce_referral_step_definition),
+      form_definition: create(:ce_referral_step_form_definition),
     )
   end
 

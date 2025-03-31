@@ -1119,7 +1119,7 @@ FactoryBot.define do
     end
   end
 
-  factory :ce_referral_step_definition, parent: :hmis_form_definition do
+  factory :ce_referral_step_form_definition, parent: :hmis_form_definition do
     role { :CE_REFERRAL_STEP }
     definition do
       {

@@ -192,6 +192,50 @@ task ce_starter_pack_20250302: [:environment] do
   admin_review_gateway.connect_to!(client_acceptance_task, condition: 'review_denial_decision = 0') unless admin_review_gateway.outflows.where(target_node_id: client_acceptance_task.id).exists?
   admin_review_gateway.connect_to!(reject_workflow_event, condition: 'review_denial_decision = 1') unless admin_review_gateway.outflows.where(target_node_id: reject_workflow_event.id).exists?
 
+  puts '- Creating Enrollment Creator template, a template with tasks that have side effects.'
+
+  enrollment_creator_template = create_template('Enrollment Creator', 'enrollment_creator')
+  case_managers = enrollment_creator_template.swimlanes.find_or_create_by!(name: 'Case Managers')
+
+  start_workflow_event = create_start_event(enrollment_creator_template, 'start referral', 'start_workflow', 'start_referral')
+  accept_workflow_event = create_end_event(enrollment_creator_template, 'accept referral', 'end_workflow', 'accept_referral')
+
+  create_enrollment_form_def = Hmis::Form::Definition.find_or_initialize_by(
+    identifier: 'ce_create_enrollment',
+    status: 'published'
+  )
+  create_enrollment_form_def.title = 'Create Enrollment'
+  create_enrollment_form_def.role = 'CE_REFERRAL_STEP'
+  create_enrollment_form_def.version ||= 0
+  create_enrollment_form_def.definition = {
+    "item": [
+      {
+        "text": "Move-in Date",
+        "type": "DATE",
+        "link_id": "move_in_date",
+        "required": true,
+        'mapping': { 'field_name': 'moveInDate', 'record_type': 'ENROLLMENT' },
+      },
+    ]
+  }
+  create_enrollment_form_def.save! if create_enrollment_form_def.changed?
+
+  create_enrollment_task = create_task(create_enrollment_form_def, enrollment_creator_template,  'Create Enrollment', case_managers)
+  create_enrollment_task.trigger_config = [
+    { # 1. Create an enrollment
+      event: 'complete_step',
+      message: 'create_enrollment',
+    },
+    { # 2. Set move-in date
+      event: 'complete_step',
+      message: 'set_move_in_date',
+    }
+  ]
+  create_enrollment_task.save! if create_enrollment_task.changed?
+
+  start_workflow_event.connect_to!(create_enrollment_task) unless start_workflow_event.outflows.where(target_node_id: create_enrollment_task.id).exists?
+  create_enrollment_task.connect_to!(accept_workflow_event) unless create_enrollment_task.outflows.where(target_node_id: accept_workflow_event.id).exists?
+
   # Next, create a new organization and project to use for CE. This isn't strictly necessary -- devs will already have
   # orgs and projects in their local dbs they can use for testing -- but it's helpful for the sake of the starter pack
   # to have this script create a project/org whose existence it can rely on
@@ -216,6 +260,15 @@ task ce_starter_pack_20250302: [:environment] do
   ce_project.operating_start_date ||= 4.weeks.ago
   ce_project.project_type ||= 3
   ce_project.save! if ce_project.changed?
+
+  project_coc = Hmis::Hud::ProjectCoc.find_or_initialize_by(
+    data_source_id: hmis_ds.id,
+    project_id: ce_project.project_id,
+    coc_code: 'CO-500',
+  )
+  project_coc.geocode = '250396'
+  project_coc.user ||= system_user
+  project_coc.save! if project_coc.changed?
 
   ce_project_funder = ce_project.funders.find_or_initialize_by(funder: 20)
   ce_project_funder.user = system_user
@@ -267,16 +320,16 @@ task ce_starter_pack_20250302: [:environment] do
 
   if Hmis::Ce::Opportunity.open.any?
     # Create some opportunities with Opportunity Categories, just to show how it looks in the UI
-    sro = Hmis::Ce::OpportunityCategory.create!(name: 'SRO')
+    sro = Hmis::Ce::OpportunityCategory.find_or_create_by(name: 'SRO')
     sro_opportunity = Hmis::Ce::Opportunity.open.first
-    Hmis::Ce::OpportunityCategorization.create!(
+    Hmis::Ce::OpportunityCategorization.find_or_create_by(
       opportunity: sro_opportunity,
       category: sro
     )
 
-    accessible_sro = Hmis::Ce::OpportunityCategory.create!(name: 'Accessible SRO')
+    accessible_sro = Hmis::Ce::OpportunityCategory.find_or_create_by(name: 'Accessible SRO')
     accessible_sro_opportunity = Hmis::Ce::Opportunity.open.last
-    Hmis::Ce::OpportunityCategorization.create!(
+    Hmis::Ce::OpportunityCategorization.find_or_create_by(
       opportunity: accessible_sro_opportunity,
       category: accessible_sro
     )

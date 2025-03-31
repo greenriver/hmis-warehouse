@@ -811,6 +811,7 @@ type CeReferral {
   opportunity: CeOpportunity!
   status: CeReferralStatus!
   steps: [CeReferralStep!]!
+  targetEnrollment: Enrollment
 }
 
 input CeReferralFilterOptions {
