@@ -703,5 +703,68 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         expect(answer.summary.to_f).to eq(expected_days)
       end
     end
+
+    context 'with overlapping ES and PSH stays with a brief housing period' do
+      let(:default_filter) do
+        ::Filters::HudFilterBase.new(
+          user_id: User.setup_system_user.id,
+          start: '2023-10-01'.to_date,
+          end: '2024-09-30'.to_date,
+          coc_codes: ['MA-500'],
+        )
+      end
+
+      before do
+        # Create projects of different types
+        @es_project = create_project(project_type: 0) # ES-EE
+        @psh_project = create_project(project_type: 3) # PSH
+
+        # Create a client
+        @client = create_client_with_warehouse_link(dob: '1990-01-01')
+
+        # Create ES enrollment that starts before PSH exit and continues through reporting period
+        create_enrollment(
+          client: @client,
+          project: @es_project,
+          entry_date: '2023-05-15'.to_date,
+          exit_date: nil, # Still active
+        )
+
+        # Create PSH enrollment that occurred before the report period
+        # but overlapped with the ES stay
+        create_enrollment(
+          client: @client,
+          project: @psh_project,
+          date_to_street_essh: '2021-01-01'.to_date,
+          entry_date: '2021-06-01'.to_date,
+          move_in_date: '2023-06-01'.to_date, # Housed briefly before exit
+          exit_date: '2023-06-11'.to_date,
+          living_situation: 116, # Place not meant for habitation
+        )
+
+        # Setup and run the report
+        @report = setup_report([@es_project.id, @psh_project.id])
+        run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
+      end
+
+      it 'properly handles homeless periods interrupted by brief housing in PSH' do
+        # Verify that the universe was created for measure 1b
+        expect(@report.universe('m1b1').members.count).to eq(1)
+
+        episode = @report.universe('m1b1').members.first.universe_membership
+
+        # The homelessness start date should be from the ES entry's date_to_street
+        # The brief housing period in PSH creates a break in homelessness
+        expect(episode.first_date).to eq('2023-06-11'.to_date)
+
+        # Calculate expected days:
+        # PSH exit (2023-06-11) to end of reporting period (2024-09-30)
+        expected_days = ('2024-09-30'.to_date - '2023-06-11'.to_date).to_i
+
+        expect(episode.days_homeless).to eq(expected_days)
+        answer = @report.answer(question: '1b', cell: 'D1')
+        expect(answer.summary.to_f).to eq(expected_days)
+      end
+    end
   end
 end
