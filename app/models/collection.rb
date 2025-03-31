@@ -23,6 +23,8 @@ class Collection < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
 
+  # Remove this column well after this code gets to production (just add a migration remove_column(:collections, :coc_codes))
+  TodoOrDie('Remove coc_codes column from the collections table well after release 157 goes to production', by: '2025-06-01')
   self.ignored_columns = [
     :coc_codes,
   ]

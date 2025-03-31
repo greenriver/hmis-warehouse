@@ -72,6 +72,6 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
   end
 
   def name
-    "#{preferred_name || official_name} (#{coc_code})"
+    "#{preferred_name.presence || official_name} (#{coc_code})"
   end
 end
