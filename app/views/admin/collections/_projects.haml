@@ -23,8 +23,6 @@
                         %span{data: { toggle: :tooltip, title: "Additional Sources <br /> #{additional_sources}", html: :true }}
                           %i.icon-warning
                     .project.pl-4.mb-4= entity.ProjectName
-                - elsif entity_type == :coc_codes
-                  .project.pl-4.mb-4= entity
                 - else
                   - slug = "#{entity_type}_#{entity.id}"
                   - title = "#{entity.name} (#{number_with_delimiter(entity.projects.size)})"
