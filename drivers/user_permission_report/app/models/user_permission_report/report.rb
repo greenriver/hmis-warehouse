@@ -17,7 +17,6 @@ module UserPermissionReport
     # Data for HMIS sheet in excel export
     def hmis_data
       return unless HmisEnforcement.hmis_enabled?
-      return unless @current_user.as_hmis_user.can_audit_users?
 
       hmis_users = Hmis::User.order(:last_name, :first_name).
         includes(access_controls: [:access_group, :user_group, :role])
