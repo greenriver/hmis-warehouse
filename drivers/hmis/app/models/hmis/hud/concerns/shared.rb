@@ -4,10 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Hmis::Hud::Concerns::Shared
   extend ActiveSupport::Concern
   include Hmis::Hud::Concerns::HasEnums
   include ::HmisStructure::Shared
+  include ::Hmis::Hud::Concerns::WithStrictAttributes
 
   included do
     # Filter down scope to only HMIS records. Helpful for finding records in the

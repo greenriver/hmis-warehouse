@@ -27,25 +27,28 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
 
   before_validation :ensure_id
 
-  def self.strict_attributes!
-    columns.each do |column|
-      case column.type
-      when :integer
-        attribute column.name, Hmis::StrictInteger.new
-      when :decimal
-        attribute column.name, Hmis::StrictDecimal.new
+  def self.inherited(subclass)
+    super
+
+    subclass.class_eval do
+      # not working; including for discussion on PR. table_exists? always returns false because
+      # inherited is executed as soon as a subclass is defined, and Rails hasn't loaded the table schema yet
+      return unless subclass.table_exists?
+
+      # binding.pry
+      # if you uncomment the breakpoint here, the only models that hit it are Hmis::Hud::Client and Hmis::Hud::Service.
+      # What is special about those two models?
+
+      subclass.columns.each do |column|
+        case column.type
+        when :integer
+          attribute column.name, Hmis::StrictInteger.new
+        when :decimal
+          attribute column.name, Hmis::StrictDecimal.new
+        end
       end
     end
   end
-
-  # # First tried,
-  # def self.inherited(subclass)
-  #   super
-  #   subclass.strict_attributes! if subclass.table_exists?
-  # end
-  # # Doesn't work because table doesn't exist yet at the point when the class inherits.
-  # # (Rails loads models before establishing connection to the database?)
-  # # The only 2 classes that this works for are Client and Service -- what is special about those?
 
   scope :viewable_by, ->(_) do
     none

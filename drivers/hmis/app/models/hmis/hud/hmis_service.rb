@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 # backed by database view
 class Hmis::Hud::HmisService < Hmis::Hud::Base
   self.table_name = :hmis_services
@@ -13,6 +15,13 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     joins(:enrollment).merge(Hmis::Hud::Enrollment.viewable_by(user))
   end
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
+  # include ::Hmis::Hud::Concerns::WithStrictAttributes
+  # this is the only HUD model I found that doesn't include ::Hmis::Hud::Concerns::Shared.
+  # it's backed by a DB view per comment above, so there's no point in adding WithSharedAttributes.
+  # I searched for HUD models that
+  # - inherit from Hmis::Hud::Base
+  # - don't include a comment like "XYZ is NOT a HUD defined record type. Although it uses CamelCase conventions, this model is particular to Open Path."
+  # we can discuss whether the scope should actually be broader here?
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :services
