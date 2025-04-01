@@ -42,6 +42,7 @@ RSpec.describe GrdaWarehouse::CasProjectClientCalculator::Boston, type: :model d
         ineligible_uses_extrapolated_days: true,
         cas_sync_months: 1,
         cas_calculator: 'GrdaWarehouse::CasProjectClientCalculator::Boston',
+        self_report_start_date: 2.years.ago,
       )
       @calculator = GrdaWarehouse::Config.get(:cas_calculator).constantize.new
       import_hmis_csv_fixture(
