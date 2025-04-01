@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https: //github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
@@ -5,6 +13,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
   let(:organization) { create :hud_organization, data_source: data_source }
   let(:project) { create :grda_warehouse_hud_project, organization: organization, data_source: data_source }
   let(:coc_code) { 'XX-500' }
+  let(:coc_lookup) { GrdaWarehouse::Lookups::CocCode.find_by(coc_code: coc_code) }
 
   # Permissions that will be granted through the role
   let(:permissions) do
@@ -187,7 +196,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
     context 'with CoC code access' do
       before do
         project.project_cocs.create!(coc_code: coc_code)
-        collection.update!(coc_codes: [coc_code])
+        collection.set_viewables({ coc_codes: [coc_lookup.id] })
       end
 
       include_examples 'permission checks with access'
