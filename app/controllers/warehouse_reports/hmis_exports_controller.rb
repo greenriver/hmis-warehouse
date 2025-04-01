@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module WarehouseReports
   class HmisExportsController < ApplicationController
     include WarehouseReportAuthorization
@@ -70,7 +72,23 @@ module WarehouseReports
     end
 
     def show
-      send_data @export.content, filename: "HMIS_export_#{@export.created_at.to_s.delete(',')}.zip", type: @export.content_type, disposition: 'attachment'
+      zip = @export.hmis_zip
+      # Use ActiveStorage version if we have it
+      if zip.present?
+        send_data(
+          zip.download,
+          type: zip.content_type,
+          filename: "HMIS_export_#{@export.created_at.to_s.delete(',')}.zip",
+        )
+      else
+        # fall-back to db attachment
+        send_data(
+          @export.content,
+          filename: "HMIS_export_#{@export.created_at.to_s.delete(',')}.zip",
+          type: @export.content_type,
+          disposition: 'attachment',
+        )
+      end
     end
 
     def edit

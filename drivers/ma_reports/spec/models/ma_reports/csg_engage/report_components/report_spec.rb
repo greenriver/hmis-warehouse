@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
@@ -19,7 +21,7 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
   let!(:o1) { create :hud_organization, data_source: ds }
   let!(:p1) { create :hud_project, data_source: ds, organization: o1 }
   let!(:e1) { create :hud_enrollment, data_source: ds, project: p1, client: c1, relationship_to_hoh: 1, household_id: '123' }
-  let!(:coc1) { create :hud_project_coc, data_source: ds, project_id: p1.project_id, state: 'MA' }
+  let!(:coc1) { create :hud_project_coc, data_source: ds, project_id: p1.project_id, state: 'MA', coc_code: 'MA-500' }
   let(:a) { create :csg_engage_agency }
   let(:p) { create :csg_engage_program, agency: a }
   let!(:pm) { create :csg_engage_program_mapping, project: p1, program: p }

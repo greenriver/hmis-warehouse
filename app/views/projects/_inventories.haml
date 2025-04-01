@@ -40,12 +40,7 @@
                     %i.icon-cross
                     Remove
             %td
-              - if RailsDrivers.loaded.include?(:hmis_csv_importer)
-                .show-on-row-hover-wrapper.ml-4
-                  .show-on-row-hover
-                    = link_to new_hmis_csv_importer_data_source_import_override_path(inventory.data_source.id, file_type: 'Inventory.csv', hmis_value: inventory.InventoryID), class: 'btn btn-sm btn-secondary' do
-                      %i.icon-plus
-                      Add Override
+              = render 'add_override', data_source_id: inventory.data_source.id, file_type: 'Inventory.csv', hmis_value: inventory.InventoryID
             %td
               - if can_see_raw_hmis_data? && !inventory.manual_entry?
                 = link_to 'HMIS', source_datum_path(inventory.id, type: 'Inventory'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis my-1'

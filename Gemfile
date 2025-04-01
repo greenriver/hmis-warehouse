@@ -39,6 +39,9 @@ gem 'active_record_extended'
 gem 'active_median'
 gem 'strong_migrations'
 
+# CAS sync has complex preloads that are partially broken in rails 7.0, adding ar_lazy_preload which fixes this
+gem 'ar_lazy_preload'
+
 # style-inliner https://github.com/premailer/premailer
 gem 'premailer'
 
@@ -145,7 +148,7 @@ gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
 gem 'sprockets', '~> 4.0'
-gem "sprockets-rails"
+gem 'sprockets-rails'
 gem 'babel-transpiler'
 # gem 'sprockets-es6'
 gem 'jquery-ui-rails', github: 'jquery-ui-rails/jquery-ui-rails', tag: 'v7.0.0'
