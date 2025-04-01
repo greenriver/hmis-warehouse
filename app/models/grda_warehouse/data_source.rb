@@ -15,8 +15,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   include Memery
 
   self.primary_key = :id
+  TodoOrDie('Remove refuse_imports_with_errors from ignored columns', by: '2025-06-01')
   self.ignored_columns = ['refuse_imports_with_errors']
-  TodoOrDie('Add a migration to remove refuse_imports_with_errors column from data source', by: '2025-04-01')
 
   acts_as_paranoid
   validates :name, presence: true
