@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Export::Exporter
   extend ActiveSupport::Concern
   include NotifierConfig
@@ -54,9 +56,11 @@ module Export::Exporter
     end
 
     def upload_zip
-      @export.file = Pathname.new(zip_path).open
-      @export.content_type = @export.file.content_type
-      @export.content = @export.file.read
+      @export.hmis_zip.attach(
+        io: Pathname.new(zip_path).open,
+        filename: File.basename(zip_path),
+      )
+      @export.file = 'See S3'
       @export.save
     end
 

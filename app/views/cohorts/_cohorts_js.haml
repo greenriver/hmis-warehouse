@@ -12,7 +12,6 @@
           column_order: #{(@visible_columns.map(&:column)).to_json.html_safe},
           column_headers: #{@column_headers.to_json.html_safe},
           column_options: #{@column_options.to_json.html_safe},
-          column_widths: #{(@visible_columns.map(&:width)).to_json.html_safe},
           size_toggle_class: '.jToggleFontSize',
           include_inactive: #{params[:inactive].present?},
           client_path: "#{cohort_cohort_clients_path(@cohort)}",

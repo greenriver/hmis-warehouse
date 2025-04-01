@@ -30,12 +30,7 @@
                   %i.icon-cross
                   Remove
             %td
-              - if RailsDrivers.loaded.include?(:hmis_csv_importer)
-                .show-on-row-hover-wrapper.ml-4
-                  .show-on-row-hover
-                    = link_to new_hmis_csv_importer_data_source_import_override_path(funder.data_source.id, file_type: 'Funder.csv', hmis_value: funder.FunderID), class: 'btn btn-sm btn-secondary' do
-                      %i.icon-plus
-                      Add Override
+              = render 'add_override', data_source_id: funder.data_source.id, file_type: 'Funder.csv', hmis_value: funder.FunderID
             %td
               - if can_see_raw_hmis_data? && !funder.manual_entry?
                 = link_to 'HMIS', source_datum_path(funder.id, type: 'Funder'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis my-1'

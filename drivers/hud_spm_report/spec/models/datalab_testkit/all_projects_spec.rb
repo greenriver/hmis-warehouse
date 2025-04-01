@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -48,11 +50,11 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
         question: '1b',
         skip: [
           'B1', # expected '5685.0000' (5685), got '5736.0000' (5736)
-          'D1', # expected '259.7900' (259.79), got '322.6900' (322.69)
-          'G1', # expected '71.0000' (71), got '88.0000' (88)
+          'D1', # expected '259.7900' (259.79), got '267.4500' (267.45)
+          'G1', # expected '71.0000' (71), got '74.0000' (74)
           'B2', # expected '6178.0000' (6178), got '6221.0000' (6221)
-          'D2', # expected '265.7600' (265.76), got '324.4700' (324.47)
-          'G2', # expected '80.0000' (80), got '97.0000' (97)
+          'D2', # expected '265.7600' (265.76), got '273.5400' (273.54)
+          'G2', # expected '80.0000' (80), got '83.0000' (83)
         ],
       )
     end
