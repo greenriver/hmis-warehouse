@@ -5636,8 +5636,9 @@ ALTER SEQUENCE public.cas_analytics_clients_id_seq OWNED BY public.cas_analytics
 
 CREATE TABLE public.cas_analytics_opportunities (
     id bigint NOT NULL,
-    cas_analytics_opportunity_category_id bigint,
-    available boolean,
+    opportunity_category_id bigint,
+    unit_id bigint,
+    unit_name character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -5715,7 +5716,7 @@ ALTER SEQUENCE public.cas_analytics_opportunity_categories_id_seq OWNED BY publi
 
 CREATE TABLE public.cas_analytics_steps (
     id bigint NOT NULL,
-    cas_analytics_workflow_id bigint,
+    workflow_id bigint,
     name character varying,
     "order" integer,
     status character varying,
@@ -5752,8 +5753,8 @@ ALTER SEQUENCE public.cas_analytics_steps_id_seq OWNED BY public.cas_analytics_s
 CREATE TABLE public.cas_analytics_workflow_contacts (
     id bigint NOT NULL,
     email character varying,
-    cas_analytics_workflow_id bigint,
-    cas_analytics_contact_id bigint,
+    workflow_id bigint,
+    contact_id bigint,
     contact_type character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
@@ -5786,7 +5787,7 @@ ALTER SEQUENCE public.cas_analytics_workflow_contacts_id_seq OWNED BY public.cas
 CREATE TABLE public.cas_analytics_workflow_users (
     id bigint NOT NULL,
     email character varying,
-    cas_analytics_workflow_id bigint
+    workflow_id bigint
 );
 
 
@@ -5816,9 +5817,9 @@ ALTER SEQUENCE public.cas_analytics_workflow_users_id_seq OWNED BY public.cas_an
 CREATE TABLE public.cas_analytics_workflows (
     id bigint NOT NULL,
     workflow_name character varying,
-    cas_analytics_clients_id bigint,
     client_id bigint,
-    cas_analytics_workflows_id bigint,
+    opportunity_id bigint,
+    opportunity_category_id bigint,
     started_at timestamp(6) without time zone,
     completed_at timestamp(6) without time zone,
     terminal_status character varying,
@@ -54096,6 +54097,13 @@ CREATE INDEX index_boston_project_scorecard_reports_on_secondary_reviewer_id ON 
 --
 
 CREATE INDEX index_boston_project_scorecard_reports_on_user_id ON public.boston_project_scorecard_reports USING btree (user_id);
+
+
+--
+-- Name: index_cas_analytics_opportunities_on_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cas_analytics_opportunities_on_unit_id ON public.cas_analytics_opportunities USING btree (unit_id);
 
 
 --

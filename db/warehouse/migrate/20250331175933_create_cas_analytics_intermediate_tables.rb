@@ -20,8 +20,9 @@ class CreateCasAnalyticsIntermediateTables < ActiveRecord::Migration[7.0]
     end
 
     create_table :cas_analytics_opportunities do |t|
-      t.references :cas_analytics_opportunity_category, index: false
-      t.boolean :available
+      t.references :opportunity_category, index: false
+      t.references :unit
+      t.string :unit_name
 
       t.timestamps
     end
@@ -36,8 +37,8 @@ class CreateCasAnalyticsIntermediateTables < ActiveRecord::Migration[7.0]
 
     create_table :cas_analytics_workflow_contacts do |t|
       t.string :email
-      t.references :cas_analytics_workflow, index: false
-      t.references :cas_analytics_contact, index: false
+      t.references :workflow, index: false
+      t.references :contact, index: false
       t.string :contact_type
 
       t.timestamps
@@ -54,9 +55,9 @@ class CreateCasAnalyticsIntermediateTables < ActiveRecord::Migration[7.0]
     # Representation of client-opportunity-match combined with route
     create_table :cas_analytics_workflows do |t|
       t.string :workflow_name
-      t.references :cas_analytics_clients, index: false
       t.references :client, index: false
-      t.references :cas_analytics_workflows, index: false
+      t.references :opportunity, index: false
+      t.references :opportunity_category, index: false
       t.datetime :started_at
       t.datetime :completed_at
       t.string :terminal_status
@@ -66,7 +67,7 @@ class CreateCasAnalyticsIntermediateTables < ActiveRecord::Migration[7.0]
 
     # Representation of decisions
     create_table :cas_analytics_steps do |t|
-      t.references :cas_analytics_workflow, index: false
+      t.references :workflow, index: false
       t.string :name
       t.integer :order
       t.string :status
@@ -79,7 +80,7 @@ class CreateCasAnalyticsIntermediateTables < ActiveRecord::Migration[7.0]
     # Used to determine which users can see which workflow instances
     create_table :cas_analytics_workflow_users do |t|
       t.string :email
-      t.references :cas_analytics_workflow, index: false
+      t.references :workflow, index: false
     end
   end
 end
