@@ -4,7 +4,7 @@
 class CreateCasAnalyticsIntermediateTables < ActiveRecord::Migration[7.0]
   def change
     # Representation of sub-programs
-    create_table :cas_analytics_opportunity_category do |t|
+    create_table :cas_analytics_opportunity_categories do |t|
       t.string :full_name, comment: 'concatenation of program name and sub-program name'
       t.string :name
       t.string :sub_project_name
@@ -34,7 +34,7 @@ class CreateCasAnalyticsIntermediateTables < ActiveRecord::Migration[7.0]
       t.timestamps
     end
 
-    create_table :cas_analytics_workflow_workflow_contacts do |t|
+    create_table :cas_analytics_workflow_contacts do |t|
       t.string :email
       t.references :cas_analytics_workflow, index: false
       t.references :cas_analytics_contact, index: false
@@ -43,7 +43,7 @@ class CreateCasAnalyticsIntermediateTables < ActiveRecord::Migration[7.0]
       t.timestamps
     end
 
-    create_table :cas_analytics_cas_user do |t|
+    create_table :cas_analytics_cas_users do |t|
       t.string :email
       t.references :agency, index: false
       t.string :agency_name
@@ -52,7 +52,7 @@ class CreateCasAnalyticsIntermediateTables < ActiveRecord::Migration[7.0]
     end
 
     # Representation of client-opportunity-match combined with route
-    create_table :cas_analytics_workflow do |t|
+    create_table :cas_analytics_workflows do |t|
       t.string :workflow_name
       t.references :cas_analytics_clients, index: false
       t.references :client, index: false
@@ -77,7 +77,7 @@ class CreateCasAnalyticsIntermediateTables < ActiveRecord::Migration[7.0]
     end
 
     # Used to determine which users can see which workflow instances
-    create_table :cas_analytics_workflow_user do |t|
+    create_table :cas_analytics_workflow_users do |t|
       t.string :email
       t.references :cas_analytics_workflow, index: false
     end
