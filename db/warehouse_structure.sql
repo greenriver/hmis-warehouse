@@ -1936,6 +1936,7 @@ CREATE TABLE public.data_sources (
     service_scannable boolean DEFAULT false NOT NULL,
     import_aggregators jsonb DEFAULT '{}'::jsonb,
     import_cleanups jsonb DEFAULT '{}'::jsonb,
+    refuse_imports_with_errors boolean DEFAULT false,
     hmis character varying,
     obey_consent boolean DEFAULT true
 );
@@ -32597,8 +32598,8 @@ ALTER TABLE ONLY public.boston_report_configs
     ADD CONSTRAINT boston_report_configs_pkey PRIMARY KEY (id);
 
 
---	
--- Name: cas_availabilities cas_availabilities_pkey; Type: CONSTRAINT; Schema: public; Owner: -	
+--
+-- Name: cas_availabilities cas_availabilities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.cas_availabilities
@@ -65963,5 +65964,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250304143714'),
 ('20250313125655'),
 ('20250313153011'),
-('20250319125533'),
-('20250401130809');
+('20250319125533');
+
+
