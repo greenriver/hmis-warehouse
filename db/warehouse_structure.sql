@@ -1292,7 +1292,7 @@ CREATE TABLE public."CurrentLivingSituation" (
     "PersonalID" character varying NOT NULL,
     "InformationDate" date NOT NULL,
     "CurrentLivingSituation" integer NOT NULL,
-    "VerifiedBy" character varying,
+    "VerifiedBy" character varying(100),
     "LeaveSituation14Days" integer,
     "SubsequentResidence" integer,
     "ResourcesToObtain" integer,
@@ -1936,7 +1936,6 @@ CREATE TABLE public.data_sources (
     service_scannable boolean DEFAULT false NOT NULL,
     import_aggregators jsonb DEFAULT '{}'::jsonb,
     import_cleanups jsonb DEFAULT '{}'::jsonb,
-    refuse_imports_with_errors boolean DEFAULT false,
     hmis character varying,
     obey_consent boolean DEFAULT true
 );
@@ -5563,6 +5562,288 @@ CREATE SEQUENCE public.boston_report_configs_id_seq
 --
 
 ALTER SEQUENCE public.boston_report_configs_id_seq OWNED BY public.boston_report_configs.id;
+
+
+--
+-- Name: cas_analytics_cas_user; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_cas_user (
+    id bigint NOT NULL,
+    email character varying,
+    agency_id bigint,
+    agency_name character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_analytics_cas_user_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_cas_user_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_cas_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_cas_user_id_seq OWNED BY public.cas_analytics_cas_user.id;
+
+
+--
+-- Name: cas_analytics_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    calculated_first_homeless_night date,
+    calculated_last_homeless_night date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_analytics_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_clients_id_seq OWNED BY public.cas_analytics_clients.id;
+
+
+--
+-- Name: cas_analytics_opportunities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_opportunities (
+    id bigint NOT NULL,
+    cas_analytics_opportunity_category_id bigint,
+    available boolean,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_analytics_opportunities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_opportunities_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_opportunities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_opportunities_id_seq OWNED BY public.cas_analytics_opportunities.id;
+
+
+--
+-- Name: cas_analytics_opportunity_category; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_opportunity_category (
+    id bigint NOT NULL,
+    full_name character varying,
+    name character varying,
+    sub_project_name character varying,
+    program_type character varying,
+    subgrantee_id bigint,
+    subgrantee_name character varying,
+    sub_contractor_id bigint,
+    sub_contractor_name character varying,
+    hsa_id bigint,
+    hsa_name character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN cas_analytics_opportunity_category.full_name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.cas_analytics_opportunity_category.full_name IS 'concatenation of program name and sub-program name';
+
+
+--
+-- Name: cas_analytics_opportunity_category_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_opportunity_category_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_opportunity_category_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_opportunity_category_id_seq OWNED BY public.cas_analytics_opportunity_category.id;
+
+
+--
+-- Name: cas_analytics_steps; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_steps (
+    id bigint NOT NULL,
+    cas_analytics_workflow_id bigint,
+    name character varying,
+    "order" integer,
+    status character varying,
+    started_at timestamp(6) without time zone,
+    completed_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_analytics_steps_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_steps_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_steps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_steps_id_seq OWNED BY public.cas_analytics_steps.id;
+
+
+--
+-- Name: cas_analytics_workflow; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_workflow (
+    id bigint NOT NULL,
+    workflow_name character varying,
+    cas_analytics_clients_id bigint,
+    client_id bigint,
+    cas_analytics_workflows_id bigint,
+    started_at timestamp(6) without time zone,
+    completed_at timestamp(6) without time zone,
+    terminal_status character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_analytics_workflow_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_workflow_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_workflow_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_workflow_id_seq OWNED BY public.cas_analytics_workflow.id;
+
+
+--
+-- Name: cas_analytics_workflow_user; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_workflow_user (
+    id bigint NOT NULL,
+    email character varying,
+    cas_analytics_workflow_id bigint
+);
+
+
+--
+-- Name: cas_analytics_workflow_user_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_workflow_user_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_workflow_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_workflow_user_id_seq OWNED BY public.cas_analytics_workflow_user.id;
+
+
+--
+-- Name: cas_analytics_workflow_workflow_contacts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_workflow_workflow_contacts (
+    id bigint NOT NULL,
+    email character varying,
+    cas_analytics_workflow_id bigint,
+    cas_analytics_contact_id bigint,
+    contact_type character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_analytics_workflow_workflow_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_workflow_workflow_contacts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_workflow_workflow_contacts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_workflow_workflow_contacts_id_seq OWNED BY public.cas_analytics_workflow_workflow_contacts.id;
 
 
 --
@@ -29157,6 +29438,62 @@ ALTER TABLE ONLY public.boston_report_configs ALTER COLUMN id SET DEFAULT nextva
 
 
 --
+-- Name: cas_analytics_cas_user id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_cas_user ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_cas_user_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_clients ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_clients_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_opportunities id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_opportunities ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_opportunities_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_opportunity_category id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_opportunity_category ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_opportunity_category_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_steps id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_steps ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_steps_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_workflow id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_workflow ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_workflow_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_workflow_user id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_workflow_user ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_workflow_user_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_workflow_workflow_contacts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_workflow_workflow_contacts ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_workflow_workflow_contacts_id_seq'::regclass);
+
+
+--
 -- Name: cas_availabilities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -32596,6 +32933,70 @@ ALTER TABLE ONLY public.boston_project_scorecard_reports
 
 ALTER TABLE ONLY public.boston_report_configs
     ADD CONSTRAINT boston_report_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_cas_user cas_analytics_cas_user_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_cas_user
+    ADD CONSTRAINT cas_analytics_cas_user_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_clients cas_analytics_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_clients
+    ADD CONSTRAINT cas_analytics_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_opportunities cas_analytics_opportunities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_opportunities
+    ADD CONSTRAINT cas_analytics_opportunities_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_opportunity_category cas_analytics_opportunity_category_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_opportunity_category
+    ADD CONSTRAINT cas_analytics_opportunity_category_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_steps cas_analytics_steps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_steps
+    ADD CONSTRAINT cas_analytics_steps_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_workflow cas_analytics_workflow_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_workflow
+    ADD CONSTRAINT cas_analytics_workflow_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_workflow_user cas_analytics_workflow_user_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_workflow_user
+    ADD CONSTRAINT cas_analytics_workflow_user_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_workflow_workflow_contacts cas_analytics_workflow_workflow_contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_workflow_workflow_contacts
+    ADD CONSTRAINT cas_analytics_workflow_workflow_contacts_pkey PRIMARY KEY (id);
 
 
 --
@@ -65964,6 +66365,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250304143714'),
 ('20250313125655'),
 ('20250313153011'),
-('20250319125533');
+('20250319125533'),
+('20250331175933'),
+('20250401130809');
 
 
