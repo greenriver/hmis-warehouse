@@ -32596,26 +32596,6 @@ ALTER TABLE ONLY public.boston_report_configs
     ADD CONSTRAINT boston_report_configs_pkey PRIMARY KEY (id);
 
 
---
--- Name: cas_analytics_workflow_user cas_analytics_workflow_user_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_workflow_user
-    ADD CONSTRAINT cas_analytics_workflow_user_pkey PRIMARY KEY (id);
-
-
---
--- Name: cas_analytics_workflow_workflow_contacts cas_analytics_workflow_workflow_contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_workflow_workflow_contacts
-    ADD CONSTRAINT cas_analytics_workflow_workflow_contacts_pkey PRIMARY KEY (id);
-
-
---
--- Name: cas_availabilities cas_availabilities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
 ALTER TABLE ONLY public.cas_availabilities
     ADD CONSTRAINT cas_availabilities_pkey PRIMARY KEY (id);
 
