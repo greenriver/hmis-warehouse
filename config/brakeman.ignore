@@ -1216,29 +1216,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "75f342df6e943c243e47939ca03736da54ae42fc51d328d9fa38ef7f8f16940a",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/collection.rb",
-      "line": 98,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "where(\"#{quoted_table_name}.coc_codes ?| #{SqlHelper.quote_sql_array(coc_codes, :type => :varchar)}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Collection",
-        "method": "for_coc_codes"
-      },
-      "user_input": "SqlHelper.quote_sql_array(coc_codes, :type => :varchar)",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "767755b5093a0a0e3dfa4a274187a35692b8b193ddc82131ffa7696be25fafef",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -1687,25 +1664,6 @@
       "confidence": "Medium",
       "cwe_id": [
         89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Unmaintained Dependency",
-      "warning_code": 122,
-      "fingerprint": "98b26f60d776fd41ee6f088c833725145be9aac2d7c5b33780241c273622db42",
-      "check_name": "EOLRails",
-      "message": "Support for Rails 7.0.8.7 ends on 2025-04-01",
-      "file": "Gemfile.lock",
-      "line": 1645,
-      "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
-      "code": null,
-      "render_path": null,
-      "location": null,
-      "user_input": null,
-      "confidence": "Medium",
-      "cwe_id": [
-        1104
       ],
       "note": ""
     },
@@ -2323,6 +2281,25 @@
       "confidence": "Medium",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Unmaintained Dependency",
+      "warning_code": 120,
+      "fingerprint": "d84924377155b41e094acae7404ec2e521629d86f97b0ff628e3d1b263f8101c",
+      "check_name": "EOLRails",
+      "message": "Support for Rails 7.0.8.7 ended on 2025-04-01",
+      "file": "Gemfile.lock",
+      "line": 1648,
+      "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
+      "code": null,
+      "render_path": null,
+      "location": null,
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        1104
       ],
       "note": ""
     },

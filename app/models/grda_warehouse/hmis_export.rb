@@ -31,7 +31,7 @@ module GrdaWarehouse
     end
 
     scope :has_content, -> do
-      where.not(content_type: nil)
+      where.not(completed_at: nil)
     end
 
     scope :for_list, -> do
