@@ -29154,6 +29154,7 @@ ALTER TABLE ONLY public.boston_project_scorecard_reports ALTER COLUMN id SET DEF
 
 ALTER TABLE ONLY public.boston_report_configs ALTER COLUMN id SET DEFAULT nextval('public.boston_report_configs_id_seq'::regclass);
 
+
 --
 -- Name: cas_availabilities id; Type: DEFAULT; Schema: public; Owner: -
 --
@@ -32590,6 +32591,10 @@ ALTER TABLE ONLY public.boston_project_scorecard_reports
 
 --
 -- Name: boston_report_configs boston_report_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+--	
+-- Name: cas_availabilities cas_availabilities_pkey; Type: CONSTRAINT; Schema: public; Owner: -	
 --
 
 ALTER TABLE ONLY public.boston_report_configs
