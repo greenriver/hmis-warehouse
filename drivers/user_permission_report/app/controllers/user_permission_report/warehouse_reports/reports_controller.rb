@@ -8,6 +8,7 @@
 
 module UserPermissionReport::WarehouseReports
   class ReportsController < ApplicationController
+    include WarehouseReportAuthorization
     before_action :set_group_associations
 
     def index
