@@ -176,6 +176,7 @@ GEM
     ansi (1.5.0)
     anyway_config (2.7.0)
       ruby-next-core (~> 1.0)
+    ar_lazy_preload (2.1.0)
     ast (2.4.2)
     attr_encrypted (4.0.0)
       encryptor (~> 3.0.0)
@@ -689,10 +690,10 @@ GEM
     net-ssh (7.3.0)
     netrc (0.11.0)
     nio4r (2.7.4)
-    nokogiri (1.18.4)
+    nokogiri (1.18.5)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
-    nokogiri (1.18.4-arm64-darwin)
+    nokogiri (1.18.5-arm64-darwin)
       racc (~> 1.4)
     oauth (1.1.0)
       oauth-tty (~> 1.0, >= 1.0.1)
@@ -1125,6 +1126,7 @@ DEPENDENCIES
   ajax_modal_rails (~> 1.0)
   amazing_print
   ansi
+  ar_lazy_preload
   attr_encrypted (~> 4.0.0)
   attribute_normalizer
   authtrail
@@ -1372,6 +1374,7 @@ CHECKSUMS
   amazing_print (1.6.0) sha256=9903e93daadc15411c854239f8ca1ca6ce78be279ed99d43fec2bd3b0aa37397
   ansi (1.5.0) sha256=5408253274e33d9d27d4a98c46d2998266fd51cba58a7eb9d08f50e57ed23592
   anyway_config (2.7.0) sha256=0ebbe4a7952da7a43e5c596f1c670a1ff61ee18243292b92cef68ddaef3cdd7e
+  ar_lazy_preload (2.1.0) sha256=03effc2aac5aef2a1be8ff3ed4bb60f4e92e57f192dde61750bd8ea2131ad517
   ast (2.4.2) sha256=1e280232e6a33754cde542bc5ef85520b74db2aac73ec14acef453784447cc12
   attr_encrypted (4.0.0) sha256=ccbe4abd2b6973929f119af3b50a3fa10dba51bd69a7b4076a57a59d57359d0c
   attribute_normalizer (1.2.0) sha256=580df3f316d7f0a2cc068fd655377f4769848643328d0c6c6c685ea98ac181c4
@@ -1597,8 +1600,8 @@ CHECKSUMS
   net-ssh (7.3.0) sha256=172076c4b30ce56fb25a03961b0c4da14e1246426401b0f89cba1a3b54bf3ef0
   netrc (0.11.0) sha256=de1ce33da8c99ab1d97871726cba75151113f117146becbe45aa85cb3dabee3f
   nio4r (2.7.4) sha256=d95dee68e0bb251b8ff90ac3423a511e3b784124e5db7ff5f4813a220ae73ca9
-  nokogiri (1.18.4) sha256=bb7820521c1bbae1d3e0092ff03b27a8e700912b37d80f962b7e4567947a64ac
-  nokogiri (1.18.4-arm64-darwin) sha256=73902663b23b1123282b9c0b6d9654b1fb286dfee8d65cb1f6029087b7f0d037
+  nokogiri (1.18.5) sha256=c8a6f8da9418ac21345124bc79b94701f036fa05b27dfec4a6dc148d5fa136dc
+  nokogiri (1.18.5-arm64-darwin) sha256=df7731e550a7653c003ed142cc8bc3c611c15fae3b7be4ff317b61dfe32842d9
   oauth (1.1.0) sha256=38902b7f0f5ed91e858d6353f5e1e06b2c16a8aa0fd91984671eab1a1d1cddeb
   oauth-tty (1.0.5) sha256=34e25c307da4509d4deec266ff3690bbf42e391355f496201c029268862d8b17
   oauth2 (2.0.9) sha256=b21f9defcf52dc1610e0dfab4c868342173dcd707fd15c777d9f4f04e153f7fb

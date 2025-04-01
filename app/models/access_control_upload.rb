@@ -4,16 +4,18 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rubyXL'
 class AccessControlUpload < ApplicationRecord
   has_one_attached :file
   belongs_to :user
   has_many :datasets, class_name: '::GrdaWarehouse::Dataset', as: :source
 
-  IMPORT_COMPLETE = 'Import Complete'.freeze
-  PROCESSED = 'Ready for Review'.freeze
-  UPLOADED = 'Pending Processing'.freeze
-  IMPORTING = 'Import Processing'.freeze
+  IMPORT_COMPLETE = 'Import Complete'
+  PROCESSED = 'Ready for Review'
+  UPLOADED = 'Pending Processing'
+  IMPORTING = 'Import Processing'
 
   def valid_import?
     valid_roles? && valid_users? && valid_collections?
@@ -121,7 +123,7 @@ class AccessControlUpload < ApplicationRecord
   end
 
   private def calculate_users
-    user_data.map do |user|
+    @calculate_users ||= user_data.map do |user|
       {
         first_name: user[:first_name],
         last_name: user[:last_name],
@@ -133,7 +135,7 @@ class AccessControlUpload < ApplicationRecord
   end
 
   private def calculate_collections
-    {}.tap do |col|
+    @calculate_collections ||= {}.tap do |col|
       collections_worksheet.each do |row|
         # First row is headers
         next unless row.index_in_collection.positive?
@@ -163,7 +165,7 @@ class AccessControlUpload < ApplicationRecord
   end
 
   private def calculate_access_controls
-    Set.new.tap do |acls|
+    @calculate_access_controls ||= Set.new.tap do |acls|
       users_worksheet.each do |row|
         # First row is headers
         next unless row.index_in_collection.positive?
@@ -231,7 +233,7 @@ class AccessControlUpload < ApplicationRecord
   end
 
   private def calculate_agencies
-    {}.tap do |a|
+    @calculate_agencies ||= {}.tap do |a|
       user_data.each do |u|
         a[u[:agency]] ||= {
           existing_agency_id: Agency.find_by(name: u[:agency])&.id,
@@ -243,7 +245,7 @@ class AccessControlUpload < ApplicationRecord
   end
 
   private def calculate_user_groups
-    {}.tap do |a|
+    @calculate_user_groups ||= {}.tap do |a|
       user_data.each do |u|
         a[u[:user_group]] ||= {
           existing_user_group_id: UserGroup.find_by(name: u[:user_group])&.id,
@@ -299,12 +301,10 @@ class AccessControlUpload < ApplicationRecord
       collection = Collection.where(name: item[:name], collection_type: collection_type(item)).first_or_create!
       collection_relations.each_key do |relation|
         names = item[relation].select { |m| m[:found] }.map { |r| r[:name] }
-        case relation
-        when :coc_codes
-          collection.update!(coc_codes: names) if names.present?
-        else
-          ids = collection.class_name_for_viewable_type(relation).constantize.where(name: names).pluck(:id)
-          collection.set_viewables({ relation => ids }) if ids.present?
+        name_column = :name
+        name_column = :coc_code if relation == :coc_codes
+        collection.class_name_for_viewable_type(relation).constantize.where(name_column => names).each do |viewable|
+          collection.add_viewable(viewable)
         end
       end
     end

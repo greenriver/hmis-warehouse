@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudUtility2024
   include ::Concerns::HudValidationUtil
   include ::Concerns::HudLists2024
@@ -607,6 +609,16 @@ module HudUtility2024
       'XX-502' => '3rd Test CoC', # testkit
       'XX-518' => '4th Test CoC', # testkit
     }
+    # Some legacy test CoCs
+    if Rails.env.test?
+      test_codes['AA-000'] = 'Test CoC AA-000'
+      test_codes['ZZ-000'] = 'Test CoC ZZ-000'
+      test_codes['ZZ-100'] = 'Test CoC ZZ-100'
+      test_codes['ZZ-999'] = 'Test CoC ZZ-999'
+      (0..100).to_a.each do |n|
+        test_codes["XX-#{n.to_s.rjust(3, '0')}"] = "Test CoC XX-#{n.to_s.rjust(3, '0')}"
+      end
+    end
     invalid_codes = ENV['INVALID_COC_CODES'].to_s.split(',')
     test_codes.delete_if { |k, _| invalid_codes&.include?(k) }
 

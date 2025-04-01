@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https: //github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 model = GrdaWarehouse::Hud::Project
@@ -35,12 +43,12 @@ RSpec.describe model, type: :model do
   let!(:p7) { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
   let!(:p8) { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
 
-  let!(:pc1) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p1.ProjectID, CoCCode: 'foo' }
-  let!(:pc2) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p2.ProjectID, CoCCode: 'foo' }
-  let!(:pc3) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p4.ProjectID, CoCCode: 'foo' }
-  let!(:pc4) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p5.ProjectID, CoCCode: 'foo' }
-  let!(:pc5) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p7.ProjectID, CoCCode: 'bar' }
-  let!(:pc6) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p8.ProjectID, CoCCode: 'bar' }
+  let!(:pc1) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p1.ProjectID, CoCCode: 'XX-500' }
+  let!(:pc2) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p2.ProjectID, CoCCode: 'XX-500' }
+  let!(:pc3) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p4.ProjectID, CoCCode: 'XX-500' }
+  let!(:pc4) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p5.ProjectID, CoCCode: 'XX-500' }
+  let!(:pc5) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p7.ProjectID, CoCCode: 'XX-501' }
+  let!(:pc6) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p8.ProjectID, CoCCode: 'XX-501' }
 
   let!(:pg1) { create :project_access_group, projects: [p1] }
 
@@ -124,9 +132,9 @@ RSpec.describe model, type: :model do
         end
       end
 
-      describe 'user assigned to coc foo' do
+      describe 'user assigned to coc XX-500' do
         before do
-          no_data_source_collection.update(coc_codes: ['foo'])
+          no_data_source_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-500']).pluck(:id) })
           setup_access_control(user, can_view_projects_role, no_data_source_collection)
         end
         after do
@@ -137,9 +145,9 @@ RSpec.describe model, type: :model do
         end
       end
 
-      describe 'user assigned to coc bar' do
+      describe 'user assigned to coc XX-501' do
         before do
-          no_data_source_collection.update(coc_codes: ['bar'])
+          no_data_source_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-501']).pluck(:id) })
           setup_access_control(user, can_view_projects_role, no_data_source_collection)
         end
         after do
@@ -167,8 +175,8 @@ RSpec.describe model, type: :model do
 
     describe 'confidentiality' do
       before(:each) do
-        p1.update(confidential: true) # project in CoC 'foo'
-        p8.update(confidential: true) # project in CoC 'bar'
+        p1.update(confidential: true) # project in CoC 'XX-500'
+        p8.update(confidential: true) # project in CoC 'XX-501'
         o2.update(confidential: true)
       end
 
@@ -241,9 +249,9 @@ RSpec.describe model, type: :model do
           end
         end
 
-        describe 'assigned to coc foo' do
+        describe 'assigned to coc XX-500' do
           before do
-            no_data_source_collection.update(coc_codes: ['foo'])
+            no_data_source_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-500']).pluck(:id) })
             setup_access_control(user, can_view_projects_role, no_data_source_collection)
           end
           after do
@@ -303,9 +311,9 @@ RSpec.describe model, type: :model do
           end
         end
 
-        describe 'assigned to coc foo' do
+        describe 'assigned to coc XX-500' do
           before do
-            no_data_source_collection.update(coc_codes: ['foo'])
+            no_data_source_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-500']).pluck(:id) })
             setup_access_control(user, can_view_confidential_projects, no_data_source_collection)
           end
           after do

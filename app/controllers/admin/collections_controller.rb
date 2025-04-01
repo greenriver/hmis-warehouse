@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Admin
   class CollectionsController < ApplicationController
     include AjaxModalRails::Controller
@@ -84,20 +86,16 @@ module Admin
         # Prevent unsetting other entity types
         if entity_type.to_s == params[:entities]
           values.each do |id, checked|
-            id = id.to_i unless entity_type == :coc_codes
+            id = id.to_i
             ids[entity_type] << id if checked == '1'
           end
         else
-          next if entity_type == :coc_codes
-
           ids[entity_type] = @collection.send(entity_type).map(&:id)
         end
       end
-      if params[:entities].to_sym == :coc_codes
-        @collection.update(coc_codes: ids[:coc_codes].uniq)
-      else
-        @collection.set_viewables(ids.with_indifferent_access)
-      end
+
+      @collection.set_viewables(ids.with_indifferent_access)
+
       redirect_to({ action: :show }, notice: "Collection #{@collection.name} updated.")
     end
 
@@ -110,16 +108,14 @@ module Admin
         :name,
         :description,
         :collection_type,
-        coc_codes: [],
-      ).tap do |result|
-        result[:coc_codes] ||= []
-      end
+      )
     end
 
     private def viewable_params
       params.require(:collection).permit(
         data_sources: [],
         organizations: [],
+        coc_codes: [],
         projects: [],
         project_access_groups: [],
         reports: [],
@@ -208,8 +204,8 @@ module Admin
 
       @cocs = {
         label: 'CoC Codes',
-        selected: @collection&.coc_codes || [],
-        collection: GrdaWarehouse::Hud::ProjectCoc.distinct.order(:CoCCode).pluck(:CoCCode).compact,
+        selected: @collection&.coc_codes&.map(&:id) || [],
+        collection: GrdaWarehouse::Lookups::CocCode.joins(:project_cocs).distinct.order(:coc_code),
         placeholder: 'CoC',
         multiple: true,
         input_html: {
@@ -220,8 +216,8 @@ module Admin
 
       @coc_codes = {
         label: 'CoC Codes',
-        selected: @collection&.coc_codes || [],
-        collection: GrdaWarehouse::Hud::ProjectCoc.distinct.order(:CoCCode).pluck(:CoCCode).reject(&:blank?).compact.map { |coc| [HudUtility2024.coc_name(coc), coc] },
+        selected: @collection&.coc_codes&.map(&:id) || [],
+        collection: GrdaWarehouse::Lookups::CocCode.joins(:project_cocs).distinct.order(:coc_code),
         placeholder: 'CoC',
         multiple: true,
         input_html: {

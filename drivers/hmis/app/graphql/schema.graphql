@@ -202,6 +202,8 @@ type ApplicationUser {
   firstName: String
   id: ID!
   lastName: String
+  loginActivities(limit: Int, offset: Int): LoginActivitiesPaginated
+  manageAccountUrl: String!
   name: String!
   recentItems: [OmnisearchResult!]!
   staffAssignments(limit: Int, offset: Int): StaffAssignmentsPaginated
@@ -5840,6 +5842,23 @@ enum LiteralHomelessHistory {
   NONE
 }
 
+type LoginActivitiesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [LoginActivity!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+type LoginActivity {
+  id: ID!
+  ipAddress: String
+  locationDescription: String
+  loginTime: ISO8601DateTime!
+}
+
 input MciClearanceInput {
   dob: ISO8601Date!
   firstName: String!
@@ -9213,6 +9232,7 @@ type QueryAccess {
   canEditEnrollments: Boolean!
   canEditOrganization: Boolean!
   canEditProjectDetails: Boolean!
+  canEditUsersInWarehouse: Boolean!
   canEnrollClients: Boolean!
   canImpersonateUsers: Boolean!
   canManageAnyClientFiles: Boolean!

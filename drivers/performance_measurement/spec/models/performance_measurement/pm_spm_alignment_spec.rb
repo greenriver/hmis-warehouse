@@ -139,7 +139,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       compare_spm_and_pm_values(spm_average, pm_average, 92)
     end
 
-    xit 'has the same median length of time homeless in both reports' do
+    it 'has the same median length of time homeless in both reports' do
       # SPM report median LOT homeless
       spm_median = @spm_report.answer(question: '1a', cell: 'G2').summary
 
@@ -642,6 +642,276 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
 
       expect(pm_count).to eq(spm_count.to_i)
       expect(pm_count).to eq(2) # 2 exits (client 2 from ES and client 4 from RRH)
+    end
+  end
+
+  describe 'result_calculation#client_sum method' do
+    include_context 'SPM test setup'
+
+    before do
+      # Create projects
+      @es_project = create_project(project_type: 0) # ES-EE
+      @th_project = create_project(project_type: 2) # TH
+
+      # Create two clients
+      @client1 = create_client_with_warehouse_link
+      @client2 = create_client_with_warehouse_link
+
+      # Create enrollments for the clients
+      create_enrollment(
+        client: @client1,
+        project: @es_project,
+        entry_date: test_start_date + 10.days,
+        exit_date: test_start_date + 40.days,
+      )
+
+      create_enrollment(
+        client: @client2,
+        project: @th_project,
+        entry_date: test_start_date + 50.days,
+        exit_date: test_start_date + 80.days,
+      )
+
+      # Setup report with these projects
+      @spm_report, @pm_report = setup_reports(projects: [@es_project, @th_project])
+
+      # Add different values for days homeless to demonstrate the issue
+      @client_record1 = @pm_report.clients.find_by(client_id: @client1.destination_client.id)
+      @client_record2 = @pm_report.clients.find_by(client_id: @client2.destination_client.id)
+
+      # Use the same value for both clients to demonstrate the issue with DISTINCT
+      @days_homeless_value = 30
+      @client_record1.update(reporting_days_homeless_es_sh_th: @days_homeless_value)
+      @client_record2.update(reporting_days_homeless_es_sh_th: @days_homeless_value)
+
+      # Create client_projects records
+      PerformanceMeasurement::ClientProject.create!(
+        report_id: @pm_report.id,
+        client_id: @client1.id,
+        project_id: @es_project.id,
+        for_question: :days_homeless_es_sh_th,
+        period: :reporting,
+      )
+
+      PerformanceMeasurement::ClientProject.create!(
+        report_id: @pm_report.id,
+        client_id: @client2.id,
+        project_id: @th_project.id,
+        for_question: :days_homeless_es_sh_th,
+        period: :reporting,
+      )
+    end
+
+    it 'should correctly sum values from different clients with the same value' do
+      # Get the result from client_sum for the days_homeless_es_sh_th field
+      sum_result = @pm_report.client_sum(:days_homeless_es_sh_th, :reporting)
+
+      # What we should get is the sum of all client values, even if they're the same
+      expected_result = @days_homeless_value * 2 # 60
+
+      # Check that we're getting the correct sum (both clients' values)
+      expect(sum_result).to eq(expected_result)
+    end
+
+    it 'should correctly sum values from different clients with different values' do
+      @pm_report.clients.first.update!(reporting_days_homeless_es_sh_th: @days_homeless_value - 1)
+      sum_result = @pm_report.client_sum(:days_homeless_es_sh_th, :reporting)
+
+      expected_result = (@days_homeless_value * 2) - 1
+
+      expect(sum_result).to eq(expected_result)
+    end
+  end
+
+  describe 'result_calculation#client_sum project-level calculation' do
+    include_context 'SPM test setup'
+
+    before do
+      # Create two projects
+      @es_project = create_project(project_type: 0) # ES-EE
+      @th_project = create_project(project_type: 2) # TH
+
+      # Create clients
+      @client1 = create_client_with_warehouse_link
+      @client2 = create_client_with_warehouse_link
+
+      # Create enrollments
+      create_enrollment(
+        client: @client1,
+        project: @es_project,
+        entry_date: test_start_date + 10.days,
+        exit_date: test_start_date + 40.days,
+      )
+
+      create_enrollment(
+        client: @client2,
+        project: @th_project,
+        entry_date: test_start_date + 50.days,
+        exit_date: test_start_date + 80.days,
+      )
+
+      # Setup report with these projects
+      @spm_report, @pm_report = setup_reports(projects: [@es_project, @th_project])
+
+      # Set days homeless values
+      @client_record1 = @pm_report.clients.find_by(client_id: @client1.destination_client.id)
+      @client_record2 = @pm_report.clients.find_by(client_id: @client2.destination_client.id)
+
+      @es_days_value = 30
+      @th_days_value = 40
+      @client_record1.update(reporting_days_homeless_es_sh_th: @es_days_value)
+      @client_record2.update(reporting_days_homeless_es_sh_th: @th_days_value)
+
+      # Create client_projects records
+      PerformanceMeasurement::ClientProject.create!(
+        report_id: @pm_report.id,
+        client_id: @client1.id,
+        project_id: @es_project.id,
+        for_question: :days_homeless_es_sh_th,
+        period: :reporting,
+      )
+
+      PerformanceMeasurement::ClientProject.create!(
+        report_id: @pm_report.id,
+        client_id: @client2.id,
+        project_id: @th_project.id,
+        for_question: :days_homeless_es_sh_th,
+        period: :reporting,
+      )
+    end
+
+    it 'should correctly calculate sums per project' do
+      # Test each project's sum separately
+      es_sum = @pm_report.client_sum(:days_homeless_es_sh_th, :reporting, project_id: @es_project.id)
+      th_sum = @pm_report.client_sum(:days_homeless_es_sh_th, :reporting, project_id: @th_project.id)
+
+      # Verify project sums
+      expect(es_sum).to eq(@es_days_value),
+                        "Expected ES project sum to be #{@es_days_value}, but got #{es_sum}"
+      expect(th_sum).to eq(@th_days_value),
+                        "Expected TH project sum to be #{@th_days_value}, but got #{th_sum}"
+
+      # Also verify system-level sum still works
+      system_sum = @pm_report.client_sum(:days_homeless_es_sh_th, :reporting)
+      expect(system_sum).to eq(@es_days_value + @th_days_value),
+                            "Expected system sum to be #{@es_days_value + @th_days_value}, but got #{system_sum}"
+    end
+  end
+
+  describe 'result_calculation#client_data method' do
+    include_context 'SPM test setup'
+
+    before do
+      # Create two projects
+      @es_project = create_project(project_type: 0) # ES-EE
+      @th_project = create_project(project_type: 2) # TH
+
+      # Create clients
+      @client1 = create_client_with_warehouse_link
+      @client2 = create_client_with_warehouse_link
+
+      # Create enrollments
+      create_enrollment(
+        client: @client1,
+        project: @es_project,
+        entry_date: test_start_date + 10.days,
+        exit_date: test_start_date + 40.days,
+      )
+
+      create_enrollment(
+        client: @client2,
+        project: @th_project,
+        entry_date: test_start_date + 50.days,
+        exit_date: test_start_date + 80.days,
+      )
+
+      # Setup report with these projects
+      @spm_report, @pm_report = setup_reports(projects: [@es_project, @th_project])
+
+      # Set days homeless values
+      @client_record1 = @pm_report.clients.find_by(client_id: @client1.destination_client.id)
+      @client_record2 = @pm_report.clients.find_by(client_id: @client2.destination_client.id)
+
+      @es_days_value = 30
+      @th_days_value = 40
+      @client_record1.update(reporting_days_homeless_es_sh_th: @es_days_value)
+      @client_record2.update(reporting_days_homeless_es_sh_th: @th_days_value)
+
+      # Create client_projects records
+      PerformanceMeasurement::ClientProject.create!(
+        report_id: @pm_report.id,
+        client_id: @client1.destination_client.id,
+        project_id: @es_project.id,
+        for_question: :days_homeless_es_sh_th,
+        period: :reporting,
+      )
+
+      PerformanceMeasurement::ClientProject.create!(
+        report_id: @pm_report.id,
+        client_id: @client2.destination_client.id,
+        project_id: @th_project.id,
+        for_question: :days_homeless_es_sh_th,
+        period: :reporting,
+      )
+
+      # Create duplicate client_project record to test the issue
+      PerformanceMeasurement::ClientProject.create!(
+        report_id: @pm_report.id,
+        client_id: @client1.destination_client.id,
+        project_id: @es_project.id,
+        for_question: :days_homeless_es_sh_th,
+        period: :reporting,
+      )
+    end
+
+    it 'should not return duplicate values for the same client in system-level client_data' do
+      # Get the data from client_data for the days_homeless_es_sh_th field
+      data_result = @pm_report.client_data(:days_homeless_es_sh_th, :reporting)
+
+      # Count occurrences of each value
+      value_counts = data_result.group_by(&:itself).transform_values(&:count)
+
+      # Check if we have duplicates for the es_days_value
+      expect(value_counts[@es_days_value]).to eq(1),
+                                              "Expected value #{@es_days_value} to appear exactly once, but it appears #{value_counts[@es_days_value]} times"
+
+      # Verify the returned array has the correct total length
+      expect(data_result.length).to eq(2),
+                                    "Expected 2 values (one per client), but got #{data_result.length}"
+
+      # Verify the returned array has both expected values
+      expect(data_result).to include(@es_days_value, @th_days_value),
+                             "Expected data to include both #{@es_days_value} and #{@th_days_value}"
+    end
+
+    it 'should correctly retrieve data per project' do
+      # Get project-specific data
+      es_data = @pm_report.client_data(:days_homeless_es_sh_th, :reporting, project_id: @es_project.id)
+      th_data = @pm_report.client_data(:days_homeless_es_sh_th, :reporting, project_id: @th_project.id)
+
+      # Verify project data
+      expect(es_data).to eq([@es_days_value]),
+                         "Expected ES project data to be [#{@es_days_value}], but got #{es_data}"
+      expect(th_data).to eq([@th_days_value]),
+                         "Expected TH project data to be [#{@th_days_value}], but got #{th_data}"
+
+      # Verify each value appears only once in the project data
+      expect(es_data.count(@es_days_value)).to eq(1),
+                                               "Expected value #{@es_days_value} to appear exactly once in ES data"
+    end
+
+    it 'should handle the median calculation correctly with deduplicated data' do
+      # Calculate the median manually with the expected values
+      expected_values = [@es_days_value, @th_days_value]
+      expected_median = expected_values.sum / 2 # median of a 2 value array is the average
+
+      # Get the data from client_data and calculate median
+      data_result = @pm_report.client_data(:days_homeless_es_sh_th, :reporting)
+      actual_median = @pm_report.send(:median, data_result)
+
+      # Verify the median calculation
+      expect(actual_median).to eq(expected_median),
+                               "Expected median to be #{expected_median}, but got #{actual_median}"
     end
   end
 end
