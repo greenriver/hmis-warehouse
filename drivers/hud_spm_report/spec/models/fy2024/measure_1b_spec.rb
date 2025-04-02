@@ -885,7 +885,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         exit_date: '2023-01-15'.to_date,
         date_to_street_essh: '2022-09-01'.to_date, # HoH date to street
         relationship_to_ho_h: 1, # Head of household
-        household_id: household_id
+        household_id: household_id,
       )
 
       # Create child enrollment with same entry date as HoH but NO date to street
@@ -896,7 +896,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         exit_date: '2023-01-15'.to_date,
         date_to_street_essh: nil, # No date to street data
         relationship_to_ho_h: 3, # Child
-        household_id: household_id
+        household_id: household_id,
       )
 
       # Create adult member with same entry date but NO date to street
@@ -907,7 +907,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         exit_date: '2023-01-15'.to_date,
         date_to_street_essh: nil, # No date to street data
         relationship_to_ho_h: 2, # Adult
-        household_id: household_id
+        household_id: household_id,
       )
 
       # Create unknown age member with same entry date but NO date to street
@@ -918,7 +918,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         exit_date: '2023-01-15'.to_date,
         date_to_street_essh: nil, # No date to street data
         relationship_to_ho_h: 2, # Other household member
-        household_id: household_id
+        household_id: household_id,
       )
 
       # Setup and run the report
@@ -980,7 +980,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         exit_date: '2023-01-15'.to_date,
         date_to_street_essh: '2022-09-01'.to_date,
         relationship_to_ho_h: 1,
-        household_id: household_id
+        household_id: household_id,
       )
 
       # Create child enrollment with DIFFERENT entry date than HoH
@@ -991,7 +991,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         exit_date: '2023-01-15'.to_date,
         date_to_street_essh: nil, # No date to street data
         relationship_to_ho_h: 3,
-        household_id: household_id
+        household_id: household_id,
       )
 
       # Setup and run the report
@@ -1043,7 +1043,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         exit_date: '2023-01-15'.to_date,
         date_to_street_essh: '2022-09-01'.to_date,
         relationship_to_ho_h: 1,
-        household_id: household_id
+        household_id: household_id,
       )
 
       # Create younger child enrollment
@@ -1054,7 +1054,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         exit_date: '2023-01-15'.to_date,
         date_to_street_essh: nil,
         relationship_to_ho_h: 3,
-        household_id: household_id
+        household_id: household_id,
       )
 
       # Create older child enrollment (17 at entry)
@@ -1065,7 +1065,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         exit_date: '2023-01-15'.to_date,
         date_to_street_essh: nil,
         relationship_to_ho_h: 3,
-        household_id: household_id
+        household_id: household_id,
       )
 
       # Create client who turns 18 during enrollment
@@ -1076,7 +1076,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         exit_date: '2023-01-15'.to_date,
         date_to_street_essh: nil,
         relationship_to_ho_h: 3,
-        household_id: household_id
+        household_id: household_id,
       )
 
       # Setup and run the report
@@ -1136,7 +1136,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         exit_date: '2023-01-15'.to_date,
         date_to_street_essh: '2022-09-01'.to_date,
         relationship_to_ho_h: 1,
-        household_id: household_id
+        household_id: household_id,
       )
 
       # Create child enrollment WITH its own date to street
@@ -1147,7 +1147,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
         exit_date: '2023-01-15'.to_date,
         date_to_street_essh: '2022-10-01'.to_date, # Child has own date to street
         relationship_to_ho_h: 3,
-        household_id: household_id
+        household_id: household_id,
       )
 
       # Setup and run the report
