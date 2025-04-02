@@ -86,8 +86,8 @@ module Health
 
     has_many :activities, as: :source, class_name: '::Health::QualifyingActivity', inverse_of: :source, dependent: :destroy
 
-    serialize :topics, Array
-    serialize :client_action, Array
+    serialize :topics, type: Array
+    serialize :client_action, type: Array
 
     scope :recent, -> { order(updated_at: :desc).limit(1) }
     scope :last_form_created, -> { order(created_at: :desc).limit(1) }

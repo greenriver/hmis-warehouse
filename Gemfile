@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 7.0.8.5'
+gem 'rails', '~> 7.1.0'
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
 # gem 'rails_drivers', path: '/usr/local/bundle/tmp/rails_drivers'
 gem 'rack', '>= 2.2.11'
@@ -27,9 +27,9 @@ gem 'rails-html-sanitizer'
 gem 'sshkit'
 gem 'paranoia'
 # gem 'composite_primary_keys', '~> 14.0.9'
-gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys', branch: 'ea/preload-has-many-through-fix'
+# gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys', branch: 'ea/preload-has-many-through-fix'
 gem 'pg'
-gem 'activerecord-sqlserver-adapter', '~> 7.0' # tied to the rails version
+gem 'activerecord-sqlserver-adapter', '~> 7.1.0' # tied to the rails version
 gem 'activerecord-import'
 gem 'order_as_specified'
 gem 'pghero'

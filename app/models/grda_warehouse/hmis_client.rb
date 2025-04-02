@@ -15,10 +15,10 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
 
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
   has_one :destination_client, through: :client
-  serialize :case_manager_attributes, Hash
-  serialize :assigned_staff_attributes, Hash
-  serialize :counselor_attributes, Hash
-  serialize :outreach_counselor_attributes, Hash
+  serialize :case_manager_attributes, type: Hash
+  serialize :assigned_staff_attributes, type: Hash
+  serialize :counselor_attributes, type: Hash
+  serialize :outreach_counselor_attributes, type: Hash
   attr_accessor :phone, :email, :language_1, :language_2, :youth_current_zip
 
   scope :consent_active, -> do

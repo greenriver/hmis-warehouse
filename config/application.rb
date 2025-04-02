@@ -17,8 +17,10 @@ require_relative '../lib/util/rails_trusted_proxies_config'
 module BostonHmis
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.0
+    config.load_defaults 7.1
     config.autoload_paths << Rails.root.join('lib', 'devise')
+
+    config.active_record.default_column_serializer = YAML
 
     # ActionCable
     config.action_cable.mount_path = '/cable'

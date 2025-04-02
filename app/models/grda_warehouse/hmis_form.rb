@@ -12,8 +12,8 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
   has_one :destination_client, through: :client
   belongs_to :hmis_assessment, class_name: 'GrdaWarehouse::Hmis::Assessment', primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id], optional: true
-  serialize :api_response, Hash
-  serialize :answers, Hash
+  serialize :api_response, type: Hash
+  serialize :answers, type: Hash
 
   delegate :details_in_window_with_release?, to: :hmis_assessment
 
