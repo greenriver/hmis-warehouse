@@ -28,14 +28,18 @@ module Hmis::WorkflowDefinition
           next if visited.include?(node)
 
           yielder << node unless node.id.in?(skip_ids)
-          visited.add(node) unless node.id.in?(skip_ids) # don't return entrypoints if from args
+          visited.add(node) unless node.id.in?(skip_ids) # if entrypoints were passed as arguments, don't return them
 
-          # careful, this logic is a bit ugly/fragile
-          next unless node.id.in?(skip_ids) || (stop_when.nil? || !stop_when.call(node))
+          # If this node was passed as an entrypoint, don't check the stop_when condition. (Otherwise we wouldn't traverse any nodes)
+          unless node.id.in?(skip_ids)
+            # Check the stop_when condition and if it's true, exit early without traversing the children.
+            next if stop_when&.call(node)
+          end
 
+          # Traverse this node's children:
           child_ids = node.outflows.sort_by(&:position).map(&:target_node_id) # get all outflows from this node
           children = child_ids.map { |id| nodes_by_id[id] } # get the nodes they point to -- from in-memory `nodes_by_id`, so we don't hit the database again
-          stack.concat(children.reverse) # preserve order of children in stack)
+          stack.concat(children.reverse) # preserve order of children in stack
         end
       end
     end

@@ -14,7 +14,14 @@ FactoryBot.define do
 
   factory :hmis_workflow_definition_end_event, class: 'Hmis::WorkflowDefinition::EndEvent' do
     sequence(:name) { |n| "End Event #{n}" }
-    trigger_config { [] }
+    trigger_config do
+      [
+        {
+          event: 'end_workflow',
+          message: 'accept_referral',
+        },
+      ]
+    end
   end
 
   factory :hmis_workflow_definition_gateway, class: 'Hmis::WorkflowDefinition::Gateway' do

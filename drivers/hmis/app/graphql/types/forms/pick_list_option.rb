@@ -164,7 +164,7 @@ module Types
       when 'WORKFLOW_DEFINITION_TEMPLATES'
         return [] unless Hmis::Ce.configuration.enabled?
 
-        # FIXME - templates are shared across data sources. For now this is acceptable since GR manages templates
+        # TODO(#7502) - templates are shared across data sources
         Hmis::WorkflowDefinition::Template.all.map do |template|
           { code: template.id, label: template.name }
         end
