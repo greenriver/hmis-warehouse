@@ -213,7 +213,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def ssn_serial
-    self.SSN&.[](-4..)
+    self.SSN&.[](-4..-1)
   end
 
   def warehouse_id
