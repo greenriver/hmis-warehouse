@@ -484,6 +484,139 @@ CREATE VIEW analytics.assessments AS
 
 
 --
+-- Name: cas_analytics_cas_users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_cas_users (
+    id bigint NOT NULL,
+    email character varying,
+    agency_id bigint,
+    agency_name character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ce_cas_users; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.ce_cas_users AS
+ SELECT id,
+    email,
+    agency_id,
+    agency_name,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_cas_users;
+
+
+--
+-- Name: cas_analytics_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    calculated_first_homeless_night date,
+    calculated_last_homeless_night date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ce_clients; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.ce_clients AS
+ SELECT id,
+    client_id,
+    calculated_first_homeless_night,
+    calculated_last_homeless_night,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_clients;
+
+
+--
+-- Name: cas_analytics_opportunities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_opportunities (
+    id bigint NOT NULL,
+    opportunity_category_id bigint,
+    unit_id bigint,
+    unit_name character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ce_opportunities; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.ce_opportunities AS
+ SELECT id,
+    opportunity_category_id,
+    unit_id,
+    unit_name,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_opportunities;
+
+
+--
+-- Name: cas_analytics_opportunity_categories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_opportunity_categories (
+    id bigint NOT NULL,
+    full_name character varying,
+    name character varying,
+    sub_project_name character varying,
+    program_type character varying,
+    subgrantee_id bigint,
+    subgrantee_name character varying,
+    sub_contractor_id bigint,
+    sub_contractor_name character varying,
+    hsa_id bigint,
+    hsa_name character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN cas_analytics_opportunity_categories.full_name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.cas_analytics_opportunity_categories.full_name IS 'concatenation of program name and sub-program name';
+
+
+--
+-- Name: ce_opportunity_categories; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.ce_opportunity_categories AS
+ SELECT id,
+    full_name,
+    name,
+    sub_project_name,
+    program_type,
+    subgrantee_id,
+    subgrantee_name,
+    sub_contractor_id,
+    sub_contractor_name,
+    hsa_id,
+    hsa_name,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_opportunity_categories;
+
+
+--
 -- Name: CEParticipation; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -536,6 +669,128 @@ CREATE VIEW analytics.ce_participations AS
     source_hash
    FROM public."CEParticipation"
   WHERE ("DateDeleted" IS NULL);
+
+
+--
+-- Name: cas_analytics_steps; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_steps (
+    id bigint NOT NULL,
+    workflow_id bigint,
+    name character varying,
+    "order" integer,
+    status character varying,
+    started_at timestamp(6) without time zone,
+    completed_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ce_steps; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.ce_steps AS
+ SELECT id,
+    workflow_id,
+    name,
+    "order",
+    status,
+    started_at,
+    completed_at,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_steps;
+
+
+--
+-- Name: cas_analytics_workflow_contacts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_workflow_contacts (
+    id bigint NOT NULL,
+    email character varying,
+    workflow_id bigint,
+    contact_id bigint,
+    contact_type character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ce_workflow_contacts; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.ce_workflow_contacts AS
+ SELECT id,
+    email,
+    workflow_id,
+    contact_id,
+    contact_type,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_workflow_contacts;
+
+
+--
+-- Name: cas_analytics_workflow_users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_workflow_users (
+    id bigint NOT NULL,
+    email character varying,
+    workflow_id bigint
+);
+
+
+--
+-- Name: ce_workflow_users; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.ce_workflow_users AS
+ SELECT id,
+    email,
+    workflow_id
+   FROM public.cas_analytics_workflow_users;
+
+
+--
+-- Name: cas_analytics_workflows; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_workflows (
+    id bigint NOT NULL,
+    workflow_name character varying,
+    client_id bigint,
+    opportunity_id bigint,
+    opportunity_category_id bigint,
+    started_at timestamp(6) without time zone,
+    completed_at timestamp(6) without time zone,
+    terminal_status character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ce_workflows; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.ce_workflows AS
+ SELECT id,
+    workflow_name,
+    client_id,
+    opportunity_id,
+    opportunity_category_id,
+    started_at,
+    completed_at,
+    terminal_status,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_workflows;
 
 
 --
@@ -5565,20 +5820,6 @@ ALTER SEQUENCE public.boston_report_configs_id_seq OWNED BY public.boston_report
 
 
 --
--- Name: cas_analytics_cas_users; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_cas_users (
-    id bigint NOT NULL,
-    email character varying,
-    agency_id bigint,
-    agency_name character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
 -- Name: cas_analytics_cas_users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -5595,20 +5836,6 @@ CREATE SEQUENCE public.cas_analytics_cas_users_id_seq
 --
 
 ALTER SEQUENCE public.cas_analytics_cas_users_id_seq OWNED BY public.cas_analytics_cas_users.id;
-
-
---
--- Name: cas_analytics_clients; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_clients (
-    id bigint NOT NULL,
-    client_id bigint,
-    calculated_first_homeless_night date,
-    calculated_last_homeless_night date,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
 
 
 --
@@ -5631,20 +5858,6 @@ ALTER SEQUENCE public.cas_analytics_clients_id_seq OWNED BY public.cas_analytics
 
 
 --
--- Name: cas_analytics_opportunities; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_opportunities (
-    id bigint NOT NULL,
-    opportunity_category_id bigint,
-    unit_id bigint,
-    unit_name character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
 -- Name: cas_analytics_opportunities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -5661,34 +5874,6 @@ CREATE SEQUENCE public.cas_analytics_opportunities_id_seq
 --
 
 ALTER SEQUENCE public.cas_analytics_opportunities_id_seq OWNED BY public.cas_analytics_opportunities.id;
-
-
---
--- Name: cas_analytics_opportunity_categories; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_opportunity_categories (
-    id bigint NOT NULL,
-    full_name character varying,
-    name character varying,
-    sub_project_name character varying,
-    program_type character varying,
-    subgrantee_id bigint,
-    subgrantee_name character varying,
-    sub_contractor_id bigint,
-    sub_contractor_name character varying,
-    hsa_id bigint,
-    hsa_name character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: COLUMN cas_analytics_opportunity_categories.full_name; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.cas_analytics_opportunity_categories.full_name IS 'concatenation of program name and sub-program name';
 
 
 --
@@ -5711,23 +5896,6 @@ ALTER SEQUENCE public.cas_analytics_opportunity_categories_id_seq OWNED BY publi
 
 
 --
--- Name: cas_analytics_steps; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_steps (
-    id bigint NOT NULL,
-    workflow_id bigint,
-    name character varying,
-    "order" integer,
-    status character varying,
-    started_at timestamp(6) without time zone,
-    completed_at timestamp(6) without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
 -- Name: cas_analytics_steps_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -5744,21 +5912,6 @@ CREATE SEQUENCE public.cas_analytics_steps_id_seq
 --
 
 ALTER SEQUENCE public.cas_analytics_steps_id_seq OWNED BY public.cas_analytics_steps.id;
-
-
---
--- Name: cas_analytics_workflow_contacts; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_workflow_contacts (
-    id bigint NOT NULL,
-    email character varying,
-    workflow_id bigint,
-    contact_id bigint,
-    contact_type character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
 
 
 --
@@ -5781,17 +5934,6 @@ ALTER SEQUENCE public.cas_analytics_workflow_contacts_id_seq OWNED BY public.cas
 
 
 --
--- Name: cas_analytics_workflow_users; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_workflow_users (
-    id bigint NOT NULL,
-    email character varying,
-    workflow_id bigint
-);
-
-
---
 -- Name: cas_analytics_workflow_users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -5808,24 +5950,6 @@ CREATE SEQUENCE public.cas_analytics_workflow_users_id_seq
 --
 
 ALTER SEQUENCE public.cas_analytics_workflow_users_id_seq OWNED BY public.cas_analytics_workflow_users.id;
-
-
---
--- Name: cas_analytics_workflows; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_workflows (
-    id bigint NOT NULL,
-    workflow_name character varying,
-    client_id bigint,
-    opportunity_id bigint,
-    opportunity_category_id bigint,
-    started_at timestamp(6) without time zone,
-    completed_at timestamp(6) without time zone,
-    terminal_status character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
 
 
 --
@@ -66375,6 +66499,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250313153011'),
 ('20250319125533'),
 ('20250331175933'),
-('20250401130809');
+('20250401130809'),
+('20250402130025');
 
 
