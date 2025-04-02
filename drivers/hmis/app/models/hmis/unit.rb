@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::Unit < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_units
@@ -22,6 +24,8 @@ class Hmis::Unit < Hmis::HmisBase
   has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit, dependent: :destroy
   has_many :active_unit_occupancies, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
   has_many :current_occupants, through: :active_unit_occupancies, class_name: 'Hmis::Hud::Enrollment', source: :enrollment
+  has_many :opportunities, as: :owner, class_name: 'Hmis::Ce::Opportunity', inverse_of: :owner
+  has_one :active_opportunity, -> { active }, as: :owner, class_name: 'Hmis::Ce::Opportunity', inverse_of: :owner
 
   alias_attribute :date_updated, :updated_at
   alias_attribute :date_created, :created_at

@@ -6132,7 +6132,9 @@ CREATE TABLE public.ce_opportunities (
     status character varying NOT NULL,
     expires_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    owner_type character varying,
+    owner_id bigint
 );
 
 
@@ -53547,6 +53549,13 @@ CREATE INDEX index_ce_opportunities_on_candidate_pool_id ON public.ce_opportunit
 
 
 --
+-- Name: index_ce_opportunities_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_opportunities_on_owner ON public.ce_opportunities USING btree (owner_type, owner_id);
+
+
+--
 -- Name: index_ce_opportunities_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -66015,6 +66024,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250313125655'),
 ('20250313153011'),
 ('20250319125533'),
-('20250401130809'),
 ('20250325205806'),
-('20250331121904');
+('20250331121904'),
+('20250401130809'),
+('20250402142140');

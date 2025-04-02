@@ -18,6 +18,7 @@ module Hmis::Ce
     has_many :candidates, class_name: 'Hmis::Ce::OpportunityCandidate', dependent: :destroy
     has_many :categorizations, class_name: 'Hmis::Ce::OpportunityCategorization', foreign_key: :opportunity_id
     has_many :categories, through: :categorizations
+    belongs_to :owner, polymorphic: true, optional: true # Hmis::Unit, ...
 
     validates :name, presence: true
 
