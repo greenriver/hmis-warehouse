@@ -36,14 +36,14 @@ RSpec.describe Admin::CollectionsController, type: :request do
 
   def run_entity_tests(collection:, coc_codes: [], data_sources: [], organizations: [], projects: [], project_groups: [], project_access_groups: [], reports: [], cohorts: [])
     collection.reload
-    expect(collection.coc_codes).to eq(coc_codes)
-    expect(collection.data_source_ids).to eq(data_sources)
-    expect(collection.organization_ids).to eq(organizations)
-    expect(collection.project_ids).to eq(projects)
-    expect(collection.project_group_ids).to eq(project_groups)
-    expect(collection.project_access_group_ids).to eq(project_access_groups)
-    expect(collection.report_ids).to eq(reports)
-    expect(collection.cohort_ids).to eq(cohorts)
+    expect(collection.coc_code_ids.map(&:to_s)).to eq(coc_codes.map(&:to_s))
+    expect(collection.data_source_ids.map(&:to_s)).to eq(data_sources.map(&:to_s))
+    expect(collection.organization_ids.map(&:to_s)).to eq(organizations.map(&:to_s))
+    expect(collection.project_ids.map(&:to_s)).to eq(projects.map(&:to_s))
+    expect(collection.project_group_ids.map(&:to_s)).to eq(project_groups.map(&:to_s))
+    expect(collection.project_access_group_ids.map(&:to_s)).to eq(project_access_groups.map(&:to_s))
+    expect(collection.report_ids.map(&:to_s)).to eq(reports.map(&:to_s))
+    expect(collection.cohort_ids.map(&:to_s)).to eq(cohorts.map(&:to_s))
   end
 
   # Creating current collection #create
@@ -69,7 +69,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
     let(:viewable_params) do
       {
         collection: {
-          coc_codes: [project_coc.coc_code],
+          coc_codes: [project_coc.lookup_coc.id],
           data_sources: [data_source.id],
           organizations: [organization.id],
           projects: [project.id],
@@ -82,28 +82,32 @@ RSpec.describe Admin::CollectionsController, type: :request do
     end
 
     it 'Updates collection name & description #update' do
-      # Set some base vieawables. We want to make sure these dont change.
-      project_collection.coc_codes = [project_coc.coc_code]
-      project_collection.set_viewables({
-                                         data_sources: [data_source.id],
-                                         organizations: [organization.id],
-                                         projects: [project.id],
-                                         project_groups: [project_group_2.id],
-                                         project_access_groups: [project_group.id],
-                                         reports: [report.id],
-                                         cohorts: [cohort.id],
-                                       })
+      # Set some base vieawables. We want to make sure these don't change.
+      project_collection.set_viewables(
+        {
+          data_sources: [data_source.id],
+          organizations: [organization.id],
+          coc_codes: [project_coc.lookup_coc.id],
+          projects: [project.id],
+          project_groups: [project_group_2.id],
+          project_access_groups: [project_group.id],
+          reports: [report.id],
+          cohorts: [cohort.id],
+        },
+      )
       project_collection.save!
       # make sure the viewables exist
-      run_entity_tests(collection: project_collection,
-                       coc_codes: [project_coc.coc_code],
-                       data_sources: [data_source.id],
-                       organizations: [organization.id],
-                       projects: [project.id],
-                       project_groups: [project_group_2.id],
-                       project_access_groups: [project_group.id],
-                       reports: [report.id],
-                       cohorts: [cohort.id])
+      run_entity_tests(
+        collection: project_collection,
+        coc_codes: [project_coc.lookup_coc.id],
+        data_sources: [data_source.id],
+        organizations: [organization.id],
+        projects: [project.id],
+        project_groups: [project_group_2.id],
+        project_access_groups: [project_group.id],
+        reports: [report.id],
+        cohorts: [cohort.id],
+      )
 
       patch admin_collection_path(project_collection), params: {
         collection: {
@@ -115,15 +119,17 @@ RSpec.describe Admin::CollectionsController, type: :request do
       expect(project_collection.reload.description).to eq('Updated Description')
 
       # make sure the viewables are not changed
-      run_entity_tests(collection: project_collection,
-                       coc_codes: [project_coc.coc_code],
-                       data_sources: [data_source.id],
-                       organizations: [organization.id],
-                       projects: [project.id],
-                       project_groups: [project_group_2.id],
-                       project_access_groups: [project_group.id],
-                       reports: [report.id],
-                       cohorts: [cohort.id])
+      run_entity_tests(
+        collection: project_collection,
+        coc_codes: [project_coc.lookup_coc.id],
+        data_sources: [data_source.id],
+        organizations: [organization.id],
+        projects: [project.id],
+        project_groups: [project_group_2.id],
+        project_access_groups: [project_group.id],
+        reports: [report.id],
+        cohorts: [cohort.id],
+      )
     end
 
     it 'Updating legacy collection name & description #update' do
@@ -139,15 +145,17 @@ RSpec.describe Admin::CollectionsController, type: :request do
 
     it 'Updating legacy collection viewables #update' do
       patch admin_collection_path(legacy_project_collection), params: viewable_params
-      run_entity_tests(collection: legacy_project_collection,
-                       coc_codes: viewable_params[:collection][:coc_codes],
-                       data_sources: viewable_params[:collection][:data_sources],
-                       organizations: viewable_params[:collection][:organizations],
-                       projects: viewable_params[:collection][:projects],
-                       project_groups: viewable_params[:collection][:project_groups],
-                       project_access_groups: viewable_params[:collection][:project_access_groups],
-                       reports: viewable_params[:collection][:reports],
-                       cohorts: viewable_params[:collection][:cohorts])
+      run_entity_tests(
+        collection: legacy_project_collection,
+        coc_codes: viewable_params[:collection][:coc_codes],
+        data_sources: viewable_params[:collection][:data_sources],
+        organizations: viewable_params[:collection][:organizations],
+        projects: viewable_params[:collection][:projects],
+        project_groups: viewable_params[:collection][:project_groups],
+        project_access_groups: viewable_params[:collection][:project_access_groups],
+        reports: viewable_params[:collection][:reports],
+        cohorts: viewable_params[:collection][:cohorts],
+      )
     end
   end
 
@@ -164,13 +172,13 @@ RSpec.describe Admin::CollectionsController, type: :request do
         map { |pg| [pg.id.to_s, '0'] }.to_h
     end
     let!(:coc_codes) do
-      GrdaWarehouse::Hud::ProjectCoc.
+      GrdaWarehouse::Lookups::CocCode.
+        joins(:project_cocs).
         distinct.
-        order(:CoCCode).
-        pluck(:CoCCode).
-        reject(&:blank?).
+        order(:coc_code).
+        pluck(:id, :coc_code).
         compact.
-        map { |coc| [coc, '0'] }.to_h
+        map { |id, _| [id.to_s, '0'] }.to_h
     end
     let!(:project_groups) do
       GrdaWarehouse::ProjectGroup.
@@ -217,7 +225,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
     it 'Updating current collection viewables #bulk_entities' do
       expected = {}
 
-      coc_codes[project_coc.coc_code] = '1'
+      coc_codes[project_coc.lookup_coc.id.to_s] = '1'
       data_sources[data_source.id.to_s] = '1'
       organizations[organization.id.to_s] = '1'
       projects[project.id.to_s] = '1'
@@ -231,25 +239,26 @@ RSpec.describe Admin::CollectionsController, type: :request do
         # Set the expected value for this specific entity. Any entity that had previously been set will remain, but all future entities in the loop will still be expected to have a [] value.
         # This will help ensure that only the expected entity is being updated.
         expected[entity.to_sym] = bulk_entities_params[:collection][entity.to_sym].keys.select { |k| bulk_entities_params[:collection][entity.to_sym][k] == '1' }
-        expected[entity.to_sym] = expected[entity.to_sym].map(&:to_i) unless entity == 'coc_codes'
         # Update the entity on the collection
         patch bulk_entities_admin_collection_path(project_collection), params: bulk_entities_params.merge(entities: entity)
         # Verify the updated collection
-        run_entity_tests(
-          collection: project_collection,
-          coc_codes: expected[:coc_codes] || [],
-          data_sources: expected[:data_sources] || [],
-          organizations: expected[:organizations] || [],
-          projects: expected[:projects] || [],
-          project_groups: expected[:project_groups] || [],
-          project_access_groups: expected[:project_access_groups] || [],
-          reports: expected[:reports] || [],
-          cohorts: expected[:cohorts] || [],
-        )
+        aggregate_failures do
+          run_entity_tests(
+            collection: project_collection,
+            coc_codes: expected[:coc_codes] || [],
+            data_sources: expected[:data_sources] || [],
+            organizations: expected[:organizations] || [],
+            projects: expected[:projects] || [],
+            project_groups: expected[:project_groups] || [],
+            project_access_groups: expected[:project_access_groups] || [],
+            reports: expected[:reports] || [],
+            cohorts: expected[:cohorts] || [],
+          )
+        end
       end
 
       # We are now going to remove each entity and ensure that only the entity being removed is affected
-      coc_codes[project_coc.coc_code] = '0'
+      coc_codes[project_coc.lookup_coc.id.to_s] = '0'
       data_sources[data_source.id.to_s] = '0'
       organizations[organization.id.to_s] = '0'
       projects[project.id.to_s] = '0'
@@ -265,17 +274,19 @@ RSpec.describe Admin::CollectionsController, type: :request do
         # Update the entity on the collection
         patch bulk_entities_admin_collection_path(project_collection), params: bulk_entities_params.merge(entities: entity)
         # Verify the updated collection
-        run_entity_tests(
-          collection: project_collection,
-          coc_codes: expected[:coc_codes] || [],
-          data_sources: expected[:data_sources] || [],
-          organizations: expected[:organizations] || [],
-          projects: expected[:projects] || [],
-          project_groups: expected[:project_groups] || [],
-          project_access_groups: expected[:project_access_groups] || [],
-          reports: expected[:reports] || [],
-          cohorts: expected[:cohorts] || [],
-        )
+        aggregate_failures do
+          run_entity_tests(
+            collection: project_collection,
+            coc_codes: expected[:coc_codes] || [],
+            data_sources: expected[:data_sources] || [],
+            organizations: expected[:organizations] || [],
+            projects: expected[:projects] || [],
+            project_groups: expected[:project_groups] || [],
+            project_access_groups: expected[:project_access_groups] || [],
+            reports: expected[:reports] || [],
+            cohorts: expected[:cohorts] || [],
+          )
+        end
       end
     end
   end
