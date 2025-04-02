@@ -769,7 +769,10 @@ CREATE TABLE public.cas_analytics_workflows (
     opportunity_category_id bigint,
     started_at timestamp(6) without time zone,
     completed_at timestamp(6) without time zone,
+    stalled boolean,
+    current_status character varying,
     terminal_status character varying,
+    unsuccessful_reason character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -787,7 +790,10 @@ CREATE VIEW analytics.ce_workflows AS
     opportunity_category_id,
     started_at,
     completed_at,
+    stalled,
+    current_status,
     terminal_status,
+    unsuccessful_reason,
     created_at,
     updated_at
    FROM public.cas_analytics_workflows;

@@ -60,7 +60,10 @@ class CreateCasAnalyticsIntermediateTables < ActiveRecord::Migration[7.0]
       t.references :opportunity_category, index: false
       t.datetime :started_at
       t.datetime :completed_at
+      t.boolean :stalled
+      t.string :current_status
       t.string :terminal_status
+      t.string :unsuccessful_reason
 
       t.timestamps
     end
