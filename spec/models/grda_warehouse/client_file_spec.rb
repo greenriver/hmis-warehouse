@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::ClientFile, type: :model do
@@ -270,7 +278,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         end
         describe 'and client has consent in user\'s coc' do
           before :each do
-            coc_code_collection.update(coc_codes: ['ZZ-999'])
+            coc_code_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['ZZ-999']).pluck(:id) })
             setup_access_control(user, no_permission_role, coc_code_collection)
             history_file.client.update(
               housing_release_status: history_file.client.class.full_release_string,
@@ -289,7 +297,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         end
         describe 'and client has consent in different coc' do
           before :each do
-            coc_code_collection.update(coc_codes: ['BB-000'])
+            coc_code_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['BB-000']).pluck(:id) })
             setup_access_control(user, no_permission_role, coc_code_collection)
             history_file.client.update(
               housing_release_status: history_file.client.class.full_release_string,
