@@ -1,0 +1,6 @@
+- if RailsDrivers.loaded.include?(:hmis_csv_importer) && current_user.can_upload_hud_zips
+  .show-on-row-hover-wrapper.ml-4
+    .show-on-row-hover
+      = link_to new_hmis_csv_importer_data_source_import_override_path(data_source_id, file_type: file_type, hmis_value: hmis_value), class: 'btn btn-sm btn-secondary' do
+        %i.icon-plus
+        Add Override

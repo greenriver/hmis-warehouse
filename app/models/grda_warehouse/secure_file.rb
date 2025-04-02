@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse
   class SecureFile < GrdaWarehouseBase
     acts_as_paranoid
@@ -11,9 +13,12 @@ module GrdaWarehouse
     belongs_to :recipient, class_name: 'User'
     belongs_to :sender, class_name: 'User'
     validates_presence_of :name
-    validate :file_exists_and_not_too_large
 
-    mount_uploader :file, SecureFileUploader # Tells rails to use this uploader for this model.
+    has_one_attached :secure_file
+
+    # The following are only used on the form, we allow multiple recipients, but store one file per person
+    # and we allow notifications, but don't log those, just need to know if we should send them or not
+    attr_accessor :send_notifications, :recipients
 
     scope :visible_by?, ->(user) do
       # If you can see all client files, show everything
@@ -45,29 +50,33 @@ module GrdaWarehouse
       expired.update_all(deleted_at: Time.now)
     end
 
-    def file_exists_and_not_too_large
-      errors.add :file, 'No uploaded file found' if (content&.size || 0) < 100
-      errors.add :file, 'File size should be less than 250 MB' if (content&.size || 0) > 250.megabytes
+    # for file migration
+    scope :unprocessed_s3_migration, -> do
+      migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::SecureFile').pluck(:record_id)
+      all = pluck(:id)
+      unmigrated = all - migrated
+      return none if unmigrated.blank?
+
+      where(id: unmigrated)
     end
 
-    def as_preview
-      return content unless content_type == 'image/jpeg'
+    def copy_to_s3!
+      return unless content.present?
+      return unless valid? # Ignore uploads that are already invalid (data source deleted?)
+      return if secure_file.attached? # don't re-process
 
-      image = MiniMagick::Image.read(content)
-      image.auto_level
-      image.strip
-      image.resize('1920x1080')
-      image.to_blob
+      puts "Migrating #{file} to S3"
+
+      Tempfile.create(binmode: true) do |tmp_file|
+        tmp_file.write(content)
+        tmp_file.rewind
+        secure_file.attach(io: tmp_file, content_type: content_type, filename: file, identify: false)
+      end
+
+      # Save no-matter validity state
+      self.content = nil
+      save!(validate: false)
     end
-
-    def as_thumb
-      return nil unless content_type == 'image/jpeg'
-
-      image = MiniMagick::Image.read(content)
-      image.auto_level
-      image.strip
-      image.resize('400x400')
-      image.to_blob
-    end
+    # END for file migration
   end
 end

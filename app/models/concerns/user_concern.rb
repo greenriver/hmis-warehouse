@@ -54,8 +54,12 @@ module UserConcern
     has_many :access_grants, class_name: 'Doorkeeper::AccessGrant', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
     has_many :access_tokens, class_name: 'Doorkeeper::AccessToken', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
 
-    # Connect users to login attempts
+    # Connect users to login attempts.
+    # Only includes Warehouse activity when called on User record, and only HMIS activity for Hmis::User record.
     has_many :login_activities, as: :user
+
+    # All login activities for user, including both HMIS and Warehouse login activity
+    has_many :all_login_activities, class_name: 'LoginActivity', foreign_key: 'user_id'
 
     # TODO: START_ACL remove when ACL transition complete
     # Ensure that users have a user-specific access group
@@ -138,9 +142,10 @@ module UserConcern
       active.not_system.where(exclude_from_directory: false)
     end
 
+    # users that have currently active sessions (either in the warehouse or in HMIS)
     scope :has_recent_activity, -> do
       where(last_activity_at: timeout_in.ago..Time.current).
-        where.not(unique_session_id: nil)
+        where.not(unique_session_id: nil, hmis_unique_session_id: nil)
     end
 
     scope :using_acls, -> do
@@ -666,11 +671,11 @@ module UserConcern
 
     def coc_codes(force_calculation: false)
       key = [self.class.name, __method__, id]
-      Rails.cache.delete(key) if force_calculation
+      Rails.cache.delete(key) if force_calculation || Rails.env.test?
       Rails.cache.fetch(key, expires_in: 1.minutes) do
         # TODO: START_ACL cleanup after ACL migration is complete
         if using_acls?
-          collections.flat_map(&:coc_codes).reject(&:blank?).uniq
+          collections.flat_map(&:coc_codes).map(&:coc_code).reject(&:blank?).uniq
         else
           (access_groups.map(&:coc_codes).flatten + access_group.coc_codes).reject(&:blank?).uniq
         end

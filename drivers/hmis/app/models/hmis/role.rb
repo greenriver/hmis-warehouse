@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # HMIS uses similar but separate permissions system from the warehouse
 # See drivers/hmis/doc/PERMISSIONS.md
 
@@ -102,6 +104,11 @@ class Hmis::Role < ::ApplicationRecord
         perms[role[:category]][role[:sub_category]][key] = role
       end
     end
+  end
+
+  # List permissions that are granted by this role
+  def granted_permissions
+    self.class.permissions_with_descriptions.keys.select { |perm| send(perm) }
   end
 
   # Pick a background color that is unique to the name, but not terribly vibrant

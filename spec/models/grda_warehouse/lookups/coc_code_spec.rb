@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https: //github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Lookups::CocCode, type: :model do
@@ -10,12 +18,6 @@ RSpec.describe GrdaWarehouse::Lookups::CocCode, type: :model do
   let!(:project_3) { create :grda_warehouse_hud_project, ProjectType: 3, OrganizationID: organization.OrganizationID, data_source_id: data_source.id }
   let!(:project_coc_coc_3) { create :grda_warehouse_hud_project_coc, ProjectID: project_3.ProjectID, data_source_id: data_source.id, CoCCode: 'XX-502' }
   let!(:user) { create :user }
-  let!(:coc_codes) do
-    (0..4).map do |i|
-      # factory bot will continue to increment if using a sequence, so enforce 500-505
-      create(:lookup_coc, coc_code: "XX-50#{i}", official_name: "Fake CoC 50#{i}}")
-    end
-  end
   let(:expected_cocs) { ['XX-500', 'XX-501'].sort }
   describe 'legacy permissions' do
     before do
@@ -56,8 +58,7 @@ RSpec.describe GrdaWarehouse::Lookups::CocCode, type: :model do
       # * XX-500 through project 1
       # * XX-501 through a CoC code assignment
       # * no access to XX-502
-      collection.set_viewables({ projects: [project_1.id] })
-      collection.update(coc_codes: ['XX-501'])
+      collection.set_viewables({ projects: [project_1.id], coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-501']).pluck(:id) })
       user_group.add(acl_user)
     end
 

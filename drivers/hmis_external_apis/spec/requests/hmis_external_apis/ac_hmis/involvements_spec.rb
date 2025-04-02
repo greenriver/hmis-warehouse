@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request do
@@ -36,7 +38,9 @@ RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request 
       expect(response.status).to eq 200
       expect(JSON.parse(response.body)['involvements']).to eq []
       expect(HmisExternalApis::ExternalRequestLog.count).to eq(1)
-      expect(HmisExternalApis::ExternalRequestLog.first.response).to match(/involvements/)
+      logged = HmisExternalApis::ExternalRequestLog.first
+      expect(logged.response).to match(/involvements/)
+      expect(logged.http_status).to match(200)
     end
   end
 

@@ -4,10 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
-  belongs_to :project_coc, class_name: '::GrdaWarehouse::Hud::ProjectCoc', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :lookup_coc, optional: true
-  belongs_to :overridden_project_coc, class_name: '::GrdaWarehouse::Hud::ProjectCoc', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :overridden_lookup_coc, optional: true
-  belongs_to :enrollment_coc, class_name: '::GrdaWarehouse::Hud::EnrollmentCoc', primary_key: :hud_coc_code, foreign_key: :coc_code, inverse_of: :lookup_coc, optional: true
+  has_many :project_cocs, class_name: '::GrdaWarehouse::Hud::ProjectCoc', foreign_key: :CoCCode, primary_key: :coc_code, inverse_of: :lookup_coc
+  has_many :projects, through: :project_cocs
+  has_many :data_sources, through: :project_cocs
 
   scope :active, -> do
     where(active: true)
@@ -42,6 +44,19 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
     active.where(coc_code: visible_coc_codes.uniq)
   end
 
+  def self.maintain!
+    existing = all.index_by(&:coc_code)
+    batch = []
+    HudUtility2024.cocs.each do |code, name|
+      coc = existing[code] || new
+      coc.assign_attributes(coc_code: code, official_name: name)
+      batch << coc if coc.changed?
+    end
+    return unless batch
+
+    import!(batch, on_duplicate_key_update: { conflict_target: [:id], columns: [:official_name] })
+  end
+
   def self.options_for_select(user:, permission: :can_view_projects)
     viewable_by(user, permission: permission).
       distinct.
@@ -51,8 +66,12 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
 
   def as_select_option
     [
-      "#{preferred_name || official_name} (#{coc_code})",
+      name,
       coc_code,
     ]
+  end
+
+  def name
+    "#{preferred_name.presence || official_name} (#{coc_code})"
   end
 end

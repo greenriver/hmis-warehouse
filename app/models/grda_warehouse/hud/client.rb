@@ -1779,13 +1779,13 @@ module GrdaWarehouse::Hud
 
       if first_name.present?
         first_name_ids = source.where(
-          nf('LOWER', [arel_table[:FirstName]]).eq(first_name.downcase),
+          nf('TRIM', [nf('LOWER', [arel_table[:FirstName]])]).eq(first_name.downcase),
         ).pluck(:id)
       end
 
       if last_name.present?
         last_name_ids = source.where(
-          nf('LOWER', [arel_table[:LastName]]).eq(last_name.downcase),
+          nf('TRIM', [nf('LOWER', [arel_table[:LastName]])]).eq(last_name.downcase),
         ).pluck(:id)
       end
 
