@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 # handle workflow execution messages
@@ -16,27 +22,33 @@ module Hmis::Ce
 
     # route the message to the appropriate handler method
     def call(message)
-      # need to set move-in date on enrollment also
+      reversible = true
+
       case message.type
       when 'start_referral'
         start_referral
       when 'accept_referral'
         accept_referral
+        reversible = false
       when 'reject_referral'
         referral.reject!
         referral.opportunity.release!
+        reversible = false
       when 'send_notification'
         send_notification(message)
       when 'create_ce_event'
         create_ce_event(message)
       when 'create_enrollment'
         referral_enroller.create_enrollment(message)
+        reversible = false
       when 'set_move_in_date'
         # Can be triggered on the same step as create_enrollment, or a later step
         referral_enroller.set_move_in_date(message)
       else
         raise "Got unhandled message type #{message.type}"
       end
+
+      Hmis::WorkflowExecution::MessageResult.new(success?: true, reversible?: reversible)
     end
 
     protected
