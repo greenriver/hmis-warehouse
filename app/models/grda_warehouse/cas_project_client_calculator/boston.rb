@@ -418,7 +418,8 @@ module GrdaWarehouse::CasProjectClientCalculator
       start_date = GrdaWarehouse::Config.get(:self_report_start_date)
 
       allowed_days = (max_possible_days(client) - warehouse_days_from_hmis(client)).clamp(0, MAX_UNVERIFIED_ADDITIONAL_DAYS)
-      return allowed_days unless ce_self_certification_client_ids.include?(client.id) || start_date&.past?
+      # If the client doesn't have a certification on file and the start date is in the past, we don't allow extra days
+      return allowed_days if ce_self_certification_client_ids.exclude?(client.id) && start_date&.past?
 
       (max_possible_days(client) - warehouse_days_from_hmis(client)).clamp(0, max_possible_days(client))
     end
