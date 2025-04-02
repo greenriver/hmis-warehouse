@@ -27,28 +27,28 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
 
   before_validation :ensure_id
 
-  def self.inherited(subclass)
-    super
-
-    subclass.class_eval do
-      # not working; including for discussion on PR. table_exists? always returns false because
-      # inherited is executed as soon as a subclass is defined, and Rails hasn't loaded the table schema yet
-      return unless subclass.table_exists?
-
-      # binding.pry
-      # if you uncomment the breakpoint here, the only models that hit it are Hmis::Hud::Client and Hmis::Hud::Service.
-      # What is special about those two models?
-
-      subclass.columns.each do |column|
-        case column.type
-        when :integer
-          attribute column.name, Hmis::StrictInteger.new
-        when :decimal
-          attribute column.name, Hmis::StrictDecimal.new
-        end
-      end
-    end
-  end
+  # def self.inherited(subclass)
+  #   super
+  #
+  #   subclass.class_eval do
+  #     # not working; commenting out, but including for discussion on PR.
+  #     # table_exists? always returns false because inherited is executed as soon as a subclass is defined, and Rails hasn't loaded the table schema yet
+  #     return unless subclass.table_exists?
+  #
+  #     # binding.pry
+  #     # if you uncomment the breakpoint here, the only models that hit it are Hmis::Hud::Client and Hmis::Hud::Service.
+  #     # What is special about those two models?
+  #
+  #     subclass.columns.each do |column|
+  #       case column.type
+  #       when :integer
+  #         attribute column.name, Hmis::StrictInteger.new
+  #       when :decimal
+  #         attribute column.name, Hmis::StrictDecimal.new
+  #       end
+  #     end
+  #   end
+  # end
 
   scope :viewable_by, ->(_) do
     none
