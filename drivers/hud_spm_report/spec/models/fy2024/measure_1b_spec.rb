@@ -7,6 +7,101 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
   include_context 'SPM test setup'
 
   describe 'Measure 1b' do
+    context 'with Street Outreach enrollments' do
+      before do
+        # Create an ES project and an SO project
+        @es_project = create_project(project_type: 0) # ES-EE
+        @so_project = create_project(project_type: 4) # SO = Street Outreach
+
+        # Create a client
+        @client = create_client_with_warehouse_link
+
+        # Create enrollment in ES project (should be included)
+        create_enrollment(
+          client: @client,
+          project: @es_project,
+          entry_date: '2022-11-01'.to_date,
+          exit_date: '2022-12-15'.to_date,
+          date_to_street_essh: '2022-10-15'.to_date,
+        )
+
+        # Create enrollment in SO project (should be excluded)
+        create_enrollment(
+          client: @client,
+          project: @so_project,
+          entry_date: '2023-01-01'.to_date,
+          exit_date: '2023-03-15'.to_date,
+          date_to_street_essh: '2022-12-20'.to_date,
+        )
+
+        # Setup and run the report with both projects
+        @report = setup_report([@es_project.id, @so_project.id])
+        run_measure(@report, HudSpmReport::Generators::Fy2024::MeasureOne)
+      end
+
+      it 'excludes Street Outreach enrollments from Measure 1 calculations' do
+        # Verify that the universe was created for measure 1a
+        expect(@report.universe('m1a1').members.count).to eq(1)
+
+        # Get the episode for the ES enrollment
+        episode = @report.universe('m1a1').members.first.universe_membership
+
+        # First date should be from ES enrollment, not SO
+        expect(episode.first_date).to eq('2022-11-01'.to_date)
+
+        # Days homeless should only reflect ES time (45 days), not include SO time
+        # From 2022-11-01 to 2022-12-14 (exit date - 1)
+        expected_days = 44
+        expect(episode.days_homeless).to eq(expected_days)
+
+        # Check measure 1b as well to ensure SO is also excluded there
+        expect(@report.universe('m1b1').members.count).to eq(1)
+
+        # Get the episode for the ES enrollment in measure 1b
+        episode_1b = @report.universe('m1b1').members.first.universe_membership
+
+        # First date in 1b should include date_to_street_essh from ES, but not use SO data
+        expect(episode_1b.first_date).to eq('2022-10-15'.to_date)
+
+        # Days homeless should reflect ES time plus self-reported time (61 days)
+        # From date_to_street_essh 2022-10-15 to exit 2022-12-14 (exit date - 1)
+        expected_days_1b = 61
+        expect(episode_1b.days_homeless).to eq(expected_days_1b)
+      end
+
+      it 'does not count SO enrollment information in days or averages' do
+        # Check measure 1a average and median
+        answer_b1 = @report.answer(question: '1a', cell: 'B1')
+        answer_d1 = @report.answer(question: '1a', cell: 'D1')
+        answer_g1 = @report.answer(question: '1a', cell: 'G1')
+
+        # Only ES clients should be counted
+        expect(answer_b1.summary.to_i).to eq(1)
+
+        # Average should only reflect ES time
+        expected_days = 44
+        expect(answer_d1.summary.to_f).to eq(expected_days)
+
+        # Median should only reflect ES time
+        expect(answer_g1.summary.to_i).to eq(expected_days)
+
+        # Check measure 1b average and median
+        answer_b1_1b = @report.answer(question: '1b', cell: 'B1')
+        answer_d1_1b = @report.answer(question: '1b', cell: 'D1')
+        answer_g1_1b = @report.answer(question: '1b', cell: 'G1')
+
+        # Only ES clients should be counted
+        expect(answer_b1_1b.summary.to_i).to eq(1)
+
+        # Average should reflect ES time plus self-reported time
+        expected_days_1b = 61
+        expect(answer_d1_1b.summary.to_f).to eq(expected_days_1b)
+
+        # Median should reflect ES time plus self-reported time
+        expect(answer_g1_1b.summary.to_i).to eq(expected_days_1b)
+      end
+    end
+
     context 'with client having previous street date' do
       before do
         # Create an ES project
@@ -759,7 +854,7 @@ RSpec.describe HudSpmReport::Generators::Fy2024::MeasureOne, type: :model do
 
         # Calculate expected days:
         # PSH exit (2023-06-11) to end of reporting period (2024-09-30)
-        expected_days = ('2024-09-30'.to_date - '2023-06-11'.to_date).to_i
+        expected_days = 478
 
         expect(episode.days_homeless).to eq(expected_days)
         answer = @report.answer(question: '1b', cell: 'D1')

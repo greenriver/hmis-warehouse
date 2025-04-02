@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'pty'
 require 'expect'
 module GrdaWarehouse
@@ -43,7 +45,7 @@ module GrdaWarehouse
     end
 
     def store(report)
-      content = encrypt_zip(report.content)
+      content = encrypt_zip(report.hmis_zip.download)
       aws_s3.store(content: content, name: object_name(report)) if s3_valid?
     end
 

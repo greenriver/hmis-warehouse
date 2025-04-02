@@ -15,8 +15,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   include Memery
 
   self.primary_key = :id
+  TodoOrDie('Remove refuse_imports_with_errors from ignored columns', by: '2025-06-01')
   self.ignored_columns = ['refuse_imports_with_errors']
-  TodoOrDie('Add a migration to remove refuse_imports_with_errors column from data source', by: '2025-04-01')
 
   acts_as_paranoid
   validates :name, presence: true
@@ -214,7 +214,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     ).pluck(:entity_id)
   end
 
-  def self.data_source_ids_from_entity_type(user, permission, entity_class)
+  def self.data_source_ids_from_entity_type(user, permission, entity_class, join_name: :data_source)
     return [] unless user.present?
     return [] unless user.send("#{permission}?")
 
@@ -226,7 +226,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
         collection_id: collection_ids,
         entity_type: entity_class.sti_name,
       ).select(:entity_id),
-    ).joins(:data_source).pluck(ds_t[:id])
+    ).joins(join_name).pluck(ds_t[:id])
   end
 
   def self.data_source_ids_from_projects(user, permission)
@@ -235,6 +235,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   def self.data_source_ids_from_organizations(user, permission)
     data_source_ids_from_entity_type(user, permission, GrdaWarehouse::Hud::Organization)
+  end
+
+  def self.data_source_ids_from_cocs(user, permission)
+    data_source_ids_from_entity_type(user, permission, GrdaWarehouse::Lookups::CocCode, join_name: :data_sources)
   end
 
   # NOTE: project access groups need to pull the data sources from their projects
@@ -255,19 +259,6 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     ).joins(:projects).
       distinct.
       pluck(p_t[:data_source_id])
-  end
-
-  # NOTE: CoC codes need to pull the data sources from the project CoC records
-  # so this differs from projects and organizations
-  def self.data_source_ids_from_cocs(user, permission)
-    return [] unless user.present?
-    return [] unless user.send("#{permission}?")
-
-    collection_ids = user.collections_for_permission(permission)
-    return [] if collection_ids.empty?
-
-    coc_codes = Collection.where(id: collection_ids).pluck(:coc_codes).reject(&:blank?).flatten
-    GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes).distinct.pluck(:data_source_id)
   end
 
   def self.source_data_source_ids
