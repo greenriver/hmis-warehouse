@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 module HmisExternalApis::AcHmis::Exporters
   class MoveInAddressExport
     include ::HmisExternalApis::AcHmis::Exporters::CsvExporter
@@ -20,7 +22,7 @@ module HmisExternalApis::AcHmis::Exporters
         Rails.logger.info "Processed #{i} of #{total}" if (i % 1000).zero?
 
         warehouse_id = address.client.warehouse_id
-        next unless warehouse_id.present?
+        next unless warehouse_id.present? # Client doesn't have a destination client ID yet. Skip since it wont be in Client.csv anyway.
 
         values = [
           warehouse_id, # PersonalID matching HMIS CSV export
@@ -45,8 +47,8 @@ module HmisExternalApis::AcHmis::Exporters
       Hmis::Hud::CustomClientAddress.where(data_source: data_source).
         move_in.
         joins(:enrollment).
-        merge(Hmis::Hud::Enrollment.not_in_progress).
-        preload(:enrollment, client: :warehouse_client_source).
+        merge(Hmis::Hud::Enrollment.not_in_progress). # drop WIP Enrollments, which won't be present in Enrollment.csv export
+        preload(:enrollment, client: :warehouse_client_source). # preload to get client destination id
         distinct
     end
   end
