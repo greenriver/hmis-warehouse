@@ -1327,18 +1327,7 @@ module GrdaWarehouse::Hud
 
     # pii provider for use in reports and bulk view
     def project_pii_provider(project:, user:, mode:)
-      allowed = false
-      case mode.to_sym
-      when :download
-        allowed = ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-      when :browse
-        allowed = true
-      else
-        raise ArgumentError, "Bad mode #{mode}"
-      end
-
-      policy = user.policy_for(project, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if allowed
-      policy ||= GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+      policy = user.reporting_policy_for_project(project_id: project.id, mode: mode)
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
     end
 

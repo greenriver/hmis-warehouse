@@ -47,7 +47,7 @@ runs:
     # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
     # isn't supported on Alpine.
     - name: cache gems
-      uses: actions/cache@v4
+      uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
       id: gemcache
       with:
         path: |
@@ -63,7 +63,7 @@ runs:
         bundle install --jobs 10 --retry 3
 
     - name: Cache Node.js modules
-      uses: actions/cache@v4
+      uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
       with:
         path: node_modules
         key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}

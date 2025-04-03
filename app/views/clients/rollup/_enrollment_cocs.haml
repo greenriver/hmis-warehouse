@@ -1,12 +1,11 @@
 :ruby
   et = GrdaWarehouse::Hud::Enrollment.arel_table
-  ec_t = GrdaWarehouse::Hud::EnrollmentCoc.arel_table
   enrollment_cocs = @client.
     source_enrollment_cocs.
     joins(enrollment: :client).
     merge(GrdaWarehouse::Hud::Enrollment.visible_to(current_user, client_ids: @client.source_client_ids)).
     preload( enrollment: [:client, :project] ).
-    order(et[:EntryDate].desc, ec_t[:InformationDate].desc)
+    order(et[:EntryDate].desc, et[:id].desc)
 - if enrollment_cocs.to_a.any?
   .table-responsive
     %table.table

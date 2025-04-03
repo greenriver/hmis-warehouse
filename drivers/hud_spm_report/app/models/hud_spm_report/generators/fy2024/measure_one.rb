@@ -1,19 +1,26 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # HUD SPM Report Generator: Length of Time Persons Remain Homeless
 module HudSpmReport::Generators::Fy2024
   class MeasureOne < MeasureBase
     def self.question_number
-      'Measure 1'.freeze
+      'Measure 1'
     end
 
     def self.client_class
-      HudSpmReport::Fy2024::Episode.
-        joins(:enrollments).preload(:enrollments)
+      HudSpmReport::Fy2024::Episode
+    end
+
+    def self.client_scope
+      client_class.joins(:enrollments).preload(enrollments: { enrollment: :project })
     end
 
     def self.table_descriptions
@@ -213,12 +220,15 @@ module HudSpmReport::Generators::Fy2024
     end
 
     private def median(values)
-      selected = if values.count.even?
-        (values.count / 2) + 1
+      sorted = values.sort
+      len = sorted.length
+
+      if len.even?
+        # Average of position (len/2) and (len/2 + 1)
+        (sorted[len / 2 - 1] + sorted[len / 2]) / 2.0
       else
-        values.count / 2
+        sorted[len / 2]
       end
-      values.sort[selected - 1] # Adjust for 0-based array
     end
   end
 end

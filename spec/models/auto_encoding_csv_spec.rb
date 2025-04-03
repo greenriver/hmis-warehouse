@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe AutoEncodingCsv, type: :model do
   REFERENCE_DATA = CSV.read("#{file_fixture_path}/importers/encodings/UTF-8.csv", headers: true)
 
-  encodings = [
+  [
     'UTF-8',
     'UTF-8-bom',
     'UTF-16LE',
