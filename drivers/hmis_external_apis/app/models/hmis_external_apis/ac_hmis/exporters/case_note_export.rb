@@ -16,7 +16,7 @@ module HmisExternalApis::AcHmis::Exporters
       write_row(columns)
       total = case_notes.count
 
-      Rails.logger.error "There are #{total} addresses to export. That doesn't look right" if total < 10
+      Rails.logger.error "There are #{total} case notes to export. That doesn't look right" if total < 10
 
       case_notes.find_each.with_index do |case_note, i|
         Rails.logger.info "Processed #{i} of #{total}" if (i % 1000).zero?
