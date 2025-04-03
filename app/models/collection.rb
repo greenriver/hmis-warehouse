@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Part of the "new" permissions system
 #
 # A Collection is a set of entities that are the target of an AccessControl. It is analogous to the "AccessGroup" in the
@@ -21,6 +23,12 @@ class Collection < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
 
+  # Remove this column well after this code gets to production (just add a migration remove_column(:collections, :coc_codes))
+  TodoOrDie('Remove coc_codes column from the collections table well after release 157 goes to production', by: '2025-06-01')
+  self.ignored_columns = [
+    :coc_codes,
+  ]
+
   after_save :invalidate_user_permission_cache
 
   has_many :access_controls
@@ -34,6 +42,7 @@ class Collection < ApplicationRecord
   # grants access to projects
   has_many :projects, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Hud::Project'
   has_many :project_access_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectAccessGroup'
+  has_many :coc_codes, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Lookups::CocCode'
   # grants access to reports (report data is constrained by above project-filters)
   has_many :reports, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition'
   has_many :project_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectGroup'
@@ -92,10 +101,16 @@ class Collection < ApplicationRecord
   end
 
   # all collections that include any coc_codes
+  # This requires a cross-db join, so we'll pluck a few item
   scope :for_coc_codes, ->(coc_codes) do
-    quoted = SqlHelper.quote_sql_array(coc_codes, type: :varchar)
-    # use `?|` since coc codes is json
-    where("#{quoted_table_name}.coc_codes ?| #{quoted}")
+    entity_class = GrdaWarehouse::Lookups::CocCode
+    coc_lookup_ids = entity_class.where(coc_code: coc_codes).pluck(:id)
+    where(
+      id: GrdaWarehouse::GroupViewableEntity.where(
+        entity_type: entity_class.sti_name,
+        entity_id: coc_lookup_ids,
+      ).pluck(:collection_id),
+    )
   end
 
   scope :with_source_entity, -> do
@@ -234,9 +249,7 @@ class Collection < ApplicationRecord
       project_access_groups.each do |pa|
         ids.merge pa.projects.pluck(:id)
       end
-      coc_codes.each do |code|
-        ids.merge GrdaWarehouse::Hud::Project.in_coc(coc_code: code).pluck(:id)
-      end
+      ids.merge GrdaWarehouse::Hud::Project.in_coc(coc_code: coc_codes.map(&:coc_code)).pluck(:id)
     end.count
   end
 
@@ -253,28 +266,28 @@ class Collection < ApplicationRecord
 
   private def project_overlap
     @project_overlap ||= {}.tap do |po|
-      data_sources.each do |entity|
-        entity.projects.pluck(:id).each do |p_id|
+      data_sources.preload(:projects).each do |entity|
+        entity.projects.map(&:id).each do |p_id|
           po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
           po[p_id][:data_sources] << entity.name
         end
       end
-      organizations.each do |entity|
-        entity.projects.pluck(:id).each do |p_id|
+      organizations.preload(:projects).each do |entity|
+        entity.projects.map(&:id).each do |p_id|
           po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
           po[p_id][:organizations] << entity.name
         end
       end
-      project_groups.each do |entity|
-        entity.projects.pluck(:id).each do |p_id|
+      project_groups.preload(:projects).each do |entity|
+        entity.projects.map(&:id).each do |p_id|
           po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
           po[p_id][:organizations] << entity.name
         end
       end
-      coc_codes.each do |code|
-        GrdaWarehouse::Hud::Project.in_coc(coc_code: code).pluck(:id).each do |p_id|
+      coc_codes.preload(:projects).each do |entity|
+        entity.projects.map(&:id).each do |p_id|
           po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
-          po[p_id][:coc_codes] << code
+          po[p_id][:coc_codes] << entity.name
         end
       end
       projects.each do |entity|
@@ -287,12 +300,10 @@ class Collection < ApplicationRecord
 
   def project_count_from(type)
     case type.to_sym
-    when :data_sources, :organizations, :project_access_groups
+    when :data_sources, :organizations, :project_access_groups, :coc_codes
       public_send(type).map { |entity_type| entity_type.projects.size }.sum
     when :projects
       projects.count
-    when :coc_codes
-      GrdaWarehouse::Hud::Project.in_coc(coc_code: coc_codes).distinct.count
     else
       0
     end
@@ -441,6 +452,7 @@ class Collection < ApplicationRecord
       [
         :data_sources,
         :organizations,
+        :coc_codes,
         :projects,
         :project_access_groups,
         :reports,
@@ -501,10 +513,10 @@ class Collection < ApplicationRecord
     associations.flat_map do |association|
       case association
       when :coc_code
-        coc_codes.map do |code|
+        coc_codes.preload(:projects).map do |coc|
           [
-            code,
-            GrdaWarehouse::Hud::Project.project_names_for_coc(code),
+            coc.coc_code,
+            coc.projects.map(&:ProjectName),
           ]
         end
       when :organization
@@ -536,12 +548,7 @@ class Collection < ApplicationRecord
 
   def all_associated_entities
     {
-      'CoC Codes' => coc_codes.flat_map do |code|
-        [code] +
-          GrdaWarehouse::Hud::Project.project_names_for_coc(code).map do |name|
-            " – #{name} (in #{code})"
-          end
-      end,
+      'CoC Codes' => coc_codes.map(&:coc_code),
       'Project Groups' => project_access_groups.preload(:projects).map(&:name),
       'Data Sources' => data_sources.map(&:name),
       'Organizations' => organizations.map(&:OrganizationName),
@@ -564,6 +571,7 @@ class Collection < ApplicationRecord
     @viewable_types ||= {
       data_sources: 'GrdaWarehouse::DataSource',
       organizations: 'GrdaWarehouse::Hud::Organization',
+      coc_codes: 'GrdaWarehouse::Lookups::CocCode',
       projects: 'GrdaWarehouse::Hud::Project',
       project_access_groups: 'GrdaWarehouse::ProjectAccessGroup',
       reports: 'GrdaWarehouse::WarehouseReports::ReportDefinition',
@@ -571,5 +579,29 @@ class Collection < ApplicationRecord
       cohorts: 'GrdaWarehouse::Cohort',
       supplemental_data_sets: 'HmisSupplemental::DataSet',
     }.freeze
+  end
+
+  # This method should be removed after all installations have been migrated.
+  # This can't be done in a migration as it touches multiple databases
+  def self.migrate_from_local_coc_codes
+    TodoOrDie('Remove migrate_from_local_coc_codes, it is only needed during the transition period', by: '2025-06-01')
+    lookups = GrdaWarehouse::Lookups::CocCode.all.index_by(&:coc_code)
+    batch = []
+    Collection.all.pluck(:id, :coc_codes).each do |id, coc_codes|
+      next if coc_codes.blank?
+
+      coc_codes.each do |coc|
+        entity_id = lookups[coc]&.id
+        next unless entity_id
+
+        batch << GrdaWarehouse::GroupViewableEntity.new(
+          collection_id: id,
+          access_group_id: 0,
+          entity_type: 'GrdaWarehouse::Lookups::CocCode',
+          entity_id: entity_id,
+        )
+      end
+    end
+    GrdaWarehouse::GroupViewableEntity.import!(batch)
   end
 end

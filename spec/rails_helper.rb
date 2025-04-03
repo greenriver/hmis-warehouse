@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 ENV['RAILS_ENV'] = 'test'
 require File.expand_path('../config/environment', __dir__)
@@ -6,6 +8,7 @@ abort('The Rails environment is running in production mode!') if Rails.env.produ
 require 'spec_helper'
 require 'rspec/rails'
 require 'deprecation_helper'
+require './db/seed_maker'
 # require 'simplecov'
 # require 'simplecov-console'
 # SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
@@ -99,6 +102,11 @@ RSpec.configure do |config|
     end
 
     AccessGroup.maintain_system_groups
+  end
+
+  config.before(:all) do
+    # Ensure we _always_ have all appropriate CoCs
+    GrdaWarehouse::Lookups::CocCode.maintain!
   end
 end
 

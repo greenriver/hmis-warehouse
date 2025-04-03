@@ -1,4 +1,3 @@
-
 # ADR NNN [Short Title]
 
 ## Status

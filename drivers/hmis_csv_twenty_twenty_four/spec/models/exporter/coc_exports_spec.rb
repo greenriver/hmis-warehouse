@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'export_helper'
 require_relative './multi_enrollment_tests'
@@ -28,16 +30,16 @@ RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
 
     # Move two unrelated project CoCs out of the range
     p_cocs = @project_cocs.reject { |pc| pc.ProjectID.in?([en_1.ProjectID, en_1.ProjectID]) }.first(2)
-    p_cocs.first.update(CoCCode: nil)
-    p_cocs.last.update(CoCCode: 'XX-501')
+    p_cocs.first.update!(CoCCode: nil)
+    p_cocs.last.update!(CoCCode: 'XX-501')
 
     # Ensure we have a project that operates in 2 CoCs with enrollments in each
     @multi_coc_project = create :hud_project, data_source_id: @data_source.id
     create_list :hud_project_coc, 2, data_source_id: @data_source.id, CoCCode: 'XX-501', ProjectID: @multi_coc_project.ProjectID
     create_list :hud_enrollment, 3, data_source_id: @data_source.id, EntryDate: 2.weeks.ago, PreferredLanguageDifferent: 'a' * 10, EnrollmentCoC: 'XX-555', ProjectID: @multi_coc_project.ProjectID
-    @multi_coc_project.project_cocs.first.update(CoCCode: 'XX-500')
-    @multi_coc_project.enrollments.first.update(EnrollmentCoC: 'XX-500')
-    @multi_coc_project.enrollments.last.update(EnrollmentCoC: 'XX-501')
+    @multi_coc_project.project_cocs.first.update!(CoCCode: 'XX-500')
+    @multi_coc_project.enrollments.first.update!(EnrollmentCoC: 'XX-500')
+    @multi_coc_project.enrollments.last.update!(EnrollmentCoC: 'XX-501')
 
     # Ensure we have a project that operates in one CoC that isn't being included that has an enrollment missing EnrollmentCoC and bad
     @project_with_bad_enrollment_coc = create :hud_project, data_source_id: @data_source.id
