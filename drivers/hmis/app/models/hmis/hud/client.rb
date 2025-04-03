@@ -209,10 +209,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     searchable_to(user).where(id: source_id)
   end
 
-  def ssn_serial
-    self.SSN&.[](-4..)
-  end
-
   def warehouse_id
     warehouse_client_source&.destination_id
   end
