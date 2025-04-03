@@ -19,7 +19,7 @@ module HmisExternalApis::AcHmis::Exporters
       case_notes.find_each.with_index do |case_note, i|
         Rails.logger.info "Processed #{i} of #{total}" if (i % 1_000).zero?
 
-        warehouse_id = case_note.client.warehouse_id
+        warehouse_id = case_note.client&.warehouse_id
         next unless warehouse_id.present? # Client doesn't have a destination client ID yet. Skip since it wont be in Client.csv anyway.
 
         values = [
