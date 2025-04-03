@@ -917,7 +917,6 @@ type Client {
   alerts: [ClientAlert!]!
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(filters: ClientAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
-  ceOpportunities: [CeOpportunity!]!
   contactPoints: [ClientContactPoint!]!
   createdBy: ApplicationUser
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
@@ -932,6 +931,7 @@ type Client {
   dischargeStatus: DischargeStatus
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
+  eligibleCeOpportunities(limit: Int, offset: Int): CeOpportunitiesPaginated!
   emailAddresses: [ClientContactPoint!]!
   employmentEducations(limit: Int, offset: Int): EmploymentEducationsPaginated!
   enabledFeatures: [ClientDashboardFeature!]!

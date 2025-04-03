@@ -29,7 +29,8 @@ module Hmis::Ce
     def values
       @values ||= AppConfigProperty.
         where(key: PROPERTIES.map { |attr| key_for(attr) }).
-        index_by(&:key)
+        pluck(:key, :value).
+        to_h
     end
 
     def value_for(attr)

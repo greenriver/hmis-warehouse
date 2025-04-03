@@ -83,15 +83,14 @@ module Types
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
     field :hud_chronic, Boolean, null: true, description: 'Meets the definition for HUD chronically homeless as of today (time of API request)'
-    field :ce_opportunities, [Types::HmisSchema::CeOpportunity], null: false
+    field :eligible_ce_opportunities, Types::HmisSchema::CeOpportunity.page_type, null: false
 
-    def ce_opportunities
+    def eligible_ce_opportunities
       raise unless Hmis::Ce.configuration.enabled?
 
       Hmis::Ce::Opportunity.
         for_client(object).
-        order(:id).
-        limit(50) # FIXME: add pagination. Just limit to top 50 for now
+        order(:id)
     end
 
     field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
