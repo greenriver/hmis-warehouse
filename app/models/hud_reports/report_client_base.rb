@@ -48,11 +48,9 @@ module HudReports
         end
       end
 
-      if include_content_tag
-        ActionController::Base.helpers.content_tag(:pre, JSON.pretty_generate(value))
-      else
-        value
-      end
+      return ActionController::Base.helpers.content_tag(:pre, JSON.pretty_generate(value)) if include_content_tag
+
+      value
     end
 
     def format_boolean(value, include_content_tag)
