@@ -60,7 +60,7 @@ COPY docker/app/us-east-1-bundle.pem  /etc/ssl/certs/us-east-1-bundle.pem
 COPY docker/app/rds-combined-ca-bundle.pem /etc/ssl/certs/rds-combined-ca-bundle.pem
 
 RUN groupadd -g ${GROUP_ID} app-user \
-  && useradd -u ${USER_ID} -g app-user -d /home/app-user -m app-user \
+  && useradd -u ${USER_ID} -g app-user -s /bin/bash -d /home/app-user -m app-user \
   && mkdir /app /bundle \
   && chown app-user:app-user /bundle /app
 
