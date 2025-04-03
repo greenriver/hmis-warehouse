@@ -97,17 +97,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         query GetClient($id: ID!) {
           client(id: $id) {
             id
-            ceOpportunities {
-              id
-              name
-              status
-              expiresAt
-              candidates {
-                nodes {
-                  id
-                  priorityScore
-                  client {
+            eligibleCeOpportunities {
+              nodes {
+                id
+                name
+                status
+                expiresAt
+                candidates {
+                  nodes {
                     id
+                    priorityScore
+                    client {
+                      id
+                    }
                   }
                 }
               }
@@ -130,7 +132,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         expect(client_data).to include('id' => client.id.to_s)
 
-        opportunities = result.dig('data', 'client', 'ceOpportunities')
+        opportunities = result.dig('data', 'client', 'eligibleCeOpportunities', 'nodes')
 
         expect(opportunities).to be_an(Array)
         expect(opportunities.length).to eq(2) # Should only include open opportunities
@@ -163,7 +165,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'excludes the opportunity with active referral' do
         _, result = post_graphql(**variables) { query }
-        opportunities = result.dig('data', 'client', 'ceOpportunities')
+        opportunities = result.dig('data', 'client', 'eligibleCeOpportunities', 'nodes')
 
         opportunity_ids = opportunities.map { |o| o['id'] }
         expect(opportunity_ids).not_to include(opportunity_veterans.id.to_s)
@@ -190,7 +192,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'excludes opportunities with overlapping categories when client has active referral' do
         _, result = post_graphql(**variables) { query }
-        opportunities = result.dig('data', 'client', 'ceOpportunities')
+        opportunities = result.dig('data', 'client', 'eligibleCeOpportunities', 'nodes')
 
         expect(opportunities).to be_empty # Both should be excluded due to category overlap
       end
@@ -207,7 +209,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'returns an empty opportunities array' do
         _, result = post_graphql(**no_match_variables) { query }
-        opportunities = result.dig('data', 'client', 'ceOpportunities')
+        opportunities = result.dig('data', 'client', 'eligibleCeOpportunities', 'nodes')
 
         expect(opportunities).to be_an(Array)
         expect(opportunities).to be_empty
