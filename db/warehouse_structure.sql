@@ -377,27 +377,35 @@ CREATE TABLE public.assessment_answer_lookups (
 --
 
 CREATE VIEW analytics.assessment_questions AS
- SELECT id,
-    "AssessmentQuestionID",
-    "AssessmentID",
-    "EnrollmentID",
-    "PersonalID",
-    "AssessmentQuestionGroup",
-    "AssessmentQuestionOrder",
-    "AssessmentQuestion",
-    COALESCE(( SELECT aal.response_text
-           FROM public.assessment_answer_lookups aal
-          WHERE (((aal.assessment_question)::text = ("AssessmentQuestions"."AssessmentQuestion")::text) AND ((aal.response_code)::text = ("AssessmentQuestions"."AssessmentAnswer")::text))
-          ORDER BY aal.updated_at DESC
-         LIMIT 1), "AssessmentAnswer") AS "AssessmentAnswer",
-    "AssessmentAnswer" AS original_assessment_answer,
-    "DateCreated",
-    "DateUpdated",
-    "UserID",
-    "ExportID",
-    data_source_id
-   FROM public."AssessmentQuestions"
-  WHERE ("DateDeleted" IS NULL);
+ WITH nullable_lkp AS (
+         SELECT DISTINCT ON (assessment_answer_lookups.assessment_question, assessment_answer_lookups.response_code) assessment_answer_lookups.id,
+            assessment_answer_lookups.assessment_question,
+            assessment_answer_lookups.response_code,
+            assessment_answer_lookups.response_text,
+            assessment_answer_lookups.created_at,
+            assessment_answer_lookups.updated_at,
+            assessment_answer_lookups.data_source_id
+           FROM public.assessment_answer_lookups
+          ORDER BY assessment_answer_lookups.assessment_question, assessment_answer_lookups.response_code, assessment_answer_lookups.updated_at DESC
+        )
+ SELECT "AssessmentQuestions".id,
+    "AssessmentQuestions"."AssessmentQuestionID",
+    "AssessmentQuestions"."AssessmentID",
+    "AssessmentQuestions"."EnrollmentID",
+    "AssessmentQuestions"."PersonalID",
+    "AssessmentQuestions"."AssessmentQuestionGroup",
+    "AssessmentQuestions"."AssessmentQuestionOrder",
+    "AssessmentQuestions"."AssessmentQuestion",
+    COALESCE(aal.response_text, "AssessmentQuestions"."AssessmentAnswer") AS "AssessmentAnswer",
+    "AssessmentQuestions"."AssessmentAnswer" AS original_assessment_answer,
+    "AssessmentQuestions"."DateCreated",
+    "AssessmentQuestions"."DateUpdated",
+    "AssessmentQuestions"."UserID",
+    "AssessmentQuestions"."ExportID",
+    "AssessmentQuestions".data_source_id
+   FROM (public."AssessmentQuestions"
+     LEFT JOIN nullable_lkp aal ON ((((aal.assessment_question)::text = ("AssessmentQuestions"."AssessmentQuestion")::text) AND ((aal.response_code)::text = ("AssessmentQuestions"."AssessmentAnswer")::text) AND (aal.data_source_id = "AssessmentQuestions".data_source_id))))
+  WHERE ("AssessmentQuestions"."DateDeleted" IS NULL);
 
 
 --
