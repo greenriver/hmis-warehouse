@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 module HmisExternalApis::AcHmis::Exporters
   class CaseNoteExport
@@ -16,10 +16,8 @@ module HmisExternalApis::AcHmis::Exporters
       write_row(columns)
       total = case_notes.count
 
-      Rails.logger.error "There are #{total} case notes to export. That doesn't look right" if total < 10
-
       case_notes.find_each.with_index do |case_note, i|
-        Rails.logger.info "Processed #{i} of #{total}" if (i % 1000).zero?
+        Rails.logger.info "Processed #{i} of #{total}" if (i % 1_000).zero?
 
         warehouse_id = case_note.client.warehouse_id
         next unless warehouse_id.present? # Client doesn't have a destination client ID yet. Skip since it wont be in Client.csv anyway.
