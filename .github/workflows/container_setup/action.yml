@@ -8,26 +8,19 @@ description: "Reusable action to DRY up CI"
 #   id: container-setup
 #   uses: ./.github/workflows/container_setup
 
+name: "Container Setup"
+description: "Reusable action to DRY up CI"
+
 runs:
   using: 'composite'
   steps:
-    - name: Install git
-      shell: sh
-      run: |
-        apk add --no-cache git
-
     # ensure changed-files can read repo files from git
     - name: Configure Git Safe Directory
-      shell: sh
+      shell: bash
       run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
 
-    - name: Install GNU tar (required by cache step and checksumming)
-      shell: sh
-      run: |
-        apk add --no-cache tar
-
     - name: Set up dependencies
-      shell: sh
+      shell: bash
       env:
         DATABASE_APP_DB_TEST: warehouse_app_test
         WAREHOUSE_DATABASE_DB_TEST: warehouse_test
@@ -36,31 +29,36 @@ runs:
         REPORTING_DATABASE_DB_TEST: reporting_test
         # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
         PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
-        PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+        PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
       run: |
-        apk add --no-cache $(cat .github/dependencies.txt)
+        # Add PostgreSQL 16 repository
+        sudo apt-get update
+        sudo apt-get install -y curl ca-certificates gnupg
+        curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+        echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+
+        # Install NodeJS and Yarn repositories
+        curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+        curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+        echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+
+        # Install dependencies
+        sudo apt-get update
+        sudo apt-get install -y postgresql-16 postgresql-client-16 postgresql-16-postgis-3 \
+          awscli build-essential imagemagick chromium-browser \
+          nodejs yarn freetds-dev libicu-dev libcurl4-openssl-dev \
+          libmagic-dev libxml2-dev libxslt1-dev libpq-dev \
+          libgeos-dev libheif1 fonts-dejavu fonts-freefont-ttf \
+          lftp tmux poppler-utils libyaml-dev libffi-dev
 
         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
         chmod 600 ~/.pgpass
 
-    # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
-    # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
-    # isn't supported on Alpine.
-    - name: cache gems
-      uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
-      id: gemcache
+    - name: ruby setup
+      uses: ruby/setup-ruby@v1
       with:
-        path: |
-          vendor/bundle
-          /usr/local/bundle/
-        key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
-
-    - name: Install gems
-      shell: bash
-      run: |
-        gem install bundler --version=2.6.3
-        bundle config set --local without 'production staging'
-        bundle install --jobs 10 --retry 3
+        ruby-version: 3.3
+        bundler-cache: true
 
     - name: Cache Node.js modules
       uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4

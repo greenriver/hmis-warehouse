@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   determine_matrix:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -36,11 +36,10 @@ jobs:
       matrix: ${{fromJson(needs.determine_matrix.outputs.matrix)}}
 
     # Containers must run in Linux based operating systems
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
-    container: ruby:3.3.7-alpine3.20
 
     # Service containers to run with job
     services:
