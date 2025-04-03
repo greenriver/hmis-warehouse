@@ -31,9 +31,9 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CaseNoteExport, type: :model
     result = CSV.parse(output, headers: true)
     expect(result.length).to eq(1)
 
-    expect(result.first['PersonalID']).to eq(client.warehouse_id.to_s)
-    expect(result.first['EnrollmentID']).to eq(enrollment.id.to_s)
     expect(result.first['CaseNoteID']).to eq(case_note_1.id.to_s)
+    expect(result.first['EnrollmentID']).to eq(enrollment.id.to_s)
+    expect(result.first['PersonalID']).to eq(client.warehouse_id.to_s)
     expect(result.first['NoteContent']).to eq(case_note_1.content)
   end
 

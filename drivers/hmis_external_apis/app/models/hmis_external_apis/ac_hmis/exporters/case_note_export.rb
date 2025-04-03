@@ -25,14 +25,14 @@ module HmisExternalApis::AcHmis::Exporters
         next unless warehouse_id.present? # Client doesn't have a destination client ID yet. Skip since it wont be in Client.csv anyway.
 
         values = [
-          warehouse_id, # Matches PersonalID in HMIS CSV Export
-          case_note.enrollment.id, # Matches EnrollmentID in HMIS CSV Export
           case_note.id,
-          case_note.content,
+          case_note.enrollment.id, # Matches EnrollmentID in HMIS CSV Export
+          warehouse_id, # Matches PersonalID in HMIS CSV Export
           case_note.information_date,
-          case_note.user.id, # Matches User.csv in HMIS CSV Export
+          case_note.content,
           case_note.date_created,
           case_note.date_updated,
+          case_note.user.id, # Matches User.csv in HMIS CSV Export
         ]
         write_row(values)
       end
@@ -40,18 +40,20 @@ module HmisExternalApis::AcHmis::Exporters
 
     def columns
       [
-        'PersonalID',       # PersonalID matching HMIS CSV export (warehouse destination id)
-        'EnrollmentID',     # EnrollmentID matching HMIS CSV export (database id)
         'CaseNoteID',       # Unique internal identifier for this note. Will be consistent between exports.
-        'NoteContent',      # Content of the note
+        'EnrollmentID',     # EnrollmentID matching HMIS CSV export (database id)
+        'PersonalID',       # PersonalID matching HMIS CSV export (warehouse destination id)
         'InformationDate',  # Information Date collected with the note
-        'UserID',           # User who most recently updated the note. Join with User.csv in HMIS CSV Export to find name and email.
+        'NoteContent',      # Content of the note
         'DateCreated',      # Timestamp when the note was created
         'DateUpdated',      # Timestamp when the note was last updated
+        'UserID',           # User who most recently updated the note. Join with User.csv in HMIS CSV Export to find name and email.
       ]
     end
 
-    private def case_notes
+    private
+
+    def case_notes
       Hmis::Hud::CustomCaseNote.where(data_source: data_source).
         joins(:enrollment).
         merge(Hmis::Hud::Enrollment.not_in_progress). # drop WIP Enrollments, which won't be present in Enrollment.csv export
