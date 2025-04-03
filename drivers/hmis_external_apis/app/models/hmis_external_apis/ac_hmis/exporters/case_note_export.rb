@@ -40,7 +40,7 @@ module HmisExternalApis::AcHmis::Exporters
 
     def columns
       [
-        'CaseNoteID',       # Unique internal identifier for this note. Will be consistent between exports.
+        'CaseNoteID',       # Unique internal id for this note. Matches RecordId in CustomFieldValues.csv
         'EnrollmentID',     # EnrollmentID matching HMIS CSV export (database id)
         'PersonalID',       # PersonalID matching HMIS CSV export (warehouse destination id)
         'InformationDate',  # Information Date collected with the note
