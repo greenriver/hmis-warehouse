@@ -2162,10 +2162,10 @@ module GrdaWarehouse::Hud
 
     def split(client_ids, hmis_receiver_id, health_receiver_id, current_user)
       client_names = []
+      to_clean = []
       dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
 
       GrdaWarehouse::Hud::Base.transaction do
-        to_clean = []
         client_ids.each do |client_id|
           c = self.class.find(client_id)
           c.warehouse_client_source.destroy if c.warehouse_client_source.present?
