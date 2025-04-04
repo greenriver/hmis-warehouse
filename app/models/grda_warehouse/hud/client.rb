@@ -2214,7 +2214,7 @@ module GrdaWarehouse::Hud
     # if it's a destination record, all of its sources will move and it will be deleted
     #
     # returns the source client records that moved
-    def merge_from(other_client, reviewed_by:, reviewed_at:, client_match_id: nil)
+    def merge_from(other_client, reviewed_by:, reviewed_at:, client_match_id: nil, run_cleanup: true)
       raise 'only works for destination_clients' unless destination?
 
       setup_notifier('PatientMerger') unless @notifier
@@ -2283,7 +2283,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::ClientMatch.processed_or_candidate.
           where(destination_client_id: m.id).destroy_all
       end
-      GrdaWarehouse::Tasks::ClientCleanup.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run_for_clients(to_clean)
+      GrdaWarehouse::Tasks::ClientCleanup.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run_for_clients(to_clean) if run_cleanup
       moved
     rescue Health::MedicaidIdConflict => e
       @notifier.ping(

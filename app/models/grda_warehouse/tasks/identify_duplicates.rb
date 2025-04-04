@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Tasks
   class IdentifyDuplicates
     include ArelHelper
@@ -151,7 +153,7 @@ module GrdaWarehouse::Tasks
         next unless destination.present? && source.present?
 
         begin
-          destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current)
+          destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current, run_cleanup: false)
         rescue Exception => e
           Rails.logger.error(e.to_s)
           if @send_notifications
