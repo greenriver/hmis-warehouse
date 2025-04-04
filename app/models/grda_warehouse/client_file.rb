@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse
   class ClientFile < GrdaWarehouse::File
     # attr_accessor :requires_expiration_date
@@ -12,7 +14,7 @@ module GrdaWarehouse
     include ClientFileBase
     include ArelHelper
 
-    CONSENT_FORM_TAG_CACHE_KEY = 'consent_form_tagging_ids/tag_ids'.freeze
+    CONSENT_FORM_TAG_CACHE_KEY = 'consent_form_tagging_ids/tag_ids'
 
     mount_uploader :file, FileUploader # This is probably no necessary, but added to be safe
     has_paper_trail
@@ -419,6 +421,24 @@ module GrdaWarehouse
         current_user.id
       else # rubocop:disable Style/EmptyElse
         nil
+      end
+    end
+
+    def self.maintain_urls
+      where(url: nil).find_in_batches do |files|
+        batch = []
+        files.each do |file|
+          next unless file.client_file.attached?
+
+          batch << {
+            id: file.id,
+            url: file.client_file&.blob&.url,
+          }
+        rescue StandardError
+          # Ignore errors, this is less likely in production
+          # but if we can't find the url, we don't need to populate it
+        end
+        upsert_all(batch, update_only: [:url], record_timestamps: false) if batch.any?
       end
     end
 
