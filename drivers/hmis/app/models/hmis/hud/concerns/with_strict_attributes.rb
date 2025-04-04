@@ -10,7 +10,7 @@ module Hmis::Hud::Concerns::WithStrictAttributes
   extend ActiveSupport::Concern
 
   included do
-    raise "#{self} cannot include Hmis::Hud::Concerns::WithStrictAttributes because the table #{table_name} does not exist. Try moving `self.table_name` assignment to the top of the file." unless table_exists?
+    raise "#{self} cannot include Hmis::Hud::Concerns::WithStrictAttributes because the table #{table_name} does not exist. Try moving `self.table_name` assignment to the top of the class." unless table_exists?
 
     columns.each do |column|
       case column.type
