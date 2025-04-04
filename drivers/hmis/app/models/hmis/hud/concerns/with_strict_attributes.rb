@@ -16,7 +16,11 @@ module Hmis::Hud::Concerns::WithStrictAttributes
       case column.type
       when :integer
         attribute column.name, Hmis::StrictInteger.new
+      when :bigint
+        attribute column.name, Hmis::StrictInteger.new
       when :decimal
+        attribute column.name, Hmis::StrictDecimal.new
+      when :float
         attribute column.name, Hmis::StrictDecimal.new
       end
     end
