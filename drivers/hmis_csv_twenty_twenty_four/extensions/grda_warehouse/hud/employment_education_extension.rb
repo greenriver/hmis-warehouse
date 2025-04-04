@@ -9,8 +9,8 @@ module HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      has_many :imported_items_2024, class_name: '::HmisCsvTwentyTwentyFour::Importer::EmploymentEducation', primary_key: [:EmploymentEducationID, :data_source_id], foreign_key: [:EmploymentEducationID, :data_source_id]
-      has_many :loaded_items_2024, class_name: '::HmisCsvTwentyTwentyFour::Loader::EmploymentEducation', primary_key: [:EmploymentEducationID, :data_source_id], foreign_key: [:EmploymentEducationID, :data_source_id]
+      has_many :imported_items_2024, class_name: '::HmisCsvTwentyTwentyFour::Importer::EmploymentEducation', primary_key: [:EmploymentEducationID, :data_source_id], query_constraints: [:EmploymentEducationID, :data_source_id]
+      has_many :loaded_items_2024, class_name: '::HmisCsvTwentyTwentyFour::Loader::EmploymentEducation', primary_key: [:EmploymentEducationID, :data_source_id], query_constraints: [:EmploymentEducationID, :data_source_id]
     end
   end
 end

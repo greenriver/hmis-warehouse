@@ -17,7 +17,6 @@ module GrdaWarehouse::Hud
     include RandomScope
     include ArelHelper
     include HealthCharts
-    include ApplicationHelper
     include ::HudConcerns::Client
     include ::HmisStructure::Client
     include ::HmisStructure::Shared
@@ -133,7 +132,8 @@ module GrdaWarehouse::Hud
       ongoing
     }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
 
-    has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
+    #has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', query_constraints: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
+    has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: :ds_personal_id, primary_key: :ds_personal_id, inverse_of: :client
     has_many :exits, through: :enrollments, source: :exit, inverse_of: :client
     has_many :enrollment_cocs, through: :enrollments, source: :enrollment_cocs, inverse_of: :client
     has_many :services, through: :enrollments, source: :services, inverse_of: :client
@@ -1309,6 +1309,17 @@ module GrdaWarehouse::Hud
         end
         return child && adult
       end
+    end
+
+    # extracted from ApplicationHelper
+    private def dates_overlap(d_1_start, d_1_end, d_2_start, d_2_end)
+      # Excellent discussion of why this works:
+      # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
+
+      d_1_start < d_2_end && d_1_end > d_2_start
+    rescue StandardError
+      true
+      # this catches empty
     end
 
     def policy_class

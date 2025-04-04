@@ -9,8 +9,8 @@ module HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      has_many :imported_items_2024, class_name: '::HmisCsvTwentyTwentyFour::Importer::CurrentLivingSituation', primary_key: [:CurrentLivingSitID, :data_source_id], foreign_key: [:CurrentLivingSitID, :data_source_id]
-      has_many :loaded_items_2024, class_name: '::HmisCsvTwentyTwentyFour::Loader::CurrentLivingSituation', primary_key: [:CurrentLivingSitID, :data_source_id], foreign_key: [:CurrentLivingSitID, :data_source_id]
+      has_many :imported_items_2024, class_name: '::HmisCsvTwentyTwentyFour::Importer::CurrentLivingSituation', primary_key: [:CurrentLivingSitID, :data_source_id], query_constraints: [:CurrentLivingSitID, :data_source_id]
+      has_many :loaded_items_2024, class_name: '::HmisCsvTwentyTwentyFour::Loader::CurrentLivingSituation', primary_key: [:CurrentLivingSitID, :data_source_id], query_constraints: [:CurrentLivingSitID, :data_source_id]
     end
   end
 end

@@ -9,7 +9,7 @@ module CustomImportsBostonService::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      has_many :custom_b_services, class_name: '::CustomImportsBostonService::Row', primary_key: [:PersonalID, :data_source_id], foreign_key: [:personal_id, :data_source_id]
+      has_many :custom_b_services, class_name: '::CustomImportsBostonService::Row', primary_key: [:PersonalID, :data_source_id], query_constraints: [:personal_id, :data_source_id]
 
       has_many :source_custom_b_services, through: :source_clients, source: :custom_b_services
 

@@ -17,7 +17,7 @@ module GrdaWarehouse::Vispdat
     # enums
     ####################
 
-    enum contact_answers: [
+    enum contact_method: [
       :contact_phone,
       :contact_virtual,
       :contact_in_person,
@@ -143,7 +143,8 @@ module GrdaWarehouse::Vispdat
       validates field.to_sym, absence: { message: 'cannot have an entry if refusing to answer' }, if: -> { send([field, '_refused?'].join.to_sym) }
     end
 
-    validates :contact_method, inclusion: { in: contact_answers.keys }, if: -> { completed? }
+    # FIXME not sure if this is correct
+    validates :contact_method, inclusion: { in: contact_methods.keys }, if: -> { completed? }
 
     ####################
     # Scopes

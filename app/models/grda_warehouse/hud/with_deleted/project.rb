@@ -10,7 +10,7 @@ module GrdaWarehouse::Hud::WithDeleted
   class Project < GrdaWarehouse::Hud::Project
     default_scope { unscope where: paranoia_column }
 
-    has_many :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', foreign_key: [:ProjectID, :data_source_id], primary_key: [:ProjectID, :data_source_id]
+    has_many :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', query_constraints: [:ProjectID, :data_source_id], primary_key: [:ProjectID, :data_source_id]
     alias_attribute :project_cocs, :project_cocs_with_deleted
   end
 end

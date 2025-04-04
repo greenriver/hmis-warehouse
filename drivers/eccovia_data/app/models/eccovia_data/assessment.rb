@@ -8,7 +8,7 @@ module EccoviaData
   class Assessment < GrdaWarehouseBase
     include Shared
     self.table_name = :eccovia_assessments
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: [:client_id, :data_source_id], primary_key: [:PersonalID, :data_source_id]
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', query_constraints: [:client_id, :data_source_id], primary_key: [:PersonalID, :data_source_id]
     acts_as_paranoid
 
     def self.fetch_updated(data_source_id:, credentials:)

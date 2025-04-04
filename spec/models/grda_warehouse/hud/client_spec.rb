@@ -394,7 +394,9 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         enrollments.each do |en|
           GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(en.id).rebuild_service_history!
         end
+
         aggregate_failures 'checking' do
+          #byebug
           expect(enrollments.map(&:new_episode?).count(true)).to eq(3)
           expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2014-01-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(3)
           expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2015-05-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(2)

@@ -12,7 +12,7 @@ module SupplementalEnrollmentData
     self.table_name = :enrollment_extras
     belongs_to :file, class_name: '::GrdaWarehouse::NonHmisUpload'
     belongs_to :enrollment, class_name: '::GrdaWarehouse::Hud::Enrollment', optional: true
-    has_many :client, class_name: '::GrdaWarehouse::Hud::Client', foreign_key: [:PersonalID, :data_source_id], primary_key: [:client_id, :data_source_id]
+    has_many :client, class_name: '::GrdaWarehouse::Hud::Client', query_constraints: [:PersonalID, :data_source_id], primary_key: [:client_id, :data_source_id]
 
     def self.title
       'Supplemental Enrollment Data'

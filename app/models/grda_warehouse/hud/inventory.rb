@@ -35,7 +35,7 @@ module GrdaWarehouse::Hud
     # has_one :project, through: :project_coc, source: :project
     has_one :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :inventories
     belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :inventories, optional: true
-    belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :inventories, optional: true
+    belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], query_constraints: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :inventories, optional: true
     belongs_to :data_source
 
     alias_attribute :start_date, :InventoryStartDate

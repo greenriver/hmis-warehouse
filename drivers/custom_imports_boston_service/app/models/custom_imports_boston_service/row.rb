@@ -10,10 +10,10 @@ module CustomImportsBostonService
     belongs_to :import_file
 
     has_one :project, through: :enrollment
-    belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', primary_key: [:OrganizationID, :data_source_id], foreign_key: [:agency_id, :data_source_id], optional: true
+    belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', primary_key: [:OrganizationID, :data_source_id], query_constraints: [:agency_id, :data_source_id], optional: true
 
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: [:PersonalID, :data_source_id], foreign_key: [:personal_id, :data_source_id], optional: true
-    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: [:EnrollmentID, :data_source_id], foreign_key: [:enrollment_id, :data_source_id], optional: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: [:PersonalID, :data_source_id], query_constraints: [:personal_id, :data_source_id], optional: true
+    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: [:EnrollmentID, :data_source_id], query_constraints: [:enrollment_id, :data_source_id], optional: true
     has_one :service, -> do
       where(source_type: 'CustomImportsBostonService::Row')
     end, class_name: 'GrdaWarehouse::Generic::Service', primary_key: :id, foreign_key: :source_id

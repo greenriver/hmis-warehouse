@@ -278,7 +278,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -307,7 +307,9 @@ CREATE TABLE public."Affiliation" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED,
+    ds_affiliation_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("AffiliationID")::text)) STORED
 );
 
 
@@ -333,6 +335,18 @@ CREATE VIEW analytics.affiliations AS
 
 
 --
+-- Name: app_users; Type: TABLE; Schema: analytics; Owner: -
+--
+
+CREATE TABLE analytics.app_users (
+    id bigint NOT NULL,
+    first_name character varying,
+    last_name character varying,
+    email character varying
+);
+
+
+--
 -- Name: AssessmentQuestions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -353,7 +367,13 @@ CREATE TABLE public."AssessmentQuestions" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying
+    source_hash character varying,
+    ds_assessmentquestion_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("AssessmentQuestionID")::text)) STORED,
+    ds_assessment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("AssessmentID")::text)) STORED,
+    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
+    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
@@ -402,7 +422,13 @@ CREATE TABLE public."AssessmentResults" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying
+    source_hash character varying,
+    ds_assessmentresult_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("AssessmentResultID")::text)) STORED,
+    ds_assessment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("AssessmentID")::text)) STORED,
+    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
+    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
@@ -452,7 +478,12 @@ CREATE TABLE public."Assessment" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    synthetic boolean DEFAULT false
+    synthetic boolean DEFAULT false,
+    ds_assessment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("AssessmentID")::text)) STORED,
+    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
+    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
@@ -564,6 +595,47 @@ CREATE VIEW analytics.ch_enrollments AS
     created_at,
     updated_at
    FROM public.ch_enrollments;
+
+
+--
+-- Name: clh_locations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.clh_locations (
+    id bigint NOT NULL,
+    client_id bigint,
+    source_type character varying,
+    source_id bigint,
+    located_on date,
+    lat double precision,
+    lon double precision,
+    collected_by character varying,
+    processed_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    enrollment_id bigint,
+    located_at timestamp(6) without time zone
+);
+
+
+--
+-- Name: client_geolocations; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.client_geolocations AS
+ SELECT id,
+    client_id,
+    source_type,
+    source_id,
+    located_on,
+    lat,
+    lon,
+    created_at,
+    updated_at,
+    located_at
+   FROM public.clh_locations
+  WHERE ((deleted_at IS NULL) AND (lat IS NOT NULL) AND (lon IS NOT NULL));
 
 
 --
@@ -707,7 +779,9 @@ CREATE TABLE public."Client" (
     "DifferentIdentityText" character varying,
     search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE("FirstName", ''::character varying))::text || ' '::text) || (COALESCE("MiddleName", ''::character varying))::text) || ' '::text) || (COALESCE("LastName", ''::character varying))::text))) STORED,
     search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED,
-    lock_version integer DEFAULT 0 NOT NULL
+    lock_version integer DEFAULT 0 NOT NULL,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED,
+    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED
 );
 
 
@@ -1308,7 +1382,8 @@ CREATE TABLE public."CurrentLivingSituation" (
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
     "CLSSubsidyType" integer,
-    verified_by_project_id bigint
+    verified_by_project_id bigint,
+    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED
 );
 
 
@@ -1992,7 +2067,12 @@ CREATE TABLE public."Disabilities" (
     id integer NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "AntiRetroviral" integer
+    "AntiRetroviral" integer,
+    ds_disabilities_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("DisabilitiesID")::text)) STORED,
+    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
+    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
@@ -2056,7 +2136,12 @@ CREATE TABLE public."EmploymentEducation" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
+    ds_employmenteducation_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EmploymentEducationID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
@@ -2282,7 +2367,12 @@ CREATE TABLE public."Enrollment" (
     "PreferredLanguageDifferent" character varying,
     "VAMCStation" character varying,
     lock_version integer DEFAULT 0 NOT NULL,
-    project_pk bigint
+    project_pk bigint,
+    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED,
+    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED,
+    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED
 );
 
 
@@ -2458,7 +2548,12 @@ CREATE TABLE public."Event" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    synthetic boolean DEFAULT false
+    synthetic boolean DEFAULT false,
+    ds_event_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EventID")::text)) STORED,
+    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
+    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
@@ -2557,7 +2652,12 @@ CREATE TABLE public."Exit" (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "DestinationSubsidyType" integer,
-    auto_exited timestamp without time zone
+    auto_exited timestamp without time zone,
+    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
+    ds_exit_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExitID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
@@ -2572,27 +2672,13 @@ CREATE VIEW analytics.exits AS
     "ExitDate",
     "Destination",
     "OtherDestination",
-    "AssessmentDisposition",
-    "OtherDisposition",
     "HousingAssessment",
     "SubsidyInformation",
-    "ConnectionWithSOAR",
-    "WrittenAftercarePlan",
-    "AssistanceMainstreamBenefits",
-    "PermanentHousingPlacement",
-    "TemporaryShelterPlacement",
-    "ExitCounseling",
-    "FurtherFollowUpServices",
-    "ScheduledFollowUpContacts",
-    "ResourcePackage",
-    "OtherAftercarePlanOrAction",
     "ProjectCompletionStatus",
     "EarlyExitReason",
-    "FamilyReunificationAchieved",
     "DateCreated",
     "DateUpdated",
     "UserID",
-    "DateDeleted",
     "ExportID",
     data_source_id,
     id,
@@ -2624,10 +2710,9 @@ CREATE VIEW analytics.exits AS
     "InPersonIndividual",
     "InPersonGroup",
     "CMExitReason",
-    source_hash,
-    pending_date_deleted,
     "DestinationSubsidyType",
-    auto_exited
+    auto_exited,
+    (auto_exited IS NOT NULL) AS is_auto_exited
    FROM public."Exit"
   WHERE ("DateDeleted" IS NULL);
 
@@ -2775,7 +2860,9 @@ CREATE TABLE public."Funder" (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "OtherFunder" character varying,
-    manual_entry boolean DEFAULT false
+    manual_entry boolean DEFAULT false,
+    ds_funder_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("FunderID")::text)) STORED,
+    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED
 );
 
 
@@ -2836,7 +2923,12 @@ CREATE TABLE public."HealthAndDV" (
     "SupportFromOthers" integer,
     "BounceBack" integer,
     "FeelingFrequency" integer,
-    "DomesticViolenceSurvivor" integer
+    "DomesticViolenceSurvivor" integer,
+    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
+    ds_healthanddv_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("HealthAndDVID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
@@ -2874,6 +2966,114 @@ CREATE VIEW analytics.health_and_dvs AS
     "DomesticViolenceSurvivor"
    FROM public."HealthAndDV"
   WHERE ("DateDeleted" IS NULL);
+
+
+--
+-- Name: CustomCaseNote; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomCaseNote" (
+    id bigint NOT NULL,
+    "CustomCaseNoteID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "EnrollmentID" character varying,
+    data_source_id bigint NOT NULL,
+    content text NOT NULL,
+    "UserID" character varying,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "DateDeleted" timestamp without time zone,
+    information_date date
+);
+
+
+--
+-- Name: hmis_case_notes; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.hmis_case_notes AS
+ SELECT id,
+    "PersonalID" AS personal_id,
+    "EnrollmentID" AS enrollment_id,
+    data_source_id,
+    content,
+    "UserID" AS user_id,
+    "DateCreated" AS date_created,
+    "DateUpdated" AS date_updated,
+    information_date
+   FROM public."CustomCaseNote"
+  WHERE ("DateDeleted" IS NULL);
+
+
+--
+-- Name: hmis_client_alerts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_client_alerts (
+    id bigint NOT NULL,
+    note text NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    expiration_date date,
+    created_by_id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    priority character varying
+);
+
+
+--
+-- Name: hmis_client_alerts; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.hmis_client_alerts AS
+ SELECT id,
+    note,
+    created_at,
+    updated_at,
+    expiration_date,
+    created_by_id,
+    client_id,
+    priority
+   FROM public.hmis_client_alerts
+  WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: hmis_external_form_submissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_form_submissions (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    submitted_at timestamp without time zone,
+    spam_score double precision,
+    status character varying DEFAULT 'new'::character varying NOT NULL,
+    definition_id bigint NOT NULL,
+    object_key character varying NOT NULL,
+    raw_data jsonb NOT NULL,
+    notes text,
+    enrollment_id bigint
+);
+
+
+--
+-- Name: hmis_external_form_submissions; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.hmis_external_form_submissions AS
+ SELECT id,
+    created_at,
+    updated_at,
+    submitted_at,
+    spam_score,
+    status,
+    definition_id,
+    object_key,
+    notes,
+    enrollment_id
+   FROM public.hmis_external_form_submissions;
 
 
 --
@@ -3022,7 +3222,8 @@ CREATE TABLE public."HMISParticipation" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted date,
-    source_hash character varying
+    source_hash character varying,
+    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED
 );
 
 
@@ -3047,6 +3248,59 @@ CREATE VIEW analytics.hmis_participations AS
     source_hash
    FROM public."HMISParticipation"
   WHERE ("DateDeleted" IS NULL);
+
+
+--
+-- Name: hmis_staff_assignment_relationships; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_staff_assignment_relationships (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN hmis_staff_assignment_relationships.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_staff_assignment_relationships.name IS 'name of role, such as "Case Manager" or "Housing Navigator"';
+
+
+--
+-- Name: hmis_staff_assignments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_staff_assignments (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    household_id character varying,
+    hmis_staff_assignment_relationship_id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_staff_assignments; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.hmis_staff_assignments AS
+ SELECT hmis_staff_assignments.id,
+    hmis_staff_assignments.user_id,
+    hmis_staff_assignments.household_id,
+    hmis_staff_assignment_relationships.name,
+    hmis_staff_assignments.data_source_id,
+    hmis_staff_assignments.created_at,
+    hmis_staff_assignments.updated_at
+   FROM (public.hmis_staff_assignments
+     LEFT JOIN public.hmis_staff_assignment_relationships ON (((hmis_staff_assignment_relationships.deleted_at IS NULL) AND (hmis_staff_assignment_relationships.id = hmis_staff_assignments.hmis_staff_assignment_relationship_id))))
+  WHERE (hmis_staff_assignments.deleted_at IS NULL);
 
 
 --
@@ -3140,7 +3394,12 @@ CREATE TABLE public."IncomeBenefits" (
     "RyanWhiteMedDent" integer,
     "NoRyanWhiteReason" integer,
     "VHAServices" integer,
-    "NoVHAReason" character varying
+    "NoVHAReason" character varying,
+    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
+    ds_incomebenefits_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("IncomeBenefitsID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
@@ -3279,7 +3538,8 @@ CREATE TABLE public."Inventory" (
     deleted_coc_code_override character varying,
     deleted_inventory_start_date_override date,
     deleted_inventory_end_date_override date,
-    manual_entry boolean DEFAULT false
+    manual_entry boolean DEFAULT false,
+    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED
 );
 
 
@@ -3478,7 +3738,10 @@ CREATE TABLE public."Organization" (
     "VictimServiceProvider" integer,
     confidential boolean DEFAULT false NOT NULL,
     description character varying,
-    contact_information character varying
+    contact_information character varying,
+    ds_organization_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("OrganizationID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
@@ -3537,7 +3800,11 @@ CREATE TABLE public."ProjectCoC" (
     deleted_geography_type_override integer,
     deleted_geocode_override character varying(6),
     deleted_zip_override character varying,
-    manual_entry boolean DEFAULT false
+    manual_entry boolean DEFAULT false,
+    ds_projectcoc_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectCoCID")::text)) STORED,
+    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
@@ -3676,7 +3943,11 @@ CREATE TABLE public."Project" (
     "HOPWAMedAssistedLivingFac" integer,
     description character varying,
     contact_information character varying,
-    "RRHSubType" integer
+    "RRHSubType" integer,
+    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED,
+    ds_organization_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("OrganizationID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
@@ -3751,7 +4022,12 @@ CREATE TABLE public."Services" (
     pending_date_deleted timestamp without time zone,
     "MovingOnOtherType" character varying,
     "FAStartDate" date,
-    "FAEndDate" date
+    "FAEndDate" date,
+    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
+    ds_services_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ServicesID")::text)) STORED,
+    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
@@ -3804,7 +4080,9 @@ CREATE TABLE public."User" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying
+    source_hash character varying,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
@@ -3899,7 +4177,12 @@ CREATE TABLE public."YouthEducationStatus" (
     data_source_id integer,
     pending_date_deleted date,
     source_hash character varying,
-    synthetic boolean DEFAULT false
+    synthetic boolean DEFAULT false,
+    ds_youtheducationstatus_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("YouthEducationStatusID")::text)) STORED,
+    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
+    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
@@ -4199,25 +4482,6 @@ CREATE SEQUENCE public."CustomAssessments_id_seq"
 --
 
 ALTER SEQUENCE public."CustomAssessments_id_seq" OWNED BY public."CustomAssessments".id;
-
-
---
--- Name: CustomCaseNote; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."CustomCaseNote" (
-    id bigint NOT NULL,
-    "CustomCaseNoteID" character varying NOT NULL,
-    "PersonalID" character varying NOT NULL,
-    "EnrollmentID" character varying,
-    data_source_id bigint NOT NULL,
-    content text NOT NULL,
-    "UserID" character varying,
-    "DateCreated" timestamp without time zone,
-    "DateUpdated" timestamp without time zone,
-    "DateDeleted" timestamp without time zone,
-    information_date date
-);
 
 
 --
@@ -6647,28 +6911,6 @@ CREATE SEQUENCE public.chronics_id_seq
 --
 
 ALTER SEQUENCE public.chronics_id_seq OWNED BY public.chronics.id;
-
-
---
--- Name: clh_locations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.clh_locations (
-    id bigint NOT NULL,
-    client_id bigint,
-    source_type character varying,
-    source_id bigint,
-    located_on date,
-    lat double precision,
-    lon double precision,
-    collected_by character varying,
-    processed_at timestamp without time zone,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    enrollment_id bigint,
-    located_at timestamp(6) without time zone
-);
 
 
 --
@@ -14504,23 +14746,6 @@ ALTER SEQUENCE public.hmis_case_notes_id_seq OWNED BY public.hmis_case_notes.id;
 
 
 --
--- Name: hmis_client_alerts; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_client_alerts (
-    id bigint NOT NULL,
-    note text NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    expiration_date date,
-    created_by_id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    priority character varying
-);
-
-
---
 -- Name: hmis_client_alerts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -19068,25 +19293,6 @@ ALTER SEQUENCE public.hmis_external_form_publications_id_seq OWNED BY public.hmi
 
 
 --
--- Name: hmis_external_form_submissions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_external_form_submissions (
-    id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    submitted_at timestamp without time zone,
-    spam_score double precision,
-    status character varying DEFAULT 'new'::character varying NOT NULL,
-    definition_id bigint NOT NULL,
-    object_key character varying NOT NULL,
-    raw_data jsonb NOT NULL,
-    notes text,
-    enrollment_id bigint
-);
-
-
---
 -- Name: hmis_external_form_submissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -19835,26 +20041,6 @@ CREATE TABLE public.hmis_staff (
 
 
 --
--- Name: hmis_staff_assignment_relationships; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_staff_assignment_relationships (
-    id bigint NOT NULL,
-    name character varying NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: COLUMN hmis_staff_assignment_relationships.name; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.hmis_staff_assignment_relationships.name IS 'name of role, such as "Case Manager" or "Housing Navigator"';
-
-
---
 -- Name: hmis_staff_assignment_relationships_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -19871,22 +20057,6 @@ CREATE SEQUENCE public.hmis_staff_assignment_relationships_id_seq
 --
 
 ALTER SEQUENCE public.hmis_staff_assignment_relationships_id_seq OWNED BY public.hmis_staff_assignment_relationships.id;
-
-
---
--- Name: hmis_staff_assignments; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_staff_assignments (
-    id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    household_id character varying,
-    hmis_staff_assignment_relationship_id bigint NOT NULL,
-    data_source_id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
 
 
 --
@@ -36468,6 +36638,13 @@ ALTER TABLE ONLY public.youth_intakes
 
 ALTER TABLE ONLY public.youth_referrals
     ADD CONSTRAINT youth_referrals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: index_analytics.app_users_on_id; Type: INDEX; Schema: analytics; Owner: -
+--
+
+CREATE UNIQUE INDEX "index_analytics.app_users_on_id" ON analytics.app_users USING btree (id);
 
 
 --
@@ -65832,138 +66009,140 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20230127151606'),
-('20240711183824'),
-('20240717205642'),
-('20240729171457'),
-('20240730140758'),
-('20240731144633'),
-('20240731155357'),
-('20240808042801'),
-('20240815175202'),
-('20240821180638'),
-('20240829142856'),
-('20240829152828'),
-('20240909150028'),
-('20240912125052'),
-('20240913130213'),
-('20240916182206'),
-('20240918170406'),
-('20240918171315'),
-('20240920203113'),
-('20241003194213'),
-('20241005004713'),
-('20241010005805'),
-('20241011182445'),
-('20241016010729'),
-('20241017181722'),
-('20241017183109'),
-('20241018170014'),
-('20241018174906'),
-('20241018175039'),
-('20241018220220'),
-('20241021182945'),
-('20241022185534'),
-('20241023021050'),
-('20241030133448'),
-('20241030133449'),
-('20241030133450'),
-('20241031145454'),
-('20241101134230'),
-('20241101160422'),
-('20241106163541'),
-('20241110005806'),
-('20241110005807'),
-('20241111143412'),
-('20241111212106'),
-('20241112181349'),
-('20241118125719'),
-('20241118130304'),
-('20241118135740'),
-('20241118145136'),
-('20241118145145'),
-('20241118145155'),
-('20241118145204'),
-('20241118145213'),
-('20241118145222'),
-('20241118145231'),
-('20241118145240'),
-('20241118145249'),
-('20241118145258'),
-('20241118145307'),
-('20241118145316'),
-('20241118145325'),
-('20241118145334'),
-('20241118145343'),
-('20241118145353'),
-('20241118145402'),
-('20241118145411'),
-('20241118145419'),
-('20241118145428'),
-('20241118145438'),
-('20241118183854'),
-('20241118204635'),
-('20241118204644'),
-('20241118204653'),
-('20241118204702'),
-('20241118204712'),
-('20241118204721'),
-('20241118204730'),
-('20241118204740'),
-('20241118204750'),
-('20241118204759'),
-('20241118204808'),
-('20241118204818'),
-('20241118204827'),
-('20241118204837'),
-('20241118204846'),
-('20241118204856'),
-('20241118204906'),
-('20241118204915'),
-('20241118204926'),
-('20241118204936'),
-('20241118204945'),
-('20241118204954'),
-('20241118205004'),
-('20241118205014'),
-('20241118205024'),
-('20241118205033'),
-('20241118205043'),
-('20241118205103'),
-('20241118210256'),
-('20241118210556'),
-('20241122135153'),
-('20241125132725'),
-('20241125133759'),
-('20241125133814'),
-('20241126143802'),
-('20241127144123'),
-('20241127162253'),
-('20241203154140'),
-('20241203154146'),
-('20241206145315'),
-('20241213204702'),
-('20241213204837'),
-('20241216184819'),
-('20241217210211'),
-('20250116145506'),
-('20250117174547'),
-('20250121204933'),
-('20250203142317'),
-('20250213173031'),
-('20250221151129'),
-('20250222234500'),
-('20250226145730'),
-('20250226211623'),
-('20250226212117'),
-('20250304140538'),
-('20250304141538'),
-('20250304141815'),
-('20250304143644'),
-('20250304143654'),
-('20250304143714'),
-('20250313125655'),
+('20250402213140'),
+('20250323134302'),
+('20250319125533'),
+('20250319023546'),
 ('20250313153011'),
-('20250319125533');
-
+('20250313125655'),
+('20250304143714'),
+('20250304143654'),
+('20250304143644'),
+('20250304141815'),
+('20250304141538'),
+('20250304140538'),
+('20250226212117'),
+('20250226211623'),
+('20250226145730'),
+('20250222234500'),
+('20250221151129'),
+('20250213173031'),
+('20250203142317'),
+('20250121204933'),
+('20250117174547'),
+('20250116145506'),
+('20241217210211'),
+('20241216184819'),
+('20241213204837'),
+('20241213204702'),
+('20241206145315'),
+('20241203154146'),
+('20241203154140'),
+('20241127162253'),
+('20241127144123'),
+('20241126143802'),
+('20241125133814'),
+('20241125133759'),
+('20241125132725'),
+('20241122135153'),
+('20241118210556'),
+('20241118210256'),
+('20241118205103'),
+('20241118205043'),
+('20241118205033'),
+('20241118205024'),
+('20241118205014'),
+('20241118205004'),
+('20241118204954'),
+('20241118204945'),
+('20241118204936'),
+('20241118204926'),
+('20241118204915'),
+('20241118204906'),
+('20241118204856'),
+('20241118204846'),
+('20241118204837'),
+('20241118204827'),
+('20241118204818'),
+('20241118204808'),
+('20241118204759'),
+('20241118204750'),
+('20241118204740'),
+('20241118204730'),
+('20241118204721'),
+('20241118204712'),
+('20241118204702'),
+('20241118204653'),
+('20241118204644'),
+('20241118204635'),
+('20241118183854'),
+('20241118145438'),
+('20241118145428'),
+('20241118145419'),
+('20241118145411'),
+('20241118145402'),
+('20241118145353'),
+('20241118145343'),
+('20241118145334'),
+('20241118145325'),
+('20241118145316'),
+('20241118145307'),
+('20241118145258'),
+('20241118145249'),
+('20241118145240'),
+('20241118145231'),
+('20241118145222'),
+('20241118145213'),
+('20241118145204'),
+('20241118145155'),
+('20241118145145'),
+('20241118145136'),
+('20241118135740'),
+('20241118130304'),
+('20241118125719'),
+('20241112181349'),
+('20241111212106'),
+('20241111143412'),
+('20241110005807'),
+('20241110005806'),
+('20241106163541'),
+('20241101160422'),
+('20241101134230'),
+('20241031145454'),
+('20241030133450'),
+('20241030133449'),
+('20241030133448'),
+('20241023021050'),
+('20241022185534'),
+('20241021182945'),
+('20241018220220'),
+('20241018175039'),
+('20241018174906'),
+('20241018170014'),
+('20241017183109'),
+('20241017181722'),
+('20241016010729'),
+('20241011182445'),
+('20241010005805'),
+('20241005004713'),
+('20241003194213'),
+('20240920203113'),
+('20240918171315'),
+('20240918170406'),
+('20240916182206'),
+('20240913130213'),
+('20240912125052'),
+('20240909150028'),
+('20240829152828'),
+('20240829142856'),
+('20240821180638'),
+('20240815175202'),
+('20240808042801'),
+('20240731155357'),
+('20240731144633'),
+('20240730140758'),
+('20240729171457'),
+('20240717205642'),
+('20240711183824'),
+('20230127151606');
 
