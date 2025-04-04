@@ -6,7 +6,6 @@
 
 # frozen_string_literal: true
 
-
 require 'dotenv'
 require 'active_support/core_ext/object/blank'
 Dotenv.load('.env', '.env.local')
