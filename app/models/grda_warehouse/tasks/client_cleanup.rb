@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # NOTE: To force a rebuild that includes data that isn't the dates involved, you need to
 # also set the processed_hash on the enrollment to nil
 
@@ -26,6 +28,12 @@ module GrdaWarehouse::Tasks
       @soft_delete_date = Time.now
       @dry_run = dry_run
       @destination_ids = Array.wrap(destination_ids)
+    end
+
+    # a helper method so client cleanup can be called with .delay
+    # GrdaWarehouse::Tasks::ClientCleanup.delay.set(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run_for_clients(to_clean)
+    def self.run_for_clients(client_ids)
+      new(destination_ids: Array.wrap(client_ids)).run!
     end
 
     def run!

@@ -2165,6 +2165,7 @@ module GrdaWarehouse::Hud
       dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
 
       GrdaWarehouse::Hud::Base.transaction do
+        to_clean = []
         client_ids.each do |client_id|
           c = self.class.find(client_id)
           c.warehouse_client_source.destroy if c.warehouse_client_source.present?
@@ -2196,9 +2197,14 @@ module GrdaWarehouse::Hud
           destination_client.move_dependent_hmis_items(id, destination_client.id) if receive_hmis
           destination_client.move_dependent_health_items(id, destination_client.id) if receive_health
 
+          to_clean << destination_client.id
+          to_clean << client_id
+
           client_names << c.full_name
         end
       end
+
+      GrdaWarehouse::Tasks::ClientCleanup.delay.set(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run_for_clients(to_clean)
 
       client_names
     end
@@ -2209,22 +2215,24 @@ module GrdaWarehouse::Hud
     #
     # returns the source client records that moved
     def merge_from(other_client, reviewed_by:, reviewed_at:, client_match_id: nil)
-      raise 'only works for destination_clients' unless self.destination? # rubocop:disable Style/RedundantSelf
+      raise 'only works for destination_clients' unless destination?
 
       setup_notifier('PatientMerger') unless @notifier
       moved = []
+      to_clean = [id]
       transaction do
         # get the existing destination client for other_client
         prev_destination_client = if other_client.destination_client
           other_client.destination_client
         elsif other_client.destination?
+          to_clean << other_client.id
           other_client
         end
         # if it had sources then move those over to us
         # and say who made the decision and when
         other_client.source_clients.each do |m|
           m.warehouse_client_source.update!(
-            destination_id: self.id, # rubocop:disable Style/RedundantSelf
+            destination_id: id,
             reviewed_at: reviewed_at,
             reviewd_by: reviewed_by.id,
             client_match_id: client_match_id,
@@ -2234,7 +2242,7 @@ module GrdaWarehouse::Hud
         # if we are a source, move us
         if other_client.warehouse_client_source
           other_client.warehouse_client_source.update!(
-            destination_id: self.id, # rubocop:disable Style/RedundantSelf
+            destination_id: id,
             reviewed_at: reviewed_at,
             reviewd_by: reviewed_by.id,
             client_match_id: client_match_id,
@@ -2245,10 +2253,10 @@ module GrdaWarehouse::Hud
         if prev_destination_client
           # move any CAS column data
           previous_cas_columns = prev_destination_client.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
-          current_cas_columns = self.attributes.slice(*self.class.cas_columns.keys.map(&:to_s)) # rubocop:disable Style/RedundantSelf
+          current_cas_columns = attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
           current_cas_columns.merge!(previous_cas_columns) { |_k, old, new| old.presence || new }
-          self.update(current_cas_columns) # rubocop:disable Style/RedundantSelf
-          self.save # rubocop:disable Style/RedundantSelf
+          update(current_cas_columns)
+          save!
 
           prev_destination_client.force_full_service_history_rebuild
           prev_destination_client.source_clients.reload
@@ -2258,14 +2266,15 @@ module GrdaWarehouse::Hud
             prev_destination_client.destroy
           end
 
-          move_dependent_items(prev_destination_client.id, self.id) # rubocop:disable Style/RedundantSelf
+          move_dependent_items(prev_destination_client.id, id)
+          to_clean << prev_destination_client.id
         end
         # and invalidate our own service history
         force_full_service_history_rebuild
         # and invalidate any cache for these clients
         self.class.clear_view_cache(prev_destination_client.id) if prev_destination_client.present?
       end
-      self.class.clear_view_cache(self.id) # rubocop:disable Style/RedundantSelf
+      self.class.clear_view_cache(id)
       self.class.clear_view_cache(other_client.id)
       # un-match anyone who we just moved so they don't show up in the matching again until they've been checked
       moved.each do |m|
@@ -2274,6 +2283,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::ClientMatch.processed_or_candidate.
           where(destination_client_id: m.id).destroy_all
       end
+      GrdaWarehouse::Tasks::ClientCleanup.delay.set(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run_for_clients(to_clean)
       moved
     rescue Health::MedicaidIdConflict => e
       @notifier.ping(

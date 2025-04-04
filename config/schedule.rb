@@ -29,7 +29,7 @@ import_schedule = ENV['IMPORT_SCHEDULE'] || '5:30 pm'
 export_schedule = if ENV['DAILY_EXPORT_SCHEDULE'].nil? || ENV['DAILY_EXPORT_SCHEDULE'].empty? then (Time.parse(daily_schedule) - 2.hours).strftime('%I:%M %P') else ENV['DAILY_EXPORT_SCHEDULE'] end
 file_cleaning_schedule = (Time.parse(daily_schedule) - 5.minutes).strftime('%I:%M %P')
 import_prefetch_schedule = (Time.parse(import_schedule) - 4.hours).strftime('%I:%M %P')
-census_schedule = (Time.parse(import_schedule) - 5.hours).strftime('%I:%M %P')
+monthly_schedule = (Time.parse(import_schedule) - 5.hours).strftime('%I:%M %P')
 import_cleanup_time = Time.parse(import_schedule) + 9.hours
 
 health_trigger = ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
@@ -128,9 +128,9 @@ tasks = [
     interruptable: false,
   },
   {
-    task: 'us_census_api:all',
+    task: 'grda_warehouse:monthly',
     frequency: 1.month,
-    at: census_schedule,
+    at: monthly_schedule,
     interruptable: false,
   },
   {
