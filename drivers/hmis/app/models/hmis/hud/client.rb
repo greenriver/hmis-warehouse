@@ -6,6 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class Hmis::Hud::Client < Hmis::Hud::Base
   extend OrderAsSpecified
   include ::HmisStructure::Client
@@ -210,10 +212,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     return Hmis::Hud::Client.none unless source_id.present?
 
     searchable_to(user).where(id: source_id)
-  end
-
-  def ssn_serial
-    self.SSN&.[](-4..-1)
   end
 
   def warehouse_id
