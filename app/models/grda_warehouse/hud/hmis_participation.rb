@@ -16,9 +16,9 @@ module GrdaWarehouse::Hud
     self.table_name = :HMISParticipation
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :hmis_participations, optional: true
-    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :hmis_participations, optional: true
-    belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :hmis_participations, optional: true
+    composite_belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :hmis_participations, optional: true
+    composite_belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :hmis_participations, optional: true
+    composite_belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :hmis_participations, optional: true
     belongs_to :data_source, optional: true
   end
 end

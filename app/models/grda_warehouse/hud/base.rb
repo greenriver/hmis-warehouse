@@ -6,6 +6,7 @@
 
 module GrdaWarehouse::Hud
   class Base < GrdaWarehouseBase
+    include CompositeKeyAssignable
     self.abstract_class = true
     self.lock_optimistically = false
     self.ignored_columns += [:lock_version]

@@ -47,6 +47,7 @@ class ReplaceCompositeKeys < ActiveRecord::Migration[7.1]
       ['Project', 'ExportID'],
       ['Client', 'ExportID'],
       ['Client', 'PersonalID'],
+      ['Client', 'UserID'],
       ['HMISParticipation', 'ProjectID'],
       ['CurrentLivingSituation', 'EnrollmentID'],
       ['Organization', 'OrganizationID'],

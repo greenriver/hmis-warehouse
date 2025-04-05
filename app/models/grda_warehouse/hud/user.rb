@@ -40,7 +40,7 @@ module GrdaWarehouse::Hud
     has_many :hmis_participations, **hud_assoc(:UserID, 'HmisParticipation')
     has_many :ce_participations, **hud_assoc(:UserID, 'CeParticipation')
 
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :users, optional: true
+    composite_belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :users, optional: true
     belongs_to :data_source
 
     def name

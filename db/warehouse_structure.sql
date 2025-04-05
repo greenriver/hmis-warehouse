@@ -781,7 +781,8 @@ CREATE TABLE public."Client" (
     search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED,
     lock_version integer DEFAULT 0 NOT NULL,
     ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED,
-    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED
+    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED
 );
 
 
