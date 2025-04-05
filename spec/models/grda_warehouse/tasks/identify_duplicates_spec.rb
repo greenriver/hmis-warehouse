@@ -17,6 +17,11 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
   let(:destination_scope) { GrdaWarehouse::Hud::Client.destination }
   let(:user) { create :user }
 
+  # Clients need enrollments or ClientCleanup will delete them
+  let!(:organization) { create(:hud_organization, data_source: source_data_source) }
+  let!(:project) { create(:hud_project, project_type: 13, organization: organization, data_source: source_data_source) }
+  let!(:enrollment) { create(:hud_enrollment, client: client_in_source, project: project, data_source: source_data_source, entry_date: 1.weeks.ago) }
+
   describe 'When matching is enabled' do
     before(:all) { GrdaWarehouse::Utility.clear! }
     after(:each) { @config.invalidate_cache }

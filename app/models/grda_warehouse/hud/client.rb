@@ -2162,7 +2162,7 @@ module GrdaWarehouse::Hud
 
     def split(client_ids, hmis_receiver_id, health_receiver_id, current_user)
       client_names = []
-      to_clean = []
+      to_clean = [id]
       dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
 
       GrdaWarehouse::Hud::Base.transaction do
@@ -2203,7 +2203,6 @@ module GrdaWarehouse::Hud
           client_names << c.full_name
         end
       end
-
       GrdaWarehouse::Tasks::ClientCleanup.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run_for_clients(to_clean)
 
       client_names
@@ -2214,7 +2213,7 @@ module GrdaWarehouse::Hud
     # if it's a destination record, all of its sources will move and it will be deleted
     #
     # returns the source client records that moved
-    def merge_from(other_client, reviewed_by:, reviewed_at:, client_match_id: nil, run_cleanup: true)
+    def merge_from(other_client, reviewed_by:, reviewed_at:, client_match_id: nil)
       raise 'only works for destination_clients' unless destination?
 
       setup_notifier('PatientMerger') unless @notifier
@@ -2283,7 +2282,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::ClientMatch.processed_or_candidate.
           where(destination_client_id: m.id).destroy_all
       end
-      GrdaWarehouse::Tasks::ClientCleanup.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run_for_clients(to_clean) if run_cleanup
+      GrdaWarehouse::Tasks::ClientCleanup.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run_for_clients(to_clean)
       moved
     rescue Health::MedicaidIdConflict => e
       @notifier.ping(

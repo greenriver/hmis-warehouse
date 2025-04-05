@@ -153,7 +153,7 @@ module GrdaWarehouse::Tasks
         next unless destination.present? && source.present?
 
         begin
-          destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current, run_cleanup: false)
+          destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current)
         rescue Exception => e
           Rails.logger.error(e.to_s)
           if @send_notifications
