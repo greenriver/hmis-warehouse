@@ -537,7 +537,10 @@ CREATE TABLE public."CEParticipation" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted date,
-    source_hash character varying
+    source_hash character varying,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED,
+    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED
 );
 
 
@@ -2745,7 +2748,8 @@ CREATE TABLE public."Export" (
     effective_export_end_date date,
     source_hash character varying,
     "CSVVersion" character varying,
-    "ImplementationID" character varying
+    "ImplementationID" character varying,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
 );
 
 
