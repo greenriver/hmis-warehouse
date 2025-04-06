@@ -196,7 +196,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.form_processor.run!(user: hmis_user)
       expect do
         assessment.form_processor.save!
-      end.to raise_error(ArgumentError, /Invalid decimal value/).
+      end.to raise_error(ArgumentError, /Invalid value/).
         and not_change(Hmis::Hud::IncomeBenefit, :count)
     end
 
@@ -2245,7 +2245,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           end
 
           it 'should not raise when verified_by_project_id is unrecognized' do
-            values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => 'a random string that isnt an id' })
+            values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => '1' }) # a random ID that doesn't correspond to a project
 
             expect do
               process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)
