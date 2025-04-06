@@ -97,13 +97,10 @@ module Importers::HmisAutoMigrate
     end
 
     private def add_content_to_upload_and_save(file_path:)
-      path = Pathname.new(file_path)
-      @upload.hmis_zip.attach(
-        io: path.open,
-        filename: path.basename,
-      )
+      @upload.hmis_zip = File.open(file_path)
       @upload.file = 'See S3' # Temporary until we remove the column
       @upload.save!
+      @upload.save! # rails 7.1 - why do we need to save twice (for tests)
       @upload.id
     end
   end
