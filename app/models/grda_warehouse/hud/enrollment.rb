@@ -163,6 +163,8 @@ module GrdaWarehouse::Hud
       visible_to(user)
     end
 
+    # this scope in the ClientAccessControl::GrdaWarehouse::Hud::EnrollmentExtension
+    # TODO: why not just define it here
     scope :visible_to, ->(_user) do
       none
     end
