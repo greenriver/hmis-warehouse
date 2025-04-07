@@ -24,8 +24,8 @@ module Hmis::Hud::Processors
       # See the hack described in HmisSchema::CurrentLivingSituation for more detail on why this works this way.
 
       # First check if the value is an integer; otherwise Hmis::Hud::Project.find_by will raise due to StrictAttributes
-      project_to_check = Hmis::StrictInteger::INT_RGX.match?(verified_by_project_id.to_s) ? verified_by_project_id : nil
-      verified_by_project = Hmis::Hud::Project.find_by(id: verified_by_project_id) if project_to_check
+      is_valid_int = Hmis::StrictInteger::INT_RGX.match?(verified_by_project_id.to_s)
+      verified_by_project = Hmis::Hud::Project.find_by(id: verified_by_project_id) if is_valid_int
 
       if verified_by_project
         # We collect project ID onto the non-HUD field `verified_by_project_id`,
