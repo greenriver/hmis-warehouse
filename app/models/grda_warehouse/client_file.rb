@@ -36,6 +36,17 @@ module GrdaWarehouse
     validates :data_source, presence: true, if: ->(o) { o.confidential? && o.enrollment_id.blank? }
     validates :enrollment, presence: true, if: ->(o) { o.confidential? && o.data_source_id.blank? }
 
+    # If the attached client_file is changed, clear the active_storage_url
+    # The scheduled task will re-populate it as necessary
+    before_save :clear_active_storage_url
+
+    private def clear_active_storage_url
+      # Only set the URL for S3 storage services
+      return unless Rails.application.config.active_storage.service.in?([:amazon, :minio])
+
+      self.active_storage_url = nil
+    end
+
     scope :confidential, -> do
       where(confidential: true)
     end
@@ -425,20 +436,20 @@ module GrdaWarehouse
     end
 
     def self.maintain_urls
-      where(url: nil).find_in_batches do |files|
+      where(active_storage_url: nil).find_in_batches do |files|
         batch = []
         files.each do |file|
           next unless file.client_file.attached?
 
           batch << {
             id: file.id,
-            url: file.client_file&.blob&.url,
+            active_storage_url: file.client_file&.blob&.url,
           }
         rescue StandardError
           # Ignore errors, this is less likely in production
           # but if we can't find the url, we don't need to populate it
         end
-        upsert_all(batch, update_only: [:url], record_timestamps: false) if batch.any?
+        upsert_all(batch, update_only: [:active_storage_url], record_timestamps: false) if batch.any?
       end
     end
 

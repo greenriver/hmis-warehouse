@@ -1,6 +1,9 @@
 with file_tags as (
   select taggings.taggable_id as file_id,
-    array_agg(tags.name) as tag_names
+    array_agg(
+      DISTINCT tags.name
+      ORDER BY tags.name
+    ) as tag_names
   from tags
     inner join taggings on tags.id = taggings.tag_id
   where taggings.taggable_type = 'GrdaWarehouse::File'
@@ -13,8 +16,9 @@ select client_files.id,
   client_files.consent_form_confirmed as consent_confirmed,
   client_files.effective_date,
   client_files.expiration_date,
+  client_files.consent_revoked_at,
   client_files.coc_codes,
-  client_files.url,
+  client_files.active_storage_url,
   coalesce(ft.tag_names, '{}') as tags,
   client_files.data_source_id,
   client_files.created_at,
@@ -24,4 +28,3 @@ from files client_files
 where client_files.type = 'GrdaWarehouse::ClientFile'
   and client_files.deleted_at is null
   and client_files.confidential = false
-  and client_files.consent_revoked_at is null
