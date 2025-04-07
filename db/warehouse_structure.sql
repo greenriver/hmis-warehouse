@@ -730,7 +730,7 @@ CREATE VIEW analytics.cas_steps AS
  SELECT id,
     referral_id,
     name,
-    "order",
+    "order" AS sort_order,
     status,
     started_at,
     completed_at,
@@ -1111,6 +1111,34 @@ CREATE VIEW analytics.client_piis AS
 
 
 --
+-- Name: client_roi_authorizations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_roi_authorizations (
+    id bigint NOT NULL,
+    destination_client_id bigint NOT NULL,
+    status character varying NOT NULL,
+    coc_codes character varying[],
+    starts_at date,
+    expires_at date
+);
+
+
+--
+-- Name: client_roi_authorizations; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.client_roi_authorizations AS
+ SELECT id,
+    destination_client_id,
+    status,
+    coc_codes,
+    starts_at,
+    expires_at
+   FROM public.client_roi_authorizations;
+
+
+--
 -- Name: clients; Type: VIEW; Schema: analytics; Owner: -
 --
 
@@ -1156,7 +1184,12 @@ CREATE VIEW analytics.clients AS
     "DateUpdated",
     "UserID",
     "DateDeleted",
-    "ExportID"
+    "ExportID",
+    consent_form_id,
+    housing_release_status,
+    consent_form_signed_on,
+    consent_expires_on,
+    consented_coc_codes
    FROM public."Client"
   WHERE ("DateDeleted" IS NULL);
 
@@ -7374,20 +7407,6 @@ CREATE SEQUENCE public.client_notes_id_seq
 --
 
 ALTER SEQUENCE public.client_notes_id_seq OWNED BY public.client_notes.id;
-
-
---
--- Name: client_roi_authorizations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.client_roi_authorizations (
-    id bigint NOT NULL,
-    destination_client_id bigint NOT NULL,
-    status character varying NOT NULL,
-    coc_codes character varying[],
-    starts_at date,
-    expires_at date
-);
 
 
 --
@@ -66559,6 +66578,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250401130809'),
 ('20250402130025'),
 ('20250403204353'),
-('20250403232619');
+('20250403232619'),
+('20250407165234'),
+('20250407165554');
 
 

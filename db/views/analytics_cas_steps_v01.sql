@@ -1,7 +1,7 @@
 SELECT id,
   referral_id,
   name,
-  "order",
+  "order" as sort_order,
   status,
   started_at,
   completed_at,
