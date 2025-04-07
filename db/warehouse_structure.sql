@@ -278,7 +278,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -370,29 +370,54 @@ CREATE TABLE public."AssessmentQuestions" (
 
 
 --
+-- Name: assessment_answer_lookups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.assessment_answer_lookups (
+    id bigint NOT NULL,
+    assessment_question character varying,
+    response_code character varying,
+    response_text character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    data_source_id integer
+);
+
+
+--
 -- Name: assessment_questions; Type: VIEW; Schema: analytics; Owner: -
 --
 
 CREATE VIEW analytics.assessment_questions AS
- SELECT id,
-    "AssessmentQuestionID",
-    "AssessmentID",
-    "EnrollmentID",
-    "PersonalID",
-    "AssessmentQuestionGroup",
-    "AssessmentQuestionOrder",
-    "AssessmentQuestion",
-    "AssessmentAnswer",
-    "DateCreated",
-    "DateUpdated",
-    "UserID",
-    "DateDeleted",
-    "ExportID",
-    data_source_id,
-    pending_date_deleted,
-    source_hash
-   FROM public."AssessmentQuestions"
-  WHERE ("DateDeleted" IS NULL);
+ WITH nullable_lkp AS (
+         SELECT DISTINCT ON (assessment_answer_lookups.assessment_question, assessment_answer_lookups.response_code) assessment_answer_lookups.id,
+            assessment_answer_lookups.assessment_question,
+            assessment_answer_lookups.response_code,
+            assessment_answer_lookups.response_text,
+            assessment_answer_lookups.created_at,
+            assessment_answer_lookups.updated_at,
+            assessment_answer_lookups.data_source_id
+           FROM public.assessment_answer_lookups
+          ORDER BY assessment_answer_lookups.assessment_question, assessment_answer_lookups.response_code, assessment_answer_lookups.updated_at DESC, assessment_answer_lookups.id DESC
+        )
+ SELECT "AssessmentQuestions".id,
+    "AssessmentQuestions"."AssessmentQuestionID",
+    "AssessmentQuestions"."AssessmentID",
+    "AssessmentQuestions"."EnrollmentID",
+    "AssessmentQuestions"."PersonalID",
+    "AssessmentQuestions"."AssessmentQuestionGroup",
+    "AssessmentQuestions"."AssessmentQuestionOrder",
+    "AssessmentQuestions"."AssessmentQuestion",
+    COALESCE(aal.response_text, "AssessmentQuestions"."AssessmentAnswer") AS "AssessmentAnswer",
+    "AssessmentQuestions"."AssessmentAnswer" AS original_assessment_answer,
+    "AssessmentQuestions"."DateCreated",
+    "AssessmentQuestions"."DateUpdated",
+    "AssessmentQuestions"."UserID",
+    "AssessmentQuestions"."ExportID",
+    "AssessmentQuestions".data_source_id
+   FROM (public."AssessmentQuestions"
+     LEFT JOIN nullable_lkp aal ON ((((aal.assessment_question)::text = ("AssessmentQuestions"."AssessmentQuestion")::text) AND ((aal.response_code)::text = ("AssessmentQuestions"."AssessmentAnswer")::text) AND (aal.data_source_id = "AssessmentQuestions".data_source_id))))
+  WHERE ("AssessmentQuestions"."DateDeleted" IS NULL);
 
 
 --
@@ -496,6 +521,265 @@ CREATE VIEW analytics.assessments AS
 
 
 --
+-- Name: cas_analytics_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    calculated_first_homeless_night date,
+    calculated_last_homeless_night date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_clients; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cas_clients AS
+ SELECT id,
+    client_id,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_clients;
+
+
+--
+-- Name: cas_analytics_opportunities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_opportunities (
+    id bigint NOT NULL,
+    opportunity_category_id bigint,
+    unit_id bigint,
+    unit_name character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_opportunities; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cas_opportunities AS
+ SELECT id,
+    opportunity_category_id,
+    unit_id,
+    unit_name,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_opportunities;
+
+
+--
+-- Name: cas_analytics_opportunity_categories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_opportunity_categories (
+    id bigint NOT NULL,
+    full_name character varying,
+    name character varying,
+    sub_project_name character varying,
+    program_type character varying,
+    subgrantee_id bigint,
+    subgrantee_name character varying,
+    sub_contractor_id bigint,
+    sub_contractor_name character varying,
+    hsa_id bigint,
+    hsa_name character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN cas_analytics_opportunity_categories.full_name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.cas_analytics_opportunity_categories.full_name IS 'concatenation of program name and sub-program name';
+
+
+--
+-- Name: cas_opportunity_categories; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cas_opportunity_categories AS
+ SELECT id,
+    full_name,
+    name,
+    sub_project_name,
+    program_type,
+    subgrantee_id,
+    subgrantee_name,
+    sub_contractor_id,
+    sub_contractor_name,
+    hsa_id,
+    hsa_name,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_opportunity_categories;
+
+
+--
+-- Name: cas_analytics_referral_contacts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_referral_contacts (
+    id bigint NOT NULL,
+    email character varying,
+    referral_id bigint,
+    contact_id bigint,
+    contact_type character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_referral_contacts; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cas_referral_contacts AS
+ SELECT id,
+    email,
+    referral_id,
+    contact_id,
+    contact_type,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_referral_contacts;
+
+
+--
+-- Name: cas_analytics_referral_users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_referral_users (
+    id bigint NOT NULL,
+    email character varying,
+    referral_id bigint
+);
+
+
+--
+-- Name: cas_referral_users; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cas_referral_users AS
+ SELECT id,
+    email,
+    referral_id
+   FROM public.cas_analytics_referral_users;
+
+
+--
+-- Name: cas_analytics_referrals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_referrals (
+    id bigint NOT NULL,
+    referral_name character varying,
+    client_id bigint,
+    opportunity_id bigint,
+    opportunity_category_id bigint,
+    started_at timestamp(6) without time zone,
+    completed_at timestamp(6) without time zone,
+    stalled boolean,
+    current_status character varying,
+    terminal_status character varying,
+    unsuccessful_reason character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_referrals; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cas_referrals AS
+ SELECT id,
+    referral_name,
+    client_id,
+    opportunity_id,
+    opportunity_category_id,
+    started_at,
+    completed_at,
+    stalled,
+    current_status,
+    terminal_status,
+    unsuccessful_reason,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_referrals;
+
+
+--
+-- Name: cas_analytics_steps; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_steps (
+    id bigint NOT NULL,
+    referral_id bigint,
+    name character varying,
+    "order" integer,
+    status character varying,
+    started_at timestamp(6) without time zone,
+    completed_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_steps; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cas_steps AS
+ SELECT id,
+    referral_id,
+    name,
+    "order" AS sort_order,
+    status,
+    started_at,
+    completed_at,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_steps;
+
+
+--
+-- Name: cas_analytics_cas_users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_cas_users (
+    id bigint NOT NULL,
+    email character varying,
+    agency_id bigint,
+    agency_name character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_users; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cas_users AS
+ SELECT id,
+    email,
+    agency_id,
+    agency_name,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_cas_users;
+
+
+--
 -- Name: CEParticipation; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -576,6 +860,103 @@ CREATE VIEW analytics.ch_enrollments AS
     created_at,
     updated_at
    FROM public.ch_enrollments;
+
+
+--
+-- Name: files; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.files (
+    id integer NOT NULL,
+    type character varying NOT NULL,
+    file character varying,
+    content_type character varying,
+    content bytea,
+    client_id integer,
+    user_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone,
+    note character varying,
+    name character varying,
+    visible_in_window boolean,
+    migrated_username character varying,
+    vispdat_id integer,
+    consent_form_signed_on date,
+    consent_form_confirmed boolean,
+    size double precision,
+    effective_date date,
+    expiration_date date,
+    delete_reason integer,
+    delete_detail character varying,
+    consent_revoked_at timestamp without time zone,
+    coc_codes jsonb DEFAULT '[]'::jsonb,
+    enrollment_id bigint,
+    confidential boolean DEFAULT false NOT NULL,
+    updated_by_id bigint,
+    data_source_id bigint,
+    consent_revoked_by_user_id integer,
+    active_storage_url character varying
+);
+
+
+--
+-- Name: taggings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.taggings (
+    id integer NOT NULL,
+    tag_id integer,
+    taggable_id integer,
+    taggable_type character varying,
+    tagger_id integer,
+    tagger_type character varying,
+    context character varying(128),
+    created_at timestamp without time zone
+);
+
+
+--
+-- Name: tags; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tags (
+    id integer NOT NULL,
+    name character varying,
+    taggings_count integer DEFAULT 0
+);
+
+
+--
+-- Name: client_files; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.client_files AS
+ WITH file_tags AS (
+         SELECT taggings.taggable_id AS file_id,
+            array_agg(DISTINCT tags.name ORDER BY tags.name) AS tag_names
+           FROM (public.tags
+             JOIN public.taggings ON ((tags.id = taggings.tag_id)))
+          WHERE ((taggings.taggable_type)::text = 'GrdaWarehouse::File'::text)
+          GROUP BY taggings.taggable_id
+        )
+ SELECT client_files.id,
+    client_files.client_id,
+    client_files.visible_in_window,
+    client_files.consent_form_signed_on AS signature_date,
+    client_files.consent_form_confirmed AS consent_confirmed,
+    client_files.effective_date,
+    client_files.expiration_date,
+    client_files.consent_revoked_at,
+    client_files.coc_codes,
+    client_files.active_storage_url,
+    COALESCE(ft.tag_names, '{}'::character varying[]) AS tags,
+    client_files.data_source_id,
+    client_files.created_at,
+    client_files.updated_at
+   FROM (public.files client_files
+     LEFT JOIN file_tags ft ON ((ft.file_id = client_files.id)))
+  WHERE (((client_files.type)::text = 'GrdaWarehouse::ClientFile'::text) AND (client_files.deleted_at IS NULL) AND (client_files.confidential = false));
 
 
 --
@@ -783,6 +1164,34 @@ CREATE VIEW analytics.client_piis AS
 
 
 --
+-- Name: client_roi_authorizations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_roi_authorizations (
+    id bigint NOT NULL,
+    destination_client_id bigint NOT NULL,
+    status character varying NOT NULL,
+    coc_codes character varying[],
+    starts_at date,
+    expires_at date
+);
+
+
+--
+-- Name: client_roi_authorizations; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.client_roi_authorizations AS
+ SELECT id,
+    destination_client_id,
+    status,
+    coc_codes,
+    starts_at,
+    expires_at
+   FROM public.client_roi_authorizations;
+
+
+--
 -- Name: clients; Type: VIEW; Schema: analytics; Owner: -
 --
 
@@ -828,7 +1237,12 @@ CREATE VIEW analytics.clients AS
     "DateUpdated",
     "UserID",
     "DateDeleted",
-    "ExportID"
+    "ExportID",
+    consent_form_id,
+    housing_release_status,
+    consent_form_signed_on,
+    consent_expires_on,
+    consented_coc_codes
    FROM public."Client"
   WHERE ("DateDeleted" IS NULL);
 
@@ -1345,7 +1759,7 @@ CREATE TABLE public."CurrentLivingSituation" (
     "PersonalID" character varying NOT NULL,
     "InformationDate" date NOT NULL,
     "CurrentLivingSituation" integer NOT NULL,
-    "VerifiedBy" character varying,
+    "VerifiedBy" character varying(100),
     "LeaveSituation14Days" integer,
     "SubsequentResidence" integer,
     "ResourcesToObtain" integer,
@@ -1395,21 +1809,6 @@ CREATE VIEW analytics.current_living_situations AS
     verified_by_project_id
    FROM public."CurrentLivingSituation"
   WHERE ("DateDeleted" IS NULL);
-
-
---
--- Name: assessment_answer_lookups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.assessment_answer_lookups (
-    id bigint NOT NULL,
-    assessment_question character varying,
-    response_code character varying,
-    response_text character varying,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    data_source_id integer
-);
 
 
 --
@@ -2789,6 +3188,16 @@ CREATE VIEW analytics.external_reporting_project_permissions AS
     updated_at,
     email
    FROM public.external_reporting_project_permissions;
+
+
+--
+-- Name: file_tags; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.file_tags AS
+ SELECT id,
+    name
+   FROM public.tags;
 
 
 --
@@ -5745,6 +6154,158 @@ ALTER SEQUENCE public.boston_report_configs_id_seq OWNED BY public.boston_report
 
 
 --
+-- Name: cas_analytics_cas_users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_cas_users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_cas_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_cas_users_id_seq OWNED BY public.cas_analytics_cas_users.id;
+
+
+--
+-- Name: cas_analytics_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_clients_id_seq OWNED BY public.cas_analytics_clients.id;
+
+
+--
+-- Name: cas_analytics_opportunities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_opportunities_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_opportunities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_opportunities_id_seq OWNED BY public.cas_analytics_opportunities.id;
+
+
+--
+-- Name: cas_analytics_opportunity_categories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_opportunity_categories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_opportunity_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_opportunity_categories_id_seq OWNED BY public.cas_analytics_opportunity_categories.id;
+
+
+--
+-- Name: cas_analytics_referral_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_referral_contacts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_referral_contacts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_referral_contacts_id_seq OWNED BY public.cas_analytics_referral_contacts.id;
+
+
+--
+-- Name: cas_analytics_referral_users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_referral_users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_referral_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_referral_users_id_seq OWNED BY public.cas_analytics_referral_users.id;
+
+
+--
+-- Name: cas_analytics_referrals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_referrals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_referrals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_referrals_id_seq OWNED BY public.cas_analytics_referrals.id;
+
+
+--
+-- Name: cas_analytics_steps_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_steps_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_steps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_steps_id_seq OWNED BY public.cas_analytics_steps.id;
+
+
+--
 -- Name: cas_availabilities; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -7004,20 +7565,6 @@ CREATE SEQUENCE public.client_notes_id_seq
 --
 
 ALTER SEQUENCE public.client_notes_id_seq OWNED BY public.client_notes.id;
-
-
---
--- Name: client_roi_authorizations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.client_roi_authorizations (
-    id bigint NOT NULL,
-    destination_client_id bigint NOT NULL,
-    status character varying NOT NULL,
-    coc_codes character varying[],
-    starts_at date,
-    expires_at date
-);
 
 
 --
@@ -9102,43 +9649,6 @@ CREATE SEQUENCE public.federal_census_breakdowns_id_seq
 --
 
 ALTER SEQUENCE public.federal_census_breakdowns_id_seq OWNED BY public.federal_census_breakdowns.id;
-
-
---
--- Name: files; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.files (
-    id integer NOT NULL,
-    type character varying NOT NULL,
-    file character varying,
-    content_type character varying,
-    content bytea,
-    client_id integer,
-    user_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    deleted_at timestamp without time zone,
-    note character varying,
-    name character varying,
-    visible_in_window boolean,
-    migrated_username character varying,
-    vispdat_id integer,
-    consent_form_signed_on date,
-    consent_form_confirmed boolean,
-    size double precision,
-    effective_date date,
-    expiration_date date,
-    delete_reason integer,
-    delete_detail character varying,
-    consent_revoked_at timestamp without time zone,
-    coc_codes jsonb DEFAULT '[]'::jsonb,
-    enrollment_id bigint,
-    confidential boolean DEFAULT false NOT NULL,
-    updated_by_id bigint,
-    data_source_id bigint,
-    consent_revoked_by_user_id integer
-);
 
 
 --
@@ -27247,22 +27757,6 @@ ALTER SEQUENCE public.system_pathways_enrollments_id_seq OWNED BY public.system_
 
 
 --
--- Name: taggings; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.taggings (
-    id integer NOT NULL,
-    tag_id integer,
-    taggable_id integer,
-    taggable_type character varying,
-    tagger_id integer,
-    tagger_type character varying,
-    context character varying(128),
-    created_at timestamp without time zone
-);
-
-
---
 -- Name: taggings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -27279,17 +27773,6 @@ CREATE SEQUENCE public.taggings_id_seq
 --
 
 ALTER SEQUENCE public.taggings_id_seq OWNED BY public.taggings.id;
-
-
---
--- Name: tags; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.tags (
-    id integer NOT NULL,
-    name character varying,
-    taggings_count integer DEFAULT 0
-);
 
 
 --
@@ -29239,6 +29722,62 @@ ALTER TABLE ONLY public.boston_project_scorecard_reports ALTER COLUMN id SET DEF
 --
 
 ALTER TABLE ONLY public.boston_report_configs ALTER COLUMN id SET DEFAULT nextval('public.boston_report_configs_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_cas_users id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_cas_users ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_cas_users_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_clients ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_clients_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_opportunities id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_opportunities ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_opportunities_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_opportunity_categories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_opportunity_categories ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_opportunity_categories_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_referral_contacts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_referral_contacts ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_referral_contacts_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_referral_users id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_referral_users ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_referral_users_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_referrals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_referrals ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_referrals_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_steps id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_steps ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_steps_id_seq'::regclass);
 
 
 --
@@ -32681,6 +33220,70 @@ ALTER TABLE ONLY public.boston_project_scorecard_reports
 
 ALTER TABLE ONLY public.boston_report_configs
     ADD CONSTRAINT boston_report_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_cas_users cas_analytics_cas_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_cas_users
+    ADD CONSTRAINT cas_analytics_cas_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_clients cas_analytics_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_clients
+    ADD CONSTRAINT cas_analytics_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_opportunities cas_analytics_opportunities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_opportunities
+    ADD CONSTRAINT cas_analytics_opportunities_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_opportunity_categories cas_analytics_opportunity_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_opportunity_categories
+    ADD CONSTRAINT cas_analytics_opportunity_categories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_referral_contacts cas_analytics_referral_contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_referral_contacts
+    ADD CONSTRAINT cas_analytics_referral_contacts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_referral_users cas_analytics_referral_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_referral_users
+    ADD CONSTRAINT cas_analytics_referral_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_referrals cas_analytics_referrals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_referrals
+    ADD CONSTRAINT cas_analytics_referrals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_steps cas_analytics_steps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_steps
+    ADD CONSTRAINT cas_analytics_steps_pkey PRIMARY KEY (id);
 
 
 --
@@ -53790,6 +54393,13 @@ CREATE INDEX index_boston_project_scorecard_reports_on_user_id ON public.boston_
 
 
 --
+-- Name: index_cas_analytics_opportunities_on_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cas_analytics_opportunities_on_unit_id ON public.cas_analytics_opportunities USING btree (unit_id);
+
+
+--
 -- Name: index_cas_availabilities_on_available_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -66059,4 +66669,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250319023546'),
 ('20250319125533'),
 ('20250323134302'),
-('20250401130809');
+('20250331175933'),
+('20250401130809'),
+('20250402130025'),
+('20250403204353'),
+('20250403232619'),
+('20250407165234'),
+('20250407165554');
+
+
