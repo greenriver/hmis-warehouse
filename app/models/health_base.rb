@@ -41,8 +41,4 @@ class HealthBase < ApplicationRecord
       self.phi_dictionary_entry[:patient_id] = attribute
     end
   end
-
-  def self.needs_migration?
-    ActiveRecord::MigrationContext.new('db/health/migrate', Health::SchemaMigration).needs_migration?
-  end
 end

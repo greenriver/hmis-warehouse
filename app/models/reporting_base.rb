@@ -11,8 +11,4 @@ class ReportingBase < ApplicationRecord
   include ArelHelper
 
   connects_to database: { writing: :reporting, reading: :reporting }
-
-  def self.needs_migration?
-    ActiveRecord::MigrationContext.new('db/reporting/migrate', Reporting::SchemaMigration).needs_migration?
-  end
 end

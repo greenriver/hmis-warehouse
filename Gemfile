@@ -236,7 +236,7 @@ gem 'responders'
 
 gem 'rack-attack'
 
-gem 'attr_encrypted', '~> 4.0.0'
+gem 'attr_encrypted'
 
 gem 'ajax_modal_rails', '~> 1.0'
 gem 'browser'
