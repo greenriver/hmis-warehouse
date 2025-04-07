@@ -2,6 +2,8 @@
   match = client_match
   client_a = match.destination_client
   client_b = match.source_client
+  pii_dest = client_a.pii_provider(user: current_user)
+  pii_source = client_b.pii_provider(user: current_user)
 - if client_a.destination_client && client_b.destination_client
   .c-card--flush
     .client-match{data: {id: match.id}}
@@ -43,34 +45,34 @@
         %tr
           %th
           %td
-            - if client_a.pii_provider(user: current_user).image?
+            - if pii_dest.image?
               = image_tag(polymorphic_path([:image, :source_client], id: client_a.id), style: 'width: 125px;')
           %td
           %td
           %td
-            - if client_b.pii_provider(user: current_user).image?
+            - if pii_source.image?
               = image_tag(polymorphic_path([:image, :source_client], id: client_b.id), style: 'width: 125px;')
           %td
         %tr
           %th Name
-          %td= client_a.full_name
+          %td= pii_dest.full_name
           %td= data_quality_warning :name, client_a.NameDataQuality
           %td= match_contribution_flags(match, [:FirstName, :MiddleName, :LastName])
-          %td= client_b.full_name
+          %td= pii_source.full_name
           %td= data_quality_warning :name, client_b.NameDataQuality
         %tr
           %th SSN
-          %td= ssn client_a.SSN
+          %td= pii_dest.ssn
           %td= data_quality_warning :ssn, client_a.SSNDataQuality
           %td= match_contribution_flags(match, :SSN)
-          %td= ssn client_b.SSN
+          %td= pii_source.ssn
           %td= data_quality_warning :ssn, client_b.SSNDataQuality
         %tr
           %th DOB
-          %td= "#{client_a.DOB} (#{client_a.age})"
+          %td= pii_dest.dob_and_age
           %td= data_quality_warning :dob, client_a.DOBDataQuality
           %td= match_contribution_flags(match, :DOB)
-          %td= "#{client_b.DOB} (#{client_b.age})"
+          %td= pii_source.dob_and_age
           %td= data_quality_warning :dob, client_b.DOBDataQuality
         %tr
           %th Race
@@ -105,7 +107,7 @@
         .d-flex
           = link_to 'Reject', client_match_path(match, format: :json, client_match: {status: 'rejected'}), remote: true, data: {disable_with: 'Saving...'}, method: :patch, class: 'btn btn-xs btn-danger mr-auto'
           = link_to 'Defer', defer_client_match_path(match), method: :post, class: 'btn btn-xs btn-default'
-          = link_to('Accept', client_match_path(match, format: :json, client_match: {status: 'accepted'}), {remote: true, data: {disable_with: 'Saving...', toggle: :tooltip, title: "Merge proposed: <br />#{client_b.full_name} #{client_b.uuid} <br />into existing: <br />#{client_a.full_name} #{client_a.uuid}".html_safe, placement: :right, html: :true}, method: :patch, class: 'btn btn-xs btn-success  ml-auto'})
+          = link_to('Accept', client_match_path(match, format: :json, client_match: {status: 'accepted'}), {remote: true, data: {disable_with: 'Saving...', toggle: :tooltip, title: "Merge proposed: <br />#{pii_source.full_name} #{client_b.uuid} <br />into existing: <br />#{pii_dest.full_name} #{client_a.uuid}".html_safe, placement: :right, html: :true}, method: :patch, class: 'btn btn-xs btn-success  ml-auto'})
 
       - elsif match.accepted?
         = "Accepted: #{match.updated_at} by #{match.updated_by.try(:name)}"
