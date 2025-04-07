@@ -386,7 +386,7 @@ CREATE VIEW analytics.assessment_questions AS
             assessment_answer_lookups.updated_at,
             assessment_answer_lookups.data_source_id
            FROM public.assessment_answer_lookups
-          ORDER BY assessment_answer_lookups.assessment_question, assessment_answer_lookups.response_code, assessment_answer_lookups.updated_at DESC
+          ORDER BY assessment_answer_lookups.assessment_question, assessment_answer_lookups.response_code, assessment_answer_lookups.updated_at DESC, assessment_answer_lookups.id DESC
         )
  SELECT "AssessmentQuestions".id,
     "AssessmentQuestions"."AssessmentQuestionID",
@@ -850,6 +850,102 @@ CREATE VIEW analytics.ch_enrollments AS
     created_at,
     updated_at
    FROM public.ch_enrollments;
+
+
+--
+-- Name: files; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.files (
+    id integer NOT NULL,
+    type character varying NOT NULL,
+    file character varying,
+    content_type character varying,
+    content bytea,
+    client_id integer,
+    user_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone,
+    note character varying,
+    name character varying,
+    visible_in_window boolean,
+    migrated_username character varying,
+    vispdat_id integer,
+    consent_form_signed_on date,
+    consent_form_confirmed boolean,
+    size double precision,
+    effective_date date,
+    expiration_date date,
+    delete_reason integer,
+    delete_detail character varying,
+    consent_revoked_at timestamp without time zone,
+    coc_codes jsonb DEFAULT '[]'::jsonb,
+    enrollment_id bigint,
+    confidential boolean DEFAULT false NOT NULL,
+    updated_by_id bigint,
+    data_source_id bigint,
+    consent_revoked_by_user_id integer,
+    url character varying
+);
+
+
+--
+-- Name: taggings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.taggings (
+    id integer NOT NULL,
+    tag_id integer,
+    taggable_id integer,
+    taggable_type character varying,
+    tagger_id integer,
+    tagger_type character varying,
+    context character varying(128),
+    created_at timestamp without time zone
+);
+
+
+--
+-- Name: tags; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tags (
+    id integer NOT NULL,
+    name character varying,
+    taggings_count integer DEFAULT 0
+);
+
+
+--
+-- Name: client_files; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.client_files AS
+ WITH file_tags AS (
+         SELECT taggings.taggable_id AS file_id,
+            array_agg(tags.name) AS tag_names
+           FROM (public.tags
+             JOIN public.taggings ON ((tags.id = taggings.tag_id)))
+          WHERE ((taggings.taggable_type)::text = 'GrdaWarehouse::File'::text)
+          GROUP BY taggings.taggable_id
+        )
+ SELECT client_files.id,
+    client_files.client_id,
+    client_files.visible_in_window,
+    client_files.consent_form_signed_on AS signature_date,
+    client_files.consent_form_confirmed AS consent_confirmed,
+    client_files.effective_date,
+    client_files.expiration_date,
+    client_files.coc_codes,
+    client_files.url,
+    COALESCE(ft.tag_names, '{}'::character varying[]) AS tags,
+    client_files.data_source_id,
+    client_files.created_at,
+    client_files.updated_at
+   FROM (public.files client_files
+     LEFT JOIN file_tags ft ON ((ft.file_id = client_files.id)))
+  WHERE (((client_files.type)::text = 'GrdaWarehouse::ClientFile'::text) AND (client_files.deleted_at IS NULL) AND (client_files.confidential = false) AND (client_files.consent_revoked_at IS NULL));
 
 
 --
@@ -3022,6 +3118,16 @@ CREATE VIEW analytics.external_reporting_project_permissions AS
     updated_at,
     email
    FROM public.external_reporting_project_permissions;
+
+
+--
+-- Name: file_tags; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.file_tags AS
+ SELECT id,
+    name
+   FROM public.tags;
 
 
 --
@@ -9367,43 +9473,6 @@ CREATE SEQUENCE public.federal_census_breakdowns_id_seq
 --
 
 ALTER SEQUENCE public.federal_census_breakdowns_id_seq OWNED BY public.federal_census_breakdowns.id;
-
-
---
--- Name: files; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.files (
-    id integer NOT NULL,
-    type character varying NOT NULL,
-    file character varying,
-    content_type character varying,
-    content bytea,
-    client_id integer,
-    user_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    deleted_at timestamp without time zone,
-    note character varying,
-    name character varying,
-    visible_in_window boolean,
-    migrated_username character varying,
-    vispdat_id integer,
-    consent_form_signed_on date,
-    consent_form_confirmed boolean,
-    size double precision,
-    effective_date date,
-    expiration_date date,
-    delete_reason integer,
-    delete_detail character varying,
-    consent_revoked_at timestamp without time zone,
-    coc_codes jsonb DEFAULT '[]'::jsonb,
-    enrollment_id bigint,
-    confidential boolean DEFAULT false NOT NULL,
-    updated_by_id bigint,
-    data_source_id bigint,
-    consent_revoked_by_user_id integer
-);
 
 
 --
@@ -27584,22 +27653,6 @@ ALTER SEQUENCE public.system_pathways_enrollments_id_seq OWNED BY public.system_
 
 
 --
--- Name: taggings; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.taggings (
-    id integer NOT NULL,
-    tag_id integer,
-    taggable_id integer,
-    taggable_type character varying,
-    tagger_id integer,
-    tagger_type character varying,
-    context character varying(128),
-    created_at timestamp without time zone
-);
-
-
---
 -- Name: taggings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -27616,17 +27669,6 @@ CREATE SEQUENCE public.taggings_id_seq
 --
 
 ALTER SEQUENCE public.taggings_id_seq OWNED BY public.taggings.id;
-
-
---
--- Name: tags; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.tags (
-    id integer NOT NULL,
-    name character varying,
-    taggings_count integer DEFAULT 0
-);
 
 
 --
@@ -66517,6 +66559,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250331175933'),
 ('20250401130809'),
 ('20250402130025'),
-('20250403204353');
+('20250403204353'),
+('20250403232619');
 
 

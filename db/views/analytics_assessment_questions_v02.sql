@@ -3,7 +3,8 @@ with nullable_lkp as (
   from assessment_answer_lookups
   order by assessment_question,
     response_code,
-    updated_at desc
+    updated_at desc,
+    id desc
 )
 SELECT "AssessmentQuestions"."id",
   "AssessmentQuestionID",
