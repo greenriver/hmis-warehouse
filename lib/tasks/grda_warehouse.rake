@@ -407,6 +407,9 @@ namespace :grda_warehouse do
       puts e.message
     end
     IdentifyExternalClientsJob.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).run_all!
+
+    # Store S3 paths for files that don't have them so OP analytics can use them
+    GrdaWarehouse::ClientFile.delay.maintain_urls
   end
 
   desc 'Save Service History Snapshots'
