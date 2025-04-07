@@ -7,14 +7,14 @@
 # frozen_string_literal: false
 
 class Hmis::Hud::Enrollment < Hmis::Hud::Base
+  self.table_name = :Enrollment
+  self.sequence_name = "public.\"#{table_name}_id_seq\""
+
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Enrollment
   include ::Hmis::Hud::Concerns::FormSubmittable
   include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
-
-  self.table_name = :Enrollment
-  self.sequence_name = "public.\"#{table_name}_id_seq\""
 
   has_paper_trail(
     meta: {

@@ -286,6 +286,17 @@ namespace :grda_warehouse do
     Importing::RunDailyImportsJob.new.perform
   end
 
+  desc 'Monthly tasks'
+  task monthly: [:environment, 'log:info_to_stdout'] do
+    GrdaWarehouse::Tasks::CensusImport.new.run!
+
+    # Force a cleanup of all destination clients so we don't miss splits or merges
+    # where the source clients don't have any open enrollments
+    GrdaWarehouse::Hud::Client.destination.pluck_in_batches(:id, batch_size: 10_000) do |batch|
+      GrdaWarehouse::Tasks::ClientCleanup.new(destination_ids: batch).run!
+    end
+  end
+
   desc 'Hourly tasks'
   task hourly: [:environment, 'log:info_to_stdout'] do
     begin
