@@ -132,7 +132,7 @@ module GrdaWarehouse::Hud
       ongoing
     }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
 
-    #has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', query_constraints: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
+    # has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', query_constraints: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
     has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: :ds_personal_id, primary_key: :ds_personal_id, inverse_of: :client
     has_many :exits, through: :enrollments, source: :exit, inverse_of: :client
     has_many :enrollment_cocs, through: :enrollments, source: :enrollment_cocs, inverse_of: :client
@@ -794,41 +794,35 @@ module GrdaWarehouse::Hud
     # client has a disability response in the affirmative
     # where they don't have a subsequent affirmative or negative
     def self.disabled_client_because_disability_scope
-      d_t1 = GrdaWarehouse::Hud::Disability.arel_table
-      d_t2 = d_t1.dup
-      d_t2.table_alias = 'disability2'
-      c_t1 = GrdaWarehouse::Hud::Client.arel_table
-      c_t2 = c_t1.dup
-      c_t2.table_alias = 'source_clients'
+      client_table = GrdaWarehouse::Hud::Client.table_name
+      disability_table = GrdaWarehouse::Hud::Disability.table_name
+      enrollment_table = GrdaWarehouse::Hud::Enrollment.table_name
+      warehouse_client_table = GrdaWarehouse::WarehouseClient.table_name
+
       GrdaWarehouse::Hud::Client.destination.
         joins(:source_enrollment_disabilities).
-        where(Disabilities: { DisabilityType: [5, 6, 7, 8, 9, 10], DisabilityResponse: [1, 2, 3] }).
-        where(
-          d_t2.project(Arel.star).where(
-            d_t2[:DateDeleted].eq(nil),
-          ).where(
-            d_t2[:DisabilityType].eq(d_t1[:DisabilityType]),
-          ).where(
-            d_t2[:InformationDate].gt(d_t1[:InformationDate]),
-          ).where(
-            d_t2[:DisabilityResponse].in([0, 1, 2, 3]),
-          ).
-          join(e_t).on(
-            e_t[:PersonalID].eq(d_t2[:PersonalID]).
-            and(e_t[:data_source_id].eq(d_t2[:data_source_id])).
-            and(e_t[:EnrollmentID].eq(d_t2[:EnrollmentID])).
-            and(e_t[:DateDeleted].eq(nil)),
-          ).join(c_t2).on(
-            e_t[:PersonalID].eq(c_t2[:PersonalID]).
-            and(e_t[:data_source_id].eq(c_t2[:data_source_id])),
-          ).join(wc_t).on(
-            c_t2[:id].eq(wc_t[:source_id]).
-            and(wc_t[:deleted_at].eq(nil)),
-          ).where(
-            wc_t[:destination_id].eq(c_t1[:id]),
-          ).
-          exists.not,
-        ).distinct
+        where("#{disability_table}.DisabilityType" => [5, 6, 7, 8, 9, 10],
+              "#{disability_table}.DisabilityResponse" => [1, 2, 3]).
+        where(<<-SQL.squish).
+          NOT EXISTS (
+            SELECT 1
+            FROM "#{disability_table}" AS d2
+            INNER JOIN "#{enrollment_table}" AS e ON e."EnrollmentID" = d2."EnrollmentID"
+              AND e."PersonalID" = d2."PersonalID"
+              AND e."data_source_id" = d2."data_source_id"
+              AND e."DateDeleted" IS NULL
+            INNER JOIN "#{client_table}" AS sc ON e."PersonalID" = sc."PersonalID"
+              AND e."data_source_id" = sc."data_source_id"
+            INNER JOIN "#{warehouse_client_table}" AS wc ON sc.id = wc.source_id
+              AND wc.deleted_at IS NULL
+            WHERE d2."DateDeleted" IS NULL
+              AND d2."DisabilityType" = "#{disability_table}"."DisabilityType"
+              AND d2."InformationDate" > "#{disability_table}"."InformationDate"
+              AND d2."DisabilityResponse" IN (0, 1, 2, 3)
+              AND wc.destination_id = "#{client_table}".id
+          )
+        SQL
+        distinct
     end
 
     # client has a disability response in the affirmative

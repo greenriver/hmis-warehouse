@@ -1,3 +1,9 @@
+# This migration replaces composite primary keys with generated columns.
+# The composite_primary_keys gem is being deprecated and will no longer be maintained.
+# To maintain the same functionality, we are creating stored generated columns
+# that concatenate the data_source_id with the original ID columns.
+# This allows us to maintain unique identifiers across data sources while
+# moving away from the deprecated gem.
 class ReplaceCompositeKeys < ActiveRecord::Migration[7.1]
   def up
     safety_assured do
@@ -6,6 +12,11 @@ class ReplaceCompositeKeys < ActiveRecord::Migration[7.1]
         execute <<-SQL
           ALTER TABLE #{connection.quote_table_name(table_name)}
           ADD COLUMN #{connection.quote_column_name(key)} VARCHAR GENERATED ALWAYS AS (data_source_id || ':' || #{connection.quote_column_name(id_column)}) STORED;
+        SQL
+
+        execute <<-SQL
+          CREATE INDEX #{connection.quote_column_name(index_name(table_name, key))}
+          ON #{connection.quote_table_name(table_name)} (#{connection.quote_column_name(key)})
         SQL
       end
     end
@@ -16,6 +27,9 @@ class ReplaceCompositeKeys < ActiveRecord::Migration[7.1]
       composite_cols.each do |table_name, id_column|
         key = composite_key(table_name, id_column)
         execute <<-SQL
+          DROP INDEX IF EXISTS #{connection.quote_column_name(index_name(table_name, key))};
+        SQL
+        execute <<-SQL
           ALTER TABLE #{connection.quote_table_name(table_name)} DROP COLUMN #{connection.quote_column_name(key)}
         SQL
       end
@@ -23,6 +37,10 @@ class ReplaceCompositeKeys < ActiveRecord::Migration[7.1]
   end
 
   protected
+
+  def index_name(table_name, key)
+    "idx_#{table_name.downcase}_#{key}"
+  end
 
   def composite_key(_table_name, id_column)
     "ds_#{id_column.gsub(/ID\z/, '').downcase}_id"

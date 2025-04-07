@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -912,8 +914,6 @@ module HmisCsvImporter::Importer
 
     private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names)
       Rails.logger.debug { "process_batch! #{klass} #{upsert ? 'upsert' : 'import'} #{batch.size} records" }
-      # remove generated columns (activerecord_import gem does this by default but we supply our own columns here for some reason)
-      columns -= klass.columns.filter(&:virtual?).map { |c| c.name }
       klass.logger.silence(Logger::WARN) do
         if upsert
           klass.import(
