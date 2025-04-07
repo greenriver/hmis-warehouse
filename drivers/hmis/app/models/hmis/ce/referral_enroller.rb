@@ -46,7 +46,8 @@ module Hmis::Ce
       entry_date_errors.reject!(&:warning?)
       error_out(entry_date_errors.map(&:full_message).join(', ')) unless entry_date_errors.empty?
 
-      # TODO(#6709) - assign enrollment to unit
+      unit = referral.opportunity.owner
+      enrollment.assign_unit(unit: unit, start_date: Date.current, user: message.user) if unit.is_a? Hmis::Unit
 
       enrollment.save_new_enrollment! # Saves as WIP or non-WIP, depending on auto-enter rules in the project
       referral.update!(target_enrollment: enrollment)
