@@ -28527,7 +28527,7 @@ CREATE TABLE public.wfd_nodes (
     trigger_config jsonb,
     name character varying,
     swimlane_id bigint,
-    form_definition_id bigint,
+    form_definition_identifier character varying,
     gateway_type character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
@@ -28728,6 +28728,7 @@ CREATE TABLE public.wfe_steps (
     id bigint NOT NULL,
     instance_id bigint NOT NULL,
     node_id bigint NOT NULL,
+    form_definition_id bigint,
     status character varying NOT NULL,
     assigned_to_id bigint,
     started_at timestamp(6) without time zone,
@@ -53666,13 +53667,6 @@ CREATE INDEX index_ce_referrals_on_referred_by_id ON public.ce_referrals USING b
 
 
 --
--- Name: index_ce_referrals_on_target_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_referrals_on_target_enrollment_id ON public.ce_referrals USING btree (target_enrollment_id);
-
-
---
 -- Name: index_ce_referrals_on_workflow_instance_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -62367,13 +62361,6 @@ CREATE INDEX index_wfd_flows_on_template_id ON public.wfd_flows USING btree (tem
 
 
 --
--- Name: index_wfd_nodes_on_form_definition_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfd_nodes_on_form_definition_id ON public.wfd_nodes USING btree (form_definition_id);
-
-
---
 -- Name: index_wfd_nodes_on_swimlane_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -62441,6 +62428,13 @@ CREATE UNIQUE INDEX index_wfe_step_assignments_on_user_id_and_step_id ON public.
 --
 
 CREATE INDEX index_wfe_steps_on_assigned_to_id ON public.wfe_steps USING btree (assigned_to_id);
+
+
+--
+-- Name: index_wfe_steps_on_form_definition_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_wfe_steps_on_form_definition_id ON public.wfe_steps USING btree (form_definition_id);
 
 
 --
@@ -65210,14 +65204,6 @@ ALTER TABLE ONLY public."Client"
 
 
 --
--- Name: ce_referrals fk_rails_5336ef5847; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referrals
-    ADD CONSTRAINT fk_rails_5336ef5847 FOREIGN KEY (target_enrollment_id) REFERENCES public."Enrollment"(id);
-
-
---
 -- Name: service_history_services_2037 fk_rails_564f7bf6cb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -65279,6 +65265,14 @@ ALTER TABLE ONLY public.service_history_services_2017
 
 ALTER TABLE ONLY public.hmis_external_referral_postings
     ADD CONSTRAINT fk_rails_669165b0ae FOREIGN KEY (referral_id) REFERENCES public.hmis_external_referrals(id);
+
+
+--
+-- Name: wfe_steps fk_rails_6b6b8ac13d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wfe_steps
+    ADD CONSTRAINT fk_rails_6b6b8ac13d FOREIGN KEY (form_definition_id) REFERENCES public.hmis_form_definitions(id);
 
 
 --
@@ -65519,14 +65513,6 @@ ALTER TABLE ONLY public.wfe_audit_events
 
 ALTER TABLE ONLY public.hmis_external_referral_household_members
     ADD CONSTRAINT fk_rails_993d7f8d95 FOREIGN KEY (client_id) REFERENCES public."Client"(id);
-
-
---
--- Name: wfd_nodes fk_rails_9ab4365c4f; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_nodes
-    ADD CONSTRAINT fk_rails_9ab4365c4f FOREIGN KEY (form_definition_id) REFERENCES public.hmis_form_definitions(id);
 
 
 --
@@ -66015,6 +66001,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250313125655'),
 ('20250313153011'),
 ('20250319125533'),
-('20250401130809'),
-('20250325205806'),
-('20250331121904');
+('20250401130809');

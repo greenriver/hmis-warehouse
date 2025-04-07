@@ -3,7 +3,7 @@
 FactoryBot.define do
   factory :hmis_workflow_definition_task, class: 'Hmis::WorkflowDefinition::Task' do
     sequence(:name) { |n| "Step #{n}" }
-    form_definition { association :hmis_form_definition }
+    form_definition_identifier { 'form-id' }
     trigger_config { [] }
   end
 

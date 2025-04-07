@@ -36,13 +36,15 @@ RSpec.shared_context 'ce spec helper' do
 
   let!(:case_manager_swimlane) { workflow_template.swimlanes.create!(name: 'Case Managers') }
 
+  let!(:ce_step_definition) { create(:ce_referral_step_form_definition) }
+
   let!(:client_acceptance_task) do
     create(
       :hmis_workflow_definition_task,
       template: workflow_template,
       name: 'Client Acceptance',
       swimlane: case_manager_swimlane,
-      form_definition: create(:ce_referral_step_form_definition),
+      form_definition_identifier: ce_step_definition.identifier,
     )
   end
 
@@ -52,7 +54,7 @@ RSpec.shared_context 'ce spec helper' do
       template: workflow_template,
       name: 'Provider Acceptance',
       swimlane: case_manager_swimlane,
-      form_definition: create(:hmis_form_definition),
+      form_definition_identifier: create(:hmis_form_definition).identifier,
     )
   end
 

@@ -69,6 +69,7 @@ class CreateCeReferrals < ActiveRecord::Migration[7.0]
       t.string :status, null: false
       t.references :client, null: false
       t.references :referred_by
+      t.references :target_enrollment, foreign_key: { to_table: :Enrollment }, null: true
       t.datetime :completed_at
       t.timestamps
     end

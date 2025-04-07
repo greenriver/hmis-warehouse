@@ -124,7 +124,7 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
         _, result = post_graphql(**variables) { mutation }
         step_data = result.dig('data', 'startCeReferralStep', 'step')
 
-        expect(step_data['formDefinition']['id']).to eq(client_acceptance_task.form_definition.id.to_s)
+        expect(step_data['formDefinition']['id']).to eq(client_acceptance_task.definitions.sole.id.to_s)
       end
 
       it 'creates an audit event' do

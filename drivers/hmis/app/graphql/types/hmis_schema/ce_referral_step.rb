@@ -33,8 +33,14 @@ module Types
     end
 
     def form_definition
+      # If the step itself has a definition, return that
+      definition = load_ar_association(object, :form_definition)
+      return definition if definition.present?
+
+      # Otherwise, return the latest published definition with this identifier
       node = load_ar_association(object, :node)
-      load_ar_association(node, :form_definition)
+      definitions = load_ar_association(node, :definitions, scope: Hmis::Form::Definition.published.order(version: :desc))
+      definitions.first
     end
   end
 end

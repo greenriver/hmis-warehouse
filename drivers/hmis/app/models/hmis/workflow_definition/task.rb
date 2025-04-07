@@ -5,7 +5,8 @@
 # Tasks may include a swimline which can be used to determine which user is assigned to the corresponding step
 module Hmis::WorkflowDefinition
   class Task < Node
-    belongs_to :form_definition, class_name: 'Hmis::Form::Definition'
+    has_many :definitions, primary_key: :form_definition_identifier, foreign_key: :identifier, class_name: 'Hmis::Form::Definition'
+
     belongs_to :swimlane, class_name: 'Hmis::WorkflowDefinition::Swimlane', optional: true
 
     validates :name, presence: true
