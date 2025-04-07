@@ -49,7 +49,7 @@ module GrdaWarehouse::Tasks
     end
 
     def prune_removed_users
-      current_user_ids = User.pluck(:id).map do |id|
+      current_user_ids = User.with_deleted.pluck(:id).map do |id|
         connection.quote(id)
       end
 
