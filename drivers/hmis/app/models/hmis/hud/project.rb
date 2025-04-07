@@ -7,6 +7,9 @@
 # frozen_string_literal: false
 
 class Hmis::Hud::Project < Hmis::Hud::Base
+  self.table_name = :Project
+  self.sequence_name = "public.\"#{table_name}_id_seq\""
+
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::FormSubmittable
@@ -14,8 +17,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   has_paper_trail(meta: { project_id: :id })
 
-  self.table_name = :Project
-  self.sequence_name = "public.\"#{table_name}_id_seq\""
   CONFIDENTIAL_PROJECT_NAME = 'Confidential Project'.freeze
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'

@@ -9,6 +9,10 @@
 # frozen_string_literal: false
 
 class Hmis::Hud::Client < Hmis::Hud::Base
+  self.table_name = :Client
+  self.sequence_name = "public.\"#{table_name}_id_seq\""
+  self.ignored_columns += [:preferred_name]
+
   extend OrderAsSpecified
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
@@ -19,10 +23,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_paper_trail(meta: { client_id: :id })
 
   attr_accessor :gender, :race
-
-  self.table_name = :Client
-  self.sequence_name = "public.\"#{table_name}_id_seq\""
-  self.ignored_columns += [:preferred_name]
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 

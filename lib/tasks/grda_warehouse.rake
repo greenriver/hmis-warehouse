@@ -286,6 +286,17 @@ namespace :grda_warehouse do
     Importing::RunDailyImportsJob.new.perform
   end
 
+  desc 'Monthly tasks'
+  task monthly: [:environment, 'log:info_to_stdout'] do
+    GrdaWarehouse::Tasks::CensusImport.new.run!
+
+    # Force a cleanup of all destination clients so we don't miss splits or merges
+    # where the source clients don't have any open enrollments
+    GrdaWarehouse::Hud::Client.destination.pluck_in_batches(:id, batch_size: 10_000) do |batch|
+      GrdaWarehouse::Tasks::ClientCleanup.new(destination_ids: batch).run!
+    end
+  end
+
   desc 'Hourly tasks'
   task hourly: [:environment, 'log:info_to_stdout'] do
     begin
@@ -396,6 +407,9 @@ namespace :grda_warehouse do
       puts e.message
     end
     IdentifyExternalClientsJob.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).run_all!
+
+    # Store S3 paths for files that don't have them so OP analytics can use them
+    GrdaWarehouse::ClientFile.delay.maintain_urls
   end
 
   desc 'Save Service History Snapshots'
