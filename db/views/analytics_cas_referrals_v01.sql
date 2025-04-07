@@ -1,5 +1,5 @@
 SELECT id,
-  workflow_name,
+  referral_name,
   client_id,
   opportunity_id,
   opportunity_category_id,
@@ -11,4 +11,4 @@ SELECT id,
   unsuccessful_reason,
   created_at,
   updated_at
-FROM cas_analytics_workflows
+FROM cas_analytics_referrals

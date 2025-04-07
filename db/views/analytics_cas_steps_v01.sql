@@ -1,5 +1,5 @@
 SELECT id,
-  workflow_id,
+  referral_id,
   name,
   "order",
   status,

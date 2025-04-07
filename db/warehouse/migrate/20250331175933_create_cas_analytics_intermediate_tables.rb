@@ -34,9 +34,9 @@ class CreateCasAnalyticsIntermediateTables < ActiveRecord::Migration[7.0]
       t.timestamps
     end
 
-    create_table :cas_analytics_workflow_contacts do |t|
+    create_table :cas_analytics_referral_contacts do |t|
       t.string :email
-      t.references :workflow, index: false
+      t.references :referral, index: false
       t.references :contact, index: false
       t.string :contact_type
 
@@ -52,8 +52,8 @@ class CreateCasAnalyticsIntermediateTables < ActiveRecord::Migration[7.0]
     end
 
     # Representation of client-opportunity-match combined with route
-    create_table :cas_analytics_workflows do |t|
-      t.string :workflow_name
+    create_table :cas_analytics_referrals do |t|
+      t.string :referral_name
       t.references :client, index: false
       t.references :opportunity, index: false
       t.references :opportunity_category, index: false
@@ -69,7 +69,7 @@ class CreateCasAnalyticsIntermediateTables < ActiveRecord::Migration[7.0]
 
     # Representation of decisions
     create_table :cas_analytics_steps do |t|
-      t.references :workflow, index: false
+      t.references :referral, index: false
       t.string :name
       t.integer :order
       t.string :status
@@ -79,10 +79,10 @@ class CreateCasAnalyticsIntermediateTables < ActiveRecord::Migration[7.0]
       t.timestamps
     end
 
-    # Used to determine which users can see which workflow instances
-    create_table :cas_analytics_workflow_users do |t|
+    # Used to determine which users can see which referrals
+    create_table :cas_analytics_referral_users do |t|
       t.string :email
-      t.references :workflow, index: false
+      t.references :referral, index: false
     end
   end
 end
