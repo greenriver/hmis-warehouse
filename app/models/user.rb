@@ -63,7 +63,7 @@ class User < ApplicationRecord
   Role.permissions.each do |permission|
     define_method(permission) do
       @permissions ||= load_effective_permissions.merge(load_health_effective_permissions)
-      @permissions[permission]
+      @permissions[permission] || false
     end
 
     # Methods for determining if a user has permission

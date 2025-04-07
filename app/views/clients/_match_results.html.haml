@@ -1,39 +1,40 @@
 - clients = clients.preload(:data_source, source_clients: [:data_source])
 - input_id = "grda_warehouse_hud_client[merge][]"
 - if clients.any?
-  %table.table.table-sm.table-striped
-    %thead
-      %tr
-        %th{colspan: 2} Client
-        %th DOB/Age
-        %th SSN
-    %tbody
-      - clients.each do |c|
-        %tr.client__potential-match
-          - client_name = "#{c.pii_provider(user: current_user).full_name}"
-          - sc_count = c.source_clients.count
-          - colspan = if sc_count == 1 then 2 else 4 end
-          - if sc_count == 1
-            - client_name = "#{client_name} in #{c.source_clients.first.data_source&.short_name}"
-          %td{colspan: colspan}
-            .d-flex.align-items-center
-              .c-checkbox.c-checkbox.mr-4
-                -# = f.input :merge, label: false, as: :boolean, checked_value: c.id, unchecked_value: nil, input_html: {name: input_id, id: input_id}
-                = check_box_tag input_id, c.id, nil, id: c.id
-                %label{for:c.id, tabindex:'1' }
-              = link_to(client_name, client_path(c), target: "_blank")
-          - if sc_count == 1
-            %td= c.pii_provider(user: current_user).dob_or_age
-            %td= c.pii_provider(user: current_user).ssn
-          - else
-            - c.source_clients.each do |sc|
-              %tr
-                %td{style: 'width: 2em;'}
-                %td.client__source-client
-                  .d-flex.align-items-center
-                    .c-checkbox.c-checkbox.mr-4
-                      = check_box_tag input_id, sc.id, nil, id: sc.id
-                      %label{for:sc.id, tabindex:'1' }
-                    %span= "#{sc.pii_provider(user: current_user).full_name} in #{sc.data_source&.short_name} <br /> #{sc.uuid}".html_safe
-                %td= sc.pii_provider(user: current_user).dob_or_age
-                %td= sc.pii_provider(user: current_user).ssn
+  .card
+    %table.table.table-sm.table-striped
+      %thead
+        %tr
+          %th{colspan: 2} Client
+          %th DOB/Age
+          %th SSN
+      %tbody
+        - clients.each do |c|
+          %tr.client__potential-match
+            - client_name = "#{c.pii_provider(user: current_user).full_name}"
+            - sc_count = c.source_clients.count
+            - colspan = if sc_count == 1 then 2 else 4 end
+            - if sc_count == 1
+              - client_name = "#{client_name} in #{c.source_clients.first.data_source&.short_name}"
+            %td{colspan: colspan}
+              .d-flex.align-items-center
+                .c-checkbox.c-checkbox.mr-4
+                  -# = f.input :merge, label: false, as: :boolean, checked_value: c.id, unchecked_value: nil, input_html: {name: input_id, id: input_id}
+                  = check_box_tag input_id, c.id, nil, id: c.id
+                  %label{for:c.id, tabindex:'1' }
+                = link_to(client_name, client_path(c), target: "_blank")
+            - if sc_count == 1
+              %td= c.pii_provider(user: current_user).dob_or_age
+              %td= c.pii_provider(user: current_user).ssn
+            - else
+              - c.source_clients.each do |sc|
+                %tr
+                  %td{style: 'width: 2em;'}
+                  %td.client__source-client
+                    .d-flex.align-items-center
+                      .c-checkbox.c-checkbox.mr-4
+                        = check_box_tag input_id, sc.id, nil, id: sc.id
+                        %label{for:sc.id, tabindex:'1' }
+                      %span= "#{sc.pii_provider(user: current_user).full_name} in #{sc.data_source&.short_name} <br /> #{sc.uuid}".html_safe
+                  %td= sc.pii_provider(user: current_user).dob_or_age
+                  %td= sc.pii_provider(user: current_user).ssn

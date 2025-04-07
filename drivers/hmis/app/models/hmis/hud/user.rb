@@ -7,10 +7,11 @@
 # frozen_string_literal: false
 
 class Hmis::Hud::User < Hmis::Hud::Base
-  include ::HmisStructure::User
-  include ::Hmis::Hud::Concerns::Shared
   self.table_name = :User
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+
+  include ::HmisStructure::User
+  include ::Hmis::Hud::Concerns::Shared
   has_paper_trail
 
   has_many :affiliations, **hmis_relation(:UserID, 'Affiliation')
