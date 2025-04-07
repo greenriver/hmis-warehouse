@@ -446,8 +446,9 @@ module GrdaWarehouse
             active_storage_url: file.client_file&.blob&.url,
           }
         rescue StandardError
-          # Ignore errors, this is less likely in production
+          # Ignore errors, in development.  We'll revisit in production
           # but if we can't find the url, we don't need to populate it
+          raise unless Rails.env.development?
         end
         upsert_all(batch, update_only: [:active_storage_url], record_timestamps: false) if batch.any?
       end
