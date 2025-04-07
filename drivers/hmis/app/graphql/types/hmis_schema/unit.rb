@@ -31,6 +31,7 @@ module Types
     field :occupants, [HmisSchema::Enrollment], null: false
     field :user, Application::User, null: true
     field :unit_size, Integer, null: true
+    field :active_opportunity, HmisSchema::CeOpportunity, null: true
 
     def user
       user = load_ar_association(object, :user)
@@ -56,6 +57,10 @@ module Types
 
     def name
       Hmis::Unit.display_name(id: object.id, name: object.name, unit_type: unit_type)
+    end
+
+    def active_opportunity
+      load_ar_association(object, :active_opportunity)
     end
   end
 end

@@ -32,11 +32,19 @@ module Types
     end
 
     def active_referral
-      object.referrals.order(:id).viewable_by(current_user).active.first
+      load_ar_association(
+        object,
+        :referrals,
+        scope: Hmis::Ce::Referral.viewable_by(current_user).active.order(:id),
+      ).first
     end
 
     def accepted_referral
-      object.referrals.order(:id).viewable_by(current_user).accepted.first
+      load_ar_association(
+        object,
+        :referrals,
+        scope: Hmis::Ce::Referral.viewable_by(current_user).accepted.order(:id),
+      ).first
     end
 
     def project_name
