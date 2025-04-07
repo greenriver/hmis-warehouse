@@ -249,7 +249,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/tasks/sync_analysis_data_task.rb",
-      "line": 45,
+      "line": 47,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"INSERT INTO analytics.app_users (id, first_name, last_name, email)\\nVALUES\\n#{batch.map do\n sanitize_sql_for_insert(user)\n end.join(\",\\n\")}\\nON CONFLICT (id) DO UPDATE SET\\n  first_name = EXCLUDED.first_name,\\n  last_name = EXCLUDED.last_name,\\n  email = EXCLUDED.email\\n\")",
       "render_path": null,
@@ -1159,20 +1159,20 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "6f490be2f525a315c9f3f0a09357efaca78835a473970fa2565a79ebdc30de31",
+      "fingerprint": "704273000a07b053e45e096697b567e3c6b26cac4cd9ccbcfe998f2b16cccfcd",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/tasks/sync_analysis_data_task.rb",
-      "line": 58,
+      "line": 60,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "connection.execute(\"DELETE FROM analytics.app_users\\nWHERE id NOT IN (#{User.pluck(:id).map do\n connection.quote(id)\n end.join(\",\")})\\n\")",
+      "code": "connection.execute(\"DELETE FROM analytics.app_users\\nWHERE id NOT IN (#{User.with_deleted.pluck(:id).map do\n connection.quote(id)\n end.join(\",\")})\\n\")",
       "render_path": null,
       "location": {
         "type": "method",
         "class": "GrdaWarehouse::Tasks::SyncAnalysisDataTask",
         "method": "prune_removed_users"
       },
-      "user_input": "User.pluck(:id).map",
+      "user_input": "User.with_deleted.pluck(:id)",
       "confidence": "High",
       "cwe_id": [
         89
