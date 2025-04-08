@@ -50,7 +50,7 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
       template: template,
       name: 'Client Acceptance',
       swimlane: swimlane,
-      form_definition: create(:hmis_form_definition),
+      form_definition_identifier: create(:hmis_form_definition).identifier,
     )
   end
 
