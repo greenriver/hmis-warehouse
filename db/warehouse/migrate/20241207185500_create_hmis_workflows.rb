@@ -7,6 +7,7 @@ class CreateHmisWorkflows < ActiveRecord::Migration[7.0]
       t.string :name, null: false
       t.integer :version, null: false
       t.string :status, null: false # retired, published, draft
+      t.string :template_type, null: false
       t.text :description
       t.references :owner, polymorphic: true # TBD
 
