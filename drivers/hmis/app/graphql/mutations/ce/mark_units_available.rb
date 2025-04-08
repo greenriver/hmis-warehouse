@@ -14,7 +14,7 @@ module Mutations
     def resolve(unit_ids:)
       raise unless Hmis::Ce.configuration.enabled?
 
-      units = Hmis::Unit.preload(:unit_type, :current_occupants, :active_opportunity).where(id: unit_ids)
+      units = Hmis::Unit.preload(:unit_type, :current_occupants, :current_opportunity).where(id: unit_ids)
       raise 'Not found' unless units.any?
 
       projects = units.pluck(:project_id).uniq
@@ -43,8 +43,7 @@ module Mutations
     private
 
     def mark_available(unit, template)
-      raise 'Currently occupied unit cannot be marked available' if unit.current_occupants.any?
-      raise 'Unit already has an opportunity' if unit.active_opportunity.present?
+      raise 'Unit already has an active opportunity' if unit.current_opportunity.present? && unit.current_opportunity.status.to_sym != :closed
 
       unit_desc = unit.unit_type&.description
       opportunity_name = "Unit #{unit.id}#{unit_desc ? ' - ' : ''}#{unit_desc}"

@@ -31,7 +31,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
           markUnitsAvailable(unitIds: $unitIds) {
             units {
               #{scalar_fields(Types::HmisSchema::Unit)}
-              activeOpportunity {
+              currentOpportunity {
                 id
                 name
               }
@@ -47,47 +47,51 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
     end
 
     context 'with valid input' do
+      # Unit is already occupied. This IS allowed - example where tenants are moving out at end of month
+      let!(:occupancy) { create :hmis_unit_occupancy, unit: unit }
+
       it 'creates a new opportunity' do
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
-          expect(result.dig('data', 'markUnitsAvailable', 'units', 0, 'activeOpportunity', 'name')).to eq("Unit #{unit.id} - #{unit_type.description}")
+          expect(result.dig('data', 'markUnitsAvailable', 'units', 0, 'currentOpportunity', 'name')).to eq("Unit #{unit.id} - #{unit_type.description}")
           unit.reload
         end.to change(Hmis::Ce::Opportunity, :count).by(1)
-        expect(unit.active_opportunity).to be_present
-      end
-    end
-
-    context 'when unit is already occupied' do
-      let!(:occupancy) { create :hmis_unit_occupancy, unit: unit }
-
-      it 'does not create an opportunity' do
-        expect do
-          expect_gql_error(
-            post_graphql(**variables) { mutation },
-            message: 'Currently occupied unit cannot be marked available',
-          )
-          unit.reload
-        end.to not_change(Hmis::Ce::Opportunity, :count)
-        expect(unit.opportunities).to be_empty
+        expect(unit.current_opportunity).to be_present
       end
     end
 
     context 'when unit has already been marked available' do
       let!(:opportunity) do
         post_graphql(**variables) { mutation }
-        unit.reload.active_opportunity
+        unit.reload.current_opportunity
       end
 
       it 'does not create a new opportunity' do
         expect do
           expect_gql_error(
             post_graphql(**variables) { mutation },
-            message: 'Unit already has an opportunity',
+            message: 'Unit already has an active opportunity',
           )
           unit.reload
         end.to not_change(Hmis::Ce::Opportunity, :count)
-        expect(unit.active_opportunity).to eq(opportunity)
+        expect(unit.current_opportunity).to eq(opportunity)
+      end
+    end
+
+    context 'when unit has an in-progress referral' do
+      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress) }
+
+      it 'does not create a new opportunity' do
+        expect do
+          expect_gql_error(
+            post_graphql(**variables) { mutation },
+            message: 'Unit already has an active opportunity',
+          )
+          unit.reload
+        end.to not_change(Hmis::Ce::Opportunity, :count)
+        expect(unit.current_opportunity).to eq(opportunity)
       end
     end
 
@@ -97,14 +101,14 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
 
       it 'creates a new opportunity' do
         expect(unit.opportunities).to include(past_opportunity)
-        expect(unit.active_opportunity).to be_nil
+        expect(unit.current_opportunity.status).to eq('closed')
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
           unit.reload
         end.to change(Hmis::Ce::Opportunity, :count).by(1)
-        expect(unit.active_opportunity).to be_present
-        expect(unit.active_opportunity).not_to eq(past_opportunity)
+        expect(unit.current_opportunity).not_to eq(past_opportunity)
+        expect(unit.current_opportunity.status).to eq('open')
       end
     end
 

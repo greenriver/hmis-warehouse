@@ -32,7 +32,7 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
           markUnitsUnavailable(unitIds: $unitIds) {
             units {
               #{scalar_fields(Types::HmisSchema::Unit)}
-              activeOpportunity {
+              currentOpportunity {
                 id
                 name
               }
@@ -55,7 +55,7 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
         )
         unit.reload
       end.to not_change(Hmis::Ce::Opportunity, :count).from(1).
-        and not_change(unit, :active_opportunity)
+        and not_change(unit, :current_opportunity)
     end
 
     context 'with valid input' do
@@ -63,10 +63,10 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
-          expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'activeOpportunity')).to be_nil
+          expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'currentOpportunity')).to be_nil
           unit.reload
         end.to change(Hmis::Ce::Opportunity, :count).from(1).to(0)
-        expect(unit.active_opportunity).to be_nil
+        expect(unit.current_opportunity).to be_nil
       end
     end
 
@@ -102,10 +102,10 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
-          expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'activeOpportunity')).to be_nil
+          expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'currentOpportunity')).to be_nil
           unit.reload
         end.to change(Hmis::Ce::Opportunity, :count).from(2).to(1)
-        expect(unit.active_opportunity).to be_nil
+        expect(unit.current_opportunity).to be_nil
         expect(unit.opportunities).to contain_exactly(past_opportunity)
       end
     end

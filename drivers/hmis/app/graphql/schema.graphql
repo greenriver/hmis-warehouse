@@ -11891,7 +11891,10 @@ type UnassignStaffPayload {
 }
 
 type Unit {
-  activeOpportunity: CeOpportunity
+  """
+  The unit's most recent opportunity, which could be currently active or already closed
+  """
+  currentOpportunity: CeOpportunity
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
   id: ID!

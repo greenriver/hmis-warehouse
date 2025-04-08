@@ -25,7 +25,7 @@ class Hmis::Unit < Hmis::HmisBase
   has_many :active_unit_occupancies, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
   has_many :current_occupants, through: :active_unit_occupancies, class_name: 'Hmis::Hud::Enrollment', source: :enrollment
   has_many :opportunities, as: :owner, class_name: 'Hmis::Ce::Opportunity', inverse_of: :owner
-  has_one :active_opportunity, -> { active }, as: :owner, class_name: 'Hmis::Ce::Opportunity', inverse_of: :owner
+  has_one :current_opportunity, -> { order(created_at: :desc) }, as: :owner, class_name: 'Hmis::Ce::Opportunity', inverse_of: :owner
 
   alias_attribute :date_updated, :updated_at
   alias_attribute :date_created, :created_at
