@@ -160,7 +160,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             template: workflow_template,
             name: 'Post Provider Acceptance',
             swimlane: case_manager_swimlane,
-            form_definition: create(:hmis_form_definition),
+            form_definition_identifier: create(:hmis_form_definition).identifier,
           )
         end
 
@@ -208,7 +208,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               template: workflow_template,
               name: "conditional task #{i}",
               swimlane: case_manager_swimlane,
-              form_definition: create(:hmis_form_definition),
+              form_definition_identifier: create(:hmis_form_definition).identifier,
             )
             gateway.connect_to!(conditional_task, condition: 'needs_provider_acceptance = 1')
 
@@ -217,7 +217,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               template: workflow_template,
               name: "nonconditional task #{i}",
               swimlane: case_manager_swimlane,
-              form_definition: create(:hmis_form_definition),
+              form_definition_identifier: create(:hmis_form_definition).identifier,
             )
             start_event.connect_to!(non_conditional_task)
           end

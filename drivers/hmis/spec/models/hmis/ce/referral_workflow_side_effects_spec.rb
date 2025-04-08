@@ -168,7 +168,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
           template: workflow_template,
           name: 'Provider Acceptance',
           swimlane: case_manager_swimlane,
-          form_definition: move_in_date_form_def,
+          form_definition_identifier: move_in_date_form_def.identifier,
           trigger_config: [
             # This one has 2 side effects:
             { # 1. Create an enrollment
@@ -202,7 +202,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
             template: workflow_template,
             name: 'Provider Acceptance',
             swimlane: case_manager_swimlane,
-            form_definition: move_in_date_form_def,
+            form_definition_identifier: move_in_date_form_def.identifier,
             trigger_config: [
               {
                 event: 'complete_step',
