@@ -11,7 +11,7 @@ module Mutations
     argument :referral_id, ID, required: true
     argument :step_id, ID, required: true
     argument :input, Types::JsonObject, required: true
-    argument :form_definition_id, ID, required: true
+    argument :form_definition_id, ID, required: true # The form that was used to submit the step
     argument :confirmed, Boolean, required: false
 
     field :step, Types::HmisSchema::CeReferralStep, null: true # nullable in case of errors
