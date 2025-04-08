@@ -4,6 +4,7 @@ def create_template(name, identifier)
     identifier: identifier,
     status: 'published'
   )
+  template.template_type = 'ce_referral'
   template.name = name
   template.version = 0
   template.save! if template.changed?
