@@ -1184,12 +1184,7 @@ CREATE VIEW analytics.clients AS
     "DateUpdated",
     "UserID",
     "DateDeleted",
-    "ExportID",
-    consent_form_id,
-    housing_release_status,
-    consent_form_signed_on,
-    consent_expires_on,
-    consented_coc_codes
+    "ExportID"
    FROM public."Client"
   WHERE ("DateDeleted" IS NULL);
 
@@ -66641,4 +66636,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250403232619'),
 ('20250407165234'),
 ('20250407165554'),
+('20250325205806'),
+('20250331121904'),
 ('20250402142140');
