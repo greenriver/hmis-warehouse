@@ -7055,10 +7055,10 @@ CREATE TABLE public.ce_referrals (
     status character varying NOT NULL,
     client_id bigint NOT NULL,
     referred_by_id bigint,
+    target_enrollment_id bigint,
     completed_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    target_enrollment_id bigint
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -29212,14 +29212,14 @@ CREATE TABLE public.wfe_steps (
     instance_id bigint NOT NULL,
     node_id bigint NOT NULL,
     form_definition_id bigint,
+    reversible boolean DEFAULT true NOT NULL,
     status character varying NOT NULL,
     assigned_to_id bigint,
     started_at timestamp(6) without time zone,
     completed_at timestamp(6) without time zone,
     submitted_values json,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    reversible boolean DEFAULT true NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -54277,6 +54277,13 @@ CREATE INDEX index_ce_referrals_on_referred_by_id ON public.ce_referrals USING b
 
 
 --
+-- Name: index_ce_referrals_on_target_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_referrals_on_target_enrollment_id ON public.ce_referrals USING btree (target_enrollment_id);
+
+
+--
 -- Name: index_ce_referrals_on_workflow_instance_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -65814,6 +65821,14 @@ ALTER TABLE ONLY public."Client"
 
 
 --
+-- Name: ce_referrals fk_rails_5336ef5847; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_referrals
+    ADD CONSTRAINT fk_rails_5336ef5847 FOREIGN KEY (target_enrollment_id) REFERENCES public."Enrollment"(id);
+
+
+--
 -- Name: service_history_services_2037 fk_rails_564f7bf6cb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -66615,6 +66630,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250401130809'),
 ('20250402130025'),
 ('20250403204353'),
-('20250403232619'),
-('20250407165234'),
-('20250407165554');
+('20250403232619');
