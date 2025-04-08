@@ -6513,7 +6513,7 @@ type Mutation {
     """
     input: SubmitAssessmentInput!
   ): SubmitAssessmentPayload
-  submitCeReferralStep(confirmed: Boolean, input: JsonObject!, referralId: ID!, stepId: ID!): SubmitCeReferralStepPayload
+  submitCeReferralStep(confirmed: Boolean, formDefinitionId: ID!, input: JsonObject!, referralId: ID!, stepId: ID!): SubmitCeReferralStepPayload
 
   """
   Submit a form to create/update HUD record(s)
