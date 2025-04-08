@@ -759,7 +759,7 @@ type CeOpportunity {
   projectName: String!
 
   """
-  Could be an active or accepted referral
+  Active or accepted referral
   """
   referral: CeReferral
   status: CeOpportunityStatus!
