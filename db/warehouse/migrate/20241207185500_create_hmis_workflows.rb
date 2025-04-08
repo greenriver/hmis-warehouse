@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class CreateHmisWorkflows < ActiveRecord::Migration[7.0]
-  def change
+  def up
     create_table :wfd_templates do |t|
       t.string :identifier, null: false
       t.string :name, null: false
@@ -29,7 +29,7 @@ class CreateHmisWorkflows < ActiveRecord::Migration[7.0]
       t.string :name
       t.references :swimlane, foreign_key: { to_table: :wfd_swimlanes }
       # task nodes have forms.
-      t.references :form_definition, foreign_key: { to_table: :hmis_form_definitions }
+      t.string :form_definition_identifier
       # gateway nodes have types
       t.string :gateway_type
 
@@ -56,6 +56,8 @@ class CreateHmisWorkflows < ActiveRecord::Migration[7.0]
     create_table :wfe_steps do |t|
       t.references :instance, null: false, foreign_key: { to_table: :wfe_instances }
       t.references :node, null: false, foreign_key: { to_table: :wfd_nodes }
+      t.references :form_definition, foreign_key: { to_table: :hmis_form_definitions }, null: true
+      t.boolean :reversible, null: false, default: true
       t.string :status, null: false
       t.references :assigned_to
       t.datetime :started_at
@@ -84,5 +86,16 @@ class CreateHmisWorkflows < ActiveRecord::Migration[7.0]
 
       t.timestamps
     end
+  end
+
+  def down
+    execute 'DROP TABLE IF EXISTS wfe_audit_events CASCADE'
+    execute 'DROP TABLE IF EXISTS wfe_step_assignments CASCADE'
+    execute 'DROP TABLE IF EXISTS wfe_steps CASCADE'
+    execute 'DROP TABLE IF EXISTS wfe_instances CASCADE'
+    execute 'DROP TABLE IF EXISTS wfd_flows CASCADE'
+    execute 'DROP TABLE IF EXISTS wfd_nodes CASCADE'
+    execute 'DROP TABLE IF EXISTS wfd_swimlanes CASCADE'
+    execute 'DROP TABLE IF EXISTS wfd_templates CASCADE'
   end
 end

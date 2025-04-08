@@ -63,14 +63,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(steps[0]).to include(
           'name' => 'Client Acceptance',
           'status' => 'unavailable',
-          'formDefinition' => { 'id' => client_acceptance_task.form_definition.id.to_s },
+          'formDefinition' => { 'id' => client_acceptance_task.form_definitions.sole.id.to_s },
         )
 
         # Verify second step (Provider Acceptance)
         expect(steps[1]).to include(
           'name' => 'Provider Acceptance',
           'status' => 'unavailable',
-          'formDefinition' => { 'id' => provider_acceptance_task.form_definition.id.to_s },
+          'formDefinition' => { 'id' => provider_acceptance_task.form_definitions.sole.id.to_s },
         )
       end
     end
@@ -160,7 +160,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             template: workflow_template,
             name: 'Post Provider Acceptance',
             swimlane: case_manager_swimlane,
-            form_definition: create(:hmis_form_definition),
           )
         end
 
@@ -208,7 +207,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               template: workflow_template,
               name: "conditional task #{i}",
               swimlane: case_manager_swimlane,
-              form_definition: create(:hmis_form_definition),
             )
             gateway.connect_to!(conditional_task, condition: 'needs_provider_acceptance = 1')
 
@@ -217,7 +215,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               template: workflow_template,
               name: "nonconditional task #{i}",
               swimlane: case_manager_swimlane,
-              form_definition: create(:hmis_form_definition),
             )
             start_event.connect_to!(non_conditional_task)
           end
