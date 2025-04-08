@@ -6498,7 +6498,7 @@ type Mutation {
     input: DeleteUnitsInput!
   ): DeleteUnitsPayload
   joinHousehold(joiningEnrollmentInputs: [EnrollmentRelationshipInput!]!, receivingHouseholdId: ID!): JoinHouseholdPayload
-  markUnitsAvailable(templateId: ID!, unitIds: [ID!]!): MarkUnitsAvailablePayload
+  markUnitsAvailable(unitIds: [ID!]!): MarkUnitsAvailablePayload
   markUnitsUnavailable(unitIds: [ID!]!): MarkUnitsUnavailablePayload
   mergeClients(
     """

@@ -9,10 +9,9 @@
 module Mutations
   class Ce::MarkUnitsAvailable < CleanBaseMutation
     argument :unit_ids, [ID], required: true
-    argument :template_id, ID, required: true
     field :units, [Types::HmisSchema::Unit], null: false
 
-    def resolve(unit_ids:, template_id:)
+    def resolve(unit_ids:)
       raise unless Hmis::Ce.configuration.enabled?
 
       units = Hmis::Unit.preload(:unit_type, :current_occupants, :active_opportunity).where(id: unit_ids)
@@ -25,7 +24,8 @@ module Mutations
       project = Hmis::Hud::Project.find_by(id: projects.first)
       raise 'Access denied' unless current_user.permissions_for?(project, :can_manage_units)
 
-      template = Hmis::WorkflowDefinition::Template.find(template_id)
+      template = Hmis::WorkflowDefinition::Template.first # TODO(#7522)
+      raise unless template.present?
 
       Hmis::Unit.transaction do
         opportunities = units.map do |unit|

@@ -27,8 +27,8 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
   describe 'mark unit available mutation' do
     let(:mutation) do
       <<~GRAPHQL
-        mutation MarkUnitsAvailable($unitIds: [ID!]!, $templateId: ID!) {
-          markUnitsAvailable(unitIds: $unitIds, templateId: $templateId) {
+        mutation MarkUnitsAvailable($unitIds: [ID!]!) {
+          markUnitsAvailable(unitIds: $unitIds) {
             units {
               #{scalar_fields(Types::HmisSchema::Unit)}
               activeOpportunity {
@@ -43,7 +43,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
     end
 
     let(:variables) do
-      { unitIds: [unit.id], templateId: template.id }
+      { unitIds: [unit.id] }
     end
 
     context 'with valid input' do
@@ -116,7 +116,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
       end
 
       let(:variables) do
-        { unitIds: unit_ids, templateId: template.id }
+        { unitIds: unit_ids }
       end
 
       it 'makes a reasonable number of db queries' do
