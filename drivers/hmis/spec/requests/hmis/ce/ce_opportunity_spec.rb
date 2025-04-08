@@ -41,7 +41,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 clientId
               }
             }
-            activeReferral {
+            referral {
               id
               status
             }
@@ -194,12 +194,41 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
 
-          active_referral_data = result.dig('data', 'ceOpportunity', 'activeReferral')
+          referral_data = result.dig('data', 'ceOpportunity', 'referral')
 
-          expect(active_referral_data).to include(
+          expect(referral_data).to include(
             'id' => active_referral.id.to_s,
             'status' => 'in_progress',
           )
+        end
+      end
+    end
+
+    describe 'when the opportunity has several referrals' do
+      # opportunities are single-use, so there should only be one in-progress or accepted referral, but there could be many failed referrals.
+      let!(:rejected1) { create(:hmis_ce_referral, opportunity: opportunity, status: 'rejected', created_at: 1.day.ago) }
+      let!(:rejected2) { create(:hmis_ce_referral, opportunity: opportunity, status: 'rejected', created_at: 1.day.ago) }
+      let!(:rejected3) { create(:hmis_ce_referral, opportunity: opportunity, status: 'rejected', created_at: 1.day.ago) }
+
+      ['initialized', 'in_progress', 'accepted'].each do |status|
+        it 'returns the referral' do
+          referral = create(:hmis_ce_referral, opportunity: opportunity, status: status, created_at: 2.days.ago) # even if it was created less recently
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          referral_data = result.dig('data', 'ceOpportunity', 'referral')
+          expect(referral_data).to include('id' => referral.id.to_s, 'status' => status)
+        end
+      end
+
+      context 'when there are multiple active referrals, which shouldnt happen' do
+        let!(:referral1) { create(:hmis_ce_referral, opportunity: opportunity, status: 'in_progress', created_at: 2.days.ago) }
+        let!(:referral2) { create(:hmis_ce_referral, opportunity: opportunity, status: 'accepted', created_at: 3.days.ago) }
+
+        it 'returns the more recent one' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          referral_data = result.dig('data', 'ceOpportunity', 'referral')
+          expect(referral_data).to include('id' => referral1.id.to_s)
         end
       end
     end

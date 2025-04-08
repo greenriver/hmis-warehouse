@@ -12,8 +12,7 @@ module Types
     field :name, String, null: false
     field :status, HmisSchema::Enums::CeOpportunityStatus, null: false
     field :expires_at, GraphQL::Types::ISO8601DateTime, null: true
-    field :active_referral, Types::HmisSchema::CeReferral, null: true
-    field :accepted_referral, Types::HmisSchema::CeReferral, null: true
+    field :referral, Types::HmisSchema::CeReferral, null: true, description: 'Active or accepted referral'
     field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false
     field :project_id, ID, null: false
     field :project_name, String, null: false
@@ -31,12 +30,13 @@ module Types
         order(priority_score: :desc, client_id: :desc)
     end
 
-    def active_referral
-      object.referrals.order(:id).viewable_by(current_user).active.first
-    end
-
-    def accepted_referral
-      object.referrals.order(:id).viewable_by(current_user).accepted.first
+    def referral
+      load_ar_association(
+        object,
+        :referrals,
+        scope: Hmis::Ce::Referral.viewable_by(current_user).where.not(status: 'rejected').
+          order(created_at: :desc), # there should be at most 1, but just in case, return the most recent
+      ).first
     end
 
     def project_name

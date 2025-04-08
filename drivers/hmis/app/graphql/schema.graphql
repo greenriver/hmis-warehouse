@@ -748,8 +748,6 @@ type CeOpportunitiesPaginated {
 }
 
 type CeOpportunity {
-  acceptedReferral: CeReferral
-  activeReferral: CeReferral
   candidates(limit: Int, offset: Int): CeCandidatesPaginated!
   categories: [String!]!
   eligibilityRequirements: [CeMatchRule!]
@@ -759,6 +757,11 @@ type CeOpportunity {
   priorityScheme: CeMatchRule
   projectId: ID!
   projectName: String!
+
+  """
+  Could be an active or accepted referral
+  """
+  referral: CeReferral
   status: CeOpportunityStatus!
 }
 
