@@ -19,6 +19,12 @@ class ReplaceCompositeKeys < ActiveRecord::Migration[7.1]
           ON #{connection.quote_table_name(table_name)} (#{connection.quote_column_name(key)})
         SQL
       end
+
+      composite_cols.map(&:first).uniq.each do |table_name|
+        execute <<-SQL
+          ANALYZE #{connection.quote_table_name(table_name)}
+        SQL
+      end
     end
   end
 
@@ -79,6 +85,11 @@ class ReplaceCompositeKeys < ActiveRecord::Migration[7.1]
       ['Enrollment', 'UserID'],
       ['Enrollment', 'ExportID'],
       ['Enrollment', 'EnrollmentID'],
+      ['EnrollmentCoC', 'EnrollmentID'],
+      ['EnrollmentCoC', 'ProjectID'],
+      ['EnrollmentCoC', 'ExportID'],
+      ['EnrollmentCoC', 'UserID'],
+      ['EnrollmentCoC', 'PersonalID'],
       ['ProjectCoC', 'ProjectCoCID'],
       ['ProjectCoC', 'ProjectID'],
       ['ProjectCoC', 'UserID'],

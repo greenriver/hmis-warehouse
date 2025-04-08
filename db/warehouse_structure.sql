@@ -2596,7 +2596,12 @@ CREATE TABLE public."EnrollmentCoC" (
     id integer NOT NULL,
     "HouseholdID" character varying(32),
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
+    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED,
+    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED,
+    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
+    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED
 );
 
 
@@ -53352,6 +53357,41 @@ CREATE INDEX idx_enrollment_ds_project_id ON public."Enrollment" USING btree (ds
 --
 
 CREATE INDEX idx_enrollment_ds_user_id ON public."Enrollment" USING btree (ds_user_id);
+
+
+--
+-- Name: idx_enrollmentcoc_ds_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_enrollmentcoc_ds_enrollment_id ON public."EnrollmentCoC" USING btree (ds_enrollment_id);
+
+
+--
+-- Name: idx_enrollmentcoc_ds_export_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_enrollmentcoc_ds_export_id ON public."EnrollmentCoC" USING btree (ds_export_id);
+
+
+--
+-- Name: idx_enrollmentcoc_ds_personal_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_enrollmentcoc_ds_personal_id ON public."EnrollmentCoC" USING btree (ds_personal_id);
+
+
+--
+-- Name: idx_enrollmentcoc_ds_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_enrollmentcoc_ds_project_id ON public."EnrollmentCoC" USING btree (ds_project_id);
+
+
+--
+-- Name: idx_enrollmentcoc_ds_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_enrollmentcoc_ds_user_id ON public."EnrollmentCoC" USING btree (ds_user_id);
 
 
 --

@@ -66,6 +66,11 @@ module HudSpmReport::Adapters
         :DateDeleted,
         :ExportID,
         :data_source_id,
+        :ds_project_id,
+        :ds_personal_id,
+        :ds_user_id,
+        :ds_export_id,
+        :ds_enrollment_id,
       ].freeze
     end
   end
