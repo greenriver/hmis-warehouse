@@ -55,12 +55,14 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
           $stepId: ID!
           $input: JsonObject!
           $confirmed: Boolean
+          $formDefinitionId: ID!
         ) {
           submitCeReferralStep(
             referralId: $referralId
             stepId: $stepId
             input: $input
             confirmed: $confirmed
+            formDefinitionId: $formDefinitionId
           ) {
             step {
               id
@@ -86,6 +88,7 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
       {
         referralId: referral.id,
         stepId: step.id,
+        formDefinitionId: ce_step_definition.id,
       }
     end
 

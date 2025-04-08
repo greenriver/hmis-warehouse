@@ -61,14 +61,6 @@ module Hmis::Ce
     def accept_referral
       referral.accept!
       referral.opportunity.close!
-      # TBD enroll client, set move-in date, assign to unit if needed
-      # enrollment = referral.target_enrollment
-      # if enrollment.nil?
-      #   referral.target_enrollment ||= referral.project.enrollments.create!(client: referral.client)
-      #   referral.update!(target_enrollment: enrollment)
-      # else
-      #   enrollment.mark-non-wip
-      # end
     end
 
     def create_unit_assignment(message)
