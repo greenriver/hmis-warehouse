@@ -2221,11 +2221,12 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         end
 
         context 'when verified_by already exists, but verified_by_project_id is null' do
+          let(:migrated_in_project_name) { 'Some random value with no relation to a project that probably came from a migration' }
           let!(:cls) do
             create(
               :hmis_current_living_situation,
               client: c1, enrollment: e1, data_source: ds1, user: u1,
-              VerifiedBy: 'Some random value with no relation to a project that probably came from a migration'
+              VerifiedBy: migrated_in_project_name
             )
           end
 
@@ -2245,7 +2246,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           end
 
           it 'should not raise when verified_by_project_id is unrecognized' do
-            values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => '1' }) # a random ID that doesn't correspond to a project
+            values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => migrated_in_project_name })
 
             expect do
               process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)
