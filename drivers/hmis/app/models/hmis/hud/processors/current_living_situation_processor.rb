@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Hmis::Hud::Processors
   class CurrentLivingSituationProcessor < Base
     def process(field, value)
@@ -15,12 +17,15 @@ module Hmis::Hud::Processors
       # convert HIDDEN to nil
       verified_by_project_id = value == Base::HIDDEN_FIELD_VALUE ? nil : value
 
-      verified_by_project = Hmis::Hud::Project.find_by(id: verified_by_project_id) if verified_by_project_id
       # Don't raise if we can't find the project. Migrated-in CLS in the DB would have `verified_by` set to a string and
       # null `verified_by_project_id`. HOWEVER, if then a migrated-in CLS form is ever re-submitted without changes to
-      # the "Verified By" dropdown, the `verified_by_project_id` field will be set to the `verified_by` string
+      # the "Verified By" dropdown, the `verified_by_project_id` field will be submitted as the `verified_by` string
       # (not a project ID). In that case, we leave everything as-is without any db changes to either verified-by field.
       # See the hack described in HmisSchema::CurrentLivingSituation for more detail on why this works this way.
+
+      # First check if the value is an integer; otherwise Hmis::Hud::Project.find_by will raise due to StrictAttributes
+      is_valid_int = Hmis::StrictInteger::INT_RGX.match?(verified_by_project_id.to_s)
+      verified_by_project = Hmis::Hud::Project.find_by(id: verified_by_project_id) if is_valid_int
 
       if verified_by_project
         # We collect project ID onto the non-HUD field `verified_by_project_id`,
