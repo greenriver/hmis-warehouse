@@ -16,18 +16,18 @@ SELECT
     clh_locations.updated_at,
     -- legacy field
     -- clh_locations.enrollment_id,
-    clh_locations.located_at
+    clh_locations.located_at,
 
     -- If location was collected via an HMIS form, id of the form definition
-    hmis_form_processors.definition_id as form_definition_id
+    hmis_form_processors.definition_id as form_definition_id,
     -- If location was collected via HMIS form, type of the associated record
     -- (eg "HmisExternalApis::ExternalForms::FormSubmission", "Hmis::Hud::CustomAssessment" or "Hmis::Hud::CurrentLivingSituation")
-    hmis_form_processors.owner_type, 
-    hmis_form_processors.owner_id, -- ID of associated record
+    hmis_form_processors.owner_type,
+    hmis_form_processors.owner_id -- ID of associated record
 
 FROM
     public.clh_locations
-LEFT OUTER JOIN public.hmis_form_processors 
-    ON public.hmis_form_processors.clh_location_id = public.clh_locations.id
+LEFT OUTER JOIN public.hmis_form_processors
+    ON hmis_form_processors.clh_location_id = clh_locations.id
 WHERE
-    deleted_at IS NULL AND lat IS NOT NULL AND lon IS NOT NULL;
+    clh_locations.deleted_at IS NULL AND clh_locations.lat IS NOT NULL AND clh_locations.lon IS NOT NULL;
