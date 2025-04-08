@@ -63,14 +63,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(steps[0]).to include(
           'name' => 'Client Acceptance',
           'status' => 'unavailable',
-          'formDefinition' => { 'id' => client_acceptance_task.definitions.sole.id.to_s },
+          'formDefinition' => { 'id' => client_acceptance_task.form_definitions.sole.id.to_s },
         )
 
         # Verify second step (Provider Acceptance)
         expect(steps[1]).to include(
           'name' => 'Provider Acceptance',
           'status' => 'unavailable',
-          'formDefinition' => { 'id' => provider_acceptance_task.definitions.sole.id.to_s },
+          'formDefinition' => { 'id' => provider_acceptance_task.form_definitions.sole.id.to_s },
         )
       end
     end

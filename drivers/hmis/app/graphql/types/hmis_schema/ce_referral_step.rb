@@ -39,7 +39,7 @@ module Types
 
       # Otherwise, get the definition identifier on the node, and return the latest published definition with this identifier
       node = load_ar_association(object, :node)
-      load_ar_association(node, :definitions, scope: Hmis::Form::Definition.published.order(version: :desc)).first
+      load_ar_association(node, :form_definitions, scope: Hmis::Form::Definition.published.order(version: :desc)).first
     end
   end
 end

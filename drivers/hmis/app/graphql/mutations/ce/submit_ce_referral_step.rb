@@ -24,7 +24,7 @@ module Mutations
       step = nil
       errors = HmisErrors::Errors.new
       form_definition = Hmis::Form::Definition.find(form_definition_id)
-      raise unless form_definition.published?
+      raise unless form_definition.valid_status_for_submit?
 
       referral.opportunity.with_lock do
         engine = referral.workflow_engine
