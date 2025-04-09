@@ -808,6 +808,7 @@ type CeParticipationsPaginated {
 }
 
 type CeReferral {
+  active: Boolean!
   client: Client
   clientId: ID!
   createdAt: ISO8601DateTime!

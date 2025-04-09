@@ -52,5 +52,9 @@ module Hmis::Ce
         assignment_handler: Hmis::Ce::ReferralTaskAssignmentHandler.new(self),
       )
     end
+
+    def active?
+      [:accepted, :rejected].exclude?(status.to_sym)
+    end
   end
 end

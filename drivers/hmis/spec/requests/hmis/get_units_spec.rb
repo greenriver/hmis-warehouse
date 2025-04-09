@@ -39,6 +39,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 id
                 referral {
                   id
+                  active
                 }
               }
             }
@@ -63,6 +64,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq(200), result.inspect
         expect(result.dig('data', 'project', 'units', 'nodesCount')).to eq(50)
         expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral')).to be_present
+        expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral', 'active')).to be_truthy
       end.to make_database_queries(count: 18..22)
     end
   end
