@@ -15,14 +15,11 @@ module Mutations
       raise unless Hmis::Ce.configuration.enabled?
 
       units = Hmis::Unit.preload(:current_occupants).where(id: unit_ids)
-      raise 'Cannot mark occupied units unavailable' if units.any? do |unit|
-        unit.current_occupants.any?
-      end
 
-      projects = units.pluck(:project_id).uniq
-      raise 'Cannot manage units across projects' if projects.size > 1
+      project_ids = units.pluck(:project_id).uniq
+      raise 'Cannot manage units across projects' if project_ids.size > 1
 
-      project = Hmis::Hud::Project.find_by(id: projects.first)
+      project = Hmis::Hud::Project.find_by(id: project_ids.first)
       raise 'Access denied' unless current_user.permissions_for?(project, :can_manage_units)
 
       opportunities = Hmis::Ce::Opportunity.active.

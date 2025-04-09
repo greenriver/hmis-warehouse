@@ -70,14 +70,6 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
       end
     end
 
-    context 'when unit is already occupied' do
-      let!(:occupancy) { create :hmis_unit_occupancy, unit: unit }
-
-      it 'does not allow marking unavailable' do
-        expect_failure('Cannot mark occupied units unavailable')
-      end
-    end
-
     context 'when unit is already not available' do
       let!(:opportunity) { create(:hmis_ce_opportunity) } # overwrite opportunity fixture with an opportunity that's not associated with this unit
 
@@ -102,10 +94,9 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
-          expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'latestOpportunity')).to be_nil
+          expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'latestOpportunity', 'id')).to eq(past_opportunity.id.to_s)
           unit.reload
         end.to change(Hmis::Ce::Opportunity, :count).from(2).to(1)
-        expect(unit.latest_opportunity).to be_nil
         expect(unit.opportunities).to contain_exactly(past_opportunity)
       end
     end
