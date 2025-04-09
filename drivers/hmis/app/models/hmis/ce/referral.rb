@@ -25,6 +25,8 @@ module Hmis::Ce
 
     scope :active, -> { where.not(status: ['accepted', 'rejected']) }
 
+    validate :unique_referral_per_opportunity
+
     state_machine_config column: 'status' do
       state :initialized, initial: true
       state :in_progress
@@ -55,6 +57,22 @@ module Hmis::Ce
 
     def active?
       [:accepted, :rejected].exclude?(status.to_sym)
+    end
+
+    private
+
+    def unique_referral_per_opportunity
+      # Opportunities are single-use, so there should only be one in-progress or accepted referral,
+      # but there could be many rejected referrals.
+      return if status.to_sym == :rejected
+
+      conflicting_referral_exists = Hmis::Ce::Referral.where.not(status: 'rejected').
+        where(opportunity_id: opportunity_id).
+        where.not(id: id).
+        exists?
+      return unless conflicting_referral_exists
+
+      errors.add(:opportunity, 'can only have one active or accepted referral')
     end
   end
 end

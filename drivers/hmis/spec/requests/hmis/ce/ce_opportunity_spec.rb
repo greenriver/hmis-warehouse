@@ -211,25 +211,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:rejected3) { create(:hmis_ce_referral, opportunity: opportunity, status: 'rejected', created_at: 1.day.ago) }
 
       ['initialized', 'in_progress', 'accepted'].each do |status|
-        it 'returns the correct referral' do
+        it "returns the #{status} referral" do
           # it should return this referral even if it was created less recently than the rejected referrals (which should not happen)
           referral = create(:hmis_ce_referral, opportunity: opportunity, status: status, created_at: 2.days.ago)
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
           referral_data = result.dig('data', 'ceOpportunity', 'referral')
           expect(referral_data).to include('id' => referral.id.to_s, 'status' => status)
-        end
-      end
-
-      context 'when there are multiple active referrals, which should not happen' do
-        let!(:referral1) { create(:hmis_ce_referral, opportunity: opportunity, status: 'in_progress', created_at: 2.days.ago) }
-        let!(:referral2) { create(:hmis_ce_referral, opportunity: opportunity, status: 'accepted', created_at: 3.days.ago) }
-
-        it 'returns the more recent one' do
-          response, result = post_graphql(**variables) { query }
-          expect(response.status).to eq(200), result.inspect
-          referral_data = result.dig('data', 'ceOpportunity', 'referral')
-          expect(referral_data).to include('id' => referral1.id.to_s)
         end
       end
     end

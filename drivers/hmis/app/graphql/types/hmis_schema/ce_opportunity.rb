@@ -36,8 +36,8 @@ module Types
         object,
         :referrals,
         scope: Hmis::Ce::Referral.viewable_by(current_user).where.not(status: 'rejected').
-          order(created_at: :desc), # there should be at most 1, but just in case, return the most recent
-      ).first
+          order(created_at: :desc),
+      ).first # there should be at most 1 (enforced in an AR validation but not at the database level)
     end
 
     def project_name
