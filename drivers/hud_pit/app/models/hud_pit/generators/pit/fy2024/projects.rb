@@ -4,14 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 # Project-level PIT counts.
 #
 # This is NOT part of the HUD PIT reporting requirements; we do not expect them to be uploaded to HDX.
 module HudPit::Generators::Pit::Fy2024
   class Projects < Base
-    QUESTION_NUMBER = 'Projects'.freeze
+    QUESTION_NUMBER = 'Projects'
 
     def self.filter_pending_associations(pending_associations)
       pending_associations
