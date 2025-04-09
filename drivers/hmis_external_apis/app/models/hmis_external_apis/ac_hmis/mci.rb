@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 # To connect to the API, you need a remote credential labeled 'mci'. Replace
 # the empty strings below with values from the documentation.
 #
@@ -50,7 +52,8 @@ module HmisExternalApis::AcHmis
         # "middleNameSearchCriteria": 0,  # FIXME: No documentation for how to use this
         # "lastNameSearchCriteria": 0,    # FIXME: No documentation for how to use this
       }
-      result = conn.post('clients/v1/api/clients/clearance', payload).
+      # new route in some environments(?) is "clients/api/Clients/clearance", move to base_url on remote credential instead
+      result = conn.post('clearance', payload).
         then { |r| handle_error(r) }
 
       Rails.logger.info "Did clearance for client #{client.id}"
@@ -82,7 +85,7 @@ module HmisExternalApis::AcHmis
 
       payload = MciPayload.from_client(client, mci_id: nil)
 
-      endpoint = 'clients/v1/api/clients/newclient'
+      endpoint = 'newclient'
       result = conn.post(endpoint, payload).then { |r| handle_error(r) }
 
       # Store MCI ID for client
@@ -110,7 +113,7 @@ module HmisExternalApis::AcHmis
 
       payload = MciPayload.from_client(client, mci_id: external_id.value)
 
-      conn.post('clients/v1/api/clients/updateclient', payload).then { |r| handle_error(r) }
+      conn.post('updateclient', payload).then { |r| handle_error(r) }
 
       Rails.logger.info "Updated MCI information for client #{client.id} with external ID with primary key of #{external_id.id}"
 
