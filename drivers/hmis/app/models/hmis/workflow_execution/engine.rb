@@ -39,7 +39,7 @@ module Hmis::WorkflowExecution
     end
 
     def validate_step(step, submitted_values:)
-      definition = step.node.form_definition
+      definition = step.form_definition # form_definition is optional on step; it is populated when the step is submitted, so here we expect it to be present.
       definition.validate_form_values(submitted_values)
     end
 

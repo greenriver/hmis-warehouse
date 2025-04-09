@@ -4,6 +4,7 @@ def create_template(name, identifier)
     identifier: identifier,
     status: 'published'
   )
+  template.template_type = 'ce_referral'
   template.name = name
   template.version = 0
   template.save! if template.changed?
@@ -35,7 +36,7 @@ end
 
 def create_task(definition, template, name, swimlane)
   task = Hmis::WorkflowDefinition::Task.find_or_initialize_by(
-    form_definition_id: definition.id,
+    form_definition_identifier: definition.identifier,
     template_id: template.id,
   )
   task.name = name
