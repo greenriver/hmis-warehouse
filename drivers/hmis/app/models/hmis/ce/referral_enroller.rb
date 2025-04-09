@@ -46,6 +46,7 @@ module Hmis::Ce
       entry_date_errors.reject!(&:warning?)
       error_out(entry_date_errors.map(&:full_message).join(', ')) unless entry_date_errors.empty?
 
+      # TODO(#7537) - prevent conflicting unit occupancy
       unit = referral.opportunity.owner
       enrollment.assign_unit(unit: unit, start_date: Date.current, user: message.user) if unit.is_a? Hmis::Unit
 
