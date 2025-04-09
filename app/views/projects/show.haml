@@ -11,7 +11,7 @@
 .row.mb-6
   .col-sm-4
     .card
-      %table.table.table-striped.table-hover.mb-0
+      %table.table.table-striped.mb-0
         %tr
           %th Project Type
           %td
@@ -82,7 +82,7 @@
 
   .col-sm-4
     .card
-      %table.table.table-striped.table-hover.mb-0
+      %table.table.table-striped.mb-0
         %tr
           %th Project ID
           %td
@@ -103,9 +103,11 @@
           %td
             %span{data: {toggle: :tooltip, title: 'Determined based on related inventory files'}}
               = @project.main_population
-        %tr
-          %th PIT Count
-          %td= @project.PITCount
+        - unless @project.data_source.hmis?
+          %tr
+            %th
+              %span{data: {toggle: :tooltip, title: 'PITCount value from most recent Project.csv import'}} PIT Count
+            %td= @project.PITCount
   .col-sm-4.text-right
     - if project_policy.can_edit?
       .mb-4
