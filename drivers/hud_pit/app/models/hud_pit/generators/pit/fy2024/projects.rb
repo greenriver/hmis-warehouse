@@ -4,6 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
+# Project-level PIT counts.
+#
+# This is NOT part of the HUD PIT reporting requirements; we do not expect them to be uploaded to HDX.
 module HudPit::Generators::Pit::Fy2024
   class Projects < Base
     QUESTION_NUMBER = 'Projects'.freeze
@@ -28,16 +33,15 @@ module HudPit::Generators::Pit::Fy2024
           'Project Name',
           'Client Count',
           'Household Count',
-          'PITCount from HMIS',
         ],
         row_labels: [],
         first_column: 'A',
-        last_column: 'E',
+        last_column: 'D',
         first_row: 2,
       }
 
       client_counts = universe.members.distinct.
-        group(:project_id, :project_name, :project_hmis_pit_count).
+        group(:project_id, :project_name).
         count(:client_id)
       household_counts = universe.members.distinct.
         group(:project_id, :project_name).
@@ -46,9 +50,9 @@ module HudPit::Generators::Pit::Fy2024
       metadata[:last_row] = client_counts.count + 1
       @report.answer(question: table_name).update(metadata: metadata)
       # there will always be at least as many clients as households, so loop over those
-      client_counts.each.with_index do |((project_id, project_name, pit_count), client_count), row_num|
+      client_counts.each.with_index do |((project_id, project_name), client_count), row_num|
         household_count = household_counts[[project_id, project_name]] || 0
-        [project_id, project_name, client_count, household_count, pit_count].each.with_index do |value, column_num|
+        [project_id, project_name, client_count, household_count].each.with_index do |value, column_num|
           cell = "#{(column_num + 1).to_csv_column}#{row_num + 2}"
 
           members = universe.members.where(a_t[:project_id].eq(project_id))
