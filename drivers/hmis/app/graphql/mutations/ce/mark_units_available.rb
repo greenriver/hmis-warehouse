@@ -43,7 +43,7 @@ module Mutations
     private
 
     def mark_available(unit, template)
-      raise 'Unit already has an active opportunity' if unit.latest_opportunity.present? && unit.latest_opportunity.status.to_sym != :closed
+      raise 'Unit already has an active opportunity' if unit.latest_opportunity&.active?
 
       unit_desc = unit.unit_type&.description
       opportunity_name = "Unit #{unit.id}#{unit_desc ? ' - ' : ''}#{unit_desc}"

@@ -65,5 +65,9 @@ module Hmis::Ce
       scope = scope.where.not(id: exclude_ids.sort.uniq)
       scope
     }
+
+    def active?
+      status.to_sym != :closed
+    end
   end
 end

@@ -25,6 +25,8 @@ class Hmis::Unit < Hmis::HmisBase
   has_many :active_unit_occupancies, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
   has_many :current_occupants, through: :active_unit_occupancies, class_name: 'Hmis::Hud::Enrollment', source: :enrollment
   has_many :opportunities, as: :owner, class_name: 'Hmis::Ce::Opportunity', inverse_of: :owner
+  # This is the latest opportunity, which could be either active or closed with an accepted referral.
+  # This relies on the assumption that if there is an active opportunity, it should be the latest one.
   has_one :latest_opportunity, -> { order(created_at: :desc) }, as: :owner, class_name: 'Hmis::Ce::Opportunity', inverse_of: :owner
 
   alias_attribute :date_updated, :updated_at
