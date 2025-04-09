@@ -47,9 +47,6 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
     end
 
     context 'with valid input' do
-      # Unit is already occupied. This IS allowed - example where tenants are moving out at end of month
-      let!(:occupancy) { create :hmis_unit_occupancy, unit: unit }
-
       it 'creates a new opportunity' do
         expect do
           response, result = post_graphql(**variables) { mutation }
