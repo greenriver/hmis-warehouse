@@ -748,6 +748,7 @@ type CeOpportunitiesPaginated {
 }
 
 type CeOpportunity {
+  active: Boolean!
   candidates(limit: Int, offset: Int): CeCandidatesPaginated!
   categories: [String!]!
   eligibilityRequirements: [CeMatchRule!]
