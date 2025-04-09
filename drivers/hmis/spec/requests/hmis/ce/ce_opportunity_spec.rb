@@ -211,7 +211,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:rejected3) { create(:hmis_ce_referral, opportunity: opportunity, status: 'rejected', created_at: 1.day.ago) }
 
       ['initialized', 'in_progress', 'accepted'].each do |status|
-        it 'returns the correct referral' do
+        it "returns the #{status} referral" do
           # it should return this referral even if it was created less recently than the rejected referrals (which should not happen)
           referral = create(:hmis_ce_referral, opportunity: opportunity, status: status, created_at: 2.days.ago)
           response, result = post_graphql(**variables) { query }
