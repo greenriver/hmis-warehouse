@@ -14,14 +14,14 @@ module Mutations
     def resolve(unit_ids:)
       raise unless Hmis::Ce.configuration.enabled?
 
-      units = Hmis::Unit.preload(:unit_type, :current_occupants, :current_opportunity).where(id: unit_ids)
+      units = Hmis::Unit.preload(:unit_type, :current_occupants, :latest_opportunity).where(id: unit_ids)
       raise 'Not found' unless units.any?
 
-      projects = units.pluck(:project_id).uniq
-      raise 'Not found' if projects.empty?
-      raise 'Cannot manage units across projects' if projects.size > 1
+      project_ids = units.pluck(:project_id).uniq
+      raise 'Not found' if project_ids.empty?
+      raise 'Cannot manage units across projects' if project_ids.size > 1
 
-      project = Hmis::Hud::Project.find_by(id: projects.first)
+      project = Hmis::Hud::Project.find_by(id: project_ids.first)
       raise 'Access denied' unless current_user.permissions_for?(project, :can_manage_units)
 
       # TODO(#7522) - template should be determined by context (project, unit type, ...)
@@ -43,7 +43,7 @@ module Mutations
     private
 
     def mark_available(unit, template)
-      raise 'Unit already has an active opportunity' if unit.current_opportunity.present? && unit.current_opportunity.status.to_sym != :closed
+      raise 'Unit already has an active opportunity' if unit.latest_opportunity.present? && unit.latest_opportunity.status.to_sym != :closed
 
       unit_desc = unit.unit_type&.description
       opportunity_name = "Unit #{unit.id}#{unit_desc ? ' - ' : ''}#{unit_desc}"

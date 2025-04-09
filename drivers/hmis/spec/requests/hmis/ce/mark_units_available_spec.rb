@@ -31,7 +31,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
           markUnitsAvailable(unitIds: $unitIds) {
             units {
               #{scalar_fields(Types::HmisSchema::Unit)}
-              currentOpportunity {
+              latestOpportunity {
                 id
                 name
               }
@@ -54,17 +54,17 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
-          expect(result.dig('data', 'markUnitsAvailable', 'units', 0, 'currentOpportunity', 'name')).to eq("Unit #{unit.id} - #{unit_type.description}")
+          expect(result.dig('data', 'markUnitsAvailable', 'units', 0, 'latestOpportunity', 'name')).to eq("Unit #{unit.id} - #{unit_type.description}")
           unit.reload
         end.to change(Hmis::Ce::Opportunity, :count).by(1)
-        expect(unit.current_opportunity).to be_present
+        expect(unit.latest_opportunity).to be_present
       end
     end
 
     context 'when unit has already been marked available' do
       let!(:opportunity) do
         post_graphql(**variables) { mutation }
-        unit.reload.current_opportunity
+        unit.reload.latest_opportunity
       end
 
       it 'does not create a new opportunity' do
@@ -75,7 +75,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
           )
           unit.reload
         end.to not_change(Hmis::Ce::Opportunity, :count)
-        expect(unit.current_opportunity).to eq(opportunity)
+        expect(unit.latest_opportunity).to eq(opportunity)
       end
     end
 
@@ -91,7 +91,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
           )
           unit.reload
         end.to not_change(Hmis::Ce::Opportunity, :count)
-        expect(unit.current_opportunity).to eq(opportunity)
+        expect(unit.latest_opportunity).to eq(opportunity)
       end
     end
 
@@ -101,14 +101,14 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
 
       it 'creates a new opportunity' do
         expect(unit.opportunities).to include(past_opportunity)
-        expect(unit.current_opportunity.status).to eq('closed')
+        expect(unit.latest_opportunity.status).to eq('closed')
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
           unit.reload
         end.to change(Hmis::Ce::Opportunity, :count).by(1)
-        expect(unit.current_opportunity).not_to eq(past_opportunity)
-        expect(unit.current_opportunity.status).to eq('open')
+        expect(unit.latest_opportunity).not_to eq(past_opportunity)
+        expect(unit.latest_opportunity.status).to eq('open')
       end
     end
 
