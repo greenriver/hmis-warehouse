@@ -948,6 +948,103 @@ CREATE VIEW analytics.ch_enrollments AS
 
 
 --
+-- Name: files; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.files (
+    id integer NOT NULL,
+    type character varying NOT NULL,
+    file character varying,
+    content_type character varying,
+    content bytea,
+    client_id integer,
+    user_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone,
+    note character varying,
+    name character varying,
+    visible_in_window boolean,
+    migrated_username character varying,
+    vispdat_id integer,
+    consent_form_signed_on date,
+    consent_form_confirmed boolean,
+    size double precision,
+    effective_date date,
+    expiration_date date,
+    delete_reason integer,
+    delete_detail character varying,
+    consent_revoked_at timestamp without time zone,
+    coc_codes jsonb DEFAULT '[]'::jsonb,
+    enrollment_id bigint,
+    confidential boolean DEFAULT false NOT NULL,
+    updated_by_id bigint,
+    data_source_id bigint,
+    consent_revoked_by_user_id integer,
+    active_storage_url character varying
+);
+
+
+--
+-- Name: taggings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.taggings (
+    id integer NOT NULL,
+    tag_id integer,
+    taggable_id integer,
+    taggable_type character varying,
+    tagger_id integer,
+    tagger_type character varying,
+    context character varying(128),
+    created_at timestamp without time zone
+);
+
+
+--
+-- Name: tags; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tags (
+    id integer NOT NULL,
+    name character varying,
+    taggings_count integer DEFAULT 0
+);
+
+
+--
+-- Name: client_files; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.client_files AS
+ WITH file_tags AS (
+         SELECT taggings.taggable_id AS file_id,
+            array_agg(DISTINCT tags.name ORDER BY tags.name) AS tag_names
+           FROM (public.tags
+             JOIN public.taggings ON ((tags.id = taggings.tag_id)))
+          WHERE ((taggings.taggable_type)::text = 'GrdaWarehouse::File'::text)
+          GROUP BY taggings.taggable_id
+        )
+ SELECT client_files.id,
+    client_files.client_id,
+    client_files.visible_in_window,
+    client_files.consent_form_signed_on AS signature_date,
+    client_files.consent_form_confirmed AS consent_confirmed,
+    client_files.effective_date,
+    client_files.expiration_date,
+    client_files.consent_revoked_at,
+    client_files.coc_codes,
+    client_files.active_storage_url,
+    COALESCE(ft.tag_names, '{}'::character varying[]) AS tags,
+    client_files.data_source_id,
+    client_files.created_at,
+    client_files.updated_at
+   FROM (public.files client_files
+     LEFT JOIN file_tags ft ON ((ft.file_id = client_files.id)))
+  WHERE (((client_files.type)::text = 'GrdaWarehouse::ClientFile'::text) AND (client_files.deleted_at IS NULL) AND (client_files.confidential = false));
+
+
+--
 -- Name: clh_locations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3155,6 +3252,16 @@ CREATE VIEW analytics.external_reporting_project_permissions AS
     updated_at,
     email
    FROM public.external_reporting_project_permissions;
+
+
+--
+-- Name: file_tags; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.file_tags AS
+ SELECT id,
+    name
+   FROM public.tags;
 
 
 --
@@ -9933,43 +10040,6 @@ CREATE SEQUENCE public.federal_census_breakdowns_id_seq
 --
 
 ALTER SEQUENCE public.federal_census_breakdowns_id_seq OWNED BY public.federal_census_breakdowns.id;
-
-
---
--- Name: files; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.files (
-    id integer NOT NULL,
-    type character varying NOT NULL,
-    file character varying,
-    content_type character varying,
-    content bytea,
-    client_id integer,
-    user_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    deleted_at timestamp without time zone,
-    note character varying,
-    name character varying,
-    visible_in_window boolean,
-    migrated_username character varying,
-    vispdat_id integer,
-    consent_form_signed_on date,
-    consent_form_confirmed boolean,
-    size double precision,
-    effective_date date,
-    expiration_date date,
-    delete_reason integer,
-    delete_detail character varying,
-    consent_revoked_at timestamp without time zone,
-    coc_codes jsonb DEFAULT '[]'::jsonb,
-    enrollment_id bigint,
-    confidential boolean DEFAULT false NOT NULL,
-    updated_by_id bigint,
-    data_source_id bigint,
-    consent_revoked_by_user_id integer
-);
 
 
 --
@@ -28001,22 +28071,6 @@ ALTER SEQUENCE public.system_pathways_enrollments_id_seq OWNED BY public.system_
 
 
 --
--- Name: taggings; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.taggings (
-    id integer NOT NULL,
-    tag_id integer,
-    taggable_id integer,
-    taggable_type character varying,
-    tagger_id integer,
-    tagger_type character varying,
-    context character varying(128),
-    created_at timestamp without time zone
-);
-
-
---
 -- Name: taggings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -28033,17 +28087,6 @@ CREATE SEQUENCE public.taggings_id_seq
 --
 
 ALTER SEQUENCE public.taggings_id_seq OWNED BY public.taggings.id;
-
-
---
--- Name: tags; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.tags (
-    id integer NOT NULL,
-    name character varying,
-    taggings_count integer DEFAULT 0
-);
 
 
 --
@@ -29083,7 +29126,7 @@ CREATE TABLE public.wfd_nodes (
     trigger_config jsonb,
     name character varying,
     swimlane_id bigint,
-    form_definition_id bigint,
+    form_definition_identifier character varying,
     gateway_type character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
@@ -29151,12 +29194,12 @@ CREATE TABLE public.wfd_templates (
     name character varying NOT NULL,
     version integer NOT NULL,
     status character varying NOT NULL,
+    template_type character varying NOT NULL,
     description text,
     owner_type character varying,
     owner_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    template_type character varying NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -29285,6 +29328,8 @@ CREATE TABLE public.wfe_steps (
     id bigint NOT NULL,
     instance_id bigint NOT NULL,
     node_id bigint NOT NULL,
+    form_definition_id bigint,
+    reversible boolean DEFAULT true NOT NULL,
     status character varying NOT NULL,
     assigned_to_id bigint,
     started_at timestamp(6) without time zone,
@@ -62061,6 +62106,13 @@ CREATE INDEX index_wfe_steps_on_assigned_to_id ON public.wfe_steps USING btree (
 
 
 --
+-- Name: index_wfe_steps_on_form_definition_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_wfe_steps_on_form_definition_id ON public.wfe_steps USING btree (form_definition_id);
+
+
+--
 -- Name: index_wfe_steps_on_instance_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -64590,14 +64642,6 @@ ALTER TABLE ONLY public.service_history_services_2016
 
 
 --
--- Name: ce_referrals fk_rails_178ac9e66a; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referrals
-    ADD CONSTRAINT fk_rails_178ac9e66a FOREIGN KEY (workflow_instance_id) REFERENCES public.wfe_instances(id);
-
-
---
 -- Name: service_history_services_2046 fk_rails_1f5ddaaa59; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -64870,6 +64914,14 @@ ALTER TABLE ONLY public.hmis_external_referral_postings
 
 
 --
+-- Name: wfe_steps fk_rails_6b6b8ac13d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wfe_steps
+    ADD CONSTRAINT fk_rails_6b6b8ac13d FOREIGN KEY (form_definition_id) REFERENCES public.hmis_form_definitions(id);
+
+
+--
 -- Name: service_history_services_2039 fk_rails_6c0d4085ac; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -65078,14 +65130,6 @@ ALTER TABLE ONLY public.wfe_instances
 
 
 --
--- Name: ce_referral_participants fk_rails_8fe8b4a5a6; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referral_participants
-    ADD CONSTRAINT fk_rails_8fe8b4a5a6 FOREIGN KEY (swimlane_id) REFERENCES public.wfd_swimlanes(id);
-
-
---
 -- Name: service_history_services_2049 fk_rails_9783c16a4a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -65107,14 +65151,6 @@ ALTER TABLE ONLY public.wfe_audit_events
 
 ALTER TABLE ONLY public.hmis_external_referral_household_members
     ADD CONSTRAINT fk_rails_993d7f8d95 FOREIGN KEY (client_id) REFERENCES public."Client"(id);
-
-
---
--- Name: wfd_nodes fk_rails_9ab4365c4f; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_nodes
-    ADD CONSTRAINT fk_rails_9ab4365c4f FOREIGN KEY (form_definition_id) REFERENCES public.hmis_form_definitions(id);
 
 
 --
