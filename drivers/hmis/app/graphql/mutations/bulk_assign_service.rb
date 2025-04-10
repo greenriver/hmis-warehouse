@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class BulkAssignService < CleanBaseMutation
     description 'Assign services for a set of Clients. If any client is not enrolled, the client will be enrolled in the project as well.'
@@ -25,7 +27,7 @@ module Mutations
       can_enroll_clients = current_permission?(permission: :can_enroll_clients, entity: project)
 
       # Determine and validate CoC Code, which is needed for creating new Enrollments
-      coc_code = determine_coc_code(coc_code_arg: input.coc_code, project: project)
+      coc_code = project.determine_coc_code(coc_code_arg: input.coc_code)
 
       project_has_units = project.units.exists?
       available_units = project.units.unoccupied_on(input.date_provided).order(updated_at: :desc).to_a
@@ -104,17 +106,6 @@ module Mutations
       end
 
       { success: true }
-    end
-
-    # Determine and validate CoC Code, which is needed for creating new Enrollments
-    def determine_coc_code(coc_code_arg:, project:)
-      # If project has exactly 1 CoC code, always use that
-      return project.uniq_coc_codes.first if project.uniq_coc_codes.size == 1
-
-      raise 'CoC Code required for project' unless coc_code_arg
-      raise "Invalid CoC Code #{coc_code_arg} for project" unless project.uniq_coc_codes.include?(coc_code_arg)
-
-      coc_code_arg
     end
 
     def error_out(msg)

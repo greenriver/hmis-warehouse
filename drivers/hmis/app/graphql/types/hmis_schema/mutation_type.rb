@@ -89,5 +89,11 @@ module Types
 
     field :assign_staff, mutation: Mutations::AssignStaff
     field :unassign_staff, mutation: Mutations::UnassignStaff
+
+    # CE
+    field :create_ce_opportunity, mutation: Mutations::Ce::CreateCeOpportunity
+    field :create_ce_referral, mutation: Mutations::Ce::CreateCeReferral
+    field :start_ce_referral_step, mutation: Mutations::Ce::StartCeReferralStep
+    field :submit_ce_referral_step, mutation: Mutations::Ce::SubmitCeReferralStep
   end
 end

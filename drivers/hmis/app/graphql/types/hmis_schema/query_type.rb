@@ -295,12 +295,14 @@ module Types
       end
       field :can_view_my_dashboard, Boolean, null: false
       field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
+      field :can_view_coordinated_entry, Boolean, null: false
     end
 
     def access
       {
         can_view_my_dashboard: current_user.can_view_my_dashboard?,
         can_edit_users_in_warehouse: User.find(current_user.id).can_edit_users?,
+        can_view_coordinated_entry: Hmis::Ce.configuration.enabled?,
       }
     end
 
@@ -522,6 +524,35 @@ module Types
           data_collected_about: instance.data_collected_about || 'ALL_CLIENTS',
         )
       end
+    end
+
+    field :ce_referral, Types::HmisSchema::CeReferral, null: false do
+      argument :id, ID, required: true
+    end
+
+    def ce_referral(id:)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      Hmis::Ce::Referral.viewable_by(current_user).find(id)
+    end
+
+    field :ce_opportunity, HmisSchema::CeOpportunity, null: false do
+      argument :id, ID, required: true
+    end
+
+    def ce_opportunity(id:)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      Hmis::Ce::Opportunity.viewable_by(current_user).find(id)
+    end
+
+    field :ce_referral_step, HmisSchema::CeReferralStep, null: false do
+      argument :id, ID, required: true
+    end
+    def ce_referral_step(id:)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      Hmis::WorkflowExecution::Step.viewable_by(current_user).find(id)
     end
   end
 end

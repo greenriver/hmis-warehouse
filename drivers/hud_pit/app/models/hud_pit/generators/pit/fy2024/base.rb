@@ -6,12 +6,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
-
 # PIT Notes
 #   CoCs should report on people based on where they are sleeping on the night of the count, as opposed to the program they are enrolled in.
 #    RRH + PH (don't count)
@@ -159,7 +153,8 @@ module HudPit::Generators::Pit::Fy2024
             project_type: last_service_history_enrollment.project_type,
             project_name: last_service_history_enrollment.project_name,
             project_id: last_service_history_enrollment.project.id,
-            project_hmis_pit_count: last_service_history_enrollment.project.PITCount,
+            # PITCount from Project.csv no longer shown. It is used mainly for non-HMIS participating projects (if at all). See issue #7497
+            # project_hmis_pit_count: last_service_history_enrollment.project.PITCount,
             entry_date: last_service_history_enrollment.entry_date,
             exit_date: last_service_history_enrollment.exit_date,
           }
