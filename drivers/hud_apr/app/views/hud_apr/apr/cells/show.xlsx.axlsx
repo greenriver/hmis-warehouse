@@ -2,10 +2,12 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: @name.slice(0,30).gsub(':', ' ')) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(HudApr::Fy2020::AprClient.detail_headers_for_export.values, style: title)
+  current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id))
   @clients.each do |client|
+    pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id, mode: :download)
     row = []
     HudApr::Fy2020::AprClient.detail_headers_for_export.each_key do |k|
-      row << client[k]
+      row << client.display_value(k, pii_policy: pii_policy, include_content_tag: false)
     end
     sheet.add_row(row)
   end

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe HmisSupplemental::DataSet, type: :model do
@@ -25,7 +27,7 @@ RSpec.describe HmisSupplemental::DataSet, type: :model do
     JSON
     expect(data_set.save).to be(false)
     expect(data_set.errors.full_messages).to contain_exactly(
-      a_string_matching(/\AField config unexpected token.*/),
+      a_string_matching(/\AField config expected object key,*/),
     )
   end
 end

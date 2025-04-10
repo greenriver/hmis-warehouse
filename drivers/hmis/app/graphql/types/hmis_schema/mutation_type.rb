@@ -57,6 +57,9 @@ module Types
     field :merge_clients, mutation: Mutations::MergeClients
     field :bulk_merge_clients, mutation: Mutations::BulkMergeClients
 
+    field :join_household, mutation: Mutations::JoinHousehold
+    field :split_household, mutation: Mutations::SplitHousehold
+
     field :create_form_definition, mutation: Mutations::CreateFormDefinition
     field :update_form_definition, mutation: Mutations::UpdateFormDefinition
     field :delete_form_definition, mutation: Mutations::DeleteFormDefinition
@@ -86,5 +89,11 @@ module Types
 
     field :assign_staff, mutation: Mutations::AssignStaff
     field :unassign_staff, mutation: Mutations::UnassignStaff
+
+    # CE
+    field :create_ce_opportunity, mutation: Mutations::Ce::CreateCeOpportunity
+    field :create_ce_referral, mutation: Mutations::Ce::CreateCeReferral
+    field :start_ce_referral_step, mutation: Mutations::Ce::StartCeReferralStep
+    field :submit_ce_referral_step, mutation: Mutations::Ce::SubmitCeReferralStep
   end
 end

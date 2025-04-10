@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudSpmReport::Generators::Fy2020
   class Generator < ::HudReports::GeneratorBase
     def self.fiscal_year
@@ -15,7 +17,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     def self.short_name
-      'SPM'.freeze
+      'SPM'
     end
 
     def self.default_project_type_codes
@@ -50,6 +52,10 @@ module HudSpmReport::Generators::Fy2020
 
     def self.client_class(_question)
       HudApr::Fy2020::SpmClient
+    end
+
+    def self.client_scope(question)
+      client_class(question)
     end
 
     def self.question_fields(question)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -83,12 +85,25 @@ module HmisCsvImporter::HmisCsv
 
     def log_timing(message)
       Rails.logger.debug { "#{message} #{hash_as_log_str log_ids}" }
+
+      phase = message.to_s.gsub(/!$/, '')
+      importer_log&.log_phase(phase, started_at: Time.current)
+
+      memory_used = -> { File.read("/proc/#{Process.pid}/status")[/VmRSS:\s+(\d+)/, 1].to_i }
+      memory_before = memory_used.call
+
       ret = nil
       bm = Benchmark.measure do
         ret = send(message)
       end
 
-      log "#{message} completed in #{elapsed_time bm.real} (#{(bm.total * 100.0 / bm.real).round}% cpu) #{hash_as_log_str log_ids}"
+      memory_after = memory_used.call
+      memory_delta = memory_after - memory_before
+
+      cpu_percentage = (bm.total * 100.0 / bm.real).round
+      importer_log&.log_phase(phase, cpu_percentage: cpu_percentage, memory_delta: memory_delta, duration: bm.real.round(3))
+
+      log "#{message} completed in #{elapsed_time bm.real} (#{cpu_percentage}% cpu) (#{memory_delta / 1024}MB mem) #{hash_as_log_str log_ids}"
       ret
     end
   end

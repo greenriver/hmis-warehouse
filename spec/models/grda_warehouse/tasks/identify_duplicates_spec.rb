@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
@@ -8,6 +16,11 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
   let!(:client_in_destination) { create :grda_warehouse_hud_client, data_source: destination_data_source }
   let(:destination_scope) { GrdaWarehouse::Hud::Client.destination }
   let(:user) { create :user }
+
+  # Clients need enrollments or ClientCleanup will delete them
+  let!(:organization) { create(:hud_organization, data_source: source_data_source) }
+  let!(:project) { create(:hud_project, project_type: 13, organization: organization, data_source: source_data_source) }
+  let!(:enrollment) { create(:hud_enrollment, client: client_in_source, project: project, data_source: source_data_source, entry_date: 1.weeks.ago) }
 
   describe 'When matching is enabled' do
     before(:all) { GrdaWarehouse::Utility.clear! }
@@ -128,6 +141,31 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
       end
     end
 
+    describe 'When the client has non-ascii characters in their name' do
+      before do
+        client_in_destination.update(first_name: 'José')
+        client_in_source.update(first_name: 'José')
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.identify_duplicates
+      end
+      it 'runs without error and generates one warehouse client record' do
+        expect(GrdaWarehouse::WarehouseClient.count).to eq(1)
+      end
+      describe 'second run' do
+        let!(:new_source_client) { create :grda_warehouse_hud_client, data_source: source_data_source, first_name: 'Jose' }
+        before do
+          # identify duplicates is not setup to "transliterate" so does not see Jose and José as the same
+          GrdaWarehouse::Tasks::IdentifyDuplicates.new.identify_duplicates
+        end
+        it 'does not connect the new client to the existing destination client' do
+          aggregate_failures do
+            expect(GrdaWarehouse::WarehouseClient.count).to eq(2)
+            expect(GrdaWarehouse::Hud::Client.destination.count).to eq(2)
+            expect(client_in_destination.source_client_ids).to_not include(new_source_client.id)
+          end
+        end
+      end
+    end
+
     describe 'source client threshold' do
       before(:each) do
         # We want to know the PPI data for this client, so set it specifically
@@ -167,12 +205,12 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
 
-        # # The code below will calculate the number of expected destination clients in the case that MAX_SOURCE_CLIENTS changes enought to affect this number
+        # # The code below will calculate the number of expected destination clients in the case that MAX_SOURCE_CLIENTS changes enough to affect this number
         # expected_number_destination_clients = ((number_sample_clients * 1.0) / GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS).ceil
 
-        # With MAX_SOURCE_CLIENTS set to 50, we are expecting 3 destiantion clients. 2 with 50 source clients and 1 with 25 source clients.
+        # With MAX_SOURCE_CLIENTS set to 50, we are expecting 3 destination clients. 2 with 50 source clients and 1 with 25 source clients.
         # We are setting this specifically instead of using the calculated number in case `MAX_SOURCE_CLIENTS` gets set to a number larger than
-        # `number_sample_clients`. If that happened, we wouldn't be reaching the threshold for the numebr of source clients that we are testing.
+        # `number_sample_clients`. If that happened, we wouldn't be reaching the threshold for the number of source clients that we are testing.
         expected_number_destination_clients = 3
 
         destination_clients = GrdaWarehouse::Hud::Client.destination.to_a

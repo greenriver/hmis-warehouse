@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module InactiveClientReport::WarehouseReports
   class ReportsController < ApplicationController
     include WarehouseReportAuthorization
@@ -24,18 +26,26 @@ module InactiveClientReport::WarehouseReports
 
     def index
       @excel_export = ::InactiveClientReport::DocumentExports::ReportExcelExport.new
+      @report.client_ids = @report.clients.map(&:id)
       respond_to do |format|
-        format.html {}
+        format.html do
+          # This needs to be set here so that the pagy data is accessible when the render_inline functionality is utilized
+          set_pagy_data if params[:render_inline] == '1'
+        end
         format.xlsx do
-          @report.client_ids = @report.clients.map(&:id)
           filename = "#{@report.name} - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
     end
 
-    def data
+    private def set_pagy_data
       @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name))
+    end
+
+    def data
+      @excel_export = ::InactiveClientReport::DocumentExports::ReportExcelExport.new
+      set_pagy_data
     end
 
     private def set_report

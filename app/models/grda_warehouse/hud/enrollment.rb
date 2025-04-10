@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -50,6 +52,11 @@ module GrdaWarehouse::Hud
     has_many :current_living_situations, **hud_enrollment_belongs('CurrentLivingSituation'), inverse_of: :enrollment
     has_many :youth_education_statuses, **hud_enrollment_belongs('YouthEducationStatus'), inverse_of: :enrollment
 
+    #####
+    # DEPRECATED 🚨
+    # The EnrollmentCoC class has been deprecated as of 10/1/2024. The class is sill needed by
+    # the importer to handle data from sources that ship in older formats.
+    #####
     has_one :enrollment_coc_at_entry, -> do
       where(DataCollectionStage: 1)
     end, **hud_enrollment_belongs('EnrollmentCoc')

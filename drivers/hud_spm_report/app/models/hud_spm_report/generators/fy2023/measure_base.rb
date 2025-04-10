@@ -4,10 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudSpmReport::Generators::Fy2023
   class MeasureBase < ::HudReports::QuestionBase
     def self.client_class
       HudSpmReport::Fy2023::SpmEnrollment
+    end
+
+    def self.client_scope
+      client_class.
+        preload(enrollment: :project)
     end
 
     private def enrollment_set

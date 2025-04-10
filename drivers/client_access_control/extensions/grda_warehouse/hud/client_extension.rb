@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 module ClientAccessControl::GrdaWarehouse::Hud
   module ClientExtension
     extend ActiveSupport::Concern
@@ -26,6 +28,17 @@ module ClientAccessControl::GrdaWarehouse::Hud
         return current_scope || all if user.system_user?
 
         filtered = arbiter(user).clients_source_visible_to(user, client_ids: client_ids)
+
+        return filtered if current_scope.nil?
+
+        return current_scope.where(id: filtered.select(:id))
+      end
+
+      # hide previous declaration of :source_visible_to, we'll use this one
+      replace_scope :destination_or_source_visible_to, ->(user, client_ids: nil) do
+        return current_scope || all if user.system_user?
+
+        filtered = arbiter(user).clients_destination_or_source_visible_to(user, client_ids: client_ids)
 
         return filtered if current_scope.nil?
 

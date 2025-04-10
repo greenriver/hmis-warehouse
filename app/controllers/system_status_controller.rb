@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class SystemStatusController < ActionController::Base
   include LogRagePayloadBehavior
 
@@ -122,6 +124,7 @@ class SystemStatusController < ActionController::Base
         reporting: reporting,
         health: health,
       },
+      eks: ENV.fetch('EKS', false),
     }
 
     render json: payload, status: status

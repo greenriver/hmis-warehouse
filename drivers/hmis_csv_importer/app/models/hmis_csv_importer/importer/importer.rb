@@ -24,6 +24,8 @@
 # imp.log_timing(:process_existing)
 
 require 'memery'
+require 'zlib'
+require 'base64'
 
 module HmisCsvImporter::Importer
   class Importer
@@ -80,8 +82,9 @@ module HmisCsvImporter::Importer
       log_timing :cleanup_data_set!
       log_timing :analyze_tables
 
-      # determine what changes will be made and make note for alerting and monitoring
-      log_timing :precalculate_change_counts
+      # Determine what changes will be made and make note for alerting and monitoring. This is only needed if the data source is configured to pause on errors.
+      log_timing :precalculate_change_counts if @data_source.ever_pause_imports_with_errors? || @data_source.ever_notify_for_imports?
+
       # Send any notifications that might be relevant to the error state of this import
       notify_of_import_status
 
@@ -91,7 +94,7 @@ module HmisCsvImporter::Importer
       ingest!
       log_timing :invalidate_aggregated_enrollments!
       complete_import
-      post_process
+      log_timing :post_process
     end
 
     def resume!
@@ -103,9 +106,9 @@ module HmisCsvImporter::Importer
       # and we may have paused for a significant amount of time
       @started_at = Time.current
       ingest!
-      invalidate_aggregated_enrollments!
+      log_timing :invalidate_aggregated_enrollments!
       complete_import
-      post_process
+      log_timing :post_process
     end
 
     ##
@@ -545,15 +548,58 @@ module HmisCsvImporter::Importer
       data_source.import_cleanups[basename]&.map(&:constantize)
     end
 
+    # Capture executed sql for debugging. Also disable nested loops
+    # min_duration defaults to 1 minute
+    def with_sql_log(phase, klass, name: nil, min_duration: 60_000)
+      queries = []
+      callback = lambda { |event|
+        payload_sql = event.payload[:sql].squish
+        next if payload_sql =~ /ROLLBACK|COMMIT|BEGIN|SAVEPOINT/
+        next if event.duration < min_duration
+
+        binds = (event.payload[:binds] || []).map { |bind| { name: bind.name || '?', value: bind.value_for_database.inspect } }
+        query_data = { sql: payload_sql.squish, binds: binds }
+
+        compressed_query = begin
+          # decode with Zlib::Inflate.inflate(Base64.decode64(str))
+          Base64.strict_encode64(Zlib::Deflate.deflate(query_data.to_json)).chomp
+        rescue JSON::GeneratorError => e
+          Rails.logger.error("JSON serialization failed: #{e.message}")
+          nil
+        rescue Zlib::Error => e
+          Rails.logger.error("Compression failed: #{e.message}")
+          nil
+        end
+
+        queries << {
+          'compressed_query' => compressed_query,
+          'duration' => event.duration / 1000, # convert to seconds
+        }
+      }
+
+      result = nil
+      GrdaWarehouseBase.disable_nestloop do
+        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+          result = yield
+        end
+      end
+
+      scope_name = [klass.name.demodulize, name].compact.join('.')
+      importer_log.log_phase(phase, **{ scope_name => queries }) if queries.any?
+      result
+    end
+
     def mark_tree_as_dead
       importable_files.each_value do |klass|
-        klass.mark_tree_as_dead(
-          data_source_id: data_source.id,
-          project_ids: involved_project_ids,
-          date_range: date_range,
-          pending_date_deleted: Date.current,
-          importer_log_id: @importer_log.id,
-        )
+        with_sql_log(__method__, klass, name: 'involved_warehouse_scope') do
+          klass.mark_tree_as_dead(
+            data_source_id: data_source.id,
+            project_ids: involved_project_ids,
+            date_range: date_range,
+            pending_date_deleted: Date.current,
+            importer_log_id: @importer_log.id,
+          )
+        end
       end
     end
 
@@ -588,11 +634,14 @@ module HmisCsvImporter::Importer
         batch = []
         # This is the same query as `existing_hud_keys` but the memoization of that method prevents this from
         # using it.
-        existing_keys = klass.existing_data(
-          data_source_id: data_source.id,
-          project_ids: involved_project_ids,
-          date_range: date_range,
-        ).pluck(klass.hud_key).to_set
+        existing_keys = nil
+        with_sql_log(__method__, klass, name: 'existing_data') do
+          existing_keys = klass.existing_data(
+            data_source_id: data_source.id,
+            project_ids: involved_project_ids,
+            date_range: date_range,
+          ).pluck(klass.hud_key).to_set
+        end
 
         bm = Benchmark.measure do
           klass.incoming_data(importer_log_id: importer_log.id).find_each(batch_size: SELECT_BATCH_SIZE) do |row|
@@ -645,9 +694,11 @@ module HmisCsvImporter::Importer
     def process_existing
       # TODO: This could be parallelized
       importable_files.each do |file_name, klass|
-        mark_unchanged(klass, file_name)
-        mark_incoming_older(klass, file_name)
-        apply_updates(klass, file_name)
+        with_sql_log(__method__, klass) do
+          mark_unchanged(klass, file_name)
+          mark_incoming_older(klass, file_name)
+          apply_updates(klass, file_name)
+        end
       end
     end
 
@@ -664,16 +715,21 @@ module HmisCsvImporter::Importer
           existing = existing_destination_data_scope(klass)
           # for everyone who would have been included in this import, but didn't get
           # processed above, set their source hash to nil so future imports will fix them
-          existing.joins(enrollments: :project).
-            merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range)).
-            merge(GrdaWarehouse::Hud::Project.where(id: involved_project_ids)).
-            update_all(source_hash: nil)
-          existing.update_all(pending_date_deleted: nil)
+          with_sql_log(__method__, klass, name: 'existing_destination_data_scope') do
+            existing.joins(enrollments: :project).
+              merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range)).
+              merge(GrdaWarehouse::Hud::Project.where(id: involved_project_ids)).
+              update_all(source_hash: nil)
+            existing.update_all(pending_date_deleted: nil)
+          end
         else
           delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
           # Do this in batches to avoid the complex join during the update
           scope = existing_destination_data_scope(klass)
-          all_ids = scope.pluck(:id)
+          all_ids = nil
+          with_sql_log(__method__, klass, name: 'existing_destination_data_scope') do
+            all_ids = scope.pluck(:id)
+          end
           update_scope = if scope.klass.paranoid?
             scope.klass.with_deleted
           else

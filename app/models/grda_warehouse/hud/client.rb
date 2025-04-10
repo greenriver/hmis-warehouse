@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 require 'memery'
 require 'restclient'
 
@@ -28,6 +30,7 @@ module GrdaWarehouse::Hud
     include ClientSearch
     include ClientImageConsumer
     include VeteranStatusCalculator
+    include ClientRaceAndEthnicityMixin
     include NotifierConfig
     has_paper_trail
 
@@ -213,7 +216,7 @@ module GrdaWarehouse::Hud
     has_many :window_notes, class_name: 'GrdaWarehouse::ClientNotes::WindowNote'
     has_many :anomaly_notes, class_name: 'GrdaWarehouse::ClientNotes::AnomalyNote'
     has_many :cohort_notes, class_name: 'GrdaWarehouse::ClientNotes::CohortNote'
-    has_many :alert_notes, class_name: 'GrdaWarehouse::ClientNotes::Alert'
+    has_many :alert_notes, -> { active }, class_name: 'GrdaWarehouse::ClientNotes::Alert'
 
     has_many :anomalies, class_name: 'GrdaWarehouse::Anomaly'
 
@@ -251,6 +254,10 @@ module GrdaWarehouse::Hud
     end
 
     scope :source_visible_to, ->(_user, client_ids: nil) do # rubocop:disable Lint/UnusedBlockArgument
+      none
+    end
+
+    scope :destination_or_source_visible_to, ->(_user, client_ids: nil) do # rubocop:disable Lint/UnusedBlockArgument
       none
     end
 
@@ -752,26 +759,6 @@ module GrdaWarehouse::Hud
       names = source_clients.map(&:full_name).uniq
       names -= [full_name]
       names.join(',')
-    end
-
-    def client_names(user:, health: false)
-      names = source_clients_searchable_to(user).map do |client|
-        {
-          ds: client.data_source&.short_name,
-          ds_id: client.data_source&.id,
-          name: client.pii_provider(user: user).full_name,
-          health: client.data_source&.authoritative_type == 'health',
-        }
-      end
-
-      if health && names.none? { |name| name[:health].present? } && patient.present?
-        names << {
-          ds: 'Health',
-          ds_id: GrdaWarehouse::DataSource.health_authoritative_id,
-          name: patient.pii_provider(user: user).brief_name,
-        }
-      end
-      names.uniq
     end
 
     # client has a disability response in the affirmative
@@ -1332,8 +1319,15 @@ module GrdaWarehouse::Hud
       end
     end
 
+    # pii provider for use on client dashboard
     memoize def pii_provider(user:)
       policy = user.policy_for(self)
+      GrdaWarehouse::PiiProvider.new(self, policy: policy)
+    end
+
+    # pii provider for use in reports and bulk view
+    def project_pii_provider(project:, user:, mode:)
+      policy = user.reporting_policy_for_project(project_id: project.id, mode: mode)
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
     end
 
@@ -1785,13 +1779,13 @@ module GrdaWarehouse::Hud
 
       if first_name.present?
         first_name_ids = source.where(
-          nf('LOWER', [arel_table[:FirstName]]).eq(first_name.downcase),
+          nf('TRIM', [nf('LOWER', [arel_table[:FirstName]])]).eq(first_name.downcase),
         ).pluck(:id)
       end
 
       if last_name.present?
         last_name_ids = source.where(
-          nf('LOWER', [arel_table[:LastName]]).eq(last_name.downcase),
+          nf('TRIM', [nf('LOWER', [arel_table[:LastName]])]).eq(last_name.downcase),
         ).pluck(:id)
       end
 
@@ -2168,6 +2162,7 @@ module GrdaWarehouse::Hud
 
     def split(client_ids, hmis_receiver_id, health_receiver_id, current_user)
       client_names = []
+      to_clean = [id]
       dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
 
       GrdaWarehouse::Hud::Base.transaction do
@@ -2202,9 +2197,13 @@ module GrdaWarehouse::Hud
           destination_client.move_dependent_hmis_items(id, destination_client.id) if receive_hmis
           destination_client.move_dependent_health_items(id, destination_client.id) if receive_health
 
+          to_clean << destination_client.id
+          to_clean << client_id
+
           client_names << c.full_name
         end
       end
+      GrdaWarehouse::Tasks::ClientCleanup.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run_for_clients(to_clean)
 
       client_names
     end
@@ -2215,22 +2214,24 @@ module GrdaWarehouse::Hud
     #
     # returns the source client records that moved
     def merge_from(other_client, reviewed_by:, reviewed_at:, client_match_id: nil)
-      raise 'only works for destination_clients' unless self.destination? # rubocop:disable Style/RedundantSelf
+      raise 'only works for destination_clients' unless destination?
 
       setup_notifier('PatientMerger') unless @notifier
       moved = []
+      to_clean = [id]
       transaction do
         # get the existing destination client for other_client
         prev_destination_client = if other_client.destination_client
           other_client.destination_client
         elsif other_client.destination?
+          to_clean << other_client.id
           other_client
         end
         # if it had sources then move those over to us
         # and say who made the decision and when
         other_client.source_clients.each do |m|
           m.warehouse_client_source.update!(
-            destination_id: self.id, # rubocop:disable Style/RedundantSelf
+            destination_id: id,
             reviewed_at: reviewed_at,
             reviewd_by: reviewed_by.id,
             client_match_id: client_match_id,
@@ -2240,7 +2241,7 @@ module GrdaWarehouse::Hud
         # if we are a source, move us
         if other_client.warehouse_client_source
           other_client.warehouse_client_source.update!(
-            destination_id: self.id, # rubocop:disable Style/RedundantSelf
+            destination_id: id,
             reviewed_at: reviewed_at,
             reviewd_by: reviewed_by.id,
             client_match_id: client_match_id,
@@ -2251,27 +2252,28 @@ module GrdaWarehouse::Hud
         if prev_destination_client
           # move any CAS column data
           previous_cas_columns = prev_destination_client.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
-          current_cas_columns = self.attributes.slice(*self.class.cas_columns.keys.map(&:to_s)) # rubocop:disable Style/RedundantSelf
+          current_cas_columns = attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
           current_cas_columns.merge!(previous_cas_columns) { |_k, old, new| old.presence || new }
-          self.update(current_cas_columns) # rubocop:disable Style/RedundantSelf
-          self.save # rubocop:disable Style/RedundantSelf
+          update(current_cas_columns)
+          save!
 
           prev_destination_client.force_full_service_history_rebuild
           prev_destination_client.source_clients.reload
           if prev_destination_client.source_clients.empty?
             # Create a client_merge_history record so we can keep links working
             GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
-            prev_destination_client.delete
+            prev_destination_client.destroy
           end
 
-          move_dependent_items(prev_destination_client.id, self.id) # rubocop:disable Style/RedundantSelf
+          move_dependent_items(prev_destination_client.id, id)
+          to_clean << prev_destination_client.id
         end
         # and invalidate our own service history
         force_full_service_history_rebuild
         # and invalidate any cache for these clients
         self.class.clear_view_cache(prev_destination_client.id) if prev_destination_client.present?
       end
-      self.class.clear_view_cache(self.id) # rubocop:disable Style/RedundantSelf
+      self.class.clear_view_cache(id)
       self.class.clear_view_cache(other_client.id)
       # un-match anyone who we just moved so they don't show up in the matching again until they've been checked
       moved.each do |m|
@@ -2280,6 +2282,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::ClientMatch.processed_or_candidate.
           where(destination_client_id: m.id).destroy_all
       end
+      GrdaWarehouse::Tasks::ClientCleanup.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run_for_clients(to_clean)
       moved
     rescue Health::MedicaidIdConflict => e
       @notifier.ping(
@@ -2351,7 +2354,6 @@ module GrdaWarehouse::Hud
         [GrdaWarehouse::HealthEmergency::UploadedTest, :client_id],
         [GrdaWarehouse::HealthEmergency::Vaccination, :client_id],
         [GrdaWarehouse::Anomaly, :client_id],
-        [GrdaWarehouse::ClientRoiAuthorization, :destination_client_id],
       ]
     end
 
@@ -2494,14 +2496,17 @@ module GrdaWarehouse::Hud
     def unsheltered_days_homeless_last_three_years
       end_date = Date.current
       start_date = end_date - 3.years
+      unsheltered_days_homeless(start_date: start_date, end_date: end_date).count
+    end
+
+    def unsheltered_days_homeless(start_date:, end_date:)
       service_history_services.
         homeless_unsheltered.
         where(date: start_date..end_date).
         where.not(date: service_history_services.non_homeless.where(date: start_date..end_date).select(:date).distinct).
         where.not(date: sheltered_homeless_dates(start_date: start_date, end_date: end_date)).
         select(:date).
-        distinct.
-        count
+        distinct
     end
 
     # TH or PH

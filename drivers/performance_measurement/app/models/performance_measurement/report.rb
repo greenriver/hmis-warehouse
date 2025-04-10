@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -297,6 +299,7 @@ module PerformanceMeasurement
           cells.each do |cell|
             next if spec[:static_spm_available]
 
+            # members could be enrollments, episodes, or returns
             members = cell_members(spec[:report], *cell)
             # Force household calculation for cell members
             calculate_households_for_spm(members)
@@ -314,6 +317,7 @@ module PerformanceMeasurement
               hud_project_ids = spm_enrollments.map { |e| e.enrollment.project.id }.uniq
               involved_projects += hud_project_ids
               parts[:questions].each do |question|
+                # read the cell value from the SPM report
                 report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(member)
                 hud_project_ids.each do |project_id|
                   pc_data = {
@@ -933,7 +937,7 @@ module PerformanceMeasurement
     end
 
     PERMANENT_DESTINATIONS = HudSpmReport::Generators::Fy2023::MeasureSeven::PERMANENT_DESTINATIONS
-    PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [0]).freeze
+    PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [nil]).freeze
     PERMANENT_TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS = (
       PERMANENT_DESTINATIONS +
       HudSpmReport::Generators::Fy2023::MeasureSeven::TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS
@@ -1062,6 +1066,27 @@ module PerformanceMeasurement
       end
     end
 
+    # The spm_fields method defines mappings between SPM (System Performance Measures) report data
+    # and Performance Measurement client fields. This configuration determines which SPM data
+    # to extract and how to transform it for the dashboard.
+    #
+    # Each entry in the array contains:
+    #   - cells: SPM table and cell identifiers to extract (e.g., ['1a', 'D2'])
+    #   - title: Description of the data
+    #   - measure: Associated SPM measure
+    #   - questions: Client field mappings with:
+    #     - name: Client field to populate
+    #     - value_calculation: Function to extract/transform SPM data
+    #   - client_project_rows: Optional lambdas that generate ClientProject records by:
+    #     - Taking an SPM entity (enrollment, episode, return) as input
+    #     - Returning either nil (no record created) or a hash with:
+    #       - project_id: The associated project ID
+    #       - for_question: Symbol identifying what the record represents
+    #       - (Additional attributes may be included as needed)
+    #
+    # The structure links SPM report cells directly to dashboard metrics while
+    # maintaining the relationships between projects and clients.
+    #
     def spm_fields
       default_calculation = lambda(&:present?)
       days_homeless_calculation = lambda(&:days_homeless)
@@ -1104,7 +1129,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1a', 'B2']],
+          cells: [['1a', 'D2']],
           title: 'Length of Time Homeless in ES, SH, TH',
           measure: :m1,
           history_source: :m1_history,
@@ -1116,7 +1141,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1b', 'B2']],
+          cells: [['1b', 'D2']],
           title: 'Length of Time Homeless in ES, SH, TH, PH',
           measure: :m1,
           history_source: :m1_history,
@@ -1196,13 +1221,16 @@ module PerformanceMeasurement
           history_source: :m7b_history,
           questions: [
             {
-              name: :moved_in_destination, # NOTE: destination 0 == stayer in the SPM
-              value_calculation: destination_calculation,
+              name: :moved_in_destination,
+              value_calculation: default_calculation,
             },
           ],
           client_project_rows: [
             ->(spm_enrollment) {
-              return unless destination_calculation.call(spm_enrollment)
+              # we know this the cell universe is PH here
+              is_stayer = spm_enrollment.exit_date.nil? || spm_enrollment.exit_date > filter.end
+              has_any_destination = destination_calculation.call(spm_enrollment)
+              return unless is_stayer || has_any_destination
 
               {
                 project_id: spm_enrollment.enrollment.project.id,
@@ -1210,7 +1238,15 @@ module PerformanceMeasurement
               }
             },
             ->(spm_enrollment) {
-              return unless destination_calculation.call(spm_enrollment).in?(PERMANENT_DESTINATIONS_OR_STAYER)
+              # Two ways to qualify as positive outcome:
+              # 1. Stayer: exit_date is nil or after report end date
+              is_stayer = spm_enrollment.exit_date.nil? || spm_enrollment.exit_date > filter.end
+
+              # 2. Leaver with permanent destination
+              has_permanent_destination = PERMANENT_DESTINATIONS.include?(spm_enrollment.destination)
+
+              # Only create the record if either condition is met
+              return unless is_stayer || has_permanent_destination
 
               {
                 project_id: spm_enrollment.enrollment.project.id,

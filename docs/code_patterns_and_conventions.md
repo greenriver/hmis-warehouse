@@ -117,7 +117,7 @@ Rely on ActiveRecord relationships over manual table joins.
 
 ## Background Async Jobs
 
-All jobs should inherit from BaseJob
+All jobs should inherit from BaseJob.
 
 Allow exceptions to bubble-up so that they can be reported to sentry. Avoid code that ignores or swallows exceptions.
 

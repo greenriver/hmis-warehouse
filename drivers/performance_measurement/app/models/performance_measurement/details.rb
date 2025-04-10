@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -182,7 +184,7 @@ module PerformanceMeasurement::Details
 
       project_scope = PerformanceMeasurement::ClientProject.where(period: period, for_question: field)
       project_scope = project_scope.where(project_id: project_id.to_i) if project_id
-      clients.joins(:client_projects).merge(project_scope)
+      clients.joins(:client_projects).merge(project_scope).distinct
     end
     memoize :clients_for_question
 
@@ -269,7 +271,25 @@ module PerformanceMeasurement::Details
         oph_average_bed_utilization: :oph,
       }
     end
-
+    # The detail_hash method defines the complete set of performance metrics used in the dashboard.
+    # Each key represents a specific performance measure (e.g., count_of_homeless_clients) with
+    # attributes that control how it's calculated, displayed, and compared to goals.
+    #
+    # Key attributes:
+    # - category/sub_category: Classification ('Rare', 'Brief', 'Non-Recurring') and subgroup
+    # - column: Where metric is displayed (:system, :project, or :both)
+    # - year_over_year_change: Whether to display year-over-year comparison
+    # - title: Human-readable title
+    # - goal_description: Description with %{goal} placeholder
+    # - goal_direction: Direction of improvement ('>', '<', '+', or '-')
+    # - goal_calculation: Method reference for goal calculation
+    # - calculation_description: How the metric is calculated
+    # - calculation_column: Client data column(s) for calculation
+    # - detail_columns: Client-level columns for drill-down views
+    # - measure: Related SPM measure reference (e.g., 'Measure 3')
+    #
+    # Various other attributes may be present for specific metric types.
+    #
     def detail_hash
       @detail_hash ||= {
         count_of_homeless_clients: {

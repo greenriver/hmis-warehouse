@@ -67,4 +67,20 @@ class GrdaWarehouseBase < ApplicationRecord
   def self.references_hud_project?
     columns_hash.key?('ProjectID') && !!reflect_on_association(:project)
   end
+
+  # force the query planner to use hash joins
+  def self.disable_nestloop
+    # Get the current value of enable_nestloop
+    current_value = connection.select_value('SHOW enable_nestloop').downcase
+    raise unless current_value.in?(['on', 'off'])
+
+    connection.execute('SET enable_nestloop = off')
+
+    begin
+      yield
+    ensure
+      # Restore the previous value
+      connection.execute("SET enable_nestloop = #{current_value}")
+    end
+  end
 end

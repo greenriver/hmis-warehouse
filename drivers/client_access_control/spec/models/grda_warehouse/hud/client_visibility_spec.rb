@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
 
@@ -42,6 +44,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         it 'user can see all clients' do
           expect(GrdaWarehouse::Hud::Client.source.source_visible_to(user).count).to eq(4)
           expect(GrdaWarehouse::Hud::Client.destination.destination_visible_to(user).count).to eq(3)
+          expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(7)
         end
       end
     end
@@ -100,6 +103,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(3)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(7)
       end
     end
     describe 'and the user has a role granting can view window clients' do
@@ -196,6 +200,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(3)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(7)
       end
     end
     describe 'and the user has a role granting can view window clients' do
@@ -268,6 +273,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(3)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(7)
       end
     end
     describe 'and the user has a role granting can view window clients' do
@@ -345,6 +351,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(3)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(7)
       end
     end
     describe 'and the user has a role granting can view window clients' do
@@ -422,7 +429,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
       describe 'and the user is assigned a CoC' do
         before do
-          coc_code_viewable_collection.update(coc_codes: ['ZZ-999'])
+          coc_code_viewable_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: 'ZZ-999').pluck(:id) })
           setup_access_control(user, no_permission_role, coc_code_viewable_collection)
         end
         it 'user cannot see client details' do
@@ -533,6 +540,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
         expect(GrdaWarehouse::Hud::Client.destination_visible_to(user).count).to eq(3)
+        expect(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(user).count).to eq(7)
       end
     end
     describe 'and the user has a role granting can search own clients' do
@@ -576,7 +584,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
       describe 'and the user is assigned a CoC' do
         before do
-          coc_code_viewable_collection.update(coc_codes: ['ZZ-999'])
+          coc_code_viewable_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: 'ZZ-999').pluck(:id) })
           setup_access_control(user, no_permission_role, coc_code_viewable_collection)
         end
         it 'user cannot see client details for someone not in their projects' do
@@ -663,7 +671,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         describe 'when the client does not have a valid consent and the user has a CoC Code matching the enrollment' do
           before do
-            coc_code_viewable_collection.update(coc_codes: ['ZZ-000'])
+            coc_code_viewable_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: 'ZZ-000').pluck(:id) })
             setup_access_control(user, can_view_clients, coc_code_viewable_collection)
             non_window_destination_client.update(
               housing_release_status: nil,
@@ -671,6 +679,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
               consent_expires_on: nil,
               consented_coc_codes: [],
             )
+            # FIXME
+            # non_window_destination_client.source_enrollments.first.update(enrollment_coc: 'ZZ-000')
           end
           it 'user can see client dashboard for assigned client' do
             expect(non_window_destination_client.show_demographics_to?(user)).to eq true
@@ -738,7 +748,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
       describe 'and client has valid release in users CoC' do
         before do
-          coc_code_viewable_collection.update(coc_codes: ['ZZ-999'])
+          coc_code_viewable_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: 'ZZ-999').pluck(:id) })
           setup_access_control(user, no_permission_role, coc_code_viewable_collection)
           non_window_source_client.update(
             housing_release_status: non_window_source_client.class.full_release_string,
@@ -754,7 +764,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
       describe 'and client has valid release, but user does not have assigned coc_codes' do
         before do
-          coc_code_viewable_collection.update(coc_codes: [])
+          coc_code_viewable_collection.set_viewables({ coc_codes: [] })
           setup_access_control(user, no_permission_role, coc_code_viewable_collection)
           setup_access_control(user, can_view_clients, Collection.system_collection(:window_data_sources))
           non_window_source_client.update(
@@ -777,7 +787,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       describe 'and client has valid release in a different CoC' do
         before do
           setup_access_control(user, can_view_clients, Collection.system_collection(:window_data_sources))
-          coc_code_viewable_collection.update(coc_codes: ['ZZ-100'])
+          coc_code_viewable_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: 'ZZ-100').pluck(:id) })
           setup_access_control(user, no_permission_role, coc_code_viewable_collection)
           non_window_source_client.update(
             housing_release_status: non_window_source_client.class.full_release_string,

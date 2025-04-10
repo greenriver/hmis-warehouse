@@ -1,11 +1,7 @@
-###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
+# frozen_string_literal: true
 
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -157,7 +153,8 @@ module HudPit::Generators::Pit::Fy2024
             project_type: last_service_history_enrollment.project_type,
             project_name: last_service_history_enrollment.project_name,
             project_id: last_service_history_enrollment.project.id,
-            project_hmis_pit_count: last_service_history_enrollment.project.PITCount,
+            # PITCount from Project.csv no longer shown. It is used mainly for non-HMIS participating projects (if at all). See issue #7497
+            # project_hmis_pit_count: last_service_history_enrollment.project.PITCount,
             entry_date: last_service_history_enrollment.entry_date,
             exit_date: last_service_history_enrollment.exit_date,
           }
@@ -212,7 +209,6 @@ module HudPit::Generators::Pit::Fy2024
           enrollment: [
             :disabilities,
             :project,
-            :enrollment_coc_at_entry,
             :health_and_dvs,
             :exit,
           ],

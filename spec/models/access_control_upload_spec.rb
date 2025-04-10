@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe AccessControlUpload, type: :model do
@@ -41,7 +43,7 @@ RSpec.describe AccessControlUpload, type: :model do
         expect(Collection.not_system.count).to eq(3)
         # Since we didn't make the cohorts, confirm, the cohort collection is empty
         expect(Collection.find_by_name('Care Coordination Cohorts').cohorts.count).to eq(0)
-        expect(Collection.find_by_name('XX-500 Projects').coc_codes).to eq(['XX-500'])
+        expect(Collection.find_by_name('XX-500 Projects').coc_codes.pluck(:coc_code)).to eq(['XX-500'])
         expect(Collection.find_by_name('XX-500 Projects').project_access_groups.count).to eq(1)
         expect(Collection.find_by_name('Approved Reports').reports.count).to eq(2)
       end

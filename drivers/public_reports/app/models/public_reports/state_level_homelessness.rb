@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # require 'get_process_mem'
 require 'memery'
 module PublicReports
@@ -17,7 +19,7 @@ module PublicReports
     validate :validate_filter_dates_span_one_year, on: :create
 
     def validate_filter_dates_span_one_year
-      return if filter_object.start + 1.years <= filter_object.end
+      return if filter_object.start + 1.years - 1.days <= filter_object.end
 
       errors.add(:base, 'The start and end dates must span at least one year.')
     end

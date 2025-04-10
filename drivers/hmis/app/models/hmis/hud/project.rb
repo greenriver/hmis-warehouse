@@ -4,7 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class Hmis::Hud::Project < Hmis::Hud::Base
+  self.table_name = :Project
+  self.sequence_name = "public.\"#{table_name}_id_seq\""
+
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::FormSubmittable
@@ -12,8 +17,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   has_paper_trail(meta: { project_id: :id })
 
-  self.table_name = :Project
-  self.sequence_name = "public.\"#{table_name}_id_seq\""
   CONFIDENTIAL_PROJECT_NAME = 'Confidential Project'.freeze
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
@@ -53,6 +56,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :hmis_services, through: :enrollments
   has_many :current_living_situations, through: :enrollments
   has_many :project_staff_assignment_configs, class_name: 'Hmis::ProjectStaffAssignmentConfig'
+  has_many :ce_opportunities, class_name: 'Hmis::Ce::Opportunity', foreign_key: :project_id, dependent: :destroy, inverse_of: :project
+  has_many :ce_referrals, class_name: 'Hmis::Ce::Referral', through: :ce_opportunities, source: :referrals
 
   has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
 
@@ -183,6 +188,23 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     Hmis::Form::Instance.active.published.with_role(:REFERRAL).any? { |instance| instance.project_match(self) }
   end
 
+  def services_only_rrh?
+    # Project Type PH-RRH (13) with RRHSubType 'RRH: Services Only' (1) indicate that the project only provides services
+    project_type == 13 && rrh_sub_type == 1
+  end
+
+  # Whether Enrollments are allowed to have EntryDate==ExitDate in this project.
+  # HUD specifies that certain Residential projects do not allow same-day exits.
+  def allows_same_day_exit?
+    if services_only_rrh?
+      true # RRH-Services-Only projects allow same-day exit
+    elsif HudUtility2024.residential_project_type_ids.include?(project_type)
+      false # Residential projects do not allow same-day exit
+    else
+      true # Non-residential projects allow same-day exit
+    end
+  end
+
   def active
     return true unless operating_end_date.present?
 
@@ -300,6 +322,17 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   def uniq_coc_codes
     @uniq_coc_codes ||= project_cocs.pluck(:CoCCode).uniq.compact_blank.sort
+  end
+
+  # Determine and validate CoC Code, which is needed for creating new Enrollments
+  def determine_coc_code(coc_code_arg:)
+    # If project has exactly 1 CoC code, always use that
+    return uniq_coc_codes.first if uniq_coc_codes.size == 1
+
+    raise 'CoC Code required for project' unless coc_code_arg
+    raise "Invalid CoC Code #{coc_code_arg} for project" unless uniq_coc_codes.include?(coc_code_arg)
+
+    coc_code_arg
   end
 
   include RailsDrivers::Extensions

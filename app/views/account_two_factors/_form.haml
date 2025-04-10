@@ -54,7 +54,8 @@
 
       .text-center
         .mt-4.mb-4.well
-          = raw RQRCode::render_qrcode(@user.otp_provisioning_uri(@user.two_factor_label, issuer: @user.two_factor_issuer), :svg, level: :h, unit: 2)
+          - code = RQRCode::QRCode.new(@user.otp_provisioning_uri(@user.two_factor_label, issuer: @user.two_factor_issuer))
+          .w-50.ml-auto.mr-auto= raw code.as_svg(offset: 4, use_path: true, viewbox: true)
           %p.mt-2.font-size-md
             Key:
             %strong= @user.otp_secret

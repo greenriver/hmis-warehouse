@@ -40,16 +40,22 @@ jobs:
             hadolint_ignore: DL3018
             trivy_skip_files: /app/config/key.pem,/app/docker/sftp/ssh_host_ed25519_key,/app/docker/sftp/ssh_host_rsa_key,/app/spec/fixtures/files/health/secret.key
             build-args: |
-              BUILD_TAG=3.1.6-alpine3.20
-              BUNDLER_VERSION=2.5.23
+              BUILD_TAG=3.3.7-alpine3.20
+              BUNDLER_VERSION=2.6.3
             tags: |
               type=sha,prefix=githash-
               type=ref,event=branch,prefix=branch-
               type=raw,event=branch,value=branch-{{branch}}-{{sha}}
 
     steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: Dockerfile Lint
         shell: bash
@@ -61,10 +67,10 @@ jobs:
 
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3
 
       - name: Cache Docker layers
-        uses: actions/cache@v4
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ matrix.cache_key }}-${{ github.run_id }}
@@ -72,7 +78,7 @@ jobs:
             ${{ runner.os }}-buildx-${{ matrix.cache_key }}
 
       - name: Configure AWS credentials for OIDC
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
         with:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_NAME }}
@@ -91,7 +97,7 @@ jobs:
       # https://github.com/docker/metadata-action#images-input
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5
         env:
           DOCKER_METADATA_SHORT_SHA_LENGTH: 7
         with:
@@ -114,7 +120,7 @@ jobs:
 
       # https://github.com/docker/build-push-action
       - name: Build image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
         with:
           context: ${{ matrix.context }}
           builder: ${{ steps.buildx.outputs.name }}
@@ -155,7 +161,7 @@ jobs:
           echo "sha=${sha}" >> $GITHUB_OUTPUT
 
       - name: Cache trivy db
-        uses: actions/cache@v4
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
         with:
           path: .trivy
           key: ${{ runner.os }}-trivy-db-${{ steps.trivy-db.outputs.sha }}
@@ -163,7 +169,7 @@ jobs:
       # https://github.com/aquasecurity/trivy-action
       - name: Run vulnerability scan
         id: vuln_scan
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
         env:
           TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db:2"
           TRIVY_JAVA_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-java-db:1"

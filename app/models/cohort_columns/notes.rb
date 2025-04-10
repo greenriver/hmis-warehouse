@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class Notes < Base
     attribute :column, String, lazy: true, default: :notes
@@ -51,7 +53,7 @@ module CohortColumns
       # Sort pattern
       html = content_tag(:div, class: 'd-flex') do
         content_tag(:span, "#{max_updated_at} #{note_count}", class: 'hidden') + link_to(pluralize(note_count, 'note'), path, class: 'badge badge-primary py-1 px-2 mr-auto', data: { loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column }) +
-        content_tag(:span, " #{updated_at&.to_date}", style: 'height: 16px;')
+        content_tag(:span, " #{updated_at&.to_date}", style: 'height: 16px;', class: 'ml-4')
       end
       html
     end
@@ -59,6 +61,10 @@ module CohortColumns
     def text_value(cohort_client)
       self.cohort_client = cohort_client
       comments
+    end
+
+    def analytics_value
+      text_value(cohort_client)
     end
   end
 end

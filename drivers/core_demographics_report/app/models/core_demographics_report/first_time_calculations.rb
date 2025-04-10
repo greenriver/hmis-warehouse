@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module
   CoreDemographicsReport::FirstTimeCalculations
   extend ActiveSupport::Concern
@@ -190,7 +192,7 @@ module
           available_coc_codes.each do |coc_code|
             initialize_recently_homeless_client_counts(clients, coc_code.to_sym)
 
-            report_scope.distinct.in_coc(coc_code: coc_code).
+            report_scope.distinct.in_enrollment_coc(coc_code: coc_code).
               entry_within_date_range(start_date: filter.start_date, end_date: filter.end_date).
               order(first_date_in_program: :desc).
               pluck(:client_id, :id, :first_date_in_program).

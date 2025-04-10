@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class CohortsController < ApplicationController
   include AjaxModalRails::Controller
   include CohortAuthorization
@@ -52,6 +54,9 @@ class CohortsController < ApplicationController
   end
 
   def show
+    @per_page_js = [
+      'cohorts',
+    ]
     @modal_size = :xl
     params[:population] ||= 'Active Clients'
     load_cohort_names

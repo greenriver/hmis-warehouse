@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class OpenEnrollments < ReadOnly
     include ArelHelper
@@ -55,6 +57,10 @@ module CohortColumns
           end
         end
       end.join(' ').html_safe
+    end
+
+    def analytics_value
+      text_value(cohort_client)
     end
   end
 end

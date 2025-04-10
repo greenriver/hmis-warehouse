@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../../../requests/hmis/login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
@@ -18,7 +20,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
 
   HIDDEN = Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE
-  INVALID = 'INVALID'.freeze # Invalid enum representation
+  INVALID = 'INVALID' # Invalid enum representation
 
   before(:all) do
     cleanup_test_environment
@@ -180,6 +182,35 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.form_processor.errors.where(:income_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INCOME_SOURCES_UNSPECIFIED)
       expect(assessment.form_processor.errors.where(:benefits_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::BENEFIT_SOURCES_UNSPECIFIED)
       expect(assessment.form_processor.errors.where(:insurance_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED)
+    end
+
+    it 'raises when receiving a string value for a decimal col (regression #6868)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'IncomeBenefit.incomeFromAnySource' => 'YES',
+        'IncomeBenefit.unemploymentAmount' => 'bad string',
+        'IncomeBenefit.otherIncomeAmount' => 100,
+        'IncomeBenefit.alimonyAmount' => nil,
+      }
+
+      assessment.form_processor.run!(user: hmis_user)
+      expect do
+        assessment.form_processor.save!
+      end.to raise_error(ArgumentError, /Invalid value/).
+        and not_change(Hmis::Hud::IncomeBenefit, :count)
+    end
+
+    it 'does not raise when receiving a string that can be converted to an int' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'IncomeBenefit.incomeFromAnySource' => 'YES',
+        'IncomeBenefit.unemploymentAmount' => '200',
+        'IncomeBenefit.otherIncomeAmount' => 100,
+        'IncomeBenefit.alimonyAmount' => nil,
+      }
+
+      assessment.form_processor.run!(user: hmis_user)
+      expect(assessment.form_processor.valid?(:form_submission)).to be true
     end
   end
 
@@ -467,6 +498,22 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       # Substance Use
       expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
       expect(disabilities.find_by(disability_type: 10).indefinite_and_impairs).to eq(99) # nil is saved as 99
+    end
+
+    it 'raises when receiving an unrecognized string value for an enum col (regression #6868)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+
+      assessment.form_processor.hud_values = {
+        'DisabilityGroup.hivAids' => 'YES',
+        'DisabilityGroup.viralLoadAvailable' => 'AVAILABLE',
+        'DisabilityGroup.viralLoadSource' => 'an unrecognized string',
+        'Enrollment.disablingCondition' => 'YES',
+      }
+
+      expect do
+        assessment.form_processor.run!(user: hmis_user)
+        assessment.save_not_in_progress
+      end.to raise_error(RuntimeError, /Unrecognized key/)
     end
   end
 
@@ -929,12 +976,14 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.pronouns).to be nil
         expect(client.veteran_status).to eq(99)
         expect(client.race_fields).to eq([])
-        HudUtility2024.races.keys.each do |f|
-          expect(client.send(f)).to eq(99)
+        expect(client.RaceNone).to eq(99)
+        HudUtility2024.races.keys.excluding('RaceNone').each do |f|
+          expect(client.send(f)).to eq(0)
         end
         expect(client.gender_fields).to eq([])
-        HudUtility2024.gender_fields.each do |f|
-          expect(client.send(f)).to eq(99)
+        expect(client.GenderNone).to eq(99)
+        HudUtility2024.gender_fields.excluding(:GenderNone).each do |f|
+          expect(client.send(f)).to eq(0)
         end
       end
     end
@@ -962,12 +1011,14 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         process_record(record: client, hud_values: hud_values, user: hmis_user, definition: definition)
 
         expect(client.race_fields).to eq([])
-        HudUtility2024.races.keys.each do |f|
-          expect(client.send(f)).to eq(99)
+        expect(client.RaceNone).to eq(99)
+        HudUtility2024.races.keys.excluding('RaceNone').each do |f|
+          expect(client.send(f)).to eq(0)
         end
         expect(client.gender_fields).to eq([])
-        HudUtility2024.gender_fields.each do |f|
-          expect(client.send(f)).to eq(99)
+        expect(client.GenderNone).to eq(99)
+        HudUtility2024.gender_fields.excluding(:GenderNone).each do |f|
+          expect(client.send(f)).to eq(0)
         end
         expect(client.pronouns).to be nil
       end
@@ -989,8 +1040,14 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.dob_data_quality).to eq(9)
         expect(client.race_fields).to eq([])
         expect(client.RaceNone).to eq(9)
+        HudUtility2024.races.keys.excluding('RaceNone').each do |f|
+          expect(client.send(f)).to eq(0)
+        end
         expect(client.gender_fields).to eq([])
         expect(client.GenderNone).to eq(8)
+        HudUtility2024.gender_fields.excluding(:GenderNone).each do |f|
+          expect(client.send(f)).to eq(0)
+        end
       end
     end
 
@@ -2164,11 +2221,12 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         end
 
         context 'when verified_by already exists, but verified_by_project_id is null' do
+          let(:migrated_in_project_name) { 'Some random value with no relation to a project that probably came from a migration' }
           let!(:cls) do
             create(
               :hmis_current_living_situation,
               client: c1, enrollment: e1, data_source: ds1, user: u1,
-              VerifiedBy: 'Some random value with no relation to a project that probably came from a migration'
+              VerifiedBy: migrated_in_project_name
             )
           end
 
@@ -2188,7 +2246,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           end
 
           it 'should not raise when verified_by_project_id is unrecognized' do
-            values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => 'a random string that isnt an id' })
+            values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => migrated_in_project_name })
 
             expect do
               process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)

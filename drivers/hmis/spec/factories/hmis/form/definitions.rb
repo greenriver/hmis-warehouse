@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :hmis_form_definition, class: 'Hmis::Form::Definition' do
     version { 1 }
@@ -109,6 +111,7 @@ FactoryBot.define do
             type: 'DATE',
             link_id: 'exit_date',
             required: true,
+            text: 'Exit Date',
             warn_if_empty: false,
             assessment_date: true,
             mapping: {
@@ -119,6 +122,7 @@ FactoryBot.define do
           {
             type: 'CHOICE',
             link_id: 'exit_destination',
+            text: 'Exit Destination',
             mapping: {
               record_type: 'EXIT',
               field_name: 'destination',
@@ -794,6 +798,194 @@ FactoryBot.define do
                   }
                 },
                 {
+                  "item": [
+                    {
+                      "text": "American Indian, Alaska Native, or Indigenous",
+                      "type": "BOOLEAN",
+                      "link_id": "race_AmIndAKNative",
+                      "mapping": {
+                        "field_name": "AmIndAKNative",
+                        "record_type": "CLIENT"
+                      },
+                      "component": "CHECKBOX",
+                      "disabled_display": "HIDDEN"
+                    },
+                    {
+                      "text": "Asian or Asian American",
+                      "type": "BOOLEAN",
+                      "link_id": "race_Asian",
+                      "mapping": {
+                        "field_name": "Asian",
+                        "record_type": "CLIENT"
+                      },
+                      "component": "CHECKBOX",
+                      "disabled_display": "HIDDEN"
+                    },
+                    {
+                      "text": "Black, African American, or African",
+                      "type": "BOOLEAN",
+                      "link_id": "race_BlackAfAmerican",
+                      "mapping": {
+                        "field_name": "BlackAfAmerican",
+                        "record_type": "CLIENT"
+                      },
+                      "component": "CHECKBOX",
+                      "disabled_display": "HIDDEN"
+                    },
+                    {
+                      "text": "Hispanic/Latina/e/o",
+                      "type": "BOOLEAN",
+                      "link_id": "race_HispanicLatinaeo",
+                      "mapping": {
+                        "field_name": "HispanicLatinaeo",
+                        "record_type": "CLIENT"
+                      },
+                      "component": "CHECKBOX",
+                      "disabled_display": "HIDDEN"
+                    },
+                    {
+                      "text": "Middle Eastern or North African",
+                      "type": "BOOLEAN",
+                      "link_id": "race_MidEastNAfrican",
+                      "mapping": {
+                        "field_name": "MidEastNAfrican",
+                        "record_type": "CLIENT"
+                      },
+                      "component": "CHECKBOX",
+                      "disabled_display": "HIDDEN"
+                    },
+                    {
+                      "text": "Native Hawaiian or Pacific Islander",
+                      "type": "BOOLEAN",
+                      "link_id": "race_NativeHIPacific",
+                      "mapping": {
+                        "field_name": "NativeHIPacific",
+                        "record_type": "CLIENT"
+                      },
+                      "component": "CHECKBOX",
+                      "disabled_display": "HIDDEN"
+                    },
+                    {
+                      "text": "White",
+                      "type": "BOOLEAN",
+                      "link_id": "race_White",
+                      "mapping": {
+                        "field_name": "White",
+                        "record_type": "CLIENT"
+                      },
+                      "component": "CHECKBOX",
+                      "disabled_display": "HIDDEN"
+                    }
+                  ],
+                  "text": "What is your race and ethnicity?",
+                  "type": "GROUP",
+                  "link_id": "race_group",
+                  "component": "INPUT_GROUP",
+                  "enable_when": [
+                    {
+                      "operator": "EQUAL",
+                      "question": "survey_type",
+                      "answer_code": "In-Person Interaction"
+                    }
+                  ],
+                  "enable_behavior": "ALL",
+                  "disabled_display": "HIDDEN"
+                },
+                {
+                  "item": [
+                    {
+                      "text": "Woman",
+                      "type": "BOOLEAN",
+                      "link_id": "gender_Woman",
+                      "mapping": {
+                        "field_name": "Woman",
+                        "record_type": "CLIENT"
+                      },
+                      "component": "CHECKBOX",
+                      "disabled_display": "HIDDEN"
+                    },
+                    {
+                      "text": "Man",
+                      "type": "BOOLEAN",
+                      "link_id": "gender_Man",
+                      "mapping": {
+                        "field_name": "Man",
+                        "record_type": "CLIENT"
+                      },
+                      "component": "CHECKBOX",
+                      "disabled_display": "HIDDEN"
+                    },
+                    {
+                      "text": "Non-Binary",
+                      "type": "BOOLEAN",
+                      "link_id": "gender_NonBinary",
+                      "mapping": {
+                        "field_name": "NonBinary",
+                        "record_type": "CLIENT"
+                      },
+                      "component": "CHECKBOX",
+                      "disabled_display": "HIDDEN"
+                    },
+                    {
+                      "text": "Transgender",
+                      "type": "BOOLEAN",
+                      "link_id": "gender_Transgender",
+                      "mapping": {
+                        "field_name": "Transgender",
+                        "record_type": "CLIENT"
+                      },
+                      "component": "CHECKBOX",
+                      "disabled_display": "HIDDEN"
+                    },
+                    {
+                      "text": "Questioning",
+                      "type": "BOOLEAN",
+                      "link_id": "gender_Questioning",
+                      "mapping": {
+                        "field_name": "Questioning",
+                        "record_type": "CLIENT"
+                      },
+                      "component": "CHECKBOX",
+                      "disabled_display": "HIDDEN"
+                    },
+                    {
+                      "text": "Culturally Specific Identity (e.g., Two-Spirit)",
+                      "type": "BOOLEAN",
+                      "link_id": "gender_CulturallySpecific",
+                      "mapping": {
+                        "field_name": "CulturallySpecific",
+                        "record_type": "CLIENT"
+                      },
+                      "component": "CHECKBOX",
+                      "disabled_display": "HIDDEN"
+                    },
+                    {
+                      "text": "Different Identity",
+                      "type": "BOOLEAN",
+                      "link_id": "gender_DifferentIdentity",
+                      "mapping": {
+                        "field_name": "DifferentIdentity",
+                        "record_type": "CLIENT"
+                      },
+                      "component": "CHECKBOX",
+                      "disabled_display": "HIDDEN"
+                    }
+                  ],
+                  "text": "What is your gender?",
+                  "type": "GROUP",
+                  "link_id": "gender_group",
+                  "component": "INPUT_GROUP",
+                  "enable_when": [
+                    {
+                      "operator": "EQUAL",
+                      "question": "survey_type",
+                      "answer_code": "In-Person Interaction"
+                    }
+                  ],
+                  "enable_behavior": "ALL",
+                  "disabled_display": "HIDDEN"
+                },
+                {
                   "text": "Do you have a substance use disorder?",
                   "type": "CHOICE",
                   "link_id": "substance_use_disorder",
@@ -903,6 +1095,71 @@ FactoryBot.define do
           ]
         }
       JSON
+    end
+  end
+
+  factory :hmis_service_form, parent: :hmis_form_definition do
+    role { :SERVICE }
+    title { 'Custom Service Form' }
+    sequence(:identifier) { |n| "service_#{n}" }
+    definition do
+      {
+        'item': [
+          {
+            "type": 'DATE',
+            "link_id": 'dateProvided',
+            "required": true,
+            "text": 'Date Provided',
+            "mapping": {
+              "field_name": 'dateProvided',
+            },
+          },
+        ],
+      }.deep_stringify_keys
+    end
+  end
+
+  factory :ce_referral_step_form_definition, parent: :hmis_form_definition do
+    role { :CE_REFERRAL_STEP }
+    definition do
+      {
+        'item': [
+          {
+            'type': 'GROUP',
+            'link_id': 'q1',
+            'item': [
+              {
+                'type': 'DATE',
+                'link_id': 'contact_date',
+                'required': true,
+                'warn_if_empty': false,
+                'text': 'Contact Date',
+                'mapping': { 'field_name': 'contact_date' },
+              },
+              {
+                'text': 'Client Accepts Referral',
+                'type': 'CHOICE',
+                'link_id': 'client_accepted',
+                'mapping': {
+                  'custom_field_key': 'client_accepted',
+                },
+                'required': true,
+                'warn_if_empty': false,
+                'pick_list_options': [
+                  {
+                    'code': '1',
+                    'label': 'Yes, client accepts referral',
+                  },
+                  {
+                    'code': '0',
+                    'label': 'No, client does not accept referral or could not be contacted',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
     end
   end
 end

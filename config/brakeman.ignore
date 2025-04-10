@@ -104,29 +104,6 @@
       "note": ""
     },
     {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "07ab3a48e4c84f40fe8acb270d962ed39424807b21c01793b91e44b25acfaf9e",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "app/models/grda_warehouse/shape/installer.rb",
-      "line": 87,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "system(\"./shape_files/#{conf.dir}/make.inserts #{ENV[\"RELEVANT_COC_STATE\"]}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "GrdaWarehouse::Shape::Installer",
-        "method": "handle_one_geography!"
-      },
-      "user_input": "conf.dir",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "File Access",
       "warning_code": 16,
       "fingerprint": "0a8413f58bac50c36a5c6154a71747e5b6dcc2c7c345f8388fd7d4f42e2350d3",
@@ -156,7 +133,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 314,
+      "line": 370,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -166,6 +143,29 @@
         "method": null
       },
       "user_input": "access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "0c18917fa3b616846e7d22f5972d3a49b203ccab2625d0ceeca13cfe8f94a843",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse_base.rb",
+      "line": 83,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"SET enable_nestloop = #{connection.select_value(\"SHOW enable_nestloop\").downcase}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouseBase",
+        "method": "GrdaWarehouseBase.disable_nestloop"
+      },
+      "user_input": "connection.select_value(\"SHOW enable_nestloop\").downcase",
       "confidence": "Medium",
       "cwe_id": [
         89
@@ -245,20 +245,20 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "149f43ca0c9d46c20323967d168bcf5e5dc81816dd870fc6ce1cd8f047d79639",
+      "fingerprint": "1419d56311ba8b0ccc7fb748c44f87e4814b63f13cd2a6fda3be83c03e6ef0f4",
       "check_name": "SQL",
       "message": "Possible SQL injection",
-      "file": "app/models/bi/view_maintainer.rb",
-      "line": 399,
+      "file": "app/models/grda_warehouse/tasks/sync_analysis_data_task.rb",
+      "line": 47,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "GrdaWarehouseBase.connection.execute(\"DROP VIEW IF EXISTS #{name}\")",
+      "code": "connection.execute(\"INSERT INTO analytics.app_users (id, first_name, last_name, email)\\nVALUES\\n#{batch.map do\n sanitize_sql_for_insert(user)\n end.join(\",\\n\")}\\nON CONFLICT (id) DO UPDATE SET\\n  first_name = EXCLUDED.first_name,\\n  last_name = EXCLUDED.last_name,\\n  email = EXCLUDED.email\\n\")",
       "render_path": null,
       "location": {
         "type": "method",
-        "class": "Bi::ViewMaintainer",
-        "method": "safe_drop_view"
+        "class": "GrdaWarehouse::Tasks::SyncAnalysisDataTask",
+        "method": "sync_app_users"
       },
-      "user_input": "name",
+      "user_input": "batch.map do\n sanitize_sql_for_insert(user)\n end.join(\",\\n\")",
       "confidence": "Medium",
       "cwe_id": [
         89
@@ -351,29 +351,6 @@
         "method": "filter_clients"
       },
       "user_input": "term_score_sql(variant, :term_weight => ((1.0 or 0.75)))",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "17b51608f07889a142d8f548bbe24583b3bab7d8146caeedc9ad2c7e9ad1d2bf",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/bi/view_maintainer.rb",
-      "line": 423,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "GrdaWarehouseBase.connection.execute(\"CREATE OR REPLACE VIEW #{name} AS #{sql_definition}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Bi::ViewMaintainer",
-        "method": "safe_create_view"
-      },
-      "user_input": "name",
       "confidence": "Medium",
       "cwe_id": [
         89
@@ -774,7 +751,7 @@
           "type": "controller",
           "class": "Health::CareplansController",
           "method": "show",
-          "line": 62,
+          "line": 42,
           "file": "app/controllers/health/careplans_controller.rb",
           "rendered": {
             "name": "health/careplans/show",
@@ -814,6 +791,29 @@
       "note": ""
     },
     {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "41a55397c476ac6cbc535605ca0fa1ee00eb625118da55aaca9b6e761c90f50c",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/grda_warehouse/shape/installer.rb",
+      "line": 89,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"./shape_files/#{conf.dir}/make.inserts #{GrdaWarehouse::Config.get(:relevant_state_codes)}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::Shape::Installer",
+        "method": "handle_one_geography!"
+      },
+      "user_input": "conf.dir",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "473ca8588df62336dd0e01e2d9695c7643b543e986c48cadceb7641d2acd2e25",
@@ -828,29 +828,6 @@
         "type": "method",
         "class": "Client",
         "method": null
-      },
-      "user_input": "period",
-      "confidence": "Weak",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "4a796237555b5c06d7a008fb5b55bce0a0c6666a643b6432a8ae45039c597573",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "drivers/performance_measurement/app/models/performance_measurement/result_calculation.rb",
-      "line": 128,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(:period => period, :for_question => field).where.not(:project_id => nil)).group(:project_id).sum(\"#{period}_#{field}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "PerformanceMeasurement::ResultCalculation",
-        "method": "client_sum"
       },
       "user_input": "period",
       "confidence": "Weak",
@@ -902,6 +879,29 @@
       "confidence": "Medium",
       "cwe_id": [
         470
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "4e848abe8f3b8e81eef1a3d217902eb95d9161fb33ffbe5b7b93920d5a837f63",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/client_access_control/app/models/client_access_control/enrollment_arbiter.rb",
+      "line": 138,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"#{c_t[:id].to_sql} IN (#{union_sql})\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientAccessControl::EnrollmentArbiter",
+        "method": "searchable_client_scope"
+      },
+      "user_input": "union_sql",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
       ],
       "note": ""
     },
@@ -1019,36 +1019,13 @@
       "note": ""
     },
     {
-      "warning_type": "Remote Code Execution",
-      "warning_code": 24,
-      "fingerprint": "59f816c4f46ab4983e3b2f86ff22e9e4e34ee22396c84dcea50146853ee656ce",
-      "check_name": "UnsafeReflection",
-      "message": "Unsafe reflection method `constantize` called on model attribute",
-      "file": "drivers/hmis/app/models/hmis/form/definition.rb",
-      "line": 431,
-      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
-      "code": "{ :SERVICE => ({ :owner_class => \"Hmis::Hud::HmisService\", :permission => :can_edit_enrollments }), :PROJECT => ({ :owner_class => \"Hmis::Hud::Project\", :permission => :can_edit_project_details }), :ORGANIZATION => ({ :owner_class => \"Hmis::Hud::Organization\", :permission => :can_edit_organization }), :CLIENT => ({ :owner_class => \"Hmis::Hud::Client\", :permission => :can_edit_clients }), :FUNDER => ({ :owner_class => \"Hmis::Hud::Funder\", :permission => :can_edit_project_details }), :INVENTORY => ({ :owner_class => \"Hmis::Hud::Inventory\", :permission => :can_edit_project_details }), :PROJECT_COC => ({ :owner_class => \"Hmis::Hud::ProjectCoc\", :permission => :can_edit_project_details }), :HMIS_PARTICIPATION => ({ :owner_class => \"Hmis::Hud::HmisParticipation\", :permission => :can_edit_project_details }), :CE_PARTICIPATION => ({ :owner_class => \"Hmis::Hud::CeParticipation\", :permission => :can_edit_project_details }), :CE_ASSESSMENT => ({ :owner_class => \"Hmis::Hud::Assessment\", :permission => :can_edit_enrollments }), :CE_EVENT => ({ :owner_class => \"Hmis::Hud::Event\", :permission => :can_edit_enrollments }), :CASE_NOTE => ({ :owner_class => \"Hmis::Hud::CustomCaseNote\", :permission => :can_edit_enrollments }), :FILE => ({ :owner_class => \"Hmis::File\", :permission => ([:can_manage_any_client_files, :can_manage_own_client_files]), :authorize => (lambda do\n Hmis::File.authorize_proc.call(entity_base, user)\n end) }), :REFERRAL_REQUEST => ({ :owner_class => \"HmisExternalApis::AcHmis::ReferralRequest\", :permission => :can_manage_incoming_referrals }), :REFERRAL => ({ :owner_class => \"HmisExternalApis::AcHmis::ReferralPosting\", :permission => :can_manage_outgoing_referrals }), :CURRENT_LIVING_SITUATION => ({ :owner_class => \"Hmis::Hud::CurrentLivingSituation\", :permission => :can_edit_enrollments }), :OCCURRENCE_POINT => ({ :owner_class => \"Hmis::Hud::Enrollment\", :permission => :can_edit_enrollments }), :ENROLLMENT => ({ :owner_class => \"Hmis::Hud::Enrollment\", :permission => :can_edit_enrollments }), :NEW_CLIENT_ENROLLMENT => ({ :permission => :can_edit_enrollments, :owner_class => \"Hmis::Hud::Enrollment\" }), :CLIENT_DETAIL => ({ :owner_class => \"Hmis::Hud::Client\", :permission => :can_edit_clients }), :EXTERNAL_FORM => ({ :owner_class => \"HmisExternalApis::ExternalForms::FormSubmission\", :permission => :can_manage_external_form_submissions }) }[role.to_sym][:owner_class].constantize",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Hmis::Form::Definition",
-        "method": "Hmis::Form::Definition.owner_class_for_role"
-      },
-      "user_input": "Hmis::File.authorize_proc.call(entity_base, user)",
-      "confidence": "Medium",
-      "cwe_id": [
-        470
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "5bc404c91fe46e9bbcfd3cd9bdca6c45a1bd7fb89281f8a8fda56fc1da2ff876",
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 105,
+      "line": 108,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse #{`git rev-parse --abbrev-ref HEAD`.chomp}`",
       "render_path": null,
@@ -1071,7 +1048,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 147,
+      "line": 150,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`echo #{revision} > #{_assets_path}/REVISION`",
       "render_path": null,
@@ -1159,29 +1136,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "68fd80799149a697286de5a354b66c0875731d4db0137099d29dd53d6a4533ee",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/report_generators/lsa/fy2021/all.rb",
-      "line": 660,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBase.connection.execute((\"\" + \" ALTER TABLE #{table_name} ADD id BIGINT identity (1,1) NOT NULL; \"))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ReportGenerators::Lsa::Fy2021::All",
-        "method": "add_missing_identity_columns"
-      },
-      "user_input": "table_name",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "6e5df3b3f5ce952da511bebf27d22c40e0a934348f52d15ee653240ab652ce9b",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -1197,6 +1151,29 @@
       },
       "user_input": "period",
       "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "704273000a07b053e45e096697b567e3c6b26cac4cd9ccbcfe998f2b16cccfcd",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/tasks/sync_analysis_data_task.rb",
+      "line": 60,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"DELETE FROM analytics.app_users\\nWHERE id NOT IN (#{User.with_deleted.pluck(:id).map do\n connection.quote(id)\n end.join(\",\")})\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::Tasks::SyncAnalysisDataTask",
+        "method": "prune_removed_users"
+      },
+      "user_input": "User.with_deleted.pluck(:id)",
+      "confidence": "High",
       "cwe_id": [
         89
       ],
@@ -1283,48 +1260,6 @@
       "note": "Injection from internal sources"
     },
     {
-      "warning_type": "Unmaintained Dependency",
-      "warning_code": 123,
-      "fingerprint": "715ee6d743a8af33c7b930d728708ce19c765fb40e2ad9d2b974db04d92dc7d1",
-      "check_name": "EOLRuby",
-      "message": "Support for Ruby 3.1.6 ends on 2025-03-31",
-      "file": ".ruby-version",
-      "line": 1,
-      "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
-      "code": null,
-      "render_path": null,
-      "location": null,
-      "user_input": null,
-      "confidence": "Weak",
-      "cwe_id": [
-        1104
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "75f342df6e943c243e47939ca03736da54ae42fc51d328d9fa38ef7f8f16940a",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/collection.rb",
-      "line": 98,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "where(\"#{quoted_table_name}.coc_codes ?| #{SqlHelper.quote_sql_array(coc_codes, :type => :varchar)}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Collection",
-        "method": "for_coc_codes"
-      },
-      "user_input": "SqlHelper.quote_sql_array(coc_codes, :type => :varchar)",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "767755b5093a0a0e3dfa4a274187a35692b8b193ddc82131ffa7696be25fafef",
@@ -1377,29 +1312,6 @@
       "confidence": "Weak",
       "cwe_id": [
         79
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "7c23c32e38cb863eb92c15f8db6f7c142ce3245181ee3c751a89326541deb11c",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/report_generators/lsa/fy2021/all.rb",
-      "line": 391,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBase.connection.execute(\"drop database #{@rds.database}\\n\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ReportGenerators::Lsa::Fy2021::All",
-        "method": "remove_temporary_rds"
-      },
-      "user_input": "@rds.database",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
       ],
       "note": ""
     },
@@ -1519,29 +1431,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "7e17f63fe0ee996de8b8f7dde5a7277c192d0bb19ea27c0ecc07f80ffdb4154c",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/report_generators/lsa/fy2019/all.rb",
-      "line": 379,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBase.connection.execute(\"drop database #{@rds.database}\\n\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ReportGenerators::Lsa::Fy2019::All",
-        "method": "remove_temporary_rds"
-      },
-      "user_input": "@rds.database",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "7e53cd57f540fbff8b4b9ca11202d8504298e65c5969ae454a967b5fdb136eca",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -1579,29 +1468,6 @@
         "method": "in_outflow"
       },
       "user_input": "period",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "81569b028ce6ab31f73fb93a21bf6620a32d747e1c75beaf145a0589b6579058",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/report_generators/lsa/fy2019/all.rb",
-      "line": 659,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBase.connection.execute((\"\" + \" ALTER TABLE #{table_name} DROP COLUMN id; \"))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ReportGenerators::Lsa::Fy2019::All",
-        "method": "remove_missing_identity_columns"
-      },
-      "user_input": "table_name",
       "confidence": "Medium",
       "cwe_id": [
         89
@@ -1740,7 +1606,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 104,
+      "line": 107,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git ls-remote origin | grep refs/heads/#{`git rev-parse --abbrev-ref HEAD`.chomp}$`",
       "render_path": null,
@@ -1827,34 +1693,11 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "90ff2d536c66b271d5f9e428f8f430887e06ca4bf3031ede5a3846d9f7c12294",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/report_generators/lsa/fy2019/all.rb",
-      "line": 650,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBase.connection.execute((\"\" + \" ALTER TABLE #{table_name} ADD id BIGINT identity (1,1) NOT NULL; \"))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ReportGenerators::Lsa::Fy2019::All",
-        "method": "add_missing_identity_columns"
-      },
-      "user_input": "table_name",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "94f0e64c5acc071a901163d39ebce6861e109a286a0157b979408b31ce9c6a17",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 94,
+      "line": 96,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -1936,29 +1779,6 @@
       "confidence": "Medium",
       "cwe_id": [
         77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "a9040593943192bed3788b5c04a11f50ce20482af33b84ec76b05e8eec6838c8",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/bi/view_maintainer.rb",
-      "line": 414,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "GrdaWarehouseBase.connection.execute(\"DO $$\\nBEGIN\\n  CREATE ROLE #{role} WITH NOLOGIN;\\n  EXCEPTION WHEN DUPLICATE_OBJECT THEN\\n  RAISE NOTICE 'not creating role #{role} -- it already exists';\\nEND\\n$$;\\n\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Bi::ViewMaintainer",
-        "method": "safe_create_role"
-      },
-      "user_input": "role",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
       ],
       "note": ""
     },
@@ -2299,7 +2119,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/performance_measurement/app/models/performance_measurement/result_calculation.rb",
-      "line": 143,
+      "line": 144,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "projects.joins(:hud_project).merge(GrdaWarehouse::Hud::Project.send(project_type)).group(:project_id).sum(\"#{period}_#{field}\")",
       "render_path": null,
@@ -2437,7 +2257,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/performance_measurement/app/models/performance_measurement/result_calculation.rb",
-      "line": 139,
+      "line": 140,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "projects.joins(:hud_project).merge(GrdaWarehouse::Hud::Project.send(project_type)).where(:project_id => client_projects.for_question(\"days_in_#{project_type}_bed_in_period\").where(:period => period).distinct.pluck(:project_id)).sum(\"#{period}_#{field}\")",
       "render_path": null,
@@ -2507,6 +2327,25 @@
       "confidence": "Medium",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Unmaintained Dependency",
+      "warning_code": 120,
+      "fingerprint": "d84924377155b41e094acae7404ec2e521629d86f97b0ff628e3d1b263f8101c",
+      "check_name": "EOLRails",
+      "message": "Support for Rails 7.0.8.7 ended on 2025-04-01",
+      "file": "Gemfile.lock",
+      "line": 1648,
+      "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
+      "code": null,
+      "render_path": null,
+      "location": null,
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        1104
       ],
       "note": ""
     },
@@ -2626,29 +2465,6 @@
       "note": ""
     },
     {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "e52db9a64ac0bf61e35334f89b7703a1a1df7c9fd84a506e575cbd79816712e4",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/bi/view_maintainer.rb",
-      "line": 427,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "GrdaWarehouseBase.connection.execute(\"GRANT SELECT ON #{name} TO #{\"bi\"}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Bi::ViewMaintainer",
-        "method": "safe_create_view"
-      },
-      "user_input": "name",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "ea3c1a87820e41e4d8e27cdf51aacff4da749f07d72fd29c2386ddc5c7cad731",
@@ -2743,29 +2559,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "ed2ba832272d6ccfc20e3be08bb78afb6461a2b28e1d61e5517ef6863d0e8994",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/report_generators/lsa/fy2021/all.rb",
-      "line": 669,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBase.connection.execute((\"\" + \" ALTER TABLE #{table_name} DROP COLUMN id; \"))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ReportGenerators::Lsa::Fy2021::All",
-        "method": "remove_missing_identity_columns"
-      },
-      "user_input": "table_name",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "ed71e9e26a86213fd628715e0b89c03141496c2418041246aa515f7f86488ec1",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -2835,29 +2628,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "f4d1c2b56088a3db75b8a9bb33adcccb86a50c1c0f36bdbd434aeef9a22dacd5",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "drivers/performance_measurement/app/models/performance_measurement/result_calculation.rb",
-      "line": 122,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(:period => period, :for_question => field)).sum(\"#{period}_#{field}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "PerformanceMeasurement::ResultCalculation",
-        "method": "client_sum"
-      },
-      "user_input": "period",
-      "confidence": "Weak",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "fe7de455d82a4e3fef770c1272e861fb8f1d73042b2f82f1b417753f2d17bec7",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -2879,6 +2649,5 @@
       "note": ""
     }
   ],
-  "updated": "2025-02-03 21:06:52 +0000",
-  "brakeman_version": "6.2.1"
+  "brakeman_version": "7.0.0"
 }

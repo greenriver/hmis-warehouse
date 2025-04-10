@@ -83,6 +83,15 @@ module Types
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
     field :hud_chronic, Boolean, null: true, description: 'Meets the definition for HUD chronically homeless as of today (time of API request)'
+    field :eligible_ce_opportunities, Types::HmisSchema::CeOpportunity.page_type, null: false
+
+    def eligible_ce_opportunities
+      raise unless Hmis::Ce.configuration.enabled?
+
+      Hmis::Ce::Opportunity.
+        for_client(object).
+        order(:id)
+    end
 
     field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
       argument :project_id, ID, required: true
@@ -230,7 +239,7 @@ module Types
 
     def files(**args)
       # Exclude files that have been uploaded by custom assessments
-      resolve_files(object.files.where.missing(:custom_data_element), **args)
+      resolve_files(object.files.where.missing(:custom_data_element), client_ids: [object.id], **args)
     end
 
     def pronouns

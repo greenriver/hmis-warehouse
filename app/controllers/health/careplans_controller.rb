@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 module Health
   class CareplansController < IndividualPatientController
     include AjaxModalRails::Controller
@@ -31,28 +33,6 @@ module Health
       @careplan = @careplans&.first&.instrument
       @disable_goal_actions = true
       @goals = @careplan&.current_goals_list
-
-      # Callbacks don't work in development, so we have to do something like this
-      return unless Rails.env.development?
-
-      # @careplans&.each do |cp|
-      #   [cp.pcp_signable_documents.un_fetched_document, cp.patient_signable_documents.un_fetched_document].flatten.each do |doc|
-      #     begin
-      #       # This is trying to ensure we run the same thing here as we do for the callback from HS
-      #       json = { signature_request: doc.fetch_signature_request }.to_json
-      #       response = HelloSignController::CallbackResponse.new(json)
-      #     rescue HelloSign::Error::NotFound
-      #       Rails.logger.fatal "Ignoring a document we couldn't track down."
-      #     end
-      #     begin
-      #       response.process!
-      #     rescue ActiveRecord::RecordNotFound
-      #       Rails.logger.fatal "Ignoring a document we couldn't track down."
-      #     rescue Exception
-      #       Rails.logger.fatal "Ignoring a document we couldn't track down."
-      #     end
-      #   end
-      # end
     end
 
     def show

@@ -232,15 +232,23 @@ module Types
     field :service_form_definition, Types::Forms::FormDefinition, 'Get most relevant form definition for the specified service type', null: true do
       argument :service_type_id, ID, required: true
       argument :project_id, ID, required: true
+      argument :id, ID, required: false, description: 'Form Definition ID, if known'
     end
-    def service_form_definition(service_type_id:, project_id:)
+    def service_form_definition(service_type_id:, project_id:, id: nil)
       project = Hmis::Hud::Project.find_by(id: project_id)
       raise HmisErrors::ApiError, 'Project not found' unless project.present?
 
       service_type = Hmis::Hud::CustomServiceType.find_by(id: service_type_id)
       raise HmisErrors::ApiError, 'Service type not found' unless service_type.present?
 
-      definition = Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
+      definition = if id
+        # If ID is specified, fetch form directly. ID is only provided when editing existing services.
+        # Note: It may be a retired form, or a form that is no longer enabled in the project.
+        Hmis::Form::Definition.with_role(:SERVICE).find(id)
+      else
+        # If ID is not specified, determine which form is specified for collecting this Service Type in this Project.
+        Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
+      end
 
       # Similar to record_form_definition above, we always want to return a definition if we possibly can, so use the
       # default HUD Service form for HUD service types. For Custom service types, return empty because we can't determine which form to use.
@@ -286,11 +294,15 @@ module Types
         root_can perm
       end
       field :can_view_my_dashboard, Boolean, null: false
+      field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
+      field :can_view_coordinated_entry, Boolean, null: false
     end
 
     def access
       {
         can_view_my_dashboard: current_user.can_view_my_dashboard?,
+        can_edit_users_in_warehouse: User.find(current_user.id).can_edit_users?,
+        can_view_coordinated_entry: Hmis::Ce.configuration.enabled?,
       }
     end
 
@@ -512,6 +524,35 @@ module Types
           data_collected_about: instance.data_collected_about || 'ALL_CLIENTS',
         )
       end
+    end
+
+    field :ce_referral, Types::HmisSchema::CeReferral, null: false do
+      argument :id, ID, required: true
+    end
+
+    def ce_referral(id:)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      Hmis::Ce::Referral.viewable_by(current_user).find(id)
+    end
+
+    field :ce_opportunity, HmisSchema::CeOpportunity, null: false do
+      argument :id, ID, required: true
+    end
+
+    def ce_opportunity(id:)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      Hmis::Ce::Opportunity.viewable_by(current_user).find(id)
+    end
+
+    field :ce_referral_step, HmisSchema::CeReferralStep, null: false do
+      argument :id, ID, required: true
+    end
+    def ce_referral_step(id:)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      Hmis::WorkflowExecution::Step.viewable_by(current_user).find(id)
     end
   end
 end

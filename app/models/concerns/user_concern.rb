@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 module UserConcern
   extend ActiveSupport::Concern
   include HasPiiAttributes
@@ -52,8 +54,12 @@ module UserConcern
     has_many :access_grants, class_name: 'Doorkeeper::AccessGrant', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
     has_many :access_tokens, class_name: 'Doorkeeper::AccessToken', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
 
-    # Connect users to login attempts
+    # Connect users to login attempts.
+    # Only includes Warehouse activity when called on User record, and only HMIS activity for Hmis::User record.
     has_many :login_activities, as: :user
+
+    # All login activities for user, including both HMIS and Warehouse login activity
+    has_many :all_login_activities, class_name: 'LoginActivity', foreign_key: 'user_id'
 
     # TODO: START_ACL remove when ACL transition complete
     # Ensure that users have a user-specific access group
@@ -136,9 +142,10 @@ module UserConcern
       active.not_system.where(exclude_from_directory: false)
     end
 
+    # users that have currently active sessions (either in the warehouse or in HMIS)
     scope :has_recent_activity, -> do
       where(last_activity_at: timeout_in.ago..Time.current).
-        where.not(unique_session_id: nil)
+        where.not(unique_session_id: nil, hmis_unique_session_id: nil)
     end
 
     scope :using_acls, -> do
@@ -379,6 +386,34 @@ module UserConcern
       else
         :invitation_expired
       end
+    end
+
+    # Enforce a known value is included in the devise salt
+    # this allows us to invalidate sessions even though they are stored in redis
+    def authenticatable_salt
+      base_salt = super
+      return base_salt if custom_session_invalidator.blank?
+
+      # Poison the salt to force the user to re-login by changing custom_session_invalidator
+      # Make sure the salt isn't changing length
+      Digest::SHA256.base64digest("#{base_salt}#{custom_session_invalidator}")[0, base_salt.length]
+    end
+
+    def force_logout!
+      update_attribute(:custom_session_invalidator, SecureRandom.hex)
+    end
+
+    # Dependent on devise expire_password_after being set to a value other than false
+    def force_password_reset!
+      return false unless password_expiration_enabled?
+
+      # Immediately logout the user
+      self.custom_session_invalidator = SecureRandom.hex
+      # Force a password change on next login
+      need_change_password! # calls save internally
+
+      # Return true to indicate success
+      true
     end
 
     # Prevent sending confirmation emails if the user has an open invitation
@@ -636,11 +671,11 @@ module UserConcern
 
     def coc_codes(force_calculation: false)
       key = [self.class.name, __method__, id]
-      Rails.cache.delete(key) if force_calculation
+      Rails.cache.delete(key) if force_calculation || Rails.env.test?
       Rails.cache.fetch(key, expires_in: 1.minutes) do
         # TODO: START_ACL cleanup after ACL migration is complete
         if using_acls?
-          collections.flat_map(&:coc_codes).reject(&:blank?).uniq
+          collections.flat_map(&:coc_codes).map(&:coc_code).reject(&:blank?).uniq
         else
           (access_groups.map(&:coc_codes).flatten + access_group.coc_codes).reject(&:blank?).uniq
         end

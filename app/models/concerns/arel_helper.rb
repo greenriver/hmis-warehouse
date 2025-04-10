@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -507,9 +509,10 @@ module ArelHelper
       self.class.exists_sql(ar_query, quoted_table_name: quoted_table_name, alias_name: alias_name, column_name: column_name)
     end
 
+    # FIXME- this probably doesn't belong in a global mixin
     # This method can be used to generate the select for a client's age at entry or start date (usually report start)
     # It requires the query to include both Client and ServiceHistoryEnrollment to function
-    private def age_on_date(start_date)
+    def age_on_date(start_date)
       cast(
         datepart(
           GrdaWarehouse::ServiceHistoryEnrollment,

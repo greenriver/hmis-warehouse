@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@stimulus/polyfills": "^2.0.0",
+    "ag-grid-community": "^33.1.1",
     "beautifymarker": "^1.0.9",
     "billboard.js": "^3.6.0",
     "bootstrap-datepicker": "1.9.0",
@@ -18,7 +19,7 @@
     "d3-interpolate": "3.0.1",
     "d3-sankey": "^0.12.3",
     "d3-scale-chromatic": "3.0.0",
-    "esbuild": "0.24.0",
+    "esbuild": "0.25.1",
     "inputmask": "3.3.8",
     "leaflet": "1.9.4",
     "leaflet.markercluster": "^1.5.3",
@@ -33,11 +34,13 @@
   },
   "devDependencies": {
     "eslint": "^9.15.0",
-    "prettier": "~2.0.2"
+    "prettier": "~2.0.2",
+    "typescript": "^5.8.2"
   },
   "resolutions": {
     "minimatch": "^3.0.5",
-    "ws": "^8.17.1"
+    "ws": "^8.17.1",
+    "tar-fs": "^2.1.2"
   },
   "scripts": {
     "lint": "eslint app/assets/javascripts",
