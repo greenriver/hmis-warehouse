@@ -29155,7 +29155,8 @@ CREATE TABLE public.wfd_templates (
     owner_type character varying,
     owner_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    template_type character varying NOT NULL
 );
 
 
