@@ -11,6 +11,13 @@ require_relative '../../../support/ce_spec_helper'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'ce spec helper'
 
+  before(:all) do
+    cleanup_test_environment
+  end
+  after(:all) do
+    cleanup_test_environment
+  end
+
   before(:each) do
     hmis_login(user)
   end
@@ -99,7 +106,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect do
             response, result = post_graphql(**variables) { query }
             expect(response.status).to eq(200), result.inspect
-            expect(result.dig('data', 'project', 'ceReferrals', 'nodesCount')).to eq(32)
+            expect(result.dig('data', 'project', 'ceReferrals', 'nodesCount')).to eq(32), result.inspect
           end.to make_database_queries(count: 15..20)
         end
       end
