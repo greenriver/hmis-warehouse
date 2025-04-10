@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -65,6 +67,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :merge_audits, -> { distinct }, through: :merge_histories, source: :client_merge_audit
   # Merge Audits for merges from this client into another client
   has_many :reverse_merge_audits, -> { distinct }, through: :reverse_merge_histories, source: :client_merge_audit
+
+  has_many :ce_match_candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :client_id, dependent: :destroy
+  has_many :ce_referrals, class_name: 'Hmis::Ce::Referral', foreign_key: :client_id, dependent: :destroy
 
   accepts_nested_attributes_for :names, allow_destroy: true
   accepts_nested_attributes_for :addresses, allow_destroy: true
