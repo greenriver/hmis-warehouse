@@ -17,7 +17,7 @@
 
   = content_for :page_js do
     :javascript
-      document['#{document_chart_name}'] = bb.generate({
+      document['#{j(document_chart_name)}'] = bb.generate({
         data: {
           columns: [],
           type: 'bar',
@@ -41,7 +41,7 @@
             value: (value, ratio, id, index) => d3.format(",")(value),
           },
         },
-        bindto: '#time-chart-#{key}',
+        bindto: '#time-chart-#{j(key)}',
         size: {
           height: 100,
         },

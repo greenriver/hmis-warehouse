@@ -58,26 +58,26 @@
   = content_for :page_js do
     :javascript
       (function($) {
-        var time_to_enter = new App.DataQualityReports.TimeToEnter(#{@report.average_time_to_enter(current_user).to_json.html_safe}, '.time-to-enter-chart', '#{polymorphic_path(@support_path, @report_keys.merge({method: "average_time_to_enter"}))}');
+        var time_to_enter = new App.DataQualityReports.TimeToEnter(#{@report.average_time_to_enter(current_user).to_json}, '.time-to-enter-chart', '#{j(polymorphic_path(@support_path, @report_keys.merge({method: "average_time_to_enter"})))}');
         time_to_enter.build_chart();
 
-        var time_to_exit = new App.DataQualityReports.TimeToExit(#{@report.average_time_to_exit(current_user).to_json.html_safe}, '.time-to-exit-chart', '#{polymorphic_path(@support_path, @report_keys.merge({method: "average_time_to_exit"}))}');
+        var time_to_exit = new App.DataQualityReports.TimeToExit(#{@report.average_time_to_exit(current_user).to_json}, '.time-to-exit-chart', '#{j(polymorphic_path(@support_path, @report_keys.merge({method: "average_time_to_exit"})))}');
         time_to_exit.build_chart();
 
-        var time_in_program = new App.DataQualityReports.TimeInProgram(#{@report.enrolled_length_of_stay(current_user).to_json.html_safe}, '.time-in-program-chart',
-            '#{polymorphic_path(@support_path, @report_keys.merge({method: "enrolled_length_of_stay"}))}');
+        var time_in_program = new App.DataQualityReports.TimeInProgram(#{@report.enrolled_length_of_stay(current_user).to_json}, '.time-in-program-chart',
+            '#{j(polymorphic_path(@support_path, @report_keys.merge({method: "enrolled_length_of_stay"})))}');
             time_in_program.build_chart();
 
-        var income = new App.DataQualityReports.Income(#{@report.retained_income.to_json.html_safe}, '.income-chart',
-          '#{polymorphic_path(@support_path, @report_keys.merge({method: "retained_income"}))}');
+        var income = new App.DataQualityReports.Income(#{@report.retained_income.to_json}, '.income-chart',
+          '#{j(polymorphic_path(@support_path, @report_keys.merge({method: "retained_income"})))}');
           income.build_chart();
 
-        var no_income = new App.DataQualityReports.NoIncome(#{@report.no_income.to_json.html_safe}, '.no-income-chart',
-          '#{polymorphic_path(@support_path, @report_keys.merge({method: "no_income"}))}');
+        var no_income = new App.DataQualityReports.NoIncome(#{@report.no_income.to_json}, '.no-income-chart',
+          '#{j(polymorphic_path(@support_path, @report_keys.merge({method: "no_income"})))}');
           no_income.build_chart();
 
-        var ph_destination = new App.DataQualityReports.PHDestination(#{@report.ph_destinations(current_user).to_json.html_safe}, '.ph-destination-chart',
-            '#{polymorphic_path(@support_path, @report_keys.merge({method: "ph_destinations"}))}');
+        var ph_destination = new App.DataQualityReports.PHDestination(#{@report.ph_destinations(current_user).to_json}, '.ph-destination-chart',
+            '#{j(polymorphic_path(@support_path, @report_keys.merge({method: "ph_destinations"})))}');
             ph_destination.build_chart();
       })(jQuery);
     - if grouped_as == :project_group
@@ -87,7 +87,7 @@
           var completeness_project_group = new App.DataQualityReports.Completeness(
             #{@report.project_group_completeness.to_json.html_safe},
             '.completeness-chart-project-group',
-            '#{polymorphic_path(@support_path, @report_keys)}'
+            #{j(polymorphic_path(@support_path, @report_keys))}
             );
           completeness_project_group.build_chart();
         })(jQuery);
@@ -95,25 +95,25 @@
       :javascript
         (function($) {
           var bed_census = new App.DataQualityReports.BedCensus(#{@report.bed_census_data.to_json.html_safe}, '.bed-census-chart',
-          '#{polymorphic_path(@support_path, @report_keys.merge({method: "bed_utilization"}))}');
+          #{j(polymorphic_path(@support_path, @report_keys.merge({method: "bed_utilization"})))});
           bed_census.build_chart();
           var unit_census = new App.DataQualityReports.UnitCensus(#{@report.unit_census_data.to_json.html_safe}, '.unit-census-chart',
-          '#{polymorphic_path(@support_path, @report_keys.merge({method: "unit_utilization"}))}');
+          #{j(polymorphic_path(@support_path, @report_keys.merge({method: "unit_utilization"})))});
           unit_census.build_chart();
         })(jQuery);
     -# Use projects here, not report_projects
     - @report.projects.each_with_index do |project, index|
       :javascript
         (function($) {
-          var completeness_#{index} = new App.DataQualityReports.Completeness(
+          var completeness_#{index.to_json} = new App.DataQualityReports.Completeness(
             #{@report.project_completeness(hud_project: project).to_json.html_safe},
-            '.completeness-chart-#{index}',
-            '#{polymorphic_path(@support_path, @report_keys)}',
-            #{project.id}
+            '.completeness-chart-#{index.to_json}',
+            #{j(polymorphic_path(@support_path, @report_keys))},
+            #{project.id.to_json}
           );
-          completeness_#{index}.build_chart();
+          completeness_#{index.to_json}.build_chart();
           // Because these are hidden by default, they need to be re-drawn on show
           $('#completeness-info').on('shown.bs.collapse', function(e) {
-            completeness_#{index}.chart.flush();
+            completeness_#{index.to_json}.chart.flush();
           });
         })(jQuery);

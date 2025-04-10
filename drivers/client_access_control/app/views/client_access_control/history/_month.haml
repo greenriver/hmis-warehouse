@@ -71,9 +71,9 @@
   :javascript
     var data = #{weeks_data.to_json.html_safe};
     var eventsData = #{data.contact_types.to_json.html_safe};
-    var max_date = '#{data.max_date(@client).strftime('%m/%d/%Y')}';
-    var min_date = '#{data.min_date(@client).strftime('%m/%d/%Y')}';
-    var current_date = '#{Date.new(@year, @month, 1).strftime('%m/%d/%Y')}';
+    var max_date = '#{j(data.max_date(@client).strftime('%m/%d/%Y'))}';
+    var min_date = '#{j(data.min_date(@client).strftime('%m/%d/%Y'))}';
+    var current_date = '#{j(Date.new(@year, @month, 1).strftime('%m/%d/%Y'))}';
 
     $(document).ready(function() {
       var calendar = new AppClientHistoryCalendar(data, eventsData, '.d3-calendar')

@@ -26,7 +26,7 @@
           = "Table #{table}:"
           = @report.spm_describe(table)
           = @report.spm_describe(table, cell)
-        .chart{id: "spm_#{table.gsub('.', '_').gsub(' ', '-')}_#{cell}"}
+        .chart{id: "spm_#{j(table.gsub('.', '_').gsub(' ', '-'))}_#{j(cell)}"}
         = content_for :page_js do
           :javascript
             options = {
@@ -54,11 +54,11 @@
                   }
                 }
               },
-              bindto: "\#spm_#{table.gsub('.', '_').gsub(' ', '-')}_#{cell}"
+              bindto: "\#spm_#{j(table.gsub('.', '_').gsub(' ', '-'))}_#{j(cell)}"
             };
 
             // Tables 2 and 7 should be 0-100 (and labeled as percentage)
-            if (['Measure 2', 'Measure 7'].includes('#{measure}')) {
+            if (['Measure 2', 'Measure 7'].includes('#{j(measure)}')) {
               options.axis.y.max = 100;
               options.axis.y.min = 0;
               options.axis.y.tick.format = function(y) { return y + '%' }

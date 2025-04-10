@@ -26,7 +26,7 @@
 -# load in all the bits of aggregate statistics via ajax
 = content_for :page_js do
   :javascript
-    var section_path = "#{request.path}/section/";
+    var section_path = "#{request.path.to_json}/section/";
     var sections = new App.Sections.Loader($('.rollup'), section_path, #{params.to_json.html_safe});
     var opts = { remote: true, truncate_labels: 80 }
     new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.living_situation-chart', opts);

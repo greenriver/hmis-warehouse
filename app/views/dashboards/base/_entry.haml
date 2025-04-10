@@ -41,12 +41,12 @@
       - entry_support_link = "#{polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: support_filter.merge({start: 'START_DATE', end: 'END_DATE'}))}"
       - re_entry_support_link = "#{polymorphic_path([:warehouse_reports, :re_entry, :index], filter: support_filter.merge({start: 'START_DATE', end: 'END_DATE'}))}"
     :javascript
-      var entry_support_link = '#{entry_support_link}'
+      var entry_support_link = '#{j(entry_support_link)}'
 
-      new App.Dashboards.Clients.Entered('.jEntry', '#{@report.sub_population_title}', entry_support_link, #{chart_options_small.to_json.html_safe});
+      new App.Dashboards.Clients.Entered('.jEntry', '#{j(@report.sub_population_title)}', entry_support_link, #{chart_options_small.to_json});
 
-      var re_entry_support_link = '#{re_entry_support_link}'
+      var re_entry_support_link = '#{j(re_entry_support_link)}'
 
-      new App.Dashboards.Clients.EntryReEntry('.jEntryReEntry', '#{@report.sub_population_title}', entry_support_link, re_entry_support_link, #{chart_options.to_json.html_safe});
+      new App.Dashboards.Clients.EntryReEntry('.jEntryReEntry', '#{j(@report.sub_population_title)}', entry_support_link, re_entry_support_link, #{chart_options.to_json});
 
-      new App.Dashboards.Clients.Entered('.jReEntry', '#{@report.sub_population_title}', re_entry_support_link, #{chart_options_small.to_json.html_safe});
+      new App.Dashboards.Clients.Entered('.jReEntry', '#{j(@report.sub_population_title)}', re_entry_support_link, #{chart_options_small.to_json});

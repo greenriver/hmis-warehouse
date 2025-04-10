@@ -66,6 +66,6 @@
 - content_for :page_js do
   :javascript
     (function($) {
-      chart = new App.ChartsScatterByDate.FirstTimeHomeless('#{url}');
+      chart = new App.ChartsScatterByDate.FirstTimeHomeless(#{url.to_json});
       chart.load();
     })(jQuery);

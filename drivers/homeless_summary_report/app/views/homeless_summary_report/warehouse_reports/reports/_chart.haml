@@ -17,10 +17,10 @@
 = content_for :page_js do
   :javascript
     $(document).ready(function(){
-      let chart = new App.WarehouseReports.HomelessSummaryReport.HorizontalBar('.jChart.#{variant_slug}', { remote: false });
-      $('.jChart.#{variant_slug}').closest('.chart-wrapper').find('.jToggleChartData').on('click', function(e) {
+      let chart = new App.WarehouseReports.HomelessSummaryReport.HorizontalBar('.jChart.#{j(variant_slug)}', { remote: false });
+      $('.jChart.#{j(variant_slug)}').closest('.chart-wrapper').find('.jToggleChartData').on('click', function(e) {
         e.preventDefault();
-        let active = $('.jChart.#{variant_slug}').data('active');
+        let active = $('.jChart.#{j(variant_slug)}').data('active');
         if(active == 'one_') {
           active = 'all_';
           chart.chart.resize({height: 1200})
@@ -28,8 +28,8 @@
           active = 'one_'
           chart.chart.resize({height: 150})
         }
-        $('.jChart.#{variant_slug}').data('active', active);
-        let new_columns = $('.jChart.#{variant_slug}').data('chart')[`${active}columns`];
+        $('.jChart.#{j(variant_slug)}').data('active', active);
+        let new_columns = $('.jChart.#{j(variant_slug)}').data('chart')[`${active}columns`];
         let data = { columns: new_columns, unload: true };
 
         chart.chart.load(data);

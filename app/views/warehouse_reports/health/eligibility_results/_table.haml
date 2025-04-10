@@ -26,7 +26,7 @@
 
 = content_for :page_js do
   :javascript
-    $('.#{datatable_class}').DataTable({
+    $(".#{datatable_class.to_json}").DataTable({
       searching: true,
       ordering: true,
       paging: false,

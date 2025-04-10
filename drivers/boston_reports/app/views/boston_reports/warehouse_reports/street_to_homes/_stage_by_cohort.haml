@@ -74,7 +74,7 @@
         /*
         y: {
           tick: {
-            values: [0, #{cohort_by_stage_max_value}]
+            values: [0, #{cohort_by_stage_max_value.to_json}]
           }
         }
         */
@@ -115,7 +115,7 @@
         /*
         y: {
           tick: {
-            values: [0, #{stage_by_cohort_max_value}]
+            values: [0, #{stage_by_cohort_max_value.to_json}]
           }
         }
         */

@@ -31,7 +31,7 @@
     :javascript
       (function($) {
         var list = $('.draggable-list');
-        var update_order_url = '#{polymorphic_path([:sort] + careplan_path_generator + [:goals])}';
+        var update_order_url = '#{j(polymorphic_path([:sort] + careplan_path_generator + [:goals]))}';
         list.sortable({
           update: function(event, ui) {
             var order = $.map($('.draggable-list').sortable('toArray'), function(item) {

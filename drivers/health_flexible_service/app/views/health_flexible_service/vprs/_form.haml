@@ -151,7 +151,7 @@
 
 = content_for :page_js do
   :javascript
-    var total_possible_services = #{@vpr.class.max_service_count};
+    var total_possible_services = #{@vpr.class.max_service_count.to_json};
     $('.jFlexibleServicePlanHidden').hide();
     $('.jAddFlexiblService').on('click', function(e) {
       e.preventDefault();

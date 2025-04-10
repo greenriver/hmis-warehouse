@@ -10,7 +10,7 @@
     $(function() {
       'use strict';
       var opts = {};
-      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.enrolled-by-#{@breakdown}-chart', opts);
-      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.entering-by-#{@breakdown}-chart', opts);
-      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.exiting-by-#{@breakdown}-chart', opts);
+      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.enrolled-by-#{@breakdown.to_json}-chart', opts);
+      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.entering-by-#{@breakdown.to_json}-chart', opts);
+      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.exiting-by-#{@breakdown.to_json}-chart', opts);
     });

@@ -7,4 +7,4 @@
 
 = content_for :page_js do
   :javascript
-    new App.Rollups.Checker('#{path_to_section.html_safe}', #{checktime})
+    new App.Rollups.Checker('#{j(path_to_section)}', #{checktime.to_json})

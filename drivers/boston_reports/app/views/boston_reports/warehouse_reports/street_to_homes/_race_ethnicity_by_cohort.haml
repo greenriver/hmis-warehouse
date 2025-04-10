@@ -22,18 +22,18 @@
 
   = content_for :page_js do
     :javascript
-      let #{base_name}_#{chart}_charts = #{charts.to_json.html_safe};
-      let active_#{base_name}_#{chart}_charts = [];
-      let active_#{base_name}_#{chart}_chart_ids = [];
-      #{base_name}_#{chart}_charts.forEach((arr, index) => {
+      let #{j(base_name)}_#{j(chart)}_charts = #{charts.to_json.html_safe};
+      let active_#{j(base_name)}_#{j(chart)}_charts = [];
+      let active_#{j(base_name)}_#{j(chart)}_chart_ids = [];
+      #{j(base_name)}_#{j(chart)}_charts.forEach((arr, index) => {
         let chart_name, data;
         [chart_name, data] = arr;
-        active_#{base_name}_#{chart}_chart_ids.push(`#{base_name}-#{chart}-by-cohort-chart-${chart_name}`);
+        active_#{j(base_name)}_#{j(chart)}_chart_ids.push(`#{j(base_name)}-#{j(chart)}-by-cohort-chart-${chart_name}`);
       });
 
       window.cohort_names = #{@report.cohort_names.to_json.html_safe};
 
-      #{base_name}_#{chart}_charts.forEach((arr, index) => {
+      #{j(base_name)}_#{j(chart)}_charts.forEach((arr, index) => {
         let chart_name, data, legend, width, height;
         [chart_name, data] = arr;
         if(index == 0) {
@@ -41,7 +41,7 @@
           height = 145;
           legend = {
             contents: {
-              bindto: "##{base_name}-#{chart}-by-cohort-chart-legend",
+              bindto: "##{j(base_name)}-#{j(chart)}-by-cohort-chart-legend",
               template: "<div class='all-charts-legend'><div class='d-flex mr-4'><div style='padding:5px; height: 14px; width: 26px; background-color:{=COLOR}; margin: auto 1rem; border-radius: 10px;'>&nbsp;</div><div class='m-2'>{=TITLE}</div></div></div>",
             },
             item: {
@@ -49,13 +49,13 @@
                 return false;
               },
               onover: function(id) {
-                active_#{base_name}_#{chart}_chart_ids.forEach(chart_id => {
+                active_#{j(base_name)}_#{j(chart)}_chart_ids.forEach(chart_id => {
                   let chart = bb.instance.filter(v => v.$.chart.attr("id") === chart_id)[0];
                   chart.focus(id);
                 });
               },
               onout: function(id) {
-                active_#{base_name}_#{chart}_chart_ids.forEach(chart_id => {
+                active_#{j(base_name)}_#{j(chart)}_chart_ids.forEach(chart_id => {
                   let chart = bb.instance.filter(v => v.$.chart.attr("id") === chart_id)[0];
                   chart.revert();
                 });
@@ -84,9 +84,9 @@
             return window.open(url.toString());
           },
         });
-        active_#{base_name}_#{chart}_charts.push(bb.generate({
+        active_#{j(base_name)}_#{j(chart)}_charts.push(bb.generate({
           data: data,
-          bindto: `##{base_name}-#{chart}-by-cohort-chart-${chart_name}`,
+          bindto: `##{j(base_name)}-#{j(chart)}-by-cohort-chart-${chart_name}`,
           legend: legend,
           size: {
             width: width,

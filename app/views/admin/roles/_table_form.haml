@@ -62,4 +62,4 @@
 
 - content_for :page_js do
   :javascript
-    new App.RoleTable({ patch_url: '#{path_for_patch}' })
+    new App.RoleTable({ patch_url: '#{j(path_for_patch)}' })

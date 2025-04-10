@@ -29,7 +29,7 @@
               },
               legend: {
                 contents: {
-                  bindto: "##{legend_id}",
+                  bindto: "##{j(legend_id)}",
                   template: function (title, color) {
                     var swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
                     return `<div class="chart-legend-item-prs1"><div class="swatch">${swatch}</div><div class="chart-legend-item-label-prs1">${title}</div></div>`;
@@ -47,7 +47,7 @@
               },
               tooltip: {
                 format: {
-                  title: function(x) { return "#{@report.support_title(key)}" },
+                  title: function(x) { return "#{j(@report.support_title(key))}" },
                 },
               },
               axis: {
@@ -59,7 +59,7 @@
                   }
                 },
               },
-              bindto: "##{chart_id}"
+              bindto: "##{j(chart_id)}"
             });
 
 

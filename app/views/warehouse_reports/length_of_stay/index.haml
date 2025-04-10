@@ -75,7 +75,7 @@
           $orgName.hide(100);
           var orgName = $t.find('select option:selected').text();
           $table.empty();
-          $table.append("<tr><td class='loading-cell' colspan=#{ @headers.length + 1 }>Loading</td></tr>");
+          $table.append("<tr><td class='loading-cell' colspan=\"#{(@headers.length + 1).to_json}\">Loading</td></tr>");
           var addDot = function() {
             var $c = $('.length-table .loading-cell');
             if ($c.length) {

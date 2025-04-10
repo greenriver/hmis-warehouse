@@ -32,5 +32,5 @@
           = link_to 'Select Universe.', total_url, data: { loads_in_pjax_modal: true }
 = content_for :page_js do
   :javascript
-    let detail_path = '#{polymorphic_url(@report.detail_path_array)}';
-    let detail_params = new URLSearchParams('#{@report.filter.for_params.to_query.html_safe}');
+    let detail_path = '#{j(polymorphic_url(@report.detail_path_array))}';
+    let detail_params = new URLSearchParams('#{j(@report.filter.for_params.to_query)}');

@@ -12,7 +12,7 @@
       data: {
         x: 'x',
         xFormat: '%Y-%m-%d %H:%M',
-        columns: #{raw ActivityLog.for_chart()}
+        columns: #{ActivityLog.for_chart().to_json}
       },
       axis: {
         x: {

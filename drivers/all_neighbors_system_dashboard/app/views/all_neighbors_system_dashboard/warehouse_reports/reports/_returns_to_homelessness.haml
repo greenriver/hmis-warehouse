@@ -42,7 +42,7 @@
     $(document).ready(function() {
       console.debug('Returns To Homelessness -----------------')
       var data = #{returns_data.to_json.html_safe}
-      var chart_selector = "#{chart_id(tab[:id], 'bar')}";
+      var chart_selector = #{j(chart_id(tab[:id], 'bar'))};
 
       var charts = [
         {
@@ -59,41 +59,41 @@
         {
           name: 'projectType',
           type: 'select',
-          selector: '##{filter_id(tab[:id], 'project_type')}'
+          selector: #{j("##{filter_id(tab[:id], 'project_type')}")}
         },
         {
           name: 'countLevel',
           type: 'select',
-          selector: '##{filter_id(tab[:id], 'count_level')}'
+          selector: #{j("##{filter_id(tab[:id], 'count_level')}")}
         },
         {
           name: 'demographics',
           type: 'select',
-          selector: '##{filter_id(tab[:id], 'demographics')}'
+          selector: #{j("##{filter_id(tab[:id], 'demographics')}")}
         },
         {
           name: 'dateRange',
           type: 'dateRange',
-          selector: '##{filter_id(tab[:id], 'date_range')} input'
+          selector: #{j("##{filter_id(tab[:id], 'date_range')} input")}
         }
       ]
 
       var labelConfig = [
         {
           name: 'projectType',
-          selector: '.#{filter_label_id(tab[:id], 'project_type')}'
+          selector: #{j(".#{filter_label_id(tab[:id], 'project_type')}")}
         },
         {
           name: 'countLevel',
-          selector: '.#{filter_label_id(tab[:id], 'count_level')}'
+          selector: #{j(".#{filter_label_id(tab[:id], 'count_level')}")}
         },
         {
           name: 'demographics',
-          selector: '.#{filter_label_id(tab[:id], 'demographic')}'
+          selector: #{j(".#{filter_label_id(tab[:id], 'demographic')}")}
         },
         {
           name: 'dateRange',
-          selector: '.#{filter_label_id(tab[:id], 'date_range')}'
+          selector: #{j(".#{filter_label_id(tab[:id], 'date_range')}")}
         },
       ]
 

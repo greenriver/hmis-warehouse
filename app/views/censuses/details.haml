@@ -62,5 +62,5 @@
 - content_for :page_js do
   :javascript
     (function($) {
-      weather = new App.Weather.Base('#{@date}', '.weather');
+      weather = new App.Weather.Base('#{j(@date)}', '.weather');
     })(jQuery);

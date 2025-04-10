@@ -21,5 +21,5 @@
     var rollupPath = #{financial_client_rollup_path(@client, partial: '').to_json.html_safe};
     var clients = #{js_clients.to_json.html_safe};
     var manyClients = #{source_clients.many?.to_json.html_safe};
-    var high = #{@client.source_clients.size + 1};
+    var high = #{(@client.source_clients.size + 1).to_json};
     var rollups = new App.Rollups.Loader($('.rollup'), rollupPath, manyClients, clients, high);

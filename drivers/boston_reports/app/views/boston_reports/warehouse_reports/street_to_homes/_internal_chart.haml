@@ -20,15 +20,15 @@
 
 = content_for :page_js do
   :javascript
-    let internal_#{active_demographic}_by_#{active_group} = #{@report.public_send(data_method).to_json.html_safe};
-    internal_#{active_demographic}_by_#{active_group} = $.extend(true, {}, internal_#{active_demographic}_by_#{active_group}, {
+    let internal_#{j(active_demographic)}_by_#{j(active_group)} = #{@report.public_send(data_method).to_json.html_safe};
+    internal_#{j(active_demographic)}_by_#{j(active_group)} = $.extend(true, {}, internal_#{j(active_demographic)}_by_#{j(active_group)}, {
       onclick: function(d, element) {
         // Don't allow drill-down on the unsheltered population
         if (this.categories()[d.x] == 'Unsheltered Population') {
           return false;
         }
         let sets = new URLSearchParams();
-        let demographic = internal_#{active_demographic}_by_#{active_group}.columns[0][d.x + 1];
+        let demographic = internal_#{j(active_demographic)}_by_#{j(active_group)}.columns[0][d.x + 1];
         sets.append('sets[]', demographic);
         sets.append('sets[]', d.name);
         let url = new URL(`${detail_path}?${detail_params.toString()}&${sets.toString()}`);
@@ -41,7 +41,7 @@
           if (v == 0) {
             return '';
           }
-          let data = d3.map(internal_#{active_demographic}_by_#{active_group}.columns, (r) => r);
+          let data = d3.map(internal_#{j(active_demographic)}_by_#{j(active_group)}.columns, (r) => r);
           let columns = d3.map(data, (row) => row)
           let numbers = d3.map(columns, (row) => Number.isInteger(row[i + 1]) ? row[i + 1] : 0);
           let total = numbers.reduce((partialSum, a) => partialSum + a, 0);
@@ -54,9 +54,9 @@
       }
     });
     window.charts = window.charts || {}
-    window.charts.internal_#{active_demographic}_by_#{active_group}_chart = bb.generate({
-      'data': internal_#{active_demographic}_by_#{active_group},
-      'bindto': "#internal-#{active_demographic}-by-#{active_group}-chart",
+    window.charts.internal_#{j(active_demographic)}_by_#{j(active_group)}_chart = bb.generate({
+      'data': internal_#{j(active_demographic)}_by_#{j(active_group)},
+      'bindto': "#internal-#{j(active_demographic)}-by-#{j(active_group)}-chart",
       bar: {
         padding: 20,
       },
@@ -76,7 +76,7 @@
 
       legend: {
         contents: {
-          bindto: '#internal-#{active_demographic}-by-#{active_group}-legend',
+          bindto: '#internal-#{j(active_demographic)}-by-#{j(active_group)}-legend',
           template: "<div class='d-flex mr-auto text-left'><div class='mr-2 mt-2 mb-0 ml-0' style='padding:5px; height: 14px; width: 26px; background-color:{=COLOR}; border-radius: 10px; '>&nbsp;</div><div class='ml-0 mr-auto mt-1 mb-1'>{=TITLE}</div></div>"
         }
       }

@@ -1,6 +1,6 @@
 :javascript
   (function() {
-    var data = #{data.to_s.html_safe};
+    var data = #{data.to_json};
     var chart = bb.generate({
       data: {
         x: 'x',
@@ -8,7 +8,7 @@
         type: 'line'
       },
       bindto: {
-        element: ".#{chart_class}"
+        element: ".#{j(chart_class)}"
       },
       axis: {
         x: {
@@ -43,7 +43,7 @@
         }
       },
       color: {
-        pattern: #{@report.chart_color_pattern(category)}
+        pattern: #{@report.chart_color_pattern(category).to_json}
       },
       tooltip: {
         contents: function(d, defaultTitleFormat, defaultValueFormat, color) {
@@ -66,7 +66,7 @@
       },
       legend: {
         contents: {
-          bindto: ".#{chart_class}_legend",
+          bindto: ".#{j(chart_class)}_legend",
           template: (title, color) => {
             const swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
             return `<div class="chart-legend-item-prs1"><div class="swatch">${swatch}</div><div class="chart-legend-item-label-prs1">${title}</div></div>`;

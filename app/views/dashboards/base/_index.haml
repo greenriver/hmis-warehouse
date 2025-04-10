@@ -19,17 +19,17 @@
 -# load in all the bits of aggregate statistics via ajax
 = content_for :page_js do
   :javascript
-    var section_path = "#{request.path}/section/";
-    var sections = new App.Sections.Loader($('.rollup'), section_path, {filters: #{report_params.to_json.html_safe}});
+    var section_path = "#{j(request.path)}/section/";
+    var sections = new App.Sections.Loader($('.rollup'), section_path, {filters: #{report_params.to_json}});
 
 -# From exit.haml
 = content_for :page_js do
   - if can_see_client_details?
     - support_link = "#{warehouse_reports_client_details_exits_path(filter: support_filter.merge({ start: 'START_DATE', end: 'END_DATE', ph: 'true' }))}"
   :javascript
-    var support_link = '#{support_link}'
+    var support_link = '#{j(support_link)}'
 
-    new App.Dashboards.Clients.Exits('.jHoused', '#{@report.sub_population_title}', support_link, {remote: true});
+    new App.Dashboards.Clients.Exits('.jHoused', '#{j(@report.sub_population_title)}', support_link, {remote: true});
 
 -# From entry.haml
 = content_for :page_js do
@@ -37,17 +37,17 @@
     - entry_support_link = "#{polymorphic_path([:warehouse_reports, :first_time_homeless_index], filter:  support_filter.merge({start: 'START_DATE', end: 'END_DATE'}))}"
     - re_entry_support_link = "#{polymorphic_path([:warehouse_reports, :re_entry, :index], filter:  support_filter.merge({start: 'START_DATE', end: 'END_DATE'}))}"
   :javascript
-    var entry_support_link = '#{entry_support_link}'
+    var entry_support_link = '#{j(entry_support_link)}'
 
-    new App.Dashboards.Clients.Entered('.jEntry', '#{@report.sub_population_title}', entry_support_link, {remote: true});
+    new App.Dashboards.Clients.Entered('.jEntry', '#{j(@report.sub_population_title)}', entry_support_link, {remote: true});
 
-    var re_entry_support_link = '#{re_entry_support_link}'
+    var re_entry_support_link = '#{j(re_entry_support_link)}'
 
-    new App.Dashboards.Clients.EntryReEntry('.jEntryReEntry', '#{@report.sub_population_title}', entry_support_link, re_entry_support_link, {remote: true});
+    new App.Dashboards.Clients.EntryReEntry('.jEntryReEntry', '#{j(@report.sub_population_title)}', entry_support_link, re_entry_support_link, {remote: true});
 
-    new App.Dashboards.Clients.Entered('.jReEntry', '#{@report.sub_population_title}', re_entry_support_link, {remote: true});
+    new App.Dashboards.Clients.Entered('.jReEntry', '#{j(@report.sub_population_title)}', re_entry_support_link, {remote: true});
 
 -# From census.haml
 = content_for :page_js do
   :javascript
-    new App.Dashboards.Clients.Census('.jMonthlyCensus', '#{@report.sub_population_title}', '', {remote: true});
+    new App.Dashboards.Clients.Census('.jMonthlyCensus', '#{j(@report.sub_population_title)}', '', {remote: true});

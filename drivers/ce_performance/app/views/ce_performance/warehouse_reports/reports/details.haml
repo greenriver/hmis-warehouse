@@ -52,13 +52,13 @@
 = content_for :page_js do
   :javascript
     $(document).ready(function() {
-      const data = $('.#{chart_class_name}').data('chart');
+      const data = $('.#{j(chart_class_name)}').data('chart');
       let max = data.columns[0].slice(1);
       if(data.columns.length == 2) {
         max = Math.max(...data.columns[1].slice(1));
       }
-      const includePercent = #{@result.percentage?};
-      const max_100 = #{@result.max_100?};
+      const includePercent = #{@result.percentage?.to_json};
+      const max_100 = #{@result.max_100?.to_json};
       const goal = #{@result.goal_line.to_json};
       let axisMax = max < goal && goal !== null ? goal : undefined;
       if(max_100) {
@@ -98,9 +98,9 @@
 
             // Build ratio description
             let description = '';
-            if (#{@result.percentage?}) {
-              const numer = data.index === 0 ? "#{@result.numerator}" : "#{@comparison&.numerator}";
-              const denom = data.index === 0 ? "#{@result.denominator}" : "#{@comparison&.denominator}";
+            if (#{@result.percentage?.to_json}) {
+              const numer = data.index === 0 ? #{@result.numerator.to_json} : #{@comparison&.numerator.to_json};
+              const denom = data.index === 0 ? #{@result.denominator.to_json} : #{@comparison&.denominator.to_json};
               description = ` (${numer} of ${denom})`;
             }
 
@@ -129,12 +129,12 @@
             lines: { front: false },
             y: { lines: [{ value: goal }] } }
         }),
-        bindto: '.#{chart_class_name}'
+        bindto: '.#{j(chart_class_name)}'
       };
       if(max_100) {
         options.axis.y.padding = { top: 0, bottom: 0}
       }
       const chart = bb.generate(options);
-      d3.select('.#{chart_class_name} .bb-ygrid-line line').style('stroke-width', 2)
-      d3.select('.#{chart_class_name} .bb-ygrid-line line').style('stroke-dasharray', 2)
+      d3.select('.#{j(chart_class_name)} .bb-ygrid-line line').style('stroke-width', 2)
+      d3.select('.#{j(chart_class_name)} .bb-ygrid-line line').style('stroke-dasharray', 2)
     });

@@ -142,8 +142,8 @@
 - content_for :page_js do
   :javascript
     (function($) {
-      if ('#{@census_filter_params.present?}' === 'true') {
-        census = new App.Census.Base('#{date_range_censuses_path()}', '#{@census_filter_params.to_json.html_safe}', { follow_link: '#{project_policy.can_view_clients?}' });
+      if (#{@census_filter_params.present?.to_json} === true) {
+        census = new App.Census.Base(#{date_range_censuses_path().to_json}, #{@census_filter_params.to_json.html_safe}, { follow_link: #{project_policy.can_view_clients?.to_json} });
         census.load();
       }
     })(jQuery);

@@ -47,7 +47,7 @@
         let sets = new URLSearchParams();
         let program = matched_cohort_by_voucher_type.columns[0][d.x + 1];
         sets.append('sets[]', program);
-        sets.append('sets[]', '#{@report.matched_string}');
+        sets.append('sets[]', '#{j(@report.matched_string)}');
         sets.append('sets[]', d.name);
         let url = new URL(`${detail_path}?${detail_params.toString()}&${sets.toString()}`);
 
@@ -63,7 +63,7 @@
         let sets = new URLSearchParams();
         let program = moved_in_cohort_by_voucher_type.columns[0][d.x + 1];
         sets.append('sets[]', program);
-        sets.append('sets[]', '#{@report.housed_string}');
+        sets.append('sets[]', '#{j(@report.housed_string)}');
         sets.append('sets[]', d.name);
         let url = new URL(`${detail_path}?${detail_params.toString()}&${sets.toString()}`);
 
@@ -81,7 +81,7 @@
         width: 26,
       },
       size: {
-        height: #{@report.voucher_type_count} * 40,
+        height: #{@report.voucher_type_count.to_json} * 40,
       },
       axis: {
         rotated: true,
@@ -124,7 +124,7 @@
         width: 26,
       },
       size: {
-        height: #{@report.voucher_type_count} * 40 + 20,
+        height: #{@report.voucher_type_count.to_json} * 40 + 20,
       },
       axis: {
         rotated: true,

@@ -18,7 +18,7 @@
 
   = content_for :page_js do
     :javascript
-      document['#{document_chart_name}'] = bb.generate({
+      document['#{j(document_chart_name)}'] = bb.generate({
         data: {
           columns: [],
           type: 'bar',
@@ -88,7 +88,7 @@
           }
 
         },
-        bindto: '#equity-chart-#{key}',
+        bindto: '#equity-chart-#{j(key)}',
         size: {
           height: 100,
         },

@@ -2,7 +2,7 @@
 - chart_id = "#{key}_chart"
 %h3= @report.support_title(key)
 
-%div{ id: chart_id }
+%div{ id: j(chart_id) }
 = content_for :page_js do
   :javascript
     var chart = bb.generate({
@@ -18,10 +18,10 @@
       },
       tooltip: {
         format: {
-          title: function(x) { return "#{@report.support_title(key)}" },
+          title: function(x) { return "#{j(@report.support_title(key))}" },
         },
       },
-      bindto: "##{chart_id}"
+      bindto: "##{j(chart_id)}"
     });
 
 .row
