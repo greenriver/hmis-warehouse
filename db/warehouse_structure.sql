@@ -61990,13 +61990,6 @@ CREATE INDEX index_wfd_flows_on_template_id ON public.wfd_flows USING btree (tem
 
 
 --
--- Name: index_wfd_nodes_on_form_definition_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfd_nodes_on_form_definition_id ON public.wfd_nodes USING btree (form_definition_id);
-
-
---
 -- Name: index_wfd_nodes_on_swimlane_id; Type: INDEX; Schema: public; Owner: -
 --
 
