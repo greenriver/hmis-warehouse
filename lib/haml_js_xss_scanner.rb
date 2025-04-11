@@ -1,6 +1,11 @@
 # !/usr/bin/env ruby
 # frozen_string_literal: true
 
+# Scans HAML templates for potential XSS vulnerabilities in inline JavaScript blocks.
+# Specifically looks for unsafe Ruby interpolations (#{...}) within :javascript blocks
+# that aren't properly escaped using j(...) or to_json. Generates a report of
+# findings and can be used in CI pipelines to prevent unsafe code from being merged.
+
 require 'optparse'
 
 class HamlJsXssScanner
