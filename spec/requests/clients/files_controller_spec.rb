@@ -35,7 +35,7 @@ RSpec.describe Clients::FilesController, type: :request do
 
     context 'when auto_confirm_consent is enabled' do
       before do
-        config = GrdaWarehouse::Config.first
+        config = GrdaWarehouse::Config.first_or_create
         config.update!(auto_confirm_consent: true)
       end
 
@@ -58,7 +58,7 @@ RSpec.describe Clients::FilesController, type: :request do
 
     context 'when auto_confirm_consent is disabled' do
       before do
-        config = GrdaWarehouse::Config.first
+        config = GrdaWarehouse::Config.first_or_create
         config.update!(auto_confirm_consent: false)
       end
 
