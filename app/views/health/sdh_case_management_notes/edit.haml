@@ -4,7 +4,7 @@
 
 - content_for :page_js do
   :javascript
-    const versions = #{Health::QualifyingActivity::VERSIONS.map(&:js_model).to_json}
+    const versions = [#{Health::QualifyingActivity::VERSIONS.map(&:js_model).join(', ').html_safe}]
 
     // Handle QA date changes
     $('body').on('change', '.sdh-note__activity .jDateOfActivity', function(e) {

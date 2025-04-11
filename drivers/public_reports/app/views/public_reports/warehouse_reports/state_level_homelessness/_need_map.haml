@@ -29,13 +29,13 @@
 %hr
 :javascript
   (function() {
-    const state = #{@report.state_shape_json.to_json}
+    const state = #{@report.state_shape_json}
     console.log('state', state)
-    const shapes = #{@report.map_shape_json.to_json}
+    const shapes = #{@report.map_shape_json}
     console.log('shapes', shapes)
-    const data = #{Oj.dump(data, mode: :compat).to_json}
+    const data = #{Oj.dump(data, mode: :compat)}
     console.log('data', data)
-    const comparison_colors = #{@report.map_colors.to_json}
+    const comparison_colors = #{j @report.map_colors}
 
     let selected_date = $('.jQuarters').data('dates')[$('.jQuarters').val()];
     let comparison_data = data.homeless_map

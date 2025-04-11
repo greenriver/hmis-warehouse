@@ -31,7 +31,7 @@
         let demographic = internal_#{j(active_demographic)}_by_#{j(active_group)}.columns[0][d.x + 1];
         sets.append('sets[]', demographic);
         sets.append('sets[]', d.name);
-        let url = new URL(`${#{detail_path.to_json}}?${#{detail_params.to_json}.toString()}&${sets.toString()}`);
+        let url = new URL(`${#{j detail_path}}?${#{j detail_params}.toString()}&${sets.toString()}`);
 
         return window.open(url.toString());
       },

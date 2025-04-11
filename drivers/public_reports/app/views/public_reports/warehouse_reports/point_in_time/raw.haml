@@ -6,7 +6,7 @@
     var chart = bb.generate({
       data: {
         x: 'x',
-        columns: #{@report.precalculated_data&.to_json},
+        columns: #{@report.precalculated_data&.html_safe},
         type: 'line'
       },
       bindto: {

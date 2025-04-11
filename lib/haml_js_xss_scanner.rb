@@ -13,8 +13,10 @@ class HamlJsXssScanner
   INTERPOLATION_PATTERN = /\#{(?:[^{}]|\g<0>)*}/
 
   SAFE_PATTERNS = [
-    /\.to_json(\W|.html_safe)?/,
+    /\.html_safe\s*/,
+    /\.to_json\s*/,
     /(^|\W)j[ (]/,
+    /(^|\W)raw[ (]/,
     /(^|\W)Oj\.dump[ (]/,
   ].freeze
 
@@ -38,24 +40,14 @@ class HamlJsXssScanner
 
     return if @issues.empty?
 
-    puts "# Correct ruby interpolation in HAML inline Javascript\n\n"
-    puts "## Instructions\n"
-    puts '- Address the unescaped interpolated Ruby code in HAML Javascript templates'
-    puts '- As you complete tasks and check files, update this file to track your progress.'
-    puts '- ✅ DO: Use EITHER the ruby on rails `j(...)` helper OR `object.to_json` within interpolated ruby code. The goal is to reduce the risk of XSS'
-    puts '- ✅ DO: Infer if the intention is to include an object literal OR a string and use the correct escaping'
-    puts '- ✅ DO: You probably should use `to_json` when in doubt'
-    puts "- ✅ DO: Use `j(...)` when it's clear the variable is a string"
-    puts "- ✅ DO: Mark the item as blocked if it's ambiguous"
-    puts '- ✅ DO: Ensure Javascript will still be valid'
-    puts "- Note: You probably shouldn't be changing the javascript, just the interpolated ruby code"
-    puts "- ❌ DON'T: Try to escape the literals using javascript"
-    puts "- ❌ DON'T: use `j(...)` when the variable could be something that isn't a string"
-    puts "- ❌ DON'T: use BOTH `j(...)` helper AND `object.to_json`\n\n"
-    puts '## Task list'
+    puts <<~INSTRUCTIONS
+      # Correct ruby interpolation in HAML inline Javascript
+
+      ## Task list
+    INSTRUCTIONS
 
     @issues.group_by { |issue| issue[:file] }.each do |file, issues|
-      puts "- [ ] `#{file}` - #{issues.size} interpolation(s) to fix on lines #{issues.map { |issue| issue[:line_number] }.join(', ')}"
+      puts "- [ ] `#{file}` - #{issues.size} interpolation(s) to fix on lines #{issues.map { |issue| issue[:line_number] }.uniq.join(', ')}"
     end
 
     puts "\nTotal issues found: #{@issues_found}"

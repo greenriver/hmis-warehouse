@@ -1,6 +1,6 @@
 = content_for :page_js do
   :javascript
-    var rollupPath = #{j(rollup_client_path(@client, partial: ''))};
+    var rollupPath = #{rollup_client_path(@client, partial: '').to_json};
     var clients = #{js_clients.to_json};
     var manyClients = #{source_clients.many?.to_json};
     var high = #{(@client.source_clients.size + 1).to_json};
