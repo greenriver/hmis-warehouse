@@ -87,10 +87,10 @@ module Clients
 
         # Keep various client fields in sync with files if appropriate
         @client.sync_cas_attributes_with_files
-        rescue StandardError
-          # flash[:error] = e.message
-          render action: :new
-          return
+      rescue StandardError
+        # flash[:error] = e.message
+        render action: :new
+        return
       end
       redirect_to action: :index
     end
