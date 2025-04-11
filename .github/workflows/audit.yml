@@ -31,3 +31,7 @@ jobs:
       - name: Run brakeman
         run: |
           bundle exec brakeman -q --no-pager
+
+      - name: Run HAML XSS scanner
+        run: |
+          bundle exec rails haml:xss_scanner
