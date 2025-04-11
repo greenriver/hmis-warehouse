@@ -83,14 +83,33 @@ module Types
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
     field :hud_chronic, Boolean, null: true, description: 'Meets the definition for HUD chronically homeless as of today (time of API request)'
-    field :eligible_ce_opportunities, Types::HmisSchema::CeOpportunity.page_type, null: false
 
-    def eligible_ce_opportunities
+    field :eligible_ce_opportunities, Types::HmisSchema::CeOpportunity.page_type, null: false do
+      # Omit status, since we only return open opportunities for the client anyway
+      filters_argument Types::HmisSchema::CeOpportunity, omit: [:status], type_name: 'ClientEligibleCeOpportunity'
+    end
+    def eligible_ce_opportunities(filters: nil)
       raise unless Hmis::Ce.configuration.enabled?
 
-      Hmis::Ce::Opportunity.
-        for_client(object).
-        order(:id)
+      scope = Hmis::Ce::Opportunity.for_client(object)
+      scope = scope.where(project_id: filters.project) if filters&.project.present?
+      scope = scope.joins(:project).where(project: { project_type: filters&.project_type }) if filters&.project_type.present?
+      scope.order(:id)
+    end
+
+    field :ce_referrals, Types::HmisSchema::CeReferral.page_type, null: false do
+      filters_argument Types::HmisSchema::CeReferral
+    end
+    def ce_referrals(filters: nil)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      scope = object.ce_referrals
+      scope = scope.where(status: filters&.status) if filters&.status.present?
+      scope = scope.joins(:opportunity).where(opportunity: { project_id: filters&.project }) if filters&.project.present?
+
+      projects_table = Hmis::Hud::Project.arel_table
+      scope = scope.joins(opportunity: :project).where(projects_table[:project_type].in(filters&.project_type)) if filters&.project_type.present?
+      scope.order(created_at: :desc)
     end
 
     field :active_enrollment, Types::HmisSchema::Enrollment, null: true do

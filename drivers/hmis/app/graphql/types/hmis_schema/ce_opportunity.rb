@@ -14,14 +14,17 @@ module Types
     field :expires_at, GraphQL::Types::ISO8601DateTime, null: true
     field :referral, Types::HmisSchema::CeReferral, null: true, description: 'Active or accepted referral'
     field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false
-    field :project_id, ID, null: false
-    field :project_name, String, null: false
+    field :project, Types::HmisSchema::Project, null: false
+    field :project_id, ID, null: false, deprecation_reason: 'Deprecated in favor of project'
+    field :project_name, String, null: false, deprecation_reason: 'Deprecated in favor of project'
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
     field :priority_scheme, HmisSchema::CeMatchRule, null: true
     field :categories, [String], null: false
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeOpportunityStatus]
+      arg :project, [ID]
+      arg :project_type, [HmisSchema::Enums::ProjectType]
     end
 
     def candidates
@@ -37,6 +40,10 @@ module Types
         scope: Hmis::Ce::Referral.viewable_by(current_user).where.not(status: 'rejected').
           order(created_at: :desc),
       ).first # there should be at most 1 (enforced in an AR validation but not at the database level)
+    end
+
+    def project
+      load_ar_association(object, :project)
     end
 
     def project_name

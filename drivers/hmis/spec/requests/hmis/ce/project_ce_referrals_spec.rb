@@ -25,7 +25,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'project ceReferrals query' do
     let(:query) do
       <<~GRAPHQL
-        query GetProjectCeReferrals($id: ID!, $limit: Int = 25, $offset: Int = 0, $filters: CeReferralFilterOptions = null) {
+        query GetProjectCeReferrals($id: ID!, $limit: Int = 25, $offset: Int = 0, $filters: ProjectCeReferralFilterOptions = null) {
           project(id: $id) {
             id
             ceReferrals(limit: $limit, offset: $offset, filters: $filters) {
@@ -41,6 +41,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                   name
                 }
                 currentStepName
+                targetProject {
+                  id
+                  projectName
+                }
+                referredBy {
+                  id
+                  name
+                }
               }
             }
           }
@@ -107,7 +115,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             response, result = post_graphql(**variables) { query }
             expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'project', 'ceReferrals', 'nodesCount')).to eq(32), result.inspect
-          end.to make_database_queries(count: 15..20)
+          end.to make_database_queries(count: 20..25)
         end
       end
     end

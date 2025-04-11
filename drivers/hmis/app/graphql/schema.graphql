@@ -755,18 +755,15 @@ type CeOpportunity {
   id: ID!
   name: String!
   priorityScheme: CeMatchRule
-  projectId: ID!
-  projectName: String!
+  project: Project!
+  projectId: ID! @deprecated(reason: "Deprecated in favor of project")
+  projectName: String! @deprecated(reason: "Deprecated in favor of project")
 
   """
   Active or accepted referral
   """
   referral: CeReferral
   status: CeOpportunityStatus!
-}
-
-input CeOpportunityFilterOptions {
-  status: [CeOpportunityStatus!]
 }
 
 input CeOpportunityInput {
@@ -814,12 +811,16 @@ type CeReferral {
   currentStepName: String
   id: ID!
   opportunity: CeOpportunity!
+  referredBy: ApplicationUser
   status: CeReferralStatus!
   steps: [CeReferralStep!]!
   targetEnrollment: Enrollment
+  targetProject: Project!
 }
 
 input CeReferralFilterOptions {
+  project: [ID!]
+  projectType: [ProjectType!]
   status: [CeReferralStatus!]
 }
 
@@ -920,6 +921,7 @@ type Client {
   alerts: [ClientAlert!]!
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(filters: ClientAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
+  ceReferrals(filters: CeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   contactPoints: [ClientContactPoint!]!
   createdBy: ApplicationUser
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
@@ -934,7 +936,7 @@ type Client {
   dischargeStatus: DischargeStatus
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
-  eligibleCeOpportunities(limit: Int, offset: Int): CeOpportunitiesPaginated!
+  eligibleCeOpportunities(filters: ClientEligibleCeOpportunityFilterOptions, limit: Int, offset: Int): CeOpportunitiesPaginated!
   emailAddresses: [ClientContactPoint!]!
   employmentEducations(limit: Int, offset: Int): EmploymentEducationsPaginated!
   enabledFeatures: [ClientDashboardFeature!]!
@@ -1251,6 +1253,11 @@ enum ClientContactPointUse {
 enum ClientDashboardFeature {
   CASE_NOTE
   FILE
+}
+
+input ClientEligibleCeOpportunityFilterOptions {
+  project: [ID!]
+  projectType: [ProjectType!]
 }
 
 input ClientFilterOptions {
@@ -8882,9 +8889,9 @@ type Project {
   active: Boolean!
   affiliatedProjects: [Project!]!
   assessments(filters: AssessmentsForProjectFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
-  ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int): CeOpportunitiesPaginated!
+  ceOpportunities(filters: ProjectCeOpportunityFilterOptions, limit: Int, offset: Int): CeOpportunitiesPaginated!
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
-  ceReferrals(filters: CeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
+  ceReferrals(filters: ProjectCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   contactInformation: String
   continuumProject: NoYes
   createdBy: ApplicationUser
@@ -8959,6 +8966,14 @@ type ProjectAccess {
   canViewPartialSsn: Boolean!
   canViewUnits: Boolean!
   id: ID!
+}
+
+input ProjectCeOpportunityFilterOptions {
+  status: [CeOpportunityStatus!]
+}
+
+input ProjectCeReferralFilterOptions {
+  status: [CeReferralStatus!]
 }
 
 type ProjectCoc {
