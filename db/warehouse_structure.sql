@@ -333,18 +333,6 @@ CREATE VIEW analytics.affiliations AS
 
 
 --
--- Name: app_users; Type: TABLE; Schema: analytics; Owner: -
---
-
-CREATE TABLE analytics.app_users (
-    id bigint NOT NULL,
-    first_name character varying,
-    last_name character varying,
-    email character varying
-);
-
-
---
 -- Name: AssessmentQuestions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -957,47 +945,6 @@ CREATE VIEW analytics.client_files AS
    FROM (public.files client_files
      LEFT JOIN file_tags ft ON ((ft.file_id = client_files.id)))
   WHERE (((client_files.type)::text = 'GrdaWarehouse::ClientFile'::text) AND (client_files.deleted_at IS NULL) AND (client_files.confidential = false));
-
-
---
--- Name: clh_locations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.clh_locations (
-    id bigint NOT NULL,
-    client_id bigint,
-    source_type character varying,
-    source_id bigint,
-    located_on date,
-    lat double precision,
-    lon double precision,
-    collected_by character varying,
-    processed_at timestamp without time zone,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    enrollment_id bigint,
-    located_at timestamp(6) without time zone
-);
-
-
---
--- Name: client_geolocations; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.client_geolocations AS
- SELECT id,
-    client_id,
-    source_type,
-    source_id,
-    located_on,
-    lat,
-    lon,
-    created_at,
-    updated_at,
-    located_at
-   FROM public.clh_locations
-  WHERE ((deleted_at IS NULL) AND (lat IS NOT NULL) AND (lon IS NOT NULL));
 
 
 --
@@ -3018,13 +2965,27 @@ CREATE VIEW analytics.exits AS
     "ExitDate",
     "Destination",
     "OtherDestination",
+    "AssessmentDisposition",
+    "OtherDisposition",
     "HousingAssessment",
     "SubsidyInformation",
+    "ConnectionWithSOAR",
+    "WrittenAftercarePlan",
+    "AssistanceMainstreamBenefits",
+    "PermanentHousingPlacement",
+    "TemporaryShelterPlacement",
+    "ExitCounseling",
+    "FurtherFollowUpServices",
+    "ScheduledFollowUpContacts",
+    "ResourcePackage",
+    "OtherAftercarePlanOrAction",
     "ProjectCompletionStatus",
     "EarlyExitReason",
+    "FamilyReunificationAchieved",
     "DateCreated",
     "DateUpdated",
     "UserID",
+    "DateDeleted",
     "ExportID",
     data_source_id,
     id,
@@ -3056,9 +3017,10 @@ CREATE VIEW analytics.exits AS
     "InPersonIndividual",
     "InPersonGroup",
     "CMExitReason",
+    source_hash,
+    pending_date_deleted,
     "DestinationSubsidyType",
-    auto_exited,
-    (auto_exited IS NOT NULL) AS is_auto_exited
+    auto_exited
    FROM public."Exit"
   WHERE ("DateDeleted" IS NULL);
 
@@ -3318,114 +3280,6 @@ CREATE VIEW analytics.health_and_dvs AS
 
 
 --
--- Name: CustomCaseNote; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."CustomCaseNote" (
-    id bigint NOT NULL,
-    "CustomCaseNoteID" character varying NOT NULL,
-    "PersonalID" character varying NOT NULL,
-    "EnrollmentID" character varying,
-    data_source_id bigint NOT NULL,
-    content text NOT NULL,
-    "UserID" character varying,
-    "DateCreated" timestamp without time zone,
-    "DateUpdated" timestamp without time zone,
-    "DateDeleted" timestamp without time zone,
-    information_date date
-);
-
-
---
--- Name: hmis_case_notes; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.hmis_case_notes AS
- SELECT id,
-    "PersonalID" AS personal_id,
-    "EnrollmentID" AS enrollment_id,
-    data_source_id,
-    content,
-    "UserID" AS user_id,
-    "DateCreated" AS date_created,
-    "DateUpdated" AS date_updated,
-    information_date
-   FROM public."CustomCaseNote"
-  WHERE ("DateDeleted" IS NULL);
-
-
---
--- Name: hmis_client_alerts; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_client_alerts (
-    id bigint NOT NULL,
-    note text NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    expiration_date date,
-    created_by_id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    priority character varying
-);
-
-
---
--- Name: hmis_client_alerts; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.hmis_client_alerts AS
- SELECT id,
-    note,
-    created_at,
-    updated_at,
-    expiration_date,
-    created_by_id,
-    client_id,
-    priority
-   FROM public.hmis_client_alerts
-  WHERE (deleted_at IS NULL);
-
-
---
--- Name: hmis_external_form_submissions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_external_form_submissions (
-    id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    submitted_at timestamp without time zone,
-    spam_score double precision,
-    status character varying DEFAULT 'new'::character varying NOT NULL,
-    definition_id bigint NOT NULL,
-    object_key character varying NOT NULL,
-    raw_data jsonb NOT NULL,
-    notes text,
-    enrollment_id bigint
-);
-
-
---
--- Name: hmis_external_form_submissions; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.hmis_external_form_submissions AS
- SELECT id,
-    created_at,
-    updated_at,
-    submitted_at,
-    spam_score,
-    status,
-    definition_id,
-    object_key,
-    notes,
-    enrollment_id
-   FROM public.hmis_external_form_submissions;
-
-
---
 -- Name: hmis_form_definitions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3596,59 +3450,6 @@ CREATE VIEW analytics.hmis_participations AS
     source_hash
    FROM public."HMISParticipation"
   WHERE ("DateDeleted" IS NULL);
-
-
---
--- Name: hmis_staff_assignment_relationships; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_staff_assignment_relationships (
-    id bigint NOT NULL,
-    name character varying NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: COLUMN hmis_staff_assignment_relationships.name; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.hmis_staff_assignment_relationships.name IS 'name of role, such as "Case Manager" or "Housing Navigator"';
-
-
---
--- Name: hmis_staff_assignments; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_staff_assignments (
-    id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    household_id character varying,
-    hmis_staff_assignment_relationship_id bigint NOT NULL,
-    data_source_id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: hmis_staff_assignments; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.hmis_staff_assignments AS
- SELECT hmis_staff_assignments.id,
-    hmis_staff_assignments.user_id,
-    hmis_staff_assignments.household_id,
-    hmis_staff_assignment_relationships.name,
-    hmis_staff_assignments.data_source_id,
-    hmis_staff_assignments.created_at,
-    hmis_staff_assignments.updated_at
-   FROM (public.hmis_staff_assignments
-     LEFT JOIN public.hmis_staff_assignment_relationships ON (((hmis_staff_assignment_relationships.deleted_at IS NULL) AND (hmis_staff_assignment_relationships.id = hmis_staff_assignments.hmis_staff_assignment_relationship_id))))
-  WHERE (hmis_staff_assignments.deleted_at IS NULL);
 
 
 --
@@ -4804,6 +4605,25 @@ ALTER SEQUENCE public."CustomAssessments_id_seq" OWNED BY public."CustomAssessme
 
 
 --
+-- Name: CustomCaseNote; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomCaseNote" (
+    id bigint NOT NULL,
+    "CustomCaseNoteID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "EnrollmentID" character varying,
+    data_source_id bigint NOT NULL,
+    content text NOT NULL,
+    "UserID" character varying,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "DateDeleted" timestamp without time zone,
+    information_date date
+);
+
+
+--
 -- Name: CustomCaseNote_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -5677,29 +5497,6 @@ CREATE SEQUENCE public.administrative_events_id_seq
 --
 
 ALTER SEQUENCE public.administrative_events_id_seq OWNED BY public.administrative_events.id;
-
-
---
--- Name: analytics_client_geolocations; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.analytics_client_geolocations AS
- SELECT clh_locations.id,
-    clh_locations.client_id,
-    clh_locations.source_type,
-    clh_locations.source_id,
-    clh_locations.located_on,
-    clh_locations.lat,
-    clh_locations.lon,
-    clh_locations.created_at,
-    clh_locations.updated_at,
-    clh_locations.located_at,
-    hmis_form_processors.definition_id AS form_definition_id,
-    hmis_form_processors.owner_type,
-    hmis_form_processors.owner_id
-   FROM (public.clh_locations
-     LEFT JOIN public.hmis_form_processors ON ((hmis_form_processors.clh_location_id = clh_locations.id)))
-  WHERE ((clh_locations.deleted_at IS NULL) AND (clh_locations.lat IS NOT NULL) AND (clh_locations.lon IS NOT NULL));
 
 
 --
@@ -6776,215 +6573,6 @@ ALTER SEQUENCE public.ce_assessments_id_seq OWNED BY public.ce_assessments.id;
 
 
 --
--- Name: ce_match_candidate_pools; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.ce_match_candidate_pools (
-    id bigint NOT NULL,
-    requirement_expression character varying NOT NULL,
-    priority_expression character varying NOT NULL,
-    configuration_updated_at timestamp(6) without time zone,
-    candidates_generated_at timestamp(6) without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: ce_match_candidate_pools_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.ce_match_candidate_pools_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ce_match_candidate_pools_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.ce_match_candidate_pools_id_seq OWNED BY public.ce_match_candidate_pools.id;
-
-
---
--- Name: ce_match_candidates; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.ce_match_candidates (
-    id bigint NOT NULL,
-    candidate_pool_id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    priority_score integer,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: ce_match_candidates_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.ce_match_candidates_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ce_match_candidates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.ce_match_candidates_id_seq OWNED BY public.ce_match_candidates.id;
-
-
---
--- Name: ce_match_rules; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.ce_match_rules (
-    id bigint NOT NULL,
-    name character varying NOT NULL,
-    rule_type character varying NOT NULL,
-    applicability_config jsonb NOT NULL,
-    owner_type character varying NOT NULL,
-    owner_id bigint NOT NULL,
-    expression character varying NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: ce_match_rules_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.ce_match_rules_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ce_match_rules_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.ce_match_rules_id_seq OWNED BY public.ce_match_rules.id;
-
-
---
--- Name: ce_opportunities; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.ce_opportunities (
-    id bigint NOT NULL,
-    candidate_pool_id bigint,
-    project_id bigint NOT NULL,
-    workflow_template_identifier character varying NOT NULL,
-    name character varying NOT NULL,
-    status character varying NOT NULL,
-    expires_at timestamp(6) without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: COLUMN ce_opportunities.project_id; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.ce_opportunities.project_id IS 'Project providing this opportunity';
-
-
---
--- Name: ce_opportunities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.ce_opportunities_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ce_opportunities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.ce_opportunities_id_seq OWNED BY public.ce_opportunities.id;
-
-
---
--- Name: ce_opportunity_categories; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.ce_opportunity_categories (
-    id bigint NOT NULL,
-    name character varying NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: ce_opportunity_categories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.ce_opportunity_categories_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ce_opportunity_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.ce_opportunity_categories_id_seq OWNED BY public.ce_opportunity_categories.id;
-
-
---
--- Name: ce_opportunity_categorizations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.ce_opportunity_categorizations (
-    id bigint NOT NULL,
-    opportunity_id bigint NOT NULL,
-    category_id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: ce_opportunity_categorizations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.ce_opportunity_categorizations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ce_opportunity_categorizations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.ce_opportunity_categorizations_id_seq OWNED BY public.ce_opportunity_categorizations.id;
-
-
---
 -- Name: ce_performance_ce_aprs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -7174,109 +6762,6 @@ CREATE SEQUENCE public.ce_performance_results_id_seq
 --
 
 ALTER SEQUENCE public.ce_performance_results_id_seq OWNED BY public.ce_performance_results.id;
-
-
---
--- Name: ce_referral_notes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.ce_referral_notes (
-    id bigint NOT NULL,
-    referral_id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    submitted_form_data jsonb,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: ce_referral_notes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.ce_referral_notes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ce_referral_notes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.ce_referral_notes_id_seq OWNED BY public.ce_referral_notes.id;
-
-
---
--- Name: ce_referral_participants; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.ce_referral_participants (
-    id bigint NOT NULL,
-    referral_id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    swimlane_id bigint,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: ce_referral_participants_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.ce_referral_participants_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ce_referral_participants_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.ce_referral_participants_id_seq OWNED BY public.ce_referral_participants.id;
-
-
---
--- Name: ce_referrals; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.ce_referrals (
-    id bigint NOT NULL,
-    opportunity_id bigint NOT NULL,
-    workflow_instance_id bigint NOT NULL,
-    status character varying NOT NULL,
-    client_id bigint NOT NULL,
-    referred_by_id bigint,
-    target_enrollment_id bigint,
-    completed_at timestamp(6) without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: ce_referrals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.ce_referrals_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ce_referrals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.ce_referrals_id_seq OWNED BY public.ce_referrals.id;
 
 
 --
@@ -7717,6 +7202,28 @@ CREATE SEQUENCE public.chronics_id_seq
 --
 
 ALTER SEQUENCE public.chronics_id_seq OWNED BY public.chronics.id;
+
+
+--
+-- Name: clh_locations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.clh_locations (
+    id bigint NOT NULL,
+    client_id bigint,
+    source_type character varying,
+    source_id bigint,
+    located_on date,
+    lat double precision,
+    lon double precision,
+    collected_by character varying,
+    processed_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    enrollment_id bigint,
+    located_at timestamp(6) without time zone
+);
 
 
 --
@@ -15501,6 +15008,23 @@ ALTER SEQUENCE public.hmis_case_notes_id_seq OWNED BY public.hmis_case_notes.id;
 
 
 --
+-- Name: hmis_client_alerts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_client_alerts (
+    id bigint NOT NULL,
+    note text NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    expiration_date date,
+    created_by_id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    priority character varying
+);
+
+
+--
 -- Name: hmis_client_alerts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -20048,6 +19572,25 @@ ALTER SEQUENCE public.hmis_external_form_publications_id_seq OWNED BY public.hmi
 
 
 --
+-- Name: hmis_external_form_submissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_form_submissions (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    submitted_at timestamp without time zone,
+    spam_score double precision,
+    status character varying DEFAULT 'new'::character varying NOT NULL,
+    definition_id bigint NOT NULL,
+    object_key character varying NOT NULL,
+    raw_data jsonb NOT NULL,
+    notes text,
+    enrollment_id bigint
+);
+
+
+--
 -- Name: hmis_external_form_submissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -20796,6 +20339,26 @@ CREATE TABLE public.hmis_staff (
 
 
 --
+-- Name: hmis_staff_assignment_relationships; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_staff_assignment_relationships (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN hmis_staff_assignment_relationships.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_staff_assignment_relationships.name IS 'name of role, such as "Case Manager" or "Housing Navigator"';
+
+
+--
 -- Name: hmis_staff_assignment_relationships_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -20812,6 +20375,22 @@ CREATE SEQUENCE public.hmis_staff_assignment_relationships_id_seq
 --
 
 ALTER SEQUENCE public.hmis_staff_assignment_relationships_id_seq OWNED BY public.hmis_staff_assignment_relationships.id;
+
+
+--
+-- Name: hmis_staff_assignments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_staff_assignments (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    household_id character varying,
+    hmis_staff_assignment_relationship_id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
 
 
 --
@@ -29069,285 +28648,6 @@ ALTER SEQUENCE public.weather_id_seq OWNED BY public.weather.id;
 
 
 --
--- Name: wfd_flows; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.wfd_flows (
-    id bigint NOT NULL,
-    template_id bigint NOT NULL,
-    source_node_id bigint NOT NULL,
-    target_node_id bigint NOT NULL,
-    condition character varying,
-    "position" integer DEFAULT 0 NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: wfd_flows_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.wfd_flows_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: wfd_flows_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.wfd_flows_id_seq OWNED BY public.wfd_flows.id;
-
-
---
--- Name: wfd_nodes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.wfd_nodes (
-    id bigint NOT NULL,
-    template_id bigint NOT NULL,
-    type character varying NOT NULL,
-    trigger_config jsonb,
-    name character varying,
-    swimlane_id bigint,
-    form_definition_identifier character varying,
-    gateway_type character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: wfd_nodes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.wfd_nodes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: wfd_nodes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.wfd_nodes_id_seq OWNED BY public.wfd_nodes.id;
-
-
---
--- Name: wfd_swimlanes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.wfd_swimlanes (
-    id bigint NOT NULL,
-    template_id bigint NOT NULL,
-    name character varying NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: wfd_swimlanes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.wfd_swimlanes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: wfd_swimlanes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.wfd_swimlanes_id_seq OWNED BY public.wfd_swimlanes.id;
-
-
---
--- Name: wfd_templates; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.wfd_templates (
-    id bigint NOT NULL,
-    identifier character varying NOT NULL,
-    name character varying NOT NULL,
-    version integer NOT NULL,
-    status character varying NOT NULL,
-    template_type character varying NOT NULL,
-    description text,
-    owner_type character varying,
-    owner_id bigint,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: wfd_templates_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.wfd_templates_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: wfd_templates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.wfd_templates_id_seq OWNED BY public.wfd_templates.id;
-
-
---
--- Name: wfe_audit_events; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.wfe_audit_events (
-    id bigint NOT NULL,
-    instance_id bigint NOT NULL,
-    step_id bigint,
-    user_id bigint,
-    event_type character varying NOT NULL,
-    event_data json,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: wfe_audit_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.wfe_audit_events_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: wfe_audit_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.wfe_audit_events_id_seq OWNED BY public.wfe_audit_events.id;
-
-
---
--- Name: wfe_instances; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.wfe_instances (
-    id bigint NOT NULL,
-    template_id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: wfe_instances_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.wfe_instances_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: wfe_instances_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.wfe_instances_id_seq OWNED BY public.wfe_instances.id;
-
-
---
--- Name: wfe_step_assignments; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.wfe_step_assignments (
-    id bigint NOT NULL,
-    step_id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: wfe_step_assignments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.wfe_step_assignments_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: wfe_step_assignments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.wfe_step_assignments_id_seq OWNED BY public.wfe_step_assignments.id;
-
-
---
--- Name: wfe_steps; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.wfe_steps (
-    id bigint NOT NULL,
-    instance_id bigint NOT NULL,
-    node_id bigint NOT NULL,
-    form_definition_id bigint,
-    reversible boolean DEFAULT true NOT NULL,
-    status character varying NOT NULL,
-    assigned_to_id bigint,
-    started_at timestamp(6) without time zone,
-    completed_at timestamp(6) without time zone,
-    submitted_values json,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: wfe_steps_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.wfe_steps_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: wfe_steps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.wfe_steps_id_seq OWNED BY public.wfe_steps.id;
-
-
---
 -- Name: whitelisted_projects_for_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -30460,48 +29760,6 @@ ALTER TABLE ONLY public.ce_assessments ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
--- Name: ce_match_candidate_pools id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_match_candidate_pools ALTER COLUMN id SET DEFAULT nextval('public.ce_match_candidate_pools_id_seq'::regclass);
-
-
---
--- Name: ce_match_candidates id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_match_candidates ALTER COLUMN id SET DEFAULT nextval('public.ce_match_candidates_id_seq'::regclass);
-
-
---
--- Name: ce_match_rules id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_match_rules ALTER COLUMN id SET DEFAULT nextval('public.ce_match_rules_id_seq'::regclass);
-
-
---
--- Name: ce_opportunities id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_opportunities ALTER COLUMN id SET DEFAULT nextval('public.ce_opportunities_id_seq'::regclass);
-
-
---
--- Name: ce_opportunity_categories id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_opportunity_categories ALTER COLUMN id SET DEFAULT nextval('public.ce_opportunity_categories_id_seq'::regclass);
-
-
---
--- Name: ce_opportunity_categorizations id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_opportunity_categorizations ALTER COLUMN id SET DEFAULT nextval('public.ce_opportunity_categorizations_id_seq'::regclass);
-
-
---
 -- Name: ce_performance_ce_aprs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -30527,27 +29785,6 @@ ALTER TABLE ONLY public.ce_performance_goals ALTER COLUMN id SET DEFAULT nextval
 --
 
 ALTER TABLE ONLY public.ce_performance_results ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_results_id_seq'::regclass);
-
-
---
--- Name: ce_referral_notes id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referral_notes ALTER COLUMN id SET DEFAULT nextval('public.ce_referral_notes_id_seq'::regclass);
-
-
---
--- Name: ce_referral_participants id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referral_participants ALTER COLUMN id SET DEFAULT nextval('public.ce_referral_participants_id_seq'::regclass);
-
-
---
--- Name: ce_referrals id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referrals ALTER COLUMN id SET DEFAULT nextval('public.ce_referrals_id_seq'::regclass);
 
 
 --
@@ -33421,62 +32658,6 @@ ALTER TABLE ONLY public.weather ALTER COLUMN id SET DEFAULT nextval('public.weat
 
 
 --
--- Name: wfd_flows id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_flows ALTER COLUMN id SET DEFAULT nextval('public.wfd_flows_id_seq'::regclass);
-
-
---
--- Name: wfd_nodes id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_nodes ALTER COLUMN id SET DEFAULT nextval('public.wfd_nodes_id_seq'::regclass);
-
-
---
--- Name: wfd_swimlanes id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_swimlanes ALTER COLUMN id SET DEFAULT nextval('public.wfd_swimlanes_id_seq'::regclass);
-
-
---
--- Name: wfd_templates id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_templates ALTER COLUMN id SET DEFAULT nextval('public.wfd_templates_id_seq'::regclass);
-
-
---
--- Name: wfe_audit_events id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfe_audit_events ALTER COLUMN id SET DEFAULT nextval('public.wfe_audit_events_id_seq'::regclass);
-
-
---
--- Name: wfe_instances id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfe_instances ALTER COLUMN id SET DEFAULT nextval('public.wfe_instances_id_seq'::regclass);
-
-
---
--- Name: wfe_step_assignments id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfe_step_assignments ALTER COLUMN id SET DEFAULT nextval('public.wfe_step_assignments_id_seq'::regclass);
-
-
---
--- Name: wfe_steps id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfe_steps ALTER COLUMN id SET DEFAULT nextval('public.wfe_steps_id_seq'::regclass);
-
-
---
 -- Name: whitelisted_projects_for_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -34095,54 +33276,6 @@ ALTER TABLE ONLY public.ce_assessments
 
 
 --
--- Name: ce_match_candidate_pools ce_match_candidate_pools_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_match_candidate_pools
-    ADD CONSTRAINT ce_match_candidate_pools_pkey PRIMARY KEY (id);
-
-
---
--- Name: ce_match_candidates ce_match_candidates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_match_candidates
-    ADD CONSTRAINT ce_match_candidates_pkey PRIMARY KEY (id);
-
-
---
--- Name: ce_match_rules ce_match_rules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_match_rules
-    ADD CONSTRAINT ce_match_rules_pkey PRIMARY KEY (id);
-
-
---
--- Name: ce_opportunities ce_opportunities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_opportunities
-    ADD CONSTRAINT ce_opportunities_pkey PRIMARY KEY (id);
-
-
---
--- Name: ce_opportunity_categories ce_opportunity_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_opportunity_categories
-    ADD CONSTRAINT ce_opportunity_categories_pkey PRIMARY KEY (id);
-
-
---
--- Name: ce_opportunity_categorizations ce_opportunity_categorizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_opportunity_categorizations
-    ADD CONSTRAINT ce_opportunity_categorizations_pkey PRIMARY KEY (id);
-
-
---
 -- Name: ce_performance_ce_aprs ce_performance_ce_aprs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -34172,30 +33305,6 @@ ALTER TABLE ONLY public.ce_performance_goals
 
 ALTER TABLE ONLY public.ce_performance_results
     ADD CONSTRAINT ce_performance_results_pkey PRIMARY KEY (id);
-
-
---
--- Name: ce_referral_notes ce_referral_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referral_notes
-    ADD CONSTRAINT ce_referral_notes_pkey PRIMARY KEY (id);
-
-
---
--- Name: ce_referral_participants ce_referral_participants_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referral_participants
-    ADD CONSTRAINT ce_referral_participants_pkey PRIMARY KEY (id);
-
-
---
--- Name: ce_referrals ce_referrals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referrals
-    ADD CONSTRAINT ce_referrals_pkey PRIMARY KEY (id);
 
 
 --
@@ -37911,70 +37020,6 @@ ALTER TABLE ONLY public.weather
 
 
 --
--- Name: wfd_flows wfd_flows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_flows
-    ADD CONSTRAINT wfd_flows_pkey PRIMARY KEY (id);
-
-
---
--- Name: wfd_nodes wfd_nodes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_nodes
-    ADD CONSTRAINT wfd_nodes_pkey PRIMARY KEY (id);
-
-
---
--- Name: wfd_swimlanes wfd_swimlanes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_swimlanes
-    ADD CONSTRAINT wfd_swimlanes_pkey PRIMARY KEY (id);
-
-
---
--- Name: wfd_templates wfd_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_templates
-    ADD CONSTRAINT wfd_templates_pkey PRIMARY KEY (id);
-
-
---
--- Name: wfe_audit_events wfe_audit_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfe_audit_events
-    ADD CONSTRAINT wfe_audit_events_pkey PRIMARY KEY (id);
-
-
---
--- Name: wfe_instances wfe_instances_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfe_instances
-    ADD CONSTRAINT wfe_instances_pkey PRIMARY KEY (id);
-
-
---
--- Name: wfe_step_assignments wfe_step_assignments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfe_step_assignments
-    ADD CONSTRAINT wfe_step_assignments_pkey PRIMARY KEY (id);
-
-
---
--- Name: wfe_steps wfe_steps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfe_steps
-    ADD CONSTRAINT wfe_steps_pkey PRIMARY KEY (id);
-
-
---
 -- Name: whitelisted_projects_for_clients whitelisted_projects_for_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -38020,13 +37065,6 @@ ALTER TABLE ONLY public.youth_intakes
 
 ALTER TABLE ONLY public.youth_referrals
     ADD CONSTRAINT youth_referrals_pkey PRIMARY KEY (id);
-
-
---
--- Name: index_analytics.app_users_on_id; Type: INDEX; Schema: analytics; Owner: -
---
-
-CREATE UNIQUE INDEX "index_analytics.app_users_on_id" ON analytics.app_users USING btree (id);
 
 
 --
@@ -55439,62 +54477,6 @@ CREATE INDEX index_ce_assessments_on_user_id ON public.ce_assessments USING btre
 
 
 --
--- Name: index_ce_match_candidate_pools_uniq; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_ce_match_candidate_pools_uniq ON public.ce_match_candidate_pools USING btree (requirement_expression, priority_expression);
-
-
---
--- Name: index_ce_match_candidates_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_match_candidates_on_client_id ON public.ce_match_candidates USING btree (client_id);
-
-
---
--- Name: index_ce_match_candidates_uniq; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_ce_match_candidates_uniq ON public.ce_match_candidates USING btree (candidate_pool_id, client_id);
-
-
---
--- Name: index_ce_match_rules_on_owner; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_match_rules_on_owner ON public.ce_match_rules USING btree (owner_type, owner_id);
-
-
---
--- Name: index_ce_opportunities_on_candidate_pool_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_opportunities_on_candidate_pool_id ON public.ce_opportunities USING btree (candidate_pool_id);
-
-
---
--- Name: index_ce_opportunities_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_opportunities_on_project_id ON public.ce_opportunities USING btree (project_id);
-
-
---
--- Name: index_ce_opportunity_categorizations_on_category_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_opportunity_categorizations_on_category_id ON public.ce_opportunity_categorizations USING btree (category_id);
-
-
---
--- Name: index_ce_opportunity_categorizations_uniq; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_ce_opportunity_categorizations_uniq ON public.ce_opportunity_categorizations USING btree (opportunity_id, category_id);
-
-
---
 -- Name: index_ce_performance_ce_aprs_on_ce_apr_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -55534,76 +54516,6 @@ CREATE INDEX index_ce_performance_clients_on_report_id ON public.ce_performance_
 --
 
 CREATE INDEX index_ce_performance_results_on_report_id ON public.ce_performance_results USING btree (report_id);
-
-
---
--- Name: index_ce_referral_notes_on_referral_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_referral_notes_on_referral_id ON public.ce_referral_notes USING btree (referral_id);
-
-
---
--- Name: index_ce_referral_notes_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_referral_notes_on_user_id ON public.ce_referral_notes USING btree (user_id);
-
-
---
--- Name: index_ce_referral_participants_on_referral_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_referral_participants_on_referral_id ON public.ce_referral_participants USING btree (referral_id);
-
-
---
--- Name: index_ce_referral_participants_on_swimlane_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_referral_participants_on_swimlane_id ON public.ce_referral_participants USING btree (swimlane_id);
-
-
---
--- Name: index_ce_referral_participants_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_referral_participants_on_user_id ON public.ce_referral_participants USING btree (user_id);
-
-
---
--- Name: index_ce_referrals_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_referrals_on_client_id ON public.ce_referrals USING btree (client_id);
-
-
---
--- Name: index_ce_referrals_on_opportunity_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_referrals_on_opportunity_id ON public.ce_referrals USING btree (opportunity_id);
-
-
---
--- Name: index_ce_referrals_on_referred_by_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_referrals_on_referred_by_id ON public.ce_referrals USING btree (referred_by_id);
-
-
---
--- Name: index_ce_referrals_on_target_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_referrals_on_target_enrollment_id ON public.ce_referrals USING btree (target_enrollment_id);
-
-
---
--- Name: index_ce_referrals_on_workflow_instance_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_referrals_on_workflow_instance_id ON public.ce_referrals USING btree (workflow_instance_id);
 
 
 --
@@ -63979,13 +62891,6 @@ CREATE INDEX index_talentlms_logins_on_user_id ON public.talentlms_logins USING 
 
 
 --
--- Name: index_templates_on_identifier_published; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_templates_on_identifier_published ON public.wfd_templates USING btree (identifier) WHERE ((status)::text = 'published'::text);
-
-
---
 -- Name: index_text_message_messages_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -64305,125 +63210,6 @@ CREATE INDEX index_warehouse_clients_processed_on_routine ON public.warehouse_cl
 --
 
 CREATE INDEX index_weather_on_url ON public.weather USING btree (url);
-
-
---
--- Name: index_wfd_flows_on_source_node_id_and_target_node_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_wfd_flows_on_source_node_id_and_target_node_id ON public.wfd_flows USING btree (source_node_id, target_node_id);
-
-
---
--- Name: index_wfd_flows_on_target_node_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfd_flows_on_target_node_id ON public.wfd_flows USING btree (target_node_id);
-
-
---
--- Name: index_wfd_flows_on_template_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfd_flows_on_template_id ON public.wfd_flows USING btree (template_id);
-
-
---
--- Name: index_wfd_nodes_on_swimlane_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfd_nodes_on_swimlane_id ON public.wfd_nodes USING btree (swimlane_id);
-
-
---
--- Name: index_wfd_nodes_on_template_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfd_nodes_on_template_id ON public.wfd_nodes USING btree (template_id);
-
-
---
--- Name: index_wfd_swimlanes_on_template_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfd_swimlanes_on_template_id ON public.wfd_swimlanes USING btree (template_id);
-
-
---
--- Name: index_wfd_templates_on_owner; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfd_templates_on_owner ON public.wfd_templates USING btree (owner_type, owner_id);
-
-
---
--- Name: index_wfe_audit_events_on_instance_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfe_audit_events_on_instance_id ON public.wfe_audit_events USING btree (instance_id);
-
-
---
--- Name: index_wfe_audit_events_on_step_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfe_audit_events_on_step_id ON public.wfe_audit_events USING btree (step_id);
-
-
---
--- Name: index_wfe_instances_on_template_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfe_instances_on_template_id ON public.wfe_instances USING btree (template_id);
-
-
---
--- Name: index_wfe_step_assignments_on_step_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfe_step_assignments_on_step_id ON public.wfe_step_assignments USING btree (step_id);
-
-
---
--- Name: index_wfe_step_assignments_on_user_id_and_step_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_wfe_step_assignments_on_user_id_and_step_id ON public.wfe_step_assignments USING btree (user_id, step_id);
-
-
---
--- Name: index_wfe_steps_on_assigned_to_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfe_steps_on_assigned_to_id ON public.wfe_steps USING btree (assigned_to_id);
-
-
---
--- Name: index_wfe_steps_on_form_definition_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfe_steps_on_form_definition_id ON public.wfe_steps USING btree (form_definition_id);
-
-
---
--- Name: index_wfe_steps_on_instance_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfe_steps_on_instance_id ON public.wfe_steps USING btree (instance_id);
-
-
---
--- Name: index_wfe_steps_on_instance_id_and_node_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_wfe_steps_on_instance_id_and_node_id ON public.wfe_steps USING btree (instance_id, node_id);
-
-
---
--- Name: index_wfe_steps_on_node_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfe_steps_on_node_id ON public.wfe_steps USING btree (node_id);
 
 
 --
@@ -66892,14 +65678,6 @@ ALTER TABLE ONLY public.service_history_services_2020
 
 
 --
--- Name: ce_referral_participants fk_rails_08720e8cfc; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referral_participants
-    ADD CONSTRAINT fk_rails_08720e8cfc FOREIGN KEY (referral_id) REFERENCES public.ce_referrals(id);
-
-
---
 -- Name: HealthAndDV fk_rails_09dc8ad251; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -66956,14 +65734,6 @@ ALTER TABLE ONLY public.service_history_services_2016
 
 
 --
--- Name: ce_referrals fk_rails_178ac9e66a; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referrals
-    ADD CONSTRAINT fk_rails_178ac9e66a FOREIGN KEY (workflow_instance_id) REFERENCES public.wfe_instances(id);
-
-
---
 -- Name: service_history_services_2046 fk_rails_1f5ddaaa59; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -66988,14 +65758,6 @@ ALTER TABLE ONLY public.service_history_services_2032
 
 
 --
--- Name: ce_opportunity_categorizations fk_rails_230f0873f5; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_opportunity_categorizations
-    ADD CONSTRAINT fk_rails_230f0873f5 FOREIGN KEY (opportunity_id) REFERENCES public.ce_opportunities(id);
-
-
---
 -- Name: Exit fk_rails_2338303c55; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -67009,14 +65771,6 @@ ALTER TABLE ONLY public."Exit"
 
 ALTER TABLE ONLY public."Enrollment"
     ADD CONSTRAINT fk_rails_24e267b7b6 FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
-
-
---
--- Name: ce_match_candidates fk_rails_272464c2ce; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_match_candidates
-    ADD CONSTRAINT fk_rails_272464c2ce FOREIGN KEY (client_id) REFERENCES public."Client"(id);
 
 
 --
@@ -67092,14 +65846,6 @@ ALTER TABLE ONLY public."CurrentLivingSituation"
 
 
 --
--- Name: ce_referrals fk_rails_3fcb418857; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referrals
-    ADD CONSTRAINT fk_rails_3fcb418857 FOREIGN KEY (opportunity_id) REFERENCES public.ce_opportunities(id);
-
-
---
 -- Name: hmis_external_referral_postings fk_rails_41274b755e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -67108,27 +65854,11 @@ ALTER TABLE ONLY public.hmis_external_referral_postings
 
 
 --
--- Name: ce_opportunity_categorizations fk_rails_4400f9df2f; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_opportunity_categorizations
-    ADD CONSTRAINT fk_rails_4400f9df2f FOREIGN KEY (category_id) REFERENCES public.ce_opportunity_categories(id);
-
-
---
 -- Name: inbound_api_configurations fk_rails_441b0de9e4; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.inbound_api_configurations
     ADD CONSTRAINT fk_rails_441b0de9e4 FOREIGN KEY (internal_system_id) REFERENCES public.internal_systems(id);
-
-
---
--- Name: wfd_nodes fk_rails_46be86d658; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_nodes
-    ADD CONSTRAINT fk_rails_46be86d658 FOREIGN KEY (template_id) REFERENCES public.wfd_templates(id);
 
 
 --
@@ -67148,35 +65878,11 @@ ALTER TABLE ONLY public.service_history_services_2013
 
 
 --
--- Name: wfe_step_assignments fk_rails_48ec438d60; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfe_step_assignments
-    ADD CONSTRAINT fk_rails_48ec438d60 FOREIGN KEY (step_id) REFERENCES public.wfe_steps(id);
-
-
---
--- Name: wfd_swimlanes fk_rails_4de79171d1; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_swimlanes
-    ADD CONSTRAINT fk_rails_4de79171d1 FOREIGN KEY (template_id) REFERENCES public.wfd_templates(id);
-
-
---
 -- Name: Client fk_rails_4f7ec0cedf; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."Client"
     ADD CONSTRAINT fk_rails_4f7ec0cedf FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
-
-
---
--- Name: ce_referrals fk_rails_5336ef5847; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referrals
-    ADD CONSTRAINT fk_rails_5336ef5847 FOREIGN KEY (target_enrollment_id) REFERENCES public."Enrollment"(id);
 
 
 --
@@ -67241,14 +65947,6 @@ ALTER TABLE ONLY public.service_history_services_2017
 
 ALTER TABLE ONLY public.hmis_external_referral_postings
     ADD CONSTRAINT fk_rails_669165b0ae FOREIGN KEY (referral_id) REFERENCES public.hmis_external_referrals(id);
-
-
---
--- Name: wfe_steps fk_rails_6b6b8ac13d; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfe_steps
-    ADD CONSTRAINT fk_rails_6b6b8ac13d FOREIGN KEY (form_definition_id) REFERENCES public.hmis_form_definitions(id);
 
 
 --
@@ -67372,14 +66070,6 @@ ALTER TABLE ONLY public."Affiliation"
 
 
 --
--- Name: wfe_steps fk_rails_834ec8433d; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfe_steps
-    ADD CONSTRAINT fk_rails_834ec8433d FOREIGN KEY (instance_id) REFERENCES public.wfe_instances(id);
-
-
---
 -- Name: service_history_services_2027 fk_rails_836f2b3b4c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -67420,14 +66110,6 @@ ALTER TABLE ONLY public.hmis_external_unit_availability_syncs
 
 
 --
--- Name: ce_opportunities fk_rails_8539b3be90; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_opportunities
-    ADD CONSTRAINT fk_rails_8539b3be90 FOREIGN KEY (candidate_pool_id) REFERENCES public.ce_match_candidate_pools(id);
-
-
---
 -- Name: service_history_services_2022 fk_rails_85cc8de3dc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -67452,35 +66134,11 @@ ALTER TABLE ONLY public."Disabilities"
 
 
 --
--- Name: wfe_instances fk_rails_8dda38577c; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfe_instances
-    ADD CONSTRAINT fk_rails_8dda38577c FOREIGN KEY (template_id) REFERENCES public.wfd_templates(id);
-
-
---
--- Name: ce_referral_participants fk_rails_8fe8b4a5a6; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referral_participants
-    ADD CONSTRAINT fk_rails_8fe8b4a5a6 FOREIGN KEY (swimlane_id) REFERENCES public.wfd_swimlanes(id);
-
-
---
 -- Name: service_history_services_2049 fk_rails_9783c16a4a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.service_history_services_2049
     ADD CONSTRAINT fk_rails_9783c16a4a FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
-
-
---
--- Name: wfe_audit_events fk_rails_98852b53b9; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfe_audit_events
-    ADD CONSTRAINT fk_rails_98852b53b9 FOREIGN KEY (step_id) REFERENCES public.wfe_steps(id);
 
 
 --
@@ -67516,27 +66174,11 @@ ALTER TABLE ONLY public."CustomAssessments"
 
 
 --
--- Name: wfd_nodes fk_rails_a7a3bd9e40; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_nodes
-    ADD CONSTRAINT fk_rails_a7a3bd9e40 FOREIGN KEY (swimlane_id) REFERENCES public.wfd_swimlanes(id);
-
-
---
 -- Name: service_history_services_2007 fk_rails_aa1aa9ac7b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.service_history_services_2007
     ADD CONSTRAINT fk_rails_aa1aa9ac7b FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
-
-
---
--- Name: ce_referral_notes fk_rails_aeb72e3413; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_referral_notes
-    ADD CONSTRAINT fk_rails_aeb72e3413 FOREIGN KEY (referral_id) REFERENCES public.ce_referrals(id);
 
 
 --
@@ -67585,22 +66227,6 @@ ALTER TABLE ONLY public.service_history_services_2025
 
 ALTER TABLE ONLY public.service_history_services_2005
     ADD CONSTRAINT fk_rails_bb256798ab FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
-
-
---
--- Name: wfe_steps fk_rails_c0bd988b51; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfe_steps
-    ADD CONSTRAINT fk_rails_c0bd988b51 FOREIGN KEY (node_id) REFERENCES public.wfd_nodes(id);
-
-
---
--- Name: ce_match_candidates fk_rails_c48d59cacb; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_match_candidates
-    ADD CONSTRAINT fk_rails_c48d59cacb FOREIGN KEY (candidate_pool_id) REFERENCES public.ce_match_candidate_pools(id);
 
 
 --
@@ -67684,22 +66310,6 @@ ALTER TABLE ONLY public.service_history_services_2004
 
 
 --
--- Name: wfe_audit_events fk_rails_d41f2b6ca2; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfe_audit_events
-    ADD CONSTRAINT fk_rails_d41f2b6ca2 FOREIGN KEY (instance_id) REFERENCES public.wfe_instances(id);
-
-
---
--- Name: wfd_flows fk_rails_d77e22c3ca; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_flows
-    ADD CONSTRAINT fk_rails_d77e22c3ca FOREIGN KEY (source_node_id) REFERENCES public.wfd_nodes(id);
-
-
---
 -- Name: service_history_services_2001 fk_rails_d8259b9233; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -67740,14 +66350,6 @@ ALTER TABLE ONLY public."IncomeBenefits"
 
 
 --
--- Name: wfd_flows fk_rails_e4de2aca14; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_flows
-    ADD CONSTRAINT fk_rails_e4de2aca14 FOREIGN KEY (template_id) REFERENCES public.wfd_templates(id);
-
-
---
 -- Name: hmis_external_referral_requests fk_rails_e4f6c14f81; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -67769,14 +66371,6 @@ ALTER TABLE ONLY public.service_history_services_2043
 
 ALTER TABLE ONLY public.service_history_services_2048
     ADD CONSTRAINT fk_rails_e959e189d1 FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
-
-
---
--- Name: wfd_flows fk_rails_eb1c62d059; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wfd_flows
-    ADD CONSTRAINT fk_rails_eb1c62d059 FOREIGN KEY (target_node_id) REFERENCES public.wfd_nodes(id);
 
 
 --
@@ -67952,8 +66546,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20241203154140'),
 ('20241203154146'),
 ('20241206145315'),
-('20241207185500'),
-('20241207185501'),
 ('20241213204702'),
 ('20241213204837'),
 ('20241216184819'),
@@ -67976,15 +66568,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250304143714'),
 ('20250313125655'),
 ('20250313153011'),
-('20250319023546'),
 ('20250319125533'),
-('20250323134302'),
 ('20250331175933'),
 ('20250401130809'),
 ('20250402130025'),
 ('20250403204353'),
 ('20250403232619'),
-('20250407165554'),
-('20250408133728');
+('20250407165554');
 
 
