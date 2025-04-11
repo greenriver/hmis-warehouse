@@ -55,43 +55,43 @@ module Clients
         return
       end
 
-      begin
-        allowed_params = current_user.can_confirm_housing_release? ? file_params : file_params.except(:consent_form_confirmed)
-        tag_list = [allowed_params[:tag_list]].select(&:present?)
+      # begin
+      allowed_params = current_user.can_confirm_housing_release? ? file_params : file_params.except(:consent_form_confirmed)
+      tag_list = [allowed_params[:tag_list]].select(&:present?)
 
-        @file.assign_attributes(
-          allowed_params.merge(
-            file: 'See S3', # Temporary until we remove the column
-            client_id: @client.id,
-            user_id: current_user.id,
-            visible_in_window: window_visible?(allowed_params[:visible_in_window]),
-            consent_form_confirmed: GrdaWarehouse::Config.get(:auto_confirm_consent) || allowed_params[:consent_form_confirmed],
-            coc_codes: allowed_params[:coc_codes].reject(&:blank?),
-          ),
-        )
-        @file.name = export_name
-        @file.tag_list.add(tag_list)
+      @file.assign_attributes(
+        allowed_params.merge(
+          file: 'See S3', # Temporary until we remove the column
+          client_id: @client.id,
+          user_id: current_user.id,
+          visible_in_window: window_visible?(allowed_params[:visible_in_window]),
+          consent_form_confirmed: GrdaWarehouse::Config.get(:auto_confirm_consent) || allowed_params[:consent_form_confirmed],
+          coc_codes: allowed_params[:coc_codes].reject(&:blank?),
+        ),
+      )
+      @file.name = export_name
+      @file.tag_list.add(tag_list)
 
-        requires_effective_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?(&:requires_effective_date)
-        requires_expiration_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?(&:requires_expiration_date)
+      requires_effective_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?(&:requires_effective_date)
+      requires_expiration_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?(&:requires_expiration_date)
 
-        if requires_effective_date && requires_expiration_date
-          @file.save!(context: :requires_expiration_and_effective_dates)
-        elsif requires_effective_date
-          @file.save!(context: :requires_effective_date)
-        elsif requires_expiration_date
-          @file.save!(context: :requires_expiration_date)
-        else
-          @file.save!
-        end
-
-        # Keep various client fields in sync with files if appropriate
-        @client.sync_cas_attributes_with_files
-      rescue StandardError
-        # flash[:error] = e.message
-        render action: :new
-        return
+      if requires_effective_date && requires_expiration_date
+        @file.save!(context: :requires_expiration_and_effective_dates)
+      elsif requires_effective_date
+        @file.save!(context: :requires_effective_date)
+      elsif requires_expiration_date
+        @file.save!(context: :requires_expiration_date)
+      else
+        @file.save!
       end
+
+      # Keep various client fields in sync with files if appropriate
+      @client.sync_cas_attributes_with_files
+      # rescue StandardError
+      #   # flash[:error] = e.message
+      #   render action: :new
+      #   return
+      # end
       redirect_to action: :index
     end
 
