@@ -3,21 +3,21 @@
 .jQuarterChosenDate
 .race-chart-category-first
   = data[active_date]['categories'].first
-.chart-bar.chart.pt-0{ data: { active_date: active_date }, class: [j(chart_class), "active_date_#{active_date}"]}
+.chart-bar.chart.pt-0{ data: { active_date: active_date }, class: [chart_class, "active_date_#{active_date}"]}
 .race-chart-category-last
   = data[active_date]['categories'].last
-%div.d-flex.legend-wrapper-horizontal.legend-wrapper{ class: ["#{j(chart_class)}_legend"] }
+%div.d-flex.legend-wrapper-horizontal.legend-wrapper{ class: ["#{chart_class}_legend"] }
 :javascript
   (function(){
     var controller;
-    var dates = #{data.to_json.to_s.html_safe};
+    var dates = #{data.to_json};
     var active_date = $(".#{j(chart_class)}").data('activeDate');
-    var categories = #{data[active_date]['categories'].to_json.to_s.html_safe};
+    var categories = #{data[active_date]['categories'].to_json};
     var chart = bb.generate({
       data: {
         columns: [],
         type: 'bar',
-        groups: [#{groups.to_json.html_safe}],
+        groups: [#{groups.to_json}],
         labels: {
           format: d3.format(".0%"),
           centered: true,
@@ -53,7 +53,7 @@
       },
       legend: {
         contents: {
-          bindto: ".#{j(chart_class)}_legend",
+          bindto: #{chart_class.to_json} + '_legend',
           template: (title, color) => {
             const swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
             return `<div class="chart-legend-item-prs1"><div class="swatch">${swatch}</div><div class="chart-legend-item-label-prs1">${title}</div></div>`;

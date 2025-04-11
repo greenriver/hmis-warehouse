@@ -46,47 +46,47 @@
     - @report.projects.each_with_index do |project, index|
       :javascript
         (function($) {
-          var url = "#{polymorphic_path(@answers_path, @report_keys).to_json}"
+          var url = #{polymorphic_path(@answers_path, @report_keys).to_json}
           $.get(url, function(data){
-            var completeness_#{index.to_json} = new App.DataQualityReports.Completeness(
+            var completeness_#{j index} = new App.DataQualityReports.Completeness(
               data['project_missing'][#{project.ProjectName.to_json}],
-              ".completeness-chart-#{index.to_json}",
-              #{j(polymorphic_path(@support_path, @report_keys))},
+              '.completeness-chart-#{j index}',
+              #{polymorphic_path(@support_path, @report_keys).to_json},
               #{project.id.to_json}
             );
-            completeness_#{index.to_json}.build_chart();
+            completeness_#{j index}.build_chart();
           });
         })(jQuery);
     :javascript
       (function($) {
-        var url = "#{polymorphic_path(@answers_path, @report_keys).to_json}"
+        var url = #{polymorphic_path(@answers_path, @report_keys).to_json}
         $.get(url, function(data){
           var bed_census = new App.DataQualityReports.BedCensus(data['bed_utilization'], '.bed-census-chart',
-          "#{polymorphic_path(@support_path, @report_keys.merge({key: "bed_utilization"})).to_json}");
+          #{polymorphic_path(@support_path, @report_keys.merge({key: "bed_utilization"})).to_json});
           bed_census.build_chart();
 
           var unit_census = new App.DataQualityReports.UnitCensus(data['unit_utilization'], '.unit-census-chart',
-          "#{polymorphic_path(@support_path, @report_keys.merge({key: "unit_utilization"})).to_json}");
+          #{polymorphic_path(@support_path, @report_keys.merge({key: "unit_utilization"})).to_json});
           unit_census.build_chart();
 
           var time_to_enter = new App.DataQualityReports.TimeToEnter(data['average_timeliness_of_entry'], '.time-to-enter-chart',
-          "#{polymorphic_path(@support_path, @report_keys.merge({key: "timeliness_of_entry"})).to_json}");
+          #{polymorphic_path(@support_path, @report_keys.merge({key: "timeliness_of_entry"})).to_json});
           time_to_enter.build_chart();
 
           var time_to_exit = new App.DataQualityReports.TimeToExit(data['average_timeliness_of_exit'], '.time-to-exit-chart',
-          "#{polymorphic_path(@support_path, @report_keys.merge({key: "timeliness_of_exit"})).to_json}");
+          #{polymorphic_path(@support_path, @report_keys.merge({key: "timeliness_of_exit"})).to_json});
           time_to_exit.build_chart();
 
           var time_in_program = new App.DataQualityReports.TimeInProgram(data['enrolled_length_of_stay'], '.time-in-program-chart',
-          "#{polymorphic_path(@support_path, @report_keys.merge({key: "enrolled_length_of_stay"})).to_json}");
+          #{polymorphic_path(@support_path, @report_keys.merge({key: "enrolled_length_of_stay"})).to_json});
           time_in_program.build_chart();
 
           var income = new App.DataQualityReports.Income(data['client_income'], '.income-chart',
-          "#{polymorphic_path(@support_path, @report_keys.merge({key: ""})).to_json}");
+          #{polymorphic_path(@support_path, @report_keys.merge({key: ""})).to_json});
           income.build_chart();
 
           var ph_destination = new App.DataQualityReports.PHDestination(data['ph_destinations'], '.ph-destination-chart',
-          "#{polymorphic_path(@support_path, @report_keys.merge({key: "ph_destinations"})).to_json}");
+          #{polymorphic_path(@support_path, @report_keys.merge({key: "ph_destinations"})).to_json});
           ph_destination.build_chart();
         });
       })(jQuery);

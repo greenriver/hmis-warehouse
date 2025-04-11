@@ -36,6 +36,6 @@
       formSelector: #{j("##{form_id}")},
       mapProps: {
         elementId: #{j(map_id)},
-        shapes: #{@shapes.to_json.html_safe},
+        shapes: #{@shapes.to_json},
       },
     })

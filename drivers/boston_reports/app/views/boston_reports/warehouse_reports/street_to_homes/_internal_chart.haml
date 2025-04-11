@@ -1,4 +1,4 @@
-.internal-chart-wrapper{ class: ["internal-#{active_demographic}-by-#{active_group}-wrapper", hidden_class, "demographic-#{active_demographic}", "group-#{active_group}"] }
+.internal-chart-wrapper{ class: ["internal-#{j(active_demographic)}-by-#{j(active_group)}-wrapper", hidden_class, "demographic-#{j(active_demographic)}", "group-#{j(active_group)}"] }
   .d-flex
     %h2.mb-4= title
     .action-buttons.ml-auto.d-flex
@@ -15,12 +15,12 @@
       .well{ data: { demographic: active_demographic, group: active_group } }
         .d-flex
           .chart.d-flex{style: 'width: 90%;'}
-            %div{ id: "internal-#{active_demographic}-by-#{active_group}-chart", style: 'width: 80%; max-width: 80%;' }
-            %div{ id: "internal-#{active_demographic}-by-#{active_group}-legend", style: 'width: 20%;' }
+            %div{ id: "internal-#{j(active_demographic)}-by-#{j(active_group)}-chart", style: 'width: 80%; max-width: 80%;' }
+            %div{ id: "internal-#{j(active_demographic)}-by-#{j(active_group)}-legend", style: 'width: 20%;' }
 
 = content_for :page_js do
   :javascript
-    let internal_#{j(active_demographic)}_by_#{j(active_group)} = #{@report.public_send(data_method).to_json.html_safe};
+    let internal_#{j(active_demographic)}_by_#{j(active_group)} = #{@report.public_send(data_method).to_json};
     internal_#{j(active_demographic)}_by_#{j(active_group)} = $.extend(true, {}, internal_#{j(active_demographic)}_by_#{j(active_group)}, {
       onclick: function(d, element) {
         // Don't allow drill-down on the unsheltered population
@@ -31,7 +31,7 @@
         let demographic = internal_#{j(active_demographic)}_by_#{j(active_group)}.columns[0][d.x + 1];
         sets.append('sets[]', demographic);
         sets.append('sets[]', d.name);
-        let url = new URL(`${detail_path}?${detail_params.toString()}&${sets.toString()}`);
+        let url = new URL(`${#{detail_path.to_json}}?${#{detail_params.to_json}.toString()}&${sets.toString()}`);
 
         return window.open(url.toString());
       },

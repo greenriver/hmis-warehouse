@@ -33,9 +33,9 @@
     console.log('state', state)
     const shapes = #{@report.map_shape_json.to_json}
     console.log('shapes', shapes)
-    const data = #{Oj.dump(data, mode: :compat).html_safe}
+    const data = #{Oj.dump(data, mode: :compat).to_json}
     console.log('data', data)
-    const comparison_colors = #{@report.map_colors.to_json.html_safe}
+    const comparison_colors = #{@report.map_colors.to_json}
 
     let selected_date = $('.jQuarters').data('dates')[$('.jQuarters').val()];
     let comparison_data = data.homeless_map

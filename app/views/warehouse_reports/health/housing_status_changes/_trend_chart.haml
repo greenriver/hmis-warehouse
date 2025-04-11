@@ -17,5 +17,5 @@
 = content_for :page_js do
   :javascript
     (function($) {
-      var trend_chart = new App.Health.HousingStatus('.jTrendChart', #{@report.data_for_housing_trend_chart.to_json.html_safe}, { link: "#{detail_warehouse_reports_health_housing_status_changes_path.to_json}", params: #{@report_params.to_json.html_safe} });
+      var trend_chart = new App.Health.HousingStatus('.jTrendChart', #{@report.data_for_housing_trend_chart.to_json}, { link: #{detail_warehouse_reports_health_housing_status_changes_path.to_json}, params: #{@report_params.to_json} });
     })(jQuery);

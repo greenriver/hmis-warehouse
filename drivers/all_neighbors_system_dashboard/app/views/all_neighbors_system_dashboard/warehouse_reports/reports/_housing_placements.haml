@@ -49,19 +49,19 @@
   :javascript
     $(document).ready(function() {
       console.debug('Housing Placement -----------------')
-      var totalData = #{total_data.to_json.html_safe}
-      var donutData = #{donut_data.to_json.html_safe}
-      var donutIds = #{donut_ids.to_json.html_safe}
-      var donutFilterLabelIds = #{donut_filter_label_ids.to_json.html_safe}
-      var stackedData = #{stacked_data.to_json.html_safe}
-      var stackedId = #{j("##{chart_id(tab[:id], "stacked_#{stacked_data[:id]}")}")}
+      var totalData = #{total_data.to_json}
+      var donutData = #{donut_data.to_json}
+      var donutIds = #{donut_ids.to_json}
+      var donutFilterLabelIds = #{donut_filter_label_ids.to_json}
+      var stackedData = #{stacked_data.to_json}
+      var stackedId = #{chart_id(tab[:id], "stacked_#{stacked_data[:id]}").to_json}
       var charts = [
         {
           chart: AllNeighborsSystemDashboardLine,
           data: totalData,
-          selector: #{j("##{chart_id(tab[:id], 'total_placements')}")},
+          selector: #{chart_id(tab[:id], 'total_placements').to_json},
           options: {
-            legend: {selector: #{j("##{chart_id(tab[:id], 'total_placements')}_legend")}}
+            legend: {selector: #{chart_id(tab[:id], 'total_placements').to_json} + '_legend'}
           }
         },
         {
@@ -90,37 +90,35 @@
         {
           name: 'projectType',
           type: 'select',
-          selector: #{j("##{filter_id(tab[:id], 'project_type')}")}
+          selector: '#' + #{filter_id(tab[:id], 'project_type').to_json}
         },
         {
           name: 'countLevel',
           type: 'select',
-          selector: #{j("##{filter_id(tab[:id], 'count_level')}")}
+          selector: '#' + #{filter_id(tab[:id], 'count_level').to_json}
         },
         {
           name: 'dateRange',
           type: 'dateRange',
-          selector: #{j("##{filter_id(tab[:id], 'date_range')} input")}
+          selector: '#' + #{filter_id(tab[:id], 'date_range').to_json} + ' input'
         }
       ]
 
       var labelConfig = [
         {
           name: 'projectType',
-          selector: #{j(".#{filter_label_id(tab[:id], 'project_type')}")}
+          selector: '.' + #{filter_label_id(tab[:id], 'project_type').to_json}
         },
         {
           name: 'countLevel',
-          selector: #{j(".#{filter_label_id(tab[:id], 'count_level')}")}
+          selector: '.' + #{filter_label_id(tab[:id], 'count_level').to_json}
         },
         {
           name: 'dateRange',
-          selector: #{j(".#{filter_label_id(tab[:id], 'date_range')}")}
+          selector: '.' + #{filter_label_id(tab[:id], 'date_range').to_json}
         },
       ]
 
       var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts, labelConfig)
       filters.test()
-
-
     })

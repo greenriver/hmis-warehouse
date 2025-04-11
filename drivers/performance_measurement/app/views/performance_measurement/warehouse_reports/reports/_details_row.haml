@@ -81,7 +81,7 @@
       if(max_100) {
         axisMax = 100;
       }
-      const tooltipTitles = #{result.titles_for_system_level_bar_tooltip.to_json.html_safe}
+      const tooltipTitles = #{result.titles_for_system_level_bar_tooltip.to_json}
       data.labels.format = function (v, id, i, texts) {
         if (v < (axisMax || max) * 0.15) {
           return '';
@@ -116,8 +116,8 @@
             const data = d[0];
             // Build ratio description
             let description = '';
-            const denominatorLabel = "#{j(@report.detail_denominator_label_for(key))}";
-            const numeratorLabel = "#{j(@report.detail_numerator_label_for(key))}";
+            const denominatorLabel = #{@report.detail_denominator_label_for(key).to_json};
+            const numeratorLabel = #{@report.detail_numerator_label_for(key).to_json};
             let numer, denom;
             if (denominatorLabel) {
               if (includePercent) {
@@ -160,12 +160,12 @@
             lines: { front: false },
             y: { lines: [{ value: goal }] } }
         }),
-        bindto: '.#{j(class_name)}'
+        bindto: '.#{j class_name}'
       };
       if(max_100) {
         options.axis.y.padding = { top: 0, bottom: 0}
       }
       const chart = bb.generate(options);
-      d3.select('.#{j(class_name)} .bb-ygrid-line line').style('stroke-width', 2)
-      d3.select('.#{j(class_name)} .bb-ygrid-line line').style('stroke-dasharray', 2)
+      d3.select('.#{j class_name} .bb-ygrid-line line').style('stroke-width', 2)
+      d3.select('.#{j class_name} .bb-ygrid-line line').style('stroke-dasharray', 2)
     });

@@ -18,8 +18,8 @@
 - content_for :page_js do
   :javascript
     (function($) {
-      if (#{filter_params.present?.to_json}) {
-        census = new App.Census.Base('#{j(date_range_censuses_path())}', '#{filter_params.to_json}', { follow_link: #{can_view_clients?.to_json} });
+      if ('#{j(filter_params.present?.to_s)}' === 'true') {
+        census = new App.Census.Base('#{j(date_range_censuses_path())}', #{filter_params.to_json}, { follow_link: '#{j(can_view_clients?.to_s)}' });
         census.load();
       }
     })(jQuery);

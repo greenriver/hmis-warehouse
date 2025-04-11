@@ -74,7 +74,7 @@
   :javascript
     // add the chart
     (function($) {
-      chart = new App.ChartsScatterByDate.Chronic("#{summary_warehouse_reports_chronic_index_path(@report.parameters).to_json}", '', '', "#{@report.parameters["date"].to_json}");
+      chart = new App.ChartsScatterByDate.Chronic('#{j(summary_warehouse_reports_chronic_index_path(@report.parameters))}', '', '', '#{j(@report.parameters["date"])}');
       chart.load();
 
       $('.jLoadEnrollments').on('click', function(e) {

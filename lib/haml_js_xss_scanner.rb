@@ -1,18 +1,14 @@
-#!/usr/bin/env ruby
+# !/usr/bin/env ruby
 # frozen_string_literal: true
 
 require 'optparse'
 
 class HamlJsXssScanner
-  # Pattern to match JavaScript blocks in HAML
   JS_BLOCK_PATTERN = /^(\s*):javascript\b/
-
-  # Pattern to match string interpolation in HAML
   INTERPOLATION_PATTERN = /\#{(?:[^{}]|\g<0>)*}/
 
-  # Patterns that suggest proper escaping
   SAFE_PATTERNS = [
-    /\.to_json(\W|.html_safe)/,
+    /\.to_json(\W|.html_safe)?/,
     /(^|\W)j[ (]/,
     /(^|\W)Oj\.dump[ (]/,
   ].freeze
@@ -31,6 +27,7 @@ class HamlJsXssScanner
 
   def scan
     files_to_scan.each do |file|
+      puts "Scanning #{file}" if @options[:verbose]
       scan_file(file)
     end
 
@@ -48,12 +45,12 @@ class HamlJsXssScanner
     puts '- ✅ DO: Ensure Javascript will still be valid'
     puts "- Note: You probably shouldn't be changing the javascript, just the interpolated ruby code"
     puts "- ❌ DON'T: Try to escape the literals using javascript"
-    puts "- ❌ DON'T: use `j(...) when the variable could be something that isn't a string"
-    puts "- ❌ DON'T: use BOTH `j(...)` helper OR `object.to_json`\n\n"
+    puts "- ❌ DON'T: use `j(...)` when the variable could be something that isn't a string"
+    puts "- ❌ DON'T: use BOTH `j(...)` helper AND `object.to_json`\n\n"
     puts '## Task list'
 
-    @issues.each do |issue|
-      puts "- [ ] `#{issue[:file]}`:#{issue[:line_number]} - #{issue[:interpolation]}"
+    @issues.group_by { |issue| issue[:file] }.each do |file, issues|
+      puts "- [ ] `#{file}` - #{issues.size} interpolation(s) to fix on lines #{issues.map { |issue| issue[:line_number] }.join(', ')}"
     end
 
     puts "\nTotal issues found: #{@issues_found}"
@@ -76,28 +73,26 @@ class HamlJsXssScanner
     content = File.read(file)
     line_number = 0
     in_js_block = false
+    js_block_indent = nil
 
     content.each_line do |line|
       line_number += 1
 
       if line.match?(JS_BLOCK_PATTERN)
+        js_block_indent = line[/^(\s*)/, 1].length
         in_js_block = true
         next
       end
 
-      if in_js_block && !line.strip.empty?
-        js_indentation = line.match(/^(\s*):javascript\b/)&.[](1)&.length || 0
-        current_indentation = line.match(/^(\s*)/)&.[](1)&.length || 0
-
-        in_js_block = false if js_indentation >= current_indentation && !line.strip.empty?
+      if in_js_block
+        current_indent = line[/^(\s*)/, 1].length
+        in_js_block = false if line.strip != '' && current_indent <= js_block_indent
       end
 
       next unless in_js_block
-
       next unless line.match?(INTERPOLATION_PATTERN)
 
       interpolations = line.scan(INTERPOLATION_PATTERN)
-
       interpolations.each do |interpolation|
         next if safe_interpolation?(interpolation)
 
