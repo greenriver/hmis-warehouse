@@ -54,6 +54,22 @@ RSpec.describe Clients::FilesController, type: :request do
         expect(file.consent_form_confirmed).to be true
         expect(file.client.consent_form_valid?).to be true
       end
+
+      it 'user is able to confirm the consent form' do
+        post client_files_path(client_id: client.id), params: {
+          grda_warehouse_client_file: {
+            client_file: file_upload,
+            tag_list: [consent_tag.name],
+            effective_date: Date.current,
+            consent_form_confirmed: '1',
+            coc_codes: [''],
+          },
+        }
+
+        file = GrdaWarehouse::ClientFile.last
+        expect(file.consent_form_confirmed).to be true
+        expect(file.client.consent_form_valid?).to be true
+      end
     end
 
     context 'when auto_confirm_consent is disabled' do
@@ -72,7 +88,7 @@ RSpec.describe Clients::FilesController, type: :request do
             coc_codes: [''],
           },
         }
-
+        expect(GrdaWarehouse::Config.get(:auto_confirm_consent)).to be false
         file = GrdaWarehouse::ClientFile.last
         expect(file.consent_form_confirmed).to be false
         expect(file.client.consent_form_valid?).to be false
