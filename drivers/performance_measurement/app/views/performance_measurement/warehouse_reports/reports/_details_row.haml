@@ -72,16 +72,16 @@
 = content_for :page_js do
   :javascript
     $(document).ready(function() {
-      const data = $('.#{j(class_name)}').data('chart');
+      const data = $('.#{j class_name}').data('chart');
       const max = Math.max(...data.columns[1].slice(1));
-      const includePercent = #{result.percentage?.to_json};
-      const max_100 = #{result.max_100?.to_json};
+      const includePercent = #{j result.percentage?};
+      const max_100 = #{j result.max_100?};
       const goal = #{@report.detail_goal_for_reference_line(key).to_json};
       let axisMax = max < goal && goal !== null ? goal : undefined;
       if(max_100) {
         axisMax = 100;
       }
-      const tooltipTitles = #{result.titles_for_system_level_bar_tooltip.to_json}
+      const tooltipTitles = #{result.titles_for_system_level_bar_tooltip.to_json.html_safe}
       data.labels.format = function (v, id, i, texts) {
         if (v < (axisMax || max) * 0.15) {
           return '';
@@ -116,16 +116,16 @@
             const data = d[0];
             // Build ratio description
             let description = '';
-            const denominatorLabel = #{@report.detail_denominator_label_for(key).to_json};
-            const numeratorLabel = #{@report.detail_numerator_label_for(key).to_json};
+            const denominatorLabel = "#{j @report.detail_denominator_label_for(key)}";
+            const numeratorLabel = "#{j @report.detail_numerator_label_for(key)}";
             let numer, denom;
             if (denominatorLabel) {
               if (includePercent) {
-                numer = data.index === 0 ? #{result.comparison_numerator.to_json} : #{result.reporting_numerator.to_json};
-                denom = data.index === 0 ? #{result.comparison_denominator.to_json} : #{result.reporting_denominator.to_json};
+                numer = data.index === 0 ? "#{j result.comparison_numerator}" : "#{j result.reporting_numerator}";
+                denom = data.index === 0 ? "#{j result.comparison_denominator}" : "#{j result.reporting_denominator}";
               } else {
-                numer = data.index === 0 ? #{result.reporting_numerator.to_json} : #{result.comparison_numerator.to_json};
-                denom = data.index === 0 ? #{result.reporting_denominator.to_json} : #{result.comparison_denominator.to_json};
+                numer = data.index === 0 ? "#{j result.reporting_numerator}" : "#{j result.comparison_numerator}";
+                denom = data.index === 0 ? "#{j result.reporting_denominator}" : "#{j result.comparison_denominator}";
               }
               description = ` (${numer} ${numeratorLabel} of ${denom} ${denominatorLabel})`;
             }

@@ -4,12 +4,12 @@
   .jQuarterChosenDate
   .d-flex
     .chart-donut.chart.pt-2{ data: { active_date: active_date }, class: [chart_class, "active_date_#{active_date}"]}
-    %div.legend-wrapper-vertical.legend-wrapper{ class: ["#{j(chart_class)}_legend"] }
+    %div.legend-wrapper-vertical.legend-wrapper{ class: ["#{chart_class}_legend"] }
   :javascript
     (function(){
       var controller;
       var dates = #{data.to_json.to_s.html_safe};
-      var active_date = $(".#{j(chart_class)}").data('activeDate');
+      var active_date = $(".#{j chart_class}").data('activeDate');
       var donut_title = dates[active_date]['total'].split(' ').join(' \n');
       var chart = bb.generate({
         data: {
@@ -24,10 +24,10 @@
           title: donut_title
         },
         bindto: {
-          element: ".#{j(chart_class)}"
+          element: ".#{j chart_class}"
         },
         color: {
-          pattern: #{@report.chart_color_pattern(category).to_json}
+          pattern: #{@report.chart_color_pattern(category).html_safe}
         },
         labels: {
           format: function(v, id, i, j) {
@@ -38,7 +38,7 @@
         },
         legend: {
           contents: {
-            bindto: ".#{j(chart_class)}_legend",
+            bindto: ".#{j chart_class}_legend",
             template: (title, color) => {
               const swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
               return `<div class="chart-legend-item-prs1"><div class="swatch">${swatch}</div><div class="chart-legend-item-label-prs1">${title}</div></div>`;

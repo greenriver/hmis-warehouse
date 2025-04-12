@@ -34,7 +34,7 @@
         }
       },
       color: {
-        pattern: #{@report.chart_color_pattern(:population).to_json}
+        pattern: #{@report.chart_color_pattern(:population).html_safe}
       },
       legend: {
         contents: {

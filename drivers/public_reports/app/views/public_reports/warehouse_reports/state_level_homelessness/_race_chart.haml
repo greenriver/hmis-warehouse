@@ -38,7 +38,7 @@
           element: ".#{j(chart_class)}"
         },
         color: {
-          pattern: #{@report.chart_color_pattern(category).to_json}
+          pattern: #{@report.chart_color_pattern(category).html_safe}
         },
         axis: {
           rotated: true,

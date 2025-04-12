@@ -1,6 +1,6 @@
 :javascript
   (function() {
-    var data = #{data.to_json};
+    var data = #{data.to_s.html_safe};
     var chart = bb.generate({
       data: {
         x: 'x',
@@ -43,7 +43,7 @@
         }
       },
       color: {
-        pattern: #{@report.chart_color_pattern(category).to_json}
+        pattern: #{@report.chart_color_pattern(category).html_safe}
       },
       tooltip: {
         contents: function(d, defaultTitleFormat, defaultValueFormat, color) {
