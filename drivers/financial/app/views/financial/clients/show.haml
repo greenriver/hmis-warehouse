@@ -18,8 +18,8 @@
 
 = content_for :page_js do
   :javascript
-    var rollupPath = #{financial_client_rollup_path(@client, partial: '').to_json};
-    var clients = #{js_clients.to_json};
-    var manyClients = #{source_clients.many?.to_json};
-    var high = #{(@client.source_clients.size + 1).to_json};
+    var rollupPath = #{financial_client_rollup_path(@client, partial: '').to_json.html_safe};
+    var clients = #{js_clients.to_json.html_safe};
+    var manyClients = #{source_clients.many?.to_json.html_safe};
+    var high = #{j(@client.source_clients.size + 1)};
     var rollups = new App.Rollups.Loader($('.rollup'), rollupPath, manyClients, clients, high);

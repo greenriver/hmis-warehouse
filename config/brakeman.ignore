@@ -2091,6 +2091,39 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "c6d2416929705fe07d75e0cba96b643e0d9361ef1329ece172ff0fcd797deb31",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/admin/users/_login_chart.haml",
+      "line": 15,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "ActivityLog.for_chart",
+      "render_path": [
+        {
+          "type": "template",
+          "name": "admin/users/index",
+          "line": 4,
+          "file": "app/views/admin/users/index.haml",
+          "rendered": {
+            "name": "admin/users/_login_chart",
+            "file": "app/views/admin/users/_login_chart.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "admin/users/_login_chart"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "c6eb04c800a45639cca6f59d522ba432fc60aecb0f2b1edfe5e807117f190fc7",
@@ -2225,6 +2258,50 @@
       "confidence": "Medium",
       "cwe_id": [
         915
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "d251c657e50e0f47d9b2b07f3704820d41013b2e0504571718826b0406303bc6",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped parameter value",
+      "file": "app/views/performance_dashboards/overview/_disaggregations.haml",
+      "line": 11,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "params.to_json.html_safe",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "PerformanceDashboards::OverviewController",
+          "method": "index",
+          "line": 16,
+          "file": "app/controllers/performance_dashboards/overview_controller.rb",
+          "rendered": {
+            "name": "performance_dashboards/overview/index",
+            "file": "app/views/performance_dashboards/overview/index.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "performance_dashboards/overview/index",
+          "line": 15,
+          "file": "app/views/performance_dashboards/overview/index.haml",
+          "rendered": {
+            "name": "performance_dashboards/overview/_disaggregations",
+            "file": "app/views/performance_dashboards/overview/_disaggregations.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "performance_dashboards/overview/_disaggregations"
+      },
+      "user_input": "params.to_json.html_safe",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
