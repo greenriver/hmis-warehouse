@@ -16,7 +16,7 @@
     var destination_chart_data = #{@report.destinations.to_json.html_safe}
     var destination_chart = new App.WarehouseReports.Rrh.Destination('.rrh__destination-chart', '.rrh__destination-chart-legend', destination_chart_data, '#{j(polymorphic_path(@report.clients_path_array, passed_params.merge(metric: :destination))) if @report.can_see_client_details?(current_user)}');
     var ph_returns_data = #{@report.ph_returns_for_chart.to_json.html_safe}
-    var ph_returns_chart = new App.WarehouseReports.Rrh.Returns('#jPhReturnsChart', ph_returns_data, '#{j polymorphic_path(@report.clients_path_array, passed_params.merge(metric: :return_after_exit_to_ph))) if @report.can_see_client_details?(current_user)}');
+    var ph_returns_chart = new App.WarehouseReports.Rrh.Returns('#jPhReturnsChart', ph_returns_data, '#{j polymorphic_path(@report.clients_path_array, passed_params.merge(metric: :return_after_exit_to_ph)) if @report.can_see_client_details?(current_user)}');
     var returns_data = #{@report.returns_for_chart.to_json.html_safe}
     var returns_chart = new App.WarehouseReports.Rrh.Returns('#jReturnsChart', returns_data, '#{j polymorphic_path(@report.clients_path_array, passed_params.merge(metric: :return_after_exit_to_any))) if @report.can_see_client_details?(current_user)}');
     var percent_exiting_stabilization_data = #{@report.percent_exiting_stabilization_data.to_json.html_safe}
