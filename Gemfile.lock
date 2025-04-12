@@ -1221,7 +1221,7 @@ DEPENDENCIES
   graphiql-rails
   graphql (= 2.3.21)
   grover
-  haml
+  haml (~> 6.0)
   haml-rails
   handlebars_assets
   hashdiff

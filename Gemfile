@@ -60,7 +60,7 @@ gem 'charlock_holmes', require: false
 gem 'bootsnap'
 gem 'bcrypt'
 gem 'haml-rails'
-gem 'haml'
+gem 'haml', '~> 6.0'
 gem 'sassc-rails'
 gem 'autoprefixer-rails', '~> 10.3.3' # pinned until we can update to Bootstrap 5.3 or later
 gem 'kaminari'
