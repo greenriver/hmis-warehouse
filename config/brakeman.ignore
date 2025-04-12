@@ -496,6 +496,40 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "2c52fbd98e05293f2f2634b3f07b0c2c41d76dc1554bcdcae3df3b4405ffaa4f",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/health/sdh_case_management_notes/edit.haml",
+      "line": 7,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2, Health::QualifyingActivityV3].map(&:js_model).join(\", \").html_safe",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Health::SdhCaseManagementNotesController",
+          "method": "edit",
+          "line": 43,
+          "file": "app/controllers/health/sdh_case_management_notes_controller.rb",
+          "rendered": {
+            "name": "health/sdh_case_management_notes/edit",
+            "file": "app/views/health/sdh_case_management_notes/edit.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health/sdh_case_management_notes/edit"
+      },
+      "user_input": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2, Health::QualifyingActivityV3].map(&:js_model)",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "2d5a0735c8eef436174e943c26f2f3107fdbe465dd46e480ad60ed6b43b29b5b",
@@ -571,7 +605,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "drivers/hmis/app/models/hmis/form/definition.rb",
-      "line": 366,
+      "line": 369,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`No Definition found for System form #{role}`",
       "render_path": null,
@@ -2057,39 +2091,6 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "c6d2416929705fe07d75e0cba96b643e0d9361ef1329ece172ff0fcd797deb31",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/admin/users/_login_chart.haml",
-      "line": 15,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "ActivityLog.for_chart",
-      "render_path": [
-        {
-          "type": "template",
-          "name": "admin/users/index",
-          "line": 4,
-          "file": "app/views/admin/users/index.haml",
-          "rendered": {
-            "name": "admin/users/_login_chart",
-            "file": "app/views/admin/users/_login_chart.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "admin/users/_login_chart"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "c6eb04c800a45639cca6f59d522ba432fc60aecb0f2b1edfe5e807117f190fc7",
@@ -2274,40 +2275,6 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "d566e8f5cf0f511bf0a863a9efca15938668b0c5bfc7a0fef9530afedfc5ece0",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/health/sdh_case_management_notes/edit.haml",
-      "line": 7,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2, Health::QualifyingActivityV3].map(&:js_model).join(\", \")",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Health::SdhCaseManagementNotesController",
-          "method": "edit",
-          "line": 43,
-          "file": "app/controllers/health/sdh_case_management_notes_controller.rb",
-          "rendered": {
-            "name": "health/sdh_case_management_notes/edit",
-            "file": "app/views/health/sdh_case_management_notes/edit.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "health/sdh_case_management_notes/edit"
-      },
-      "user_input": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2, Health::QualifyingActivityV3].map(&:js_model)",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "d7f4d4ebb81d5a7a5647803b4265ebb0f79bc82b65211104ec2b3e26631634bf",
@@ -2337,7 +2304,7 @@
       "check_name": "EOLRails",
       "message": "Support for Rails 7.0.8.7 ended on 2025-04-01",
       "file": "Gemfile.lock",
-      "line": 1648,
+      "line": 1660,
       "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
       "code": null,
       "render_path": null,

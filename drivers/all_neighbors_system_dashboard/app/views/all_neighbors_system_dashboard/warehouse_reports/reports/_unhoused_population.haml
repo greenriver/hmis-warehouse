@@ -42,7 +42,7 @@
 
       var donutData = #{all_data.donut_data.to_json.html_safe}
       var stackedData = #{all_data.stacked_data.to_json.html_safe}
-      var stackedId = #{j("##{chart_id(tab[:id], "stacked_#{all_data.stacked_data[:id]}")}")}
+      var stackedId = '##{j chart_id(tab[:id], "stacked_#{all_data.stacked_data[:id]}")}'
       var donutIds = #{donut_ids.to_json.html_safe}
       var donutFilterLabelIds = #{donut_filter_label_ids.to_json.html_safe}
 
@@ -73,19 +73,19 @@
         {
           name: 'homelessnessStatus',
           type: 'select',
-          selector: #{j("##{filter_id(tab[:id], 'homelessness_status')}")}
+          selector: '##{j filter_id(tab[:id], 'homelessness_status')}'
         },
         {
           name: 'year',
           type: 'year',
-          selector: #{j("##{filter_id(tab[:id], 'year')}")}
+          selector: '##{j filter_id(tab[:id], 'year')}'
         },
       ]
 
       var labelConfig = [
         {
           name: 'year',
-          selector: #{j(".#{filter_label_id(tab[:id], 'year')}")}
+          selector: '.#{j filter_label_id(tab[:id], 'year')}'
         },
       ]
 
@@ -99,9 +99,9 @@
             {
               chart: AllNeighborsSystemDashboardUPVerticalStack,
               data: verticalStackData,
-              selector: #{j("##{chart_id(tab[:id], 'vertical_stack')}")},
+              selector: '##{j chart_id(tab[:id], 'vertical_stack')}',
               options: {
-                legend: {selector: #{j("##{legend_id(tab[:id], 'vertical_stack')}")}}
+                legend: {selector: '##{j legend_id(tab[:id], 'vertical_stack')}'}
               }
             }
           ]

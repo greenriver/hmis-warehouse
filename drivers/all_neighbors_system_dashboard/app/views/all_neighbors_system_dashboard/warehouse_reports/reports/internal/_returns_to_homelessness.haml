@@ -1,3 +1,4 @@
+
 = render render_path('returns_to_homelessness'), tab: tab
 
 - start_date = (DateTime.current - 3.years).beginning_of_month
@@ -30,7 +31,7 @@
         = vertical_stack[:title]
         %span{id: filter_label_id(tab[:id], 'housing_retention')}
         After Placement
-        = link_to '#', data: {toggle: 'tooltip', title: "In this chart, the endpoint of the selected cohort (6, 12, & 24 months) is added to each household's/individual's housing date. For all months not still in the future, housing retention results are displayed for the households/individuals for the selected cohort. When no data has been displayed, the endpoint of the cohort is still in the future."} do
+        = link_to '#', data: {toggle: 'tooltip', title: "In this chart, the endpoint of the selected cohort (6, 12, & 24 months) is added to each household’s/individual’s housing date. For all months not still in the future, housing retention results are displayed for the households/individuals for the selected cohort. When no data has been displayed, the endpoint of the cohort is still in the future."} do
           %i.icon-info
     %div{id: chart_id(tab[:id], vertical_stack[:id])}
     .d-flex.justify-content-center{id: legend_id(tab[:id], vertical_stack[:id])}
@@ -46,16 +47,16 @@
         {
           chart: AllNeighborsSystemDashboardHorizontalBar,
           data: barsData,
-          selector: '##{j(chart_id(tab[:id], bars_data[:id]))}',
+          selector: '##{j chart_id(tab[:id], bars_data[:id])}',
           options: {}
         },
         {
           chart: AllNeighborsSystemDashboardUPVerticalStack,
           data: verticalStackData,
-          selector: '##{j(chart_id(tab[:id], vertical_stack[:id]))}',
+          selector: '##{j chart_id(tab[:id], vertical_stack[:id])}',
           options: {
             legend: {
-              selector: '##{j(legend_id(tab[:id], vertical_stack[:id]))}'
+              selector: '##{j legend_id(tab[:id], vertical_stack[:id])}'
             }
           }
         }
@@ -65,36 +66,36 @@
         {
           name: 'projectType',
           type: 'select',
-          selector: '##{j(filter_id(tab[:id], 'project_type'))}'
+          selector: '##{j filter_id(tab[:id], 'project_type')}'
         },
         {
           name: 'countLevel',
           type: 'select',
-          selector: '##{j(filter_id(tab[:id], 'count_level'))}'
+          selector: '##{j filter_id(tab[:id], 'count_level')}'
         },
         {
           name: 'cohort',
           type: 'select',
-          selector: '##{j(filter_id(tab[:id], 'cohort'))}'
+          selector: '##{j filter_id(tab[:id], 'cohort')}'
         }
       ]
 
       var labels = [
         {
           name: 'projectType',
-          selector: '.#{j(filter_label_id(tab[:id], 'project_type'))}'
+          selector: '.#{j filter_label_id(tab[:id], 'project_type')}'
         },
         {
           name: 'countLevel',
-          selector: '.#{j(filter_label_id(tab[:id], 'count_level'))}'
+          selector: '.#{j filter_label_id(tab[:id], 'count_level')}'
         },
         {
           name: 'cohort',
-          selector: '.#{j(filter_label_id(tab[:id], 'cohort'))}'
+          selector: '.#{j filter_label_id(tab[:id], 'cohort')}'
         },
         {
           name: 'cohortYears',
-          selector: '##{j(filter_label_id(tab[:id], 'housing_retention'))}'
+          selector: '##{j filter_label_id(tab[:id], 'housing_retention')}'
         }
       ]
 

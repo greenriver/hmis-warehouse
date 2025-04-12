@@ -7,8 +7,8 @@
 = content_for :page_js do
   :javascript
     'use strict';
-    var section_path = #{(url_for(action: 'index') + '/section/').to_json};
-    var sections = new App.Sections.Loader($('.rollup'), section_path, #{params.to_json});
-    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.enrolled-by-#{j(breakdown.to_s.gsub('_', '-'))}', {remote: true});
-    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.entering-by-#{j(breakdown.to_s.gsub('_', '-'))}', {remote: true});
-    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.exiting-by-#{j(breakdown.to_s.gsub('_', '-'))}', {remote: true});
+    var section_path = #{(url_for(action: 'index') + '/section/').to_json.html_safe};
+    var sections = new App.Sections.Loader($('.rollup'), section_path, #{params.to_json.html_safe});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.enrolled-by-#{j breakdown.to_s.gsub('_', '-')}-chart', {remote: true});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.entering-by-#{j breakdown.to_s.gsub('_', '-')}-chart', {remote: true});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.exiting-by-#{j breakdown.to_s.gsub('_', '-')}-chart', {remote: true});

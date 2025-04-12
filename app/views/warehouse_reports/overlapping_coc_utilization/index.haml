@@ -32,10 +32,10 @@
 = content_for :page_js do
   :javascript
     App.Reports.cocOverlap({
-      resultsSelector: #{j("##{results_id}")},
-      formSelector: #{j("##{form_id}")},
+      resultsSelector: '##{j results_id}',
+      formSelector: '##{j form_id}',
       mapProps: {
-        elementId: #{j(map_id)},
-        shapes: #{@shapes.to_json},
+        elementId: "#{j map_id}",
+        shapes: #{@shapes.to_json.html_safe},
       },
     })

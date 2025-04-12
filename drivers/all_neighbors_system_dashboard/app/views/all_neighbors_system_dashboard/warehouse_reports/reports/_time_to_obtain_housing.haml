@@ -58,9 +58,9 @@
         {
           chart: AllNeighborsSystemDashboardTTOHStack,
           data: data,
-          selector: #{j("##{chart_id(tab[:id], 'stacked')}")},
+          selector: '##{j chart_id(tab[:id], 'stacked')}',
           options: {
-            legend: {selector: #{j("##{legend_id(tab[:id], "stacked")}")}}
+            legend: {selector: '##{j legend_id(tab[:id], "stacked")}'}
           }
         },
       ]
@@ -69,41 +69,41 @@
         {
           name: 'projectType',
           type: 'select',
-          selector: #{j("##{filter_id(tab[:id], 'project_type')}")}
+          selector: '##{j filter_id(tab[:id], 'project_type')}'
         },
         {
           name: 'householdType',
           type: 'select',
-          selector: #{j("##{filter_id(tab[:id], 'household_type')}")}
+          selector: '##{j filter_id(tab[:id], 'household_type')}'
         },
         {
           name: 'demographics',
           type: 'select',
-          selector: #{j("##{filter_id(tab[:id], 'demographics')}")}
+          selector: '##{j filter_id(tab[:id], 'demographics')}'
         },
         {
           name: 'dateRange',
           type: 'dateRange',
-          selector: #{j("##{filter_id(tab[:id], 'date_range')} input")}
+          selector: '##{j filter_id(tab[:id], 'date_range')} input'
         }
       ]
 
       var labelConfig = [
         {
           name: 'projectType',
-          selector: #{j(".#{filter_label_id(tab[:id], 'project_type')}")}
+          selector: '.#{j filter_label_id(tab[:id], 'project_type')}'
         },
         {
           name: 'householdType',
-          selector: #{j(".#{filter_label_id(tab[:id], 'household_type')}")}
+          selector: '.#{j filter_label_id(tab[:id], 'household_type')}'
         },
         {
           name: 'demographics',
-          selector: #{j(".#{filter_label_id(tab[:id], 'demographic')}")}
+          selector: '.#{j filter_label_id(tab[:id], 'demographic')}'
         },
         {
           name: 'dateRange',
-          selector: #{j(".#{filter_label_id(tab[:id], 'date_range')}")}
+          selector: '.#{j filter_label_id(tab[:id], 'date_range')}'
         },
       ]
 

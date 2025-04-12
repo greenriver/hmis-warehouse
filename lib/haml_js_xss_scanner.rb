@@ -16,6 +16,7 @@ class HamlJsXssScanner
     /\.html_safe\s*/,
     /\.to_json\s*/,
     /(^|\W)j[ (]/,
+    /(^|\W)json_escape[ (]/,
     /(^|\W)raw[ (]/,
     /(^|\W)Oj\.dump[ (]/,
   ].freeze
