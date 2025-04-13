@@ -76,26 +76,6 @@ module GrdaWarehouse::Report
       end
     end
 
-    def self.source_client_table
-      @source_client_table ||= begin
-        table = GrdaWarehouse::Hud::Client.arel_table.dup
-        table.table_alias = 'source_clients'
-        table
-      end
-    end
-
-    def self.destination_client_table
-      @destination_client_table ||= begin
-        table = GrdaWarehouse::Hud::Client.arel_table.dup
-        table.table_alias = 'destination_clients'
-        table
-      end
-    end
-
-    def self.client_join_table
-      GrdaWarehouse::WarehouseClient.arel_table
-    end
-
     def self.update_recent_report_enrollments_table
       connection.execute <<-SQL
         DROP TABLE IF EXISTS recent_report_enrollments;

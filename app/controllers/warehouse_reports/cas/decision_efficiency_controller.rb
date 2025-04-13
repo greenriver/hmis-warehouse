@@ -75,33 +75,26 @@ module WarehouseReports::Cas
       @cas_c_t ||= CasAccess::Client.arel_table
     end
 
-    private def at2
-      @at2 ||= begin
-        at2 = at.dup
-        at2.table_alias = 'at2'
-        at2
-      end
-    end
-
     private def report_scope
       return report_source.none unless @cas_user.present?
 
-      decision_join = at.join(at2).on(
-        at[:client_id].eq(at2[:client_id]).
-        and(at[:match_id].eq(at2[:match_id])).
-        and(at[:match_step].eq(first_step)).
-        and(at2[:match_step].eq(second_step)),
-      ).join_sources
-
-      scope = report_source.where(
-        at[@filter.interesting_column].
-          between(@filter.start..@filter.end + 1.day).
-          or(at[@filter.interesting_column].eq(nil)),
-      ).
-        where(at2[@filter.interesting_column].between(@filter.start..@filter.end + 1.day)).
+      scope = report_source.
+        select("d1.*, d2.id as second_id, d2.updated_at as second_ended_at, d2.client_move_in_date").
+        from("#{report_source.table_name} d1").
+        joins("INNER JOIN #{report_source.table_name} d2 ON d1.client_id = d2.client_id AND d1.match_id = d2.match_id").
         joins(:client, match: :programs).
-        joins(decision_join).
-        order(at[:program_name].asc, at[:sub_program_name].asc)
+        where("d1.match_step = ? AND d2.match_step = ?", first_step, second_step).
+        where(
+          "d1.#{@filter.interesting_column} BETWEEN ? AND ? OR d1.#{@filter.interesting_column} IS NULL",
+          @filter.start,
+          @filter.end + 1.day
+        ).
+        where(
+          "d2.#{@filter.interesting_column} BETWEEN ? AND ?",
+          @filter.start,
+          @filter.end + 1.day
+        ).
+        order("d1.program_name ASC, d1.sub_program_name ASC")
 
       chosen_program_ids = CasAccess::Agency.find_by(id: @filter.agency)&.program_ids.presence || CasAccess::Program.pluck(:id)
       chosen_program_ids &= @cas_user.agency.program_ids unless @cas_user.match_admin?
@@ -124,23 +117,23 @@ module WarehouseReports::Cas
 
     private def columns
       @columns ||= {
-        match_route: at[:match_route],
-        program_name: at[:program_name],
-        sub_program_name: at[:sub_program_name],
-        cas_client_id: at[:cas_client_id],
-        warehouse_client_id: at[:client_id],
-        match_id: at[:match_id],
-        match_stated_at: at[:match_started_at],
-        terminal_status: at[:terminal_status],
-        first_id: at[:id],
-        second_id: at2[:id],
-        first_ended_at: at[:updated_at],
-        second_ended_at: at2[:updated_at],
-        first_name: cas_c_t[:first_name],
-        last_name: cas_c_t[:last_name],
-        hsa_contacts: at[:hsa_contacts],
-        hsp_contacts: at[:hsp_contacts],
-        client_move_in_date: at2[:client_move_in_date],
+        match_route: 'd1.match_route',
+        program_name: 'd1.program_name',
+        sub_program_name: 'd1.sub_program_name',
+        cas_client_id: 'd1.cas_client_id',
+        warehouse_client_id: 'd1.client_id',
+        match_id: 'd1.match_id',
+        match_stated_at: 'd1.match_started_at',
+        terminal_status: 'd1.terminal_status',
+        first_id: 'd1.id',
+        second_id: 'second_id',
+        first_ended_at: 'd1.updated_at',
+        second_ended_at: 'second_ended_at',
+        first_name: "#{CasAccess::Client.table_name}.first_name",
+        last_name: "#{CasAccess::Client.table_name}.last_name",
+        hsa_contacts: 'd1.hsa_contacts',
+        hsp_contacts: 'd1.hsp_contacts',
+        client_move_in_date: 'client_move_in_date'
       }
     end
   end
