@@ -19,7 +19,7 @@ module GrdaWarehouse::Hud
     acts_as_paranoid column: :DateDeleted
 
     belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], query_constraints: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :geographies, optional: true
-    composite_belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :geographies, optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :geographies, optional: true
     has_one :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :geographies
     belongs_to :data_source
 

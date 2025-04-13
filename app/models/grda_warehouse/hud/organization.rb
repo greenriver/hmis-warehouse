@@ -20,8 +20,8 @@ module GrdaWarehouse::Hud
 
     has_many :projects, **hud_assoc(:OrganizationID, 'Project'), inverse_of: :organization
     has_many :clients, through: :projects
-    composite_belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :organizations, optional: true
-    composite_belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :projects, optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :organizations, optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :projects, optional: true
     belongs_to :data_source, inverse_of: :organizations
 
     has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', query_constraints: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :organization

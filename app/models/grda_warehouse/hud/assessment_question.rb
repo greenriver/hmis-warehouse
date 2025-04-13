@@ -21,13 +21,13 @@ module GrdaWarehouse::Hud
       '1' => 'Yes',
     }.freeze
 
-    composite_belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessment_questions, optional: true
-    composite_belongs_to :assessment, **hud_assoc(:AssessmentID, 'Assessment'), optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessment_questions, optional: true
+    belongs_to :assessment, **hud_assoc(:AssessmentID, 'Assessment'), optional: true
     belongs_to :direct_enrollment, **hud_enrollment_belongs, optional: true
     has_one :enrollment, through: :assessment
     has_one :client, through: :assessment, inverse_of: :assessment_questions
-    composite_belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), optional: true
-    composite_belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :assessment_questions, optional: true
+    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :assessment_questions, optional: true
     belongs_to :data_source
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted

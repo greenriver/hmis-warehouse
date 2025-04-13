@@ -52,19 +52,49 @@ module HmisStructure::Base
       hud_csv_headers.first
     end
 
-    def hud_enrollment_belongs(model_name = 'Enrollment')
-      hud_assoc(:EnrollmentID, model_name)
+    ## convenience methods to DRY up some association definitions
+
+    def bipartite_keys(col, model_name = nil)
+      h = {
+        primary_key: [
+          :data_source_id,
+          col,
+        ],
+        query_constraints: [
+          :data_source_id,
+          col,
+        ],
+        autosave: false,
+      }
+      h.merge! class_name: "GrdaWarehouse::Hud::#{model_name}" if model_name
+      h
+    end
+
+    def hud_enrollment_belongs(model_name = nil)
+      model_name = if model_name.present?
+        "GrdaWarehouse::Hud::#{model_name}"
+      else
+        'GrdaWarehouse::Hud::Enrollment'
+      end
+      h = {
+        primary_key: [
+          :EnrollmentID,
+          :PersonalID,
+          :data_source_id,
+        ],
+        query_constraints: [
+          :EnrollmentID,
+          :PersonalID,
+          :data_source_id,
+        ],
+        class_name: model_name,
+        autosave: false,
+      }
+      h
     end
 
     def hud_assoc(col, model_name)
-      key =  "ds_#{col.to_s.gsub(/ID\z/, '').downcase}_id"
-      result = {
-        primary_key: key,
-        foreign_key: key,
-        autosave: false,
-      }
-      result[:class_name] = "GrdaWarehouse::Hud::#{model_name}" if model_name
-      result
+      bipartite_keys col, model_name
     end
 
     def conflict_target=(value)

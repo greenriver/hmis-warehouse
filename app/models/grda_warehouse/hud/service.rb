@@ -17,10 +17,10 @@ module GrdaWarehouse::Hud
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     belongs_to :data_source, inverse_of: :services
-    composite_belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_services, optional: true
+    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_services, optional: true
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :services, optional: true
-    composite_belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :services, optional: true
-    composite_belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :services, optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :services, optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :services, optional: true
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
     belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], query_constraints: [:EnrollmentID, :PersonalID, :data_source_id], optional: true

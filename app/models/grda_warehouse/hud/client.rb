@@ -102,9 +102,9 @@ module GrdaWarehouse::Hud
     has_many :splits_from, class_name: 'GrdaWarehouse::ClientSplitHistory', foreign_key: :split_into
 
     belongs_to :data_source, inverse_of: :clients
-    composite_belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :clients, optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :clients, optional: true
     # The "HUD user" that most recently updated the client record
-    composite_belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :clients, optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :clients, optional: true
 
     has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
     has_many :warehouse_client_destination, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :destination_id, inverse_of: :destination
@@ -132,8 +132,7 @@ module GrdaWarehouse::Hud
       ongoing
     }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
 
-    # has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', query_constraints: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
-    has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: :ds_personal_id, primary_key: :ds_personal_id, inverse_of: :client
+    has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', query_constraints: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
     has_many :exits, through: :enrollments, source: :exit, inverse_of: :client
     has_many :enrollment_cocs, through: :enrollments, source: :enrollment_cocs, inverse_of: :client
     has_many :services, through: :enrollments, source: :services, inverse_of: :client

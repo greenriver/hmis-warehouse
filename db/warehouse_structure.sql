@@ -307,9 +307,7 @@ CREATE TABLE public."Affiliation" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone,
-    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED,
-    ds_affiliation_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("AffiliationID")::text)) STORED
+    pending_date_deleted timestamp without time zone
 );
 
 
@@ -335,18 +333,6 @@ CREATE VIEW analytics.affiliations AS
 
 
 --
--- Name: app_users; Type: TABLE; Schema: analytics; Owner: -
---
-
-CREATE TABLE analytics.app_users (
-    id bigint NOT NULL,
-    first_name character varying,
-    last_name character varying,
-    email character varying
-);
-
-
---
 -- Name: AssessmentQuestions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -367,28 +353,7 @@ CREATE TABLE public."AssessmentQuestions" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying,
-    ds_assessmentquestion_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("AssessmentQuestionID")::text)) STORED,
-    ds_assessment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("AssessmentID")::text)) STORED,
-    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
-    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
-);
-
-
---
--- Name: assessment_answer_lookups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.assessment_answer_lookups (
-    id bigint NOT NULL,
-    assessment_question character varying,
-    response_code character varying,
-    response_text character varying,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    data_source_id integer
+    source_hash character varying
 );
 
 
@@ -397,35 +362,25 @@ CREATE TABLE public.assessment_answer_lookups (
 --
 
 CREATE VIEW analytics.assessment_questions AS
- WITH nullable_lkp AS (
-         SELECT DISTINCT ON (assessment_answer_lookups.assessment_question, assessment_answer_lookups.response_code) assessment_answer_lookups.id,
-            assessment_answer_lookups.assessment_question,
-            assessment_answer_lookups.response_code,
-            assessment_answer_lookups.response_text,
-            assessment_answer_lookups.created_at,
-            assessment_answer_lookups.updated_at,
-            assessment_answer_lookups.data_source_id
-           FROM public.assessment_answer_lookups
-          ORDER BY assessment_answer_lookups.assessment_question, assessment_answer_lookups.response_code, assessment_answer_lookups.updated_at DESC, assessment_answer_lookups.id DESC
-        )
- SELECT "AssessmentQuestions".id,
-    "AssessmentQuestions"."AssessmentQuestionID",
-    "AssessmentQuestions"."AssessmentID",
-    "AssessmentQuestions"."EnrollmentID",
-    "AssessmentQuestions"."PersonalID",
-    "AssessmentQuestions"."AssessmentQuestionGroup",
-    "AssessmentQuestions"."AssessmentQuestionOrder",
-    "AssessmentQuestions"."AssessmentQuestion",
-    COALESCE(aal.response_text, "AssessmentQuestions"."AssessmentAnswer") AS "AssessmentAnswer",
-    "AssessmentQuestions"."AssessmentAnswer" AS original_assessment_answer,
-    "AssessmentQuestions"."DateCreated",
-    "AssessmentQuestions"."DateUpdated",
-    "AssessmentQuestions"."UserID",
-    "AssessmentQuestions"."ExportID",
-    "AssessmentQuestions".data_source_id
-   FROM (public."AssessmentQuestions"
-     LEFT JOIN nullable_lkp aal ON ((((aal.assessment_question)::text = ("AssessmentQuestions"."AssessmentQuestion")::text) AND ((aal.response_code)::text = ("AssessmentQuestions"."AssessmentAnswer")::text) AND (aal.data_source_id = "AssessmentQuestions".data_source_id))))
-  WHERE ("AssessmentQuestions"."DateDeleted" IS NULL);
+ SELECT id,
+    "AssessmentQuestionID",
+    "AssessmentID",
+    "EnrollmentID",
+    "PersonalID",
+    "AssessmentQuestionGroup",
+    "AssessmentQuestionOrder",
+    "AssessmentQuestion",
+    "AssessmentAnswer",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID",
+    data_source_id,
+    pending_date_deleted,
+    source_hash
+   FROM public."AssessmentQuestions"
+  WHERE ("DateDeleted" IS NULL);
 
 
 --
@@ -447,13 +402,7 @@ CREATE TABLE public."AssessmentResults" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying,
-    ds_assessmentresult_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("AssessmentResultID")::text)) STORED,
-    ds_assessment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("AssessmentID")::text)) STORED,
-    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
-    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
+    source_hash character varying
 );
 
 
@@ -503,12 +452,7 @@ CREATE TABLE public."Assessment" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    synthetic boolean DEFAULT false,
-    ds_assessment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("AssessmentID")::text)) STORED,
-    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
-    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
+    synthetic boolean DEFAULT false
 );
 
 
@@ -540,265 +484,6 @@ CREATE VIEW analytics.assessments AS
 
 
 --
--- Name: cas_analytics_clients; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_clients (
-    id bigint NOT NULL,
-    client_id bigint,
-    calculated_first_homeless_night date,
-    calculated_last_homeless_night date,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: cas_clients; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.cas_clients AS
- SELECT id,
-    client_id,
-    created_at,
-    updated_at
-   FROM public.cas_analytics_clients;
-
-
---
--- Name: cas_analytics_opportunities; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_opportunities (
-    id bigint NOT NULL,
-    opportunity_category_id bigint,
-    unit_id bigint,
-    unit_name character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: cas_opportunities; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.cas_opportunities AS
- SELECT id,
-    opportunity_category_id,
-    unit_id,
-    unit_name,
-    created_at,
-    updated_at
-   FROM public.cas_analytics_opportunities;
-
-
---
--- Name: cas_analytics_opportunity_categories; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_opportunity_categories (
-    id bigint NOT NULL,
-    full_name character varying,
-    name character varying,
-    sub_project_name character varying,
-    program_type character varying,
-    subgrantee_id bigint,
-    subgrantee_name character varying,
-    sub_contractor_id bigint,
-    sub_contractor_name character varying,
-    hsa_id bigint,
-    hsa_name character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: COLUMN cas_analytics_opportunity_categories.full_name; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.cas_analytics_opportunity_categories.full_name IS 'concatenation of program name and sub-program name';
-
-
---
--- Name: cas_opportunity_categories; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.cas_opportunity_categories AS
- SELECT id,
-    full_name,
-    name,
-    sub_project_name,
-    program_type,
-    subgrantee_id,
-    subgrantee_name,
-    sub_contractor_id,
-    sub_contractor_name,
-    hsa_id,
-    hsa_name,
-    created_at,
-    updated_at
-   FROM public.cas_analytics_opportunity_categories;
-
-
---
--- Name: cas_analytics_referral_contacts; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_referral_contacts (
-    id bigint NOT NULL,
-    email character varying,
-    referral_id bigint,
-    contact_id bigint,
-    contact_type character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: cas_referral_contacts; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.cas_referral_contacts AS
- SELECT id,
-    email,
-    referral_id,
-    contact_id,
-    contact_type,
-    created_at,
-    updated_at
-   FROM public.cas_analytics_referral_contacts;
-
-
---
--- Name: cas_analytics_referral_users; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_referral_users (
-    id bigint NOT NULL,
-    email character varying,
-    referral_id bigint
-);
-
-
---
--- Name: cas_referral_users; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.cas_referral_users AS
- SELECT id,
-    email,
-    referral_id
-   FROM public.cas_analytics_referral_users;
-
-
---
--- Name: cas_analytics_referrals; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_referrals (
-    id bigint NOT NULL,
-    referral_name character varying,
-    client_id bigint,
-    opportunity_id bigint,
-    opportunity_category_id bigint,
-    started_at timestamp(6) without time zone,
-    completed_at timestamp(6) without time zone,
-    stalled boolean,
-    current_status character varying,
-    terminal_status character varying,
-    unsuccessful_reason character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: cas_referrals; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.cas_referrals AS
- SELECT id,
-    referral_name,
-    client_id,
-    opportunity_id,
-    opportunity_category_id,
-    started_at,
-    completed_at,
-    stalled,
-    current_status,
-    terminal_status,
-    unsuccessful_reason,
-    created_at,
-    updated_at
-   FROM public.cas_analytics_referrals;
-
-
---
--- Name: cas_analytics_steps; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_steps (
-    id bigint NOT NULL,
-    referral_id bigint,
-    name character varying,
-    "order" integer,
-    status character varying,
-    started_at timestamp(6) without time zone,
-    completed_at timestamp(6) without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: cas_steps; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.cas_steps AS
- SELECT id,
-    referral_id,
-    name,
-    "order" AS sort_order,
-    status,
-    started_at,
-    completed_at,
-    created_at,
-    updated_at
-   FROM public.cas_analytics_steps;
-
-
---
--- Name: cas_analytics_cas_users; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.cas_analytics_cas_users (
-    id bigint NOT NULL,
-    email character varying,
-    agency_id bigint,
-    agency_name character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: cas_users; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.cas_users AS
- SELECT id,
-    email,
-    agency_id,
-    agency_name,
-    created_at,
-    updated_at
-   FROM public.cas_analytics_cas_users;
-
-
---
 -- Name: CEParticipation; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -821,10 +506,7 @@ CREATE TABLE public."CEParticipation" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted date,
-    source_hash character varying,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED,
-    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED
+    source_hash character varying
 );
 
 
@@ -882,144 +564,6 @@ CREATE VIEW analytics.ch_enrollments AS
     created_at,
     updated_at
    FROM public.ch_enrollments;
-
-
---
--- Name: files; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.files (
-    id integer NOT NULL,
-    type character varying NOT NULL,
-    file character varying,
-    content_type character varying,
-    content bytea,
-    client_id integer,
-    user_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    deleted_at timestamp without time zone,
-    note character varying,
-    name character varying,
-    visible_in_window boolean,
-    migrated_username character varying,
-    vispdat_id integer,
-    consent_form_signed_on date,
-    consent_form_confirmed boolean,
-    size double precision,
-    effective_date date,
-    expiration_date date,
-    delete_reason integer,
-    delete_detail character varying,
-    consent_revoked_at timestamp without time zone,
-    coc_codes jsonb DEFAULT '[]'::jsonb,
-    enrollment_id bigint,
-    confidential boolean DEFAULT false NOT NULL,
-    updated_by_id bigint,
-    data_source_id bigint,
-    consent_revoked_by_user_id integer,
-    active_storage_url character varying
-);
-
-
---
--- Name: taggings; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.taggings (
-    id integer NOT NULL,
-    tag_id integer,
-    taggable_id integer,
-    taggable_type character varying,
-    tagger_id integer,
-    tagger_type character varying,
-    context character varying(128),
-    created_at timestamp without time zone
-);
-
-
---
--- Name: tags; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.tags (
-    id integer NOT NULL,
-    name character varying,
-    taggings_count integer DEFAULT 0
-);
-
-
---
--- Name: client_files; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.client_files AS
- WITH file_tags AS (
-         SELECT taggings.taggable_id AS file_id,
-            array_agg(DISTINCT tags.name ORDER BY tags.name) AS tag_names
-           FROM (public.tags
-             JOIN public.taggings ON ((tags.id = taggings.tag_id)))
-          WHERE ((taggings.taggable_type)::text = 'GrdaWarehouse::File'::text)
-          GROUP BY taggings.taggable_id
-        )
- SELECT client_files.id,
-    client_files.client_id,
-    client_files.visible_in_window,
-    client_files.consent_form_signed_on AS signature_date,
-    client_files.consent_form_confirmed AS consent_confirmed,
-    client_files.effective_date,
-    client_files.expiration_date,
-    client_files.consent_revoked_at,
-    client_files.coc_codes,
-    client_files.active_storage_url,
-    COALESCE(ft.tag_names, '{}'::character varying[]) AS tags,
-    client_files.data_source_id,
-    client_files.created_at,
-    client_files.updated_at
-   FROM (public.files client_files
-     LEFT JOIN file_tags ft ON ((ft.file_id = client_files.id)))
-  WHERE (((client_files.type)::text = 'GrdaWarehouse::ClientFile'::text) AND (client_files.deleted_at IS NULL) AND (client_files.confidential = false));
-
-
---
--- Name: clh_locations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.clh_locations (
-    id bigint NOT NULL,
-    client_id bigint,
-    source_type character varying,
-    source_id bigint,
-    located_on date,
-    lat double precision,
-    lon double precision,
-    collected_by character varying,
-    processed_at timestamp without time zone,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    enrollment_id bigint,
-    located_at timestamp(6) without time zone
-);
-
-
---
--- Name: client_geolocations; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.client_geolocations AS
- SELECT id,
-    client_id,
-    source_type,
-    source_id,
-    located_on,
-    lat,
-    lon,
-    created_at,
-    updated_at,
-    located_at
-   FROM public.clh_locations
-  WHERE ((deleted_at IS NULL) AND (lat IS NOT NULL) AND (lon IS NOT NULL));
 
 
 --
@@ -1163,10 +707,7 @@ CREATE TABLE public."Client" (
     "DifferentIdentityText" character varying,
     search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE("FirstName", ''::character varying))::text || ' '::text) || (COALESCE("MiddleName", ''::character varying))::text) || ' '::text) || (COALESCE("LastName", ''::character varying))::text))) STORED,
     search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED,
-    lock_version integer DEFAULT 0 NOT NULL,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED,
-    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED
+    lock_version integer DEFAULT 0 NOT NULL
 );
 
 
@@ -1186,34 +727,6 @@ CREATE VIEW analytics.client_piis AS
     "DOB"
    FROM public."Client"
   WHERE ("DateDeleted" IS NULL);
-
-
---
--- Name: client_roi_authorizations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.client_roi_authorizations (
-    id bigint NOT NULL,
-    destination_client_id bigint NOT NULL,
-    status character varying NOT NULL,
-    coc_codes character varying[],
-    starts_at date,
-    expires_at date
-);
-
-
---
--- Name: client_roi_authorizations; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.client_roi_authorizations AS
- SELECT id,
-    destination_client_id,
-    status,
-    coc_codes,
-    starts_at,
-    expires_at
-   FROM public.client_roi_authorizations;
 
 
 --
@@ -1262,12 +775,7 @@ CREATE VIEW analytics.clients AS
     "DateUpdated",
     "UserID",
     "DateDeleted",
-    "ExportID",
-    consent_form_id,
-    housing_release_status,
-    consent_form_signed_on,
-    consent_expires_on,
-    consented_coc_codes
+    "ExportID"
    FROM public."Client"
   WHERE ("DateDeleted" IS NULL);
 
@@ -1784,7 +1292,7 @@ CREATE TABLE public."CurrentLivingSituation" (
     "PersonalID" character varying NOT NULL,
     "InformationDate" date NOT NULL,
     "CurrentLivingSituation" integer NOT NULL,
-    "VerifiedBy" character varying(100),
+    "VerifiedBy" character varying,
     "LeaveSituation14Days" integer,
     "SubsequentResidence" integer,
     "ResourcesToObtain" integer,
@@ -1800,8 +1308,7 @@ CREATE TABLE public."CurrentLivingSituation" (
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
     "CLSSubsidyType" integer,
-    verified_by_project_id bigint,
-    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED
+    verified_by_project_id bigint
 );
 
 
@@ -1835,6 +1342,21 @@ CREATE VIEW analytics.current_living_situations AS
     verified_by_project_id
    FROM public."CurrentLivingSituation"
   WHERE ("DateDeleted" IS NULL);
+
+
+--
+-- Name: assessment_answer_lookups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.assessment_answer_lookups (
+    id bigint NOT NULL,
+    assessment_question character varying,
+    response_code character varying,
+    response_text character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    data_source_id integer
+);
 
 
 --
@@ -2414,6 +1936,7 @@ CREATE TABLE public.data_sources (
     service_scannable boolean DEFAULT false NOT NULL,
     import_aggregators jsonb DEFAULT '{}'::jsonb,
     import_cleanups jsonb DEFAULT '{}'::jsonb,
+    refuse_imports_with_errors boolean DEFAULT false,
     hmis character varying,
     obey_consent boolean DEFAULT true
 );
@@ -2469,12 +1992,7 @@ CREATE TABLE public."Disabilities" (
     id integer NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "AntiRetroviral" integer,
-    ds_disabilities_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("DisabilitiesID")::text)) STORED,
-    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
-    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
+    "AntiRetroviral" integer
 );
 
 
@@ -2538,12 +2056,7 @@ CREATE TABLE public."EmploymentEducation" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone,
-    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
-    ds_employmenteducation_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EmploymentEducationID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
+    pending_date_deleted timestamp without time zone
 );
 
 
@@ -2596,12 +2109,7 @@ CREATE TABLE public."EnrollmentCoC" (
     id integer NOT NULL,
     "HouseholdID" character varying(32),
     source_hash character varying,
-    pending_date_deleted timestamp without time zone,
-    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
-    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED
+    pending_date_deleted timestamp without time zone
 );
 
 
@@ -2774,12 +2282,7 @@ CREATE TABLE public."Enrollment" (
     "PreferredLanguageDifferent" character varying,
     "VAMCStation" character varying,
     lock_version integer DEFAULT 0 NOT NULL,
-    project_pk bigint,
-    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED,
-    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED,
-    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED
+    project_pk bigint
 );
 
 
@@ -2955,12 +2458,7 @@ CREATE TABLE public."Event" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    synthetic boolean DEFAULT false,
-    ds_event_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EventID")::text)) STORED,
-    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
-    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
+    synthetic boolean DEFAULT false
 );
 
 
@@ -3059,12 +2557,7 @@ CREATE TABLE public."Exit" (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "DestinationSubsidyType" integer,
-    auto_exited timestamp without time zone,
-    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
-    ds_exit_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExitID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
+    auto_exited timestamp without time zone
 );
 
 
@@ -3079,13 +2572,27 @@ CREATE VIEW analytics.exits AS
     "ExitDate",
     "Destination",
     "OtherDestination",
+    "AssessmentDisposition",
+    "OtherDisposition",
     "HousingAssessment",
     "SubsidyInformation",
+    "ConnectionWithSOAR",
+    "WrittenAftercarePlan",
+    "AssistanceMainstreamBenefits",
+    "PermanentHousingPlacement",
+    "TemporaryShelterPlacement",
+    "ExitCounseling",
+    "FurtherFollowUpServices",
+    "ScheduledFollowUpContacts",
+    "ResourcePackage",
+    "OtherAftercarePlanOrAction",
     "ProjectCompletionStatus",
     "EarlyExitReason",
+    "FamilyReunificationAchieved",
     "DateCreated",
     "DateUpdated",
     "UserID",
+    "DateDeleted",
     "ExportID",
     data_source_id,
     id,
@@ -3117,9 +2624,10 @@ CREATE VIEW analytics.exits AS
     "InPersonIndividual",
     "InPersonGroup",
     "CMExitReason",
+    source_hash,
+    pending_date_deleted,
     "DestinationSubsidyType",
-    auto_exited,
-    (auto_exited IS NOT NULL) AS is_auto_exited
+    auto_exited
    FROM public."Exit"
   WHERE ("DateDeleted" IS NULL);
 
@@ -3151,8 +2659,7 @@ CREATE TABLE public."Export" (
     effective_export_end_date date,
     source_hash character varying,
     "CSVVersion" character varying,
-    "ImplementationID" character varying,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
+    "ImplementationID" character varying
 );
 
 
@@ -3248,16 +2755,6 @@ CREATE VIEW analytics.external_reporting_project_permissions AS
 
 
 --
--- Name: file_tags; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.file_tags AS
- SELECT id,
-    name
-   FROM public.tags;
-
-
---
 -- Name: Funder; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3278,9 +2775,7 @@ CREATE TABLE public."Funder" (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "OtherFunder" character varying,
-    manual_entry boolean DEFAULT false,
-    ds_funder_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("FunderID")::text)) STORED,
-    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -3341,12 +2836,7 @@ CREATE TABLE public."HealthAndDV" (
     "SupportFromOthers" integer,
     "BounceBack" integer,
     "FeelingFrequency" integer,
-    "DomesticViolenceSurvivor" integer,
-    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
-    ds_healthanddv_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("HealthAndDVID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
+    "DomesticViolenceSurvivor" integer
 );
 
 
@@ -3384,114 +2874,6 @@ CREATE VIEW analytics.health_and_dvs AS
     "DomesticViolenceSurvivor"
    FROM public."HealthAndDV"
   WHERE ("DateDeleted" IS NULL);
-
-
---
--- Name: CustomCaseNote; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."CustomCaseNote" (
-    id bigint NOT NULL,
-    "CustomCaseNoteID" character varying NOT NULL,
-    "PersonalID" character varying NOT NULL,
-    "EnrollmentID" character varying,
-    data_source_id bigint NOT NULL,
-    content text NOT NULL,
-    "UserID" character varying,
-    "DateCreated" timestamp without time zone,
-    "DateUpdated" timestamp without time zone,
-    "DateDeleted" timestamp without time zone,
-    information_date date
-);
-
-
---
--- Name: hmis_case_notes; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.hmis_case_notes AS
- SELECT id,
-    "PersonalID" AS personal_id,
-    "EnrollmentID" AS enrollment_id,
-    data_source_id,
-    content,
-    "UserID" AS user_id,
-    "DateCreated" AS date_created,
-    "DateUpdated" AS date_updated,
-    information_date
-   FROM public."CustomCaseNote"
-  WHERE ("DateDeleted" IS NULL);
-
-
---
--- Name: hmis_client_alerts; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_client_alerts (
-    id bigint NOT NULL,
-    note text NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    expiration_date date,
-    created_by_id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    priority character varying
-);
-
-
---
--- Name: hmis_client_alerts; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.hmis_client_alerts AS
- SELECT id,
-    note,
-    created_at,
-    updated_at,
-    expiration_date,
-    created_by_id,
-    client_id,
-    priority
-   FROM public.hmis_client_alerts
-  WHERE (deleted_at IS NULL);
-
-
---
--- Name: hmis_external_form_submissions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_external_form_submissions (
-    id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    submitted_at timestamp without time zone,
-    spam_score double precision,
-    status character varying DEFAULT 'new'::character varying NOT NULL,
-    definition_id bigint NOT NULL,
-    object_key character varying NOT NULL,
-    raw_data jsonb NOT NULL,
-    notes text,
-    enrollment_id bigint
-);
-
-
---
--- Name: hmis_external_form_submissions; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.hmis_external_form_submissions AS
- SELECT id,
-    created_at,
-    updated_at,
-    submitted_at,
-    spam_score,
-    status,
-    definition_id,
-    object_key,
-    notes,
-    enrollment_id
-   FROM public.hmis_external_form_submissions;
 
 
 --
@@ -3640,8 +3022,7 @@ CREATE TABLE public."HMISParticipation" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted date,
-    source_hash character varying,
-    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED
+    source_hash character varying
 );
 
 
@@ -3666,59 +3047,6 @@ CREATE VIEW analytics.hmis_participations AS
     source_hash
    FROM public."HMISParticipation"
   WHERE ("DateDeleted" IS NULL);
-
-
---
--- Name: hmis_staff_assignment_relationships; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_staff_assignment_relationships (
-    id bigint NOT NULL,
-    name character varying NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: COLUMN hmis_staff_assignment_relationships.name; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.hmis_staff_assignment_relationships.name IS 'name of role, such as "Case Manager" or "Housing Navigator"';
-
-
---
--- Name: hmis_staff_assignments; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_staff_assignments (
-    id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    household_id character varying,
-    hmis_staff_assignment_relationship_id bigint NOT NULL,
-    data_source_id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: hmis_staff_assignments; Type: VIEW; Schema: analytics; Owner: -
---
-
-CREATE VIEW analytics.hmis_staff_assignments AS
- SELECT hmis_staff_assignments.id,
-    hmis_staff_assignments.user_id,
-    hmis_staff_assignments.household_id,
-    hmis_staff_assignment_relationships.name,
-    hmis_staff_assignments.data_source_id,
-    hmis_staff_assignments.created_at,
-    hmis_staff_assignments.updated_at
-   FROM (public.hmis_staff_assignments
-     LEFT JOIN public.hmis_staff_assignment_relationships ON (((hmis_staff_assignment_relationships.deleted_at IS NULL) AND (hmis_staff_assignment_relationships.id = hmis_staff_assignments.hmis_staff_assignment_relationship_id))))
-  WHERE (hmis_staff_assignments.deleted_at IS NULL);
 
 
 --
@@ -3812,12 +3140,7 @@ CREATE TABLE public."IncomeBenefits" (
     "RyanWhiteMedDent" integer,
     "NoRyanWhiteReason" integer,
     "VHAServices" integer,
-    "NoVHAReason" character varying,
-    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
-    ds_incomebenefits_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("IncomeBenefitsID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
+    "NoVHAReason" character varying
 );
 
 
@@ -3956,8 +3279,7 @@ CREATE TABLE public."Inventory" (
     deleted_coc_code_override character varying,
     deleted_inventory_start_date_override date,
     deleted_inventory_end_date_override date,
-    manual_entry boolean DEFAULT false,
-    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -4156,10 +3478,7 @@ CREATE TABLE public."Organization" (
     "VictimServiceProvider" integer,
     confidential boolean DEFAULT false NOT NULL,
     description character varying,
-    contact_information character varying,
-    ds_organization_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("OrganizationID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
+    contact_information character varying
 );
 
 
@@ -4218,11 +3537,7 @@ CREATE TABLE public."ProjectCoC" (
     deleted_geography_type_override integer,
     deleted_geocode_override character varying(6),
     deleted_zip_override character varying,
-    manual_entry boolean DEFAULT false,
-    ds_projectcoc_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectCoCID")::text)) STORED,
-    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
+    manual_entry boolean DEFAULT false
 );
 
 
@@ -4361,11 +3676,7 @@ CREATE TABLE public."Project" (
     "HOPWAMedAssistedLivingFac" integer,
     description character varying,
     contact_information character varying,
-    "RRHSubType" integer,
-    ds_project_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ProjectID")::text)) STORED,
-    ds_organization_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("OrganizationID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
+    "RRHSubType" integer
 );
 
 
@@ -4440,12 +3751,7 @@ CREATE TABLE public."Services" (
     pending_date_deleted timestamp without time zone,
     "MovingOnOtherType" character varying,
     "FAStartDate" date,
-    "FAEndDate" date,
-    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
-    ds_services_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ServicesID")::text)) STORED,
-    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
+    "FAEndDate" date
 );
 
 
@@ -4498,9 +3804,7 @@ CREATE TABLE public."User" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
+    source_hash character varying
 );
 
 
@@ -4595,12 +3899,7 @@ CREATE TABLE public."YouthEducationStatus" (
     data_source_id integer,
     pending_date_deleted date,
     source_hash character varying,
-    synthetic boolean DEFAULT false,
-    ds_youtheducationstatus_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("YouthEducationStatusID")::text)) STORED,
-    ds_enrollment_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("EnrollmentID")::text)) STORED,
-    ds_personal_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("PersonalID")::text)) STORED,
-    ds_user_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("UserID")::text)) STORED,
-    ds_export_id character varying GENERATED ALWAYS AS (((data_source_id || ':'::text) || ("ExportID")::text)) STORED
+    synthetic boolean DEFAULT false
 );
 
 
@@ -4900,6 +4199,25 @@ CREATE SEQUENCE public."CustomAssessments_id_seq"
 --
 
 ALTER SEQUENCE public."CustomAssessments_id_seq" OWNED BY public."CustomAssessments".id;
+
+
+--
+-- Name: CustomCaseNote; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomCaseNote" (
+    id bigint NOT NULL,
+    "CustomCaseNoteID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "EnrollmentID" character varying,
+    data_source_id bigint NOT NULL,
+    content text NOT NULL,
+    "UserID" character varying,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "DateDeleted" timestamp without time zone,
+    information_date date
+);
 
 
 --
@@ -6248,158 +5566,6 @@ ALTER SEQUENCE public.boston_report_configs_id_seq OWNED BY public.boston_report
 
 
 --
--- Name: cas_analytics_cas_users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.cas_analytics_cas_users_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: cas_analytics_cas_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.cas_analytics_cas_users_id_seq OWNED BY public.cas_analytics_cas_users.id;
-
-
---
--- Name: cas_analytics_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.cas_analytics_clients_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: cas_analytics_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.cas_analytics_clients_id_seq OWNED BY public.cas_analytics_clients.id;
-
-
---
--- Name: cas_analytics_opportunities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.cas_analytics_opportunities_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: cas_analytics_opportunities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.cas_analytics_opportunities_id_seq OWNED BY public.cas_analytics_opportunities.id;
-
-
---
--- Name: cas_analytics_opportunity_categories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.cas_analytics_opportunity_categories_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: cas_analytics_opportunity_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.cas_analytics_opportunity_categories_id_seq OWNED BY public.cas_analytics_opportunity_categories.id;
-
-
---
--- Name: cas_analytics_referral_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.cas_analytics_referral_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: cas_analytics_referral_contacts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.cas_analytics_referral_contacts_id_seq OWNED BY public.cas_analytics_referral_contacts.id;
-
-
---
--- Name: cas_analytics_referral_users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.cas_analytics_referral_users_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: cas_analytics_referral_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.cas_analytics_referral_users_id_seq OWNED BY public.cas_analytics_referral_users.id;
-
-
---
--- Name: cas_analytics_referrals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.cas_analytics_referrals_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: cas_analytics_referrals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.cas_analytics_referrals_id_seq OWNED BY public.cas_analytics_referrals.id;
-
-
---
--- Name: cas_analytics_steps_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.cas_analytics_steps_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: cas_analytics_steps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.cas_analytics_steps_id_seq OWNED BY public.cas_analytics_steps.id;
-
-
---
 -- Name: cas_availabilities; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -7484,6 +6650,28 @@ ALTER SEQUENCE public.chronics_id_seq OWNED BY public.chronics.id;
 
 
 --
+-- Name: clh_locations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.clh_locations (
+    id bigint NOT NULL,
+    client_id bigint,
+    source_type character varying,
+    source_id bigint,
+    located_on date,
+    lat double precision,
+    lon double precision,
+    collected_by character varying,
+    processed_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    enrollment_id bigint,
+    located_at timestamp(6) without time zone
+);
+
+
+--
 -- Name: clh_locations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -7659,6 +6847,20 @@ CREATE SEQUENCE public.client_notes_id_seq
 --
 
 ALTER SEQUENCE public.client_notes_id_seq OWNED BY public.client_notes.id;
+
+
+--
+-- Name: client_roi_authorizations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_roi_authorizations (
+    id bigint NOT NULL,
+    destination_client_id bigint NOT NULL,
+    status character varying NOT NULL,
+    coc_codes character varying[],
+    starts_at date,
+    expires_at date
+);
 
 
 --
@@ -9743,6 +8945,43 @@ CREATE SEQUENCE public.federal_census_breakdowns_id_seq
 --
 
 ALTER SEQUENCE public.federal_census_breakdowns_id_seq OWNED BY public.federal_census_breakdowns.id;
+
+
+--
+-- Name: files; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.files (
+    id integer NOT NULL,
+    type character varying NOT NULL,
+    file character varying,
+    content_type character varying,
+    content bytea,
+    client_id integer,
+    user_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone,
+    note character varying,
+    name character varying,
+    visible_in_window boolean,
+    migrated_username character varying,
+    vispdat_id integer,
+    consent_form_signed_on date,
+    consent_form_confirmed boolean,
+    size double precision,
+    effective_date date,
+    expiration_date date,
+    delete_reason integer,
+    delete_detail character varying,
+    consent_revoked_at timestamp without time zone,
+    coc_codes jsonb DEFAULT '[]'::jsonb,
+    enrollment_id bigint,
+    confidential boolean DEFAULT false NOT NULL,
+    updated_by_id bigint,
+    data_source_id bigint,
+    consent_revoked_by_user_id integer
+);
 
 
 --
@@ -15265,6 +14504,23 @@ ALTER SEQUENCE public.hmis_case_notes_id_seq OWNED BY public.hmis_case_notes.id;
 
 
 --
+-- Name: hmis_client_alerts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_client_alerts (
+    id bigint NOT NULL,
+    note text NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    expiration_date date,
+    created_by_id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    priority character varying
+);
+
+
+--
 -- Name: hmis_client_alerts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -19812,6 +19068,25 @@ ALTER SEQUENCE public.hmis_external_form_publications_id_seq OWNED BY public.hmi
 
 
 --
+-- Name: hmis_external_form_submissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_form_submissions (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    submitted_at timestamp without time zone,
+    spam_score double precision,
+    status character varying DEFAULT 'new'::character varying NOT NULL,
+    definition_id bigint NOT NULL,
+    object_key character varying NOT NULL,
+    raw_data jsonb NOT NULL,
+    notes text,
+    enrollment_id bigint
+);
+
+
+--
 -- Name: hmis_external_form_submissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -20560,6 +19835,26 @@ CREATE TABLE public.hmis_staff (
 
 
 --
+-- Name: hmis_staff_assignment_relationships; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_staff_assignment_relationships (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN hmis_staff_assignment_relationships.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_staff_assignment_relationships.name IS 'name of role, such as "Case Manager" or "Housing Navigator"';
+
+
+--
 -- Name: hmis_staff_assignment_relationships_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -20576,6 +19871,22 @@ CREATE SEQUENCE public.hmis_staff_assignment_relationships_id_seq
 --
 
 ALTER SEQUENCE public.hmis_staff_assignment_relationships_id_seq OWNED BY public.hmis_staff_assignment_relationships.id;
+
+
+--
+-- Name: hmis_staff_assignments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_staff_assignments (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    household_id character varying,
+    hmis_staff_assignment_relationship_id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
 
 
 --
@@ -27851,6 +27162,22 @@ ALTER SEQUENCE public.system_pathways_enrollments_id_seq OWNED BY public.system_
 
 
 --
+-- Name: taggings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.taggings (
+    id integer NOT NULL,
+    tag_id integer,
+    taggable_id integer,
+    taggable_type character varying,
+    tagger_id integer,
+    tagger_type character varying,
+    context character varying(128),
+    created_at timestamp without time zone
+);
+
+
+--
 -- Name: taggings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -27867,6 +27194,17 @@ CREATE SEQUENCE public.taggings_id_seq
 --
 
 ALTER SEQUENCE public.taggings_id_seq OWNED BY public.taggings.id;
+
+
+--
+-- Name: tags; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tags (
+    id integer NOT NULL,
+    name character varying,
+    taggings_count integer DEFAULT 0
+);
 
 
 --
@@ -29816,62 +29154,6 @@ ALTER TABLE ONLY public.boston_project_scorecard_reports ALTER COLUMN id SET DEF
 --
 
 ALTER TABLE ONLY public.boston_report_configs ALTER COLUMN id SET DEFAULT nextval('public.boston_report_configs_id_seq'::regclass);
-
-
---
--- Name: cas_analytics_cas_users id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_cas_users ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_cas_users_id_seq'::regclass);
-
-
---
--- Name: cas_analytics_clients id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_clients ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_clients_id_seq'::regclass);
-
-
---
--- Name: cas_analytics_opportunities id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_opportunities ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_opportunities_id_seq'::regclass);
-
-
---
--- Name: cas_analytics_opportunity_categories id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_opportunity_categories ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_opportunity_categories_id_seq'::regclass);
-
-
---
--- Name: cas_analytics_referral_contacts id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_referral_contacts ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_referral_contacts_id_seq'::regclass);
-
-
---
--- Name: cas_analytics_referral_users id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_referral_users ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_referral_users_id_seq'::regclass);
-
-
---
--- Name: cas_analytics_referrals id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_referrals ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_referrals_id_seq'::regclass);
-
-
---
--- Name: cas_analytics_steps id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_steps ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_steps_id_seq'::regclass);
 
 
 --
@@ -33314,70 +32596,6 @@ ALTER TABLE ONLY public.boston_project_scorecard_reports
 
 ALTER TABLE ONLY public.boston_report_configs
     ADD CONSTRAINT boston_report_configs_pkey PRIMARY KEY (id);
-
-
---
--- Name: cas_analytics_cas_users cas_analytics_cas_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_cas_users
-    ADD CONSTRAINT cas_analytics_cas_users_pkey PRIMARY KEY (id);
-
-
---
--- Name: cas_analytics_clients cas_analytics_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_clients
-    ADD CONSTRAINT cas_analytics_clients_pkey PRIMARY KEY (id);
-
-
---
--- Name: cas_analytics_opportunities cas_analytics_opportunities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_opportunities
-    ADD CONSTRAINT cas_analytics_opportunities_pkey PRIMARY KEY (id);
-
-
---
--- Name: cas_analytics_opportunity_categories cas_analytics_opportunity_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_opportunity_categories
-    ADD CONSTRAINT cas_analytics_opportunity_categories_pkey PRIMARY KEY (id);
-
-
---
--- Name: cas_analytics_referral_contacts cas_analytics_referral_contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_referral_contacts
-    ADD CONSTRAINT cas_analytics_referral_contacts_pkey PRIMARY KEY (id);
-
-
---
--- Name: cas_analytics_referral_users cas_analytics_referral_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_referral_users
-    ADD CONSTRAINT cas_analytics_referral_users_pkey PRIMARY KEY (id);
-
-
---
--- Name: cas_analytics_referrals cas_analytics_referrals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_referrals
-    ADD CONSTRAINT cas_analytics_referrals_pkey PRIMARY KEY (id);
-
-
---
--- Name: cas_analytics_steps cas_analytics_steps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.cas_analytics_steps
-    ADD CONSTRAINT cas_analytics_steps_pkey PRIMARY KEY (id);
 
 
 --
@@ -37250,13 +36468,6 @@ ALTER TABLE ONLY public.youth_intakes
 
 ALTER TABLE ONLY public.youth_referrals
     ADD CONSTRAINT youth_referrals_pkey PRIMARY KEY (id);
-
-
---
--- Name: index_analytics.app_users_on_id; Type: INDEX; Schema: analytics; Owner: -
---
-
-CREATE UNIQUE INDEX "index_analytics.app_users_on_id" ON analytics.app_users USING btree (id);
 
 
 --
@@ -53010,164 +52221,10 @@ CREATE INDEX "idx_CustomDataElementDefinitions_1" ON public."CustomDataElementDe
 
 
 --
--- Name: idx_affiliation_ds_affiliation_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_affiliation_ds_affiliation_id ON public."Affiliation" USING btree (ds_affiliation_id);
-
-
---
--- Name: idx_affiliation_ds_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_affiliation_ds_project_id ON public."Affiliation" USING btree (ds_project_id);
-
-
---
 -- Name: idx_any_stage; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_any_stage ON public."IncomeBenefits" USING btree ("IncomeFromAnySource", "DataCollectionStage");
-
-
---
--- Name: idx_assessment_ds_assessment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessment_ds_assessment_id ON public."Assessment" USING btree (ds_assessment_id);
-
-
---
--- Name: idx_assessment_ds_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessment_ds_enrollment_id ON public."Assessment" USING btree (ds_enrollment_id);
-
-
---
--- Name: idx_assessment_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessment_ds_export_id ON public."Assessment" USING btree (ds_export_id);
-
-
---
--- Name: idx_assessment_ds_personal_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessment_ds_personal_id ON public."Assessment" USING btree (ds_personal_id);
-
-
---
--- Name: idx_assessment_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessment_ds_user_id ON public."Assessment" USING btree (ds_user_id);
-
-
---
--- Name: idx_assessmentquestions_ds_assessment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessmentquestions_ds_assessment_id ON public."AssessmentQuestions" USING btree (ds_assessment_id);
-
-
---
--- Name: idx_assessmentquestions_ds_assessmentquestion_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessmentquestions_ds_assessmentquestion_id ON public."AssessmentQuestions" USING btree (ds_assessmentquestion_id);
-
-
---
--- Name: idx_assessmentquestions_ds_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessmentquestions_ds_enrollment_id ON public."AssessmentQuestions" USING btree (ds_enrollment_id);
-
-
---
--- Name: idx_assessmentquestions_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessmentquestions_ds_export_id ON public."AssessmentQuestions" USING btree (ds_export_id);
-
-
---
--- Name: idx_assessmentquestions_ds_personal_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessmentquestions_ds_personal_id ON public."AssessmentQuestions" USING btree (ds_personal_id);
-
-
---
--- Name: idx_assessmentquestions_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessmentquestions_ds_user_id ON public."AssessmentQuestions" USING btree (ds_user_id);
-
-
---
--- Name: idx_assessmentresults_ds_assessment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessmentresults_ds_assessment_id ON public."AssessmentResults" USING btree (ds_assessment_id);
-
-
---
--- Name: idx_assessmentresults_ds_assessmentresult_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessmentresults_ds_assessmentresult_id ON public."AssessmentResults" USING btree (ds_assessmentresult_id);
-
-
---
--- Name: idx_assessmentresults_ds_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessmentresults_ds_enrollment_id ON public."AssessmentResults" USING btree (ds_enrollment_id);
-
-
---
--- Name: idx_assessmentresults_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessmentresults_ds_export_id ON public."AssessmentResults" USING btree (ds_export_id);
-
-
---
--- Name: idx_assessmentresults_ds_personal_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessmentresults_ds_personal_id ON public."AssessmentResults" USING btree (ds_personal_id);
-
-
---
--- Name: idx_assessmentresults_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_assessmentresults_ds_user_id ON public."AssessmentResults" USING btree (ds_user_id);
-
-
---
--- Name: idx_ceparticipation_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_ceparticipation_ds_export_id ON public."CEParticipation" USING btree (ds_export_id);
-
-
---
--- Name: idx_ceparticipation_ds_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_ceparticipation_ds_project_id ON public."CEParticipation" USING btree (ds_project_id);
-
-
---
--- Name: idx_ceparticipation_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_ceparticipation_ds_user_id ON public."CEParticipation" USING btree (ds_user_id);
 
 
 --
@@ -53192,27 +52249,6 @@ CREATE INDEX idx_client_custom_names_last_idx ON public."CustomClientName" USING
 
 
 --
--- Name: idx_client_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_client_ds_export_id ON public."Client" USING btree (ds_export_id);
-
-
---
--- Name: idx_client_ds_personal_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_client_ds_personal_id ON public."Client" USING btree (ds_personal_id);
-
-
---
--- Name: idx_client_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_client_ds_user_id ON public."Client" USING btree (ds_user_id);
-
-
---
 -- Name: idx_client_name_full_gin; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53227,52 +52263,10 @@ CREATE INDEX idx_client_name_last_gin ON public."Client" USING gin (search_name_
 
 
 --
--- Name: idx_currentlivingsituation_ds_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_currentlivingsituation_ds_enrollment_id ON public."CurrentLivingSituation" USING btree (ds_enrollment_id);
-
-
---
 -- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_dis_p_id_e_id_del_ds_id ON public."Disabilities" USING btree ("EnrollmentID", "PersonalID", "DateDeleted", data_source_id) WHERE ("IndefiniteAndImpairs" = 1);
-
-
---
--- Name: idx_disabilities_ds_disabilities_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_disabilities_ds_disabilities_id ON public."Disabilities" USING btree (ds_disabilities_id);
-
-
---
--- Name: idx_disabilities_ds_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_disabilities_ds_enrollment_id ON public."Disabilities" USING btree (ds_enrollment_id);
-
-
---
--- Name: idx_disabilities_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_disabilities_ds_export_id ON public."Disabilities" USING btree (ds_export_id);
-
-
---
--- Name: idx_disabilities_ds_personal_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_disabilities_ds_personal_id ON public."Disabilities" USING btree (ds_personal_id);
-
-
---
--- Name: idx_disabilities_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_disabilities_ds_user_id ON public."Disabilities" USING btree (ds_user_id);
 
 
 --
@@ -53283,55 +52277,6 @@ CREATE INDEX idx_earned_stage ON public."IncomeBenefits" USING btree ("Earned", 
 
 
 --
--- Name: idx_employmenteducation_ds_employmenteducation_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_employmenteducation_ds_employmenteducation_id ON public."EmploymentEducation" USING btree (ds_employmenteducation_id);
-
-
---
--- Name: idx_employmenteducation_ds_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_employmenteducation_ds_enrollment_id ON public."EmploymentEducation" USING btree (ds_enrollment_id);
-
-
---
--- Name: idx_employmenteducation_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_employmenteducation_ds_export_id ON public."EmploymentEducation" USING btree (ds_export_id);
-
-
---
--- Name: idx_employmenteducation_ds_personal_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_employmenteducation_ds_personal_id ON public."EmploymentEducation" USING btree (ds_personal_id);
-
-
---
--- Name: idx_employmenteducation_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_employmenteducation_ds_user_id ON public."EmploymentEducation" USING btree (ds_user_id);
-
-
---
--- Name: idx_enrollment_ds_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_enrollment_ds_enrollment_id ON public."Enrollment" USING btree (ds_enrollment_id);
-
-
---
--- Name: idx_enrollment_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_enrollment_ds_export_id ON public."Enrollment" USING btree (ds_export_id);
-
-
---
 -- Name: idx_enrollment_ds_id_hh_id_p_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53339,192 +52284,10 @@ CREATE INDEX idx_enrollment_ds_id_hh_id_p_id ON public."Enrollment" USING btree 
 
 
 --
--- Name: idx_enrollment_ds_personal_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_enrollment_ds_personal_id ON public."Enrollment" USING btree (ds_personal_id);
-
-
---
--- Name: idx_enrollment_ds_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_enrollment_ds_project_id ON public."Enrollment" USING btree (ds_project_id);
-
-
---
--- Name: idx_enrollment_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_enrollment_ds_user_id ON public."Enrollment" USING btree (ds_user_id);
-
-
---
--- Name: idx_enrollmentcoc_ds_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_enrollmentcoc_ds_enrollment_id ON public."EnrollmentCoC" USING btree (ds_enrollment_id);
-
-
---
--- Name: idx_enrollmentcoc_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_enrollmentcoc_ds_export_id ON public."EnrollmentCoC" USING btree (ds_export_id);
-
-
---
--- Name: idx_enrollmentcoc_ds_personal_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_enrollmentcoc_ds_personal_id ON public."EnrollmentCoC" USING btree (ds_personal_id);
-
-
---
--- Name: idx_enrollmentcoc_ds_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_enrollmentcoc_ds_project_id ON public."EnrollmentCoC" USING btree (ds_project_id);
-
-
---
--- Name: idx_enrollmentcoc_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_enrollmentcoc_ds_user_id ON public."EnrollmentCoC" USING btree (ds_user_id);
-
-
---
--- Name: idx_event_ds_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_event_ds_enrollment_id ON public."Event" USING btree (ds_enrollment_id);
-
-
---
--- Name: idx_event_ds_event_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_event_ds_event_id ON public."Event" USING btree (ds_event_id);
-
-
---
--- Name: idx_event_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_event_ds_export_id ON public."Event" USING btree (ds_export_id);
-
-
---
--- Name: idx_event_ds_personal_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_event_ds_personal_id ON public."Event" USING btree (ds_personal_id);
-
-
---
--- Name: idx_event_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_event_ds_user_id ON public."Event" USING btree (ds_user_id);
-
-
---
--- Name: idx_exit_ds_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_exit_ds_enrollment_id ON public."Exit" USING btree (ds_enrollment_id);
-
-
---
--- Name: idx_exit_ds_exit_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_exit_ds_exit_id ON public."Exit" USING btree (ds_exit_id);
-
-
---
--- Name: idx_exit_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_exit_ds_export_id ON public."Exit" USING btree (ds_export_id);
-
-
---
--- Name: idx_exit_ds_personal_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_exit_ds_personal_id ON public."Exit" USING btree (ds_personal_id);
-
-
---
--- Name: idx_exit_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_exit_ds_user_id ON public."Exit" USING btree (ds_user_id);
-
-
---
--- Name: idx_export_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_export_ds_export_id ON public."Export" USING btree (ds_export_id);
-
-
---
 -- Name: idx_fed_census_acc_on_geo_measure; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_fed_census_acc_on_geo_measure ON public.federal_census_breakdowns USING btree (accurate_on, geography, geography_level, measure);
-
-
---
--- Name: idx_funder_ds_funder_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_funder_ds_funder_id ON public."Funder" USING btree (ds_funder_id);
-
-
---
--- Name: idx_funder_ds_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_funder_ds_project_id ON public."Funder" USING btree (ds_project_id);
-
-
---
--- Name: idx_healthanddv_ds_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_healthanddv_ds_enrollment_id ON public."HealthAndDV" USING btree (ds_enrollment_id);
-
-
---
--- Name: idx_healthanddv_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_healthanddv_ds_export_id ON public."HealthAndDV" USING btree (ds_export_id);
-
-
---
--- Name: idx_healthanddv_ds_healthanddv_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_healthanddv_ds_healthanddv_id ON public."HealthAndDV" USING btree (ds_healthanddv_id);
-
-
---
--- Name: idx_healthanddv_ds_personal_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_healthanddv_ds_personal_id ON public."HealthAndDV" USING btree (ds_personal_id);
-
-
---
--- Name: idx_healthanddv_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_healthanddv_ds_user_id ON public."HealthAndDV" USING btree (ds_user_id);
 
 
 --
@@ -53710,171 +52473,10 @@ CREATE INDEX idx_hmis_household_events_on_household_and_data_source ON public.hm
 
 
 --
--- Name: idx_hmisparticipation_ds_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_hmisparticipation_ds_project_id ON public."HMISParticipation" USING btree (ds_project_id);
-
-
---
 -- Name: idx_inbound_api_configurations_uniq; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX idx_inbound_api_configurations_uniq ON public.inbound_api_configurations USING btree (internal_system_id, external_system_name, version);
-
-
---
--- Name: idx_incomebenefits_ds_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_incomebenefits_ds_enrollment_id ON public."IncomeBenefits" USING btree (ds_enrollment_id);
-
-
---
--- Name: idx_incomebenefits_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_incomebenefits_ds_export_id ON public."IncomeBenefits" USING btree (ds_export_id);
-
-
---
--- Name: idx_incomebenefits_ds_incomebenefits_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_incomebenefits_ds_incomebenefits_id ON public."IncomeBenefits" USING btree (ds_incomebenefits_id);
-
-
---
--- Name: idx_incomebenefits_ds_personal_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_incomebenefits_ds_personal_id ON public."IncomeBenefits" USING btree (ds_personal_id);
-
-
---
--- Name: idx_incomebenefits_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_incomebenefits_ds_user_id ON public."IncomeBenefits" USING btree (ds_user_id);
-
-
---
--- Name: idx_inventory_ds_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_inventory_ds_project_id ON public."Inventory" USING btree (ds_project_id);
-
-
---
--- Name: idx_organization_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_organization_ds_export_id ON public."Organization" USING btree (ds_export_id);
-
-
---
--- Name: idx_organization_ds_organization_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_organization_ds_organization_id ON public."Organization" USING btree (ds_organization_id);
-
-
---
--- Name: idx_organization_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_organization_ds_user_id ON public."Organization" USING btree (ds_user_id);
-
-
---
--- Name: idx_project_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_project_ds_export_id ON public."Project" USING btree (ds_export_id);
-
-
---
--- Name: idx_project_ds_organization_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_project_ds_organization_id ON public."Project" USING btree (ds_organization_id);
-
-
---
--- Name: idx_project_ds_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_project_ds_project_id ON public."Project" USING btree (ds_project_id);
-
-
---
--- Name: idx_project_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_project_ds_user_id ON public."Project" USING btree (ds_user_id);
-
-
---
--- Name: idx_projectcoc_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_projectcoc_ds_export_id ON public."ProjectCoC" USING btree (ds_export_id);
-
-
---
--- Name: idx_projectcoc_ds_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_projectcoc_ds_project_id ON public."ProjectCoC" USING btree (ds_project_id);
-
-
---
--- Name: idx_projectcoc_ds_projectcoc_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_projectcoc_ds_projectcoc_id ON public."ProjectCoC" USING btree (ds_projectcoc_id);
-
-
---
--- Name: idx_projectcoc_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_projectcoc_ds_user_id ON public."ProjectCoC" USING btree (ds_user_id);
-
-
---
--- Name: idx_services_ds_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_services_ds_enrollment_id ON public."Services" USING btree (ds_enrollment_id);
-
-
---
--- Name: idx_services_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_services_ds_export_id ON public."Services" USING btree (ds_export_id);
-
-
---
--- Name: idx_services_ds_personal_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_services_ds_personal_id ON public."Services" USING btree (ds_personal_id);
-
-
---
--- Name: idx_services_ds_services_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_services_ds_services_id ON public."Services" USING btree (ds_services_id);
-
-
---
--- Name: idx_services_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_services_ds_user_id ON public."Services" USING btree (ds_user_id);
 
 
 --
@@ -53892,59 +52494,10 @@ CREATE UNIQUE INDEX idx_tpc_uniqueness ON public.enrollment_extras USING btree (
 
 
 --
--- Name: idx_user_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_user_ds_export_id ON public."User" USING btree (ds_export_id);
-
-
---
--- Name: idx_user_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_user_ds_user_id ON public."User" USING btree (ds_user_id);
-
-
---
 -- Name: idx_youth_eds_hud_keys; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_youth_eds_hud_keys ON public."YouthEducationStatus" USING btree ("EnrollmentID", data_source_id, "PersonalID");
-
-
---
--- Name: idx_youtheducationstatus_ds_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_youtheducationstatus_ds_enrollment_id ON public."YouthEducationStatus" USING btree (ds_enrollment_id);
-
-
---
--- Name: idx_youtheducationstatus_ds_export_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_youtheducationstatus_ds_export_id ON public."YouthEducationStatus" USING btree (ds_export_id);
-
-
---
--- Name: idx_youtheducationstatus_ds_personal_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_youtheducationstatus_ds_personal_id ON public."YouthEducationStatus" USING btree (ds_personal_id);
-
-
---
--- Name: idx_youtheducationstatus_ds_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_youtheducationstatus_ds_user_id ON public."YouthEducationStatus" USING btree (ds_user_id);
-
-
---
--- Name: idx_youtheducationstatus_ds_youtheducationstatus_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_youtheducationstatus_ds_youtheducationstatus_id ON public."YouthEducationStatus" USING btree (ds_youtheducationstatus_id);
 
 
 --
@@ -55142,13 +53695,6 @@ CREATE INDEX index_boston_project_scorecard_reports_on_secondary_reviewer_id ON 
 --
 
 CREATE INDEX index_boston_project_scorecard_reports_on_user_id ON public.boston_project_scorecard_reports USING btree (user_id);
-
-
---
--- Name: index_cas_analytics_opportunities_on_unit_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_cas_analytics_opportunities_on_unit_id ON public.cas_analytics_opportunities USING btree (unit_id);
 
 
 --
@@ -67286,17 +65832,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20250407165554'),
-('20250407165234'),
-('20250403232619'),
-('20250403204353'),
-('20250402213140'),
-('20250402130025'),
-('20250401130809'),
-('20250331175933'),
-('20250323134302'),
 ('20250319125533'),
-('20250319023546'),
 ('20250313153011'),
 ('20250313125655'),
 ('20250304143714'),

@@ -18,9 +18,9 @@ module GrdaWarehouse::Hud
     self.table_name = 'ProjectCoC'
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-    composite_belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :project_cocs, optional: true
-    composite_belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :project_cocs, optional: true
-    composite_belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :project_cocs, optional: true
+    belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :project_cocs, optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :project_cocs, optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :project_cocs, optional: true
     has_many :geographies, class_name: 'GrdaWarehouse::Hud::Geography', primary_key: [:ProjectID, :CoCCode, :data_source_id], query_constraints: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
     has_many :inventories, class_name: 'GrdaWarehouse::Hud::Inventory', primary_key: [:ProjectID, :CoCCode, :data_source_id], query_constraints: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
     belongs_to :data_source

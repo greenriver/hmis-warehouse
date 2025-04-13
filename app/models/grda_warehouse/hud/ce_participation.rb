@@ -16,9 +16,9 @@ module GrdaWarehouse::Hud
     self.table_name = :CEParticipation
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-    composite_belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :ce_participations, optional: true
-    composite_belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :ce_participations, optional: true
-    composite_belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :ce_participations, optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :ce_participations, optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :ce_participations, optional: true
+    belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :ce_participations, optional: true
     belongs_to :data_source, optional: true
 
     scope :within_range, ->(range) do
