@@ -6,12 +6,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class HealthBase < ApplicationRecord
+class HealthBase < ActiveRecord::Base
+  include CustomApplicationRecord
+
   self.abstract_class = true
   connects_to database: { writing: :health, reading: :health }
   has_paper_trail versions: {class_name: 'Health::HealthVersion'}
 
-  include ArelHelper
   class << self
     attr_accessor :phi_dictionary
 

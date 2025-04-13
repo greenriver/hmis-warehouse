@@ -6,9 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class GrdaWarehouseBase < ApplicationRecord
-  include ArelHelper
-  include Efind
+class GrdaWarehouseBase < ActiveRecord::Base
+  include CustomApplicationRecord
 
   self.abstract_class = true
   connects_to database: { writing: :warehouse, reading: :warehouse }

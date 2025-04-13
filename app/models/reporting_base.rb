@@ -6,9 +6,9 @@
 
 # frozen_string_literal: false
 
-class ReportingBase < ApplicationRecord
-  self.abstract_class = true
-  include ArelHelper
+class ReportingBase < ActiveRecord::Base
+  include CustomApplicationRecord
 
+  self.abstract_class = true
   connects_to database: { writing: :reporting, reading: :reporting }
 end
