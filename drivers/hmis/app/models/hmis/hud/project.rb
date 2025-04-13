@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -14,7 +16,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   self.table_name = :Project
   self.sequence_name = "public.\"#{table_name}_id_seq\""
-  CONFIDENTIAL_PROJECT_NAME = 'Confidential Project'.freeze
+  CONFIDENTIAL_PROJECT_NAME = 'Confidential Project'
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')

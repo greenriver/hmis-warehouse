@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Rails.logger.debug "Running initializer in #{__FILE__}"
 
 # FIXME: should not be monkey patching Arel

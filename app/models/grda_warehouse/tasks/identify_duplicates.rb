@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -108,12 +110,12 @@ module GrdaWarehouse::Tasks
           },
           validate: false,
         )
-        raise "Failed to update clients" if result.failed_instances.present?
+        raise 'Failed to update clients' if result.failed_instances.present?
 
         # Creates new destination clients
         result = GrdaWarehouse::Hud::Client.import(new_destination_clients)
         new_destination_ids = result.ids
-        raise "Failed to create clients" if result.failed_instances.present?
+        raise 'Failed to create clients' if result.failed_instances.present?
 
         source_client_ids_with_new_destination_clients.zip(new_destination_ids).each do |source_id, destination_id|
           new_warehouse_clients[source_id][:destination_id] = destination_id

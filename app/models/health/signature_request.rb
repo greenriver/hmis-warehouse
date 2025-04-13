@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -43,7 +45,7 @@ module Health
 
     scope :outstanding, -> do
       where(arel_table[:expires_at].gt(Time.now)).
-      where(completed_at: nil)
+        where(completed_at: nil)
     end
 
     def self.expires_in
@@ -73,9 +75,11 @@ module Health
     def pcp_request?
       false
     end
+
     def aco_request?
       false
     end
+
     def patient_request?
       false
     end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -61,7 +63,7 @@ module Filters
         SQL
 
         followups = scope.connection.execute(
-          scope.sanitize_sql_array([sql, route])
+          scope.sanitize_sql_array([sql, route]),
         ).each_with_object({}) do |row, hash|
           hash[row['match_step']] = row['followups'].tr('{}', '').split(',')
         end

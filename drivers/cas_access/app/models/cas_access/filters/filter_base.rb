@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -281,7 +283,7 @@ module CasAccess::Filters
         scope = CasAccess::Reporting::Decisions.on_route(match_route)
         step_order = scope.distinct.
           pluck(:match_step, :decision_order).to_h
-        steps = step_order.keys
+        step_order.keys
 
         # Build SQL to find followup steps
         sql = <<~SQL
@@ -304,7 +306,7 @@ module CasAccess::Filters
         SQL
 
         followups = scope.connection.execute(
-          scope.sanitize_sql_array([sql, match_route])
+          scope.sanitize_sql_array([sql, match_route]),
         ).each_with_object({}) do |row, hash|
           hash[row['match_step']] = row['followups'].tr('{}', '').split(',')
         end

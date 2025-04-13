@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -13,7 +15,7 @@ module GrdaWarehouse
 
     validates_presence_of :cohort_client, :cohort, :user, :change
 
-    scope :on_cohort, -> (cohort_id) do
+    scope :on_cohort, ->(cohort_id) do
       where(cohort_id: cohort_id)
     end
 
@@ -28,7 +30,7 @@ module GrdaWarehouse
       self.class.removal.
         where(
           cohort_id: cohort_id,
-          cohort_client_id: cohort_client_id
+          cohort_client_id: cohort_client_id,
         ).
         where(a_t[:id].gt(id)).
         order(id: :asc).
@@ -37,9 +39,9 @@ module GrdaWarehouse
 
     def change_reason
       return reason if reason.present?
-      if change == 'deactivate'
-        return 'Deactivated'
-      end
+      return unless change == 'deactivate'
+
+      return 'Deactivated'
     end
   end
 end

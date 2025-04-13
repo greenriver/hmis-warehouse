@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -108,7 +110,7 @@ module WarehouseReports::Cas
         first_step,
         second_step,
         @range.start,
-        @range.end + 1.day
+        @range.end + 1.day,
       ]
 
       GrdaWarehouse::CasReport.connection.exec_query(sql, 'SQL', binds).map do |row|
@@ -121,7 +123,7 @@ module WarehouseReports::Cas
           match_route: row['match_route'],
           client_id: row['client_id'],
           cas_client_id: row['cas_client_id'],
-          source_data_source: row['source_data_source']
+          source_data_source: row['source_data_source'],
         }
         ::OpenStruct.new(h)
       end.index_by(&:id)
