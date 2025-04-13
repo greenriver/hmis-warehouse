@@ -133,6 +133,8 @@ jobs:
       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+      # dummy key
+      SECRET_KEY_BASE: f0dae734a3b659b1f91beed71a87dfb09935dad64a9aa685ba1946d9723443306ab8eb3ba276df909f31651535405d161a255cc3e93710cc2eb51ce7c847ae08
 
     steps:
       - name: Checkout
