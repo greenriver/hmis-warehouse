@@ -53,28 +53,35 @@ def run_or_exit(cmd)
   exit(1)
 end
 
-def seeds_ran?(db_section)
+def with_connection(db_section)
   section = db(db_section)
   conn = PG.connect(**section)
-  if db_section == "primary"
-    result = conn.exec_params('SELECT count(*) FROM collections').entries
-    num = result[0]["count"].to_i
-    num > 0
-  elsif db_section == "warehouse"
-    result = conn.exec_params('SELECT count(*) FROM data_sources').entries
-    num = result[0]["count"].to_i
-    num > 0
-  else
-    raise "invalid db section of #{db_section}"
+  yield(conn)
+ensure
+  conn&.close
+end
+
+def seeds_ran?(db_section)
+  with_connection(db_section) do |conn|
+    if db_section == "primary"
+      result = conn.exec_params('SELECT count(*) FROM collections').entries
+      num = result[0]["count"].to_i
+      num > 0
+    elsif db_section == "warehouse"
+      result = conn.exec_params('SELECT count(*) FROM data_sources').entries
+      num = result[0]["count"].to_i
+      num > 0
+    else
+      raise "invalid db section of #{db_section}"
+    end
   end
 end
 
 def db_is_initialized?(db_section)
-  section = db(db_section)
-  conn = PG.connect(**section)
-  tables = conn.exec_params("SELECT * FROM information_schema.tables where table_catalog = $1 and table_type = 'BASE TABLE' and table_schema = 'public'", [ section[:dbname] ]).entries
-
-  tables.length > 1
+  with_connection(db_section) do |conn|
+    tables = conn.exec_params("SELECT * FROM information_schema.tables where table_catalog = $1 and table_type = 'BASE TABLE' and table_schema = 'public'", [ db(db_section)[:dbname] ]).entries
+    tables.length > 1
+  end
 rescue PG::ConnectionBad => e
   if CREATE_DATABASES && e.message.match?(/database.+ does not exist/)
     false
