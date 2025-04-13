@@ -110,7 +110,6 @@ jobs:
 
       - name: 'App setup'
         run: |
-          cp config/secrets.yml.sample config/secrets.yml
           mkdir app/assets/stylesheets/theme/styles
           touch app/assets/stylesheets/theme/styles/_variables.scss
           cp .rspec.sample .rspec
