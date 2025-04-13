@@ -593,14 +593,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.project_ids_from_coc_codes(user, permission)
-      return [] unless user.present?
-      return [] unless user.send("#{permission}?")
-
-      collection_ids = user.collections_for_permission(permission)
-      return [] if collection_ids.empty?
-
-      coc_codes = Collection.where(id: collection_ids).pluck(:coc_codes).reject(&:blank?).flatten
-      GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes).joins(:project).pluck(p_t[:id])
+      project_ids_from_entity_type(user, permission, GrdaWarehouse::Lookups::CocCode)
     end
 
     def self.project_ids_from_entity_type(user, permission, entity_class)

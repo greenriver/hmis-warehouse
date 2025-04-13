@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Hud
   class ProjectCoc < Base
     include HudSharedScopes
@@ -21,11 +23,11 @@ module GrdaWarehouse::Hud
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :project_cocs, optional: true
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :project_cocs, optional: true
     belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :project_cocs, optional: true
+    belongs_to :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', foreign_key: :CoCCode, primary_key: :coc_code, inverse_of: :project_cocs, optional: true
+    belongs_to :data_source
+
     has_many :geographies, class_name: 'GrdaWarehouse::Hud::Geography', primary_key: [:ProjectID, :CoCCode, :data_source_id], query_constraints: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
     has_many :inventories, class_name: 'GrdaWarehouse::Hud::Inventory', primary_key: [:ProjectID, :CoCCode, :data_source_id], query_constraints: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
-    belongs_to :data_source
-    has_one :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :project_coc
-    has_one :overridden_lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :hud_coc_code, foreign_key: :coc_code, inverse_of: :overridden_project_coc
 
     # hide previous declaration of :importable, we'll use this one
     replace_scope :importable, -> do
@@ -80,7 +82,7 @@ module GrdaWarehouse::Hud
           group_ids = user.collections_for_permission(permission)
           return none if group_ids.empty?
 
-          coc_codes = Collection.where(id: group_ids).pluck(:coc_codes).flatten
+          coc_codes = Collection.where(id: group_ids).preload(:coc_codes).flat_map { |c| c.coc_codes.map(&:coc_code) }.uniq
           GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes)
         end
       else

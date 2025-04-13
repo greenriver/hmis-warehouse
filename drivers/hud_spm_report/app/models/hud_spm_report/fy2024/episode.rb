@@ -41,11 +41,16 @@ module HudSpmReport::Fy2024
 
     # TODO: convert include_self_reported_and_ph to include_self_report_from_project_types so we can be explicit about which types we want to use when looking for time prior to entry
     def compute_episode(enrollments, included_project_types:, excluded_project_types:, include_self_reported_and_ph:, debug: false)
+      all_allowed_types = (included_project_types + excluded_project_types).to_set
+      enrollments = enrollments.filter { |e| e.project_type.in?(all_allowed_types) }
+      return if enrollments.empty?
+
       raise 'Client undefined' unless client.present?
 
       @debugger = Debugger.new if debug
       @debugger&.log("\nClient: #{client.id}")
       @debugger&.log("  included_project_types: #{included_project_types.join(', ')}")
+      @debugger&.log("  excluded_project_types: #{excluded_project_types.join(', ')}")
       @debugger&.log("  include_self_reported_and_ph: #{include_self_reported_and_ph}")
       @debugger&.log("  report_start_date: #{report_start_date.to_fs(:db)}")
       @debugger&.log("  report_end_date: #{report_end_date.to_fs(:db)}")

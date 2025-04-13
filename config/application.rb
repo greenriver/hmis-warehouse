@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https: //github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require_relative 'boot'
 
 require 'rails/all'
@@ -137,6 +145,11 @@ module BostonHmis
       GrdaWarehouse::Hud::Client.destination.pluck_in_batches(:id, batch_size: 10_000) do |batch|
         GrdaWarehouse::Tasks::ClientCleanup.new(destination_ids: batch).run!
       end
+    end
+
+    # Migrate from collections.coc_codes JSON column to using GrdaWarehouse::Lookups::CocCode
+    config.queued_tasks[:migrate_collection_coc_codes] = -> do
+      ::Collection.migrate_from_local_coc_codes
     end
   end
 end

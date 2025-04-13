@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.shared_context 'visibility test context', shared_context: :metadata do
   # data
   let!(:warehouse_data_source) { create :grda_warehouse_data_source, source_type: nil }
@@ -5,6 +7,7 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   let!(:window_visible_data_source) { create :visible_data_source }
   let!(:window_organization) { create :grda_warehouse_hud_organization, data_source_id: window_visible_data_source.id, OrganizationName: 'Visible Org' }
   let!(:window_project) { create :grda_warehouse_hud_project, data_source_id: window_visible_data_source.id, ProjectName: 'Visible Project' }
+
   let!(:window_project_coc) { create :grda_warehouse_hud_project_coc, data_source_id: window_visible_data_source.id, ProjectID: window_project.ProjectID, CoCCode: 'AA-000' }
   let!(:window_source_client) do
     create(
@@ -190,22 +193,24 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   let!(:window_data_source_viewable_collection) { create :collection }
   let!(:window_organization_viewable_collection) { create :collection }
   let!(:window_project_viewable_collection) { create :collection }
-  let!(:window_coc_code_viewable_collection) { create :collection, coc_codes: ['AA-000'] }
+  let!(:window_coc_code_viewable_collection) { create :collection }
   let!(:coc_code_viewable_collection) { create :collection }
   before(:each) do
     window_data_source_viewable.add_viewable(window_visible_data_source)
     window_organization_viewable.add_viewable(window_organization)
     window_project_viewable.add_viewable(window_project)
+    window_coc_code_viewable_collection.add_viewable(GrdaWarehouse::Lookups::CocCode.find_by(coc_code: 'AA-000'))
   end
 
   let!(:non_window_data_source_viewable_collection) { create :collection }
   let!(:non_window_organization_viewable_collection) { create :collection }
   let!(:non_window_project_viewable_collection) { create :collection }
-  let!(:non_window_coc_code_viewable_collection) { create :collection, coc_codes: ['ZZ-000'] }
+  let!(:non_window_coc_code_viewable_collection) { create :collection }
   before(:each) do
     non_window_data_source_viewable_collection.add_viewable(non_window_visible_data_source)
     non_window_organization_viewable_collection.add_viewable(non_window_organization)
     non_window_project_viewable_collection.add_viewable(non_window_project)
+    non_window_coc_code_viewable_collection.add_viewable(GrdaWarehouse::Lookups::CocCode.find_by(coc_code: 'ZZ-000'))
   end
 
   # START_ACL remove after ACL migration
