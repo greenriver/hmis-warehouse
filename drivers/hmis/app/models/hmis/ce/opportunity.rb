@@ -67,7 +67,7 @@ module Hmis::Ce
     }
 
     def active?
-      status.to_sym != :closed
+      !closed?
     end
   end
 end
