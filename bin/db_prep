@@ -16,7 +16,7 @@ NO_PRINT_DONE = (ARGV[1] == '--no-print-done')
 CREATE_DATABASES = ! DONT_CREATE_DATABASES
 
 def db(db_section)
-  @db ||=
+  config =
     begin
       path = APP_ROOT.join( ENV.fetch("DB_YAML_PATH", "config/database.yml") ).to_s
       env = ENV["RAILS_ENV"] || 'development'
@@ -29,16 +29,16 @@ def db(db_section)
     end
 
   payload = {
-    dbname: @db[db_section]["database"],
-    host: @db[db_section]["host"],
-    password: @db[db_section]["password"],
-    user: @db[db_section]["username"],
+    dbname: config[db_section]["database"],
+    host: config[db_section]["host"],
+    password: config[db_section]["password"],
+    user: config[db_section]["username"],
   }
 
-  if @db[db_section]["sslrootcert"] && @db[db_section]["sslmode"]
+  if config[db_section]["sslrootcert"] && config[db_section]["sslmode"]
     payload.merge!({
-      sslrootcert: @db[db_section]["sslrootcert"],
-      sslmode: @db[db_section]["sslmode"],
+      sslrootcert: config[db_section]["sslrootcert"],
+      sslmode: config[db_section]["sslmode"],
     })
   end
 
