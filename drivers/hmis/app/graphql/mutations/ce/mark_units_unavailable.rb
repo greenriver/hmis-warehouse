@@ -29,8 +29,7 @@ module Mutations
       raise 'Not found' unless opportunities.any?
       raise 'Cannot mark opportunity unavailable if it has an active referral' if opportunities.any?(&:active_referral)
 
-      # Already validated that the opportunities don't have active referrals, so use delete_all instead of destroy_all to avoid n+1
-      opportunities.delete_all
+      opportunities.destroy_all
 
       { units: Hmis::Unit.where(id: unit_ids) }
     end

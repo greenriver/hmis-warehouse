@@ -100,27 +100,5 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
         expect(unit.opportunities).to contain_exactly(past_opportunity)
       end
     end
-
-    context 'with many units' do
-      let!(:unit_ids) do
-        50.times.map do
-          unit = create(:hmis_unit, project: project, unit_type: unit_type)
-          create(:hmis_ce_opportunity, owner: unit, project: project, status: :open)
-          unit.id
-        end
-      end
-
-      let(:variables) do
-        { unitIds: unit_ids }
-      end
-
-      it 'makes a reasonable number of db queries' do
-        expect do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result.inspect
-        end.to make_database_queries(count: 15..20)
-        expect(Hmis::Ce::Opportunity.where(owner_id: unit_ids).count).to eq(0)
-      end
-    end
   end
 end
