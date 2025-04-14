@@ -60,6 +60,7 @@ namespace :warehouse do
         if GrdaWarehouseBase.connection.table_exists?(:schema_migrations)
           puts 'Refusing to load the warehouse database schema since there are tables present. This is not an error.'
         else
+          GrdaWarehouseBase.connection_pool.disconnect!
           Rake::Task['db:schema:load:warehouse'].invoke
         end
       end
