@@ -16,7 +16,7 @@ class Sources::ActiveRecordAssociation < ::GraphQL::Dataloader::Source
 
   def fetch(records)
     # Rails.logger.info("preloading started #{records.first.class.name}.#{@association_name}") if records.any?
-    TodoOrDie('test behavior after rails upgrade, see #6019', if: Rails.version !~ /\A7\.0/)
+    # TodoOrDie('test behavior after rails upgrade, see #6019', if: Rails.version !~ /\A7\.0/)
     # in rails 7.0, calling preloader more than once can cause unscoped queries, particularly with has-many-through.
     # Resetting association before preload seems to address this
     records.each do |record|
