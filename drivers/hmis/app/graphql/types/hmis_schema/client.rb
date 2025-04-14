@@ -93,7 +93,10 @@ module Types
 
       scope = Hmis::Ce::Opportunity.for_client(object)
       scope = scope.where(project_id: filters.project) if filters&.project.present?
-      scope = scope.joins(:project).where(project: { project_type: filters&.project_type }) if filters&.project_type.present?
+
+      projects_table = Hmis::Hud::Project.arel_table
+      scope = scope.joins(:project).where(projects_table[:project_type].in(filters&.project_type)) if filters&.project_type.present?
+
       scope.order(:id)
     end
 
@@ -105,11 +108,13 @@ module Types
 
       scope = object.ce_referrals
       scope = scope.where(status: filters&.status) if filters&.status.present?
-      scope = scope.joins(:opportunity).where(opportunity: { project_id: filters&.project }) if filters&.project.present?
+
+      opportunity_table = Hmis::Ce::Opportunity.arel_table
+      scope = scope.joins(:opportunity).where(opportunity_table[:project_id].in(filters&.project)) if filters&.project.present?
 
       projects_table = Hmis::Hud::Project.arel_table
       scope = scope.joins(opportunity: :project).where(projects_table[:project_type].in(filters&.project_type)) if filters&.project_type.present?
-      scope.order(created_at: :desc)
+      scope.order(created_at: :desc, id: :asc)
     end
 
     field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
