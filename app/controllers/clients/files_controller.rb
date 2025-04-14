@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Clients
   class FilesController < ApplicationController
     include ClientPathGenerator
@@ -63,7 +65,7 @@ module Clients
             client_id: @client.id,
             user_id: current_user.id,
             visible_in_window: window_visible?(allowed_params[:visible_in_window]),
-            consent_form_confirmed: allowed_params[:consent_form_confirmed] || GrdaWarehouse::Config.get(:auto_confirm_consent),
+            consent_form_confirmed: GrdaWarehouse::Config.get(:auto_confirm_consent) || allowed_params[:consent_form_confirmed],
             coc_codes: allowed_params[:coc_codes].reject(&:blank?),
           ),
         )

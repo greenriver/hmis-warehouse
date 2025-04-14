@@ -61,7 +61,7 @@
           = f.input :expiration_date, as: :date_picker, label: 'Expiration date'
         .col-lg.jConsentFormCoC
           = f.input :coc_codes, collection: current_user.coc_codes_for_consent, include_blank: 'All CoCs', input_html: { multiple: true, placeholder: 'All CoCs' }, as: :select_two, label: 'CoC Codes for Consent'
-        - if can_confirm_housing_release?
+        - if can_confirm_housing_release? && ! GrdaWarehouse::Config.get(:auto_confirm_consent)
           .col-lg.pt-no-label.consent-form-fields.hidden
             = f.input :consent_form_confirmed, as: :boolean
 
