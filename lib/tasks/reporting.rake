@@ -104,9 +104,7 @@ namespace :reporting do
 
       desc "Conditionally load the database schema"
       task :conditional_load, [] => [:environment] do |t, args|
-        if ReportingBase.connection.table_exists?(:schema_migrations)
-          puts "Refusing to load the reporting database schema since there are tables present. This is not an error."
-        else
+        ReportingBase.load_db_if_empty do
           Rake::Task['db:schema:load:reporting'].invoke
         end
       end
@@ -123,9 +121,7 @@ namespace :reporting do
 
       desc "Conditionally load the database structure"
       task :conditional_load, [] => [:environment] do |t, args|
-        if ReportingBase.connection.table_exists?(:schema_migrations)
-          puts "Refusing to load the reporting database structure since there are tables present. This is not an error."
-        else
+        ReportingBase.load_db_if_empty do
           ReportingBase.connection.execute(File.read('db/reporting_structure.sql'))
         end
       end

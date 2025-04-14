@@ -34,5 +34,16 @@ module CustomApplicationRecord
       opts = 'FULL' if full_with_lock
       connection.exec_query("VACUUM #{opts} #{connection.quote_table_name(table_name)}")
     end
+
+    def load_db_if_empty(&block)
+      if connection.table_exists?(:schema_migrations)
+        puts "Refusing to load the #{connection.current_database} database since there are tables present. This is not an error."
+        return
+      end
+
+      # disconnect the connection pool as we about to drop the database
+      connection_pool.disconnect!
+      block.call
+    end
   end
 end
