@@ -35,6 +35,7 @@ module CustomApplicationRecord
       connection.exec_query("VACUUM #{opts} #{connection.quote_table_name(table_name)}")
     end
 
+    # helper for rails db setup scripts
     def load_db_if_empty(&block)
       if connection.table_exists?(:schema_migrations)
         puts "Refusing to load the #{connection.current_database} database since there are tables present. This is not an error."

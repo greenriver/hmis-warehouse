@@ -8,8 +8,8 @@
 
 require 'faker'
 class GrdaWarehouse::FakeData < GrdaWarehouseBase
-  serialize :map, type: JSON
-  serialize :client_ids, type: JSON
+  serialize :map, coder: JSON
+  serialize :client_ids, coder: JSON
 
   # Fetch the appropriate faked value for a given field.
   # Return an existing match if one exists or create a new one,
