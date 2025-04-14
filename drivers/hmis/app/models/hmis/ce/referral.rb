@@ -56,7 +56,7 @@ module Hmis::Ce
     end
 
     def active?
-      !accepted && !rejected
+      !accepted? && !rejected?
     end
 
     private
