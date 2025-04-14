@@ -7,6 +7,7 @@
 module HmisStructure::Shared
   extend ActiveSupport::Concern
 
+  # Alias CamelCase HUD CSV column names to snake_case for Rails convention
   included do
     ['2022', '2024'].each do |version|
       configuration = hmis_configuration(version: version)

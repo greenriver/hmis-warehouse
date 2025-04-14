@@ -27,9 +27,8 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
   end
 
   # Convert funder string to int #183572073
-  def Funder # rubocop:disable Naming/MethodName
-    super&.to_i
-  end
+  # FIXME: document why we cast this to an integer
+  attribute :Funder, :integer
 
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)

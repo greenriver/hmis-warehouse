@@ -18,7 +18,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   self.table_name = :CustomAssessments
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-  include ::HmisStructure::Assessment
+  include ::HmisStructure::CustomAssessment
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
