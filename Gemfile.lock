@@ -175,7 +175,7 @@ GEM
       sshkit (>= 1.6.1, != 1.7.0)
     ajax_modal_rails (1.0.12)
       rails (>= 4)
-    amazing_print (1.6.0)
+    amazing_print (1.7.2)
     ansi (1.5.0)
     anyway_config (2.7.0)
       ruby-next-core (~> 1.0)
@@ -1045,7 +1045,7 @@ GEM
     timeout (0.4.3)
     tins (1.32.1)
       sync
-    tiny_tds (3.2.0)
+    tiny_tds (3.2.1)
       bigdecimal (~> 3)
     todo_or_die (0.1.1)
     tzinfo (2.0.6)
@@ -1378,7 +1378,7 @@ CHECKSUMS
   addressable (2.8.7) sha256=462986537cf3735ab5f3c0f557f14155d778f4b43ea4f485a9deb9c8f7c58232
   airbrussh (1.5.3) sha256=7b06eb03be15f50120bc03d95967c95144fbbb7a6ad58d4105cd1550c3aa989c
   ajax_modal_rails (1.0.12) sha256=d386142f420d83d6d2fc2253ff98e3e80233caf0613a5235e989af679afb436d
-  amazing_print (1.6.0) sha256=9903e93daadc15411c854239f8ca1ca6ce78be279ed99d43fec2bd3b0aa37397
+  amazing_print (1.7.2) sha256=c89a1dfe4f8508c1e780871d51b8786efd100f625201f6e1d18a0d4dedaac702
   ansi (1.5.0) sha256=5408253274e33d9d27d4a98c46d2998266fd51cba58a7eb9d08f50e57ed23592
   anyway_config (2.7.0) sha256=0ebbe4a7952da7a43e5c596f1c670a1ff61ee18243292b92cef68ddaef3cdd7e
   ast (2.4.2) sha256=1e280232e6a33754cde542bc5ef85520b74db2aac73ec14acef453784447cc12
@@ -1755,7 +1755,7 @@ CHECKSUMS
   timecop (0.9.10) sha256=12ba45ce57cdcf6b1043cb6cdffa6381fd89ce10d369c28a7f6f04dc1b0cd8eb
   timeout (0.4.3) sha256=9509f079b2b55fe4236d79633bd75e34c1c1e7e3fb4b56cb5fda61f80a0fe30e
   tins (1.32.1) sha256=b75c4dafafa83744b6925c0e4ac7a9a8ee9aba7c72514fb0b08cd2f98ffde30c
-  tiny_tds (3.2.0) sha256=497611c0e28455d2d6811a17bc7184829b802a1869ff0c8d9cf240053f2e1a8a
+  tiny_tds (3.2.1) sha256=f0449ed23840c01b3470e1e28e7a839dad78426319136ff4c14d8af30a120778
   todo_or_die (0.1.1) sha256=0a3d51b664367e48d8c6c49c21aa111bc1bbea13a0cdfd9dd5fc2e2066df948b
   tzinfo (2.0.6) sha256=8daf828cc77bcf7d63b0e3bdb6caa47e2272dcfaf4fbfe46f8c3a9df087a829b
   unicode-display_width (3.1.4) sha256=8caf2af1c0f2f07ec89ef9e18c7d88c2790e217c482bfc78aaa65eadd5415ac1
