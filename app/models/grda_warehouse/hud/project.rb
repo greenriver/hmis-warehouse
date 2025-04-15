@@ -76,7 +76,7 @@ module GrdaWarehouse::Hud
 
     # Setup an association to project_cocs that allows us to pull the records even if the
     # project_coc has been deleted
-    belongs_to :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', primary_key: [:ProjectID, :data_source_id], query_constraints: [:ProjectID, :data_source_id], optional: true
+    belongs_to_with_composite_keys :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', keys: [:ProjectID, :data_source_id], optional: true
 
     # Needs to come after has_many :enrollments, bc one extension uses a has_many through: :enrollments relation
     include RailsDrivers::Extensions

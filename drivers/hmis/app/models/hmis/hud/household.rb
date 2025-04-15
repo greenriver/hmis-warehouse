@@ -18,8 +18,8 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   has_many :clients, through: :enrollments
   has_many :current_units, through: :enrollments
   has_many :custom_assessments, through: :enrollments
-  has_many :staff_assignments, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], query_constraints: [:data_source_id, :household_id]
-  has_many :events, class_name: 'Hmis::HouseholdEvent', primary_key: [:data_source_id, :HouseholdID], query_constraints: [:data_source_id, :household_id]
+  has_many_with_composite_keys :staff_assignments, class_name: 'Hmis::StaffAssignment', keys: [:household_id]
+  has_many_with_composite_keys :events, class_name: 'Hmis::HouseholdEvent', keys: [:household_id]
   alias_attribute :household_id, :HouseholdID
 
   replace_scope :viewable_by, ->(user) do

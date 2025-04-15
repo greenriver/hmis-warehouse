@@ -18,7 +18,7 @@ module GrdaWarehouse::Hud::WithDeleted
   class EnrollmentCoc < GrdaWarehouse::Hud::EnrollmentCoc
     default_scope { unscope where: paranoia_column }
 
-    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', query_constraints: [:EnrollmentID, :data_source_id], primary_key: [:EnrollmentID, :data_source_id], optional: true
+    belongs_with_composite_keys :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', keys: [:EnrollmentID], optional: true
     alias_attribute :enrollment, :enrollment_with_deleted
   end
 end

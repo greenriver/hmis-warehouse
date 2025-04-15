@@ -12,8 +12,8 @@ class GrdaWarehouse::CensusByProject < GrdaWarehouseBase
 
   self.table_name = :censuses
 
-  belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', query_constraints: [:data_source_id, :ProjectID], primary_key: [:data_source_id, :ProjectID], optional: true
-  belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', query_constraints: [:data_source_id, :OrganizationID], primary_key: [:data_source_id, :OrganizationID], optional: true
+  belongs_to_with_composite_keys :project, class_name: 'GrdaWarehouse::Hud::Project', keys: [:ProjectID], optional: true
+  belongs_to_with_composite_keys :organization, class_name: 'GrdaWarehouse::Hud::Organization', keys: [:OrganizationID], optional: true
   scope :residential, -> { where(ProjectType: HudUtility2024.residential_project_type_numbers_by_code.values.flatten.uniq) }
   scope :for_year, ->(year) {
     fun = if postgres?
