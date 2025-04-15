@@ -26,7 +26,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :affiliations, **hmis_relation(:ProjectID, 'Affiliation'), inverse_of: :project
   # Affiliations to SSO/RRH SSO projects. This should only be present if this project is residential.
   # NOTE: you can't use hmis_relation for residential project, the keys don't match
-  has_many_with_composite_keys :residential_affiliations, class_name: 'Hmis::Hud::Affiliation', keys: ['ResProjectID']
+  has_many :residential_affiliations, class_name: 'Hmis::Hud::Affiliation', primary_key: ['ProjectID', :data_source_id], query_constraints: ['ResProjectID', :data_source_id]
 
   # Affiliated SSO/RRH SSO projects
   has_many :affiliated_projects, through: :residential_affiliations, source: :project

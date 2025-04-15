@@ -18,17 +18,17 @@ module GrdaWarehouse::Hud
     self.table_name = :Assessment
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-    belongs_to_with_composite_keys :export, class_name: 'GrdaWarehouse::Hud::Export', keys: [:ExportID], inverse_of: :assessments, optional: true
-    belongs_to_with_composite_keys :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', keys: [:EnrollmentID, :PersonalID], optional: true # Assuming hud_enrollment_belongs sets these keys
-    belongs_to_with_composite_keys :direct_client, class_name: 'GrdaWarehouse::Hud::Client', keys: [:PersonalID], optional: true
-    belongs_to_with_composite_keys :user, class_name: 'GrdaWarehouse::Hud::User', keys: [:UserID], inverse_of: :assessments, optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessments, optional: true
+    belongs_to :enrollment, **hud_enrollment_belongs, optional: true
+    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :assessments, optional: true
     belongs_to :data_source
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
-    belongs_to_with_composite_keys :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', keys: [:EnrollmentID, :PersonalID], optional: true
+    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], query_constraints: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
     has_one :client, through: :enrollment, inverse_of: :assessments
-    has_many_with_composite_keys :assessment_questions, class_name: 'GrdaWarehouse::Hud::AssessmentQuestion', keys: [:AssessmentID]
-    has_many_with_composite_keys :assessment_results, class_name: 'GrdaWarehouse::Hud::AssessmentResult', keys: [:AssessmentID]
+    has_many :assessment_questions, **hud_assoc(:AssessmentID, 'AssessmentQuestion')
+    has_many :assessment_results, **hud_assoc(:AssessmentID, 'AssessmentResult')
 
     scope :within_range, ->(range) do
       # convert the range into a standard range for backwards compatability

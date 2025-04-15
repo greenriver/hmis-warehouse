@@ -11,6 +11,6 @@ module GrdaWarehouse::EtoQaaws
     self.table_name = :eto_touch_point_lookups
 
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
-    belongs_to_with_composite_keys :hmis_assessment, class_name: 'GrdaWarehouse::Hmis::Assessment', keys: [:site_id, :assessment_id], optional: true
+    belongs_to :hmis_assessment, class_name: 'GrdaWarehouse::Hmis::Assessment', primary_key: [:data_source_id, :site_id, :assessment_id], query_constraints: [:data_source_id, :site_id, :assessment_id], optional: true
   end
 end
