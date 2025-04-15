@@ -14,7 +14,6 @@ module HmisSupplemental
   class FieldValue < GrdaWarehouseBase
     self.table_name = 'hmis_supplemental_field_values'
     belongs_to :data_set, class_name: 'HmisSupplemental::DataSet'
-    serialize :data, type: Hash
 
     # use a single key rather than a polymorphic association
     # * keeps class names out of the db
