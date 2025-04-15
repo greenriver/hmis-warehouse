@@ -23,6 +23,18 @@ module CohortColumns
     attribute :editable, Boolean, lazy: false, default: true
     attribute :current_user
 
+    def column_type
+      @column_type ||= GrdaWarehouse::CohortColumnType.find_by!(class_name: class_name)
+    end
+
+    def active?
+      column_type&.active?
+    end
+
+    def class_name
+      self.class.name
+    end
+
     def show_description?
       return false if description == "#{translation_key} Description"
       return false if description.blank?

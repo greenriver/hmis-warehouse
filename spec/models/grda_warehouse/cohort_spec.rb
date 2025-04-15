@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Cohort, type: :model do
@@ -132,6 +140,51 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       expect(updated_editable_user_group.id).to eq(original_editable_user_group.id)
       # Confirm the collection's name has been updated to match the new Cohort name
       expect(updated_collection.name).to eq('New Name')
+    end
+  end
+
+  describe 'column_state handling' do
+    let!(:test_column) { build :user_string_cohort_column_1 }
+
+    before do
+      # Add test column to cohort's column_state
+      columns = cohort.column_state || []
+      test_column.column_type.activate
+      columns << test_column
+      cohort.update(column_state: columns)
+    end
+
+    it 'removes inactive columns from column_state' do
+      expect(cohort.column_state.map(&:class_name)).to include('CohortColumns::UserString1')
+      # binding.pry
+      test_column.column_type.deactivate
+
+      expect(cohort.reload.column_state.map(&:class_name)).not_to include('CohortColumns::UserString1')
+    end
+
+    it 'preserves active columns in column_state' do
+      expect(cohort.column_state.map(&:class_name)).to include('CohortColumns::UserString1')
+
+      test_column.column_type.activate
+
+      expect(cohort.reload.column_state.map(&:class_name)).to include('CohortColumns::UserString1')
+    end
+
+    it 'handles multiple columns in column_state' do
+      # Add another column
+      another_column = build :user_string_cohort_column_2, cohort: cohort
+
+      columns = cohort.column_state
+      columns << another_column
+      cohort.update(column_state: columns)
+
+      expect(cohort.column_state.map(&:class_name)).to include('CohortColumns::UserString1', 'CohortColumns::UserString2')
+
+      # Deactivate one column
+      test_column.column_type.deactivate
+
+      expect(cohort.reload.column_state.map(&:class_name)).to include('CohortColumns::UserString2')
+      expect(cohort.reload.column_state.map(&:class_name)).not_to include('CohortColumns::UserString1')
     end
   end
 end
