@@ -152,6 +152,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(assessment_id).to be_present
       expect(errors).to be_empty
       expect(Hmis::Hud::CustomAssessment.all).not_to include(have_attributes(id: a1.id))
+      e1.reload
       expect(e1.exit).to be_nil
       expect(e1.exit_date).to be_nil
     end
