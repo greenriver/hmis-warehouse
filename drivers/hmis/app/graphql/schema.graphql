@@ -772,8 +772,19 @@ input CeOpportunityInput {
 }
 
 enum CeOpportunityStatus {
+  """
+  Closed
+  """
   closed
+
+  """
+  Locked
+  """
   locked
+
+  """
+  Open
+  """
   open
 }
 
@@ -834,9 +845,24 @@ input CeReferralParticipantInput {
 }
 
 enum CeReferralStatus {
+  """
+  Accepted
+  """
   accepted
+
+  """
+  In progress
+  """
   in_progress
+
+  """
+  Initialized
+  """
   initialized
+
+  """
+  Rejected
+  """
   rejected
 }
 
@@ -859,9 +885,24 @@ type CeReferralStep {
 }
 
 enum CeReferralStepStatus {
+  """
+  Available
+  """
   available
+
+  """
+  Completed
+  """
   completed
+
+  """
+  In progress
+  """
   in_progress
+
+  """
+  Unavailable
+  """
   unavailable
 }
 
