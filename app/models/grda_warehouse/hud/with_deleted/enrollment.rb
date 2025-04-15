@@ -13,8 +13,8 @@ module GrdaWarehouse::Hud::WithDeleted
     default_scope { unscope where: paranoia_column }
 
     belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', query_constraints: [:ProjectID, :data_source_id], primary_key: [:ProjectID, :data_source_id], optional: true
-    alias_attribute :project, :project_with_deleted
+    alias_method :project, :project_with_deleted
     belongs_to :client_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Client', query_constraints: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], optional: true
-    alias_attribute :client, :client_with_deleted
+    alias_method :client, :client_with_deleted
   end
 end
