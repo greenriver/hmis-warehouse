@@ -6,7 +6,6 @@ module CustomApplicationRecord
   included do
     include Efind
     include ArelHelper
-    include CompositePrimaryKeys
     self.filter_attributes = Rails.application.config.filter_parameters
   end
 
