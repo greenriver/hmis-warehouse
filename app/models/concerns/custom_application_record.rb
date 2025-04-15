@@ -42,7 +42,7 @@ module CustomApplicationRecord
         return
       end
 
-      # disconnect the connection pool as we about to drop the database
+      # disconnect the connection pool as we are about to drop the database
       connection_pool.disconnect!
       block.call
     end

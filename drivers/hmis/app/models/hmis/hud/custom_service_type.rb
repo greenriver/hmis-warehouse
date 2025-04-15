@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -17,7 +19,7 @@ class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
   has_many :form_instances, class_name: 'Hmis::Form::Instance'
   has_many :definitions, through: :form_instances, source: :definitions
 
-  alias_method :category, :custom_service_category
+  alias category custom_service_category
 
   validates :hud_record_type, uniqueness: { scope: [:hud_type_provided] }, allow_nil: true
   validates :name, uniqueness: { scope: [:custom_service_category] }

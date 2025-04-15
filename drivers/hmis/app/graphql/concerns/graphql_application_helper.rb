@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -37,7 +39,6 @@ module GraphqlApplicationHelper
   # association in a way that is constant with respect to the resolver,
   # for example `scope: FooBar.order(:name)`. It is NOT used to filter down results.
   def load_ar_association(object, association_name, scope: nil)
-
     raise "object must be a GrdaWarehouseBase, got #{object.class.name}" unless object.is_a?(GrdaWarehouseBase)
 
     # if we already have preloaded association, just return it
