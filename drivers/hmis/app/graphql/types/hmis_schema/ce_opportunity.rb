@@ -20,6 +20,7 @@ module Types
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
     field :priority_scheme, HmisSchema::CeMatchRule, null: true
     field :categories, [String], null: false
+    field :candidates_generated_at, GraphQL::Types::ISO8601DateTime, null: true
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeOpportunityStatus]
@@ -37,7 +38,9 @@ module Types
       load_ar_association(
         object,
         :referrals,
-        scope: Hmis::Ce::Referral.viewable_by(current_user).where.not(status: 'rejected').
+        scope: Hmis::Ce::Referral.
+          viewable_by(current_user).
+          where.not(status: 'rejected').
           order(created_at: :desc),
       ).first # there should be at most 1 (enforced in an AR validation but not at the database level)
     end
@@ -62,6 +65,10 @@ module Types
 
     def categories
       load_ar_association(object, :categories, scope: Hmis::Ce::OpportunityCategory.order(:name)).map(&:name)
+    end
+
+    def candidates_generated_at
+      load_ar_association(object, :candidate_pool)&.candidates_generated_at
     end
   end
 end

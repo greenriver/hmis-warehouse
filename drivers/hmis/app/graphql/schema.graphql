@@ -749,6 +749,7 @@ type CeOpportunitiesPaginated {
 
 type CeOpportunity {
   candidates(limit: Int, offset: Int): CeCandidatesPaginated!
+  candidatesGeneratedAt: ISO8601DateTime
   categories: [String!]!
   eligibilityRequirements: [CeMatchRule!]
   expiresAt: ISO8601DateTime
