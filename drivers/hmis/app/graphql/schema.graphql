@@ -5338,6 +5338,7 @@ type HmisParticipationsPaginated {
 type Household {
   anyInProgress: Boolean!
   assessments(filters: AssessmentsForHouseholdFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  currentStaffAssignments: [StaffAssignment!]!
   earliestEntryDate: ISO8601Date!
   householdClients: [HouseholdClient!]!
   householdSize: Int!
