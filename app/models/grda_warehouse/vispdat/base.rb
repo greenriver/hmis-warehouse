@@ -25,6 +25,12 @@ module GrdaWarehouse::Vispdat
       :contact_in_person,
     ]
 
+    class << self
+      # rubocop:disable Style/Alias
+      alias_method :contact_answers, :contact_methods
+      # rubocop:enable Style/Alias
+    end
+
     enum language_answer: [
       :language_english,
       :language_spanish,
@@ -145,8 +151,7 @@ module GrdaWarehouse::Vispdat
       validates field.to_sym, absence: { message: 'cannot have an entry if refusing to answer' }, if: -> { send([field, '_refused?'].join.to_sym) }
     end
 
-    # FIXME not sure if this is correct
-    validates :contact_method, inclusion: { in: contact_methods.keys }, if: -> { completed? }
+    validates :contact_method, inclusion: { in: contact_answers.keys }, if: -> { completed? }
 
     ####################
     # Scopes
