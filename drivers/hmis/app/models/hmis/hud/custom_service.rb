@@ -21,8 +21,12 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services, optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :custom_service_type
-  # alias service_type custom_service_type
-  belongs_to :service_type, class_name: 'CustomServiceType', foreign_key: :custom_service_type_id
+  def service_type = custom_service_type
+
+  def service_type=(value)
+    self.custom_service_type = value
+  end
+
   has_one :organization, through: :project
   has_one :custom_service_category, through: :custom_service_type
   has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', through: :project
