@@ -4,8 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: true
-
 # https://gist.github.com/itkrt2y/1e1a947c71772044f5d67f358b4772fc
 
 class Sources::ActiveRecordAssociation < ::GraphQL::Dataloader::Source
@@ -21,7 +19,6 @@ class Sources::ActiveRecordAssociation < ::GraphQL::Dataloader::Source
     TodoOrDie('test behavior after rails upgrade, see #6019', if: Rails.version !~ /\A7\.0/)
     # in rails 7.0, calling preloader more than once can cause unscoped queries, particularly with has-many-through.
     # Resetting association before preload seems to address this
-    # TODO @martha
     records.each do |record|
       record.class.reflect_on_all_associations.each do |assoc|
         record.association(assoc.name).reset
