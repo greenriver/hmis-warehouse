@@ -300,7 +300,7 @@ GEM
       sassc-rails (>= 2.0.0)
     bootstrap3-datetimepicker-rails (4.17.47)
       momentjs-rails (>= 2.8.1)
-    brakeman (7.0.0)
+    brakeman (7.0.2)
       racc
     browser (6.2.0)
     builder (3.3.0)
@@ -1430,7 +1430,7 @@ CHECKSUMS
   bootsnap (1.18.4) sha256=ac4c42af397f7ee15521820198daeff545e4c360d2772c601fbdc2c07d92af55
   bootstrap (4.6.2) sha256=9cf03810728007eff8cfb8210e9ab92ecf2b10fe250e419d9e9488e4796bc342
   bootstrap3-datetimepicker-rails (4.17.47) sha256=ee87a9bad74c140729f6a1ea2a7f3f2d9aaefa7e9defbe31b4edd27ff64689a2
-  brakeman (7.0.0) sha256=1a0122b0c70f17519a61548a53a332c0acc19e3aa10b445e15e025a4b13b8577
+  brakeman (7.0.2) sha256=b602d91bcec6c5ce4d4bc9e081e01f621c304b7a69f227d1e58784135f333786
   browser (6.2.0) sha256=281d5295788825c9396427c292c2d2be0a5c91875c93c390fde6e5d61a5ace2d
   builder (3.3.0) sha256=497918d2f9dca528fdca4b88d84e4ef4387256d984b8154e9d5d3fe5a9c8835f
   bumbler (0.9.0) sha256=5fff255c01d4e6eb50a342a3cac7cf967a0fefd863349248d40ddd8c7785fd2a
