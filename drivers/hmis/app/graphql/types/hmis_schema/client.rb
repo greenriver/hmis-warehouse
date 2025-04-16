@@ -106,7 +106,7 @@ module Types
     def ce_referrals(filters: nil)
       raise unless Hmis::Ce.configuration.enabled?
 
-      scope = object.ce_referrals
+      scope = object.ce_referrals.viewable_by(current_user)
       scope = scope.where(status: filters&.status) if filters&.status.present?
 
       opportunity_table = Hmis::Ce::Opportunity.arel_table
