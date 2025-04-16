@@ -1,10 +1,18 @@
+# frozen_string_literal: false
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class Hmis::Hud::Client < Hmis::Hud::Base
+  self.table_name = :Client
+  self.sequence_name = "public.\"#{table_name}_id_seq\""
+  self.ignored_columns += [:preferred_name]
+
   extend OrderAsSpecified
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
@@ -15,10 +23,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_paper_trail(meta: { client_id: :id })
 
   attr_accessor :gender, :race
-
-  self.table_name = :Client
-  self.sequence_name = "public.\"#{table_name}_id_seq\""
-  self.ignored_columns += [:preferred_name]
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
@@ -63,6 +67,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :merge_audits, -> { distinct }, through: :merge_histories, source: :client_merge_audit
   # Merge Audits for merges from this client into another client
   has_many :reverse_merge_audits, -> { distinct }, through: :reverse_merge_histories, source: :client_merge_audit
+
+  has_many :ce_match_candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :client_id, dependent: :destroy
+  has_many :ce_referrals, class_name: 'Hmis::Ce::Referral', foreign_key: :client_id, dependent: :destroy
 
   accepts_nested_attributes_for :names, allow_destroy: true
   accepts_nested_attributes_for :addresses, allow_destroy: true
@@ -205,10 +212,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     return Hmis::Hud::Client.none unless source_id.present?
 
     searchable_to(user).where(id: source_id)
-  end
-
-  def ssn_serial
-    self.SSN&.[](-4..-1)
   end
 
   def warehouse_id

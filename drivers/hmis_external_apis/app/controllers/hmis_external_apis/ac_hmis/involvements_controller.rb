@@ -4,29 +4,27 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisExternalApis::AcHmis
   class InvolvementsController < HmisExternalApis::BaseController
     MAX_RESPONSE_SIZE_TO_SAVE = 1.kilobyte
 
     def client
-      involvement = nil
-
-      json_payload = log_request_with_truncation do
+      involvement, json_payload = log_request_with_truncation do
         involvement = ClientInvolvement.new(client_params)
         involvement.validate_request!
-        involvement.to_json
+        [involvement, involvement.to_json]
       end
 
       render json: json_payload, status: (involvement.ok? ? :ok : :bad_request)
     end
 
     def program
-      involvement = nil
-
-      json_payload = log_request_with_truncation do
+      involvement, json_payload = log_request_with_truncation do
         involvement = ProgramInvolvement.new(program_params)
         involvement.validate_request!
-        involvement.to_json
+        [involvement, involvement.to_json]
       end
 
       render json: json_payload, status: (involvement.ok? ? :ok : :bad_request)
@@ -35,8 +33,11 @@ module HmisExternalApis::AcHmis
     protected
 
     def log_request_with_truncation &block
-      block.call.tap do |json_payload|
-        request_log.update!(response: json_payload.first(MAX_RESPONSE_SIZE_TO_SAVE))
+      block.call.tap do |involvement, json_payload|
+        request_log.update!(
+          response: json_payload.first(MAX_RESPONSE_SIZE_TO_SAVE),
+          http_status: involvement.ok? ? 200 : 400,
+        )
       end
     end
 

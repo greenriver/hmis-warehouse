@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # HMIS uses similar but separate permissions system from the warehouse
 # See drivers/hmis/doc/PERMISSIONS.md
 
@@ -187,6 +189,13 @@ class Hmis::AccessGroup < ApplicationRecord
     end.compact.join('<br />')
   end
 
+  def entity_names
+    {
+      data_sources: data_sources.map(&:name),
+      organizations: organizations.map(&:OrganizationName),
+      projects: projects.map(&:ProjectName),
+    }
+  end
   private def project_overlap
     @project_overlap ||= {}.tap do |po|
       data_sources.each do |entity|

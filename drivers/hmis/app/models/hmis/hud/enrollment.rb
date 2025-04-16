@@ -7,14 +7,14 @@
 # frozen_string_literal: false
 
 class Hmis::Hud::Enrollment < Hmis::Hud::Base
+  self.table_name = :Enrollment
+  self.sequence_name = "public.\"#{table_name}_id_seq\""
+
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Enrollment
   include ::Hmis::Hud::Concerns::FormSubmittable
   include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
-
-  self.table_name = :Enrollment
-  self.sequence_name = "public.\"#{table_name}_id_seq\""
 
   has_paper_trail(
     meta: {
@@ -85,6 +85,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
   has_one :current_unit_type, through: :current_unit, class_name: 'Hmis::UnitType', source: :unit_type
+
+  has_many :staff_assignments, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], foreign_key: [:data_source_id, :household_id]
 
   # Cached chronically homeless at entry
   has_one :ch_enrollment, class_name: 'Hmis::ChEnrollment', dependent: :destroy

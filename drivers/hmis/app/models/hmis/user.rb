@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 # NOTE:
 # r = Hmis::Role.create(name: 'test')
 # u = Hmis::User.first; u.hmis_data_source_id = 3
@@ -24,6 +26,7 @@ class Hmis::User < ApplicationRecord
   has_many :roles, through: :access_controls
   has_many :activity_logs, class_name: 'Hmis::ActivityLog'
   has_many :staff_assignments, class_name: 'Hmis::StaffAssignment'
+  has_many :workflow_step_assignments, class_name: 'Hmis::WorkflowExecution::StepAssignment'
 
   has_recent :clients, 'Hmis::Hud::Client'
   has_recent :projects, 'Hmis::Hud::Project'

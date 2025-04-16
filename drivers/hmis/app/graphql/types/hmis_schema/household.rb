@@ -14,6 +14,9 @@ module Types
     field :short_id, ID, null: false
     field :household_clients, [HmisSchema::HouseholdClient], null: false
     field :household_size, Int, null: false
+
+    field :current_staff_assignments, [HmisSchema::StaffAssignment], null: false
+    # historical paginated staff assignments. no longer used to fetch "current" staff assignments because of performance reasons, the currentStaffAssignments field is used instead.
     field :staff_assignments, HmisSchema::StaffAssignment.page_type, null: true do
       argument :is_currently_assigned, Boolean, required: false
     end
@@ -54,17 +57,19 @@ module Types
       resolve_assessments(**args)
     end
 
+    def current_staff_assignments
+      load_ar_association(object, :staff_assignments, scope: Hmis::StaffAssignment.order(created_at: :desc, id: :desc))
+    end
+
+    # This field results in N+1 because it is paginated.
+    # It is only used for displaying the staff assignment history for a particular household,
+    # so 'is_currently_assigned: false' is always passed from the frontend.
+    # When loading staff assignments on a *batch* of households, use the 'current_staff_assignments' field instead.
     def staff_assignments(is_currently_assigned: true)
-      # There's no current use case for returning all (both currently assigned and formerly assigned)
-      # in the same query, but we could update this to support that use case if it arises.
-      scope = load_ar_association(object, :staff_assignments).
-        viewable_by(current_user).
-        order(created_at: :desc, id: :desc)
-      if is_currently_assigned
-        scope
-      else
-        scope.with_deleted.where.not(deleted_at: nil).order(created_at: :desc, deleted_at: :desc, id: :desc)
-      end
+      scope = object.staff_assignments.order(created_at: :desc, id: :desc)
+      return scope if is_currently_assigned
+
+      scope.only_deleted.order(created_at: :desc, deleted_at: :desc, id: :desc)
     end
 
     def any_in_progress

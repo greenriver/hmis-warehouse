@@ -114,6 +114,13 @@ module Types
     field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, method: :occurrence_point_form_instances, description: 'Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)'
     field :service_types, [Types::HmisSchema::ServiceType], null: false, method: :available_service_types, description: 'Service types that are collected for this Project'
 
+    field :ce_opportunities, Types::HmisSchema::CeOpportunity.page_type, null: false do
+      argument(:filters, Types::HmisSchema::CeOpportunity.filter_options_type, required: false)
+    end
+    field :ce_referrals, Types::HmisSchema::CeReferral.page_type, null: false do
+      argument(:filters, Types::HmisSchema::CeReferral.filter_options_type, required: false)
+    end
+
     def hud_id
       object.project_id
     end
@@ -250,6 +257,22 @@ module Types
       form_definition_identifier = args.delete(:form_definition_identifier)
       scope = scope.where(definition: { identifier: form_definition_identifier }) if form_definition_identifier
       resolve_external_form_submissions(scope, **args)
+    end
+
+    def ce_opportunities(filters: nil) # not for batch
+      raise unless Hmis::Ce.configuration.enabled?
+
+      scope = object.ce_opportunities
+      scope = scope.where(status: filters&.status) if filters&.status.present?
+      scope.order(created_at: :desc)
+    end
+
+    def ce_referrals(filters: nil) # not for batch
+      raise unless Hmis::Ce.configuration.enabled?
+
+      scope = object.ce_referrals
+      scope = scope.where(status: filters&.status) if filters&.status.present?
+      scope.order(created_at: :desc)
     end
 
     private def check_enrollment_details_access
