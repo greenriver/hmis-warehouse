@@ -156,7 +156,7 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
 
     it 'removes inactive columns from column_state' do
       expect(cohort.column_state.map(&:class_name)).to include('CohortColumns::UserString1')
-      # binding.pry
+
       test_column.column_type.deactivate
 
       expect(cohort.reload.column_state.map(&:class_name)).not_to include('CohortColumns::UserString1')
