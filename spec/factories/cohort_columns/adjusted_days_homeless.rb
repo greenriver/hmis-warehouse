@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :adjusted_days_homeless, class: 'CohortColumns::AdjustedDaysHomeless' do
+    column_type { create(:cohort_column_type, class_name: 'CohortColumns::AdjustedDaysHomeless') }
   end
 end
