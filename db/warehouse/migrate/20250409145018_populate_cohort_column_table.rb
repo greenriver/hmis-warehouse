@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
 class PopulateCohortColumnTable < ActiveRecord::Migration[7.0]
-  # rubocop:disable Metrics/AbcSize
-  def up
-    available_columns = [
+  def available_columns # rubocop:disable Metrics/AbcSize
+    [
       'CohortColumns::LastName',
       'CohortColumns::FirstName',
       'CohortColumns::Rank',
@@ -279,15 +278,16 @@ class PopulateCohortColumnTable < ActiveRecord::Migration[7.0]
       'CohortColumns::UserNumeric9',
       'CohortColumns::UserNumeric10',
     ]
+  end
 
+  def up
     available_columns.each do |column|
       GrdaWarehouse::CohortColumnType.create!(
-        class_name: column.class.name,
+        class_name: column,
         active: true,
       )
     end
   end
-  # rubocop:enable Metrics/AbcSize
 
   def down
     GrdaWarehouse::CohortColumnType.destroy_all
