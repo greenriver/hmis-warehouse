@@ -61,17 +61,15 @@ module Types
       load_ar_association(object, :staff_assignments, scope: Hmis::StaffAssignment.order(created_at: :desc, id: :desc))
     end
 
-    # This field results in N+1 because it is paginated. It is used for displaying the staff assignment history
-    # for a particular household. When loading staff assignments on a batch of households,
-    # use the 'current_staff_assignments' field instead.
+    # This field results in N+1 because it is paginated.
+    # It is only used for displaying the staff assignment history for a particular household,
+    # so 'is_currently_assigned: false' is always passed from the frontend.
+    # When loading staff assignments on a *batch* of households, use the 'current_staff_assignments' field instead.
     def staff_assignments(is_currently_assigned: true)
       scope = object.staff_assignments.order(created_at: :desc, id: :desc)
+      return scope if is_currently_assigned
 
-      if is_currently_assigned
-        scope
-      else
-        scope.only_deleted.order(created_at: :desc, deleted_at: :desc, id: :desc)
-      end
+      scope.only_deleted.order(created_at: :desc, deleted_at: :desc, id: :desc)
     end
 
     def any_in_progress
