@@ -5,6 +5,11 @@ require 'rails_helper'
 RSpec.describe GrdaWarehouse::CohortTab, type: :model do
   let(:cohort) { create :cohort }
   let(:tab) { create :cohort_tab, cohort: cohort }
+  # Setup required cohort column types for cohort tabs
+  let!(:destination_cohort_column) { create :cohort_column_type, class_name: 'CohortColumns::Destination' }
+  let!(:ineligible_cohort_column) { create :cohort_column_type, class_name: 'CohortColumns::Ineligible' }
+  let!(:housed_date_cohort_column) { create :cohort_column_type, class_name: 'CohortColumns::HousedDate' }
+  let!(:active_cohort_column) { create :cohort_column_type, class_name: 'CohortColumns::Active' }
 
   describe 'Default tabs generate expected SQL' do
     it 'active query matches' do

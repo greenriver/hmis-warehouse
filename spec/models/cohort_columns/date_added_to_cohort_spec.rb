@@ -1,10 +1,14 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe CohortColumns::DateAddedToCohort, type: :model do
   let(:user) { create :user }
   let(:client) { create :hud_client }
   let(:cohort) { create :cohort }
-  let(:date_added_to_cohort) { build :date_added_to_cohort, cohort: cohort }
+  # Setup required cohort column types for cohort tabs
+  let(:date_added_to_cohort_column_type) { create(:cohort_column_type, class_name: 'CohortColumns::DateAddedToCohort') }
+  let(:date_added_to_cohort) { build :date_added_to_cohort, cohort: cohort, cohort_column_type: :date_added_to_cohort_column_type }
 
   before(:all) do
     GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
