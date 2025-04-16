@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class PopulateCohortColumnTable < ActiveRecord::Migration[7.0]
-  def available_columns # rubocop:disable Metrics/AbcSize
+  def available_columns
     [
       'CohortColumns::LastName',
       'CohortColumns::FirstName',
