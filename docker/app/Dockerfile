@@ -74,7 +74,7 @@ RUN apt-get update \
 RUN apt-get update && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends \
   locales-all \
-  nodejs yarn \
+  nodejs yarnpkg \
   awscli \
   tzdata \
   git \
