@@ -10,7 +10,7 @@ require 'net/http/post/multipart'
 module MaReports::CsgEngage
   class Credential < ::GrdaWarehouse::RemoteCredential
     # Docs: TODO
-    alias_attribute :apikey, :password
+    alias_method :apikey, :password
     alias_attribute :options, :additional_headers
 
     DEFAULT_HOUR = 4
