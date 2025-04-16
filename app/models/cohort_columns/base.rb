@@ -22,10 +22,10 @@ module CohortColumns
     attribute :cohort_client
     attribute :editable, Boolean, lazy: false, default: true
     attribute :current_user
-    attribute :column_type, GrdaWarehouse::CohortColumnType, lazy: true, default: ->(r, _) { GrdaWarehouse::CohortColumnType.find_by!(class_name: r.class_name) }
+    attribute :cohort_column_type, GrdaWarehouse::CohortColumnType, lazy: true, default: ->(r, _) { GrdaWarehouse::CohortColumnType.find_by!(class_name: r.class_name) }
 
     def active?
-      column_type&.active?
+      cohort_column_type&.active?
     end
 
     def class_name

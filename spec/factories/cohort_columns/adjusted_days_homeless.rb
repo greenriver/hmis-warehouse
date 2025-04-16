@@ -2,6 +2,6 @@
 
 FactoryBot.define do
   factory :adjusted_days_homeless, class: 'CohortColumns::AdjustedDaysHomeless' do
-    column_type { create(:cohort_column_type, class_name: 'CohortColumns::AdjustedDaysHomeless') }
+    cohort_column_type { create(:cohort_column_type, class_name: 'CohortColumns::AdjustedDaysHomeless') }
   end
 end

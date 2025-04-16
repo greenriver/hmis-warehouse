@@ -9,7 +9,7 @@ RSpec.describe GrdaWarehouse::CohortColumnType, type: :model do
   describe 'active scope' do
     it 'returns only active columns' do
       inactive_column = build :user_string_cohort_column_2
-      inactive_column.column_type.deactivate
+      inactive_column.cohort_column_type.deactivate
 
       expect(described_class.active.to_a.map(&:class_name)).to include(cohort_column.class_name)
       expect(described_class.active.to_a.map(&:class_name)).not_to include(inactive_column.class_name)
@@ -20,7 +20,7 @@ RSpec.describe GrdaWarehouse::CohortColumnType, type: :model do
     it 'affects available_columns' do
       expect(GrdaWarehouse::Cohort.active_columns.map(&:class_name)).to include('CohortColumns::UserString1')
 
-      cohort_column.column_type.deactivate
+      cohort_column.cohort_column_type.deactivate
       expect(GrdaWarehouse::Cohort.active_columns.map(&:class_name)).not_to include('CohortColumns::UserString1')
     end
   end

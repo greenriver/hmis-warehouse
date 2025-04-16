@@ -16,7 +16,7 @@
         %th Type
         %th Active
     %tbody
-      - columns = @columns.sort_by { |c| [c.column_type.active ? 0 : 1, c.title || c.class_name] } 
+      - columns = @columns.sort_by { |c| [c.cohort_column_type.active ? 0 : 1, c.title || c.class_name] } 
       - columns.each do |column|
         - translatable = !column.class.in?(GrdaWarehouse::Cohort.non_translateable)
         %tr

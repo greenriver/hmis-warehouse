@@ -17,7 +17,7 @@ module GrdaWarehouse
 
     def remove_from_cohorts
       GrdaWarehouse::Cohort.all.each do |cohort|
-        cohort.update!(column_state: cohort.column_state.reject { |col| col.column_type.class_name == class_name })
+        cohort.update!(column_state: cohort.column_state.reject { |col| col.cohort_column_type.class_name == class_name })
       end
     end
   end
