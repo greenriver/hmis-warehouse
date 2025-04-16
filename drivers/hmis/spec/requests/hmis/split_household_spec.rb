@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -118,7 +120,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     input = {
       splitting_enrollment_inputs: [
         {
-          enrollment_id: 'fake-enrollment',
+          enrollment_id: '9999', # fake enrollment ID that doesn't match any enrollment in the database
           relationship_to_hoh: 'SELF_HEAD_OF_HOUSEHOLD',
         },
       ],

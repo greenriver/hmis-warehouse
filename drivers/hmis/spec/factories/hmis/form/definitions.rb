@@ -1118,4 +1118,48 @@ FactoryBot.define do
       }.deep_stringify_keys
     end
   end
+
+  factory :ce_referral_step_form_definition, parent: :hmis_form_definition do
+    role { :CE_REFERRAL_STEP }
+    definition do
+      {
+        'item': [
+          {
+            'type': 'GROUP',
+            'link_id': 'q1',
+            'item': [
+              {
+                'type': 'DATE',
+                'link_id': 'contact_date',
+                'required': true,
+                'warn_if_empty': false,
+                'text': 'Contact Date',
+                'mapping': { 'field_name': 'contact_date' },
+              },
+              {
+                'text': 'Client Accepts Referral',
+                'type': 'CHOICE',
+                'link_id': 'client_accepted',
+                'mapping': {
+                  'custom_field_key': 'client_accepted',
+                },
+                'required': true,
+                'warn_if_empty': false,
+                'pick_list_options': [
+                  {
+                    'code': '1',
+                    'label': 'Yes, client accepts referral',
+                  },
+                  {
+                    'code': '0',
+                    'label': 'No, client does not accept referral or could not be contacted',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+    end
+  end
 end

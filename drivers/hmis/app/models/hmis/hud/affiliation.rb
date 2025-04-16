@@ -6,12 +6,16 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::Hud::Affiliation < Hmis::Hud::Base
+  self.table_name = :Affiliation
+  self.sequence_name = "public.\"#{table_name}_id_seq\""
+
   include ::HmisStructure::Affiliation
   include ::Hmis::Hud::Concerns::Shared
-  self.table_name = :Affiliation
+
   has_paper_trail(meta: { project_id: ->(r) { r.project&.id } })
-  self.sequence_name = "public.\"#{table_name}_id_seq\""
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :project, **hmis_relation(:ProjectID, 'Project'), inverse_of: :affiliations, optional: true
