@@ -26,9 +26,7 @@ module GrdaWarehouse::Vispdat
     ]
 
     class << self
-      # rubocop:disable Style/Alias
       alias_method :contact_answers, :contact_methods
-      # rubocop:enable Style/Alias
     end
 
     enum language_answer: [

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class FixJsonSerialization < ActiveRecord::Migration[7.1]
   # Define the model locally to avoid dependency on the main application code
   # which might change in the future, breaking older migrations.
@@ -6,7 +8,7 @@ class FixJsonSerialization < ActiveRecord::Migration[7.1]
   end
 
   def up
-    say_with_time "Converting YAML data to JSON in hmis_supplemental_field_values" do
+    say_with_time 'Converting YAML data to JSON in hmis_supplemental_field_values' do
       HmisSupplementalFieldValue.find_each do |record|
         next if record.data.nil?
         raise "Unexpected data type in hmis_supplemental_field_values ID #{record.id}: #{record.data.class}" unless record.data.is_a?(String)
@@ -22,22 +24,21 @@ class FixJsonSerialization < ActiveRecord::Migration[7.1]
         end
       end
     end
-    # Add similar blocks here for other tables if needed
   end
 
   def down
-    say_with_time "Converting JSON data back to YAML string in hmis_supplemental_field_values" do
+    say_with_time 'Converting JSON data back to YAML string in hmis_supplemental_field_values' do
       HmisSupplementalFieldValue.find_each do |record|
         # Check if data is not nil before attempting to dump
         if record.data.present?
           # The raw jsonb type might be Hash or Array, convert it back to YAML string
-           record.update_column(:data, record.data.to_yaml)
+          record.update_column(:data, record.data.to_yaml)
         else
-           # Keep nil as nil
-           record.update_column(:data, nil)
+          # Keep nil as nil
+          record.update_column(:data, nil)
         end
       end
     end
-     # Add similar blocks here for other tables if needed
+    # Add similar blocks here for other tables if needed
   end
 end

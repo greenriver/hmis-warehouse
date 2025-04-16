@@ -1874,7 +1874,7 @@ module GrdaWarehouse::Hud
       dob = attributes['DOB'].to_date
       self.class.age(date: date, dob: dob)
     end
-    alias age_on age
+    alias_method :age_on, :age
 
     def youth_on?(date = Date.current)
       (18..24).cover?(age(date))

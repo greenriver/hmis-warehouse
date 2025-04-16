@@ -58,5 +58,5 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
 
     end_date.nil? || end_date >= date
   end
-  alias active? active_on?
+  alias_method :active?, :active_on?
 end

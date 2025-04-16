@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -50,8 +52,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   wip_and_submitted = [
-    [:wip, 'WIP', ->(a) { a.save_in_progress }, :can_edit_enrollments],
-    [:submitted, 'submitted', ->(a) { a.save_not_in_progress }, :can_delete_assessments],
+    [:wip, 'WIP', lambda(&:save_in_progress), :can_edit_enrollments],
+    [:submitted, 'submitted', lambda(&:save_not_in_progress), :can_delete_assessments],
   ]
 
   # Normal deletion tests
