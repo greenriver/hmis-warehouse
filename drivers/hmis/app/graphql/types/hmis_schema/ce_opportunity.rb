@@ -34,15 +34,13 @@ module Types
         order(priority_score: :desc, client_id: :desc)
     end
 
-    def referral
-      load_ar_association(
-        object,
-        :referrals,
-        scope: Hmis::Ce::Referral.
-          viewable_by(current_user).
-          where.not(status: 'rejected').
-          order(created_at: :desc),
-      ).first # there should be at most 1 (enforced in an AR validation but not at the database level)
+    def referral # Don't resolve in batch, causes n+1s.
+      # todo @martha - double check
+      object.referrals.
+        viewable_by(current_user).
+        where.not(status: 'rejected').
+        order(created_at: :desc).
+        first # there should be at most 1 (enforced in an AR validation but not at the database level)
     end
 
     def project
