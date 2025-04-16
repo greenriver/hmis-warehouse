@@ -91,7 +91,7 @@ module Types
     def eligible_ce_opportunities(filters: nil)
       raise unless Hmis::Ce.configuration.enabled?
 
-      scope = Hmis::Ce::Opportunity.for_client(object)
+      scope = Hmis::Ce::Opportunity.viewable_by(current_user).for_client(object)
       scope = scope.where(project_id: filters.project) if filters&.project.present?
 
       projects_table = Hmis::Hud::Project.arel_table
