@@ -30,7 +30,7 @@ module HmisExternalApis::AcHmis::Exporters
           case_note.content,
           case_note.date_created,
           case_note.date_updated,
-          case_note.user.id, # Matches User.csv in HMIS CSV Export
+          case_note.user&.id, # Matches User.csv in HMIS CSV Export. May be nil for imported case notes.
         ]
         write_row(values)
       end
