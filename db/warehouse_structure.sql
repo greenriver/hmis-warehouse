@@ -29088,6 +29088,7 @@ CREATE TABLE public.wfd_templates (
     name character varying NOT NULL,
     version integer NOT NULL,
     status character varying NOT NULL,
+    template_type character varying NOT NULL,
     description text,
     owner_type character varying,
     owner_id bigint,
