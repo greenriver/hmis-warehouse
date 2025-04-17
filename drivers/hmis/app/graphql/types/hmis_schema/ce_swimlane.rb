@@ -10,7 +10,7 @@ module Types
   class HmisSchema::CeSwimlane < Types::BaseObject
     # object is a Hmis::WorkflowDefinition::Swimlane
 
-    field :id, ID, null: false # need to resolve the ID so that the participants mutation (from frontend) knows what ID to send
+    field :id, ID, null: false
     field :name, String, null: false
   end
 end

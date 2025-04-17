@@ -870,7 +870,7 @@ type CeReferralStep {
   """
   stepId: ID
   submittedValues: JsonObject
-  swimlane: String
+  swimlane: String!
 }
 
 enum CeReferralStepStatus {
@@ -6372,7 +6372,7 @@ type Mutation {
     input: ClearRecentItemsInput!
   ): ApplicationUser
   createCeOpportunity(input: CeOpportunityInput!, projectId: ID!): CreateCeOpportunityPayload
-  createCeReferral(clientId: ID!, input: CeReferralInput @deprecated(reason: "Removing in favor of a separate mutation for assigning participants"), opportunityId: ID!): CreateCeReferralPayload
+  createCeReferral(clientId: ID!, input: CeReferralInput @deprecated(reason: "Use AssignReferralParticipants mutation instead"), opportunityId: ID!): CreateCeReferralPayload
   createClientAlert(input: ClientAlertInput!): CreateClientAlertPayload
   createDirectUpload(
     """
