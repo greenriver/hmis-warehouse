@@ -41,6 +41,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 clientId
               }
             }
+            candidatesGeneratedAt
             referral {
               id
               status
@@ -50,7 +51,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               name
               ownerType
             }
-            candidatesGeneratedAt
           }
         }
       GRAPHQL
