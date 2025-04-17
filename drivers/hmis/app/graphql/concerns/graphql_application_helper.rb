@@ -69,9 +69,14 @@ module GraphqlApplicationHelper
     enrollments = load_ar_association(
       client,
       :enrollments,
-      scope: Hmis::Hud::Enrollment.viewable_by(current_user).preload(:exit),
+      scope: Hmis::Hud::Enrollment.none,
     )
 
+    # Another example of breaking it. Similar to pagination issue, just making another db request after data loading
+    found = enrollments.with_project(project_id).open_including_wip.first
+    raise 'bad, none-scope was ignored' if found
+
+    # open_including_wip
     # Filter down by project and date
     enrollments.filter do |en|
       en.open_on_date?(open_on_date) && en.project_pk.to_s == project_id.to_s
