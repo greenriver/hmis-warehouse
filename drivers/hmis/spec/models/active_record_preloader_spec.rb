@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe Sources::ActiveRecordAssociation do
@@ -24,9 +26,9 @@ RSpec.describe Sources::ActiveRecordAssociation do
         ActiveRecord::Associations::Preloader.new(records: records, associations: :enrollment).call
       end
 
-      enrollment_queries = queries.grep /"Enrollment".*WHERE.*"EnrollmentID" = '#{enrollment.enrollment_id}'/
+      enrollment_queries = queries.grep(/"Enrollment".*WHERE.*"EnrollmentID" = '#{enrollment.enrollment_id}'/)
       expect(enrollment_queries.size).to eq(1)
-      project_queries = queries.grep /Project.*WHERE.*"Project"."id" = /
+      project_queries = queries.grep(/Project.*WHERE.*"Project"."id" = /)
       expect(project_queries.size).to eq(1)
       expect(records.first.project).to eq(project)
       expect(records.first.enrollment).to eq(enrollment)
@@ -42,9 +44,9 @@ RSpec.describe Sources::ActiveRecordAssociation do
         ActiveRecord::Associations::Preloader.new(records: records, associations: [:project, :enrollment]).call
       end
 
-      enrollment_queries = queries.grep /"Enrollment".*WHERE.*"EnrollmentID" = '#{enrollment.enrollment_id}'/
+      enrollment_queries = queries.grep(/"Enrollment".*WHERE.*"EnrollmentID" = '#{enrollment.enrollment_id}'/)
       expect(enrollment_queries.size).to eq(1)
-      project_queries = queries.grep /Project.*WHERE.*"Project"."id" = /
+      project_queries = queries.grep(/Project.*WHERE.*"Project"."id" = /)
       expect(project_queries.size).to eq(1)
       expect(records.first.project).to eq(project)
       expect(records.first.enrollment).to eq(enrollment)
