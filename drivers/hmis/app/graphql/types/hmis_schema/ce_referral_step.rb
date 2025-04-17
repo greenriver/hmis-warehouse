@@ -15,7 +15,7 @@ module Types
     field :form_definition, Types::Forms::FormDefinition, null: false
     field :name, String, null: false
     field :status, HmisSchema::Enums::CeReferralStepStatus, null: false
-    field :swimlane, String, null: true # todo @martha - prob revert this
+    field :swimlane, String, null: false
     field :submitted_values, JsonObject, null: true
     delegate :name, to: :workflow_node
 
