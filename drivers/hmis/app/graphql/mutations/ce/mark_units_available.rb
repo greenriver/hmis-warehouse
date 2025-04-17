@@ -31,7 +31,7 @@ module Mutations
 
       Hmis::Unit.transaction do
         opportunities = units.map do |unit|
-          mark_available(unit, template)
+          build_opportunity_for_unit(unit, template)
         end
 
         Hmis::Ce::Opportunity.import!(opportunities)
@@ -42,7 +42,7 @@ module Mutations
 
     private
 
-    def mark_available(unit, template)
+    def build_opportunity_for_unit(unit, template)
       raise 'Unit already has an active opportunity' if unit.latest_opportunity&.active?
 
       unit_desc = unit.unit_type&.description
