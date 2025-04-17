@@ -15,7 +15,6 @@ module Hmis::Ce
                class_name: 'Hmis::WorkflowDefinition::Template'
 
     has_many :referrals, class_name: 'Hmis::Ce::Referral', dependent: :restrict_with_exception
-    has_many :candidates, class_name: 'Hmis::Ce::OpportunityCandidate', dependent: :destroy
     has_many :categorizations, class_name: 'Hmis::Ce::OpportunityCategorization', foreign_key: :opportunity_id
     has_many :categories, through: :categorizations
 
