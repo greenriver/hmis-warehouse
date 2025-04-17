@@ -22,11 +22,6 @@ module Types
         end
       end
 
-      # not currently used, because we are only querying for files on 1 client at a time
-      def resolve_files_with_loader(association_name = :files, **args)
-        load_ar_association(object, association_name, scope: scoped_files(Hmis::File, **args))
-      end
-
       def resolve_files(scope = object.files, **args)
         scoped_files(scope, **args)
       end
