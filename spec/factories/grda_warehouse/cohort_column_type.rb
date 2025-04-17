@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :cohort_column_type, class: 'GrdaWarehouse::CohortColumnType' do
-    class_name { 'CohortColumns::UserString1' }
+    sequence(:class_name) { |n| "CohortColumns::UserString#{n}" }
     active { true }
   end
 end

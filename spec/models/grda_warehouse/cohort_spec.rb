@@ -29,6 +29,10 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
   let!(:empty_collection) { create :collection, collection_type: 'Cohorts' }
   let!(:cohort_collection) { create :collection, collection_type: 'Cohorts' }
 
+  before(:all) do
+    GrdaWarehouse::CohortColumnType.maintain!
+  end
+
   before(:each) do
     cohort_collection.set_viewables({ cohorts: [cohort.id] })
     setup_access_control(user, no_permission_role, cohort_collection)

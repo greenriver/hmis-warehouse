@@ -6,6 +6,10 @@ RSpec.describe GrdaWarehouse::CohortColumnType, type: :model do
   let!(:cohort) { create :cohort }
   let!(:cohort_column) { build :user_string_cohort_column_1 }
 
+  before(:all) do
+    GrdaWarehouse::CohortColumnType.maintain!
+  end
+
   describe 'active scope' do
     it 'returns only active columns' do
       inactive_column = build :user_string_cohort_column_2

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Cohort, type: :model do
@@ -16,6 +18,10 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
   let(:cohort_client) { create :cohort_client, cohort: cohort, client: client }
   let(:adjusted_days_homeless) { build :adjusted_days_homeless, cohort: cohort }
   let(:rank) { build :rank, cohort: cohort }
+
+  before(:all) do
+    GrdaWarehouse::CohortColumnType.maintain!
+  end
 
   before(:each) do
     admin.legacy_roles = [cohort_manager]
