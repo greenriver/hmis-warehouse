@@ -34,7 +34,7 @@ def create_event(klass, template, name, event, message)
   workflow_event
 end
 
-def create_task(definition, template, name, swimlane)
+def create_task(definition, template, name, swimlane = nil)
   task = Hmis::WorkflowDefinition::Task.find_or_initialize_by(
     form_definition_identifier: definition.identifier,
     template_id: template.id,
@@ -131,6 +131,14 @@ task ce_starter_pack_20250302: [:environment] do
   client_acceptance_task.connect_to!(gateway) unless client_acceptance_task.outflows.where(target_node_id: gateway.id).exists?
   gateway.connect_to!(reject_workflow_event, condition: 'client_accepted = 0') unless gateway.outflows.where(target_node_id: reject_workflow_event.id).exists?
   gateway.connect_to!(accept_workflow_event, condition: 'client_accepted = 1') unless gateway.outflows.where(target_node_id: accept_workflow_event.id).exists?
+
+  puts '- Creating a tempalte with no swimlanes'
+  no_swimlane_template = create_template('No Swimlanes', 'no_swimlanes')
+  client_acceptance_task = create_task(client_accepts_form_def, no_swimlane_template,  'Confirm Client Accepts Referral')
+  start_workflow_event = create_start_event(no_swimlane_template, 'start referral', 'start_workflow', 'start_referral')
+  accept_workflow_event = create_end_event(no_swimlane_template, 'accept referral', 'end_workflow', 'accept_referral')
+  start_workflow_event.connect_to!(client_acceptance_task) unless start_workflow_event.outflows.where(target_node_id: client_acceptance_task.id).exists?
+  client_acceptance_task.connect_to!(accept_workflow_event) unless client_acceptance_task.outflows.where(target_node_id: accept_workflow_event.id).exists?
 
   puts '- Creating Admin Approve Denial template, a slightly more complicated template with multiple swimlanes.'
   # Start workflow -> Client Approval task (Case Manager) -> Client Approval Gateway...

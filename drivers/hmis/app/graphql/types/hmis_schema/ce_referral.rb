@@ -18,6 +18,7 @@ module Types
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :current_step_name, String, null: true
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true # Don't resolve in batch
+    field :participants, [HmisSchema::CeReferralParticipant], null: true
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeReferralStatus]
@@ -64,6 +65,10 @@ module Types
 
     def opportunity
       load_ar_association(object, :opportunity)
+    end
+
+    def participants
+      load_ar_association(object, :participants)
     end
   end
 end

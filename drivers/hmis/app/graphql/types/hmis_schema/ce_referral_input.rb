@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# Deprecated, since the CreateReferral mutation no longer requires extra input besides the opportunity ID and client ID.
 module Types
   class HmisSchema::CeReferralInput < Types::BaseInputObject
     argument :participants, [Types::HmisSchema::CeReferralParticipantInput], required: true

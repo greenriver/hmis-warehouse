@@ -95,5 +95,6 @@ module Types
     field :create_ce_referral, mutation: Mutations::Ce::CreateCeReferral
     field :start_ce_referral_step, mutation: Mutations::Ce::StartCeReferralStep
     field :submit_ce_referral_step, mutation: Mutations::Ce::SubmitCeReferralStep
+    field :assign_referral_participants, mutation: Mutations::Ce::AssignReferralParticipants
   end
 end

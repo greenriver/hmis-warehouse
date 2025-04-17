@@ -19,6 +19,7 @@ module Types
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
     field :priority_scheme, HmisSchema::CeMatchRule, null: true
     field :categories, [String], null: false
+    field :swimlanes, [Types::HmisSchema::CeSwimlane], null: true
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeOpportunityStatus]
@@ -55,6 +56,11 @@ module Types
 
     def categories
       load_ar_association(object, :categories, scope: Hmis::Ce::OpportunityCategory.order(:name)).map(&:name)
+    end
+
+    def swimlanes
+      template = load_ar_association(object, :workflow_template)
+      load_ar_association(template, :swimlanes)
     end
   end
 end
