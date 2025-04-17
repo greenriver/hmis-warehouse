@@ -3568,6 +3568,7 @@ type Enrollment {
   Present if this household was enrolled as the result of a referral from another project.
   """
   sourceReferralPosting: ReferralPosting
+  staffAssignments: [StaffAssignment!]
   status: EnrollmentStatus!
   subsidyAtRisk: NoYesMissing
   targetScreenReqd: NoYesMissing
@@ -5337,6 +5338,7 @@ type HmisParticipationsPaginated {
 type Household {
   anyInProgress: Boolean!
   assessments(filters: AssessmentsForHouseholdFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  currentStaffAssignments: [StaffAssignment!]!
   earliestEntryDate: ISO8601Date!
   householdClients: [HouseholdClient!]!
   householdSize: Int!

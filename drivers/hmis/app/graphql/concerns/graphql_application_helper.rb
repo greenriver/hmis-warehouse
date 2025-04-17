@@ -6,6 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Concern shared across query resolves (BaseObject) and mutations (BaseMutation/CleanBaseMutation)
 module GraphqlApplicationHelper
   extend ActiveSupport::Concern
@@ -37,7 +39,16 @@ module GraphqlApplicationHelper
   # Use data loader to load an ActiveRecord association.
   # Note: 'scope' is intended for ordering or to modify the default
   # association in a way that is constant with respect to the resolver,
-  # for example `scope: FooBar.order(:name)`. It is NOT used to filter down results.
+  #
+  # Examples of "constant with respect to the resolver" scopes:
+  #
+  # OK:
+  #   load_ar_association(object, :foo_bar, scope: FooBar.where(foo: true))
+  #   load_ar_association(object, :foo_bar, scope: FooBar.viewable_by(current_user))
+  #
+  # Not OK:
+  #   load_ar_association(object, :foo_bar, scope: FooBar.where(bar: object.bar))
+  #
   def load_ar_association(object, association_name, scope: nil)
     raise "object must be a GrdaWarehouseBase, got #{object.class.name}" unless object.is_a?(ActiveRecord::Base)
 
