@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class RenameClientGeolocationsView < ActiveRecord::Migration[7.0]
   def change
     # Drop the view that had incorrect name
