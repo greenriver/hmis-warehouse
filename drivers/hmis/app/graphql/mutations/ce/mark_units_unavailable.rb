@@ -29,7 +29,9 @@ module Mutations
       raise 'Not found' unless opportunities.any?
       raise 'Cannot mark opportunity unavailable if it has an active referral' if opportunities.any?(&:active_referral)
 
-      opportunities.destroy_all
+      Hmis::Ce::Opportunity.transaction do
+        opportunities.each(&:destroy!)
+      end
 
       { units: Hmis::Unit.where(id: unit_ids) }
     end

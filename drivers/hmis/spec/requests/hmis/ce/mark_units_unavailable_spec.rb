@@ -100,5 +100,37 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
         expect(unit.opportunities).to contain_exactly(past_opportunity)
       end
     end
+
+    context 'when multiple units are being marked unavailable, and one of them fails' do
+      let!(:units) do
+        10.times.map do
+          unit = create(:hmis_unit, project: project, unit_type: unit_type)
+          create(:hmis_ce_opportunity, owner: unit, project: project, status: :open)
+          unit
+        end
+      end
+
+      let(:variables) do
+        { unitIds: units.map(&:id) }
+      end
+
+      before(:each) do
+        allow_any_instance_of(Hmis::Ce::Opportunity).to receive(:destroy!) do |opportunity|
+          # Simulate failure for just one specific opportunity (to prove that it rolls back all of the changes).
+          # Set this inside a block instead of using `allow(specific_instance)` because the instances are all reloaded within the mutation
+          raise RuntimeError if opportunity.id.to_s == units.last.latest_opportunity.id.to_s
+
+          allow(opportunity).to receive(:destroy!).and_call_original
+          opportunity.destroy!
+        end
+      end
+
+      it 'fails the whole batch' do
+        expect do
+          expect_gql_error(post_graphql(**variables) { mutation })
+          unit.reload
+        end.to not_change(Hmis::Ce::Opportunity, :count).from(11)
+      end
+    end
   end
 end
