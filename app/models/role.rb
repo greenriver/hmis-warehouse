@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Participates in both the "new" and "legacy" permissions systems
 #
 # Roles define what actions a user can perform within the system. Not all permissions grant abilities, some are
@@ -730,7 +732,7 @@ class Role < ApplicationRecord
         sub_category: 'Report Administration',
       },
       can_view_project_related_filters: {
-        description: 'Ability to specify filters of project, organization, funding source and data sources.  Most single CoC installations will want this enabled for anyone with reporting access.',
+        description: 'Ability to specify filters of project, organization, funding source and data sources for report universes. Most single CoC installations will want this enabled for anyone with reporting access. NOTE: This only provides access to the report filters. The filters are populated with data made accessible to the user through other permissions (e.g. the "Can view projects" permission).',
         administrative: false,
         category: 'Reporting',
         sub_category: 'Data Access',

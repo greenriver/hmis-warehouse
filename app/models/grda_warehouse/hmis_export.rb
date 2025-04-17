@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse
   class HmisExport < GrdaWarehouseBase
     include ActionView::Helpers::DateHelper
@@ -13,7 +15,11 @@ module GrdaWarehouse
     attr_accessor :user_ids
     # attr_accessor :zip_password
 
+    # attachment via CarrierWave
     mount_uploader :file, HmisExportUploader
+
+    # attachment via ActiveStorage
+    has_one_attached :hmis_zip
 
     belongs_to :user, class_name: 'User', optional: true
 
@@ -25,13 +31,42 @@ module GrdaWarehouse
     end
 
     scope :has_content, -> do
-      where.not(content_type: nil)
+      where.not(completed_at: nil)
     end
 
     scope :for_list, -> do
       has_content.
         select(column_names - ['content', 'file'])
     end
+
+    # for file migration
+    scope :unprocessed_s3_migration, -> do
+      migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::HmisExport').pluck(:record_id)
+      all = pluck(:id)
+      unmigrated = all - migrated
+      return none if unmigrated.blank?
+
+      where(id: unmigrated)
+    end
+
+    def copy_to_s3!
+      return unless content.present?
+      return unless valid? # Ignore uploads that are already invalid (data source deleted?)
+      return if hmis_zip.attached? # don't re-process
+
+      puts "Migrating #{file} to S3"
+
+      Tempfile.create(binmode: true) do |tmp_file|
+        tmp_file.write(content)
+        tmp_file.rewind
+        hmis_zip.attach(io: tmp_file, content_type: content_type, filename: file, identify: false)
+      end
+
+      # Save no-matter validity state
+      self.content = nil
+      save!(validate: false)
+    end
+    # END for file migration
 
     def runtime
       return unless started_at.present? && completed_at.present?

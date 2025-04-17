@@ -151,6 +151,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :total_homeless_nights_unsheltered,
         :date_of_first_service,
         :psh_required,
+        :interested_in_set_asides,
         :meth_production_conviction,
         :lifetime_sex_offender,
         :evicted,
@@ -494,21 +495,49 @@ module GrdaWarehouse::CasProjectClientCalculator
       contact_emails.compact.uniq
     end
 
+    # Transfer Assessment:
     # 0 = No PSH
     # 1 = PSH required
     # 2 = Either
     # Default to either if we don't have an answer
     # CAS uses `yes`, `no`, `maybe` strings
+    #
+    # Family Pathways
+    # 0 = No PSH
+    # 1 = PSH required
     private def psh_required(client)
-      value = most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_rrh_transfer_needs_subsidized_housing_resource')&.AssessmentAnswer.to_i || 2
+      unknown_response = nil
+      value = nil
+      if most_recent_pathways_or_transfer(client).family_pathways_2024?
+        value = most_recent_pathways_or_transfer(client).
+          question_matching_requirement('c_pathways_fam_PSH')&.AssessmentAnswer.to_i
+      else
+        unknown_response = 'maybe'
+        value = most_recent_pathways_or_transfer(client).
+          question_matching_requirement('c_rrh_transfer_needs_subsidized_housing_resource')&.AssessmentAnswer.to_i || 2
+      end
+
       case value
       when 0
         'no'
       when 1
         'yes'
       else
-        'maybe'
+        unknown_response
+      end
+    end
+
+    # Family Pathways
+    # 0 = No Set-Asides
+    # 1 = Yes Set-Asides
+    private def interested_in_set_asides(client)
+      value = most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_pathways_Fam_set_aside')&.AssessmentAnswer&.to_i
+      case value
+      when 0
+        'no'
+      when 1
+        'yes'
       end
     end
 

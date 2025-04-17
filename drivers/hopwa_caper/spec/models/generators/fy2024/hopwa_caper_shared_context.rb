@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'hopwa_caper_helpers'
 
@@ -23,14 +25,6 @@ RSpec.shared_context 'HOPWA CAPER shared context' do
   # report viewer is a role factory. We also need can_view_projects to pass the access check in
   # GrdaWarehouse::Lookups::CocCode.viewable_by
   let!(:report_viewer) { create :report_viewer, can_view_projects: true }
-
-  # these seem to be missing. CoC from seed maker maintain_lookups
-  before(:all) do
-    HudUtility2024.cocs.each do |code, name|
-      coc = GrdaWarehouse::Lookups::CocCode.where(coc_code: code).first_or_initialize
-      coc.update(official_name: name)
-    end
-  end
 
   before(:each) do
     AccessGroup.maintain_system_groups

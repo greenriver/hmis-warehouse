@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # The export is generated elsewhere. This just orchestrates running the job and
 # returning the result.
 
@@ -13,7 +15,9 @@ module HmisExternalApis::AcHmis::Exporters
 
     attr_accessor :export
 
-    delegate :content, to: :export
+    def content
+      export.hmis_zip.download
+    end
 
     def run!(start_date: 3.years.ago.to_date)
       data_source = HmisExternalApis::AcHmis.data_source
