@@ -27,6 +27,10 @@ RSpec.describe GrdaWarehouse::Cohorts::CohortAnalyticsGeneration, type: :model d
     end
   end
 
+  before(:all) do
+    GrdaWarehouse::CohortColumnType.maintain!
+  end
+
   describe 'Processes cohort data into tables that back views' do
     before(:each) do
       GrdaWarehouse::Cohort.prepare_active_cohorts
