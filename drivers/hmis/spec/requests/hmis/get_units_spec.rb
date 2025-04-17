@@ -42,6 +42,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                   active
                 }
               }
+              acceptingCeReferrals
             }
           }
         }
@@ -49,23 +50,65 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  context 'when there are many units' do
-    before do
-      50.times do
-        unit = create :hmis_unit, project: project
-        opportunity = create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked)
-        create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress)
+  describe 'get units query' do
+    context 'when the unit has no opportunity' do
+      let!(:unit) { create(:hmis_unit, project: project) }
+
+      it 'returns the unit without an opportunity' do
+        response, result = post_graphql(id: project.id) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'project', 'units', 'nodesCount')).to eq(1)
+        expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity')).to be_nil
+        expect(result.dig('data', 'project', 'units', 'nodes', 0, 'acceptingCeReferrals')).to be_falsy
       end
     end
 
-    it 'avoids n+1 queries' do
-      expect do
+    context 'when the unit has an open opportunity' do
+      let!(:unit) { create(:hmis_unit, project: project) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :open) }
+
+      it 'returns the unit with the opportunity' do
         response, result = post_graphql(id: project.id) { query }
         expect(response.status).to eq(200), result.inspect
-        expect(result.dig('data', 'project', 'units', 'nodesCount')).to eq(50)
+        expect(result.dig('data', 'project', 'units', 'nodesCount')).to eq(1)
+        expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity')).to be_present
+        expect(result.dig('data', 'project', 'units', 'nodes', 0, 'acceptingCeReferrals')).to be_truthy
+      end
+    end
+
+    context 'when the unit has an opportunity with a referral in progress' do
+      let!(:unit) { create(:hmis_unit, project: project) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress) }
+
+      it 'returns the unit with the opportunity and referral' do
+        response, result = post_graphql(id: project.id) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'project', 'units', 'nodesCount')).to eq(1)
+        expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity')).to be_present
+        expect(result.dig('data', 'project', 'units', 'nodes', 0, 'acceptingCeReferrals')).to be_falsy
         expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral')).to be_present
-        expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral', 'active')).to be_truthy
-      end.to make_database_queries(count: 18..22)
+      end
+    end
+
+    context 'when there are many units' do
+      before do
+        50.times do
+          unit = create :hmis_unit, project: project
+          opportunity = create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked)
+          create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress)
+        end
+      end
+
+      it 'avoids n+1 queries' do
+        expect do
+          response, result = post_graphql(id: project.id) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'project', 'units', 'nodesCount')).to eq(50)
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral')).to be_present
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral', 'active')).to be_truthy
+        end.to make_database_queries(count: 18..22)
+      end
     end
   end
 end

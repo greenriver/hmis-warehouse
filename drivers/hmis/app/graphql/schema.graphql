@@ -11898,6 +11898,7 @@ type UnassignStaffPayload {
 }
 
 type Unit {
+  acceptingCeReferrals: Boolean!
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
   id: ID!
