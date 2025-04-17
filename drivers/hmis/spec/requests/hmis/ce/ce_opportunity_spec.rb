@@ -41,6 +41,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 clientId
               }
             }
+            swimlanes {
+              id
+              name
+            }
             referral {
               id
               status
@@ -49,10 +53,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
               name
               ownerType
-            }
-            swimlanes {
-              id
-              name
             }
           }
         }
