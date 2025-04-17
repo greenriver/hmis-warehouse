@@ -233,8 +233,11 @@ module Types
       resolve_services(**args)
     end
 
+    # Go to client dashboard => case notes table to test.
+    # Relationships is a has_many through
     def custom_case_notes(...)
-      resolve_custom_case_notes(...)
+      # resolve_custom_case_notes(...)
+      load_ar_association(object, :custom_case_notes, scope: Hmis::Hud::CustomCaseNote.where(information_date: '2024-02-05'))
     end
 
     def files(**args)

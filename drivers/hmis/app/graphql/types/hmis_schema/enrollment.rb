@@ -290,6 +290,7 @@ module Types
       client = load_ar_association(object, :client)
       # There is no "viewable_by" check on the enrollments, because this permission
       # grants full access regardless of enrollment/project visibility.
+      # CHECK: safe (no scope) but pointless to use load_ar_association here, fix. (or use scope)
       load_ar_association(client, :enrollments).where.not(id: object.id).open_including_wip
     end
 
@@ -402,8 +403,11 @@ module Types
       resolve_ce_assessments(**args)
     end
 
+    # Go to enrollment dashboard => case notes table to test.
+    # Relationships is a has_many
     def custom_case_notes(...)
-      resolve_custom_case_notes(...)
+      # resolve_custom_case_notes(...)
+      load_ar_association(object, :custom_case_notes, scope: Hmis::Hud::CustomCaseNote.where(information_date: '2024-02-05'))
     end
 
     def assessment_eligibilities

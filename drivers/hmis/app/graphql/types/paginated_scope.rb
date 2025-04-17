@@ -15,7 +15,9 @@ module Types
     end
 
     def nodes
-      @all_nodes.offset(@offset).limit(@limit)
+      # When offset/limit is commented out, the scope is respected.
+      # Otherwise, scope is ignored, because a second non-data-loader query is performed here
+      @all_nodes #.offset(@offset).limit(@limit)
     end
 
     def nodes_count
