@@ -31,6 +31,8 @@ module Types
     field :occupants, [HmisSchema::Enrollment], null: false
     field :user, Application::User, null: true
     field :unit_size, Integer, null: true
+    field :latest_opportunity, HmisSchema::CeOpportunity, null: true, description: "The unit's most recent opportunity, which could be currently active or already closed"
+    field :accepting_ce_referrals, Boolean, null: false
 
     def user
       user = load_ar_association(object, :user)
@@ -56,6 +58,17 @@ module Types
 
     def name
       Hmis::Unit.display_name(id: object.id, name: object.name, unit_type: unit_type)
+    end
+
+    def latest_opportunity
+      load_ar_association(object, :latest_opportunity)
+    end
+
+    def accepting_ce_referrals
+      latest_opportunity = load_ar_association(object, :latest_opportunity)
+      return false if latest_opportunity.nil?
+
+      load_ar_association(latest_opportunity, :referrals, scope: Hmis::Ce::Referral.active).empty?
     end
   end
 end
