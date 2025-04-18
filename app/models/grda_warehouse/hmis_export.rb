@@ -111,7 +111,15 @@ module GrdaWarehouse
     end
 
     def save_zip_to(path)
-      reconstitute_path = ::File.join(path, file.file.filename)
+      filename = if hmis_zip.attached?
+        hmis_zip.filename.to_s
+      elsif file.present? && file.file.present?
+        file.file.filename
+      else
+        "hmis_export_#{id}.zip"
+      end
+
+      reconstitute_path = ::File.join(path, filename)
       FileUtils.mkdir_p(path) unless ::File.directory?(path)
       ::File.open(reconstitute_path, 'w+b') do |file|
         file.write(content)
