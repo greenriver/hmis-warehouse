@@ -56,7 +56,7 @@ module Hmis::Ce
     end
 
     def active?
-      [:accepted, :rejected].exclude?(status.to_sym)
+      !accepted? && !rejected?
     end
 
     private

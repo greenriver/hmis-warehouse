@@ -137,6 +137,26 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
       end
     end
 
+    describe 'opportunity with a unit' do
+      let!(:unit) { create :hmis_unit, project: project }
+
+      before do
+        opportunity.update!(owner: unit)
+      end
+
+      it 'marks the unit as occupied' do
+        expect do
+          engine.complete_step!(engine.active_steps.sole, user: hmis_user, submitted_values: {})
+          referral.reload
+          unit.reload
+        end.to change(referral, :target_enrollment).from(nil).
+          and change(unit, :occupied?).from(false).to(true)
+
+        enrollment = referral.target_enrollment
+        expect(enrollment.current_unit).to eq(unit)
+      end
+    end
+
     describe 'workflow with side effect that creates a move-in date' do
       let!(:move_in_date_form_def) do
         create(

@@ -18,6 +18,7 @@ module Types
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :current_step_name, String, null: true
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true # Don't resolve in batch
+    field :active, Boolean, null: false, method: :active?
     field :participants, [HmisSchema::CeReferralParticipant], null: true
 
     available_filter_options do
