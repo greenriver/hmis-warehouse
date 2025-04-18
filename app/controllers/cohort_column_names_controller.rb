@@ -44,9 +44,9 @@ class CohortColumnNamesController < ApplicationController
 
     columns.each do |column|
       # if the column is not active, and the active checkbox is checked, activate the column
-      column.cohort_column_type.activate if ! column.cohort_column_type.active? && cohort_columns["#{column.column}_active"] == '1'
+      column.cohort_column.activate if ! column.cohort_column.active? && cohort_columns["#{column.column}_active"] == '1'
       # if the column is active, and the active checkbox is unchecked, deactivate the column
-      column.cohort_column_type.deactivate if column.cohort_column_type.active? && cohort_columns["#{column.column}_active"] == '0'
+      column.cohort_column.deactivate if column.cohort_column.active? && cohort_columns["#{column.column}_active"] == '0'
     end
   end
 

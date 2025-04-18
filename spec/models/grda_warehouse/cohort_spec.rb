@@ -30,7 +30,7 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
   let!(:cohort_collection) { create :collection, collection_type: 'Cohorts' }
 
   before(:all) do
-    GrdaWarehouse::CohortColumnType.maintain!
+    GrdaWarehouse::Cohorts::CohortColumn.maintain!
   end
 
   before(:each) do
@@ -153,7 +153,7 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     before do
       # Add test column to cohort's column_state
       columns = cohort.column_state || []
-      test_column.cohort_column_type.activate
+      test_column.cohort_column.activate
       columns << test_column
       cohort.update(column_state: columns)
     end
@@ -161,7 +161,7 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     it 'removes inactive columns from column_state' do
       expect(cohort.column_state.map(&:class_name)).to include('CohortColumns::UserString1')
 
-      test_column.cohort_column_type.deactivate
+      test_column.cohort_column.deactivate
 
       expect(cohort.reload.column_state.map(&:class_name)).not_to include('CohortColumns::UserString1')
     end
@@ -169,7 +169,7 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     it 'preserves active columns in column_state' do
       expect(cohort.column_state.map(&:class_name)).to include('CohortColumns::UserString1')
 
-      test_column.cohort_column_type.activate
+      test_column.cohort_column.activate
 
       expect(cohort.reload.column_state.map(&:class_name)).to include('CohortColumns::UserString1')
     end
@@ -185,7 +185,7 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       expect(cohort.column_state.map(&:class_name)).to include('CohortColumns::UserString1', 'CohortColumns::UserString2')
 
       # Deactivate one column
-      test_column.cohort_column_type.deactivate
+      test_column.cohort_column.deactivate
 
       expect(cohort.reload.column_state.map(&:class_name)).to include('CohortColumns::UserString2')
       expect(cohort.reload.column_state.map(&:class_name)).not_to include('CohortColumns::UserString1')

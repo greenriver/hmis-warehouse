@@ -20,7 +20,7 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
   let(:rank) { build :rank, cohort: cohort }
 
   before(:all) do
-    GrdaWarehouse::CohortColumnType.maintain!
+    GrdaWarehouse::Cohorts::CohortColumn.maintain!
   end
 
   before(:each) do

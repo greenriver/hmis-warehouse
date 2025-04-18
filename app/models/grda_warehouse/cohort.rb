@@ -325,13 +325,13 @@ module GrdaWarehouse
     end
 
     def self.active_columns
-      GrdaWarehouse::CohortColumnType.active.map do |column|
+      GrdaWarehouse::Cohorts::CohortColumn.active.map do |column|
         column.class_name.constantize.new
       end
     end
 
     def self.available_columns
-      GrdaWarehouse::CohortColumnType.all.map do |column|
+      GrdaWarehouse::Cohorts::CohortColumn.all.map do |column|
         column.class_name.constantize.new
       end
     end

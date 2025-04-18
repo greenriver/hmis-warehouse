@@ -8222,10 +8222,10 @@ ALTER SEQUENCE public.cohort_column_options_id_seq OWNED BY public.cohort_column
 
 
 --
--- Name: cohort_column_types; Type: TABLE; Schema: public; Owner: -
+-- Name: cohort_columns; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.cohort_column_types (
+CREATE TABLE public.cohort_columns (
     id bigint NOT NULL,
     class_name character varying,
     active boolean DEFAULT true
@@ -8233,10 +8233,10 @@ CREATE TABLE public.cohort_column_types (
 
 
 --
--- Name: cohort_column_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: cohort_columns_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.cohort_column_types_id_seq
+CREATE SEQUENCE public.cohort_columns_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -8245,10 +8245,10 @@ CREATE SEQUENCE public.cohort_column_types_id_seq
 
 
 --
--- Name: cohort_column_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: cohort_columns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.cohort_column_types_id_seq OWNED BY public.cohort_column_types.id;
+ALTER SEQUENCE public.cohort_columns_id_seq OWNED BY public.cohort_columns.id;
 
 
 --
@@ -30753,10 +30753,10 @@ ALTER TABLE ONLY public.cohort_column_options ALTER COLUMN id SET DEFAULT nextva
 
 
 --
--- Name: cohort_column_types id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: cohort_columns id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.cohort_column_types ALTER COLUMN id SET DEFAULT nextval('public.cohort_column_types_id_seq'::regclass);
+ALTER TABLE ONLY public.cohort_columns ALTER COLUMN id SET DEFAULT nextval('public.cohort_columns_id_seq'::regclass);
 
 
 --
@@ -34433,11 +34433,11 @@ ALTER TABLE ONLY public.cohort_column_options
 
 
 --
--- Name: cohort_column_types cohort_column_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: cohort_columns cohort_columns_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.cohort_column_types
-    ADD CONSTRAINT cohort_column_types_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.cohort_columns
+    ADD CONSTRAINT cohort_columns_pkey PRIMARY KEY (id);
 
 
 --

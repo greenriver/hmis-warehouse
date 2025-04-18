@@ -7,7 +7,7 @@ RSpec.describe GrdaWarehouse::CohortTab, type: :model do
   let(:tab) { create :cohort_tab, cohort: cohort }
 
   before(:all) do
-    GrdaWarehouse::CohortColumnType.maintain!
+    GrdaWarehouse::Cohorts::CohortColumn.maintain!
   end
 
   describe 'Default tabs generate expected SQL' do
