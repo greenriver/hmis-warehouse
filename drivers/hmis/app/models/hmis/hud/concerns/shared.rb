@@ -10,7 +10,8 @@ module Hmis::Hud::Concerns::Shared
   extend ActiveSupport::Concern
   include Hmis::Hud::Concerns::HasEnums
   include ::HmisStructure::Shared
-  include ::Hmis::Hud::Concerns::WithStrictAttributes
+  # FIXME: #7576
+  # include ::Hmis::Hud::Concerns::WithStrictAttributes
 
   included do
     # Filter down scope to only HMIS records. Helpful for finding records in the
