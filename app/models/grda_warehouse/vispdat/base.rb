@@ -19,11 +19,11 @@ module GrdaWarehouse::Vispdat
     # enums
     ####################
 
-    enum contact_method: [
-      :contact_phone,
-      :contact_virtual,
-      :contact_in_person,
-    ]
+    enum contact_method: {
+      contact_phone: 'contact_phone',
+      contact_virtual: 'contact_virtual',
+      contact_in_person: 'contact_in_person',
+    }
 
     class << self
       alias_method :contact_answers, :contact_methods

@@ -49,6 +49,7 @@ RSpec.describe Clients::FilesController, type: :request do
             coc_codes: [''],
           },
         }
+        expect(response).to have_http_status(:redirect)
         expect(GrdaWarehouse::Config.get(:auto_confirm_consent)).to be true
         file = GrdaWarehouse::ClientFile.last
         expect(file.consent_form_confirmed).to be true
