@@ -403,7 +403,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     self.project_id = nil
     save!(validate: false)
   end
-  alias save_in_progress save_in_progress!
+  alias_method :save_in_progress, :save_in_progress!
 
   def save_not_in_progress!
     # If this enrollment is being moved from WIP=>non-WIP, then set the DateCreated to now. This is to get the desired time for timeliness reports.
@@ -412,7 +412,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     self.project_id = project.project_id
     save!
   end
-  alias save_not_in_progress save_not_in_progress!
+  alias_method :save_not_in_progress, :save_not_in_progress!
 
   def in_progress?
     self.ProjectID.nil?
