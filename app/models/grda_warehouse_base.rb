@@ -20,11 +20,6 @@ class GrdaWarehouseBase < ActiveRecord::Base
     connection.adapter_name.in?(['PostgreSQL', 'PostGIS'])
   end
 
-  def self.reset_connection
-    connection.disconnect!
-    establish_connection DB_WAREHOUSE
-  end
-
   def self.partitioned?(table_name)
     Dba::PartitionMaker.new(table_name: table_name).done?
   end
