@@ -81,50 +81,29 @@ module WarehouseReports::Cas
       else
         raise "unanticipated time unit: #{unit}"
       end
-
-      sql = <<~SQL
-        WITH step_times AS (
-          SELECT
-            EXTRACT(EPOCH FROM (t2.updated_at - t1.updated_at)) as time_diff,
-            t1.match_id,
-            t1.program_name,
-            t1.sub_program_name,
-            t1.match_started_at,
-            t1.match_route,
-            t1.client_id,
-            t1.cas_client_id,
-            t1.source_data_source
-          FROM grda_warehouse_cas_reports t1
-          JOIN grda_warehouse_cas_reports t2
-            ON t1.client_id = t2.client_id
-            AND t1.match_id = t2.match_id
-            AND t1.match_step = $1
-            AND t2.match_step = $2
-          WHERE t1.match_started_at BETWEEN $3 AND $4
-            AND t2.match_started_at BETWEEN $3 AND $4
+      at = GrdaWarehouse::CasReport.arel_table
+      at2 = at.dup
+      at2.table_alias = 'at2'
+      query = at.where(at[:match_started_at].between(@range.start..@range.end + 1.day)).
+        join(at2).on(at[:client_id].eq(at2[:client_id]).
+          and(at[:match_id].eq(at2[:match_id])).
+          and(at[:match_step].eq(first_step)).
+          and(at2[:match_step].eq(second_step))).
+        where(at2[:match_started_at].between(@range.start..@range.end + 1.day)).
+        project(
+          seconds_diff(GrdaWarehouse::CasReport, at2[:updated_at], at[:updated_at]),
+          at[:match_id],
+          at[:program_name],
+          at[:sub_program_name],
+          at[:match_started_at],
+          at[:match_route],
+          at[:client_id],
+          at[:cas_client_id],
+          at[:source_data_source],
         )
-        SELECT * FROM step_times
-      SQL
-
-      binds = [
-        first_step,
-        second_step,
-        @range.start,
-        @range.end + 1.day,
-      ]
-
-      GrdaWarehouse::CasReport.connection.exec_query(sql, 'SQL', binds).map do |row|
-        h = {
-          days: (row['time_diff'].to_f / divisor).round.to_i,
-          id: row['match_id'],
-          program_name: row['program_name'],
-          sub_program_name: row['sub_program_name'],
-          match_started_at: row['match_started_at'],
-          match_route: row['match_route'],
-          client_id: row['client_id'],
-          cas_client_id: row['cas_client_id'],
-          source_data_source: row['source_data_source'],
-        }
+      GrdaWarehouse::CasReport.connection.select_rows(query.to_sql).map do |row|
+        h = Hash[[:days, :id, :program_name, :sub_program_name, :match_started_at, :match_route, :client_id, :cas_client_id, :source_data_source].zip(row)]
+        h[:days] = (h[:days].to_f / divisor).round.to_i
         ::OpenStruct.new(h)
       end.index_by(&:id)
     end

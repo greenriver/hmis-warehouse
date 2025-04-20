@@ -38,20 +38,19 @@ module GrdaWarehouse::Hud
     scope :descending, -> { order arel_table[:DateProvided].desc }
     # really, the scope below should just be true, but it isn't; this culls things down to the most recent entry of the given type for the date
     scope :uniqueness_constraint, -> {
-      services_table = GrdaWarehouse::Hud::Service.table_name
-
-      where(<<-SQL.squish)
-        NOT EXISTS (
-          SELECT 1
-          FROM "#{services_table}" AS st2
-          WHERE st2.data_source_id = "#{services_table}".data_source_id
-            AND st2."PersonalID" = "#{services_table}"."PersonalID"
-            AND st2."RecordType" = "#{services_table}"."RecordType"
-            AND st2."EnrollmentID" = "#{services_table}"."EnrollmentID"
-            AND st2."DateProvided" = "#{services_table}"."DateProvided"
-            AND st2.id > "#{services_table}".id
-        )
-      SQL
+      st1 = arel_table
+      st2 = st1.dup
+      st2.table_alias = 'st2'
+      where(
+        st2.project(Arel.star).
+          where(st2[:data_source_id].eq(st1[:data_source_id])).
+          where(st2[:PersonalID].eq(st1[:PersonalID])).
+          where(st2[:RecordType].eq(st1[:RecordType])).
+          where(st2[:EnrollmentID].eq(st1[:EnrollmentID])).
+          where(st2[:DateProvided].eq(st1[:DateProvided])).
+          where(st2[:id].gt(st1[:id])).
+          exists.not,
+      )
     }
 
     scope :between, ->(start_date:, end_date:) do
