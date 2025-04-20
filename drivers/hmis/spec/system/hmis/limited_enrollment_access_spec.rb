@@ -19,7 +19,8 @@ RSpec.feature 'Enrollment/household management', type: :system do
 
   let!(:client) { create :hmis_hud_client, data_source: ds1, first_name: 'Quentin', last_name: 'Coldwater' }
   let!(:e1_full_access) { create :hmis_hud_enrollment, client: client, data_source: ds1, project: p1 }
-  let!(:e2_limited_access) { create :hmis_hud_enrollment, client: client, data_source: ds1, project: p2 }
+  let!(:e2_limited_access) { create :hmis_hud_enrollment, client: client, data_source: ds1, project: p2, move_in_date: 1.week.ago }
+  let!(:e1_staff_assignment) { create :hmis_staff_assignment, data_source: ds1, enrollment: e1_full_access }
 
   # cruft: enrollment at another project that user does not have permission to see
   let!(:p3) { create :hmis_hud_project, project_name: 'Hidden Project', data_source: ds1, organization: o1 }
@@ -45,6 +46,21 @@ RSpec.feature 'Enrollment/household management', type: :system do
       # enrollment at p2 is not linked
       assert_text p2.project_name
       expect(page).not_to have_link(p2.project_name)
+    end
+
+    it 'can expand optional columns (regression #7563)' do
+      visit "/client/#{client.id}/enrollments"
+      click_button 'Columns'
+
+      # dynamically select all optional columns
+      all('.MuiPopover-root label').each do |label|
+        mui_click_checkbox(label.text)
+      end
+      click_button 'Apply'
+
+      # ensure assigned staff is now visible on the table
+      assert_text e1_staff_assignment.user.full_name
+      assert_text 'Assigned Staff'
     end
 
     it 'cannot load enrollment dashboard for limited access enrollment' do
