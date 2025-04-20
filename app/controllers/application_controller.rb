@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -122,8 +120,8 @@ class ApplicationController < ActionController::Base
 
   def _basic_auth
     authenticate_or_request_with_http_basic do |user, password|
-      user == Rails.application.credentials.basic_auth_user && \
-      password == Rails.application.credentials.basic_auth_password
+      user == Rails.application.secrets.basic_auth_user && \
+      password == Rails.application.secrets.basic_auth_password
     end
   end
 
