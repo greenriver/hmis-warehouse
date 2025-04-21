@@ -10,7 +10,6 @@ RSpec.describe CohortColumns::DateAddedToCohort, type: :model do
 
   before(:all) do
     GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
-    GrdaWarehouse::Cohorts::CohortColumn.maintain!
   end
 
   it 'Sets the date added to the cohort client' do

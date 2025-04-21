@@ -2,6 +2,5 @@
 
 FactoryBot.define do
   factory :date_added_to_cohort, class: 'CohortColumns::DateAddedToCohort' do
-    cohort_column { GrdaWarehouse::Cohorts::CohortColumn.find_by(class_name: 'CohortColumns::DateAddedToCohort') }
   end
 end

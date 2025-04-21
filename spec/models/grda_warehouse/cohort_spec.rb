@@ -29,10 +29,6 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
   let!(:empty_collection) { create :collection, collection_type: 'Cohorts' }
   let!(:cohort_collection) { create :collection, collection_type: 'Cohorts' }
 
-  before(:all) do
-    GrdaWarehouse::Cohorts::CohortColumn.maintain!
-  end
-
   before(:each) do
     cohort_collection.set_viewables({ cohorts: [cohort.id] })
     setup_access_control(user, no_permission_role, cohort_collection)
@@ -152,14 +148,14 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
 
     before do
       # Add test column to cohort's column_state
-      columns = cohort.column_state || []
-      test_column.cohort_column.activate
-      columns << test_column
-      cohort.update(column_state: columns)
+      @all_columns = GrdaWarehouse::Cohort.available_columns
+      @all_columns.each { |c| c.cohort_column.activate }
+      cohort.update(column_state: @all_columns)
     end
 
     it 'removes inactive columns from column_state' do
-      expect(cohort.column_state.map(&:class_name)).to include('CohortColumns::UserString1')
+      expect(cohort.column_state.map(&:class_name)).to match_array(@all_columns.map(&:class_name))
+      expect(cohort.reload.column_state.map(&:class_name)).to include('CohortColumns::UserString1')
 
       test_column.cohort_column.deactivate
 

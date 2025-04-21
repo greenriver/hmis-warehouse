@@ -19,10 +19,6 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
   let(:adjusted_days_homeless) { build :adjusted_days_homeless, cohort: cohort }
   let(:rank) { build :rank, cohort: cohort }
 
-  before(:all) do
-    GrdaWarehouse::Cohorts::CohortColumn.maintain!
-  end
-
   before(:each) do
     admin.legacy_roles = [cohort_manager]
     editor.legacy_roles = [cohort_editor]

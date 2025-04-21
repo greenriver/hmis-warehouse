@@ -6,10 +6,6 @@ RSpec.describe GrdaWarehouse::CohortTab, type: :model do
   let(:cohort) { create :cohort }
   let(:tab) { create :cohort_tab, cohort: cohort }
 
-  before(:all) do
-    GrdaWarehouse::Cohorts::CohortColumn.maintain!
-  end
-
   describe 'Default tabs generate expected SQL' do
     it 'active query matches' do
       query = <<~SQL
