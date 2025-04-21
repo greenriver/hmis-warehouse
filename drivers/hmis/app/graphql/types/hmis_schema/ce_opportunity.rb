@@ -20,6 +20,7 @@ module Types
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
     field :priority_scheme, HmisSchema::CeMatchRule, null: true
     field :categories, [String], null: false
+    field :active, Boolean, null: false, method: :active?
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeOpportunityStatus]

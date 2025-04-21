@@ -20,6 +20,7 @@ module Types
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true # Don't resolve in batch
     field :target_project, Types::HmisSchema::Project, null: false
     field :referred_by, Application::User, null: true
+    field :active, Boolean, null: false, method: :active?
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeReferralStatus]
