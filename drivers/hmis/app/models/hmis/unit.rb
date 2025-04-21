@@ -26,8 +26,8 @@ class Hmis::Unit < Hmis::HmisBase
   has_many :current_occupants, through: :active_unit_occupancies, class_name: 'Hmis::Hud::Enrollment', source: :enrollment
   has_many :opportunities, as: :owner, class_name: 'Hmis::Ce::Opportunity', inverse_of: :owner, dependent: :destroy
   # This is the latest opportunity, which could be either active or closed with an accepted referral.
-  # This relies on the assumption that if there is an active opportunity, it should be the latest one.
   has_one :latest_opportunity, -> { order(created_at: :desc, id: :desc) }, as: :owner, class_name: 'Hmis::Ce::Opportunity', inverse_of: :owner
+  # There should really be only ONE active referral for a unit, not many. It's a has_many relationship though because the data model doesn't disallow multiple.
   has_many :active_referrals, through: :opportunities, class_name: 'Hmis::Ce::Referral', source: :active_referral
 
   alias_attribute :date_updated, :updated_at
