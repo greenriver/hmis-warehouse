@@ -17,7 +17,7 @@ FileUtils.chdir APP_ROOT do
 
   puts '== Installing dependencies =='
   system! 'gem install bundler --conservative'
-  system('bundle check') || system!('bundle install --without seven_zip')
+  system('bundle check') || system!('bundle install')
 
   puts '== Installing NPM dependencies =='
   system! 'yarn install --frozen-lockfile'

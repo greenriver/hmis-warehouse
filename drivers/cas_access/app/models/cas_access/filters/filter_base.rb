@@ -283,36 +283,33 @@ module CasAccess::Filters
         scope = CasAccess::Reporting::Decisions.on_route(match_route)
         step_order = scope.distinct.
           pluck(:match_step, :decision_order).to_h
-        step_order.keys
+        steps = step_order.keys
+        at = scope.arel_table
+        at2 = at.dup
+        at2.table_alias = 'at2'
+        followups = steps.map do |step|
+          followups = scope.where(
+            at2.project(Arel.star).
+              where(at2[:client_id].eq(at[:client_id])).
+              where(at2[:match_id].eq(at[:match_id])).
+              where(at2[:decision_order].lt(at[:decision_order])).
+              where(at2[:match_step].eq(step)).
+              exists,
+          ).distinct.pluck(:match_step, :decision_order).
+            map do |match_step, decision_order|
+              "(#{decision_order}) #{match_step}"
+            end
+          [step, followups]
+        end.to_h
 
-        # Build SQL to find followup steps
-        sql = <<~SQL
-          WITH followup_steps AS (
-            SELECT DISTINCT d1.match_step,
-                          d2.match_step as followup_step,
-                          d2.decision_order as followup_order
-            FROM reporting_decisions d1
-            INNER JOIN reporting_decisions d2
-              ON d2.client_id = d1.client_id
-              AND d2.match_id = d1.match_id
-              AND d2.decision_order < d1.decision_order
-            WHERE d1.match_route = ?
-          )
-          SELECT match_step,
-                 array_agg('(' || followup_order || ') ' || followup_step ORDER BY followup_order) as followups
-          FROM followup_steps
-          GROUP BY match_step
-          HAVING array_length(array_agg(followup_step), 1) > 0
-        SQL
-
-        followups = scope.connection.execute(
-          scope.sanitize_sql_array([sql, match_route]),
-        ).each_with_object({}) do |row, hash|
-          hash[row['match_step']] = row['followups'].tr('{}', '').split(',')
-        end
-
-        followups.sort_by { |step, _| step_order[step] }.map do |step, followup_steps|
-          ["(#{step_order[step]}) #{step}", followup_steps]
+        followups.select do |_, followup_steps|
+          followup_steps.any?
+        end.sort_by do |step, _|
+          step_order[step]
+        end.map do |step, followup_steps|
+          [
+            "(#{step_order[step]}) #{step}", followup_steps.sort
+          ]
         end.to_h
       end
     end
