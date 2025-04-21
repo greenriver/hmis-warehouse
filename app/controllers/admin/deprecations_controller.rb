@@ -33,7 +33,7 @@ module Admin
     def test_deprecated_tx(rollback:)
       user = User.find(current_user.id)
       previous_value = user.deprecated_uid
-      run_deprecated_tx(rollback:, user:)
+      run_deprecated_tx(rollback: rollback, user: user)
       user.reload
       [user.deprecated_uid, previous_value]
     end

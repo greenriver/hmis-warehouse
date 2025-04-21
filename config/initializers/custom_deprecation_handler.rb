@@ -16,7 +16,7 @@ class CustomDeprecationHandler
     error = StandardError.new(message)
     begin
       error.set_backtrace(backtrace) if backtrace
-    rescue TypeError
+    rescue TypeError # rubocop:disable Lint/SuppressedException
     end
     key = Digest::MD5.hexdigest(error.full_message)
     # rate limit warnings
