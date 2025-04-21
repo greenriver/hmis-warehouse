@@ -28,6 +28,7 @@ class Hmis::Unit < Hmis::HmisBase
   # This is the latest opportunity, which could be either active or closed with an accepted referral.
   # This relies on the assumption that if there is an active opportunity, it should be the latest one.
   has_one :latest_opportunity, -> { order(created_at: :desc, id: :desc) }, as: :owner, class_name: 'Hmis::Ce::Opportunity', inverse_of: :owner
+  has_many :active_referrals, through: :opportunities, class_name: 'Hmis::Ce::Referral', source: :active_referral
 
   alias_attribute :date_updated, :updated_at
   alias_attribute :date_created, :created_at

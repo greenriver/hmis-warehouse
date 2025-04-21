@@ -68,7 +68,7 @@ module Types
       latest_opportunity = load_ar_association(object, :latest_opportunity)
       return false if latest_opportunity.nil?
 
-      load_ar_association(latest_opportunity, :referrals, scope: Hmis::Ce::Referral.active).empty?
+      load_ar_association(object, :active_referrals).empty?
     end
   end
 end
