@@ -24,6 +24,7 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasHudMetadata
     include Types::HmisSchema::HasScanCardCodes
+    include ::Hmis::Concerns::HmisArelHelper
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2024')
@@ -88,33 +89,9 @@ module Types
       # Omit status, since we only return open opportunities for the client anyway
       filters_argument Types::HmisSchema::CeOpportunity, omit: [:status], type_name: 'ClientEligibleCeOpportunity'
     end
-    def eligible_ce_opportunities(filters: nil)
-      raise unless Hmis::Ce.configuration.enabled?
-
-      scope = Hmis::Ce::Opportunity.viewable_by(current_user).for_client(object)
-      scope = scope.where(project_id: filters.project) if filters&.project.present?
-
-      projects_table = Hmis::Hud::Project.arel_table
-      scope = scope.joins(:project).where(projects_table[:project_type].in(filters&.project_type)) if filters&.project_type.present?
-
-      scope.order(:id)
-    end
 
     field :ce_referrals, Types::HmisSchema::CeReferral.page_type, null: false do
       filters_argument Types::HmisSchema::CeReferral
-    end
-    def ce_referrals(filters: nil)
-      raise unless Hmis::Ce.configuration.enabled?
-
-      scope = object.ce_referrals.viewable_by(current_user)
-      scope = scope.where(status: filters&.status) if filters&.status.present?
-
-      opportunity_table = Hmis::Ce::Opportunity.arel_table
-      scope = scope.joins(:opportunity).where(opportunity_table[:project_id].in(filters&.project)) if filters&.project.present?
-
-      projects_table = Hmis::Hud::Project.arel_table
-      scope = scope.joins(opportunity: :project).where(projects_table[:project_type].in(filters&.project_type)) if filters&.project_type.present?
-      scope.order(created_at: :desc, id: :asc)
     end
 
     field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
@@ -438,6 +415,30 @@ module Types
         joins(:definition).
         where(Hmis::Form::Definition.arel_table[:role].in(client_dashboard_feature_roles)).
         pluck(:role).uniq
+    end
+
+    def eligible_ce_opportunities(filters: nil)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      scope = Hmis::Ce::Opportunity.viewable_by(current_user).for_client(object)
+      scope = scope.where(project_id: filters.project) if filters&.project.present?
+
+      scope = scope.joins(:project).where(p_t[:project_type].in(filters&.project_type)) if filters&.project_type.present?
+
+      scope.order(:id)
+    end
+
+    def ce_referrals(filters: nil)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      scope = object.ce_referrals.viewable_by(current_user)
+      scope = scope.where(status: filters&.status) if filters&.status.present?
+
+      opportunity_table = Hmis::Ce::Opportunity.arel_table
+      scope = scope.joins(:opportunity).where(opportunity_table[:project_id].in(filters&.project)) if filters&.project.present?
+
+      scope = scope.joins(opportunity: :project).where(p_t[:project_type].in(filters&.project_type)) if filters&.project_type.present?
+      scope.order(created_at: :desc, id: :asc)
     end
   end
 end
