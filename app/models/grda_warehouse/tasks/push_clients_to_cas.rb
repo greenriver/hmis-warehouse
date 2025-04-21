@@ -74,7 +74,7 @@ module GrdaWarehouse::Tasks
             GrdaWarehouse::Hud::Project.find_each do |project|
               safe_project_names[project.id] = project.safe_project_name
             end
-            client_source.preload(preloads).
+            client_source.lazy_preload(preloads).
               where(id: client_id_batch).find_each do |client|
               project_client = project_clients[client.id] || CasAccess::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
               project_client.assign_attributes(attributes_for_cas_project_client(client))
