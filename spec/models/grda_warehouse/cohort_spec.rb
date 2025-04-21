@@ -159,32 +159,18 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
 
       test_column.cohort_column.deactivate
 
+      expect(cohort.reload.column_state.map(&:class_name)).to match_array(@all_columns.map(&:class_name) - ['CohortColumns::UserString1'])
       expect(cohort.reload.column_state.map(&:class_name)).not_to include('CohortColumns::UserString1')
     end
 
     it 'preserves active columns in column_state' do
+      expect(cohort.column_state.map(&:class_name)).to match_array(@all_columns.map(&:class_name))
       expect(cohort.column_state.map(&:class_name)).to include('CohortColumns::UserString1')
 
       test_column.cohort_column.activate
 
+      expect(cohort.column_state.map(&:class_name)).to match_array(@all_columns.map(&:class_name))
       expect(cohort.reload.column_state.map(&:class_name)).to include('CohortColumns::UserString1')
-    end
-
-    it 'handles multiple columns in column_state' do
-      # Add another column
-      another_column = build :user_string_cohort_column_2, cohort: cohort
-
-      columns = cohort.column_state
-      columns << another_column
-      cohort.update(column_state: columns)
-
-      expect(cohort.column_state.map(&:class_name)).to include('CohortColumns::UserString1', 'CohortColumns::UserString2')
-
-      # Deactivate one column
-      test_column.cohort_column.deactivate
-
-      expect(cohort.reload.column_state.map(&:class_name)).to include('CohortColumns::UserString2')
-      expect(cohort.reload.column_state.map(&:class_name)).not_to include('CohortColumns::UserString1')
     end
   end
 end
