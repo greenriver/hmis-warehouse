@@ -756,9 +756,9 @@ type CeOpportunity {
   id: ID!
   name: String!
   priorityScheme: CeMatchRule
-  project: Project!
-  projectId: ID! @deprecated(reason: "Deprecated in favor of project")
-  projectName: String! @deprecated(reason: "Deprecated in favor of project")
+  projectId: ID!
+  projectName: String!
+  projectType: ProjectType!
 
   """
   Active or accepted referral
@@ -829,6 +829,9 @@ type CeReferral {
   steps: [CeReferralStep!]!
   targetEnrollment: Enrollment
   targetProject: Project!
+  targetProjectId: ID!
+  targetProjectName: String!
+  targetProjectType: ProjectType!
 }
 
 input CeReferralFilterOptions {
