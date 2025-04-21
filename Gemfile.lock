@@ -384,9 +384,9 @@ GEM
     css_parser (1.21.1)
       addressable
     csv (3.3.4)
-    cuprite (0.15)
+    cuprite (0.15.1)
       capybara (~> 3.0)
-      ferrum (~> 0.14.0)
+      ferrum (~> 0.15.0)
     curb (1.0.9)
     daemons (1.4.1)
     date (3.4.1)
@@ -499,11 +499,11 @@ GEM
       logger
     faraday-net_http (3.4.0)
       net-http (>= 0.5.0)
-    ferrum (0.14)
+    ferrum (0.15)
       addressable (~> 2.5)
       concurrent-ruby (~> 1.1)
       webrick (~> 1.7)
-      websocket-driver (>= 0.6, < 0.8)
+      websocket-driver (~> 0.7)
     ffi (1.17.2)
     ffi (1.17.2-arm64-darwin)
     ffi-compiler (1.3.2)
@@ -984,12 +984,8 @@ GEM
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
     sexp_processor (4.17.3)
-    shoulda (4.0.0)
-      shoulda-context (~> 2.0)
-      shoulda-matchers (~> 4.0)
-    shoulda-context (2.0.0)
-    shoulda-matchers (4.5.1)
-      activesupport (>= 4.2.0)
+    shoulda-matchers (6.4.0)
+      activesupport (>= 5.2.0)
     simple_form (5.3.1)
       actionpack (>= 5.2)
       activemodel (>= 5.2)
@@ -1194,7 +1190,7 @@ DEPENDENCIES
   charlock_holmes
   coffee-rails
   csv
-  cuprite (= 0.15)
+  cuprite
   curb
   daemons
   db-query-matchers
@@ -1218,7 +1214,7 @@ DEPENDENCIES
   factory_bot_rails
   faker (>= 1.7.2)
   faraday (~> 2.2)
-  ferrum (~> 0.14)
+  ferrum
   ffi
   ffi-geos
   fiddle
@@ -1330,7 +1326,7 @@ DEPENDENCIES
   sentry-delayed_job
   sentry-rails (~> 5.5)
   sentry-ruby
-  shoulda
+  shoulda-matchers
   simple_form
   simplecov
   slack-notifier
@@ -1478,7 +1474,7 @@ CHECKSUMS
   crass (1.0.6) sha256=dc516022a56e7b3b156099abc81b6d2b08ea1ed12676ac7a5657617f012bd45d
   css_parser (1.21.1) sha256=6cfd3ffc0a97333b39d2b1b49c95397b05e0e3b684d68f77ec471ba4ec2ef7c7
   csv (3.3.4) sha256=e96ecd5a8c3494aa5b596282249daba5c6033203c199248e6146e36d2a78d8cd
-  cuprite (0.15) sha256=2ba78333e61add63ecf4eb0041bb39cf25786824e386fa1d086a7670060638de
+  cuprite (0.15.1) sha256=0b3a25b2e408b345dfa0bae8bc5e7f021f913737c746edece9ca9fbb57eba259
   curb (1.0.9) sha256=07e5b74a4836103ce186827528f76a22d3991a9b7c45f5c10ee18ee7b03feb0d
   daemons (1.4.1) sha256=8fc76d76faec669feb5e455d72f35bd4c46dc6735e28c420afb822fac1fa9a1d
   date (3.4.1) sha256=bf268e14ef7158009bfeaec40b5fa3c7271906e88b196d958a89d4b408abe64f
@@ -1520,7 +1516,7 @@ CHECKSUMS
   faker (3.5.1) sha256=1ad1fbea279d882f486059c23fe3ddb816ccd1d7052c05a45014b4450d859bfc
   faraday (2.12.2) sha256=157339c25c7b8bcb739f5cf1207cb0cefe8fa1c65027266bcbc34c90c84b9ad6
   faraday-net_http (3.4.0) sha256=a1f1e4cd6a2cf21599c8221595e27582d9936819977bbd4089a601f24c64e54a
-  ferrum (0.14) sha256=e9a3f942d29bf87d9925e5f10adc33adcd05963699abfa919c003d1e9b12c725
+  ferrum (0.15) sha256=644bc7d29e30ed2d25e5936c518e0763a108e126ee2ca1a3127a36f14edacb1d
   ffi (1.17.2) sha256=297235842e5947cc3036ebe64077584bff583cd7a4e94e9a02fdec399ef46da6
   ffi (1.17.2-arm64-darwin) sha256=54dd9789be1d30157782b8de42d8f887a3c3c345293b57ffb6b45b4d1165f813
   ffi-compiler (1.3.2) sha256=a94f3d81d12caf5c5d4ecf13980a70d0aeaa72268f3b9cc13358bcc6509184a0
@@ -1731,9 +1727,7 @@ CHECKSUMS
   sentry-rails (5.23.0) sha256=8d2cbc3c85e343c1e882d7c8595d410e0c3afa3b005f51430225b938e128dec4
   sentry-ruby (5.23.0) sha256=8e8bb2f9a56a267a50fcba947f2ae131b6542f45fc3bb5764c2c25ba68f385cc
   sexp_processor (4.17.3) sha256=5ef0d952565eeedb416519f678b6b41c6ab6700abba828f46986f2d85d295dae
-  shoulda (4.0.0) sha256=e677218c432eaa102a173e7047fbcf396ebc8ccea467725ba4e6053bc9e09c0a
-  shoulda-context (2.0.0) sha256=7adf45342cd800f507d2a053658cb1cce2884b616b26004d39684b912ea32c34
-  shoulda-matchers (4.5.1) sha256=8d06e2bbb5b22aa170333905fcf23b7388d1baa9485895b0a2b80210e97f27e2
+  shoulda-matchers (6.4.0) sha256=9055bb7f4bb342125fb860809798855c630e05ef5e75837b3168b8e6ee1608b0
   simple_form (5.3.1) sha256=3891a36a89a7f8c69f1361624c5357591578a9e9c318257cd7b9cc7b6ce47460
   simplecov (0.22.0) sha256=fe2622c7834ff23b98066bb0a854284b2729a569ac659f82621fc22ef36213a5
   simplecov-html (0.13.1) sha256=5dab0b7ee612e60e9887ad57693832fdf4695b4c0c859eaea5f95c18791ef10b
