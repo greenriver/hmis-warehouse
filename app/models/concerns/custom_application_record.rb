@@ -22,7 +22,7 @@ module CustomApplicationRecord
     end
 
     def needs_migration?
-      ActiveRecord::Migration.check_pending!
+      ActiveRecord::Migration.check_all_pending!
     end
 
     def replace_scope(name, body, &block)

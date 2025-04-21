@@ -30,10 +30,10 @@ class CustomDeprecationHandler
 end
 
 # rails deprecations are logged
-if Rails.configuration.active_support.deprecation == :notify
+if Rails.configuration.active_support.report_deprecations
   ActiveSupport::Notifications.subscribe('deprecation.rails') do |_name, _start, _finish, _event_id, payload|
-    CustomDeprecationHandler.instance
-      .call(message: payload[:message], backtrace: payload[:callstack])
+    CustomDeprecationHandler.instance.
+      call(message: payload[:message], backtrace: payload[:callstack])
   end
 end
 
@@ -42,8 +42,8 @@ Warning.process do |message|
   if Rails.env.development?
     :raise
   else
-    CustomDeprecationHandler.instance
-      .call(message: message, backtrace: caller(6))
+    CustomDeprecationHandler.instance.
+      call(message: message, backtrace: caller(6))
     :default
   end
 end
