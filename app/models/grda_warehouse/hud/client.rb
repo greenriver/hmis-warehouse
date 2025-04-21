@@ -2115,7 +2115,7 @@ module GrdaWarehouse::Hud
         nicks = Nickname.for(self.FirstName).map(&:name)
 
         if nicks.any?
-          nicks_for_search = nicks.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',')
+          nicks_for_search = nicks.map { |name| GrdaWarehouse::Hud::Client.connection.quote(name) }.join(',')
           similar_destinations = self.class.destination.where(
             nf('LOWER', [c_arel[:FirstName]]).in(nicks_for_search),
           ).where(c_arel['LastName'].matches("%#{self.LastName.downcase}%")).
@@ -2127,7 +2127,7 @@ module GrdaWarehouse::Hud
         alt_last_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(self.LastName).to_s).map(&:name)
         alt_names = alt_first_names + alt_last_names
         if alt_names.any?
-          alt_names_for_search = alt_names.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',')
+          alt_names_for_search = alt_names.map { |name| GrdaWarehouse::Hud::Client.connection.quote(name) }.join(',')
           similar_destinations = self.class.destination.where(
             nf('LOWER', [c_arel[:FirstName]]).in(alt_names_for_search).
               and(nf('LOWER', [c_arel[:LastName]]).matches("#{self.LastName.downcase}%")).
