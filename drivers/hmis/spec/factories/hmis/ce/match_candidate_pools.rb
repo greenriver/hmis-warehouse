@@ -5,6 +5,5 @@ FactoryBot.define do
     requirement_expression { 'TRUE' }
     priority_expression { '0' }
     configuration_updated_at { Date.new(2024, 1, 1) }
-    candidates_generated_at { Date.new(2024, 1, 1) }
   end
 end
