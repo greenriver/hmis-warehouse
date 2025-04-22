@@ -18,10 +18,12 @@ module Types
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :current_step_name, String, null: true
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true # Don't resolve in batch
-    field :target_project, Types::HmisSchema::Project, null: false
+
+    # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :target_project_id, ID, null: false
     field :target_project_name, String, null: false
     field :target_project_type, HmisSchema::Enums::ProjectType, null: false
+
     field :referred_by, Application::User, null: true
     field :active, Boolean, null: false, method: :active?
 

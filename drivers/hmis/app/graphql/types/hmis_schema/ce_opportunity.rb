@@ -14,9 +14,12 @@ module Types
     field :expires_at, GraphQL::Types::ISO8601DateTime, null: true
     field :referral, Types::HmisSchema::CeReferral, null: true, description: 'Active or accepted referral'
     field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false
+
+    # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :project_id, ID, null: false
     field :project_name, String, null: false
     field :project_type, HmisSchema::Enums::ProjectType, null: false
+
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
     field :priority_scheme, HmisSchema::CeMatchRule, null: true
     field :categories, [String], null: false
