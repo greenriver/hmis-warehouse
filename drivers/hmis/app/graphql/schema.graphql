@@ -9278,9 +9278,9 @@ type Query {
     """
     role: AssessmentRole
   ): FormDefinition
-  ceOpportunity(id: ID!): CeOpportunity!
-  ceReferral(id: ID!): CeReferral!
-  ceReferralStep(id: ID!): CeReferralStep!
+  ceOpportunity(id: ID!): CeOpportunity
+  ceReferral(id: ID!): CeReferral
+  ceReferralStep(id: ID!): CeReferralStep
 
   """
   Client lookup

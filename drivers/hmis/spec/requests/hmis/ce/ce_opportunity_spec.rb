@@ -335,5 +335,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(candidate2.dig('clientId')).to eq(permissioned_client.id.to_s)
       end
     end
+
+    context 'querying for an opportunity that doesnt exist' do
+      let(:variables) do
+        {
+          id: 9999,
+        }
+      end
+
+      it 'does not throw, but returns no opportunity' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'ceOpportunity')).to be_nil
+      end
+    end
   end
 end
