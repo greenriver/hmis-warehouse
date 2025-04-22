@@ -14,12 +14,16 @@ module Types
     field :expires_at, GraphQL::Types::ISO8601DateTime, null: true
     field :referral, Types::HmisSchema::CeReferral, null: true, description: 'Active or accepted referral'
     field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false
-    field :project, Types::HmisSchema::Project, null: false
-    field :project_id, ID, null: false, deprecation_reason: 'Deprecated in favor of project'
-    field :project_name, String, null: false, deprecation_reason: 'Deprecated in favor of project'
+
+    # Resolve project fields separately, instead of the whole project object, in case user can't view the project
+    field :project_id, ID, null: false
+    field :project_name, String, null: false
+    field :project_type, HmisSchema::Enums::ProjectType, null: false
+
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
     field :priority_scheme, HmisSchema::CeMatchRule, null: true
     field :categories, [String], null: false
+    field :active, Boolean, null: false, method: :active?
     field :candidates_generated_at, GraphQL::Types::ISO8601DateTime, null: true
 
     available_filter_options do
@@ -43,12 +47,12 @@ module Types
       ).first
     end
 
-    def project
-      load_ar_association(object, :project)
-    end
-
     def project_name
       load_ar_association(object, :project).project_name
+    end
+
+    def project_type
+      load_ar_association(object, :project).project_type
     end
 
     def eligibility_requirements

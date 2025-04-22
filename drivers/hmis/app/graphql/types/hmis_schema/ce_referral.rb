@@ -18,8 +18,14 @@ module Types
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :current_step_name, String, null: true
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true # Don't resolve in batch
-    field :target_project, Types::HmisSchema::Project, null: false
+
+    # Resolve project fields separately, instead of the whole project object, in case user can't view the project
+    field :target_project_id, ID, null: false
+    field :target_project_name, String, null: false
+    field :target_project_type, HmisSchema::Enums::ProjectType, null: false
+
     field :referred_by, Application::User, null: true
+    field :active, Boolean, null: false, method: :active?
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeReferralStatus]
@@ -70,8 +76,16 @@ module Types
       load_ar_association(object, :opportunity)
     end
 
-    def target_project
-      load_ar_association(object, :target_project)
+    def target_project_id
+      load_ar_association(object, :opportunity).project_id
+    end
+
+    def target_project_name
+      load_ar_association(object, :target_project).project_name
+    end
+
+    def target_project_type
+      load_ar_association(object, :target_project).project_type
     end
 
     def referred_by

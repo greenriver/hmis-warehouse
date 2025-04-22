@@ -6938,7 +6938,9 @@ CREATE TABLE public.ce_opportunities (
     status character varying NOT NULL,
     expires_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    owner_type character varying,
+    owner_id bigint
 );
 
 
@@ -54112,6 +54114,13 @@ CREATE INDEX index_ce_opportunities_on_candidate_pool_id ON public.ce_opportunit
 
 
 --
+-- Name: index_ce_opportunities_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_opportunities_on_owner ON public.ce_opportunities USING btree (owner_type, owner_id);
+
+
+--
 -- Name: index_ce_opportunities_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54228,6 +54237,13 @@ CREATE INDEX index_ce_referrals_on_opportunity_id ON public.ce_referrals USING b
 --
 
 CREATE INDEX index_ce_referrals_on_referred_by_id ON public.ce_referrals USING btree (referred_by_id);
+
+
+--
+-- Name: index_ce_referrals_on_target_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_referrals_on_target_enrollment_id ON public.ce_referrals USING btree (target_enrollment_id);
 
 
 --
@@ -64642,6 +64658,14 @@ ALTER TABLE ONLY public.service_history_services_2016
 
 
 --
+-- Name: ce_referrals fk_rails_178ac9e66a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_referrals
+    ADD CONSTRAINT fk_rails_178ac9e66a FOREIGN KEY (workflow_instance_id) REFERENCES public.wfe_instances(id);
+
+
+--
 -- Name: service_history_services_2046 fk_rails_1f5ddaaa59; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -64847,6 +64871,14 @@ ALTER TABLE ONLY public.wfd_swimlanes
 
 ALTER TABLE ONLY public."Client"
     ADD CONSTRAINT fk_rails_4f7ec0cedf FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
+
+
+--
+-- Name: ce_referrals fk_rails_5336ef5847; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_referrals
+    ADD CONSTRAINT fk_rails_5336ef5847 FOREIGN KEY (target_enrollment_id) REFERENCES public."Enrollment"(id);
 
 
 --
@@ -65127,6 +65159,14 @@ ALTER TABLE ONLY public."Disabilities"
 
 ALTER TABLE ONLY public.wfe_instances
     ADD CONSTRAINT fk_rails_8dda38577c FOREIGN KEY (template_id) REFERENCES public.wfd_templates(id);
+
+
+--
+-- Name: ce_referral_participants fk_rails_8fe8b4a5a6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_referral_participants
+    ADD CONSTRAINT fk_rails_8fe8b4a5a6 FOREIGN KEY (swimlane_id) REFERENCES public.wfd_swimlanes(id);
 
 
 --
@@ -66859,6 +66899,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250403204353'),
 ('20250403232619'),
 ('20250407165554'),
-('20250408133728');
-
-
+('20250408133728'),
+('20250402142140');

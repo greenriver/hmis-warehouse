@@ -11,13 +11,6 @@ require_relative '../../../support/ce_spec_helper'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'ce spec helper'
 
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   before(:each) do
     hmis_login(user)
   end
@@ -41,10 +34,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                   name
                 }
                 currentStepName
-                targetProject {
-                  id
-                  projectName
-                }
+                targetProjectId
+                targetProjectName
                 referredBy {
                   id
                   name
@@ -72,6 +63,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       returned_referral = referrals[0]
       expect(returned_referral['id']).to eq(referral.id.to_s)
       expect(returned_referral['status']).to eq('initialized')
+      expect(returned_referral['targetProjectId']).to eq(project.id.to_s)
     end
 
     context 'when filtering for active referrals' do
