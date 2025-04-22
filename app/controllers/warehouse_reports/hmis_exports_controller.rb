@@ -78,13 +78,13 @@ module WarehouseReports
         send_data(
           zip.download,
           type: zip.content_type,
-          filename: "HMIS_export_#{@export.created_at.to_s.delete(',')}.zip",
+          filename: @export.export_file_name,
         )
       else
         # fall-back to db attachment
         send_data(
           @export.content,
-          filename: "HMIS_export_#{@export.created_at.to_s.delete(',')}.zip",
+          filename: @export.export_file_name,
           type: @export.content_type,
           disposition: 'attachment',
         )

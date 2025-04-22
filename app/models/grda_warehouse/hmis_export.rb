@@ -112,8 +112,12 @@ module GrdaWarehouse
       ::Filters::HmisExport.new(options)
     end
 
+    def export_file_name
+      "HMIS_export_#{created_at.to_s.delete(',')}.zip"
+    end
+
     def save_zip_to(path)
-      reconstitute_path = ::File.join(path, "HMIS_export_#{created_at.to_s.delete(',')}.zip")
+      reconstitute_path = ::File.join(path, export_file_name)
       FileUtils.mkdir_p(path) unless ::File.directory?(path)
       ::File.open(reconstitute_path, 'w+b') do |file|
         file.write(hmis_zip.download)
