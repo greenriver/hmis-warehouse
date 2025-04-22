@@ -65,9 +65,11 @@ module Types
     end
 
     def accepting_ce_referrals
+      # First check for an existing opportunity. If there is none, then this unit isn't accepting referrals
       latest_opportunity = load_ar_association(object, :latest_opportunity)
       return false if latest_opportunity.nil?
 
+      # Otherwise, the unit is only accepting referrals if the opportunity doesn't already have an active referral.
       load_ar_association(object, :active_referral).nil?
     end
   end
