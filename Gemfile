@@ -311,7 +311,6 @@ group :test do
   gem 'minitest-reporters'
   gem 'rspec-mocks'
   gem 'shoulda-matchers'
-  gem 'timecop'
   gem 'rspec-core'
   gem 'rails-controller-testing'
   gem 'rspec-instafail'

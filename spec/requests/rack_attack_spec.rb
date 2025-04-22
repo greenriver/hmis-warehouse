@@ -42,14 +42,14 @@ RSpec.describe Rack::Attack, type: :request do
     begin
       (requests_to_send + 1).times do |cnt|
         # travel to hour boundary so we always start at 00:00, manually advancing time every loop
-        Timecop.freeze(Time.current.beginning_of_hour + (cnt * time_advance).seconds)
+        travel_to(Time.current.beginning_of_hour + (cnt * time_advance).seconds)
         block.arity == 1 ? yield(cnt) : yield
         requests_sent += 1
         status_encountered = response.status == throttled_status
         break if status_encountered
       end
     ensure
-      Timecop.return
+      travel_back
     end
     status_encountered ? requests_sent - 1 : nil
   end

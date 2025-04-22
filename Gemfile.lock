@@ -1046,7 +1046,6 @@ GEM
     thread-local (1.1.0)
     thread_safe (0.3.6)
     tilt (2.6.0)
-    timecop (0.9.10)
     timeout (0.4.3)
     tins (1.38.0)
       bigdecimal
@@ -1344,7 +1343,6 @@ DEPENDENCIES
   stupidedi!
   terser
   text
-  timecop
   tiny_tds
   todo_or_die
   validate_url
@@ -1761,7 +1759,6 @@ CHECKSUMS
   thread-local (1.1.0) sha256=2fb568d31f0ef278063f45a3923c5ed62ee5c33da8134103bc7d2ecdb87bd2e7
   thread_safe (0.3.6) sha256=9ed7072821b51c57e8d6b7011a8e282e25aeea3a4065eab326e43f66f063b05a
   tilt (2.6.0) sha256=263d748466e0d83e510aa1a2e2281eff547937f0ef06be33d3632721e255f76b
-  timecop (0.9.10) sha256=12ba45ce57cdcf6b1043cb6cdffa6381fd89ce10d369c28a7f6f04dc1b0cd8eb
   timeout (0.4.3) sha256=9509f079b2b55fe4236d79633bd75e34c1c1e7e3fb4b56cb5fda61f80a0fe30e
   tins (1.38.0) sha256=99acd138b73d5b1b2dd8e72f1707ac0905c8f63f729ddd7c746d2d3c3803886d
   tiny_tds (3.2.1) sha256=f0449ed23840c01b3470e1e28e7a839dad78426319136ff4c14d8af30a120778
