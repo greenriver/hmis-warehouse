@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'net/http'
 
 module AssetHelper
@@ -60,9 +62,13 @@ module AssetHelper
   end
 
   def self.wicked_pdf_javascript_include_tag(*sources)
-    sources.collect do |source|
+    sources.map do |source|
+      original_compressor = Rails.application.config.assets.js_compressor
+      Rails.application.config.assets.js_compressor = nil
       source = add_extension(source, 'js')
       "<script type='text/javascript'>#{read_asset(source)}</script>"
+    ensure
+      Rails.application.config.assets.js_compressor = original_compressor
     end.join("\n").html_safe
   end
 
