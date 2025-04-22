@@ -227,6 +227,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               nodesCount
               nodes {
                 id
+                candidatesGeneratedAt
               }
             }
           }

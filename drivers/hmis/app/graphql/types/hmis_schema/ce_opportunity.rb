@@ -24,6 +24,7 @@ module Types
     field :priority_scheme, HmisSchema::CeMatchRule, null: true
     field :categories, [String], null: false
     field :active, Boolean, null: false, method: :active?
+    field :candidates_generated_at, GraphQL::Types::ISO8601DateTime, null: true
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeOpportunityStatus]
@@ -38,12 +39,10 @@ module Types
     end
 
     def referral
-      load_ar_association(
-        object,
-        :referrals,
-        scope: Hmis::Ce::Referral.viewable_by(current_user).where.not(status: 'rejected').
-          order(created_at: :desc),
-      ).first # there should be at most 1 (enforced in an AR validation but not at the database level)
+      # TODO(#7395): permissions - ensure that user has permission to view referrals at this project
+      # return nil unless current_permission?(permission: :can_view_referrals, entity: project)
+
+      load_ar_association(object, :active_or_accepted_referral)
     end
 
     def project_name
@@ -66,6 +65,10 @@ module Types
 
     def categories
       load_ar_association(object, :categories, scope: Hmis::Ce::OpportunityCategory.order(:name)).map(&:name)
+    end
+
+    def candidates_generated_at
+      load_ar_association(object, :candidate_pool)&.candidates_generated_at
     end
   end
 end
