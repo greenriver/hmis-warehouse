@@ -11,7 +11,6 @@ module Mutations
     argument :opportunity_id, ID, required: true
     argument :client_id, ID, required: true
     field :referral, Types::HmisSchema::CeReferral, null: false
-    argument :input, Types::HmisSchema::CeReferralInput, required: false, deprecation_reason: 'Use AssignReferralParticipants mutation instead'
 
     def resolve(opportunity_id:, client_id:)
       raise unless Hmis::Ce.configuration.enabled?

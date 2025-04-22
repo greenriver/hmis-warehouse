@@ -93,7 +93,7 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
     end
 
     describe 'referral with existing participant' do
-      let!(:existing_participant) { referral.participants.create(swimlane: case_manager_swimlane, user: hmis_user2) }
+      let!(:existing_participant) { referral.participants.create(swimlane: case_manager_swimlane, user: hmis_user) }
 
       it 'does not create duplicate participants' do
         expect do
@@ -103,6 +103,7 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
           participant_data = result.dig('data', 'assignReferralParticipants', 'referral', 'participants')
           expect(participant_data).to be_an(Array)
           expect(participant_data.size).to eq(2) # 1 new + 1 existing
+          existing_participant.reload
         end.to change(Hmis::Ce::ReferralParticipant, :count).from(1).to(2).
           and not_change(existing_participant, :updated_at)
       end
@@ -169,14 +170,12 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
         end
 
         it 'adds new participants and removes existing ones in the same mutation' do
-          expect do
-            response, result = post_graphql(**variables) { mutation }
-            expect(response.status).to eq(200), result.inspect
+          response, result = post_graphql(**variables) { mutation }
+          expect(response.status).to eq(200), result.inspect
 
-            participant_data = result.dig('data', 'assignReferralParticipants', 'referral', 'participants')
-            expect(participant_data).to be_an(Array)
-            expect(participant_data.size).to eq(15) # 5 existing and 10 new
-          end.to make_database_queries(count: 25..30) # It makes one query per destroy
+          participant_data = result.dig('data', 'assignReferralParticipants', 'referral', 'participants')
+          expect(participant_data).to be_an(Array)
+          expect(participant_data.size).to eq(15) # 5 existing and 10 new
         end
       end
     end

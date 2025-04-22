@@ -833,10 +833,6 @@ input CeReferralFilterOptions {
   status: [CeReferralStatus!]
 }
 
-input CeReferralInput {
-  participants: [CeReferralParticipantInput!]!
-}
-
 type CeReferralParticipant {
   id: ID!
   swimlane: CeSwimlane!
@@ -6372,7 +6368,7 @@ type Mutation {
     input: ClearRecentItemsInput!
   ): ApplicationUser
   createCeOpportunity(input: CeOpportunityInput!, projectId: ID!): CreateCeOpportunityPayload
-  createCeReferral(clientId: ID!, input: CeReferralInput @deprecated(reason: "Use AssignReferralParticipants mutation instead"), opportunityId: ID!): CreateCeReferralPayload
+  createCeReferral(clientId: ID!, opportunityId: ID!): CreateCeReferralPayload
   createClientAlert(input: ClientAlertInput!): CreateClientAlertPayload
   createDirectUpload(
     """
