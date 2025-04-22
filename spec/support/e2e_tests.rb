@@ -167,11 +167,18 @@ module E2eTests
     end
 
     def puts(log_str)
+      return if log_str.nil?
+
       _log_symbol, _log_time, log_body_str = log_str.strip.split(' ', 3)
 
       return if log_body_str.nil?
 
-      log_body = JSON.parse(log_body_str)
+      log_body = begin
+        JSON.parse(log_body_str)
+       rescue JSON::ParserError
+         nil
+      end
+      return if log_body.nil?
 
       case log_body['method']
       when 'Runtime.consoleAPICalled'
