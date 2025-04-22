@@ -7211,6 +7211,7 @@ CREATE TABLE public.ce_referrals (
     status character varying NOT NULL,
     client_id bigint NOT NULL,
     referred_by_id bigint,
+    target_enrollment_id bigint,
     completed_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
@@ -54134,6 +54135,13 @@ CREATE INDEX index_ce_referrals_on_referred_by_id ON public.ce_referrals USING b
 
 
 --
+-- Name: index_ce_referrals_on_target_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_referrals_on_target_enrollment_id ON public.ce_referrals USING btree (target_enrollment_id);
+
+
+--
 -- Name: index_ce_referrals_on_workflow_instance_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -64545,6 +64553,14 @@ ALTER TABLE ONLY public.service_history_services_2016
 
 
 --
+-- Name: ce_referrals fk_rails_178ac9e66a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_referrals
+    ADD CONSTRAINT fk_rails_178ac9e66a FOREIGN KEY (workflow_instance_id) REFERENCES public.wfe_instances(id);
+
+
+--
 -- Name: service_history_services_2046 fk_rails_1f5ddaaa59; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -64750,6 +64766,14 @@ ALTER TABLE ONLY public.wfd_swimlanes
 
 ALTER TABLE ONLY public."Client"
     ADD CONSTRAINT fk_rails_4f7ec0cedf FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
+
+
+--
+-- Name: ce_referrals fk_rails_5336ef5847; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_referrals
+    ADD CONSTRAINT fk_rails_5336ef5847 FOREIGN KEY (target_enrollment_id) REFERENCES public."Enrollment"(id);
 
 
 --
@@ -65030,6 +65054,14 @@ ALTER TABLE ONLY public."Disabilities"
 
 ALTER TABLE ONLY public.wfe_instances
     ADD CONSTRAINT fk_rails_8dda38577c FOREIGN KEY (template_id) REFERENCES public.wfd_templates(id);
+
+
+--
+-- Name: ce_referral_participants fk_rails_8fe8b4a5a6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_referral_participants
+    ADD CONSTRAINT fk_rails_8fe8b4a5a6 FOREIGN KEY (swimlane_id) REFERENCES public.wfd_swimlanes(id);
 
 
 --
