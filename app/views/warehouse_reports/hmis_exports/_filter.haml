@@ -8,6 +8,8 @@
         = f.input :end_date, as: :date_picker
       .col-sm-3
         = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: { multiple: true, placeholder: 'Choose CoCs' }, label: 'CoC Codes', hint: 'If any  CoC Codes are selected, Project CoC, Enrollment, and Inventory records will be limited to those with the chosen CoC Codes.'
+      .col-sm-3
+        = f.input :enforce_project_date_scope, as: :pretty_boolean, label: 'Enforce Dates for Projects', hint: 'If enabled, Project-related data will be limited to records overlapping the chosen date range.'
   %h3 Projects
   .well
     .row

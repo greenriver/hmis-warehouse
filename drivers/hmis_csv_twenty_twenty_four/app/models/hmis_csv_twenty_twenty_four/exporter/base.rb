@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'zip'
 require 'csv'
 require 'kiba-common/sources/enumerable'
@@ -26,6 +28,7 @@ module HmisCsvTwentyTwentyFour::Exporter
       end_date:,
       projects:,
       coc_codes: [],
+      enforce_project_date_scope: false,
       period_type: nil,
       directive: nil,
       hash_status: nil,
@@ -56,6 +59,7 @@ module HmisCsvTwentyTwentyFour::Exporter
       @include_deleted = include_deleted
       @faked_environment = faked_environment
       @confidential = confidential
+      @enforce_project_date_scope = enforce_project_date_scope
       @selected_options = options
       # We also provide CoC Codes via options, make sure those are added to any CoC codes provided for backwards
       # compatibility with old code

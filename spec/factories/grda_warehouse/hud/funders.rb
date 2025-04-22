@@ -7,10 +7,8 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :hud_project_coc, class: 'GrdaWarehouse::Hud::ProjectCoc' do
+  factory :hud_funder, class: 'GrdaWarehouse::Hud::Funder' do
     sequence(:ProjectID, 100)
-    sequence(:ProjectCoCID, 1)
-    sequence(:CoCCode) { |n| "XX-#{n.to_s.rjust(3, '0')}" }
-    association :data_source, factory: :source_data_source
+    sequence(:FunderID, 1)
   end
 end

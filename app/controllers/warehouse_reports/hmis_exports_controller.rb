@@ -141,6 +141,7 @@ module WarehouseReports
           :version,
           :start_date,
           :end_date,
+          :enforce_project_date_scope,
           :hash_status,
           :period_type,
           :include_deleted,

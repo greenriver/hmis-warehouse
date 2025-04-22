@@ -350,7 +350,6 @@ SimpleForm.setup do |config|
     b.wrapper :form_check_wrapper, tag: 'div', class: 'custom-control custom-checkbox' do |bb|
       bb.use :input, class: 'custom-control-input', error_class: 'is-invalid', valid_class: ''
       bb.use :full_error, wrap_with: { tag: 'div', class: 'invalid-feedback' }
-      bb.use :hint, wrap_with: { tag: 'small', class: 'form-text' }
     end
   end
 

@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https: //github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :hud_current_living_situation, class: 'GrdaWarehouse::Hud::CurrentLivingSituation' do
     sequence(:CurrentLivingSitID, 17)

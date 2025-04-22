@@ -4,9 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+require 'memery'
 module Filters
   class HmisExport < FilterBase
     include ArelHelper
+    include Memery
+
     attribute :start_date, Date, default: 1.years.ago.to_date
     attribute :end_date, Date, default: Date.current
     attribute :version, String, default: '2024'
@@ -16,6 +21,7 @@ module Filters
     attribute :include_deleted, Boolean, default: false
     attribute :faked_pii, Boolean, default: false
     attribute :confidential, Boolean, default: false
+    attribute :enforce_project_date_scope, Boolean, default: false
 
     attribute :every_n_days, Integer, default: 0
     attribute :reporting_range, String, default: 'fixed'
@@ -54,6 +60,7 @@ module Filters
       self.include_deleted = filters.dig(:include_deleted).in?(['1', 'true', true]) unless filters.dig(:include_deleted).nil?
       self.faked_pii = filters.dig(:faked_pii).in?(['1', 'true', true]) unless filters.dig(:faked_pii).nil?
       self.confidential = filters.dig(:confidential).in?(['1', 'true', true]) unless filters.dig(:confidential).nil?
+      self.enforce_project_date_scope = filters.dig(:enforce_project_date_scope).in?(['1', 'true', true]) unless filters.dig(:enforce_project_date_scope).nil?
       self.every_n_days = filters.dig(:every_n_days).to_i unless filters.dig(:every_n_days).nil?
       self.reporting_range = filters.dig(:reporting_range) unless filters.dig(:reporting_range).nil?
       self.reporting_range_days = filters.dig(:reporting_range_days).to_i unless filters.dig(:reporting_range_days).nil?
@@ -81,6 +88,7 @@ module Filters
           include_deleted: include_deleted,
           faked_pii: faked_pii,
           confidential: confidential,
+          enforce_project_date_scope: enforce_project_date_scope,
           every_n_days: every_n_days,
           reporting_range: reporting_range,
           reporting_range_days: reporting_range_days,
@@ -157,17 +165,36 @@ module Filters
         faked_pii: faked_pii,
         user_id: user_id,
         confidential: confidential,
+        enforce_project_date_scope: enforce_project_date_scope,
         recurring_hmis_export_id: recurring_hmis_export_id,
         options: to_h,
       }
     end
 
-    def effective_project_ids
+    memoize def effective_project_ids
       @effective_project_ids = effective_project_ids_from_projects
       @effective_project_ids += effective_project_ids_from_project_groups
       @effective_project_ids += effective_project_ids_from_organizations
       @effective_project_ids += effective_project_ids_from_data_sources
       @effective_project_ids = all_project_ids if @effective_project_ids.empty?
+
+      # Ensure all projects are active in the chosen date range
+      if enforce_project_date_scope
+        @effective_project_ids = GrdaWarehouse::Hud::Project.
+          where(id: @effective_project_ids).
+          active_during(start_date..end_date).
+          pluck(:id)
+      end
+
+      # Ensure all projects are active in the chosen CoCs
+      if coc_codes.any?
+        @effective_project_ids = GrdaWarehouse::Hud::Project.
+          where(id: @effective_project_ids).
+          joins(:project_cocs).
+          merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes)).
+          pluck(:id)
+      end
+
       return @effective_project_ids.uniq
     end
 
