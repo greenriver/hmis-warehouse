@@ -18,7 +18,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'project ceOpportunities query' do
     let(:query) do
       <<~GRAPHQL
-        query GetProjectCeOpportunities($id: ID!, $limit: Int = 25, $offset: Int = 0, $filters: CeOpportunityFilterOptions = null) {
+        query GetProjectCeOpportunities($id: ID!, $limit: Int = 25, $offset: Int = 0, $filters: ProjectCeOpportunityFilterOptions = null) {
           project(id: $id) {
             id
             ceOpportunities(limit: $limit, offset: $offset, filters: $filters) {
