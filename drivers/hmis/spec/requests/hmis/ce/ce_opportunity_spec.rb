@@ -54,6 +54,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               name
               ownerType
             }
+            candidatesGeneratedAt
           }
         }
       GRAPHQL
@@ -99,6 +100,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ],
         )
       end
+
+      let!(:timestamp) { 2.minutes.ago }
+      let(:candidate_pool) { create :hmis_ce_match_candidate_pool, candidates_generated_at: timestamp }
 
       let!(:client_1) do
         create(:hmis_hud_client, data_source: ds1)
@@ -157,6 +161,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'id' => opportunity.id.to_s,
             'name' => opportunity.name,
             'status' => opportunity.status,
+            'candidatesGeneratedAt' => timestamp.iso8601,
           )
 
           candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')

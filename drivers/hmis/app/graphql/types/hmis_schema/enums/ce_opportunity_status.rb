@@ -8,6 +8,6 @@
 
 module Types
   class HmisSchema::Enums::CeOpportunityStatus < Types::BaseEnum
-    Hmis::Ce::Opportunity.state_machine_states.each { |state| value state.name }
+    Hmis::Ce::Opportunity.state_machine_states.each { |state| value state.name, description: state.name.to_s.humanize }
   end
 end
