@@ -102,13 +102,14 @@ RSpec.configure do |config|
     end
 
     AccessGroup.maintain_system_groups
-    # Ensure we have all the cohort columns
-    GrdaWarehouse::Cohorts::CohortColumn.maintain!
   end
 
   config.before(:all) do
     # Ensure we _always_ have all appropriate CoCs
     GrdaWarehouse::Lookups::CocCode.maintain!
+
+    # Ensure we have all the cohort columns
+    GrdaWarehouse::Cohorts::CohortColumn.maintain!
   end
 end
 
