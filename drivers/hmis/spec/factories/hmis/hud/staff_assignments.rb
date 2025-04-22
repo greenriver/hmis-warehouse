@@ -4,11 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :hmis_staff_assignment, class: 'Hmis::StaffAssignment' do
     staff_assignment_relationship { association :hmis_staff_assignment_relationship }
     data_source { association :hmis_data_source }
-    user { association :hmis_user, data_source: data_source }
+    user { association :hmis_user_with_random_name, data_source: data_source }
     transient do
       enrollment { association :hmis_hud_enrollment, data_source: data_source }
     end
