@@ -24,11 +24,21 @@ class Hmis::Unit < Hmis::HmisBase
   has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit, dependent: :destroy
   has_many :active_unit_occupancies, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
   has_many :current_occupants, through: :active_unit_occupancies, class_name: 'Hmis::Hud::Enrollment', source: :enrollment
+
+  # A unit may have many historical opportunities (which represent past times when this unit was available and then filled)...
   has_many :opportunities, as: :owner, class_name: 'Hmis::Ce::Opportunity', inverse_of: :owner, dependent: :destroy
-  # This is the latest opportunity, which could be either active or closed with an accepted referral.
-  has_one :latest_opportunity, -> { order(created_at: :desc, id: :desc) }, as: :owner, class_name: 'Hmis::Ce::Opportunity', inverse_of: :owner
-  # There should really be only ONE active referral for a unit, not many. It's a has_many relationship though because the data model doesn't disallow multiple.
-  has_many :active_referrals, through: :opportunities, class_name: 'Hmis::Ce::Referral', source: :active_referral
+  # ...but it only has one "latest" opportunity, which could be either:
+  # - active and accepting referrals (open),
+  # - active with a referral in-progress (locked), or
+  # - closed with an accepted referral. This would be prioritized last, after any active opportunity.
+  has_one :latest_opportunity, -> { actives_first }, as: :owner, class_name: 'Hmis::Ce::Opportunity', inverse_of: :owner
+
+  # Similarly, a unit may have many historical referrals,
+  has_many :referrals, through: :opportunities, class_name: 'Hmis::Ce::Referral'
+  # ... but only ONE active referral, which is enforced by the combination of
+  # - Hmis::Ce::Opportunity's `unique_opportunity_per_unit` validator, and
+  # - Hmis::Ce::Referral's `unique_referral_per_opportunity` validator.
+  has_one :active_referral, through: :latest_opportunity, class_name: 'Hmis::Ce::Referral', source: :active_referral
 
   alias_attribute :date_updated, :updated_at
   alias_attribute :date_created, :created_at

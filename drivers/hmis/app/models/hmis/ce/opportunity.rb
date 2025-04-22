@@ -22,6 +22,7 @@ module Hmis::Ce
     has_one :active_or_accepted_referral, -> { active_or_accepted }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
 
     validates :name, presence: true
+    validate :unique_opportunity_per_unit
 
     state_machine_config column: 'status' do
       state :open, initial: true
@@ -67,8 +68,31 @@ module Hmis::Ce
       scope
     }
 
+    scope :actives_first, -> {
+      o_t = Hmis::Ce::Opportunity.arel_table
+      order(
+        o_t[:status].when('closed').then(1).else(0).asc,
+        o_t[:created_at].desc,
+        o_t[:id].desc,
+      )
+    }
+
     def active?
       !closed?
+    end
+
+    private
+
+    def unique_opportunity_per_unit
+      return if status.to_sym == :closed
+
+      conflicting_opportunity_exists = Hmis::Ce::Opportunity.where.not(status: 'closed').
+        where(owner: owner).
+        where.not(id: id).
+        exists?
+      return unless conflicting_opportunity_exists
+
+      errors.add(:owner, 'can only have one opportunity')
     end
   end
 end
