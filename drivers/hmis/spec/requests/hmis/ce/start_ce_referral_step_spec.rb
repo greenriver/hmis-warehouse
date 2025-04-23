@@ -122,7 +122,6 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
         }
       end
 
-      # todo @martha - this should also be disabled from frontend
       context 'when swimlane has no participants' do
         it 'raises instead of starting the step' do
           expect do

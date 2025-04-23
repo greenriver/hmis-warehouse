@@ -8,9 +8,16 @@
 
 module Types
   class HmisSchema::CeReferralStep < Types::BaseObject
-    # object is a Hmis::WorkflowExecution::Step,
-    # and also expects context[:referral] is a Hmis::Ce::Referral
-    # todo @martha - add comments about why
+    # object is a Hmis::WorkflowExecution::Step, AND also expects context[:referral] is a Hmis::Ce::Referral.
+    # Why: The Step schema object should resolve this step's potential Participants (ReferralParticipants on the Referral).
+    # However, the Step model does not have a direct relationship to Referral, since it lives under Workflow Execution and not CE.
+    # But we do always have the referral on hand when resolving the step, so we can stick it into the context and then use it on the schema object.
+    # Alternatives considered:
+    # - Add relationship from Step to Referral, probably through Instance.
+    #   Decided against this in order to avoid a duplicative bidirectional relationship.
+    # - Always resolve the Referral alongside the Step, and expect the frontend to use the Participants from the Referral.
+    #   Decided against this because we want the frontend schema shape to match what would be most useful for the UI to display the data,
+    #   so we do want to put the participant on the Step.
 
     field :id, ID, null: false, description: 'unique identifier for this step based on node and instance'
     field :step_id, ID, null: true, method: :id, description: 'the DB identifier of this step, if it is persisted'
@@ -18,9 +25,8 @@ module Types
     field :name, String, null: false
     field :status, HmisSchema::Enums::CeReferralStepStatus, null: false
     field :submitted_values, JsonObject, null: true
-    # todo @martha - add comments/clearer descirptions distinguishing btwn assignees and participants
-    field :swimlane, HmisSchema::CeReferralSwimlane, null: false, description: 'Swimlane which holds information about step participants'
-    field :assignees, [Application::User], null: true, description: 'Specific user(s) working on this step'
+    field :swimlane, HmisSchema::CeReferralSwimlane, null: false, description: 'Swimlane for this step, which holds information about potential step participants'
+    field :assignees, [Application::User], null: true, description: 'Assignee(s) currently working on this step'
     delegate :name, to: :workflow_node
 
     def id

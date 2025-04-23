@@ -878,7 +878,7 @@ enum CeReferralStatus {
 
 type CeReferralStep {
   """
-  Specific user(s) working on this step
+  Assignee(s) currently working on this step
   """
   assignees: [ApplicationUser!]
   formDefinition: FormDefinition!
@@ -897,7 +897,7 @@ type CeReferralStep {
   submittedValues: JsonObject
 
   """
-  Swimlane which holds information about step participants
+  Swimlane for this step, which holds information about potential step participants
   """
   swimlane: CeReferralSwimlane!
 }
