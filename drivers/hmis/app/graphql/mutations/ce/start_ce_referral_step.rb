@@ -30,8 +30,7 @@ module Mutations
         engine.start_step!(step, user: current_user)
       end
 
-      context[:referral] = referral
-      { step: step }
+      OpenStruct.new(step: step, referral: referral)
     end
   end
 end

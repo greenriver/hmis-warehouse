@@ -43,10 +43,10 @@ module Mutations
         engine.complete_step!(step, user: current_user, submitted_values: input)
       end
 
-      context[:referral] = referral.reload
+      referral.reload
 
       {
-        step: step,
+        step: OpenStruct.new(step: step, referral: referral),
         referral: referral,
       }
     end

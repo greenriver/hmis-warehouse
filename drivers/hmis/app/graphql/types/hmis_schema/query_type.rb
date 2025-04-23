@@ -556,8 +556,8 @@ module Types
       referral = Hmis::Ce::Referral.viewable_by(current_user).find_by(id: referral_id)
       raise 'access denied' unless referral.present?
 
-      context[:referral] = referral
-      referral.workflow_instance.steps.viewable_by(current_user).find_by(id: id)
+      step = referral.workflow_instance.steps.viewable_by(current_user).find_by(id: id)
+      OpenStruct.new(step: step, referral: referral)
     end
   end
 end
