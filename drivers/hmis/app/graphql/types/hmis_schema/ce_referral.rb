@@ -27,15 +27,6 @@ module Types
 
     field :referred_by, Application::User, null: true
     field :active, Boolean, null: false, method: :active?
-    field :participants, [HmisSchema::CeReferralParticipant], null: true
-
-    # Resolve project fields separately, instead of the whole project object, in case user can't view the project
-    field :target_project_id, ID, null: false
-    field :target_project_name, String, null: false
-    field :target_project_type, HmisSchema::Enums::ProjectType, null: false
-
-    field :referred_by, Application::User, null: true
-    field :active, Boolean, null: false, method: :active?
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeReferralStatus]
