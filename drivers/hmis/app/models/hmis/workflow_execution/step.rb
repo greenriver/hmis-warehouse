@@ -18,6 +18,16 @@ module Hmis::WorkflowExecution
     # TODO(#7395): permissions
     scope :viewable_by, ->(_user) { all }
 
+    scope :open, -> do
+      # Used for returning the "current" step of a referral.
+      step_t = Hmis::WorkflowExecution::Step.arel_table
+
+      where(status: ['available', 'in_progress']).
+        # Prioritize in_progress steps over available ones
+        order(Arel::Nodes::Case.new.when(step_t[:status].eq('in_progress')).then(1).else(2)).
+        order(step_t[:id]) # Fallback to order by ID so it's determinate
+    end
+
     # note, step status is not intended to be manipulated outside of the workflow engine
     state_machine_config column: 'status' do
       state :unavailable, initial: true

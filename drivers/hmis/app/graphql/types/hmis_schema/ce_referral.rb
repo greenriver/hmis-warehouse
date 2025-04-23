@@ -33,9 +33,8 @@ module Types
       arg :project_type, [HmisSchema::Enums::ProjectType]
     end
 
-    def steps
-      instance = object.workflow_instance
-      steps_by_node_id = instance.steps.index_by(&:node_id)
+    def steps # Not resolved in batch
+      steps_by_node_id = object.steps.index_by(&:node_id)
 
       graph = instance.template.graph(preloads: :inflows) # preload inflows so we can check conditions without n+1
       graph.
@@ -53,20 +52,12 @@ module Types
     end
 
     def client
-      load_ar_association(object, :client, scope: Hmis::Hud::Client.viewable_by(current_user))
+      # TODO(#7573) - fix n+1, see commented out test in drivers/hmis/spec/requests/hmis/ce/project_ce_referrals_spec.rb
+      Hmis::Hud::Client.viewable_by(current_user).find_by(id: object.client_id)
     end
 
-    def current_step_name # There can be multiple steps currently in progress, but we're only going to show one in the project referrals table
-      instance = load_ar_association(object, :workflow_instance)
-
-      step_t = Hmis::WorkflowExecution::Step.arel_table
-      step_scope = Hmis::WorkflowExecution::Step.
-        where(status: ['available', 'in_progress']).
-        # Prefer to return a step that is in_progress over available
-        order(Arel::Nodes::Case.new.when(step_t[:status].eq('in_progress')).then(1).else(2)).
-        order(step_t[:id]) # Also sort by ID, to make sure this resolves deterministically
-
-      step = load_ar_association(instance, :steps, scope: step_scope).first
+    def current_step_name
+      step = load_ar_association(object, :current_step)
       return if step.nil?
 
       load_ar_association(step, :node)&.name

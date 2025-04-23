@@ -256,8 +256,7 @@ module Types
     def image
       return unless current_permission?(permission: :can_view_client_photo, entity: object)
 
-      files = load_ar_association(object, :client_files, scope: GrdaWarehouse::ClientFile.client_photos.newest_first)
-      file = files.first&.client_file
+      file = object.client_files.client_photos.newest_first.first&.client_file
       file&.download ? file : nil
     end
 
@@ -344,7 +343,7 @@ module Types
     def alerts
       return [] unless current_permission?(permission: :can_view_client_alerts, entity: object)
 
-      load_ar_association(object, :alerts, scope: Hmis::ClientAlert.active).sort_by(&:created_at).reverse
+      object.alerts.active.sort_by(&:created_at).reverse
     end
 
     # not optimized for batch queries, causes n+1 queries

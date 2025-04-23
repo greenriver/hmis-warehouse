@@ -58,7 +58,10 @@ module Types
     end
 
     def current_staff_assignments
-      load_ar_association(object, :staff_assignments, scope: Hmis::StaffAssignment.order(created_at: :desc, id: :desc))
+      load_ar_association(object, :staff_assignments).sort_by do |assignment|
+        # sort in memory, so this stays n+1-repellent. We don't expect a ton of current assignments
+        [-assignment.created_at.to_i, assignment.id]
+      end
     end
 
     # This field results in N+1 because it is paginated.

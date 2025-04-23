@@ -32,14 +32,13 @@ module Types
       load_ar_association(object, :swimlane)&.name
     end
 
-    def form_definition
+    def form_definition # Not resolved in batch
       # If the step has been submitted before, it stores a reference to the definition it was submitted with
-      definition = load_ar_association(object, :form_definition)
+      definition = object.form_definition
       return definition if definition.present?
 
       # Otherwise, get the definition identifier on the node, and return the latest published definition with this identifier
-      node = load_ar_association(object, :node)
-      load_ar_association(node, :form_definitions, scope: Hmis::Form::Definition.published.order(version: :desc)).first
+      object.node.form_definitions.published.order(version: :desc).first
     end
   end
 end

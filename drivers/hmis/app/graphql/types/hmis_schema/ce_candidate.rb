@@ -15,7 +15,7 @@ module Types
     field :priority_score, Integer, null: false
 
     def client
-      load_ar_association(object, :client, scope: Hmis::Hud::Client.viewable_by(current_user))
+      Hmis::Hud::Client.viewable_by(current_user).find_by(id: object.client_id) # TODO(#7573) - fix n+1, see commented-out test in
     end
   end
 end
