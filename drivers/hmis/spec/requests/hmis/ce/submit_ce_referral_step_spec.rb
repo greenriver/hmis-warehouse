@@ -71,7 +71,7 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
               formDefinition {
                 id
               }
-              swimlane { # todo @martha
+              swimlane {
                 id
                 name
                 participants {
@@ -119,6 +119,7 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
         step_data = result.dig('data', 'submitCeReferralStep', 'step')
         expect(step_data['name']).to eq('Client Acceptance')
         expect(step_data['status']).to eq('completed')
+        expect(step_data.dig('swimlane', 'participants', 0, 'id')).to eq(hmis_user.id.to_s)
         expect(step.reload.status).to eq('completed')
         expect(referral.reload.status).to eq('accepted')
       end
