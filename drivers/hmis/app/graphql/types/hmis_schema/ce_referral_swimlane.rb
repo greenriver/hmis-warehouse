@@ -14,6 +14,6 @@ module Types
 
     field :id, ID, null: false
     field :name, String, null: false
-    field :assigned_users, [Application::User], null: false
+    field :participants, [Application::User], null: false
   end
 end

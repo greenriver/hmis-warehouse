@@ -61,6 +61,10 @@ module Hmis::Ce
       !accepted? && !rejected?
     end
 
+    def participants_for_swimlane(swimlane_id)
+      participants.filter { |p| p.swimlane_id == swimlane_id }
+    end
+
     private
 
     def unique_referral_per_opportunity

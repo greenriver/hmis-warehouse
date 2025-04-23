@@ -19,7 +19,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             swimlane {
               id
               name
-              assignedUsers {
+              participants {
                 id
                 name
               }
@@ -50,7 +50,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       step_data = result.dig('data', 'ceReferralStep')
       expect(step_data.dig('stepId')).to eq(step.id.to_s)
       expect(step_data.dig('swimlane', 'id')).to eq(case_manager_swimlane.id.to_s)
-      expect(step_data.dig('swimlane', 'assignedUsers', 0, 'id')).to eq(hmis_user.id.to_s)
+      expect(step_data.dig('swimlane', 'participants', 0, 'id')).to eq(hmis_user.id.to_s)
       expect(step_data.dig('assignees')).to be_empty # this referral has potential participants but no direct assignees yet
     end
   end

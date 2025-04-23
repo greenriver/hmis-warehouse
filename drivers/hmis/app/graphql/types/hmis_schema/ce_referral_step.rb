@@ -40,7 +40,7 @@ module Types
       {
         id: swimlane.id,
         name: swimlane.name,
-        assigned_users: participants_by_swimlane_id[swimlane.id]&.map(&:user) || [],
+        participants: participants_by_swimlane_id[swimlane.id]&.map(&:user) || [],
       }
     end
 

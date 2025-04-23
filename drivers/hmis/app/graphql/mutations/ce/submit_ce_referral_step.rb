@@ -31,6 +31,9 @@ module Mutations
         step = engine.active_steps.find(step_id)
         step.form_definition = form_definition
 
+        participants = referral.participants_for_swimlane(step.swimlane.id)
+        raise 'Cannot submit a referral step with no participants' unless participants.any?
+
         validations = engine.validate_step(step, submitted_values: input)
         errors.push(*validations)
         return { errors: errors } if errors.any?

@@ -32,7 +32,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             swimlanes {
               id
               name
-              assignedUsers {
+              participants {
                 id
                 name
               }
@@ -91,8 +91,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(response.status).to eq(200), result.inspect
           swimlanes = result.dig('data', 'ceReferral', 'swimlanes')
           expect(swimlanes).to contain_exactly(
-            a_hash_including('id' => case_manager_swimlane.id.to_s, 'name' => case_manager_swimlane.name, 'assignedUsers' => []),
-            a_hash_including('id' => provider_swimlane.id.to_s, 'name' => provider_swimlane.name, 'assignedUsers' => []),
+            a_hash_including('id' => case_manager_swimlane.id.to_s, 'name' => case_manager_swimlane.name, 'participants' => []),
+            a_hash_including('id' => provider_swimlane.id.to_s, 'name' => provider_swimlane.name, 'participants' => []),
           )
         end
 
@@ -104,7 +104,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           let!(:provider) { create(:hmis_user, data_source: ds1) }
           let!(:provider_participant) { referral.participants.create(swimlane: provider_swimlane, user: provider) }
 
-          it 'returns assigned users' do
+          it 'returns participants' do
             response, result = post_graphql(**variables) { query }
             expect(response.status).to eq(200), result.inspect
             swimlanes = result.dig('data', 'ceReferral', 'swimlanes')
@@ -112,7 +112,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               a_hash_including(
                 'id' => case_manager_swimlane.id.to_s,
                 'name' => case_manager_swimlane.name,
-                'assignedUsers' => [
+                'participants' => [
                   a_hash_including('id' => cm1.id.to_s, 'name' => cm1.name),
                   a_hash_including('id' => cm2.id.to_s, 'name' => cm2.name),
                 ],
@@ -120,7 +120,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               a_hash_including(
                 'id' => provider_swimlane.id.to_s,
                 'name' => provider_swimlane.name,
-                'assignedUsers' => [
+                'participants' => [
                   a_hash_including('id' => provider.id.to_s, 'name' => provider.name),
                 ],
               ),

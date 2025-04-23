@@ -925,9 +925,9 @@ enum CeReferralStepStatus {
 }
 
 type CeReferralSwimlane {
-  assignedUsers: [ApplicationUser!]!
   id: ID!
   name: String!
+  participants: [ApplicationUser!]!
 }
 
 type CeReferralsPaginated {
