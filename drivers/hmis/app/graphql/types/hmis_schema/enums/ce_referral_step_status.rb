@@ -8,6 +8,6 @@
 
 module Types
   class HmisSchema::Enums::CeReferralStepStatus < Types::BaseEnum
-    Hmis::WorkflowExecution::Step.state_machine_states.each { |name| value name }
+    Hmis::WorkflowExecution::Step.state_machine_states.each { |name| value name, description: name.to_s.humanize }
   end
 end
