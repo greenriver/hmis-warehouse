@@ -526,33 +526,33 @@ module Types
       end
     end
 
-    field :ce_referral, Types::HmisSchema::CeReferral, null: false do
+    field :ce_referral, Types::HmisSchema::CeReferral, null: true do
       argument :id, ID, required: true
     end
 
     def ce_referral(id:)
       raise unless Hmis::Ce.configuration.enabled?
 
-      Hmis::Ce::Referral.viewable_by(current_user).find(id)
+      Hmis::Ce::Referral.viewable_by(current_user).find_by(id: id)
     end
 
-    field :ce_opportunity, HmisSchema::CeOpportunity, null: false do
+    field :ce_opportunity, HmisSchema::CeOpportunity, null: true do
       argument :id, ID, required: true
     end
 
     def ce_opportunity(id:)
       raise unless Hmis::Ce.configuration.enabled?
 
-      Hmis::Ce::Opportunity.viewable_by(current_user).find(id)
+      Hmis::Ce::Opportunity.viewable_by(current_user).find_by(id: id)
     end
 
-    field :ce_referral_step, HmisSchema::CeReferralStep, null: false do
+    field :ce_referral_step, HmisSchema::CeReferralStep, null: true do
       argument :id, ID, required: true
     end
     def ce_referral_step(id:)
       raise unless Hmis::Ce.configuration.enabled?
 
-      Hmis::WorkflowExecution::Step.viewable_by(current_user).find(id)
+      Hmis::WorkflowExecution::Step.viewable_by(current_user).find_by(id: id)
     end
   end
 end

@@ -24,6 +24,7 @@ module Hmis::Ce
     scope :viewable_by, ->(_user) { all }
 
     scope :active, -> { where.not(status: ['accepted', 'rejected']) }
+    scope :active_or_accepted, -> { where.not(status: 'rejected') }
 
     validate :unique_referral_per_opportunity
 
