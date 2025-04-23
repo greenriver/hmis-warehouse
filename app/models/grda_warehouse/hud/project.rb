@@ -229,7 +229,7 @@ module GrdaWarehouse::Hud
       active_during(date..date)
     end
 
-    # For backwards compatibility, renamed to within_range to match other classes
+    # active_during maintained for backwards compatibility. Scope has been renamed to within_range to match other classes
     scope :active_during, ->(range) do
       within_range(range)
     end

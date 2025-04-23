@@ -6,7 +6,7 @@
     %td= render 'spinner'
     %td= render 'parameters', report: report
     %td
-- @exports.each do |report|
+- list.each do |report|
   %tr
     %td
       = report.created_at
