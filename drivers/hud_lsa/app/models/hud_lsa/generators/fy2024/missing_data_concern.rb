@@ -4,22 +4,24 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudLsa::Generators::Fy2024::MissingDataConcern
   extend ActiveSupport::Concern
 
-  def missing_data(user, project_ids: [])
+  def missing_data(user, project_ids: [], filter: nil)
     @missing_data = {}
     @range = ::Filters::HudFilterBase.new(start: Date.current - 3.years, end: Date.current)
     @missing_data[:missing_housing_type] = missing_housing_types(user, project_ids: project_ids)
-    @missing_data[:missing_geocode] = missing_geocodes(user, project_ids: project_ids)
-    @missing_data[:missing_geography_type] = geography_types(user, project_ids: project_ids)
-    @missing_data[:missing_zip] = missing_zips(user, project_ids: project_ids)
+    @missing_data[:missing_geocode] = missing_geocodes(user, project_ids: project_ids, filter: filter)
+    @missing_data[:missing_geography_type] = geography_types(user, project_ids: project_ids, filter: filter)
+    @missing_data[:missing_zip] = missing_zips(user, project_ids: project_ids, filter: filter)
     @missing_data[:missing_operating_start_date] = operating_start_dates(user, project_ids: project_ids)
     @missing_data[:invalid_funders] = invalid_funders(user, project_ids: project_ids)
     @missing_data[:missing_coc_codes] = missing_coc_codes(user, project_ids: project_ids)
-    @missing_data[:missing_inventory_coc_codes] = missing_inventory_coc_codes(user, project_ids: project_ids)
-    @missing_data[:missing_inventory_household_types] = missing_inventory_household_types(user, project_ids: project_ids)
-    @missing_data[:missing_inventory_start_dates] = missing_inventory_start_dates(user, project_ids: project_ids)
+    @missing_data[:missing_inventory_coc_codes] = missing_inventory_coc_codes(user, project_ids: project_ids, filter: filter)
+    @missing_data[:missing_inventory_household_types] = missing_inventory_household_types(user, project_ids: project_ids, filter: filter)
+    @missing_data[:missing_inventory_start_dates] = missing_inventory_start_dates(user, project_ids: project_ids, filter: filter)
     @missing_data[:missing_hmis_participation_start_dates] = missing_hmis_participation_start_dates(user, project_ids: project_ids)
     @missing_data[:invalid_hmis_participation_types] = invalid_hmis_participation_types(user, project_ids: project_ids)
 
@@ -74,35 +76,38 @@ module HudLsa::Generators::Fy2024::MissingDataConcern
     missing_data_rows(scope)
   end
 
-  private def missing_geocodes(user, project_ids: [])
+  private def missing_geocodes(user, project_ids: [], filter: nil)
     scope = GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
       left_outer_joins(project: :funders).
       distinct.
       merge(viewable_projects(user).hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: enrollment_limit).
       where(Geocode: nil)
+    scope = scope.in_coc(coc_code: filter.coc_codes) if filter.coc_codes.present?
     scope = scope.where(p_t[:id].in(project_ids)) if project_ids.any?
     missing_data_rows(scope)
   end
 
-  private def geography_types(user, project_ids: [])
+  private def geography_types(user, project_ids: [], filter: nil)
     scope = GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
       left_outer_joins(project: :funders).
       distinct.
       merge(viewable_projects(user).hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: enrollment_limit).
       where(GeographyType: nil)
+    scope = scope.in_coc(coc_code: filter.coc_codes) if filter.coc_codes.present?
     scope = scope.where(p_t[:id].in(project_ids)) if project_ids.any?
     missing_data_rows(scope)
   end
 
-  private def missing_zips(user, project_ids: [])
+  private def missing_zips(user, project_ids: [], filter: nil)
     scope = GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
       left_outer_joins(project: :funders).
       distinct.
       merge(viewable_projects(user).hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: enrollment_limit).
       where(Zip: nil)
+    scope = scope.in_coc(coc_code: filter.coc_codes) if filter.coc_codes.present?
     scope = scope.where(p_t[:id].in(project_ids)) if project_ids.any?
     missing_data_rows(scope)
   end
@@ -138,7 +143,7 @@ module HudLsa::Generators::Fy2024::MissingDataConcern
     missing_data_rows(scope)
   end
 
-  private def missing_inventory_coc_codes(user, project_ids: [])
+  private def missing_inventory_coc_codes(user, project_ids: [], filter: nil)
     scope = GrdaWarehouse::Hud::Project.coc_funded.
       viewable_by(user, permission: :can_view_assigned_reports).
       where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types).
@@ -147,28 +152,31 @@ module HudLsa::Generators::Fy2024::MissingDataConcern
       merge(GrdaWarehouse::Hud::ProjectCoc.where(pc_t[:CoCCode].not_eq(nil))).
       merge(GrdaWarehouse::Hud::Inventory.where(CoCCode: nil)).
       distinct
+    scope = scope.in_coc(coc_code: filter.coc_codes) if filter.coc_codes.present?
     scope = scope.where(p_t[:id].in(project_ids)) if project_ids.any?
     missing_data_rows(scope)
   end
 
-  private def missing_inventory_household_types(user, project_ids: [])
+  private def missing_inventory_household_types(user, project_ids: [], filter: nil)
     scope = GrdaWarehouse::Hud::Inventory.joins(project: :organization).
       left_outer_joins(project: :funders).
       distinct.
       merge(viewable_projects(user).hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: enrollment_limit).
       where(HouseholdType: nil)
+    scope = scope.in_coc(coc_code: filter.coc_codes) if filter.coc_codes.present?
     scope = scope.where(p_t[:id].in(project_ids)) if project_ids.any?
     missing_data_rows(scope)
   end
 
-  private def missing_inventory_start_dates(user, project_ids: [])
+  private def missing_inventory_start_dates(user, project_ids: [], filter: nil)
     scope = GrdaWarehouse::Hud::Inventory.joins(project: :organization).
       left_outer_joins(project: :funders).
       distinct.
       merge(viewable_projects(user).hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: enrollment_limit).
       where(InventoryStartDate: nil)
+    scope = scope.in_coc(coc_code: filter.coc_codes) if filter.coc_codes.present?
     scope = scope.where(p_t[:id].in(project_ids)) if project_ids.any?
     missing_data_rows(scope)
   end
