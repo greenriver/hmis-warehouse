@@ -30,7 +30,9 @@ module Mutations
         engine.start_step!(step, user: current_user)
       end
 
-      OpenStruct.new(step: step, referral: referral)
+      {
+        step: OpenStruct.new(step: step, referral: referral),
+      }
     end
   end
 end

@@ -52,7 +52,12 @@ module Types
 
         # initialize step to display in the UI
         instance.steps.new(node: node).freeze
-      end.compact
+      end.compact.map do |step|
+        OpenStruct.new(
+          step: step,
+          referral: object,
+        )
+      end
     end
 
     def client

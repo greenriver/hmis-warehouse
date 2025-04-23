@@ -31,7 +31,6 @@ module Types
     field :submitted_values, JsonObject, null: true
     field :swimlane, HmisSchema::CeReferralSwimlane, null: true, description: 'Swimlane for this step, which holds information about potential step participants'
     field :assignees, [Application::User], null: true, description: 'Assignee(s) currently working on this step'
-    delegate :name, to: :workflow_node
 
     def id
       # the step may not yet be persisted, such as when it isn't yet available in the workflow
@@ -43,7 +42,7 @@ module Types
     end
 
     def name
-      load_ar_association(object.step, :workflow_node).name
+      load_ar_association(object.step, :node).name
     end
 
     def status
