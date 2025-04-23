@@ -4,8 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: true
-
 module Types
   class BaseObject < GraphQL::Schema::Object
     include GraphqlApplicationHelper
@@ -125,7 +123,7 @@ module Types
 
         raise "Missing #{self.class.graphql_name}::object[:id] in #{object.inspect}" unless object.key?(:id)
 
-        object.fetch(:id)
+        object.fetch[:id]
       end
     end
   end

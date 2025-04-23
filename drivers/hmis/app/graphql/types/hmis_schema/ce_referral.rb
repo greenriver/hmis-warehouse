@@ -101,11 +101,11 @@ module Types
       swimlanes = load_ar_association(object, :swimlanes)
 
       swimlanes.map do |swimlane|
-        {
+        OpenStruct.new(
           id: swimlane.id,
           name: swimlane.name,
           participants: participants_by_swimlane_id[swimlane.id]&.map(&:user) || [],
-        }
+        )
       end
     end
   end

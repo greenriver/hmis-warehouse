@@ -45,11 +45,11 @@ module Types
 
       return nil unless swimlane.present?
 
-      {
+      OpenStruct.new(
         id: swimlane.id,
         name: swimlane.name,
         participants: participants_by_swimlane_id[swimlane.id]&.map(&:user) || [],
-      }
+      )
     end
 
     def assignees
