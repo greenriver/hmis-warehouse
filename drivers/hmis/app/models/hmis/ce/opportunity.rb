@@ -84,12 +84,12 @@ module Hmis::Ce
     private
 
     def unique_opportunity_per_unit
-      return if status.to_sym == :closed
+      return if status.to_sym == :closed || owner.nil?
 
-      conflicting_opportunity_exists = Hmis::Ce::Opportunity.where.not(status: 'closed').
-        where(owner: owner).
-        where.not(id: id).
-        exists?
+      # This validator expects that owner's opportunities are preloaded, to avoid n+1 on save
+      conflicting_opportunity_exists = owner.opportunities.to_a.select do |existing_opp|
+        existing_opp.status != 'closed' && existing_opp.id != id
+      end.any?
       return unless conflicting_opportunity_exists
 
       errors.add(:owner, 'can only have one opportunity')

@@ -14,7 +14,7 @@ module Mutations
     def resolve(unit_ids:)
       raise unless Hmis::Ce.configuration.enabled?
 
-      units = Hmis::Unit.preload(:unit_type, :current_occupants, :latest_opportunity).where(id: unit_ids)
+      units = Hmis::Unit.preload(:unit_type, :current_occupants, :opportunities, :latest_opportunity).where(id: unit_ids)
       raise 'Not found' unless units.any?
 
       project_ids = units.pluck(:project_id).uniq
@@ -34,7 +34,7 @@ module Mutations
           build_opportunity_for_unit(unit, template)
         end
 
-        Hmis::Ce::Opportunity.import!(opportunities)
+        Hmis::Ce::Opportunity.import!(opportunities, validate: false)
       end
 
       { units: Hmis::Unit.where(id: unit_ids) } # we don't need the preloads this time, so fresh query instead of reload
