@@ -34,7 +34,7 @@ module Mutations
           build_opportunity_for_unit(unit, template)
         end
 
-        Hmis::Ce::Opportunity.import!(opportunities, validate: false)
+        Hmis::Ce::Opportunity.import!(opportunities)
       end
 
       { units: Hmis::Unit.where(id: unit_ids) } # we don't need the preloads this time, so fresh query instead of reload
