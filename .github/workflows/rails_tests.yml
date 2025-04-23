@@ -92,7 +92,7 @@ jobs:
           PORT: 3333
           CONNECTION_TIMEOUT: 600000
           FERRUM_PROCESS_TIMEOUT: 45
-          DEFAULT_TIMEOUT: 45
+          FERRUM_DEFAULT_TIMEOUT: 45
 
     env:
       CLIENT: test
