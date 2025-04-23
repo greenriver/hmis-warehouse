@@ -10,12 +10,12 @@ require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Unit, type: :model do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
+  # before(:all) do
+  #   cleanup_test_environment
+  # end
+  # after(:all) do
+  #   cleanup_test_environment
+  # end
 
   include_context 'hmis base setup'
   include_context 'hmis service setup'
@@ -115,7 +115,7 @@ RSpec.describe Hmis::Unit, type: :model do
       let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :open) }
 
       it 'disallows saving a new opportunity' do
-        new_opportunity = build(:hmis_ce_opportunity, owner: unit, project: project, status: :open)
+        new_opportunity = build(:hmis_ce_opportunity, owner: unit.reload, project: project, status: :open)
         expect(new_opportunity).not_to be_valid
         expect(new_opportunity.errors[:owner]).to include('can only have one opportunity')
       end
@@ -126,7 +126,7 @@ RSpec.describe Hmis::Unit, type: :model do
       let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress) }
 
       it 'disallows saving a new opportunity' do
-        new_opportunity = build(:hmis_ce_opportunity, owner: unit, project: project, status: :open)
+        new_opportunity = build(:hmis_ce_opportunity, owner: unit.reload, project: project, status: :open)
         expect(new_opportunity).not_to be_valid
         expect(new_opportunity.errors[:owner]).to include('can only have one opportunity')
       end
@@ -137,7 +137,7 @@ RSpec.describe Hmis::Unit, type: :model do
       let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :accepted) }
 
       it 'allows saving a new opportunity' do
-        new_opportunity = build(:hmis_ce_opportunity, owner: unit, project: project, status: :open)
+        new_opportunity = build(:hmis_ce_opportunity, owner: unit.reload, project: project, status: :open)
         expect(new_opportunity).to be_valid
       end
     end
