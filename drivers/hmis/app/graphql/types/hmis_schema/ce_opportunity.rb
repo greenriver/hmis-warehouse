@@ -25,7 +25,6 @@ module Types
     field :categories, [String], null: false
     field :active, Boolean, null: false, method: :active?
     field :candidates_generated_at, GraphQL::Types::ISO8601DateTime, null: true
-    field :swimlanes, [Types::HmisSchema::CeSwimlane], null: true
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeOpportunityStatus]
@@ -70,11 +69,6 @@ module Types
 
     def candidates_generated_at
       load_ar_association(object, :candidate_pool)&.candidates_generated_at
-    end
-
-    def swimlanes
-      template = load_ar_association(object, :workflow_template)
-      load_ar_association(template, :swimlanes)
     end
   end
 end

@@ -18,6 +18,7 @@ module Types
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :current_step_name, String, null: true
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true # Don't resolve in batch
+    field :swimlanes, [HmisSchema::CeReferralSwimlane], null: true
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :target_project_id, ID, null: false
@@ -93,8 +94,18 @@ module Types
       load_ar_association(object, :referred_by)
     end
 
-    def participants
-      load_ar_association(object, :participants)
+    def swimlanes
+      participants_by_swimlane_id = load_ar_association(object, :participants).group_by(&:swimlane_id)
+
+      swimlanes = load_ar_association(object, :swimlanes)
+
+      swimlanes.map do |swimlane|
+        {
+          id: swimlane.id,
+          name: swimlane.name,
+          assigned_users: participants_by_swimlane_id[swimlane.id]&.map(&:user) || [],
+        }
+      end
     end
   end
 end

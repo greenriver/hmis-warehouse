@@ -89,6 +89,10 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
               formDefinition {
                 id
               }
+              assignees {
+                id
+                name
+              }
             }
           }
         }
@@ -117,6 +121,16 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
         expect(step_data['status']).to eq('in_progress')
         expect(step_data['name']).to eq('Client Acceptance')
         expect(step.reload.status).to eq('in_progress')
+      end
+
+      it 'assigns the user and returns the assignee' do
+        _, result = post_graphql(**variables) { mutation }
+        step_data = result.dig('data', 'startCeReferralStep', 'step')
+
+        expect(step_data['assignees']).to contain_exactly(
+          a_hash_including('id' => hmis_user.id.to_s, 'name' => hmis_user.name),
+        )
+        expect(step.reload.assignments.sole.user).to eq(hmis_user)
       end
 
       it 'includes form definition in response' do

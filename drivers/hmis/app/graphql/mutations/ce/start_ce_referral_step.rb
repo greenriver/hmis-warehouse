@@ -20,6 +20,7 @@ module Mutations
       referral.opportunity.with_lock do
         engine = referral.workflow_engine
         step = engine.active_steps.find(step_id)
+        step.assignments.find_or_create_by!(user: current_user)
         engine.start_step!(step, user: current_user)
       end
       { step: step }

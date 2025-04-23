@@ -41,10 +41,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 clientId
               }
             }
-            swimlanes {
-              id
-              name
-            }
             referral {
               id
               status
@@ -210,22 +206,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'status' => 'in_progress',
           )
         end
-      end
-    end
-
-    describe 'when the opportunity template has swimlanes' do
-      let!(:swimlane1) { opportunity.workflow_template.swimlanes.create(name: 'Case Managers') }
-      let!(:swimlane2) { opportunity.workflow_template.swimlanes.create(name: 'Admins') }
-
-      it 'returns the swimlanes' do
-        response, result = post_graphql(**variables) { query }
-        expect(response.status).to eq(200), result.inspect
-
-        swimlanes = result.dig('data', 'ceOpportunity', 'swimlanes')
-        expect(swimlanes).to contain_exactly(
-          a_hash_including('id' => swimlane1.id.to_s, 'name' => swimlane1.name),
-          a_hash_including('id' => swimlane2.id.to_s, 'name' => swimlane2.name),
-        )
       end
     end
 

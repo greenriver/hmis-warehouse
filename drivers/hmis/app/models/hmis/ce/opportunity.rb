@@ -20,6 +20,7 @@ module Hmis::Ce
     belongs_to :owner, polymorphic: true, optional: true # Hmis::Unit, ...
     has_one :active_referral, -> { active }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
     has_one :active_or_accepted_referral, -> { active_or_accepted }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
+    has_many :swimlanes, through: :workflow_template, class_name: 'Hmis::WorkflowDefinition::Swimlane'
 
     validates :name, presence: true
 

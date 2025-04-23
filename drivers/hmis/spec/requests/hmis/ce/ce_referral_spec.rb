@@ -29,6 +29,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 id
               }
             }
+            swimlanes {
+              id
+              name
+              assignedUsers {
+                id
+                name
+              }
+            }
           }
         }
       GRAPHQL
@@ -42,7 +50,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when workflow is initialized' do
       it 'returns expected structure with correct steps' do
-        _, result = post_graphql(**variables) { query }
+        response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
         referral_data = result.dig('data', 'ceReferral')
 
@@ -73,6 +81,53 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'formDefinition' => { 'id' => provider_acceptance_task.form_definitions.sole.id.to_s },
         )
       end
+
+      context 'workflow with swimlanes' do
+        # case_manager_swimlane is already set up in the CE spec helper
+        let!(:provider_swimlane) { workflow_template.swimlanes.create!(name: 'Providers') }
+
+        it 'returns swimlanes' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          swimlanes = result.dig('data', 'ceReferral', 'swimlanes')
+          expect(swimlanes).to contain_exactly(
+            a_hash_including('id' => case_manager_swimlane.id.to_s, 'name' => case_manager_swimlane.name, 'assignedUsers' => []),
+            a_hash_including('id' => provider_swimlane.id.to_s, 'name' => provider_swimlane.name, 'assignedUsers' => []),
+          )
+        end
+
+        context 'and participants' do
+          let!(:cm1) { create(:hmis_user, data_source: ds1) }
+          let!(:cm_participant1) { referral.participants.create(swimlane: case_manager_swimlane, user: cm1) }
+          let!(:cm2) { create(:hmis_user, data_source: ds1) }
+          let!(:cm_participant2) { referral.participants.create(swimlane: case_manager_swimlane, user: cm2) }
+          let!(:provider) { create(:hmis_user, data_source: ds1) }
+          let!(:provider_participant) { referral.participants.create(swimlane: provider_swimlane, user: provider) }
+
+          it 'returns assigned users' do
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
+            swimlanes = result.dig('data', 'ceReferral', 'swimlanes')
+            expect(swimlanes).to contain_exactly(
+              a_hash_including(
+                'id' => case_manager_swimlane.id.to_s,
+                'name' => case_manager_swimlane.name,
+                'assignedUsers' => [
+                  a_hash_including('id' => cm1.id.to_s, 'name' => cm1.name),
+                  a_hash_including('id' => cm2.id.to_s, 'name' => cm2.name),
+                ],
+              ),
+              a_hash_including(
+                'id' => provider_swimlane.id.to_s,
+                'name' => provider_swimlane.name,
+                'assignedUsers' => [
+                  a_hash_including('id' => provider.id.to_s, 'name' => provider.name),
+                ],
+              ),
+            )
+          end
+        end
+      end
     end
 
     context 'when workflow is started' do
@@ -81,7 +136,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'shows first step as available' do
-        _, result = post_graphql(**variables) { query }
+        response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
         steps = result.dig('data', 'ceReferral', 'steps')
 
@@ -226,7 +281,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(response.status).to eq(200), result.inspect
             steps = result.dig('data', 'ceReferral', 'steps')
             expect(steps.length).to eq(51)
-          end.to make_database_queries(count: 10..15)
+          end.to make_database_queries(count: 15..20)
         end
       end
     end

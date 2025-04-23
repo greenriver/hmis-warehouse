@@ -25,6 +25,7 @@ module Mutations
         # needs better error handling
         raise 'not available' unless opportunity.open?
 
+        # todo @martha - here, when creating the instance and referral at the same time, could add relationship btwn them
         instance = opportunity.workflow_template.instances.create!
         referral = opportunity.referrals.create!(
           workflow_instance: instance,
