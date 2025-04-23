@@ -25,7 +25,7 @@ module Types
     field :name, String, null: false
     field :status, HmisSchema::Enums::CeReferralStepStatus, null: false
     field :submitted_values, JsonObject, null: true
-    field :swimlane, HmisSchema::CeReferralSwimlane, null: false, description: 'Swimlane for this step, which holds information about potential step participants'
+    field :swimlane, HmisSchema::CeReferralSwimlane, null: true, description: 'Swimlane for this step, which holds information about potential step participants'
     field :assignees, [Application::User], null: true, description: 'Assignee(s) currently working on this step'
     delegate :name, to: :workflow_node
 
@@ -42,6 +42,8 @@ module Types
       swimlane = load_ar_association(object, :swimlane)
       referral = context[:referral] # get the referral from context, because WFE Step doesn't have a direct relationship to CE Referral
       participants_by_swimlane_id = referral.participants.group_by(&:swimlane_id)
+
+      return nil unless swimlane.present?
 
       {
         id: swimlane.id,

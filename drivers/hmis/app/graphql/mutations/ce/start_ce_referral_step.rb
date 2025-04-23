@@ -21,7 +21,7 @@ module Mutations
         engine = referral.workflow_engine
         step = engine.active_steps.find(step_id)
 
-        participants = referral.participants_for_swimlane(step.swimlane.id)
+        participants = referral.participants_for_swimlane(step.swimlane&.id)
         raise 'Cannot start a referral step with no participants' unless participants.any?
 
         # TODO(#7395): permission
