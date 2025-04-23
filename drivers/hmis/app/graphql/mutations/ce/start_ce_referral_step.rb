@@ -23,6 +23,8 @@ module Mutations
         step.assignments.find_or_create_by!(user: current_user)
         engine.start_step!(step, user: current_user)
       end
+
+      context[:referral] = referral
       { step: step }
     end
   end

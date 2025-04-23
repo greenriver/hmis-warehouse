@@ -36,6 +36,8 @@ module Types
     end
 
     def steps
+      context[:referral] = object
+
       instance = object.workflow_instance
       steps_by_node_id = instance.steps.index_by(&:node_id)
 

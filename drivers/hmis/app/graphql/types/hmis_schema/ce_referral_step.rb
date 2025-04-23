@@ -8,7 +8,9 @@
 
 module Types
   class HmisSchema::CeReferralStep < Types::BaseObject
-    # object is a Hmis::WorkflowExecution::Step
+    # object is a Hmis::WorkflowExecution::Step,
+    # and also expects context[:referral] is a Hmis::Ce::Referral
+    # todo @martha - add comments about why
 
     field :id, ID, null: false, description: 'unique identifier for this step based on node and instance'
     field :step_id, ID, null: true, method: :id, description: 'the DB identifier of this step, if it is persisted'
@@ -31,13 +33,15 @@ module Types
     end
 
     def swimlane
-      # todo @martha
-      # step DOES have relation to swimlane, through task, so that part is fine
-      # swimlanes = load_ar_association(object, :swimlane)&.name
+      swimlane = load_ar_association(object, :swimlane)
+      referral = context[:referral] # get the referral from context, because WFE Step doesn't have a direct relationship to CE Referral
+      participants_by_swimlane_id = referral.participants.group_by(&:swimlane_id)
 
-      # but we want to "zip this up" with participants, similar to what I just added in the referral schema object,
-      # but we don't have access to participants here.
-      # maybe through the instance -> referral? but that relationship doesn't currently exist
+      {
+        id: swimlane.id,
+        name: swimlane.name,
+        assigned_users: participants_by_swimlane_id[swimlane.id]&.map(&:user) || [],
+      }
     end
 
     def assignees

@@ -548,11 +548,16 @@ module Types
 
     field :ce_referral_step, HmisSchema::CeReferralStep, null: true do
       argument :id, ID, required: true
+      argument :referral_id, ID, required: true
     end
-    def ce_referral_step(id:)
+    def ce_referral_step(id:, referral_id:)
       raise unless Hmis::Ce.configuration.enabled?
 
-      Hmis::WorkflowExecution::Step.viewable_by(current_user).find_by(id: id)
+      referral = Hmis::Ce::Referral.viewable_by(current_user).find_by(id: referral_id)
+      raise 'access denied' unless referral.present?
+
+      context[:referral] = referral
+      referral.workflow_instance.steps.viewable_by(current_user).find_by(id: id)
     end
   end
 end

@@ -38,9 +38,11 @@ module Mutations
         engine.complete_step!(step, user: current_user, submitted_values: input)
       end
 
+      context[:referral] = referral
+
       {
-        step: step,
         referral: referral.reload,
+        step: step,
       }
     end
   end
