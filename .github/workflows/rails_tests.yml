@@ -91,6 +91,8 @@ jobs:
           TZ: "America/New_York"
           PORT: 3333
           CONNECTION_TIMEOUT: 600000
+          FERRUM_PROCESS_TIMEOUT: 45
+          DEFAULT_TIMEOUT: 45
 
     env:
       CLIENT: test
