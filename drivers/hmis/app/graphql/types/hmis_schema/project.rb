@@ -115,10 +115,10 @@ module Types
     field :service_types, [Types::HmisSchema::ServiceType], null: false, method: :available_service_types, description: 'Service types that are collected for this Project'
 
     field :ce_opportunities, Types::HmisSchema::CeOpportunity.page_type, null: false do
-      argument(:filters, Types::HmisSchema::CeOpportunity.filter_options_type, required: false)
+      filters_argument Types::HmisSchema::CeOpportunity, omit: [:project, :project_type], type_name: 'ProjectCeOpportunity'
     end
     field :ce_referrals, Types::HmisSchema::CeReferral.page_type, null: false do
-      argument(:filters, Types::HmisSchema::CeReferral.filter_options_type, required: false)
+      filters_argument Types::HmisSchema::CeReferral, omit: [:project, :project_type], type_name: 'ProjectCeReferral'
     end
 
     def hud_id

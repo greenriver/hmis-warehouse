@@ -37,6 +37,7 @@ module Hmis::Ce::Match
       end
       # remove old candidates that no longer match
       pool.candidates.where(updated_at: ...now).delete_all
+      pool.update!(candidates_generated_at: Time.current)
     end
 
     protected
