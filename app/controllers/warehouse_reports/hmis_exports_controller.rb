@@ -16,6 +16,7 @@ module WarehouseReports
 
     def index
       @filter = ::Filters::HmisExport.new(user_id: current_user.id)
+      @filter.update(report_params.merge(user_id: current_user.id)) if params[:filter].present?
       @all_project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).pluck(:ProjectName)
     end
 
@@ -179,6 +180,16 @@ module WarehouseReports
         :encryption_type,
       ]
     end
+
+    def path_for_report(report)
+      warehouse_reports_hmis_export_path(report)
+    end
+    helper_method :path_for_report
+
+    def path_for_new
+      warehouse_reports_hmis_exports_path
+    end
+    helper_method :path_for_new
 
     def flash_interpolation_options
       { resource_name: 'Export' }

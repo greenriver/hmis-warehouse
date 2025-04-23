@@ -262,9 +262,7 @@ module HudLsa::Generators::Fy2024
       )
       # this is usually set in the HMIS CSV Export controller, we need to do it here
       # to ensure we limit PDDEs correctly
-      exporter.setup_export
-      export = exporter.instance_variable_get(:@export)
-      export.update(options: { enforce_project_date_scope: true })
+      exporter.setup_enforce_project_date_scope
 
       @hmis_export = exporter.export!
       update(export_id: @hmis_export.id)

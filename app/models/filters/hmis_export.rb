@@ -254,5 +254,25 @@ module Filters
     def user
       User.find(user_id)
     end
+
+    def describe(key, value = chosen(key), labels: {})
+      title = case key
+      when :enforce_project_date_scope
+        'Enforce Project Date Scope' if value.present?
+      else
+        return super
+      end
+
+      [title, value]
+    end
+
+    def chosen(key)
+      case key
+      when :enforce_project_date_scope
+        'Yes' if enforce_project_date_scope
+      else
+        return super
+      end
+    end
   end
 end

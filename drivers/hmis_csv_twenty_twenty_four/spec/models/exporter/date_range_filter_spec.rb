@@ -108,10 +108,7 @@ RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
           enforce_project_date_scope: true,
         )
         # this is usually set in the controller
-        @exporter.setup_export
-        export = @exporter.instance_variable_get(:@export)
-        export.update(options: { enforce_project_date_scope: true })
-
+        @exporter.setup_enforce_project_date_scope
         @exporter.export!(cleanup: false, zip: false, upload: false)
       end
 
