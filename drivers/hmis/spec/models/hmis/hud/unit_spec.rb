@@ -10,12 +10,12 @@ require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Unit, type: :model do
-  # before(:all) do
-  #   cleanup_test_environment
-  # end
-  # after(:all) do
-  #   cleanup_test_environment
-  # end
+  before(:all) do
+    cleanup_test_environment
+  end
+  after(:all) do
+    cleanup_test_environment
+  end
 
   include_context 'hmis base setup'
   include_context 'hmis service setup'
