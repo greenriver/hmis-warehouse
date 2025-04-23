@@ -19,6 +19,7 @@ module Hmis::Ce
     has_many :categories, through: :categorizations
     belongs_to :owner, polymorphic: true, optional: true # Hmis::Unit, ...
     has_one :active_referral, -> { active }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
+    has_one :active_or_accepted_referral, -> { active_or_accepted }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
 
     validates :name, presence: true
 

@@ -44,34 +44,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     )
   end
 
-  # Create opportunities in different states
-  let!(:opportunity_veterans) do
-    create(
-      :hmis_ce_opportunity,
-      project: project,
-      candidate_pool: pool_veterans,
-      status: 'open',
-    )
-  end
-
-  let!(:opportunity_seniors) do
-    create(
-      :hmis_ce_opportunity,
-      project: project,
-      candidate_pool: pool_seniors,
-      status: 'open',
-    )
-  end
-
-  let!(:closed_opportunity) do
-    create(
-      :hmis_ce_opportunity,
-      project: project,
-      candidate_pool: pool_veterans,
-      status: 'closed',
-    )
-  end
-
   # Create candidates linking client to pools
   let!(:veteran_candidate) do
     create(
@@ -92,6 +64,34 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'client query with opportunities' do
+    # Create opportunities in different states
+    let!(:opportunity_veterans) do
+      create(
+        :hmis_ce_opportunity,
+        project: project,
+        candidate_pool: pool_veterans,
+        status: 'open',
+      )
+    end
+
+    let!(:opportunity_seniors) do
+      create(
+        :hmis_ce_opportunity,
+        project: project,
+        candidate_pool: pool_seniors,
+        status: 'open',
+      )
+    end
+
+    let!(:closed_opportunity) do
+      create(
+        :hmis_ce_opportunity,
+        project: project,
+        candidate_pool: pool_veterans,
+        status: 'closed',
+      )
+    end
+
     let(:query) do
       <<~GRAPHQL
         query GetClient($id: ID!) {
@@ -213,6 +213,97 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         expect(opportunities).to be_an(Array)
         expect(opportunities).to be_empty
+      end
+    end
+  end
+
+  describe 'client eligible CE opportunities query with filters' do
+    let(:query) do
+      <<~GRAPHQL
+        query GetClient($id: ID!, $filters: ClientEligibleCeOpportunityFilterOptions) {
+          client(id: $id) {
+            id
+            eligibleCeOpportunities(filters: $filters) {
+              nodesCount
+              nodes {
+                id
+                candidatesGeneratedAt
+              }
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    let(:variables) do
+      {
+        id: client.id,
+      }
+    end
+
+    let(:p1) { create :hmis_hud_project, project_type: 1, data_source: ds1, user: u1 }
+    let(:p2) { create :hmis_hud_project, project_type: 1, data_source: ds1, user: u1 }
+    let(:p3) { create :hmis_hud_project, project_type: 5, data_source: ds1, user: u1 }
+    let!(:opportunity1) { create(:hmis_ce_opportunity, project: p1, candidate_pool: pool_veterans) }
+    let!(:opportunity2) { create(:hmis_ce_opportunity, project: p2, candidate_pool: pool_veterans) }
+    let!(:opportunity3) { create(:hmis_ce_opportunity, project: p3, candidate_pool: pool_veterans) }
+
+    context 'when project ID filter is passed' do
+      let(:variables) do
+        {
+          id: client.id,
+          filters: {
+            project: [p1.id], # project type 1
+          },
+        }
+      end
+      it 'returns only opportunities for that project' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+        opportunities = result.dig('data', 'client', 'eligibleCeOpportunities', 'nodes')
+        expect(opportunities.length).to eq(1)
+        expect(opportunities).to contain_exactly(
+          a_hash_including('id' => opportunity1.id.to_s),
+        )
+      end
+    end
+
+    context 'when project type filter is passed' do
+      let(:variables) do
+        {
+          id: client.id,
+          filters: {
+            project_type: ['ES_NBN'], # project type 1
+          },
+        }
+      end
+      it 'returns only opportunities for that project type' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+        opportunities = result.dig('data', 'client', 'eligibleCeOpportunities', 'nodes')
+        expect(opportunities.length).to eq(2)
+        expect(opportunities).to contain_exactly(
+          a_hash_including('id' => opportunity1.id.to_s),
+          a_hash_including('id' => opportunity2.id.to_s),
+        )
+      end
+
+      context 'when there are many opportunities' do
+        before do
+          opportunities = 30.times.map do
+            build(:hmis_ce_opportunity, project: p1, candidate_pool: pool_veterans)
+          end
+          Hmis::Ce::Opportunity.import!(opportunities)
+        end
+
+        it 'makes a reasonable number of db queries' do
+          expect do
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
+            count = result.dig('data', 'client', 'eligibleCeOpportunities', 'nodesCount')
+            expect(count).to eq(32)
+          end.to make_database_queries(count: 15..20)
+        end
       end
     end
   end
