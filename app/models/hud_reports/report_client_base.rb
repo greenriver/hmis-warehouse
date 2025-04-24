@@ -29,7 +29,7 @@ module HudReports
       # This will separate the object and method in order to call the appropriate column/method
       # while similarly allowing the method to be called if the column is not passed using dot notation.
       col.to_s.split('.').inject(self) do |obj, method|
-        return unless obj
+        return nil unless obj
 
         if obj.respond_to?(:column_names) && obj.class.column_names.include?(method)
           obj[method]
