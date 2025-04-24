@@ -84,6 +84,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :scan_card_codes, class_name: 'Hmis::ScanCardCode', inverse_of: :client
 
   has_many :alerts, class_name: '::Hmis::ClientAlert', dependent: :destroy, inverse_of: :client
+  has_many :active_alerts, -> { active }, class_name: '::Hmis::ClientAlert'
 
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 

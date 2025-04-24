@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -161,17 +163,36 @@ RSpec.describe 'BulkAssignService', type: :request do
     )
   end
 
-  it 'can query by last bed night date' do
-    service_filter = {
+  let!(:service_filter) do
+    {
       start_date: today - 1.month,
       end_date: today,
       service_type: bednight_service_type.id,
       project_id: p1.id,
     }
+  end
+
+  it 'can query by last bed night date' do
     res = perform_query(service_date: today, filters: { service_in_range: service_filter })
     expect(res).to contain_exactly(
       # only e3 had a service on the specified date (today)
       include('id' => e3.client.id.to_s),
     )
+  end
+
+  context 'with many clients' do
+    let!(:service_date) { 1.week.ago }
+    before do
+      50.times do
+        enrollment = create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 1.month.ago
+        create :hmis_hud_service, date_provided: service_date, data_source: ds1, enrollment: enrollment, client: enrollment.client, record_type: 200, type_provided: 200
+      end
+    end
+
+    it 'makes a reasonable number of db queries' do
+      expect do
+        perform_query(service_date: service_date, filters: { service_in_range: service_filter })
+      end.to make_database_queries(count: 20..30) # todo @martha - fix and add comments (services)
+    end
   end
 end

@@ -391,6 +391,7 @@ module Types
     end
 
     def services(**args)
+      # todo @martha this is causing n+1 on bednights query, but it's probably out of scope for my current work
       resolve_services(**args)
     end
 

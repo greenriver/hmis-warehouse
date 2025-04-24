@@ -253,7 +253,7 @@ module Types
       selected_races
     end
 
-    def image
+    def image # Not resolved in batch
       return unless current_permission?(permission: :can_view_client_photo, entity: object)
 
       file = object.client_files.client_photos.newest_first.first&.client_file
@@ -343,7 +343,7 @@ module Types
     def alerts
       return [] unless current_permission?(permission: :can_view_client_alerts, entity: object)
 
-      object.alerts.active.sort_by(&:created_at).reverse
+      load_ar_association(object, :active_alerts).sort_by(&:created_at).reverse
     end
 
     # not optimized for batch queries, causes n+1 queries
