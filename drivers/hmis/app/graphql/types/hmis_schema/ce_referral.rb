@@ -34,7 +34,8 @@ module Types
     end
 
     def steps # Not resolved in batch
-      steps_by_node_id = object.steps.index_by(&:node_id)
+      instance = object.workflow_instance
+      steps_by_node_id = instance.steps.index_by(&:node_id)
 
       graph = instance.template.graph(preloads: :inflows) # preload inflows so we can check conditions without n+1
       graph.
