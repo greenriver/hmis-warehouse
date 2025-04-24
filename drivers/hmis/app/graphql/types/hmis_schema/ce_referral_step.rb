@@ -14,14 +14,7 @@ module Types
     #   referral: Hmis::Ce::Referral,
     # }
     # Why: The Step schema object should resolve this step's potential Participants (ReferralParticipants on the Referral).
-    # However, the Step model does not have a direct relationship to Referral, since it lives under Workflow Execution and not CE.
-    # Alternatives considered:
-    # todo @martha - reduce/remove this comment after we discuss and resolve.
-    # - Add relationship from Step to Referral, probably through Instance.
-    #   Decided against this in order to avoid a duplicative bidirectional relationship.
-    # - Always resolve the Referral alongside the Step, and expect the frontend to use the Participants from the Referral.
-    #   Decided against this because we want the frontend schema shape to match what would be most useful for the UI to display the data,
-    #   so we do want to put the participant on the Step.
+    # However, the Step model does not have a direct relationship to Referral, to avoid a duplicative bidirectional relationship.
 
     field :id, ID, null: false, description: 'unique identifier for this step based on node and instance'
     field :step_id, ID, null: true, method: :id, description: 'the DB identifier of this step, if it is persisted'
@@ -30,7 +23,7 @@ module Types
     field :status, HmisSchema::Enums::CeReferralStepStatus, null: false
     field :submitted_values, JsonObject, null: true
     field :swimlane, HmisSchema::CeReferralSwimlane, null: true, description: 'Swimlane for this step, which holds information about potential step participants'
-    field :assignees, [Application::User], null: true, description: 'Assignee(s) currently working on this step'
+    field :assignees, [Application::User], null: true, description: 'User(s) currently assigned to this step'
 
     def id
       # the step may not yet be persisted, such as when it isn't yet available in the workflow
