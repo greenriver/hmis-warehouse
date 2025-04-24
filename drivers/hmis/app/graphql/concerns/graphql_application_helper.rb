@@ -35,25 +35,14 @@ module GraphqlApplicationHelper
   end
 
   # Use data loader to load an ActiveRecord association.
-  # Note: 'scope' is intended for ordering or to modify the default
-  # association in a way that is constant with respect to the resolver,
-  #
-  # Examples of "constant with respect to the resolver" scopes:
-  #
-  # OK:
-  #   load_ar_association(object, :foo_bar, scope: FooBar.where(foo: true))
-  #   load_ar_association(object, :foo_bar, scope: FooBar.viewable_by(current_user))
-  #
-  # Not OK:
-  #   load_ar_association(object, :foo_bar, scope: FooBar.where(bar: object.bar))
-  #
-  def load_ar_association(object, association_name, scope: nil)
+  # TODO(#7573) n+1 mitigation
+  def load_ar_association(object, association_name)
     raise "object must be an ApplicationRecord, got #{object.class.name}" unless object.is_a?(ApplicationRecord)
 
     # if we already have preloaded association, just return it
-    return object.public_send(association_name) if scope.nil? && object.association(association_name).loaded?
+    return object.public_send(association_name) if object.association(association_name).loaded?
 
-    dataloader.with(Sources::ActiveRecordAssociation, association_name, scope).load(object)
+    dataloader.with(Sources::ActiveRecordAssociation, association_name).load(object)
   end
 
   def load_ar_scope(scope:, id:)

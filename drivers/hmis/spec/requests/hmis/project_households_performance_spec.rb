@@ -209,7 +209,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         }
       end
 
-      it 'minimizes n+1 queries' do
+      it 'minimizes n+1 queries' do # todo @martha - not really last contact date (I think)
         expect do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
