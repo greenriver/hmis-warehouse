@@ -116,11 +116,6 @@ module GrdaWarehouse
       "HMIS_export_#{created_at.to_s.delete(',')}.zip"
     end
 
-    def setup_enforce_project_date_scope
-      setup_export
-      @export.update(options: { enforce_project_date_scope: true })
-    end
-
     def save_zip_to(path)
       reconstitute_path = ::File.join(path, export_file_name)
       FileUtils.mkdir_p(path) unless ::File.directory?(path)

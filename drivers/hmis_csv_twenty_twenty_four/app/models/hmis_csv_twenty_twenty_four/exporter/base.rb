@@ -145,6 +145,11 @@ module HmisCsvTwentyTwentyFour::Exporter
       @export
     end
 
+    def setup_enforce_project_date_scope
+      setup_export
+      @export.update(options: { enforce_project_date_scope: true })
+    end
+
     def file_name_for(klass)
       return 'Export.csv' if klass == HmisCsvTwentyTwentyFour::Exporter::Export
 
