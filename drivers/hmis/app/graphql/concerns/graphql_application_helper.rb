@@ -68,7 +68,7 @@ module GraphqlApplicationHelper
     # Load all visible enrollments for the client
     enrollments = load_ar_association(
       client,
-      :enrollments,
+      :enrollments, # todo @martha
       scope: Hmis::Hud::Enrollment.viewable_by(current_user).preload(:exit),
     )
 

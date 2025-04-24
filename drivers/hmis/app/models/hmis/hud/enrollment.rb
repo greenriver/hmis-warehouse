@@ -40,10 +40,16 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # HUD services
   has_many :services, **hmis_enrollment_relation('Service'), inverse_of: :enrollment, dependent: :destroy
+  has_many :services_ordered_by_date, -> { ordered_by_date }, **hmis_enrollment_relation('Service')
+
   has_many :bed_nights, -> { bed_nights }, **hmis_enrollment_relation('Service')
   # Custom services
   has_many :custom_services, **hmis_enrollment_relation('CustomService'), inverse_of: :enrollment, dependent: :destroy
+  has_many :custom_services_ordered_by_date, -> { order(:date_provided) }, **hmis_enrollment_relation('CustomService')
+
   has_many :custom_case_notes, **hmis_enrollment_relation('CustomCaseNote'), inverse_of: :enrollment, dependent: :destroy
+  has_many :custom_case_notes_ordered_by_date, -> { ordered_by_date }, **hmis_enrollment_relation('CustomCaseNote')
+
   # All services (combined view of HUD and Custom services)
   has_many :hmis_services, **hmis_enrollment_relation('HmisService'), inverse_of: :enrollment
   has_many(
@@ -58,14 +64,20 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :income_benefits, **hmis_enrollment_relation('IncomeBenefit'), inverse_of: :enrollment, dependent: :destroy
   has_many :disabilities, **hmis_enrollment_relation('Disability'), inverse_of: :enrollment, dependent: :destroy
   has_many :health_and_dvs, **hmis_enrollment_relation('HealthAndDv'), inverse_of: :enrollment, dependent: :destroy
+
   has_many :current_living_situations, **hmis_enrollment_relation('CurrentLivingSituation'), inverse_of: :enrollment, dependent: :destroy
+  has_many :cls_ordered_by_date, -> { order(:information_date) }, **hmis_enrollment_relation('CurrentLivingSituation')
+
   has_many :employment_educations, **hmis_enrollment_relation('EmploymentEducation'), inverse_of: :enrollment, dependent: :destroy
   has_many :youth_education_statuses, **hmis_enrollment_relation('YouthEducationStatus'), inverse_of: :enrollment, dependent: :destroy
 
   # CE Assessments
   has_many :assessments, **hmis_enrollment_relation('Assessment'), inverse_of: :enrollment, dependent: :destroy
+
   # Custom Assessments
   has_many :custom_assessments, **hmis_enrollment_relation('CustomAssessment'), inverse_of: :enrollment, dependent: :destroy
+  has_many :custom_assessments_ordered_by_date, -> { order(:assessment_date) }, **hmis_enrollment_relation('CustomAssessment')
+
   has_one :intake_assessment, -> { intakes }, **hmis_enrollment_relation('CustomAssessment')
   has_one :exit_assessment, -> { exits }, **hmis_enrollment_relation('CustomAssessment')
   has_many :update_assessments, -> { updates }, **hmis_enrollment_relation('CustomAssessment')
@@ -86,7 +98,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
   has_one :current_unit_type, through: :current_unit, class_name: 'Hmis::UnitType', source: :unit_type
 
-  has_many :staff_assignments, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], foreign_key: [:data_source_id, :household_id]
+  has_many :staff_assignments, -> { order(created_at: :desc, id: :desc) }, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], foreign_key: [:data_source_id, :household_id]
 
   # Cached chronically homeless at entry
   has_one :ch_enrollment, class_name: 'Hmis::ChEnrollment', dependent: :destroy

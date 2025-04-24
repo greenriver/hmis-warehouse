@@ -456,23 +456,11 @@ module Types
 
     def last_contact
       last_contact_entity = [
-        load_ar_association(
-          object,
-          :services,
-          scope: Hmis::Hud::Service.where.not(date_provided: nil).order(date_provided: :asc),
-        ).last,
-        # CustomService DateProvided is guaranteed non-null by DB
-        load_ar_association(object, :custom_services, scope: Hmis::Hud::CustomService.order(:date_provided)).last,
-        # CLS InformationDate is guaranteed non-null by DB
-        load_ar_association(object, :current_living_situations, scope: Hmis::Hud::CurrentLivingSituation.order(:information_date)).last,
-        # AssessmentDate is guaranteed non-null by DB
-        load_ar_association(object, :custom_assessments, scope: Hmis::Hud::CustomAssessment.order(:assessment_date)).last,
-        # CustomCaseNote's information_date can be null in DB
-        load_ar_association(
-          object,
-          :custom_case_notes,
-          scope: Hmis::Hud::CustomCaseNote.where.not(information_date: nil).order(information_date: :asc),
-        ).last,
+        load_ar_association(object, :services_ordered_by_date).last,
+        load_ar_association(object, :custom_services_ordered_by_date).last,
+        load_ar_association(object, :cls_ordered_by_date).last,
+        load_ar_association(object, :custom_assessments_ordered_by_date).last,
+        load_ar_association(object, :custom_case_notes_ordered_by_date).last,
       ].compact.
         max_by { |entity| Hmis::Hud::Enrollment.contact_date_for_entity(entity) }
 
@@ -503,7 +491,7 @@ module Types
     end
 
     def staff_assignments
-      load_ar_association(object, :staff_assignments, scope: Hmis::StaffAssignment.order(created_at: :desc, id: :desc))
+      load_ar_association(object, :staff_assignments)
     end
   end
 end
