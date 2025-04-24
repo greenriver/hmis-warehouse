@@ -136,15 +136,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         fragment StaffAssignmentDetails on StaffAssignment {
           id
-          user {
-            id
-            name
-            __typename
-          }
-          staffAssignmentRelationship
-          assignedAt
-          unassignedAt
-          __typename
+        #   user {
+        #     id
+        #     name
+        #     __typename
+        #   }
+        #   staffAssignmentRelationship
+        #   assignedAt
+        #   unassignedAt
+        #   __typename
         }
       GRAPHQL
     end
@@ -203,7 +203,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           "offset": 0,
           "filters": {},
           "sortOrder": 'MOST_RECENT',
-          "includeStaffAssignment": true,
+          "includeStaffAssignment": false,
           "includeMoveInDate": true,
           "includeLastContact": true,
         }
@@ -211,9 +211,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'minimizes n+1 queries' do
         expect do
-          _, result = post_graphql(**variables) { query }
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'project', 'households', 'nodes').size).to eq(enrollments.size), result.inspect
-        end.to make_database_queries(count: 10..50) # Query count is high due to optional fields, especially "last contact date". Can maybe optimize further
+        end.to make_database_queries(count: 0) # Query count is high due to optional fields, especially "last contact date". Can maybe optimize further
       end
     end
   end

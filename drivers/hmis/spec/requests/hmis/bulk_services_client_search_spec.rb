@@ -192,7 +192,7 @@ RSpec.describe 'BulkAssignService', type: :request do
     it 'makes a reasonable number of db queries' do
       expect do
         perform_query(service_date: service_date, filters: { service_in_range: service_filter })
-      end.to make_database_queries(count: 20..30) # todo @martha - fix and add comments (services)
+      end.to make_database_queries(count: 20..30) # todo @martha - fix and add comments (services) - see other todo
     end
   end
 end
