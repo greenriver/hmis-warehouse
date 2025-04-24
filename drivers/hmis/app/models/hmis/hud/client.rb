@@ -40,6 +40,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   # Enrollments for this Client, including WIP Enrollments
   has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
+  has_many :enrollments_with_exits, -> { preload(:exit) }, **hmis_relation(:PersonalID, 'Enrollment')
+
   # Projects that this Client is enrolled in, including through WIP enrollments
   has_many :projects, through: :enrollments
 

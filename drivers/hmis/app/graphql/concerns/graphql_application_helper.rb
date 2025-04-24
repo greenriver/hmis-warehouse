@@ -54,12 +54,12 @@ module GraphqlApplicationHelper
   #
   # This is in this module because its shared between query and mutation code.
   def load_open_enrollment_for_client(client, project_id:, open_on_date:)
-    # Load all visible enrollments for the client
-    enrollments = load_ar_association(
-      client,
-      :enrollments, # todo @martha
-      scope: Hmis::Hud::Enrollment.viewable_by(current_user).preload(:exit),
-    )
+    project = Hmis::Hud::Project.find_by(id: project_id)
+    return nil unless project
+    return nil unless current_user.can_view_enrollment_details_for?(project) || current_user.can_view_limited_enrollment_details_for?(project)
+
+    # Load all enrollments for the client, skipping visibility check since we'll filter by project below, and we know the user has enrollment access in this project already.
+    enrollments = load_ar_association(client, :enrollments_with_exits)
 
     # Filter down by project and date
     enrollments.filter do |en|
