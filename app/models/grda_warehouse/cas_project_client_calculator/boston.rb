@@ -572,6 +572,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         2 => 'IdentifiedPathwaysVersionThreeTransfer',
         3 => 'IdentifiedPathwaysVersionFourPathways',
         4 => 'IdentifiedPathwaysVersionFourTransfer',
+        5 => 'IdentifiedPathwaysVersionFourFamilyPathways',
       }[value.to_i] || 'IdentifiedClientAssessment'
     end
 
