@@ -3413,12 +3413,12 @@ CREATE VIEW analytics.hmis_client_alerts AS
     note,
     created_at,
     updated_at,
+    deleted_at,
     expiration_date,
     created_by_id,
     client_id,
     priority
-   FROM public.hmis_client_alerts
-  WHERE (deleted_at IS NULL);
+   FROM public.hmis_client_alerts;
 
 
 --
@@ -66800,6 +66800,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250408133728'),
 ('20250409145017'),
 ('20250416145715'),
-('20250424192101');
+('20250424192101'),
+('20250424193237');
 
 
