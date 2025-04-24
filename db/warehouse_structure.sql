@@ -3708,10 +3708,10 @@ CREATE VIEW analytics.hmis_staff_assignments AS
     hmis_staff_assignment_relationships.name,
     hmis_staff_assignments.data_source_id,
     hmis_staff_assignments.created_at,
-    hmis_staff_assignments.updated_at
+    hmis_staff_assignments.updated_at,
+    hmis_staff_assignments.deleted_at
    FROM (public.hmis_staff_assignments
-     LEFT JOIN public.hmis_staff_assignment_relationships ON (((hmis_staff_assignment_relationships.deleted_at IS NULL) AND (hmis_staff_assignment_relationships.id = hmis_staff_assignments.hmis_staff_assignment_relationship_id))))
-  WHERE (hmis_staff_assignments.deleted_at IS NULL);
+     LEFT JOIN public.hmis_staff_assignment_relationships ON ((hmis_staff_assignment_relationships.id = hmis_staff_assignments.hmis_staff_assignment_relationship_id)));
 
 
 --
@@ -66801,6 +66801,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250409145017'),
 ('20250416145715'),
 ('20250424192101'),
-('20250424193237');
+('20250424193237'),
+('20250424193430');
 
 
