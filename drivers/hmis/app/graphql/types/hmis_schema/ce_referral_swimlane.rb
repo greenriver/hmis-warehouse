@@ -8,9 +8,9 @@
 
 module Types
   class HmisSchema::CeReferralSwimlane < Types::BaseObject
-    # An amalgamation of:
+    # object is an OpenStruct amalgamation of:
     # - Hmis::WorkflowDefinition::Swimlane, the swimlane definition
-    # - Hmis::Ce::ReferralParticipant, the participants for this swimlane on this referral
+    # - [Hmis::Ce::ReferralParticipant], the participants for this swimlane on this referral
 
     field :id, ID, null: false
     field :name, String, null: false
