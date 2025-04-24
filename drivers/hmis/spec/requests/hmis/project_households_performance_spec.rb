@@ -136,15 +136,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         fragment StaffAssignmentDetails on StaffAssignment {
           id
-        #   user {
-        #     id
-        #     name
-        #     __typename
-        #   }
-        #   staffAssignmentRelationship
-        #   assignedAt
-        #   unassignedAt
-        #   __typename
+          user {
+            id
+            name
+            __typename
+          }
+          staffAssignmentRelationship
+          assignedAt
+          unassignedAt
+          __typename
         }
       GRAPHQL
     end
@@ -203,18 +203,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           "offset": 0,
           "filters": {},
           "sortOrder": 'MOST_RECENT',
-          "includeStaffAssignment": false,
+          "includeStaffAssignment": true,
           "includeMoveInDate": true,
           "includeLastContact": true,
         }
       end
 
-      it 'minimizes n+1 queries' do # todo @martha - not really last contact date (I think)
+      it 'minimizes n+1 queries' do
         expect do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'project', 'households', 'nodes').size).to eq(enrollments.size), result.inspect
-        end.to make_database_queries(count: 0) # Query count is high due to optional fields, especially "last contact date". Can maybe optimize further
+        end.to make_database_queries(count: 25..35) # todo @martha - this should pass once the rails 7.1 PR is merged in and the resets are removed
       end
     end
   end

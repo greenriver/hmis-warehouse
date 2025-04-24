@@ -391,7 +391,7 @@ module Types
     end
 
     def services(**args)
-      # todo @martha this is causing n+1 on bednights query, but it's probably out of scope for my current work
+      # TODO(#7573) - improve n+1 and update the test in drivers/hmis/spec/requests/hmis/bulk_services_client_search_spec.rb
       resolve_services(**args)
     end
 

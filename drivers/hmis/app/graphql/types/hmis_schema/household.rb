@@ -58,11 +58,7 @@ module Types
     end
 
     def current_staff_assignments
-      # todo @martha - this field is currently causing an n+1 on Project Households related to Enrollments, but i'm flummoxed can't figure out why
-      load_ar_association(object, :staff_assignments).sort_by do |assignment|
-        # sort in memory, so this stays n+1-repellent. We don't expect a ton of current assignments
-        [-assignment.created_at.to_i, assignment.id]
-      end
+      load_ar_association(object, :staff_assignments)
     end
 
     # This field results in N+1 because it is paginated.
