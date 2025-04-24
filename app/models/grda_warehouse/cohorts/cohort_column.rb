@@ -22,7 +22,7 @@ module GrdaWarehouse::Cohorts
     end
 
     def self.maintain!
-      existing_class_names = all.pluck(:class_name)
+      existing_class_names = all.pluck(:class_name).to_set
       known_cohort_columns.each do |class_name|
         create!(class_name: class_name, active: true) unless existing_class_names.include?(class_name)
       end
