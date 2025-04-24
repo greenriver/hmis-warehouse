@@ -49,8 +49,9 @@
         %span{data: {toggle: :tooltip, title: "Warehouse record for #{dest.full_name}."}}
           = "ID:#{id}"
       %span{style: 'font-weight: normal;'}
-      = "SSN: #{dest.SSN}"
-      = "DOB: #{dest.DOB}"
+      - pii = dest.pii_provider(user: current_user)
+      = "SSN: #{pii.ssn}"
+      = "DOB: #{pii.dob_and_age}"
     .merge-cards
       - matches.each do |match|
         .slab.merge-card

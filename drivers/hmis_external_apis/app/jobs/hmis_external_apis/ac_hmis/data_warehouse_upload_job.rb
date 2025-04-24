@@ -59,6 +59,7 @@ module HmisExternalApis::AcHmis
         'posting_export',
         'custom_fields_export',
         'pathways_export',
+        'case_note_export',
       ].freeze
     end
 
@@ -199,6 +200,23 @@ module HmisExternalApis::AcHmis
         io_streams: [
           OpenStruct.new(
             name: 'Pathways.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def case_note_export
+      export = HmisExternalApis::AcHmis::Exporters::CaseNoteExport.new
+      export.run!
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-case-notes.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'CaseNotes.csv',
             io: export.output,
           ),
         ],
