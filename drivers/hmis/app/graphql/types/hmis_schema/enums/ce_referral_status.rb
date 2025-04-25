@@ -8,6 +8,6 @@
 
 module Types
   class HmisSchema::Enums::CeReferralStatus < Types::BaseEnum
-    Hmis::Ce::Referral.state_machine_states.each { |name| value name }
+    Hmis::Ce::Referral.state_machine_states.each { |name| value name, description: name.to_s.humanize }
   end
 end
