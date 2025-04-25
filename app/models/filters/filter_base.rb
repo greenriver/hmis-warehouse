@@ -813,7 +813,7 @@ module Filters
     # This should give us a reasonable list of options to choose from
     def cohort_columns_for_select
       initialized_columns = GrdaWarehouse::CohortColumnOption.distinct.pluck(:cohort_column)
-      GrdaWarehouse::Cohort.available_columns.select do |column|
+      GrdaWarehouse::Cohort.active_columns.select do |column|
         column.column.in?(initialized_columns) && ! column.title.match?(/^User Select \d+$/)
       end.map do |column|
         [
@@ -824,7 +824,7 @@ module Filters
     end
 
     def cohort_columns_for_dates
-      GrdaWarehouse::Cohort.available_columns.select do |column|
+      GrdaWarehouse::Cohort.active_columns.select do |column|
         # Ignore non-dates and untranslated custom dates
         column.class.ancestors.include?(CohortColumns::CohortDate) && ! column.title.match?(/^User Date \d+$/)
       end.map do |column|
