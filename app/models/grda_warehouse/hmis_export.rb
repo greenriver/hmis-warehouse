@@ -113,7 +113,7 @@ module GrdaWarehouse
     end
 
     def export_file_name
-      "HMIS_export_#{created_at.to_s.delete(',')}.zip"
+      "HMIS_export_#{created_at.to_s.gsub(/\W+/, '_')}.zip"
     end
 
     def save_zip_to(path)
