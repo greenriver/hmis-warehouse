@@ -6,11 +6,12 @@
 
 # frozen_string_literal: true
 
+require 'memery'
 module GrdaWarehouse::Tasks
   class IdentifyDuplicates
     include ArelHelper
     include NotifierConfig
-
+    extend Memery
     MAX_SOURCE_CLIENTS = 50
 
     def initialize(run_post_processing: true)
@@ -123,11 +124,35 @@ module GrdaWarehouse::Tasks
     end
 
     # look at all existing records for duplicates and merge destination clients
+    # We'll do as much of this in the database as possible for performance and memory management
     def match_existing!
-      build_source_lookups
-      build_destination_lookups
-      @to_merge = find_merge_candidates
+      # build_source_lookups
+      # build_destination_lookups
+      # @to_merge = find_merge_candidates
       user = User.setup_system_user
+      # Generally we'll see the fewset exact matches for SSN
+      # These all return pairs of destination ids that match for the category, but haven't
+      # been merged with each other
+
+      # FIXME: these are just for debugging in the console
+      ssn_matches = exact_ssn_matches
+      name_matches = exact_name_matches
+      dob_matches = exact_dob_matches
+
+      matches = {}
+      ssn_matches.each do |k|
+        matches[k] ||= 0
+        matches[k] += 1
+      end
+      name_matches.each do |k|
+        matches[k] ||= 0
+        matches[k] += 1
+      end
+      dob_matches.each do |k|
+        matches[k] ||= 0
+        matches[k] += 1
+      end
+      # tt = matches.select { |_, v| v > 1 }
 
       @to_merge.each do |destination_id, source_id|
         # If this pair was previously a candidate match, mark it as accepted
@@ -176,6 +201,140 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
     end
 
+    def joins_warehouse_clients_enrollment_and_project
+      <<-SQL
+        inner join warehouse_clients on clients.id = warehouse_clients.source_id
+        -- inner join "Enrollment" as en on clients."PersonalID" = en."PersonalID"
+        --   and en.data_source_id = clients.data_source_id
+        --   and en."DateDeleted" is NULL
+        -- inner join "Project" as p on en."ProjectID" = p."ProjectID"
+        --   and p.data_source_id = clients.data_source_id
+        --   and p."DateDeleted" is NULL
+      SQL
+    end
+
+    # Use a CTE to find potential matches based on multiple criteria
+    def exact_ssn_matches
+      # Use a CTE to find potential matches based on multiple criteria
+      # This keeps the heavy lifting in the database
+      limits = <<-SQL
+        "Client" as clients
+        #{joins_warehouse_clients_enrollment_and_project}
+        where clients."DateDeleted" is NULL
+        and clients.data_source_id != #{GrdaWarehouse::DataSource.warehouse_id} -- not a destination client
+        -- ignore blanks and some obvious known ssns
+        and clients."SSN" is not null
+        and clients."SSN" != ''
+        and clients."SSN" != '000000000'
+        and clients."SSN" != '111111111'
+        and LEFT(clients."SSN", 3) != '999'
+        and LEFT(clients."SSN", 1) != 'x'
+        and LEFT(clients."SSN", 1) != 'X'
+        and RIGHT(clients."SSN", 1) != 'x'
+        and RIGHT(clients."SSN", 1) != 'X'
+      SQL
+      results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
+        with client_one as (
+          SELECT warehouse_clients.destination_id as client_one_id,
+            clients."SSN" as client_one_ssn
+            from #{limits}
+          ),
+          client_two as (
+          SELECT warehouse_clients.destination_id as client_two_id,
+            clients."SSN" as client_two_ssn
+            from #{limits}
+          )
+
+          SELECT DISTINCT
+              client_one_id,
+              client_two_id,
+              client_one_ssn as ssn,
+              client_two_ssn as ssn2
+            FROM client_one
+            JOIN client_two ON (
+              -- Match on SSN if both have it
+              client_one_ssn = client_two_ssn
+            )
+            WHERE client_one_id < client_two_id  -- Avoid duplicate pairs
+      SQL
+      # return an array of ID pairs
+      results.
+        select { |r| ::HudUtility2024.valid_social?(r['ssn']) }.
+        map { |r| [r['client_one_id'], r['client_two_id']] }.
+        uniq
+    end
+
+    def exact_name_matches
+      limits = <<-SQL
+        "Client" as clients
+        #{joins_warehouse_clients_enrollment_and_project}
+        where clients."DateDeleted" is NULL
+        and clients.data_source_id != #{GrdaWarehouse::DataSource.warehouse_id} -- not a destination client
+        and (clients."FirstName" is not null and clients."FirstName" != ''
+        or clients."LastName" is not null and clients."LastName" != '')
+      SQL
+      results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
+        with client_one_name as (
+        SELECT warehouse_clients.destination_id as client_one_name_id,
+          concat(regexp_replace(lower(trim(clients."FirstName")), '[^a-z0-9]', '', 'g'), '_',
+          regexp_replace(lower(trim(clients."LastName")), '[^a-z0-9]', '', 'g')) as client_one_name_name
+          from #{limits}
+        ),
+        client_two_name as (
+        SELECT warehouse_clients.destination_id as client_two_name_id,
+          concat(regexp_replace(lower(trim(clients."FirstName")), '[^a-z0-9]', '', 'g'), '_',
+          regexp_replace(lower(trim(clients."LastName")), '[^a-z0-9]', '', 'g')) as client_two_name_name
+          from #{limits}
+        )
+
+        SELECT DISTINCT
+          client_one_name_id,
+          client_two_name_id
+        FROM client_one_name
+        JOIN client_two_name ON (
+          -- Match on normalized name if both have it
+          client_one_name_name = client_two_name_name
+        )
+        WHERE client_one_name_id < client_two_name_id  -- Avoid duplicate pairs
+      SQL
+      # return an array of ID pairs
+      results.map { |r| [r['client_one_name_id'], r['client_two_name_id']] }
+    end
+
+    def exact_dob_matches
+      limits = <<-SQL
+        "Client" as clients
+          #{joins_warehouse_clients_enrollment_and_project}
+          where clients."DateDeleted" is NULL
+          and clients.data_source_id != #{GrdaWarehouse::DataSource.warehouse_id} -- not a destination client
+          and clients."DOB" is not null
+          and date_part('year', clients."DOB") > 1920
+      SQL
+      results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
+        with client_one_dob as (
+          SELECT warehouse_clients.destination_id as client_one_dob_id,
+            clients."DOB" as client_one_dob_dob
+            from #{limits}
+        ),
+        client_two_dob as (
+          SELECT warehouse_clients.destination_id as client_two_dob_id,
+            clients."DOB" as client_two_dob_dob
+            from #{limits}
+        )
+
+        SELECT DISTINCT
+          client_one_dob_id,
+          client_two_dob_id
+        FROM client_one_dob
+        JOIN client_two_dob ON (
+          -- Match on DOB if both have it
+          client_one_dob_dob = client_two_dob_dob
+        )
+        WHERE client_one_dob_id < client_two_dob_id  -- Avoid duplicate pairs
+      SQL
+      results.map { |r| [r['client_one_dob_id'], r['client_two_dob_id']] }
+    end
+
     private def find_current_id_for(id)
       return merge_history.current_destination(id) unless client_destinations.where(id: id).exists?
 
@@ -219,6 +378,27 @@ module GrdaWarehouse::Tasks
 
         to_merge += to_merge_by_dest_id.keys.map { |source_id| [target.id, source_id].sort } if to_merge_by_dest_id.any?
       end
+      # FIXME: can we just replace the to_merge calculation with
+      ssn_matches = exact_ssn_matches
+      # [1100700, 2605522]
+      name_matches = exact_name_matches
+      dob_matches = exact_dob_matches
+
+      matches = {}
+      ssn_matches.each do |k|
+        matches[k] ||= 0
+        matches[k] += 1
+      end
+      name_matches.each do |k|
+        matches[k] ||= 0
+        matches[k] += 1
+      end
+      dob_matches.each do |k|
+        matches[k] ||= 0
+        matches[k] += 1
+      end
+      # tt = matches.select { |_, v| v > 1 }
+
       return to_merge
     end
 

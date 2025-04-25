@@ -120,6 +120,8 @@ module Types
     field :household_short_id, ID, null: false
     field :household, HmisSchema::Household, null: false
     field :household_size, Integer, null: false
+    field :staff_assignments, [Types::HmisSchema::StaffAssignment], null: true
+
     # Associated records. These automatically require the "can_view_enrollment_details" permission
     # because they use the overridden 'field' class method.
     assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForEnrollment' }
@@ -497,6 +499,10 @@ module Types
         contact_date: contact_date,
         contact_type: contact_type,
       }
+    end
+
+    def staff_assignments
+      load_ar_association(object, :staff_assignments, scope: Hmis::StaffAssignment.order(created_at: :desc, id: :desc))
     end
   end
 end

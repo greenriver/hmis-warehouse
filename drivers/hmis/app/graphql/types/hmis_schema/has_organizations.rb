@@ -23,10 +23,6 @@ module Types
         end
       end
 
-      def resolve_organizations_with_loader(association_name = :organizations, **args)
-        load_ar_association(object, association_name, scope: scoped_organizations(Hmis::Hud::Organization, **args))
-      end
-
       def resolve_organizations(scope = object.organizations, **args)
         scoped_organizations(scope, **args)
       end
