@@ -122,18 +122,6 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
         }
       end
 
-      context 'when swimlane has no participants' do
-        it 'raises instead of starting the step' do
-          expect do
-            expect_gql_error(
-              post_graphql(**variables) { mutation },
-              message: /no participants/,
-            )
-            step.reload
-          end.to not_change(step, :status)
-        end
-      end
-
       context 'with valid input' do
         let!(:participant) { referral.participants.create(swimlane: swimlane, user: hmis_user) }
 

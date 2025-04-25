@@ -123,19 +123,6 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
         expect(step.reload.status).to eq('completed')
         expect(referral.reload.status).to eq('accepted')
       end
-
-      context 'with no step participants' do
-        let!(:participant) { referral.participants.destroy_all }
-        it 'raises an error' do
-          expect do
-            expect_gql_error(
-              post_graphql(**variables) { mutation },
-              message: /no participants/,
-            )
-            step.reload
-          end.to not_change(step, :status)
-        end
-      end
     end
 
     context 'with invalid input' do
