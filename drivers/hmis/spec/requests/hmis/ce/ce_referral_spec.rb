@@ -200,7 +200,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       context 'when there are many steps' do
-        let(:query) do # leave out formDefinition, which does cause n+1 and isn't resolved in batch on the frontend.
+        let(:query) do # this query leaves out formDefinition, which does cause n+1 and isn't resolved in batch on the frontend.
           <<~GRAPHQL
             query GetCeReferral($id: ID!) {
               ceReferral(id: $id) {

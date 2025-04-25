@@ -64,7 +64,7 @@ module Types
     end
 
     def categories
-      load_ar_association(object, :categories).map(&:name).sort # sort alphabetically in-memory
+      load_ar_association(object, :categories).map(&:name)
     end
 
     def candidates_generated_at

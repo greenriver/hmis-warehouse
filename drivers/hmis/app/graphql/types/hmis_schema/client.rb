@@ -253,7 +253,7 @@ module Types
       selected_races
     end
 
-    def image # Not resolved in batch
+    def image # Don't resolve in batch
       return unless current_permission?(permission: :can_view_client_photo, entity: object)
 
       file = object.client_files.client_photos.newest_first.first&.client_file

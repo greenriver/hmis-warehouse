@@ -35,7 +35,6 @@ module GraphqlApplicationHelper
   end
 
   # Use data loader to load an ActiveRecord association.
-  # TODO(#7573) n+1 mitigation
   def load_ar_association(object, association_name)
     raise "object must be an ApplicationRecord, got #{object.class.name}" unless object.is_a?(ApplicationRecord)
 
@@ -54,11 +53,13 @@ module GraphqlApplicationHelper
   #
   # This is in this module because its shared between query and mutation code.
   def load_open_enrollment_for_client(client, project_id:, open_on_date:)
+    # Confirm the user has access to view enrollments in the specified project
     project = Hmis::Hud::Project.find_by(id: project_id)
     return nil unless project
     return nil unless current_user.can_view_enrollment_details_for?(project) || current_user.can_view_limited_enrollment_details_for?(project)
 
-    # Load all enrollments for the client, skipping visibility check since we'll filter by project below, and we know the user has enrollment access in this project already.
+    # Load all enrollments for the client, skipping visibility check since we'll filter by project below,
+    # and we know the user has enrollment access in this project already. This is to avoid n+1
     enrollments = load_ar_association(client, :enrollments_with_exits)
 
     # Filter down by project and date

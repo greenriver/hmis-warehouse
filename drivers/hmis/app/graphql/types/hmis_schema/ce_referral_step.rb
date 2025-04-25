@@ -32,7 +32,7 @@ module Types
       load_ar_association(object, :swimlane)&.name
     end
 
-    def form_definition # Not resolved in batch
+    def form_definition # Don't resolve in batch
       # If the step has been submitted before, it stores a reference to the definition it was submitted with
       definition = object.form_definition
       return definition if definition.present?

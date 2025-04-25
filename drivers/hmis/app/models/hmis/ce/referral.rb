@@ -22,7 +22,7 @@ module Hmis::Ce
     has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance
 
     # There can be multiple open steps, but we want to show one "current step this referral is on" in the UI
-    has_one :current_step, -> { open.limit(1) }, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :steps
+    has_one :current_step, -> { open.order_by_status.limit(1) }, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :steps
 
     # TODO(#7395): permissions
     scope :viewable_by, ->(_user) { all }

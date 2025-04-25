@@ -33,7 +33,7 @@ module Types
       arg :project_type, [HmisSchema::Enums::ProjectType]
     end
 
-    def steps # Not resolved in batch
+    def steps # Don't resolve in batch
       instance = object.workflow_instance
       steps_by_node_id = instance.steps.index_by(&:node_id)
 
@@ -58,6 +58,7 @@ module Types
     end
 
     def current_step_name
+      # There can be multiple steps currently in progress, but we're only going to show one in the project referrals table
       step = load_ar_association(object, :current_step)
       return if step.nil?
 

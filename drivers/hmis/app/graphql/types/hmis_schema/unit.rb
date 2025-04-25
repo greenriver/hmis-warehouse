@@ -68,7 +68,7 @@ module Types
       latest_opportunity = load_ar_association(object, :latest_opportunity)
       return false if latest_opportunity.nil?
 
-      # todo @martha - this should get resolved on merge
+      # TODO - this will get resolved on merge of active_referrals assoc PR
       load_ar_association(latest_opportunity, :referrals).empty?
     end
   end
