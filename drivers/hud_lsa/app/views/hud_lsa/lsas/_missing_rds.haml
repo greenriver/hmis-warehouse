@@ -1,6 +1,3 @@
-:ruby
-  load 'lib/rds_sql_server/rds.rb'
-
 - if ! Rds.rds_available? || ENV['NO_LSA_RDS'] == 'true'
   -# This should only show up if you are working locally or haven't configured RDS correctly
   .alert.alert-danger

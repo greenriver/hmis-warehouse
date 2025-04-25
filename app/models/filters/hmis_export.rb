@@ -172,30 +172,30 @@ module Filters
     end
 
     memoize def effective_project_ids
-      @effective_project_ids = effective_project_ids_from_projects
-      @effective_project_ids += effective_project_ids_from_project_groups
-      @effective_project_ids += effective_project_ids_from_organizations
-      @effective_project_ids += effective_project_ids_from_data_sources
-      @effective_project_ids = all_project_ids if @effective_project_ids.empty?
+      ids = effective_project_ids_from_projects
+      ids += effective_project_ids_from_project_groups
+      ids += effective_project_ids_from_organizations
+      ids += effective_project_ids_from_data_sources
+      ids = all_project_ids if ids.empty?
 
       # Ensure all projects are active in the chosen date range
       if enforce_project_date_scope
-        @effective_project_ids = GrdaWarehouse::Hud::Project.
-          where(id: @effective_project_ids).
+        ids = GrdaWarehouse::Hud::Project.
+          where(id: ids).
           active_during(start_date..end_date).
           pluck(:id)
       end
 
       # Ensure all projects are active in the chosen CoCs
       if coc_codes.any?
-        @effective_project_ids = GrdaWarehouse::Hud::Project.
-          where(id: @effective_project_ids).
+        ids = GrdaWarehouse::Hud::Project.
+          where(id: ids).
           joins(:project_cocs).
           merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes)).
           pluck(:id)
       end
 
-      return @effective_project_ids.uniq
+      return ids.uniq
     end
 
     def effective_project_ids_from_projects
