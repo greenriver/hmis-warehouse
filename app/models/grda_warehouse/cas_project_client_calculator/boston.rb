@@ -609,7 +609,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     # Transfer Assessment: use assessment score.
     private def assessment_score_for_cas(client)
       case cas_assessment_name(client)
-      when 'IdentifiedPathwaysVersionThreePathways', 'IdentifiedPathwaysVersionFourPathways'
+      when 'IdentifiedPathwaysVersionThreePathways', 'IdentifiedPathwaysVersionFourPathways', 'IdentifiedPathwaysVersionFourFamilyPathways'
         if most_recent_pathways_or_transfer(client)&.family_pathways_2024?
           # Family
           overall_days_homeless(client)
@@ -635,7 +635,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         cas_assessment_collected_at(client)
       when 'IdentifiedPathwaysVersionThreeTransfer', 'IdentifiedPathwaysVersionFourTransfer'
         financial_assistance_end_date(client)
-      when 'IdentifiedPathwaysVersionFourPathways'
+      when 'IdentifiedPathwaysVersionFourPathways', 'IdentifiedPathwaysVersionFourFamilyPathways'
         date_of_first_service(client)
       end
     end
