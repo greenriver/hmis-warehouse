@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudLsa
   class LsasController < ::HudReports::BaseController
     include AjaxModalRails::Controller
@@ -90,7 +92,7 @@ module HudLsa
         else
           []
         end
-        report.missing_data(current_user, project_ids: project_ids_to_check.presence || default_ids)
+        report.missing_data(current_user, project_ids: project_ids_to_check.presence || default_ids, filter: filter)
       end
     end
     helper_method :missing_data
@@ -125,31 +127,34 @@ module HudLsa
 
     private def filter
       # Some sane defaults, using the previous report if available
-      @filter = filter_class.new(
-        user_id: current_user.id,
-        enforce_one_year_range: false,
-      )
-      if filter_params.blank?
-        prior_report = generator.find_report(current_user)
-        options = prior_report&.options
-        if options.present?
-          cocs = options['coc_codes'].presence || site_coc_codes
-          @filter.update(options.with_indifferent_access.except(:on))
-          @filter.on = nil
-          @filter.start = options['start'].presence || default_start_date
-          @filter.end = options['end'].presence || default_end_date
-          @filter.coc_code = cocs.try(&:first)
-          @filter.coc_codes = cocs
-          @filter.report_version = options['report_version'].presence || default_report_version
-        else
-          @filter.on = nil
-          @filter.start = default_start_date
-          @filter.end = default_end_date
-          @filter.report_version = default_report_version
+      @filter ||= begin
+        filter = filter_class.new(
+          user_id: current_user.id,
+          enforce_one_year_range: false,
+        )
+        if filter_params.blank?
+          prior_report = generator.find_report(current_user)
+          options = prior_report&.options
+          if options.present?
+            cocs = options['coc_codes'].presence || site_coc_codes
+            filter.update(options.with_indifferent_access.except(:on))
+            filter.on = nil
+            filter.start = options['start'].presence || default_start_date
+            filter.end = options['end'].presence || default_end_date
+            filter.coc_code = cocs.try(&:first)
+            filter.coc_codes = cocs
+            filter.report_version = options['report_version'].presence || default_report_version
+          else
+            filter.on = nil
+            filter.start = default_start_date
+            filter.end = default_end_date
+            filter.report_version = default_report_version
+          end
         end
+        # Override with params if set
+        filter.update(filter_params) if filter_params.present?
+        filter
       end
-      # Override with params if set
-      @filter.update(filter_params) if filter_params.present?
     end
 
     def filter_params

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvTwentyTwentyFour::Exporter
   class CeParticipation
     include ::HmisCsvTwentyTwentyFour::Exporter::ExportConcern
@@ -30,6 +32,11 @@ module HmisCsvTwentyTwentyFour::Exporter
       end
       note_involved_user_ids(scope: export_scope, export: export)
 
+      filter = export.filter
+      # Limit to the chosen date range if the option is enabled
+      export_scope = export_scope.within_range(export.start_date..export.end_date) if filter.enforce_project_date_scope
+
+      # Maybe the projects aren't operating in the date range?
       export_scope.distinct.preload(:user, :project)
     end
 
