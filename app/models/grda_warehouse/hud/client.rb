@@ -2177,8 +2177,8 @@ module GrdaWarehouse::Hud
           receive_health = health_receiver_id == client_id
 
           GrdaWarehouse::ClientSplitHistory.create(
-            split_from: id,
-            split_into: destination_client.id,
+            split_from: id, # The id of the current destination client for the source being moved
+            split_into: destination_client.id, # The new destination client
             receive_hmis: receive_hmis,
             receive_health: receive_health,
           )
