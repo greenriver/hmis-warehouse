@@ -16,6 +16,7 @@ module WarehouseReports
 
     def index
       @filter = ::Filters::HmisExport.new(user_id: current_user.id)
+      @filter.update(report_params.merge(user_id: current_user.id)) if params[:filter].present?
       @all_project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).pluck(:ProjectName)
     end
 
@@ -37,8 +38,7 @@ module WarehouseReports
     def set_exports
       @exports = export_scope.ordered.
         for_list.
-        preload(:recurring_hmis_export).
-        limit(50)
+        preload(:recurring_hmis_export)
     end
 
     def create
@@ -78,13 +78,13 @@ module WarehouseReports
         send_data(
           zip.download,
           type: zip.content_type,
-          filename: "HMIS_export_#{@export.created_at.to_s.delete(',')}.zip",
+          filename: @export.export_file_name,
         )
       else
         # fall-back to db attachment
         send_data(
           @export.content,
-          filename: "HMIS_export_#{@export.created_at.to_s.delete(',')}.zip",
+          filename: @export.export_file_name,
           type: @export.content_type,
           disposition: 'attachment',
         )
@@ -141,6 +141,7 @@ module WarehouseReports
           :version,
           :start_date,
           :end_date,
+          :enforce_project_date_scope,
           :hash_status,
           :period_type,
           :include_deleted,
@@ -178,6 +179,16 @@ module WarehouseReports
         :encryption_type,
       ]
     end
+
+    def path_for_report(report)
+      warehouse_reports_hmis_export_path(report)
+    end
+    helper_method :path_for_report
+
+    def path_for_new
+      warehouse_reports_hmis_exports_path
+    end
+    helper_method :path_for_new
 
     def flash_interpolation_options
       { resource_name: 'Export' }

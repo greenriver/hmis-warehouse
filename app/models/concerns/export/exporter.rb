@@ -12,7 +12,7 @@ module Export::Exporter
 
   included do
     def setup_export
-      @export ||= GrdaWarehouse::HmisExport.create(options.merge(started_at: Time.current))
+      @export ||= GrdaWarehouse::HmisExport.create!(options.merge(started_at: Time.current))
       @export.fake_data ||= GrdaWarehouse::FakeData.where(environment: @faked_environment).first_or_create
     end
 
@@ -26,6 +26,7 @@ module Export::Exporter
         hash_status: @hash_status,
         faked_pii: @faked_pii,
         confidential: @confidential,
+        enforce_project_date_scope: @enforce_project_date_scope,
         project_ids: @projects,
         include_deleted: @include_deleted,
         version: @version,
