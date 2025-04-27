@@ -31,9 +31,22 @@ class ApplicationNotifier < Slack::Notifier
     !!@insert_log_url # coerce bool
   end
 
+  class NullRedis
+    def ping = true
+    def get(*) = nil
+    def set(*) = nil
+    def rpush(*) = nil
+    def lpop(*) = nil
+    def keys(*) = []
+  end
+
   # use the same redis instance we use for caching
   def self.redis
-    Rails.cache.redis
+    if Rails.env.test?
+      Rails.cache.redis
+    else
+      NullRedis.new
+    end
   end
 
   # prefix all keys with a CLIENT specific key
