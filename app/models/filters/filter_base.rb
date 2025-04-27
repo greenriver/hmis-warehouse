@@ -105,9 +105,9 @@ module Filters
 
       filters = filters.to_h.with_indifferent_access
 
-      self.on = filters.dig(:on)&.to_date || on
-      self.start = filters.dig(:start)&.to_date || start
-      self.end = filters.dig(:end)&.to_date || self.end
+      self.on = parse_strict_date(filters.dig(:on)) || on
+      self.start = parse_strict_date(filters.dig(:start)) || start
+      self.end = parse_strict_date(filters.dig(:end)) || self.end
       # Allow multi-year filters if we explicitly passed in something that isn't truthy
       enforce_range = filters.dig(:enforce_one_year_range)
       self.enforce_one_year_range = enforce_range.in?(['1', 'true', true]) unless enforce_range.nil?
@@ -192,6 +192,17 @@ module Filters
       self
     end
     alias set_from_params update
+
+    private def safe_to_date(val)
+      case val.presence
+      when Date, nil
+        return val
+      when String
+        return Date.strptime(val, '%b %d, %Y') if val.match?(/\A\w{3} +\d{1,2}, +\d{4}\z/)
+        return Date.strptime(val, '%Y-%m-%d') if val.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+      end
+      raise ArgumentError, "Invalid date format: #{val.inspect}"
+    end
 
     def for_params
       {
@@ -1610,6 +1621,24 @@ module Filters
       else
         [start_date, end_date]
       end
+    end
+
+    # Strict date parser for filter params.
+    # Accepts:
+    #   - Date objects (returns as-is)
+    #   - nil (returns nil)
+    #   - Strings in 'Mon dd, yyyy' (e.g. 'Apr 27, 2025')
+    #   - Strings in 'YYYY-mm-dd' (e.g. '2025-04-27')
+    # Raises ArgumentError for anything else.
+    private def parse_strict_date(val)
+      case val.presence
+      when Date, nil
+        return val
+      when String
+        return Date.strptime(val, '%b %d, %Y') if val.match?(/\A\w{3} +\d{1,2}, +\d{4}\z/)
+        return Date.strptime(val, '%Y-%m-%d') if val.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+      end
+      raise ArgumentError, "Invalid date format: #{val.inspect}"
     end
   end
 end
