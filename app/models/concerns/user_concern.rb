@@ -17,7 +17,6 @@ module UserConcern
     include ArelHelper
     has_paper_trail ignore: [:provider_raw_info]
     acts_as_paranoid
-    self.ignored_columns = ['search_vector']
 
     pii_attr :first_name
     pii_attr :last_name
@@ -471,14 +470,47 @@ module UserConcern
       "Account deactivated by #{name} on #{version.created_at}"
     end
 
-    def self.text_search(text, sort_by_best_match: false)
-      return none unless text.present?
+    # Search for users by name or email using both prefix matching and fuzzy matching
+    #
+    # @param text [String] the search query
+    # @param sort_by_best_match [Boolean] whether to order results by similarity to query
+    # @param similarity_threshold [Float] minimum similarity score (0.0 to 1.0) for fuzzy matches
+    #
+    # @return [ActiveRecord::Relation] matching users
+    #
+    # @example Find users matching 'john'
+    #   User.text_search('john')
+    #
+    # @example Find users with similarity ordering
+    #   User.text_search('john smith', sort_by_best_match: true)
+    def self.text_search(text, sort_by_best_match: false, similarity_threshold: 0.4)
+      terms = text.to_s.split(/[\s,]+/).map(&:strip).reject(&:blank?)
+      return none if terms.empty?
 
-      ts_query = sanitize_sql_array(["plainto_tsquery('simple', ?)", text])
-      rank_sql = "ts_rank(search_vector, #{ts_query})"
-      result = where("search_vector @@ #{ts_query}")
-      result = result.order(Arel.sql("#{rank_sql} DESC")) if sort_by_best_match
-      result
+      scope = terms.map do |term|
+        prefix_condition = arel_table[:first_name].matches("#{term}%").
+          or(arel_table[:last_name].matches("#{term}%")).
+          or(arel_table[:email].matches("#{term}%"))
+
+        fuzzy_sql = <<-SQL.squish
+          similarity(first_name, ?) > #{similarity_threshold} OR
+          similarity(last_name, ?) > #{similarity_threshold} OR
+          similarity(email, ?) > #{similarity_threshold}
+        SQL
+        where(prefix_condition).or(where(fuzzy_sql, term, term, term))
+      end.inject(&:or)
+
+      if sort_by_best_match
+        sql = <<-SQL.squish
+          similarity(
+            CONCAT_WS(' ', first_name, last_name, email),
+            ?
+          ) DESC
+        SQL
+        scope.order(Arel.sql(sanitize_sql_array([sql, text])))
+      else
+        scope
+      end
     end
 
     def self.setup_system_user

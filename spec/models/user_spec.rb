@@ -94,7 +94,6 @@ RSpec.describe User, type: :model do
 
     it 'orders results by best match when sort_by_best_match is true' do
       results = User.text_search('Alice', sort_by_best_match: true)
-      byebug
       expect(results.first).to eq(user1)
       expect(results).to include(user2)
       expect(results).not_to include(user3)
