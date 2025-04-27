@@ -1634,6 +1634,8 @@ module Filters
       case val.presence
       when Date, nil
         return val
+      when DateTime, Time, ActiveSupport::TimeWithZone
+        return val.to_date
       when String
         return Date.strptime(val, '%b %d, %Y') if val.match?(/\A\w{3} +\d{1,2}, +\d{4}\z/)
         return Date.strptime(val, '%Y-%m-%d') if val.match?(/\A\d{4}-\d{2}-\d{2}\z/)
