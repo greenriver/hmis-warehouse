@@ -50,6 +50,23 @@ END;
 $$;
 
 
+--
+-- Name: users_search_vector_update(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.users_search_vector_update() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+        BEGIN
+          NEW.search_vector :=
+            setweight(to_tsvector('simple', coalesce(NEW.first_name,'')), 'A') ||
+            setweight(to_tsvector('simple', coalesce(NEW.last_name,'')), 'A') ||
+            setweight(to_tsvector('simple', coalesce(NEW.email,'')), 'B');
+          RETURN NEW;
+        END
+        $$;
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -3292,7 +3309,8 @@ CREATE TABLE public.users (
     superset_roles jsonb DEFAULT '[]'::jsonb,
     talent_lms_email character varying,
     training_courses jsonb,
-    custom_session_invalidator character varying
+    custom_session_invalidator character varying,
+    search_vector tsvector
 );
 
 
@@ -4991,6 +5009,13 @@ CREATE INDEX unduplicated_clients_unduplicated_client_id ON public.clients_undup
 
 
 --
+-- Name: users_search_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX users_search_idx ON public.users USING gin (search_vector);
+
+
+--
 -- Name: hmis_user_client_activity_log_summaries no_modify_hmis_user_client_activity_log_summaries; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5002,6 +5027,13 @@ CREATE TRIGGER no_modify_hmis_user_client_activity_log_summaries INSTEAD OF DELE
 --
 
 CREATE TRIGGER no_modify_hmis_user_enrollment_activity_log_summaries INSTEAD OF DELETE OR UPDATE ON public.hmis_user_enrollment_activity_log_summaries FOR EACH ROW EXECUTE FUNCTION public.prevent_modification();
+
+
+--
+-- Name: users users_search_vector_update; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER users_search_vector_update BEFORE INSERT OR UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.users_search_vector_update();
 
 
 --
@@ -5128,6 +5160,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250124171033'),
 ('20250208211846'),
 ('20250217181347'),
-('20250218131829');
+('20250218131829'),
+('20250426181347');
 
 

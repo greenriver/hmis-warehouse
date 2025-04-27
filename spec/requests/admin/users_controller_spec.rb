@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe Admin::UsersController, type: :request do
@@ -126,6 +128,40 @@ RSpec.describe Admin::UsersController, type: :request do
         expect(acl_user.reload.legacy_role_ids).to eq([role.id])
         expect(acl_user.reload.access_group_ids.include?(access_group.id)).to be true
       end
+    end
+  end
+
+  describe 'GET index (search)' do
+    let!(:search_user1) { create(:acl_user, first_name: 'Alice', last_name: 'Smith', email: 'alice.smith@example.com') }
+    let!(:search_user2) { create(:acl_user, first_name: 'Bob', last_name: 'Jones', email: 'bob.jones@example.com') }
+
+    it 'returns users matching first name' do
+      get admin_users_path, params: { q: 'Alice' }
+      expect(response.body).to include('Alice')
+      expect(response.body).to include('Smith')
+      expect(response.body).to include('alice.smith@example.com')
+      expect(response.body).not_to include('Bob')
+    end
+
+    it 'returns users matching last name' do
+      get admin_users_path, params: { q: 'Jones' }
+      expect(response.body).to include('Bob')
+      expect(response.body).to include('Jones')
+      expect(response.body).to include('bob.jones@example.com')
+      expect(response.body).not_to include('Alice')
+    end
+
+    it 'returns users matching email' do
+      get admin_users_path, params: { q: 'alice.smith@example.com' }
+      expect(response.body).to include('Alice')
+      expect(response.body).to include('Smith')
+      expect(response.body).to include('alice.smith@example.com')
+      expect(response.body).not_to include('Bob')
+    end
+
+    it 'returns no users for non-matching query' do
+      get admin_users_path, params: { q: 'Nonexistent' }
+      expect(response.body).to include('No users found')
     end
   end
 end

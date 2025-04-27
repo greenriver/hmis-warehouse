@@ -17,6 +17,7 @@ module UserConcern
     include ArelHelper
     has_paper_trail ignore: [:provider_raw_info]
     acts_as_paranoid
+    self.ignored_columns = ['search_vector']
 
     pii_attr :first_name
     pii_attr :last_name
@@ -470,15 +471,14 @@ module UserConcern
       "Account deactivated by #{name} on #{version.created_at}"
     end
 
-    def self.text_search(text)
+    def self.text_search(text, sort_by_best_match: false)
       return none unless text.present?
 
-      query = "%#{text}%"
-      where(
-        arel_table[:last_name].matches(query).
-        or(arel_table[:first_name].matches(query)).
-        or(arel_table[:email].matches(query)),
-      )
+      ts_query = sanitize_sql_array(["plainto_tsquery('simple', ?)", text])
+      rank_sql = "ts_rank(search_vector, #{ts_query})"
+      result = where("search_vector @@ #{ts_query}")
+      result = result.order(Arel.sql("#{rank_sql} DESC")) if sort_by_best_match
+      result
     end
 
     def self.setup_system_user
