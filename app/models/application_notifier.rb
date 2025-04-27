@@ -31,7 +31,10 @@ class ApplicationNotifier < Slack::Notifier
     !!@insert_log_url # coerce bool
   end
 
+  require 'singleton'
+
   class NullRedis
+    include Singleton
     def ping = true
     def get(*) = nil
     def set(*) = nil
@@ -42,10 +45,13 @@ class ApplicationNotifier < Slack::Notifier
 
   # use the same redis instance we use for caching
   def self.redis
-    if Rails.env.test?
+    case Rails.cache
+    when ActiveSupport::Cache::NullStore
+      NullRedis.instance
+    when ActiveSupport::Cache::RedisCacheStore
       Rails.cache.redis
     else
-      NullRedis.new
+      raise 'Rails cache not supported'
     end
   end
 
