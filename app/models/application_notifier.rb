@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -31,10 +33,7 @@ class ApplicationNotifier < Slack::Notifier
 
   # use the same redis instance we use for caching
   def self.redis
-    Redis.new Rails.application.config_for(:cache_store).merge(
-      timeout: 1,
-      ssl: (ENV.fetch('CACHE_SSL') { 'false' }) == 'true',
-    )
+    Rails.cache.redis
   end
 
   # prefix all keys with a CLIENT specific key

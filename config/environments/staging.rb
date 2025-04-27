@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_support/core_ext/integer/time'
 
 Rails.application.configure do
@@ -95,7 +97,16 @@ Rails.application.configure do
 
   cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
   cache_namespace = "#{ENV.fetch('CLIENT')}-#{Rails.env}-hmis"
-  redis_config = Rails.application.config_for(:cache_store).merge({ expires_in: 8.hours, race_condition_ttl: 1.minute, ssl: cache_ssl, namespace: cache_namespace })
+  redis_config = Rails.application.config_for(:cache_store).merge(
+    {
+      expires_in: 8.hours,
+      race_condition_ttl: 1.minute,
+      ssl: cache_ssl,
+      namespace: cache_namespace,
+      pool_size: 10,
+      pool_timeout: 5,
+    },
+  )
   config.cache_store = :redis_cache_store, redis_config
 
   config.action_controller.perform_caching = true
