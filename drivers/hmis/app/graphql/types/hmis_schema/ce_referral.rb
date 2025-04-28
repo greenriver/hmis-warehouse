@@ -98,16 +98,24 @@ module Types
       load_ar_association(object, :referred_by)
     end
 
-    def swimlanes
-      participants_by_swimlane_id = load_ar_association(object, :participants).group_by(&:swimlane_id)
+    def swimlanes # Don't resolve `swimlanes` in batch on many referrals.
+      # First fetch all the users associated with this referral, to avoid n+1 when there are many participants on a referral.
+      user_ids = object.participants.map(&:user_id).uniq
+      users_by_id = Hmis::User.where(id: user_ids).index_by(&:id)
 
-      swimlanes = load_ar_association(object, :swimlanes)
+      # Fetch participants and group them by swimlane
+      participants_by_swimlane_id = object.participants.group_by(&:swimlane_id)
 
-      swimlanes.map do |swimlane|
+      object.swimlanes.map do |swimlane|
+        # For this swimlane, get all associated participants, and map to the user objects that were already fetched
+        participants = (participants_by_swimlane_id[swimlane.id] || []).filter_map do |participant|
+          users_by_id[participant.user_id]
+        end
+
         OpenStruct.new(
           id: swimlane.id,
           name: swimlane.name,
-          participants: participants_by_swimlane_id[swimlane.id]&.map(&:user) || [],
+          participants: participants,
         )
       end
     end

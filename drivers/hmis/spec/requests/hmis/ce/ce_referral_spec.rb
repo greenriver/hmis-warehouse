@@ -127,6 +127,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             )
           end
         end
+
+        context 'with many swimlanes and participants' do
+          before do
+            50.times do |i|
+              swimlane = workflow_template.swimlanes.create!(name: "Swimlane #{i}")
+              user = create(:hmis_user, data_source: ds1)
+              referral.participants.create(swimlane: swimlane, user: user)
+            end
+          end
+
+          it 'does not result in n+1 query' do
+            expect do
+              response, result = post_graphql(**variables) { query }
+              expect(response.status).to eq(200), result.inspect
+            end.to make_database_queries(count: 15..20)
+          end
+        end
       end
     end
 
