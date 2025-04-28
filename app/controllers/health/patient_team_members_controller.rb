@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -32,7 +30,7 @@ module Health
     helper_method :team_member_form_path
 
     protected def title_for_show
-      'Health - Team'
+      "#{@client.name} - Health - Team"
     end
   end
 end

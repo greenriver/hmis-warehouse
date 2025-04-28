@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -93,7 +91,7 @@ module Health
     end
 
     private def title_for_show
-      'Health - Appointments'
+      "#{@client.name} - Health - Appointments"
     end
   end
 end

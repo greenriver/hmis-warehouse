@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -49,7 +47,7 @@ module Clients
     end
 
     def title_for_show
-      'Chronic'
+      "#{@client.pii_provider(user: current_user).full_name} - Chronic"
     end
   end
 end

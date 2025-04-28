@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -42,7 +40,7 @@ module Clients
     end
 
     def title_for_show
-      'Historical Enrollments'
+      "#{@client.pii_provider(user: current_user).full_name} - Historical Enrollments"
     end
   end
 end

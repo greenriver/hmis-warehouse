@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -68,7 +66,7 @@ module Clients
     end
 
     protected def title_for_show
-      'Client Anomalies'
+      "#{@client.pii_provider(user: current_user).full_name} - Anomalies"
     end
 
     private def anomaly_params

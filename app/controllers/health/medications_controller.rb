@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -24,7 +22,7 @@ module Health
     end
 
     protected def title_for_show
-      'Health - Medications'
+      "#{@client.name} - Health - Medications"
     end
   end
 end

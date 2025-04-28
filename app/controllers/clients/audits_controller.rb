@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -30,6 +28,6 @@ class Clients::AuditsController < ApplicationController
   end
 
   def title_for_show
-    'Client Audit'
+    "#{@client.pii_provider(user: current_user).full_name} - Audit"
   end
 end

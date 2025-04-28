@@ -115,7 +115,7 @@ module Clients
     end
 
     private def title_for_show
-      'Client Notes'
+      "#{@client.pii_provider(user: current_user).full_name} - Notes"
     end
   end
 end

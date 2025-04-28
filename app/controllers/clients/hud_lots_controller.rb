@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -31,7 +29,7 @@ class Clients::HudLotsController < ApplicationController
   end
 
   private def title_for_show
-    'Client-Level System Use & Length of Time Homeless Report'
+    "#{@client.pii_provider(user: current_user).full_name} - Client-Level System Use & Length of Time Homeless Report"
   end
   helper_method :title_for_show
 
