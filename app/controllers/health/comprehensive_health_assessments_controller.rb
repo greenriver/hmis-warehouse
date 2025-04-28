@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -152,11 +154,11 @@ module Health
     end
 
     def completed?
-      form_params[:completed] == 'yes' || form_params[:completed] == '1'
+      ['yes', '1'].include?(form_params[:completed])
     end
 
     protected def title_for_show
-      "#{@client.name} - Health - CHA"
+      'Health - CHA'
     end
   end
 end

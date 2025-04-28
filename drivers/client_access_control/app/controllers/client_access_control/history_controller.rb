@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -111,7 +113,7 @@ module ClientAccessControl
     end
 
     private def title_for_show
-      "#{@client.pii_provider(user: current_user).full_name} - Service History"
+      'Client - Service History'
     end
   end
 end

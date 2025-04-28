@@ -177,7 +177,7 @@ module Clients
     end
 
     protected def title_for_show
-      "#{@client.pii_provider(user: current_user).full_name} - Release of Information"
+      'Release of Information'
     end
 
     def window_visible?(_visibility)

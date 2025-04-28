@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -160,7 +162,7 @@ module Admin
     end
 
     def title_for_show
-      @user.name
+      'User'
     end
     alias title_for_edit title_for_show
     alias title_for_destroy title_for_show
