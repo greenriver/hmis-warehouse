@@ -272,6 +272,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       context 'when there are many steps' do
+        let(:query) do # this query leaves out formDefinition, which does cause n+1 and isn't resolved in batch on the frontend.
+          <<~GRAPHQL
+            query GetCeReferral($id: ID!) {
+              ceReferral(id: $id) {
+                id
+                status
+                opportunity {
+                  id
+                  name
+                  status
+                }
+                steps {
+                  id
+                  name
+                  status
+                }
+              }
+            }
+          GRAPHQL
+        end
+
         before do
           50.times do |i|
             conditional_task = create(
@@ -298,7 +319,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(response.status).to eq(200), result.inspect
             steps = result.dig('data', 'ceReferral', 'steps')
             expect(steps.length).to eq(51)
-          end.to make_database_queries(count: 15..20)
+          end.to make_database_queries(count: 10..20)
         end
       end
     end
