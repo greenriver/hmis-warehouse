@@ -74,7 +74,6 @@ module GrdaWarehouse::Tasks
             GrdaWarehouse::Hud::Project.find_each do |project|
               safe_project_names[project.id] = project.safe_project_name
             end
-            TodoOrDie('test behavior after rails upgrade', if: Rails.version !~ /\A7\.0/)
             client_source.lazy_preload(preloads).
               where(id: client_id_batch).find_each do |client|
               project_client = project_clients[client.id] || CasAccess::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)

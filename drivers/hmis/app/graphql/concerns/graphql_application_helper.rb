@@ -36,7 +36,7 @@ module GraphqlApplicationHelper
 
   # Use data loader to load an ActiveRecord association.
   def load_ar_association(object, association_name)
-    raise "object must be an ApplicationRecord, got #{object.class.name}" unless object.is_a?(ApplicationRecord)
+    raise "object must be a GrdaWarehouseBase, got #{object.class.name}" unless object.is_a?(ActiveRecord::Base)
 
     # if we already have preloaded association, just return it
     return object.public_send(association_name) if object.association(association_name).loaded?

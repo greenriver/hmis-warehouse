@@ -147,7 +147,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         }
 
         # Jump ahead to make sure DateUpdated changes
-        Timecop.travel(Time.current + 5.minutes) do
+        travel_to(Time.current + 5.minutes) do
           _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
           errors = result.dig('data', 'submitAssessment', 'errors')
           expect(errors).to be_empty
@@ -222,7 +222,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           **build_minimum_values(definition, assessment_date: new_assessment_date),
         }
         # Jump ahead to make sure DateUpdated changes
-        Timecop.travel(Time.current + 5.minutes) do
+        travel_to(Time.current + 5.minutes) do
           _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
           errors = result.dig('data', 'submitAssessment', 'errors')
           expect(errors).to be_empty

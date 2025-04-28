@@ -13,6 +13,7 @@ module GrdaWarehouse
     attr_accessor :fake_data
     attr_accessor :recurring_hmis_export_id
     attr_accessor :user_ids
+    attr_accessor :enforce_project_date_scope
     # attr_accessor :zip_password
 
     # attachment via CarrierWave
@@ -97,6 +98,7 @@ module GrdaWarehouse
         :organization_ids,
         :data_source_ids,
         :coc_codes,
+        :enforce_project_date_scope,
       ]
     end
 
@@ -110,11 +112,15 @@ module GrdaWarehouse
       ::Filters::HmisExport.new(options)
     end
 
+    def export_file_name
+      "HMIS_export_#{created_at.to_s.gsub(/\W+/, '_')}.zip"
+    end
+
     def save_zip_to(path)
-      reconstitute_path = ::File.join(path, file.file.filename)
+      reconstitute_path = ::File.join(path, export_file_name)
       FileUtils.mkdir_p(path) unless ::File.directory?(path)
       ::File.open(reconstitute_path, 'w+b') do |file|
-        file.write(content)
+        file.write(hmis_zip.download)
       end
       reconstitute_path
     end

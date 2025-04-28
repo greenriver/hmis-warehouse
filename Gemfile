@@ -1,9 +1,8 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 7.0.8.5'
+gem 'rails', '~> 7.1.0'
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
-# gem 'rails_drivers', path: '/usr/local/bundle/tmp/rails_drivers'
-gem 'rack', '>= 2.2.11'
+gem 'rack'
 
 # No longer default gems
 gem 'irb'
@@ -26,10 +25,8 @@ gem 'rubyzip'
 gem 'rails-html-sanitizer'
 gem 'sshkit'
 gem 'paranoia'
-# gem 'composite_primary_keys', '~> 14.0.9'
-gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys', branch: 'ea/preload-has-many-through-fix'
 gem 'pg'
-gem 'activerecord-sqlserver-adapter', '~> 7.0' # tied to the rails version
+gem 'activerecord-sqlserver-adapter', '~> 7.1.0' # tied to the rails version
 gem 'activerecord-import'
 gem 'order_as_specified'
 gem 'pghero'
@@ -60,11 +57,11 @@ gem 'charlock_holmes', require: false
 gem 'bootsnap'
 gem 'bcrypt'
 gem 'haml-rails'
-gem 'haml', '~> 5.2.2' # pinned to v5, v6 was not escaping correctly
+gem 'haml', '~> 6.0'
 gem 'sassc-rails'
 gem 'autoprefixer-rails', '~> 10.3.3' # pinned until we can update to Bootstrap 5.3 or later
 gem 'kaminari'
-gem 'pagy'
+gem 'pagy', '~> 8.2'
 gem 'with_advisory_lock'
 gem 'scenic' # supports db views. Note, order is important, this should load before fx since both gems patch SchemaDumper and we want to dump views before triggers
 gem 'fx' # supports functions and triggers in our db schema
@@ -88,7 +85,7 @@ gem 'marcel'
 # there are no obvious breaking changes but
 # since there are no tests for this
 # it should be tested manually
-gem 'acts-as-taggable-on', '~>11.0'
+gem 'acts-as-taggable-on', '~>12.0'
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
 
 gem 'devise', '~> 4.9'
@@ -228,7 +225,7 @@ gem 'aws-sdk-iam', '~> 1'
 gem 'aws-sdk-sns', require: false
 gem 'aws-sdk-ssm', '~> 1'
 gem 'json'
-gem 'json_schemer', '~> 2.3.0', require: false # external API validation
+gem 'json_schemer', '~> 2.4.0', require: false # external API validation
 gem 'oj'
 gem 'amazing_print'
 
@@ -236,7 +233,7 @@ gem 'responders'
 
 gem 'rack-attack'
 
-gem 'attr_encrypted', '~> 4.0.0'
+gem 'attr_encrypted'
 
 gem 'ajax_modal_rails', '~> 1.0'
 gem 'browser'
@@ -246,9 +243,9 @@ gem 'parallel'
 gem 'todo_or_die'
 
 gem 'dentaku', require: false
-gem 'business_time', '~> 0.10.0'
+gem 'business_time'
 gem 'cable_ready', '>= 5.0.0.rc2'
-gem 'graphql', '= 2.3.21'
+gem 'graphql', '= 2.5.4'
 gem 'sentry-rails', '~> 5.5'
 gem 'sentry-ruby'
 gem 'sentry-delayed_job'
@@ -313,8 +310,7 @@ group :test do
   gem 'pg_fixtures', github: 'greenriver/pg_fixtures'
   gem 'minitest-reporters'
   gem 'rspec-mocks'
-  gem 'shoulda'
-  gem 'timecop'
+  gem 'shoulda-matchers'
   gem 'rspec-core'
   gem 'rails-controller-testing'
   gem 'rspec-instafail'

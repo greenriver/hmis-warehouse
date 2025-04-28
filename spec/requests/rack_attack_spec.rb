@@ -32,29 +32,24 @@ RSpec.describe Rack::Attack, type: :request do
 
     case mode
     when :slow
-      sleep_time = 0.2
-      time_scale = 1.0
+      time_advance = 1
     when :default
-      sleep_time = 0
-      time_scale = 0.0001
+      time_advance = 0.01
     else
       raise 'unknown mode'
     end
 
-    # travel to hour boundary so we always start at 00:00
-    Timecop.travel((Time.current + 1.hour).beginning_of_hour)
-    # adjust speed of time to reliably trigger burst throttling (10req/1sec)
-    Timecop.scale(time_scale)
     begin
       (requests_to_send + 1).times do |cnt|
+        # travel to hour boundary so we always start at 00:00, manually advancing time every loop
+        travel_to(Time.current.beginning_of_hour + (cnt * time_advance).seconds)
         block.arity == 1 ? yield(cnt) : yield
-        sleep sleep_time
         requests_sent += 1
         status_encountered = response.status == throttled_status
         break if status_encountered
       end
     ensure
-      Timecop.return
+      travel_back
     end
     status_encountered ? requests_sent - 1 : nil
   end
@@ -80,7 +75,7 @@ RSpec.describe Rack::Attack, type: :request do
 
       it 'throttle burst requests' do
         throttled_at = 25
-        requests_sent = till_throttled(requests_to_send: throttled_at, mode: :slow) { get(path) }
+        requests_sent = till_throttled(requests_to_send: throttled_at) { get(path) }
         expect(requests_sent).to eq(throttled_at)
       end
     end
