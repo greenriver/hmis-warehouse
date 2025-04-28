@@ -17,6 +17,7 @@ module GrdaWarehouse::Tasks
     def initialize(run_post_processing: true)
       setup_notifier('IdentifyDuplicates')
       @run_post_processing = run_post_processing
+      @logger = Rails.logger
     end
 
     def run!
@@ -138,63 +139,75 @@ module GrdaWarehouse::Tasks
 
     # look at all existing records for duplicates and merge destination clients
     # We'll do as much of this in the database as possible for performance and memory management
+    # Matches and merges existing destination clients that are determined to be duplicates
+    # This method:
+    # 1. Finds merge candidates using find_merge_candidates
+    # 2. Processes candidates in batches of 500
+    # 3. For each batch, attempts to merge source clients (actually warehouse destination clients) into destination clients
+    # 4. Marks any previous candidate matches as accepted
+    # 5. Optionally runs post-processing to update service history
+    # @note This is a destructive operation that will merge client records
+    # @param [Boolean] @run_post_processing Whether to run service history updates after merging
+    # @return [void]
     def match_existing!
       user = User.setup_system_user
+      @logger.info '=== Starting match_existing! ==='
 
-      unmatchable_destination_ids_set = unmatchable_destination_ids.pluck(:destination_id).to_set
-      find_merge_candidates.each_slice(500) do |batch|
+      # candidates now contains a hash keyed on client ids with arrays of destination client ids that will be
+      # used as the source for merges into the key client id.
+      # At this point the `key => ids` combinations have been grouped so any merges that would have
+      # required multiple iterations are all in the array associated with the destination client,
+      # all merges have been checked to confirm they won't exceed the max allowable source clients, and if
+      # they would have exceeded the limit, a new group has been added
+      candidates = find_merge_candidates
+      @logger.info "Found #{candidates.size} merge candidates"
+
+      candidates.each_slice(500) do |batch|
         client_lookups = GrdaWarehouse::Hud::Client.where(id: batch.flatten).index_by(&:id)
-        batch.each do |destination_id, source_id|
-          destination = client_lookups[destination_id]
-          source = client_lookups[source_id]
-          next unless destination.present? && source.present?
+        batch.each do |destination_id, source_ids|
+          source_ids.each do |source_id|
+            destination = client_lookups[destination_id]
+            source = client_lookups[source_id]
+            next unless destination.present? && source.present?
 
-          # If this pair was previously a candidate match, mark it as accepted
-          mark_as_accepted(source_id, destination_id) if previous_candidate_matches.include?([source_id, destination_id])
-          mark_as_accepted(destination_id, source_id) if previous_candidate_matches.include?([destination_id, source_id])
+            # If this pair was previously a candidate match, mark it as accepted
+            check_and_mark_previous_candidate_matches(source_id, destination_id)
 
-          # Confirm neither client has exceeded the MAX_SOURCE_CLIENTS limit
-          if unmatchable_destination_ids_set.include?(destination_id) || unmatchable_destination_ids_set.include?(source_id)
-            Rails.logger.warn "Skipping merge of #{source_id} and #{destination_id} because one has exceeded the MAX_SOURCE_CLIENTS limit"
-            next
-          end
-
-          begin
-            destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current)
-          rescue Exception => e
-            Rails.logger.error(e.to_s)
-            if @send_notifications
-              @notifier.ping(
-                "Unable to merge #{source.id} with #{destination.id}",
-                {
-                  exception: e,
-                  info: {
-                    source_id: source.id,
-                    destination_id: destination.id,
-                  },
+            begin
+              @logger.info "Attempting merge of #{source_id} into #{destination_id}"
+              # merge_from must be called on a destination client, "source" can be a destination or array of source clients
+              # This will log an error if the destination does not have at least one source client
+              destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current)
+            rescue Exception => e
+              @logger.error "Merge failed: #{e.message}\n#{e.backtrace.join("\n")}"
+              Sentry.capture_exception_with_info(
+                e,
+                info: {
+                  source_id: source.id,
+                  destination_id: destination.id,
                 },
               )
             end
           end
-          Rails.logger.info "merged #{source.id} into #{destination.id}"
         end
       end
+      @logger.info '=== Completed match_existing! ==='
       return unless @run_post_processing
 
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
     end
 
-    # def joins_warehouse_clients_enrollment_and_project
-    #   <<-SQL
-    #     inner join warehouse_clients on clients.id = warehouse_clients.source_id
-    #     -- inner join "Enrollment" as en on clients."PersonalID" = en."PersonalID"
-    #     --   and en.data_source_id = clients.data_source_id
-    #     --   and en."DateDeleted" is NULL
-    #     -- inner join "Project" as p on en."ProjectID" = p."ProjectID"
-    #     --   and p.data_source_id = clients.data_source_id
-    #     --   and p."DateDeleted" is NULL
-    #   SQL
-    # end
+    private def check_and_mark_previous_candidate_matches(source_id, destination_id)
+      [
+        [source_id, destination_id],
+        [destination_id, source_id],
+      ].each do |pair|
+        if previous_candidate_matches.include?(pair)
+          @logger.info "Found previous candidate match: source=#{pair.first} destination=#{pair.last}"
+          mark_as_accepted(pair.first, pair.last)
+        end
+      end
+    end
 
     # Use a CTE to find potential matches based on multiple criteria
     def exact_ssn_matches
@@ -328,15 +341,22 @@ module GrdaWarehouse::Tasks
       @merge_history ||= GrdaWarehouse::ClientMergeHistory.new
     end
 
+    # Find potential client merge candidates by looking for matches across multiple criteria
+    # @return [Set] A set of client ID pairs that are candidates for merging
+    # @note Only returns matches if auto deduplication is enabled in config
+    # @note Filters out any previously split client pairs
+    # @note Checks source client counts to avoid exceeding limits
     private def find_merge_candidates
       to_merge = Set.new
+
       # Never return obvious matches if auto deduplication is disabled
-      return to_merge unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
+      unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
+        @logger.info 'Auto deduplication disabled, returning empty set'
+        return to_merge
+      end
 
       # Find all potential matches
-      # Potential matches are clients with at least two matching, Name, SSN, or DOB
       ssn_matches = exact_ssn_matches
-      # [1100700, 2605522]
       name_matches = exact_name_matches
       dob_matches = exact_dob_matches
 
@@ -355,44 +375,95 @@ module GrdaWarehouse::Tasks
       end
       more_than_one_match = matches.select { |_, v| v > 1 }
 
-      # NOTE: split_from is the previous destination client id, split_into the new destination client id
+      # Get split history
       all_splits = GrdaWarehouse::ClientSplitHistory.pluck(:split_from, :split_into)
+      @logger.info "Found #{all_splits.size} split history records: #{all_splits.inspect}"
 
       # Filter more_than_one_match removing any that were split previously
-      # Note that more_than_one_match will always have sorted pairs for keys given
-      # `WHERE client_one_dob_id < client_two_dob_id`
       all_splits.each do |row|
-        more_than_one_match.delete(row.sort)
+        sorted_row = row.sort
+        next unless more_than_one_match.key?(sorted_row)
+
+        @logger.info "Removing previously split pair: #{sorted_row.inspect}"
+        more_than_one_match.delete(sorted_row)
       end
-      more_than_one_match.keys
 
-      # # Source client PII with destination client ID
-      # @source_clients.each do |target|
-      #   splits = splits_by_from[target.id]&.flatten || [] # Don't re-merge anybody that was split off from this candidate
-      #   splits += splits_by_into[target.id]&.flatten || [] # Don't merge with anybody that this candidate was split off from
+      # Log the source client counts for each destination client
+      source_client_counts = GrdaWarehouse::WarehouseClient.group(:destination_id).count
 
-      #   matches_name = @source_name_lookup.get_ids(first_name: target.first_name, last_name: target.last_name)
-      #   matches_ssn = @source_ssn_lookup.get_ids(ssn: target.ssn)
-      #   matches_dob = @source_dob_lookup.get_ids(dob: target.dob)
-      #   all_matching_dest_ids = (matches_name + matches_ssn + matches_dob) - splits
-      #   all_matching_dest_ids.filter! { |id| id != target.id }
-      #   # to_merge_by_dest_id = Set.new
-      #   # seen = Set.new
-      #   # all_matching_dest_ids.each do |num|
-      #   #   if seen.include?(num)
-      #   #     to_merge_by_dest_id << num
-      #   #   else
-      #   #     seen << num
-      #   #   end
-      #   # end
-      #   to_merge_by_dest_id = all_matching_dest_ids.uniq.
-      #     map { |num| [num, all_matching_dest_ids.count(num)] }.to_h.
-      #     select { |_, v| v > 1 }
+      candidates = group_merge_chains(more_than_one_match)
 
-      #   to_merge += to_merge_by_dest_id.keys.map { |source_id| [target.id, source_id].sort } if to_merge_by_dest_id.any?
-      # end
+      split_chains_on_max_source(candidates: candidates, counts: source_client_counts)
+    end
 
-      # return to_merge
+    # Check if a client pair should be rejected based on source client counts
+    # @param destination_id [Integer] The ID of the destination client
+    # @param source_id [Integer] The ID of the source client
+    # @param counts [Hash] Hash mapping destination client IDs to their source client counts
+    # @return [Boolean] True if the client pair should be rejected, false otherwise
+    private def will_exceed_source_counts?(destination_id:, source_id:, counts:)
+      destination_count = counts[destination_id].to_i
+      source_count = counts[source_id].to_i
+      # If adding one more source client would exceed the limit, reject the merge
+      destination_count + source_count > MAX_SOURCE_CLIENTS
+    end
+
+    # Groups candidate merges into chains to process them efficiently
+    # @param candidates [Hash<Array<Integer>, Object>] Hash mapping pairs of client IDs to merge data
+    # @return [Hash<Integer, Array<Integer>>] Hash mapping root client IDs to arrays of child client IDs to merge
+    private def group_merge_chains(candidates)
+      parent = {}
+      candidates.each_key { |(a, b)| parent[b] = a }
+
+      groups = Hash.new { |h, k| h[k] = [] }
+      parent.each_key do |child|
+        root = find_root(child, parent)
+        groups[root] << child unless root == child
+      end
+
+      groups.each { |_, arr| arr.uniq! }
+      groups
+    end
+
+    private def find_root(id, parent)
+      id = parent[id] while parent[id]
+      id
+    end
+
+    # Splits merge chains that would exceed the maximum allowed source clients per destination
+    # @param candidates [Hash<Integer, Array<Integer>>] Hash mapping root client IDs to arrays of child client IDs to merge
+    # @param counts [Hash<Integer, Integer>] Hash mapping client IDs to their current source client counts
+    # @return [Hash<Integer, Array<Integer>>] New hash of merge chains split to not exceed max source clients
+    private def split_chains_on_max_source(candidates:, counts:)
+      new_chains = {}
+
+      candidates.each do |root, chain|
+        current_root = root
+        current_chain = []
+
+        chain.each do |source_id|
+          if will_exceed_source_counts?(destination_id: current_root, source_id: source_id, counts: counts)
+            # Save the current chain if not empty
+            new_chains[current_root] = current_chain unless current_chain.empty?
+            # Start a new chain
+            current_root = source_id
+            current_chain = []
+          end
+          # note that we are going to have these source clients even though the merge hasn't happened
+          increment_source_count(destination_id: current_root, source_id: source_id, counts: counts)
+          current_chain << source_id
+        end
+
+        # Save the last chain
+        new_chains[current_root] = current_chain unless current_chain.empty?
+      end
+
+      new_chains
+    end
+
+    private def increment_source_count(destination_id:, source_id:, counts:)
+      counts[destination_id] ||= 0
+      counts[destination_id] += counts[source_id].to_i
     end
 
     # Find any destination clients that have been marked deleted where the source client is not deleted
@@ -459,7 +530,9 @@ module GrdaWarehouse::Tasks
     end
 
     private def split?(client, candidate_id)
-      client.splits_to.where(split_into: candidate_id).exists?
+      exists = client.splits_to.where(split_into: candidate_id).exists?
+      @logger.info "Checking split relationship: client=#{client.id} candidate=#{candidate_id} exists=#{exists}"
+      exists
     end
 
     # Only use in development
