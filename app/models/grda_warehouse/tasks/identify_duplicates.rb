@@ -30,6 +30,7 @@ module GrdaWarehouse::Tasks
     end
 
     def identify_duplicates
+      # TODO: Port changes from match_existing! to here
       build_source_lookups
       build_destination_lookups
       restore_previously_deleted_destinations
@@ -356,22 +357,18 @@ module GrdaWarehouse::Tasks
       end
 
       # Find all potential matches
-      ssn_matches = exact_ssn_matches
-      name_matches = exact_name_matches
-      dob_matches = exact_dob_matches
-
       matches = {}
-      ssn_matches.each do |k|
-        matches[k] ||= 0
-        matches[k] += 1
+      exact_ssn_matches.each do |id_pair|
+        matches[id_pair] ||= 0
+        matches[id_pair] += 1
       end
-      name_matches.each do |k|
-        matches[k] ||= 0
-        matches[k] += 1
+      exact_name_matches.each do |id_pair|
+        matches[id_pair] ||= 0
+        matches[id_pair] += 1
       end
-      dob_matches.each do |k|
-        matches[k] ||= 0
-        matches[k] += 1
+      exact_dob_matches.each do |id_pair|
+        matches[id_pair] ||= 0
+        matches[id_pair] += 1
       end
       more_than_one_match = matches.select { |_, v| v > 1 }
 
@@ -387,12 +384,9 @@ module GrdaWarehouse::Tasks
         @logger.info "Removing previously split pair: #{sorted_row.inspect}"
         more_than_one_match.delete(sorted_row)
       end
-
-      # Log the source client counts for each destination client
-      source_client_counts = GrdaWarehouse::WarehouseClient.group(:destination_id).count
-
       candidates = group_merge_chains(more_than_one_match)
 
+      source_client_counts = GrdaWarehouse::WarehouseClient.group(:destination_id).count
       split_chains_on_max_source(candidates: candidates, counts: source_client_counts)
     end
 
@@ -443,6 +437,8 @@ module GrdaWarehouse::Tasks
 
         chain.each do |source_id|
           if will_exceed_source_counts?(destination_id: current_root, source_id: source_id, counts: counts)
+            # Alert if this happens in production so we can investigate
+            Sentry.capture_message("IdentifyDuplicates: Reached max source clients when merging: #{source_id} with #{current_root}, you should probably investigate") if Rails.env.production?
             # Save the current chain if not empty
             new_chains[current_root] = current_chain unless current_chain.empty?
             # Start a new chain
