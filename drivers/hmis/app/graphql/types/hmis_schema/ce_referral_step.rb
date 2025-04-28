@@ -35,7 +35,7 @@ module Types
     end
 
     def name
-      load_ar_association(object.step, :node).name
+      workflow_task.name
     end
 
     def status
@@ -44,10 +44,6 @@ module Types
 
     def submitted_values
       object.step.submitted_values
-    end
-
-    def workflow_node
-      load_ar_association(object.step, :node)
     end
 
     def swimlane
@@ -73,8 +69,15 @@ module Types
       return definition if definition.present?
 
       # Otherwise, get the definition identifier on the node, and return the latest published definition with this identifier
-      node = load_ar_association(object.step, :node)
-      load_ar_association(node, :form_definitions, scope: Hmis::Form::Definition.published.order(version: :desc)).first
+      load_ar_association(workflow_task, :form_definitions, scope: Hmis::Form::Definition.published.order(version: :desc)).first
+    end
+
+    private
+
+    # the Hmis::WorkflowDefinition::Task that configures this referral step
+    def workflow_task
+      # safe to call object.step because it's already loaded on the OpenStruct
+      load_ar_association(object.step, :task)
     end
   end
 end
