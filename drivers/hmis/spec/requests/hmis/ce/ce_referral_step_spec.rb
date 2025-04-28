@@ -12,8 +12,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'ce_referral_step query' do
     let(:query) do
       <<~GRAPHQL
-        query GetCeReferralStep($id: ID!, $referralId: ID!) {
-          ceReferralStep(id: $id, referralId: $referralId) {
+        query GetCeReferralStep($id: ID!) {
+          ceReferralStep(id: $id) {
             id
             stepId
             swimlane {
@@ -43,7 +43,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       step = referral.workflow_instance.steps.sole
       variables = {
         id: step.id,
-        referralId: referral.id,
       }
       response, result = post_graphql(**variables) { query }
       expect(response.status).to eq(200), result.inspect
