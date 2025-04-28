@@ -4,7 +4,7 @@
 
 = render 'clients/aliases'
 = render 'clients/tab_navigation', current: map_client_location_history_client_path(@client)
-%h1= title
+= render_page_title "Location Map for #{@client.pii_provider(user: current_user).full_name}"
 = render 'filter'
 - if @locations.any?
   #client__location-history
