@@ -612,7 +612,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       when 'IdentifiedPathwaysVersionThreePathways', 'IdentifiedPathwaysVersionFourPathways', 'IdentifiedPathwaysVersionFourFamilyPathways'
         if most_recent_pathways_or_transfer(client)&.family_pathways_2024?
           # Family
-          overall_days_homeless(client)
+          overall_nights_homeless(client)
         else
           # Individual
           days_homeless_in_last_three_years_cached(client)
