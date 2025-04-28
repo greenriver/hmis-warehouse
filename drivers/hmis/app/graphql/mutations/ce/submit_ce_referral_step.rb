@@ -43,7 +43,7 @@ module Mutations
       referral.reload
 
       {
-        step: OpenStruct.new(step: step, referral: referral),
+        step: OpenStruct.new(step: step.reload, referral: referral.reload),
         referral: referral,
       }
     end
