@@ -23,7 +23,7 @@ module Types
     field :status, HmisSchema::Enums::CeReferralStepStatus, null: false
     field :submitted_values, JsonObject, null: true
     field :swimlane, HmisSchema::CeReferralSwimlane, null: false, description: 'Swimlane for this step, which holds information about potential step participants'
-    field :assignees, [Application::User], null: true, description: 'User(s) currently assigned to this step'
+    field :assignees, [Application::User], null: false, description: 'User(s) currently assigned to this step'
 
     def id
       # the step may not yet be persisted, such as when it isn't yet available in the workflow
