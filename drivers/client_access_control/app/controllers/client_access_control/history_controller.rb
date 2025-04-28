@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -75,6 +77,9 @@ module ClientAccessControl
       head :ok
     end
 
+    # Finds and sets @client based on params[:client_id].
+    # Redirects to the merged client if applicable, or raises if not found.
+    # Returns @client. Used both as a before_action and standalone method.
     def set_client
       if current_user.blank? && @user.blank?
         not_authorized!
@@ -94,6 +99,8 @@ module ClientAccessControl
           @client = destination_searchable_client_scope.find(params[:client_id].to_i)
         end
       end
+      # note, the return value is significant when called outside of before_action
+      return @client
     end
 
     def client_needing_processing?(client: @client)

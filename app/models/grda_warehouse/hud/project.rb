@@ -229,7 +229,12 @@ module GrdaWarehouse::Hud
       active_during(date..date)
     end
 
+    # active_during maintained for backwards compatibility. Scope has been renamed to within_range to match other classes
     scope :active_during, ->(range) do
+      within_range(range)
+    end
+
+    scope :within_range, ->(range) do
       start_date = p_t[:OperatingStartDate]
       end_date = p_t[:OperatingEndDate]
       where(

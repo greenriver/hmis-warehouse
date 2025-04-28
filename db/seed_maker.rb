@@ -414,5 +414,6 @@ class SeedMaker
     populate_internal_system_choices
     GrdaWarehouse::SystemColor.ensure_colors
     Translation.maintain_keys
+    GrdaWarehouse::Cohorts::CohortColumn.maintain!
   end
 end
