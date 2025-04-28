@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -38,7 +40,7 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :active_range, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
-  alias_to_underscore [:NameDataQuality, :ContactPointID]
+  alias_to_underscore [:ContactPointID]
 
   scope :active, ->(date = Date.current) do
     left_outer_joins(:active_range).where(Hmis::ActiveRange.arel_active_on(date))

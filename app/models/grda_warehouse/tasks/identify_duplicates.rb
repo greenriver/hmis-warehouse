@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -47,6 +49,11 @@ module GrdaWarehouse::Tasks
       Rails.logger.info "Matching #{unprocessed.count} unprocessed clients"
       matched = 0
       new_created = 0
+      # ===========================================================================
+      # IMPORTANT: This is where destination clients are created and updated
+      # The system creates new destination clients for unprocessed source clients
+      # and updates existing destination clients with new SSN/DOB information
+      # ===========================================================================
       unprocessed.find_in_batches do |batch|
         matched_ids = []
         destination_client_updates = []
@@ -93,7 +100,11 @@ module GrdaWarehouse::Tasks
             data_source_id: client.data_source_id,
           )
         end
-        GrdaWarehouse::Hud::Client.import(
+        #####
+        # GrdaWarehouse::Hud::Client.destination
+        ####
+        # Updates existing destination clients with new SSN/DOB information
+        result = GrdaWarehouse::Hud::Client.import(
           destination_client_updates.uniq { |m| m[:id] }, # ensure no duplicate rows
           on_duplicate_key_update: {
             conflict_target: [:id],
@@ -101,7 +112,13 @@ module GrdaWarehouse::Tasks
           },
           validate: false,
         )
-        new_destination_ids = GrdaWarehouse::Hud::Client.import(new_destination_clients).ids
+        raise 'Failed to update clients' if result.failed_instances.present?
+
+        # Creates new destination clients
+        result = GrdaWarehouse::Hud::Client.import(new_destination_clients)
+        new_destination_ids = result.ids
+        raise 'Failed to create clients' if result.failed_instances.present?
+
         source_client_ids_with_new_destination_clients.zip(new_destination_ids).each do |source_id, destination_id|
           new_warehouse_clients[source_id][:destination_id] = destination_id
         end

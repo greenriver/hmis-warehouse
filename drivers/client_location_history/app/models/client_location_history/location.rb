@@ -11,7 +11,7 @@ module ClientLocationHistory
     include Rails.application.routes.url_helpers
     belongs_to :source, polymorphic: true, optional: true
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :place, class_name: 'GrdaWarehouse::Place', primary_key: [:lat, :lon], foreign_key: [:lat, :lon], optional: true
+    belongs_to :place, class_name: 'GrdaWarehouse::Place', primary_key: [:lat, :lon], query_constraints: [:lat, :lon], optional: true
     # this relation isn't used; use polymorphic `source` above
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
 

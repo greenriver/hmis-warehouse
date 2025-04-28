@@ -1,12 +1,13 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 if ENV['OKTA_DOMAIN'].present?
   # Make sure that https://nvd.nist.gov/vuln/detail/CVE-2015-9284 is mitigated
   RSpec.describe Users::OmniauthCallbacksController, type: :request do
     describe 'GET /users/auth/:provider protects against CVE-2015-9284' do
       it do
-        expect do
-          get '/users/auth/okta'
-        end.to raise_error(ActionController::RoutingError)
+        get '/users/auth/okta'
+        expect(response).to have_http_status(:not_found)
       end
     end
 
