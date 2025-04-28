@@ -63,13 +63,13 @@ module Types
       load_ar_association(object.step, :assignments)&.map(&:user)
     end
 
-    def form_definition
+    def form_definition # Don't resolve in batch
       # If the step has been submitted before, it stores a reference to the definition it was submitted with
-      definition = load_ar_association(object.step, :form_definition)
+      definition = object.form_definition
       return definition if definition.present?
 
       # Otherwise, get the definition identifier on the node, and return the latest published definition with this identifier
-      load_ar_association(workflow_task, :form_definitions, scope: Hmis::Form::Definition.published.order(version: :desc)).first
+      object.node.form_definitions.published.order(version: :desc).first
     end
 
     private
