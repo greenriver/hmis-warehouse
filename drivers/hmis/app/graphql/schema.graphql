@@ -899,7 +899,7 @@ type CeReferralStep {
   """
   Swimlane for this step, which holds information about potential step participants
   """
-  swimlane: CeReferralSwimlane
+  swimlane: CeReferralSwimlane!
 }
 
 enum CeReferralStepStatus {
@@ -9341,7 +9341,7 @@ type Query {
   ): FormDefinition
   ceOpportunity(id: ID!): CeOpportunity
   ceReferral(id: ID!): CeReferral
-  ceReferralStep(id: ID!, referralId: ID!): CeReferralStep
+  ceReferralStep(id: ID!): CeReferralStep
 
   """
   Client lookup

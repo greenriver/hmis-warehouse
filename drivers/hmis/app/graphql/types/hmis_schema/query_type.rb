@@ -548,15 +548,17 @@ module Types
 
     field :ce_referral_step, HmisSchema::CeReferralStep, null: true do
       argument :id, ID, required: true
-      argument :referral_id, ID, required: true
     end
-    def ce_referral_step(id:, referral_id:)
+    def ce_referral_step(id:)
       raise unless Hmis::Ce.configuration.enabled?
 
-      referral = Hmis::Ce::Referral.viewable_by(current_user).find_by(id: referral_id)
+      step = Hmis::WorkflowExecution::Step.viewable_by(current_user).find(id)
+      raise 'access denied' unless step.present?
+
+      # See comments on HmisSchema::CeReferralStep regarding why we need to fetch and return the Referral alongside the Step.
+      referral = Hmis::Ce::Referral.viewable_by(current_user).find_by(workflow_instance_id: step.instance_id)
       raise 'access denied' unless referral.present?
 
-      step = referral.workflow_instance.steps.viewable_by(current_user).find_by(id: id)
       OpenStruct.new(step: step, referral: referral)
     end
   end
