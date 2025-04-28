@@ -88,7 +88,7 @@ module Hmis::Ce
 
       # This validator expects that owner's opportunities are preloaded, to avoid n+1 on save
       conflicting_opportunity_exists = owner.opportunities.to_a.select do |existing_opp|
-        existing_opp.status != 'closed' && existing_opp.id != id
+        existing_opp.status.to_sym != :closed && existing_opp.id != id
       end.any?
       return unless conflicting_opportunity_exists
 
