@@ -553,11 +553,11 @@ module Types
       raise unless Hmis::Ce.configuration.enabled?
 
       step = Hmis::WorkflowExecution::Step.viewable_by(current_user).find(id)
-      raise 'access denied' unless step.present?
+      access_denied! unless step.present?
 
       # See comments on HmisSchema::CeReferralStep regarding why we need to fetch and return the Referral alongside the Step.
       referral = Hmis::Ce::Referral.viewable_by(current_user).find_by(workflow_instance_id: step.instance_id)
-      raise 'access denied' unless referral.present?
+      access_denied! unless referral.present?
 
       OpenStruct.new(step: step, referral: referral)
     end

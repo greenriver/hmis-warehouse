@@ -50,7 +50,7 @@ module Types
       swimlane = load_ar_association(object.step, :swimlane)
       participants_by_swimlane_id = object.referral.participants.group_by(&:swimlane_id)
 
-      return nil unless swimlane.present?
+      raise "Workflow Step #{id} does not have a swimlane" unless swimlane.present?
 
       OpenStruct.new(
         id: swimlane.id,
@@ -69,7 +69,7 @@ module Types
       return definition if definition.present?
 
       # Otherwise, get the definition identifier on the node, and return the latest published definition with this identifier
-      object.node.form_definitions.published.order(version: :desc).first
+      workflow_task.form_definitions.published.order(version: :desc).first
     end
 
     private
