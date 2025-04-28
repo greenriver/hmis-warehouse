@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -24,8 +26,8 @@ module GrdaWarehouse::Hud
     belongs_to :data_source
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
-    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
-    belongs_to :assessment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Assessment', primary_key: [:AssessmentID, :PersonalID, :data_source_id], foreign_key: [:AssessmentID, :PersonalID, :data_source_id], optional: true
+    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], query_constraints: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
+    belongs_to :assessment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Assessment', primary_key: [:AssessmentID, :PersonalID, :data_source_id], query_constraints: [:AssessmentID, :PersonalID, :data_source_id], optional: true
 
     has_one :enrollment, through: :assessment
     has_one :client, through: :assessment, inverse_of: :assessment_results

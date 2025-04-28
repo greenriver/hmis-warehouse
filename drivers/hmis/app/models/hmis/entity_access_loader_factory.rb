@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -93,7 +95,7 @@ class Hmis::EntityAccessLoaderFactory
   end
 
   def resolve_through_project(entity, &block)
-    return unless entity.is_a?(ApplicationRecord)
+    return unless entity.is_a?(GrdaWarehouseBase)
 
     entity.class.reflect_on_association(:project) ? block.call(entity, :project) : nil
   end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -52,7 +54,7 @@ module Health
       "Client's home",
       'Other',
     ].freeze
-    PLACE_OF_CONTACT_OTHER = 'Other'.freeze
+    PLACE_OF_CONTACT_OTHER = 'Other'
 
     HOUSING_STATUS = [
       'Doubling Up',
@@ -66,7 +68,7 @@ module Health
       'Unknown',
       'Other',
     ].freeze
-    HOUSING_STATUS_OTHER = 'Other'.freeze
+    HOUSING_STATUS_OTHER = 'Other'
     HOUSING_STATUS_DATE = ['Supportive Housing', 'Housing with No Supports'].freeze
 
     CLIENT_ACTION = [
@@ -76,7 +78,7 @@ module Health
       'Client declines consent at this time; willing to revisit',
       'Supporting medication reconciliation',
     ].freeze
-    CLIENT_ACTION_OTHER = 'Supporting medication reconciliation'.freeze
+    CLIENT_ACTION_OTHER = 'Supporting medication reconciliation'
 
     belongs_to :patient, optional: true
     belongs_to :user, optional: true
@@ -86,8 +88,8 @@ module Health
 
     has_many :activities, as: :source, class_name: '::Health::QualifyingActivity', inverse_of: :source, dependent: :destroy
 
-    serialize :topics, Array
-    serialize :client_action, Array
+    serialize :topics, type: Array
+    serialize :client_action, type: Array
 
     scope :recent, -> { order(updated_at: :desc).limit(1) }
     scope :last_form_created, -> { order(created_at: :desc).limit(1) }

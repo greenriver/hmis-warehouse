@@ -112,7 +112,7 @@ module GrdaWarehouse::Hud
     end, **hud_enrollment_belongs('HealthAndDv')
 
     # NOTE: you will want to limit this to a particular record_type
-    has_one :service_history_enrollment, -> { where(record_type: :entry) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
+    has_one :service_history_enrollment, -> { where(record_type: :entry) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', query_constraints: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
 
     has_many :service_history_services, through: :service_history_enrollment
 
@@ -163,6 +163,8 @@ module GrdaWarehouse::Hud
       visible_to(user)
     end
 
+    # this scope is defined in the ClientAccessControl::GrdaWarehouse::Hud::EnrollmentExtension
+    # TODO: why not just define it here
     scope :visible_to, ->(_user) do
       none
     end

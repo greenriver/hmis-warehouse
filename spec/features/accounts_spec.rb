@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe 'Accounts', type: :feature do
@@ -45,7 +47,7 @@ RSpec.describe 'Accounts', type: :feature do
           fill_in 'Password', with: 'password'
           click_button 'Sign In'
         end
-        Timecop.travel(Time.now + Devise.unlock_in - 1.minute) do
+        travel_to(Time.now + Devise.unlock_in - 1.minute) do
           fill_in 'Email', with: user.email
           fill_in 'Password', with: user.password
           click_button 'Sign In'
@@ -61,7 +63,7 @@ RSpec.describe 'Accounts', type: :feature do
           fill_in 'Password', with: 'password'
           click_button 'Sign In'
         end
-        Timecop.travel(Time.now + Devise.unlock_in) do
+        travel_to(Time.now + Devise.unlock_in) do
           fill_in 'Email', with: user.email
           fill_in 'Password', with: user.password
           click_button 'Sign In'

@@ -141,7 +141,8 @@ Rack::Attack.tap do |config|
     period: 1.second,
   ) do |request|
     if request.tracking_enabled? && request.anonymous?
-      request.request_ip
+      # there's a more restrictive throttle on the pdf
+      request.request_ip unless request.history_pdf_path?
     end
   end
 
