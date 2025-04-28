@@ -22,7 +22,7 @@ module Types
     field :name, String, null: false
     field :status, HmisSchema::Enums::CeReferralStepStatus, null: false
     field :submitted_values, JsonObject, null: true
-    field :swimlane, HmisSchema::CeReferralSwimlane, null: true, description: 'Swimlane for this step, which holds information about potential step participants'
+    field :swimlane, HmisSchema::CeReferralSwimlane, null: false, description: 'Swimlane for this step, which holds information about potential step participants'
     field :assignees, [Application::User], null: true, description: 'User(s) currently assigned to this step'
 
     def id
