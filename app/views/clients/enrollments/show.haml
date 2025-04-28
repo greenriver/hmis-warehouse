@@ -1,4 +1,4 @@
-- title = "Enrollment at #{@enrollment.project&.name(current_user)} for #{@client.pii_provider(user: current_user).full_name} "
+- title = "Enrollment at #{@enrollment.project&.name(current_user)}"
 - content_for :title, title
 = render 'clients/anomalies/breadcrumbs'
 %h1= title

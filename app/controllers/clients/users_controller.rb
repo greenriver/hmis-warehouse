@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -76,7 +78,7 @@ module Clients
     end
 
     protected def title_for_show
-      "#{@client.pii_provider(user: current_user).full_name} - Relationships"
+      'Client Relationships'
     end
   end
 end

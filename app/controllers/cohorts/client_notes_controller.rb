@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -83,7 +85,7 @@ module Cohorts
     end
 
     def flash_interpolation_options
-      { resource_name: "Note for #{@note.client.pii_provider(user: current_user).full_name}" }
+      { resource_name: 'Client Note' }
     end
   end
 end
