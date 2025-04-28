@@ -18,7 +18,7 @@ module Types
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :current_step_name, String, null: true
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true # Don't resolve in batch
-    field :swimlanes, [HmisSchema::CeReferralSwimlane], null: true
+    field :swimlanes, [HmisSchema::CeReferralSwimlane], null: false
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :target_project_id, ID, null: false
