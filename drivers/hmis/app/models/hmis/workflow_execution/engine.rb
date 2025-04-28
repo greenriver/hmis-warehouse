@@ -33,6 +33,7 @@ module Hmis::WorkflowExecution
     end
 
     def start_step!(step, user:)
+      step.assignments.find_or_create_by!(user: user)
       step.start!
       process_triggers(node: step.node, event_type: 'start_step', user: user, step: step)
       log_event('start_step', user: user, step: step)
