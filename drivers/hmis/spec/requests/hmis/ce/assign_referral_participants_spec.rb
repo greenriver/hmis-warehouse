@@ -91,6 +91,21 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
       end.to change(Hmis::Ce::ReferralParticipant, :count).by(2)
     end
 
+    describe 'referral with available task' do
+      before do
+        referral.workflow_engine.start_workflow!(user: hmis_user)
+      end
+
+      it 'creates assignees as well as participants' do
+        step = referral.workflow_engine.active_steps.sole
+        expect do
+          post_graphql(**variables) { mutation }
+          step.reload
+        end.to change(step.assignments, :count).from(0).to(1)
+        expect(step.assignments.sole.user).to eq(hmis_user)
+      end
+    end
+
     describe 'referral with existing participant' do
       let!(:existing_participant) { referral.participants.create(swimlane: case_manager_swimlane, user: hmis_user) }
 

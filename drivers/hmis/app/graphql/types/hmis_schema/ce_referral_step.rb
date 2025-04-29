@@ -8,6 +8,7 @@
 
 module Types
   class HmisSchema::CeReferralStep < Types::BaseObject
+    # TODO @martha - revert this back to what it was before, with Step only resolving swimlane name
     # object is an OpenStruct with:
     # {
     #   step: Hmis::WorkflowExecution::Step,

@@ -27,10 +27,18 @@ module Mutations
       raise 'Not found' unless users.size == user_ids.size
 
       referral.with_lock do
+        # Create a participant for each user in the input, if one doesn't already exist
         seen_participants = participants.map do |input|
           referral.participants.find_or_create_by!(input.to_h)
         end
+        # Remove existing participants that are not included in the input
         referral.participants.where.not(id: seen_participants.map(&:id)).each(&:destroy!)
+
+        # If the referral has any active steps, the engine should assign them out to their correct participants.
+        # (Existing assignments won't be deleted)
+        referral.workflow_engine.active_steps.each do |step|
+          referral.workflow_engine.assign_task!(step)
+        end
       end
 
       { referral: referral.reload }
