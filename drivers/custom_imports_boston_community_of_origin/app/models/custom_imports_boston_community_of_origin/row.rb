@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -12,7 +14,7 @@ module CustomImportsBostonCommunityOfOrigin
     has_one :client_location, class_name: 'ClientLocationHistory::Location', as: :source
 
     has_one :project, through: :enrollment
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: [:PersonalID, :data_source_id], foreign_key: [:personal_id, :data_source_id], optional: true
-    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: [:EnrollmentID, :data_source_id], foreign_key: [:enrollment_id, :data_source_id], optional: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: [:PersonalID, :data_source_id], query_constraints: [:personal_id, :data_source_id], optional: true
+    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: [:EnrollmentID, :data_source_id], query_constraints: [:enrollment_id, :data_source_id], optional: true
   end
 end

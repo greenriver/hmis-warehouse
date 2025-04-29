@@ -65,10 +65,13 @@ module Types
     end
 
     def accepting_ce_referrals
+      # First check for an existing opportunity. If there is none, or it's already closed, then this unit isn't accepting referrals
       latest_opportunity = load_ar_association(object, :latest_opportunity)
-      return false if latest_opportunity.nil?
+      return false if latest_opportunity.nil? || latest_opportunity.closed?
 
-      load_ar_association(latest_opportunity, :referrals, scope: Hmis::Ce::Referral.active).empty?
+      # Otherwise, the unit is only accepting referrals if the opportunity doesn't already have an active referral.
+      # (The opportunity is open, so it shouldn't have an accepted referral. Possible referral statuses are either active or rejected.)
+      load_ar_association(object, :active_referral).nil?
     end
   end
 end

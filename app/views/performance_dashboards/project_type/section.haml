@@ -2,8 +2,8 @@
 
 = content_for :page_js do
   :javascript
-    var section_path = "#{request.path}/section/";
-    var sections = new App.Sections.Loader($('.rollup'), section_path, #{params.to_json.html_safe});
+    var section_path = '#{j(request.path)}/section/';
+    var sections = new App.Sections.Loader($('.rollup'), section_path, #{params.to_json});
     new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.living_situation-chart', {remote: false});
     new App.WarehouseReports.PerformanceDashboards.Pie('.jChart.living_situation-chart-pie-0', {remote: false});
     new App.WarehouseReports.PerformanceDashboards.Pie('.jChart.living_situation-chart-pie-1', {remote: false});

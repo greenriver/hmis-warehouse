@@ -133,6 +133,8 @@ jobs:
       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+      FERRUM_PROCESS_TIMEOUT: 45
+      FERRUM_DEFAULT_TIMEOUT: 45
 
     steps:
       - name: Checkout

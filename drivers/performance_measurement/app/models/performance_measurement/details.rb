@@ -97,15 +97,15 @@ module PerformanceMeasurement::Details
     end
 
     def detail_calculation_description_for(key)
-      detail_for(key)[:calculation_description]
+      detail_for(key)&.[](:calculation_description)
     end
 
     def detail_measure_for(key)
-      detail_for(key)[:measure]
+      detail_for(key)&.[](:measure)
     end
 
     def detail_column_for(key)
-      detail_for(key)[:column]
+      detail_for(key)&.[](:column)
     end
 
     def detail_denominator_label_for(key)

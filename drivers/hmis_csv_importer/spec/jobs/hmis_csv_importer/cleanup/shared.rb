@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -14,7 +16,7 @@ RSpec.shared_context 'HmisCsvImporter cleanup context' do
   end
 
   def import_csv_records(run_at:)
-    Timecop.freeze(run_at) do
+    travel_to(run_at) do
       import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/allowed_projects',
         version: 'AutoMigrate',

@@ -86,7 +86,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
   has_one :current_unit_type, through: :current_unit, class_name: 'Hmis::UnitType', source: :unit_type
 
-  has_many :staff_assignments, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], foreign_key: [:data_source_id, :household_id]
+  has_many :staff_assignments, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], query_constraints: [:data_source_id, :household_id]
 
   # Cached chronically homeless at entry
   has_one :ch_enrollment, class_name: 'Hmis::ChEnrollment', dependent: :destroy
@@ -403,7 +403,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     self.project_id = nil
     save!(validate: false)
   end
-  alias save_in_progress save_in_progress!
+  alias_method :save_in_progress, :save_in_progress!
 
   def save_not_in_progress!
     # If this enrollment is being moved from WIP=>non-WIP, then set the DateCreated to now. This is to get the desired time for timeliness reports.
@@ -412,7 +412,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     self.project_id = project.project_id
     save!
   end
-  alias save_not_in_progress save_not_in_progress!
+  alias_method :save_not_in_progress, :save_not_in_progress!
 
   def in_progress?
     self.ProjectID.nil?
