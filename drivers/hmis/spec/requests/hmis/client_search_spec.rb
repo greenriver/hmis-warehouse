@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -155,6 +157,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ['text: personal id', 'db422f5fff0b8f1c9a4b81f01b00fdb4', true],
           ['text: wrong personal id and not match', '00000000000000000000000000000000', false],
           ['text: ssn', '123-45-6789', true],
+          ['text: partial ssn', '123-45-', false], # partial ssn does not match, for PII protection, but should not raise (regression (#7576)
           ['text: wrong ssn and not match', '000-00-0000', false],
           ['text: dob', '12/01/1999', true],
           ['text: wrong dob and not match', '12/01/2000', false],
