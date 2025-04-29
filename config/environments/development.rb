@@ -46,7 +46,8 @@ Rails.application.configure do
         race_condition_ttl: 1.minute,
         ssl: cache_ssl,
         namespace: cache_namespace,
-        pool: { size: 10, timeout: 5 },
+        pool_size: 10,
+        pool_timeout: 5,
       },
     )
     config.cache_store = :redis_cache_store, redis_config
