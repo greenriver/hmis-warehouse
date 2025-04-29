@@ -27,7 +27,7 @@ module Mutations
       end
 
       {
-        step: OpenStruct.new(step: step, referral: referral),
+        step: step.reload,
       }
     end
   end

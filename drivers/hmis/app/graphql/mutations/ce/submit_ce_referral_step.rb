@@ -40,11 +40,9 @@ module Mutations
         engine.complete_step!(step, user: current_user, submitted_values: input)
       end
 
-      referral.reload
-
       {
-        step: OpenStruct.new(step: step.reload, referral: referral.reload),
-        referral: referral,
+        step: step.reload,
+        referral: referral.reload,
       }
     end
   end

@@ -555,11 +555,7 @@ module Types
       step = Hmis::WorkflowExecution::Step.viewable_by(current_user).find(id)
       access_denied! unless step.present?
 
-      # See comments on HmisSchema::CeReferralStep regarding why we need to fetch and return the Referral alongside the Step.
-      referral = Hmis::Ce::Referral.viewable_by(current_user).find_by(workflow_instance_id: step.instance_id)
-      access_denied! unless referral.present?
-
-      OpenStruct.new(step: step, referral: referral)
+      step
     end
   end
 end

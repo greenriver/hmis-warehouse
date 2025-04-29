@@ -895,11 +895,7 @@ type CeReferralStep {
   """
   stepId: ID
   submittedValues: JsonObject
-
-  """
-  Swimlane for this step, which holds information about potential step participants
-  """
-  swimlane: CeReferralSwimlane!
+  swimlane: String!
 }
 
 enum CeReferralStepStatus {
