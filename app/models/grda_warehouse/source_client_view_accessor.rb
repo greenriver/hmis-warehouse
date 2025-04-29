@@ -38,7 +38,7 @@ class GrdaWarehouse::SourceClientViewAccessor
         preload(:destination_client, :data_source, :patient)
       source_clients.each do |client|
         key = client.destination_client&.id
-        raise "Source client \\#{client.id} references invalid destination client" unless key
+        raise "Source client #{client.id} references invalid destination client" unless key
 
         @cache[key] ||= []
         @cache[key] << client
