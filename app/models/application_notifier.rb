@@ -32,27 +32,34 @@ class ApplicationNotifier < Slack::Notifier
   end
 
   require 'singleton'
-
-  class NullRedis
+  class RedisWrapper
     include Singleton
-    def ping = true
-    def get(*) = nil
-    def set(*) = nil
-    def rpush(*) = nil
-    def lpop(*) = nil
-    def keys(*) = []
+    def initialize
+
+      @redis = Rails.cache.is_a?(ActiveSupport::Cache::RedisCacheStore) ? Rails.cache.redis : nil
+    end
+    def ping; call(:ping); end
+    def get(*a); call(:get, *a); end
+    def set(*a); call(:set, *a); end
+    def rpush(*a); call(:rpush, *a); end
+    def lpop(*a); call(:lpop, *a); end
+    def keys(*a); call(:keys, *a); end
+    def nil?; @redis.nil?; end
+    def inspect; @redis.inspect; end
+    private
+    def call(cmd, *args)
+      return nil if @redis.nil?
+      if defined?(ConnectionPool) && @redis.is_a?(ConnectionPool)
+        @redis.with { |r| r.public_send(cmd, *args) }
+      else
+        @redis.public_send(cmd, *args)
+      end
+    end
   end
 
   # use the same redis instance we use for caching
   def self.redis
-    case Rails.cache
-    when ActiveSupport::Cache::NullStore
-      NullRedis.instance
-    when ActiveSupport::Cache::RedisCacheStore
-      Rails.cache.redis
-    else
-      raise 'Rails cache not supported'
-    end
+    RedisWrapper.instance
   end
 
   # prefix all keys with a CLIENT specific key
@@ -86,10 +93,10 @@ class ApplicationNotifier < Slack::Notifier
         return
       end
 
-      if redis&.ping
+      if redis.ping
         @redis = redis
         @namespace = self.class.encode_key(url, channel, username)
-        Rails.logger.debug "ApplicationNotifier#ping queuing enabled at #{@redis.inspect} #{@namespace}"
+        Rails.logger.debug "ApplicationNotifier#ping queuing enabled at \\#{@redis.inspect} \\#{@namespace}"
       end
     rescue Redis::BaseError => e
       Rails.logger.warn "ApplicationNotifier#ping queuing disabled. #{e.inspect}"
@@ -152,7 +159,9 @@ class ApplicationNotifier < Slack::Notifier
     # TODO: If we upgrade to Redis 6.2+ we can use lop n to
     # batch fetches
     # Store messages in chunks in an array for processing
-    while (batch = @redis.lpop("#{@namespace}/queue"))
+    while (
+      batch = @redis.lpop("#{@namespace}/queue")
+    )
       message = prefix.to_s if message.blank?
       if (message + batch).bytesize > chunk_size
         messages << message if message.present?
@@ -176,15 +185,15 @@ class ApplicationNotifier < Slack::Notifier
         # specifically for sending these that can tolerate the delay.
         sleep(0.7)
       end
-      @redis.set "#{@namespace}/last_post", Time.now.to_f
+      @redis.set("#{@namespace}/last_post", Time.now.to_f)
     rescue Exception # rubocop:disable Lint/SuppressedException
     end
   end
 
   private def rate_limit(message)
     # Slack wants no more then one webhook per client per second
-    last_post = @redis.get "#{@namespace}/last_post"
-    @redis.rpush "#{@namespace}/queue", "#{message}\n"
+    last_post = @redis.get("#{@namespace}/last_post")
+    @redis.rpush("#{@namespace}/queue", "#{message}\n")
     flush_queue unless last_post && (Time.now - Time.at(last_post.to_f)) < 1.second
   rescue Redis::BaseError => e
     # If Redis has gone down, just try to get this message out
