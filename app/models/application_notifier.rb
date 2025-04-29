@@ -31,28 +31,12 @@ class ApplicationNotifier < Slack::Notifier
     !!@insert_log_url # coerce bool
   end
 
-  require 'singleton'
-
-  class NullRedis
-    include Singleton
-    def ping = true
-    def get(*) = nil
-    def set(*) = nil
-    def rpush(*) = nil
-    def lpop(*) = nil
-    def keys(*) = []
-  end
-
   # use the same redis instance we use for caching
   def self.redis
-    case Rails.cache
-    when ActiveSupport::Cache::NullStore
-      NullRedis.instance
-    when ActiveSupport::Cache::RedisCacheStore
-      Rails.cache.redis
-    else
-      raise 'Rails cache not supported'
-    end
+    Redis.new Rails.application.config_for(:cache_store).merge(
+      timeout: 1,
+      ssl: (ENV.fetch('CACHE_SSL') { 'false' }) == 'true',
+    )
   end
 
   # prefix all keys with a CLIENT specific key
