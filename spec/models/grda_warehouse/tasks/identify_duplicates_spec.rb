@@ -32,18 +32,6 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
       @config.update(enable_auto_deduplication: true)
     end
 
-    it 'recognizes an obvious match' do
-      expect(check_for_obvious_match(client_in_source)).to be client_in_destination.id
-    end
-
-    describe 'obvious match processing with a split' do
-      let!(:split) { create :grda_warehouse_client_split_history, split_from: client_in_source.id, split_into: client_in_destination.id }
-
-      it 'does not return an obvious match if it was split' do
-        expect(check_for_obvious_match(client_in_source)).to be_nil
-      end
-    end
-
     describe 'find merge candidates' do
       let!(:client_two_in_source) { create :grda_warehouse_hud_client, data_source: source_data_source }
       let!(:warehouse_data_source) { create :destination_data_source }
@@ -129,14 +117,16 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
           GrdaWarehouse::Tasks::IdentifyDuplicates.new.identify_duplicates
         end
         it 'runs without error a second time and connects the new client to the existing destination client' do
-          expect(GrdaWarehouse::WarehouseClient.count).to eq(2)
-          expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
-          ids_from_warehouse_clients = GrdaWarehouse::WarehouseClient.pluck(:source_id, :destination_id).sort
-          ids_from_clients = [
-            [client_in_source.id, client_in_destination.id],
-            [new_source_client.id, client_in_destination.id],
-          ].sort
-          expect(ids_from_warehouse_clients).to eq(ids_from_clients)
+          aggregate_failures do
+            expect(GrdaWarehouse::WarehouseClient.count).to eq(2)
+            expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
+            ids_from_warehouse_clients = GrdaWarehouse::WarehouseClient.pluck(:source_id, :destination_id).sort
+            ids_from_clients = [
+              [client_in_source.id, client_in_destination.id],
+              [new_source_client.id, client_in_destination.id],
+            ].sort
+            expect(ids_from_warehouse_clients).to eq(ids_from_clients)
+          end
         end
       end
     end
@@ -231,6 +221,189 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         end
       end
     end
+
+    describe 'exact match methods' do
+      let!(:client1) { create(:grda_warehouse_hud_client, data_source: source_data_source, SSN: '123446789') }
+      let!(:client2) { create(:grda_warehouse_hud_client, data_source: source_data_source, SSN: '123446789') }
+      let!(:dest1) { create(:grda_warehouse_hud_client, data_source: destination_data_source) }
+      let!(:dest2) { create(:grda_warehouse_hud_client, data_source: destination_data_source) }
+      let!(:wc1) { create(:warehouse_client, source_id: client1.id, destination_id: dest1.id) }
+      let!(:wc2) { create(:warehouse_client, source_id: client2.id, destination_id: dest2.id) }
+      describe 'exact_ssn_matches' do
+        it 'finds matches when SSNs are identical' do
+          matches = subject.exact_ssn_matches
+          expect(matches).to include([dest1.id, dest2.id])
+        end
+
+        it 'ignores invalid SSNs' do
+          client1.update(SSN: '000000000')
+          client2.update(SSN: '000000000')
+
+          matches = subject.exact_ssn_matches
+          expect(matches).to be_empty
+        end
+      end
+
+      describe 'exact_name_matches' do
+        it 'finds matches when normalized names are identical' do
+          client1.update(FirstName: 'John', LastName: 'Smith')
+          client2.update(FirstName: 'JOHN', LastName: 'SMITH')
+
+          matches = subject.exact_name_matches
+          expect(matches).to include([dest1.id, dest2.id])
+        end
+
+        it 'ignores clients with missing names' do
+          client1.update(FirstName: nil, LastName: nil)
+          client2.update(FirstName: nil, LastName: nil)
+
+          matches = subject.exact_name_matches
+          expect(matches).to be_empty
+        end
+      end
+
+      describe 'exact_dob_matches' do
+        it 'finds matches when DOBs are identical' do
+          client1.update(DOB: '1980-01-01')
+          client2.update(DOB: '1980-01-01')
+
+          matches = subject.exact_dob_matches
+          expect(matches).to include([dest1.id, dest2.id])
+        end
+
+        it 'ignores clients with DOBs before 1920' do
+          client1.update(DOB: '1919-01-01')
+          client2.update(DOB: '1919-01-01')
+
+          matches = subject.exact_dob_matches
+          expect(matches).to be_empty
+        end
+      end
+    end
+
+    describe 'merge chain processing' do
+      describe 'group_merge_chains' do
+        it 'groups related clients into chains' do
+          candidates = {
+            [1, 2] => 2,
+            [2, 3] => 2,
+            [4, 5] => 2,
+          }
+
+          chains = subject.send(:group_merge_chains, candidates)
+          expect(chains).to eq(
+            {
+              1 => [2, 3],
+              4 => [5],
+            },
+          )
+        end
+
+        it 'handles circular references' do
+          candidates = {
+            [1, 2] => 2,
+            [2, 3] => 2,
+            [3, 1] => 2,
+          }
+
+          chains = subject.send(:group_merge_chains, candidates)
+          expect(chains).to eq(
+            {
+              1 => [2, 3],
+            },
+          )
+        end
+      end
+
+      describe 'split_chains_on_max_source' do
+        it 'splits chains that would exceed max source clients' do
+          candidates = {
+            1 => [2, 3, 4, 5],
+          }
+          counts = {
+            1 => 45,
+            2 => 3,
+            3 => 2,
+            4 => 1,
+            5 => 1,
+          }
+
+          new_chains = subject.send(:split_chains_on_max_source, candidates: candidates, counts: counts)
+          expect(new_chains).to eq(
+            {
+              1 => [2, 3],
+              4 => [5],
+            },
+          )
+        end
+
+        it 'handles chains that are all under the limit' do
+          candidates = {
+            1 => [2, 3],
+          }
+          counts = {
+            1 => 10,
+            2 => 5,
+            3 => 5,
+          }
+
+          new_chains = subject.send(:split_chains_on_max_source, candidates: candidates, counts: counts)
+          expect(new_chains).to eq(
+            {
+              1 => [2, 3],
+            },
+          )
+        end
+      end
+    end
+
+    describe 'source client threshold' do
+      describe 'will_exceed_source_counts?' do
+        it 'returns true when adding would exceed max' do
+          counts = {
+            1 => 45,
+            2 => 6,
+          }
+
+          result = subject.send(
+            :will_exceed_source_counts?,
+            destination_id: 1,
+            source_id: 2,
+            counts: counts,
+          )
+          expect(result).to be true
+        end
+
+        it 'returns false when adding would not exceed max' do
+          counts = {
+            1 => 40,
+            2 => 5,
+          }
+
+          result = subject.send(
+            :will_exceed_source_counts?,
+            destination_id: 1,
+            source_id: 2,
+            counts: counts,
+          )
+          expect(result).to be false
+        end
+
+        it 'handles missing counts' do
+          counts = {
+            1 => 40,
+          }
+
+          result = subject.send(
+            :will_exceed_source_counts?,
+            destination_id: 1,
+            source_id: 2,
+            counts: counts,
+          )
+          expect(result).to be false
+        end
+      end
+    end
   end
 
   describe 'When matching is disabled' do
@@ -243,14 +416,26 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
     end
 
     it 'does not recognize an obvious match' do
-      expect(check_for_obvious_match(client_in_source)).to be_nil
+      processor = GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false)
+      processor.run!
+      aggregate_failures do
+        expect(GrdaWarehouse::WarehouseClient.where(source_id: client_in_source.id).count).to eq(1)
+        expect(GrdaWarehouse::WarehouseClient.find_by(source_id: client_in_source.id).destination_id).to be_present
+        expect(GrdaWarehouse::WarehouseClient.find_by(source_id: client_in_source.id).destination_id).to_not eq(client_in_destination.id)
+      end
     end
 
     describe 'obvious match processing with a split' do
       let!(:split) { create :grda_warehouse_client_split_history, split_from: client_in_source.id, split_into: client_in_destination.id }
 
       it 'does not return an obvious match if it was split' do
-        expect(check_for_obvious_match(client_in_source)).to be_nil
+        processor = GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false)
+        processor.run!
+        aggregate_failures do
+          expect(GrdaWarehouse::WarehouseClient.where(source_id: client_in_source.id).count).to eq(1)
+          expect(GrdaWarehouse::WarehouseClient.find_by(source_id: client_in_source.id).destination_id).to be_present
+          expect(GrdaWarehouse::WarehouseClient.find_by(source_id: client_in_source.id).destination_id).to_not eq(client_in_destination.id)
+        end
       end
     end
 
@@ -281,13 +466,6 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         end
       end
     end
-  end
-
-  # Check for obvious match is private...
-  def check_for_obvious_match(client_id)
-    inst = GrdaWarehouse::Tasks::IdentifyDuplicates.new
-    inst.send(:build_destination_lookups)
-    inst.send(:check_for_obvious_match, client_id)
   end
 
   def split_client

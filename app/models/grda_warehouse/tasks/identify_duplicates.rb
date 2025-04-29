@@ -51,35 +51,23 @@ module GrdaWarehouse::Tasks
       new_created = 0
 
       # Find all potential matches
-      matches = {}
-      exact_ssn_matches_for_unprocessed.each do |id_pair|
-        matches[id_pair] ||= 0
-        matches[id_pair] += 1
-      end
-      exact_name_matches_for_unprocessed.each do |id_pair|
-        matches[id_pair] ||= 0
-        matches[id_pair] += 1
-      end
-      exact_dob_matches_for_unprocessed.each do |id_pair|
-        matches[id_pair] ||= 0
-        matches[id_pair] += 1
-      end
-      more_than_one_match = matches.select { |_, v| v > 1 }.keys
+      more_than_one_match = find_merge_candidates_for_unprocessed
       found_ids = more_than_one_match.flatten.uniq.to_set
 
       # At this point more_than_one_match contains pairs of destination client id and source client id where the
       # source client should be merged into the destination client.
       # If the source client does not exist in any of the pairs, a new destination client should be created for it.
       destination_clients_by_id = GrdaWarehouse::Hud::Client.where(id: found_ids.to_a).index_by(&:id)
+
       unprocessed.find_in_batches do |batch|
         matched_ids = []
         destination_client_updates = []
         new_destination_clients = []
         new_warehouse_clients = {}
         source_client_ids_with_new_destination_clients = []
-        destination_client = nil
 
         batch.each do |client|
+          destination_client = nil
           if found_ids.include?(client.id)
             matched_pair = more_than_one_match.find { |pair| pair.include?(client.id) }
             destination_id = (matched_pair - [client.id]).first # We don't know the order of the pair
@@ -95,9 +83,15 @@ module GrdaWarehouse::Tasks
             # Set SSN & DOB if we have it in the incoming client, but not in the destination
             destination_client.dob = client.dob if client.dob.present? && destination_client.dob.blank?
             destination_client.ssn = client.ssn if client.ssn.present? && destination_client.ssn.blank?
+            # set non-nullable fields, these aren't used because of the column limitation on import
+            # but Postgres complains if they aren't there
+            destination_client.personal_id = client.personal_id
+            destination_client.data_source_id = @dnd_warehouse_data_source.id
+            destination_client_updates << destination_client
           else
             new_created += 1
             destination_client = client.dup
+            destination_client.id = nil
             destination_client.data_source_id = @dnd_warehouse_data_source.id
             destination_client.apply_housing_release_status
             new_destination_clients << destination_client
@@ -110,12 +104,6 @@ module GrdaWarehouse::Tasks
               data_source_id: client.data_source_id,
             )
           end
-
-          # set non-nullable fields, these aren't used because of the column limitation on import
-          # but Postgres complains if they aren't there
-          destination_client.personal_id = client.personal_id
-          destination_client.data_source_id = @dnd_warehouse_data_source.id
-          destination_client_updates << destination_client
         end
         # Persist any updates to destination clients
         GrdaWarehouse::Hud::Client.import(
@@ -126,9 +114,8 @@ module GrdaWarehouse::Tasks
           },
           validate: false,
         )
-
         # Create new destination clients
-        new_destination_ids = GrdaWarehouse::Hud::Client.import(new_destination_clients.uniq).ids
+        new_destination_ids = GrdaWarehouse::Hud::Client.import(new_destination_clients).ids
 
         # Update warehouse clients with new destination IDs
         source_client_ids_with_new_destination_clients.zip(new_destination_ids).each do |source_id, destination_id|
@@ -155,7 +142,7 @@ module GrdaWarehouse::Tasks
     # We'll do as much of this in the database as possible for performance and memory management
     # Matches and merges existing destination clients that are determined to be duplicates
     # This method:
-    # 1. Finds merge candidates using find_merge_candidates
+    # 1. Finds merge candidates using find_merge_candidates_for_match_existing
     # 2. Processes candidates in batches of 500
     # 3. For each batch, attempts to merge source clients (actually warehouse destination clients) into destination clients
     # 4. Marks any previous candidate matches as accepted
@@ -173,7 +160,7 @@ module GrdaWarehouse::Tasks
       # required multiple iterations are all in the array associated with the destination client,
       # all merges have been checked to confirm they won't exceed the max allowable source clients, and if
       # they would have exceeded the limit, a new group has been added
-      candidates = find_merge_candidates
+      candidates = find_merge_candidates_for_match_existing
       @logger.info "Found #{candidates.size} merge candidates"
 
       candidates.each_slice(500) do |batch|
@@ -402,7 +389,7 @@ module GrdaWarehouse::Tasks
               -- Match on SSN if both have it
               client_one_ssn = client_two_ssn
             )
-            WHERE client_one_id < client_two_id  -- Avoid duplicate pairs
+            WHERE client_one_id != client_two_id
       SQL
       # return an array of ID pairs
       results.
@@ -443,7 +430,7 @@ module GrdaWarehouse::Tasks
           -- Match on normalized name if both have it
           client_one_name_name = client_two_name_name
         )
-        WHERE client_one_name_id < client_two_name_id  -- Avoid duplicate pairs
+        WHERE client_one_name_id != client_two_name_id
       SQL
       # return an array of ID pairs
       results.map { |r| [r['client_one_name_id'], r['client_two_name_id']] }
@@ -481,15 +468,9 @@ module GrdaWarehouse::Tasks
           -- Match on DOB if both have it
           client_one_dob_dob = client_two_dob_dob
         )
-        WHERE client_one_dob_id < client_two_dob_id  -- Avoid duplicate pairs
+        WHERE client_one_dob_id != client_two_dob_id
       SQL
       results.map { |r| [r['client_one_dob_id'], r['client_two_dob_id']] }
-    end
-
-    private def find_current_id_for(id)
-      return merge_history.current_destination(id) unless client_destinations.where(id: id).exists?
-
-      return id
     end
 
     private def merge_history
@@ -497,17 +478,15 @@ module GrdaWarehouse::Tasks
     end
 
     # Find potential client merge candidates by looking for matches across multiple criteria
-    # @return [Set] A set of client ID pairs that are candidates for merging
+    # @return [Hash] A set of client ID pairs that are candidates for merging
     # @note Only returns matches if auto deduplication is enabled in config
     # @note Filters out any previously split client pairs
     # @note Checks source client counts to avoid exceeding limits
-    private def find_merge_candidates
-      to_merge = Set.new
-
+    private def find_merge_candidates_for_match_existing
       # Never return obvious matches if auto deduplication is disabled
       unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
         @logger.info 'Auto deduplication disabled, returning empty set'
-        return to_merge
+        return {}
       end
 
       # Find all potential matches
@@ -544,6 +523,35 @@ module GrdaWarehouse::Tasks
       split_chains_on_max_source(candidates: candidates, counts: source_client_counts)
     end
 
+    # Find potential client merge candidates by looking for matches across multiple criteria
+    # @return [Hash] A set of client ID pairs that are candidates for merging
+    # @note Only returns matches if auto deduplication is enabled in config
+    private def find_merge_candidates_for_unprocessed
+      # Never return obvious matches if auto deduplication is disabled
+      unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
+        @logger.info 'Auto deduplication disabled, returning empty set'
+        return {}
+      end
+
+      # Find all potential matches
+      matches = {}
+      if GrdaWarehouse::Config.get(:enable_auto_deduplication)
+        exact_ssn_matches_for_unprocessed.each do |id_pair|
+          matches[id_pair] ||= 0
+          matches[id_pair] += 1
+        end
+        exact_name_matches_for_unprocessed.each do |id_pair|
+          matches[id_pair] ||= 0
+          matches[id_pair] += 1
+        end
+        exact_dob_matches_for_unprocessed.each do |id_pair|
+          matches[id_pair] ||= 0
+          matches[id_pair] += 1
+        end
+      end
+      matches.select { |_, v| v > 1 }.keys
+    end
+
     # Check if a client pair should be rejected based on source client counts
     # @param destination_id [Integer] The ID of the destination client
     # @param source_id [Integer] The ID of the source client
@@ -574,8 +582,19 @@ module GrdaWarehouse::Tasks
     end
 
     private def find_root(id, parent)
-      id = parent[id] while parent[id]
-      id
+      visited = Set.new
+      current = id
+      while parent[current] && !visited.include?(current)
+        visited.add(current)
+        current = parent[current]
+      end
+      # If we hit a cycle, choose the lowest ID in the cycle as the root
+      if visited.include?(current)
+        visited.add(current)
+        visited.min
+      else
+        current
+      end
     end
 
     # Splits merge chains that would exceed the maximum allowed source clients per destination
@@ -601,7 +620,10 @@ module GrdaWarehouse::Tasks
           end
           # note that we are going to have these source clients even though the merge hasn't happened
           increment_source_count(destination_id: current_root, source_id: source_id, counts: counts)
-          current_chain << source_id
+          # Add the client to the current chain, but only if it's not the root.
+          # If we end up with an empty chain, that's fine, the source_ids are actually destination
+          # client ids.  An empty chain just means we won't be merging into that client at this time
+          current_chain << source_id unless current_root == source_id
         end
 
         # Save the last chain
@@ -641,99 +663,9 @@ module GrdaWarehouse::Tasks
       )
     end
 
-    # Destination clients are limited to MAX_SOURCE_CLIENTS number of source clients. This is to prevent runaway duplicate merges.
-    # This will return the ids of any destination clients that is at or beyond this threshold so they can be filtered out of future matching.
-    # We are using unmatchable destinations here to more easily include destination clients who do not have a warehouse client record.
-    # This should also be a smaller list than the full list of matchable destination ids.
-    # NOTE: this is only calculated at the start of the run, if a client is merged more than once, it may exceed AX_SOURCE_CLIENTS
-    private def unmatchable_destination_ids
-      GrdaWarehouse::WarehouseClient.group(:destination_id).having('count(*) >= ?', MAX_SOURCE_CLIENTS).select(:destination_id)
-    end
-
     # fetch a list of existing clients from the DND Warehouse DataSource (current destinations)
     private def client_destinations
-      GrdaWarehouse::Hud::Client.destination.where.not(id: unmatchable_destination_ids)
-    end
-
-    # Look for really clear matches (2 of the following 3 should be good):
-    #   1. valid social and last 4 of social or entire social match
-    #   2. birthdate matches
-    #   3. perfect name matches
-    private def check_for_obvious_match(client)
-      # Never return obvious matches if auto deduplication is disabled
-      return nil unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
-
-      ssn_matches = @dest_ssn_lookup.get_ids(ssn: client.SSN)
-      birthdate_matches = @dest_dob_lookup.get_ids(dob: client.DOB)
-      name_matches = @dest_name_lookup.get_ids(first_name: client.first_name, last_name: client.last_name)
-
-      all_matches = ssn_matches + birthdate_matches + name_matches
-      if Rails.env.development?
-        personal_id_matches = check_personal_ids(client.PersonalID)
-        all_matches += personal_id_matches
-      end
-      obvious_matches = all_matches.uniq.map { |i| i if all_matches.count(i) > 1 && !split?(client, i) }.compact
-
-      return obvious_matches.first if obvious_matches.any?
-
-      return nil
-    end
-
-    private def split?(client, candidate_id)
-      exists = client.splits_to.where(split_into: candidate_id).exists?
-      @logger.info "Checking split relationship: client=#{client.id} candidate=#{candidate_id} exists=#{exists}"
-      exists
-    end
-
-    # Only use in development
-    private def check_personal_ids(personal_id)
-      return [] if personal_id.to_i.to_s == personal_id.to_s
-
-      client_destinations.where(PersonalID: personal_id).pluck(:id)
-    end
-
-    private def build_destination_lookups
-      @dest_name_lookup = GrdaWarehouse::ClientMatcherLookups::ProperNameLookup.new
-      @dest_ssn_lookup = GrdaWarehouse::ClientMatcherLookups::SSNLookup.new
-      @dest_dob_lookup = GrdaWarehouse::ClientMatcherLookups::DOBLookup.new
-      @dest_clients_by_id = {}
-
-      GrdaWarehouse::ClientMatcherLookups::ClientStub.from_scope(client_destinations) do |client|
-        @dest_name_lookup.add(client)
-        @dest_ssn_lookup.add(client)
-        @dest_dob_lookup.add(client)
-        @dest_clients_by_id[client.id] = client
-      end
-    end
-
-    # Builds lookup tables for source clients to efficiently find matches based on name, SSN, and DOB
-    # Creates three lookup tables:
-    # - @source_name_lookup: Maps normalized names to client IDs
-    # - @source_ssn_lookup: Maps SSNs to client IDs
-    # - @source_dob_lookup: Maps dates of birth to client IDs
-    # Stores all source clients in @source_clients array
-    # Using the destination client's ID, but the source client's PII
-    private def build_source_lookups
-      @source_name_lookup = GrdaWarehouse::ClientMatcherLookups::ProperNameLookup.new
-      @source_ssn_lookup = GrdaWarehouse::ClientMatcherLookups::SSNLookup.new
-      @source_dob_lookup = GrdaWarehouse::ClientMatcherLookups::DOBLookup.new
-      @source_clients = []
-
-      clients = GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).source
-      # Use the Destination Client's ID, but the source client's PII
-      id_field = Arel.sql(wc_t[:destination_id].to_sql)
-      GrdaWarehouse::ClientMatcherLookups::ClientStub.from_scope(clients, id_field: id_field) do |client|
-        @source_name_lookup.add(client)
-        @source_ssn_lookup.add(client)
-        @source_dob_lookup.add(client)
-        @source_clients.push(client)
-      end
-    end
-
-    # reshape for upsert, exclude names
-    private def get_destination_client_by_id(id)
-      found = @dest_clients_by_id[id]
-      { SSN: found.ssn, DOB: found.dob, id: found.id }
+      GrdaWarehouse::Hud::Client.destination
     end
   end
 end
