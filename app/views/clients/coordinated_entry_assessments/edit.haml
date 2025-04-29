@@ -5,7 +5,7 @@
   = render 'clients/aliases'
 
 .o-page__header
-  = render_display_title "Editing #{_'Coordinated Entry Assessment'} for #{@client.pii_provider(user: current_user).full_name}"
+  = render_display_title "Editing #{Translation.translate('Coordinated Entry Assessment')} for #{@client.pii_provider(user: current_user).full_name}"
   = render 'clients/tab_navigation', current: client_coordinated_entry_assessments_path(client_id: @client)
 
 = simple_form_for @assessment, url: client_coordinated_entry_assessment_path(@client, @assessment) do |f|
