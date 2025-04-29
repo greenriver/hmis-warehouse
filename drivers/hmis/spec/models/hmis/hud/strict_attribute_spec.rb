@@ -29,6 +29,7 @@ RSpec.describe Hmis::Hud::Concerns::WithStrictAttributes, type: :feature do
     end
 
     [
+      '.',
       'abc',
       Object.new,
       { 'foo': 'bar' },
@@ -65,6 +66,7 @@ RSpec.describe Hmis::Hud::Concerns::WithStrictAttributes, type: :feature do
     end
 
     [
+      '.',
       '123.45',
       'abc',
       Object.new,
