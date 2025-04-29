@@ -719,7 +719,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see any clients' do
         get client_path(non_window_destination_client)
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Bob Ross')
+        expect(doc.text).to include(non_window_destination_client.id.to_s)
         expect(response).to have_http_status(200)
       end
     end
