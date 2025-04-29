@@ -2,7 +2,7 @@
 - content_for :title, "Youth Intake"
 
 .d-flex
-  = render_page_title "Youth Intake for #{@client.pii_provider(user: current_user).full_name}"
+  = render_display_title "Youth Intake for #{@client.pii_provider(user: current_user).full_name}"
   .ml-auto
     - if current_user.can_edit_youth_intake? || current_user.can_edit_own_agency_youth_intake?
       = link_to polymorphic_path([:edit] + youth_intake_path_generator, id: @intake.id), class: 'btn btn-primary' do

@@ -528,9 +528,9 @@ module ApplicationHelper
   end
 
   # page title with optional block
-  # = render_page_title "New Report" do
+  # = render_display_title "New Report" do
   #   = render 'type_warning'
-  def render_page_title(title, &block)
+  def render_display_title(title, &block)
     content_tag(:div, class: 'o-page__title') do
       concat(content_tag(:h1, title))
       concat(capture(&block)) if block_given?
