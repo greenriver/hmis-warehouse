@@ -15,6 +15,38 @@
 #   end
 #
 class GrdaWarehouse::SourceClientViewAccessor
+  class Cache
+    def initialize(user, method)
+      @user = user
+      @method = method
+      @cache = {}
+    end
+
+    def clients(client)
+      key = client.id
+      preload([client]) unless @cache.key?(key)
+      @cache[key] ||= []
+    end
+
+    def preload(clients)
+      destination_client_ids = clients.map(&:id)
+      source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: destination_client_ids).pluck(:source_id)
+      return if source_client_ids.empty?
+
+      source_clients = GrdaWarehouse::Hud::Client.arbiter(@user).
+        public_send(@method, @user, client_ids: source_client_ids).
+        preload(:destination_client, :data_source, :patient)
+      source_clients.each do |client|
+        key = client.destination_client&.id
+        raise "Source client \\#{client.id} references invalid destination client" unless key
+
+        @cache[key] ||= []
+        @cache[key] << client
+      end
+      true
+    end
+  end
+
   # Overrides the default inspect method to prevent memory-intensive string
   # generation when the object contains many cached clients
   def inspect
@@ -24,8 +56,8 @@ class GrdaWarehouse::SourceClientViewAccessor
   # @param user [User] The authenticated for permissions checks
   def initialize(user:)
     @user = user
-    @searchable_clients = {}
-    @viewable_clients = {}
+    @searchable_cache = Cache.new(user, :clients_source_searchable_to)
+    @viewable_cache = Cache.new(user, :clients_source_visible_to)
   end
 
   # Retrieves all searchable source clients associated with a given destination client, filtered
@@ -36,9 +68,7 @@ class GrdaWarehouse::SourceClientViewAccessor
   # @return [Array<SourceClient>] Array of associated source client records
   # @note Automatically triggers preloading if the client hasn't been cached
   def searchable_clients(client)
-    key = client.id
-    preload_searchable_clients([client]) unless @searchable_clients.key?(key)
-    @searchable_clients[key] ||= []
+    @searchable_cache.clients(client)
   end
 
   # Retrieves all viewable source clients associated with a given destination client, filtered
@@ -49,9 +79,7 @@ class GrdaWarehouse::SourceClientViewAccessor
   # @return [Array<SourceClient>] Array of associated source client records
   # @note Automatically triggers preloading if the client hasn't been cached
   def viewable_clients(client)
-    key = client.id
-    preload_viewable_clients([client]) unless @viewable_clients.key?(key)
-    @viewable_clients[key] ||= []
+    @viewable_cache.clients(client)
   end
 
   # Name set object containing aliases from the source clients associated with the
@@ -85,23 +113,7 @@ class GrdaWarehouse::SourceClientViewAccessor
   # @return [Boolean] true if preloading was performed, false if no source
   #   clients were found
   def preload_searchable_clients(clients)
-    destination_client_ids = clients.map(&:id)
-    source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: destination_client_ids).pluck(:source_id)
-
-    return if source_client_ids.empty?
-
-    source_clients = GrdaWarehouse::Hud::Client.arbiter(@user).
-      clients_source_searchable_to(@user, client_ids: source_client_ids).
-      preload(:destination_client, :data_source, :patient)
-
-    source_clients.each do |client|
-      key = client.destination_client&.id
-      raise "Source client #{client.id} references invalid destination client" unless key
-
-      @searchable_clients[key] ||= []
-      @searchable_clients[key] << client
-    end
-    true
+    @searchable_cache.preload(clients)
   end
 
   # Preloads and caches source client data for a batch of destination clients to
@@ -112,22 +124,6 @@ class GrdaWarehouse::SourceClientViewAccessor
   # @return [Boolean] true if preloading was performed, false if no source
   #   clients were found
   def preload_viewable_clients(clients)
-    destination_client_ids = clients.map(&:id)
-    source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: destination_client_ids).pluck(:source_id)
-
-    return if source_client_ids.empty?
-
-    source_clients = GrdaWarehouse::Hud::Client.arbiter(@user).
-      clients_source_visible_to(@user, client_ids: source_client_ids).
-      preload(:destination_client, :data_source, :patient)
-
-    source_clients.each do |client|
-      key = client.destination_client&.id
-      raise "Source client #{client.id} references invalid destination client" unless key
-
-      @viewable_clients[key] ||= []
-      @viewable_clients[key] << client
-    end
-    true
+    @viewable_cache.preload(clients)
   end
 end
