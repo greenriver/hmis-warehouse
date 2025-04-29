@@ -3413,12 +3413,12 @@ CREATE VIEW analytics.hmis_client_alerts AS
     note,
     created_at,
     updated_at,
+    deleted_at,
     expiration_date,
     created_by_id,
     client_id,
     priority
-   FROM public.hmis_client_alerts
-  WHERE (deleted_at IS NULL);
+   FROM public.hmis_client_alerts;
 
 
 --
@@ -3600,6 +3600,68 @@ CREATE VIEW analytics.hmis_participations AS
 
 
 --
+-- Name: hmis_scan_card_codes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_scan_card_codes (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    value character varying NOT NULL,
+    created_by_id bigint,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    expires_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.value; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.value IS 'code to embed in scan card';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.created_by_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.created_by_id IS 'user that generated code';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.deleted_by_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.deleted_by_id IS 'user that deleted code';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.expires_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.expires_at IS 'when scan card should expire';
+
+
+--
+-- Name: hmis_scan_cards; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.hmis_scan_cards AS
+ SELECT id,
+    client_id,
+    value,
+    created_by_id,
+    deleted_by_id,
+    created_at,
+    updated_at,
+    deleted_at,
+    expires_at
+   FROM public.hmis_scan_card_codes;
+
+
+--
 -- Name: hmis_staff_assignment_relationships; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3646,10 +3708,10 @@ CREATE VIEW analytics.hmis_staff_assignments AS
     hmis_staff_assignment_relationships.name,
     hmis_staff_assignments.data_source_id,
     hmis_staff_assignments.created_at,
-    hmis_staff_assignments.updated_at
+    hmis_staff_assignments.updated_at,
+    hmis_staff_assignments.deleted_at
    FROM (public.hmis_staff_assignments
-     LEFT JOIN public.hmis_staff_assignment_relationships ON (((hmis_staff_assignment_relationships.deleted_at IS NULL) AND (hmis_staff_assignment_relationships.id = hmis_staff_assignments.hmis_staff_assignment_relationship_id))))
-  WHERE (hmis_staff_assignments.deleted_at IS NULL);
+     LEFT JOIN public.hmis_staff_assignment_relationships ON ((hmis_staff_assignment_relationships.id = hmis_staff_assignments.hmis_staff_assignment_relationship_id)));
 
 
 --
@@ -20679,51 +20741,6 @@ CREATE SEQUENCE public.hmis_project_unit_type_mappings_id_seq
 --
 
 ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmis_project_unit_type_mappings.id;
-
-
---
--- Name: hmis_scan_card_codes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_scan_card_codes (
-    id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    value character varying NOT NULL,
-    created_by_id bigint,
-    deleted_by_id bigint,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    expires_at timestamp without time zone
-);
-
-
---
--- Name: COLUMN hmis_scan_card_codes.value; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.hmis_scan_card_codes.value IS 'code to embed in scan card';
-
-
---
--- Name: COLUMN hmis_scan_card_codes.created_by_id; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.hmis_scan_card_codes.created_by_id IS 'user that generated code';
-
-
---
--- Name: COLUMN hmis_scan_card_codes.deleted_by_id; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.hmis_scan_card_codes.deleted_by_id IS 'user that deleted code';
-
-
---
--- Name: COLUMN hmis_scan_card_codes.expires_at; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.hmis_scan_card_codes.expires_at IS 'when scan card should expire';
 
 
 --
@@ -66782,6 +66799,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250407165554'),
 ('20250408133728'),
 ('20250409145017'),
-('20250416145715');
+('20250416145715'),
+('20250424192101'),
+('20250424193237'),
+('20250424193430');
 
 
