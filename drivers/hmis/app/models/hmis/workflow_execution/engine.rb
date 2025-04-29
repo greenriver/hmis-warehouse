@@ -77,7 +77,7 @@ module Hmis::WorkflowExecution
     # even though it's called outside of process_triggers, so that users are notified of assignment.
     def assign_task!(step)
       assignment_handler.call(step.node).each do |user|
-        step.assignments.create!(user: user)
+        step.assignments.find_or_create_by!(user: user)
       end
     end
 

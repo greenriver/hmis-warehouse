@@ -99,10 +99,25 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
       it 'creates assignees as well as participants' do
         step = referral.workflow_engine.active_steps.sole
         expect do
-          post_graphql(**variables) { mutation }
+          response, result = post_graphql(**variables) { mutation }
+          expect(response.status).to eq(200), result.inspect
           step.reload
         end.to change(step.assignments, :count).from(0).to(1)
         expect(step.assignments.sole.user).to eq(hmis_user)
+      end
+
+      context 'with existing assignee' do
+        let!(:assignment) { referral.workflow_engine.active_steps.sole.assignments.create(user: hmis_user) }
+
+        it 'does not try to create duplicate assignees' do
+          step = referral.workflow_engine.active_steps.sole
+          expect do
+            response, result = post_graphql(**variables) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            step.reload
+          end.to not_change(step.assignments, :count).from(1)
+          expect(step.assignments.sole.user).to eq(hmis_user)
+        end
       end
     end
 
