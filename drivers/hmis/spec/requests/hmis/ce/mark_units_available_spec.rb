@@ -53,7 +53,8 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'markUnitsAvailable', 'units', 0, 'latestOpportunity', 'name')).to eq("Unit #{unit.id} - #{unit_type.description}")
           unit.reload
-        end.to change(Hmis::Ce::Opportunity, :count).by(1)
+        end.to change(Hmis::Ce::Opportunity, :count).by(1).
+          and change(Delayed::Job.jobs_for_class('CandidatePoolBuilderJob'), :count).from(0).to(1)
         expect(unit.latest_opportunity).to be_present
       end
     end

@@ -37,6 +37,10 @@ module Mutations
         Hmis::Ce::Opportunity.import!(opportunities)
       end
 
+      job_class = Hmis::CandidatePoolBuilderJob
+      job_name = job_class.name
+      Delayed::Job.enqueue job_class.new unless Delayed::Job.queued?(job_name) || Delayed::Job.running?(job_name)
+
       { units: Hmis::Unit.where(id: unit_ids) } # we don't need the preloads this time, so fresh query instead of reload
     end
 

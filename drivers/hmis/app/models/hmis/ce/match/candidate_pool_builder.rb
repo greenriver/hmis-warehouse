@@ -21,10 +21,16 @@ module Hmis::Ce::Match
     end
 
     def _perform
+      # Group opportunities by unique priority and eligibility rules.
+      # Key is an array of priority schemes and eligibility requirements;
+      # Value is an array of opportunities matching those rules.
+      # For example,
+      # {
+      #   ["days_homeless", "current_age >= 18"] => [opportunity1, opportunity2, ...]
+      # }
       grouped = {}
 
       all_rules = Hmis::Ce::Match::Rule.preload(:owner).order(:owner_type, :id).to_a
-      # group opportunities by unique priority and eligibility rules
       active_opportunities.preload(project: [:organization, :funders]).each do |opportunity|
         rules = all_rules.filter { |rule| rule.applies_to_opportunity?(opportunity) }
         key = []
