@@ -10,8 +10,6 @@ module Hmis
   class CandidatePoolBuilderJob < BaseJob
     include NotifierConfig
 
-    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-
     def perform
       log("Building candidate pools for #{Hmis::Ce::Opportunity.active.count} active opportunities")
       Hmis::Ce::Match::CandidatePoolBuilder.new.perform
