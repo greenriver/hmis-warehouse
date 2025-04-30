@@ -16,14 +16,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ceReferralStep(id: $id) {
             id
             stepId
-            swimlane {
-              id
-              name
-              participants {
-                id
-                name
-              }
-            }
+            swimlane
             assignees {
               id
               name
@@ -37,7 +30,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       referral.workflow_engine.start_workflow!(user: hmis_user)
     end
 
-    let!(:participant) { referral.participants.create(swimlane: case_manager_swimlane, user: hmis_user) }
+    let!(:assignee) { referral.workflow_instance.steps.sole.assignments.create(user: hmis_user) }
 
     it 'returns expected structure with swimlane' do
       step = referral.workflow_instance.steps.sole
@@ -48,9 +41,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq(200), result.inspect
       step_data = result.dig('data', 'ceReferralStep')
       expect(step_data.dig('stepId')).to eq(step.id.to_s)
-      expect(step_data.dig('swimlane', 'id')).to eq(case_manager_swimlane.id.to_s)
-      expect(step_data.dig('swimlane', 'participants', 0, 'id')).to eq(hmis_user.id.to_s)
-      expect(step_data.dig('assignees')).to be_empty # this referral has potential participants but no direct assignees yet
+      expect(step_data.dig('swimlane')).to eq(case_manager_swimlane.name)
+      expect(step_data.dig('assignees')).to contain_exactly(
+        a_hash_including(
+          'id' => assignee.user.id.to_s,
+        ),
+      )
     end
   end
 end

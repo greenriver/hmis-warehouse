@@ -89,14 +89,7 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
               formDefinition {
                 id
               }
-              swimlane {
-                id
-                name
-                participants {
-                  id
-                  name
-                }
-              }
+              swimlane
               assignees {
                 id
                 name
@@ -123,16 +116,13 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
       end
 
       context 'with valid input' do
-        let!(:participant) { referral.participants.create(swimlane: swimlane, user: hmis_user) }
-
         it 'starts the step' do
           _, result = post_graphql(**variables) { mutation }
           step_data = result.dig('data', 'startCeReferralStep', 'step')
 
           expect(step_data['status']).to eq('in_progress')
           expect(step_data['name']).to eq('Client Acceptance')
-          expect(step_data.dig('swimlane', 'id')).to eq(swimlane.id.to_s)
-          expect(step_data.dig('swimlane', 'participants', 0, 'id')).to eq(hmis_user.id.to_s)
+          expect(step_data.dig('swimlane')).to eq(swimlane.name)
           expect(step.reload.status).to eq('in_progress')
         end
 
