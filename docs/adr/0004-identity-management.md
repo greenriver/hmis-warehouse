@@ -16,6 +16,7 @@ As Open Path continues to expand the number of applications that comprise the so
 
 This ADR outlines an external IdP, IdP Proxy, and Oauth2 proxy that can be placed in front of all Open Path applications, streamlining the authentication workflows bringing consistency to the authentication process across the platform.
 It is recognized that some Open Path installations will require an additional external IdP, and the proposed structure should allow that without significant development.
+
 ## Decision Criteria
 
 This solution must:
@@ -24,9 +25,10 @@ This solution must:
 - Enable centralized admin access across installations
 - Maintain or improve security posture
 - Not add significant operational cost
+
 ## Decision
 
-1. We will standardize on [Oauth2 authentication with a JWT](https://docs.secureauth.com/ciam/en/using-jwt-profile-for-oauth-2-0-authorization-flows.html) at the application level
+1. We will standardize on [Oauth2 authentication with a JWT](https://docs.secureauth.com/ciam/en/using-jwt-profile-for-oauth-2-0-authorization-flows.html) at the application level as it is an industry standard with wide library support
 2. We will install [Oauth2-Proxy](https://oauth2-proxy.github.io/oauth2-proxy/) in front of all Open Path applications to ensure protected paths are enforced
 3. We will add [Dex](http://dexidp.io) as an IdP proxy upstream of Oauth2-Proxy
 4. We will install and host a copy of [Zitadel](https://zitadel.com) as an identity provider for both development and deployed installations.
