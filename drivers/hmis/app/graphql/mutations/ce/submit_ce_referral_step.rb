@@ -31,6 +31,8 @@ module Mutations
         step = engine.active_steps.find(step_id)
         step.form_definition = form_definition
 
+        # TODO(#7395): permission
+
         validations = engine.validate_step(step, submitted_values: input)
         errors.push(*validations)
         return { errors: errors } if errors.any?
@@ -39,7 +41,7 @@ module Mutations
       end
 
       {
-        step: step,
+        step: step.reload,
         referral: referral.reload,
       }
     end
