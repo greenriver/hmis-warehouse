@@ -552,10 +552,7 @@ module Types
     def ce_referral_step(id:)
       raise unless Hmis::Ce.configuration.enabled?
 
-      step = Hmis::WorkflowExecution::Step.viewable_by(current_user).find(id)
-      access_denied! unless step.present?
-
-      step
+      Hmis::WorkflowExecution::Step.viewable_by(current_user).find(id)
     end
   end
 end

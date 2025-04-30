@@ -17,6 +17,7 @@ module Mutations
       raise unless Hmis::Ce.configuration.enabled?
 
       referral = Hmis::Ce::Referral.viewable_by(current_user).find(referral_id)
+      # TODO(#7506) - check that the current_user has permission to assign participants
 
       swimlane_ids = participants.map(&:swimlane_id).uniq
       swimlanes = referral.workflow_instance.template.swimlanes.where(id: swimlane_ids)
@@ -24,6 +25,7 @@ module Mutations
 
       user_ids = participants.map(&:user_id).uniq
       users = Hmis::User.where(id: user_ids)
+      # TODO(#7506) - check that all these users have permission to participate in referrals in this project
       raise 'Not found' unless users.size == user_ids.size
 
       referral.with_lock do

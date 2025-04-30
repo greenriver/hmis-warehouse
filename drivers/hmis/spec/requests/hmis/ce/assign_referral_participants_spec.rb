@@ -38,6 +38,17 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
                   name
                 }
               }
+              steps {
+                id
+                stepId
+                name
+                status
+                swimlane
+                assignees {
+                  id
+                  name
+                }
+              }
             }
           }
         }
