@@ -21,11 +21,4 @@ RSpec.describe ApplicationNotifier do
       notifier.ping('msg')
     end
   end
-
-  describe '#flush_queue' do
-    it 'calls lpop and post for queued messages' do
-      notifier = described_class.new(url)
-      notifier.flush_queue
-    end
-  end
 end

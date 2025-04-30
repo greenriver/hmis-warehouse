@@ -108,7 +108,7 @@ class ApplicationNotifier < Slack::Notifier
       if redis.ping
         @redis = redis
         @namespace = self.class.encode_key(url, channel, username)
-        Rails.logger.debug "ApplicationNotifier#ping queuing enabled at \\#{@redis.inspect} \\#{@namespace}"
+        Rails.logger.debug "ApplicationNotifier#ping queuing enabled at #{@redis.inspect} #{@namespace}"
       end
     rescue Redis::BaseError => e
       Rails.logger.warn "ApplicationNotifier#ping queuing disabled. #{e.inspect}"
