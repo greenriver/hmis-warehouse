@@ -271,7 +271,8 @@ task ce_starter_pack_20250302: [:environment] do
   project_coc.user ||= system_user
   project_coc.save! if project_coc.changed?
 
-  ce_project_funder = ce_project.funders.find_or_initialize_by(funder: 20)
+  ce_project_funder = ce_project.funders.find_or_initialize_by(data_source: ce_project.data_source)
+  ce_project_funder.funder = 20
   ce_project_funder.user = system_user
   ce_project_funder.data_source = ce_project.data_source
   ce_project_funder.start_date ||= 3.years.ago
