@@ -33,6 +33,7 @@ module Hmis::WorkflowExecution
     end
 
     def start_step!(step, user:)
+      step.assignments.find_or_create_by!(user: user)
       step.start!
       process_triggers(node: step.node, event_type: 'start_step', user: user, step: step)
       log_event('start_step', user: user, step: step)
@@ -68,6 +69,17 @@ module Hmis::WorkflowExecution
     # def cancel_step!(step)
     #   step.cancel!
     # end
+
+    # Method for task assignment is exposed to callers outside of the engine, because it's may be called outside the
+    # context of a workflow step progression (for example, when participants are assigned to a swimlane, any active
+    # steps' assignees may need to be updated.)
+    # TODO(#7080) When we add notifications, we may need to add notification from within this method,
+    # even though it's called outside of process_triggers, so that users are notified of assignment.
+    def assign_task!(step)
+      assignment_handler.call(step.node).each do |user|
+        step.assignments.find_or_create_by!(user: user)
+      end
+    end
 
     protected
 
@@ -143,12 +155,6 @@ module Hmis::WorkflowExecution
         process_triggers(node: node, event_type: 'end_workflow', user: user)
       else
         raise "Got unhandled node #{node.class.name}"
-      end
-    end
-
-    def assign_task!(step)
-      assignment_handler.call(step.node).each do |user|
-        step.assignments.create!(user: user)
       end
     end
 

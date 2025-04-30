@@ -17,19 +17,20 @@ module Types
     field :status, HmisSchema::Enums::CeReferralStepStatus, null: false
     field :swimlane, String, null: false
     field :submitted_values, JsonObject, null: true
-    delegate :name, to: :workflow_node
+    delegate :name, to: :workflow_task
+    field :assignees, [Application::User], null: false, description: 'User(s) currently assigned to this step'
 
     def id
       # the step may not yet be persisted, such as when it isn't yet available in the workflow
       "#{object.node_id}:#{object.instance_id}"
     end
 
-    def workflow_node
-      load_ar_association(object, :node)
-    end
-
     def swimlane
       load_ar_association(object, :swimlane)&.name
+    end
+
+    def assignees
+      load_ar_association(object, :assignments)&.map(&:user)
     end
 
     def form_definition # Don't resolve in batch
@@ -38,7 +39,14 @@ module Types
       return definition if definition.present?
 
       # Otherwise, get the definition identifier on the node, and return the latest published definition with this identifier
-      object.node.form_definitions.published.order(version: :desc).first
+      workflow_task.form_definitions.published.order(version: :desc).first
+    end
+
+    private
+
+    # the Hmis::WorkflowDefinition::Task that configures this referral step
+    def workflow_task
+      load_ar_association(object, :task)
     end
   end
 end

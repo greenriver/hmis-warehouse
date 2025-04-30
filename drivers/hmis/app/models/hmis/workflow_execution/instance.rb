@@ -7,5 +7,6 @@ module Hmis::WorkflowExecution
     belongs_to :template, class_name: 'Hmis::WorkflowDefinition::Template'
     has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', dependent: :destroy
     has_many :audit_events, class_name: 'Hmis::WorkflowExecution::AuditEvent', dependent: :destroy
+    has_many :swimlanes, through: :template, class_name: 'Hmis::WorkflowDefinition::Swimlane'
   end
 end
