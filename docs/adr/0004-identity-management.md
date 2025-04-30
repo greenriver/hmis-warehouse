@@ -13,9 +13,17 @@ As Open Path continues to expand the number of applications that comprise the so
   1. Separate accounts (CAS & Warehouse)
   2. Re-used accounts (HMIS & Warehouse)
   3. Shared accounts via SSO (Analytics & Warehouse).
-This ADR outlines an external IDP, IDP Proxy, and Oauth2 proxy that can be placed in front of all Open Path applications streamlining the authentication workflows bringing consistency to the authentication process across the platform.
-It is recognized that some Open Path installations will require an additional external IDP, and the proposed structure should allow that without significant development.
 
+This ADR outlines an external IDP, IDP Proxy, and Oauth2 proxy that can be placed in front of all Open Path applications, streamlining the authentication workflows bringing consistency to the authentication process across the platform.
+It is recognized that some Open Path installations will require an additional external IDP, and the proposed structure should allow that without significant development.
+## Decision Criteria
+
+This solution must:
+- Provide a single sign-on experience
+- Support external IdPs for some installations
+- Enable centralized admin access across installations
+- Maintain or improve security posture
+- Not add significant operational cost
 ## Decision
 
 1. We will standardize on [Oauth2 authentication with a JWT](https://docs.secureauth.com/ciam/en/using-jwt-profile-for-oauth-2-0-authorization-flows.html) at the application level
@@ -24,6 +32,21 @@ It is recognized that some Open Path installations will require an additional ex
 4. We will install and host a copy of [Zitadel](https://zitadel.com) as an identity provider for both development and deployed installations.
 
 ## Consequences
+### Benefits
+
+- **Unified authentication experience** across all Open Path applications
+- **Hardens security posture** uses more robust solution 
+- **Reduced maintenance burden and technical debt** no longer need to support and maintain auth libraries and configuration
+- **Centralized admin access** across customer installations through shared admin IdP instance
+
+### Challenges
+
+- **Risk of unknown technology** our team does not have experience with Zitadel
+- **Migration complexity** from existing Devise-based authentication
+  - May require significant code changes
+  - User credentials will need to be migrated to Zitadel
+- **Learning curve** for development team to understand new authentication flow
+- **Potential user experience impact** during transition
 
 Using Zitadel provides a full-featured IdP with a straight-forward API if we decide to build user management directly into the application.  [Zitadel provides many mechanisms of MFA as documented here](https://zitadel.com/docs/concepts/features/selfservice#mfa--fido-passkeys) and specifically includes Authenticator app, email, and SMS OTP options as well as passkeys and security device support.
 
