@@ -111,7 +111,7 @@ class ApplicationNotifier < Slack::Notifier
         message,
         options[:info].presence || {},
       )
-    elsif @redis_pinged || message.is_a?(Hash) || options.present?
+    elsif !@redis_pinged || message.is_a?(Hash) || options.present?
       # fallback on hard cases or if Redis is not available
       super
     else
