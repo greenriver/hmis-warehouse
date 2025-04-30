@@ -483,8 +483,11 @@ module UserConcern
     #
     # @example Find users with similarity ordering
     #   User.text_search('john smith', sort_by_best_match: true)
-    def self.text_search(text, sort_by_best_match: false, similarity_threshold: 0.6)
-      terms = text.to_s.split(/[\s,]+/).map(&:strip).reject(&:blank?)
+    def self.text_search(text, sort_by_best_match: false, similarity_threshold: 0.3)
+      text = text.strip
+      return none if text.length < 3 # require at least 3 characters for meaningful search
+
+      terms = text.split(/[\s,]+/).map(&:strip).reject(&:blank?)
       return none if terms.empty?
 
       scope = terms.map do |term|
