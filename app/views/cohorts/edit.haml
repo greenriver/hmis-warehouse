@@ -61,7 +61,7 @@
     .col-sm-6
       %h3 View Options
       .well
-        = f.input :days_of_inactivity, label: 'How many days of client inactivity should trigger a warning?', input_html: {style: 'width: 6em;'}
+        = f.input :days_of_inactivity, label: 'How many days of client inactivity should trigger a warning?', hint: 'This is calculated by looking for homeless service or intentional contacts (events, current living situations, or services) within the selected number of days.  If no contacts are found, the client will be considered inactive.', input_html: {style: 'width: 6em;'}
         = f.input :static_column_count, label: 'Number of static columns', input_html: {style: 'width: 6em;'}
         - hint = "The cohort will be sorted by the first column".html_safe
         - if @cohort.column_state.present?
