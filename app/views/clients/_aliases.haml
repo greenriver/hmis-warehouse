@@ -1,5 +1,7 @@
 - show_second_column = can_track_anomalies? || @client.alert_notes.exists?
+-# show aliases for searchable as well as viewable clients
 - aliases = current_user.client_view_accessor.searchable_client_names(@client)
+- aliases += current_user.client_view_accessor.viewable_client_names(@client)
 - alias_class = if show_second_column then 'col-sm-9' else 'col' end
 .row.flex-grow-1
   %div{class: alias_class}

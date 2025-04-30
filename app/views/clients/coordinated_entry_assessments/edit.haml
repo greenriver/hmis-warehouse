@@ -1,13 +1,11 @@
-- title = "Editing #{_'Coordinated Entry Assessment'} for #{@client.pii_provider(user: current_user).full_name}"
+- title = "Editing #{Translation.translate('Coordinated Entry Assessment')}"
 - content_for :title, title
 .o-page
   = render 'clients/breadcrumbs'
   = render 'clients/aliases'
 
 .o-page__header
-  .o-page__title
-    %h1= title
-
+  = render_display_title "Editing #{Translation.translate('Coordinated Entry Assessment')} for #{@client.pii_provider(user: current_user).full_name}"
   = render 'clients/tab_navigation', current: client_coordinated_entry_assessments_path(client_id: @client)
 
 = simple_form_for @assessment, url: client_coordinated_entry_assessment_path(@client, @assessment) do |f|
