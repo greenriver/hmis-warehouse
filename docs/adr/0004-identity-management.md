@@ -14,8 +14,8 @@ As Open Path continues to expand the number of applications that comprise the so
   2. Re-used accounts (HMIS & Warehouse)
   3. Shared accounts via SSO (Analytics & Warehouse).
 
-This ADR outlines an external IDP, IDP Proxy, and Oauth2 proxy that can be placed in front of all Open Path applications, streamlining the authentication workflows bringing consistency to the authentication process across the platform.
-It is recognized that some Open Path installations will require an additional external IDP, and the proposed structure should allow that without significant development.
+This ADR outlines an external IdP, IdP Proxy, and Oauth2 proxy that can be placed in front of all Open Path applications, streamlining the authentication workflows bringing consistency to the authentication process across the platform.
+It is recognized that some Open Path installations will require an additional external IdP, and the proposed structure should allow that without significant development.
 ## Decision Criteria
 
 This solution must:
@@ -28,14 +28,14 @@ This solution must:
 
 1. We will standardize on [Oauth2 authentication with a JWT](https://docs.secureauth.com/ciam/en/using-jwt-profile-for-oauth-2-0-authorization-flows.html) at the application level
 2. We will install [Oauth2-Proxy](https://oauth2-proxy.github.io/oauth2-proxy/) in front of all Open Path applications to ensure protected paths are enforced
-3. We will add [Dex](http://dexidp.io) as an IDP proxy upstream of Oauth2-Proxy
+3. We will add [Dex](http://dexidp.io) as an IdP proxy upstream of Oauth2-Proxy
 4. We will install and host a copy of [Zitadel](https://zitadel.com) as an identity provider for both development and deployed installations.
 
 ## Consequences
 ### Benefits
 
 - **Unified authentication experience** across all Open Path applications
-- **Hardens security posture** uses more robust solution 
+- **Hardens security posture** uses more robust solution
 - **Reduced maintenance burden and technical debt** no longer need to support and maintain auth libraries and configuration
 - **Centralized admin access** across customer installations through shared admin IdP instance
 
@@ -58,7 +58,7 @@ Migrating from in-app authentication to [Zitatdel may be script-able](https://zi
 
 Using JWT to determine the current user will also require effort, but should result in significantly less application code.  Of note, we would need to re-write the masquerade/become/impersonate feature.
 
-We have customers who already use external IDPs through the OmniAuth gem.  The login workflow would change minimally, and we may need to work with those customers to reconfigure endpoints in their IDPs, but the flexibility of Dex should make this relatively painless.
+We have customers who already use external IdPs through the OmniAuth gem.  The login workflow would change minimally, and we may need to work with those customers to reconfigure endpoints in their IdPs, but the flexibility of Dex should make this relatively painless.
 
 
 ## Alternatives Considered
