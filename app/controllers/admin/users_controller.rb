@@ -26,8 +26,8 @@ module Admin
       @users = user_scope.preload(:access_controls, :roles, :oauth_identities)
       # END_ACL
 
-      @users = user_scope.text_search(params[:q], sort_by_best_match: !manually_sorted?) if params[:q].present?
-      @users = user_scope.order(sort_column => sort_direction) if manually_sorted?
+      @users = @users.text_search(params[:q], sort_by_best_match: !manually_sorted?) if params[:q].present?
+      @users = @users.order(sort_column => sort_direction) if manually_sorted?
 
       @pagy, @users = pagy(@users)
     end
@@ -158,9 +158,9 @@ module Admin
     def title_for_show
       @user.name
     end
-    alias title_for_edit title_for_show
-    alias title_for_destroy title_for_show
-    alias title_for_update title_for_show
+    alias_method :title_for_edit, :title_for_show
+    alias_method :title_for_destroy, :title_for_show
+    alias_method :title_for_update, :title_for_show
 
     def title_for_index
       'User List'
@@ -300,7 +300,7 @@ module Admin
     end
 
     private def sort_direction
-      params[:sort].presence_in(['asc,', 'desc']) || 'asc'
+      params[:sort].presence_in(['asc', 'desc']) || 'asc'
     end
 
     private def set_user
