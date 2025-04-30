@@ -15,27 +15,37 @@
 #   end
 #
 class GrdaWarehouse::SourceClientViewAccessor
+  # Internal cache for source clients, keyed by destination client id
+  # Used to batch and memoize source client lookups for a given user and permission method
+  # @private
   class Cache
-    def initialize(user, method)
+    # @param user [User] The user for permission checks
+    # @param block [Proc] Block that receives an array of source_client_ids and returns source client records
+    #   Example: ->(ids) { ArbiterClass.method(user, client_ids: ids) }
+    def initialize(user, &block)
       @user = user
-      @method = method
+      @block = block
       @cache = {}
     end
 
+    # Returns cached source clients for a destination client, preloading if needed
+    # @param client [DestinationClient] The destination client
+    # @return [Array<SourceClient>] Array of source clients
     def clients(client)
       key = client.id
       preload([client]) unless @cache.key?(key)
       @cache[key] ||= []
     end
 
+    # Preloads and caches source clients for a batch of destination clients
+    # @param clients [Array<DestinationClient>] Destination clients to preload
+    # @return [Boolean, nil] true if preloaded, nil if no source clients found
     def preload(clients)
       destination_client_ids = clients.map(&:id)
       source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: destination_client_ids).pluck(:source_id)
       return if source_client_ids.empty?
 
-      source_clients = GrdaWarehouse::Hud::Client.arbiter(@user).
-        public_send(@method, @user, client_ids: source_client_ids).
-        preload(:destination_client, :data_source, :patient)
+      source_clients = @block.call(source_client_ids)
       source_clients.each do |client|
         key = client.destination_client&.id
         raise "Source client #{client.id} references invalid destination client" unless key
@@ -56,8 +66,13 @@ class GrdaWarehouse::SourceClientViewAccessor
   # @param user [User] The authenticated for permissions checks
   def initialize(user:)
     @user = user
-    @searchable_cache = Cache.new(user, :clients_source_searchable_to)
-    @viewable_cache = Cache.new(user, :clients_source_visible_to)
+    arbiter = GrdaWarehouse::Hud::Client.arbiter(@user)
+    @searchable_cache = Cache.new(user) do |ids|
+      arbiter.clients_source_searchable_to(@user, client_ids: ids).preload(:destination_client, :data_source, :patient)
+    end
+    @viewable_cache = Cache.new(user) do |ids|
+      arbiter.clients_source_visible_to(@user, client_ids: ids).preload(:destination_client, :data_source, :patient)
+    end
   end
 
   # Retrieves all searchable source clients associated with a given destination client, filtered
