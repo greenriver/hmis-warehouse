@@ -21,6 +21,8 @@
 # 100.times { |i| @notifier.ping("new test message #{i}")}
 #
 
+require 'singleton'
+
 # Sends progress messages to Slack, possibly queuing and batching
 # them as needed and if a service to do so is available. Logs
 # any network/services errors and recovers as well as it can.
@@ -31,35 +33,45 @@ class ApplicationNotifier < Slack::Notifier
     !!@insert_log_url # coerce bool
   end
 
-  require 'singleton'
+  class NullRedis
+    include Singleton
+    def ping = true
+    def get(*) = nil
+    def set(*) = nil
+    def rpush(*) = nil
+    def lpop(*) = nil
+    def keys(*) = []
+    def with(*) = nil
+  end
+
   class RedisWrapper
     include Singleton
-    def initialize
 
-      @redis = Rails.cache.is_a?(ActiveSupport::Cache::RedisCacheStore) ? Rails.cache.redis : nil
-    end
-    def ping; call(:ping); end
-    def get(*a); call(:get, *a); end
-    def set(*a); call(:set, *a); end
-    def rpush(*a); call(:rpush, *a); end
-    def lpop(*a); call(:lpop, *a); end
-    def keys(*a); call(:keys, *a); end
-    def nil?; @redis.nil?; end
-    def inspect; @redis.inspect; end
+    def ping = call(:ping)
+    def get(*args) = call(:get, *args)
+    def set(*args) = call(:set, *args)
+    def rpush(*args) = call(:rpush, *args)
+    def lpop(*args) = call(:lpop, *args)
+    def keys(*args) = call(:keys, *args)
+    def with(&block)= Rails.cache.redis.with(&block)
+
     private
+
     def call(cmd, *args)
-      return nil if @redis.nil?
-      if defined?(ConnectionPool) && @redis.is_a?(ConnectionPool)
-        @redis.with { |r| r.public_send(cmd, *args) }
-      else
-        @redis.public_send(cmd, *args)
-      end
+      Rails.cache.redis.with { |r| r.public_send(cmd, *args) }
     end
   end
 
   # use the same redis instance we use for caching
   def self.redis
-    RedisWrapper.instance
+    case Rails.cache
+    when ActiveSupport::Cache::NullStore
+      NullRedis.instance
+    when Rails.cache.class
+      RedisWrapper.instance
+    else
+      raise "Rails.cache type #{Rails.cache.class.name} not supported"
+    end
   end
 
   # prefix all keys with a CLIENT specific key
@@ -152,41 +164,43 @@ class ApplicationNotifier < Slack::Notifier
   # a sequence of posts. If this the queue is too big, say bigger than
   # 40KB, we will get a Slack rate limit error
   # and raise if Redis has become unavailable
+  # Send any rate_limit'd messages.
   def flush_queue(prefix: nil, single_message: true)
-    message = ''
-    messages = []
-    chunk_size = 4_000
-    # TODO: If we upgrade to Redis 6.2+ we can use lop n to
-    # batch fetches
-    # Store messages in chunks in an array for processing
-    while (
-      batch = @redis.lpop("#{@namespace}/queue")
-    )
-      message = prefix.to_s if message.blank?
-      if (message + batch).bytesize > chunk_size
-        messages << message if message.present?
-        message = ''
-        break message += batch if single_message
+    # Get a connection once and use it for all operations in this method
+    @redis.with do |redis|
+      message = ''
+      messages = []
+      chunk_size = 4_000
+      # TODO: If we upgrade to Redis 6.2+ we can use lop n to
+      # batch fetches
+      # Store messages in chunks in an array for processing
+      while (batch = redis.lpop("#{@namespace}/queue"))
+        message = prefix.to_s if message.blank?
+        if (message + batch).bytesize > chunk_size
+          messages << message if message.present?
+          message = ''
+          break message += batch if single_message
+        end
+        message += batch
       end
-      message += batch
-    end
-    messages << message if message.present?
+      messages << message if message.present?
 
-    # flush out in 4k blocks -- Slack limit
-    begin
-      messages.each do |chunk|
-        post(text: chunk)
+      # flush out in 4k blocks -- Slack limit
+      begin
+        messages.each do |chunk|
+          post(text: chunk)
 
-        # keep slack happy even when bursting out remaining messages
-        # if this is called when it has been more than a second since the last send, it might
-        # delay things a bit (max 3 messages for a single_message flush).
-        # if this is called from flush_messages with single_message: false
-        # this will slow things down, but it should be happening in a background task
-        # specifically for sending these that can tolerate the delay.
-        sleep(0.7)
+          # keep slack happy even when bursting out remaining messages
+          # if this is called when it has been more than a second since the last send, it might
+          # delay things a bit (max 3 messages for a single_message flush).
+          # if this is called from flush_messages with single_message: false
+          # this will slow things down, but it should be happening in a background task
+          # specifically for sending these that can tolerate the delay.
+          sleep(0.7)
+        end
+        redis.set("#{@namespace}/last_post", Time.now.to_f)
+      rescue Exception # rubocop:disable Lint/SuppressedException
       end
-      @redis.set("#{@namespace}/last_post", Time.now.to_f)
-    rescue Exception # rubocop:disable Lint/SuppressedException
     end
   end
 
