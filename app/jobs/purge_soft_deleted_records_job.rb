@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -110,6 +112,7 @@ class PurgeSoftDeletedRecordsJob < BaseJob
           end
         end
 
+        # even though this throws, it does not rollback the transaction so we could delete more records than the max
         check_max_deleted(batch.size)
         batch.delete_all unless @dry_run
       end

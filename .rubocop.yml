@@ -44,6 +44,9 @@ Metrics/PerceivedComplexity:
   Max: 50
   Exclude:
     - "app/models/exporters/tableau"
+Style/Alias:
+  # alias_method has more consistent behavior and syntax
+  EnforcedStyle: prefer_alias_method
 # Trailing commas make for clearer diffs because the last line won't appear
 # to have been changed, as it would if it lacked a comma and had one added.
 Style/TrailingCommaInArguments:

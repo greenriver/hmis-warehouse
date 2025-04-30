@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
-# License detail: https: //github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
@@ -26,6 +26,29 @@ module BostonHmis
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.0
+
+    # Continue to use config/secrets.yml. This is deprecated in rails > 7.0 but we don't want to move to
+    # encrypted credentials, it's not appropriate for an open-source project
+    if File.exist?(Rails.root.join('config', 'secrets.yml'))
+      config.secrets = config_for(:secrets) # loads from config/secrets.yml
+      config.secret_key_base = config.secrets[:secret_key_base]
+
+      def secrets
+        config.secrets
+      end
+    end
+
+    # Configuration for the application, engines, and railties goes here.
+    #
+    # These settings can be overridden in specific environments using the files
+    # in config/environments, which are processed later.
+
+    # Please, add to the `ignore` list any other `lib` subdirectories that do
+    # not contain `.rb` files, or that should not be reloaded or eager loaded.
+    # Common ones are `templates`, `generators`, or `middleware`, for example.
+    # config.autoload_lib(ignore: ['assets', 'tasks'])
+
+    config.add_autoload_paths_to_load_path = false
     config.autoload_paths << Rails.root.join('lib', 'devise')
 
     # ActionCable

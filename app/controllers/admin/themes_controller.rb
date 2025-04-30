@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require_relative '/app/config/deploy/docker/lib/asset_compiler'
+require_relative '../../../config/deploy/docker/lib/asset_compiler'
 
 module Admin
   class ThemesController < ApplicationController

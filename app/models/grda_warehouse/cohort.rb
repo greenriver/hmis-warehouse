@@ -22,7 +22,7 @@ module GrdaWarehouse
     validates_presence_of :name
     validates :days_of_inactivity, numericality: { only_integer: true, allow_nil: true }
     validates :static_column_count, numericality: { only_integer: true }
-    serialize :column_state, Array
+    serialize :column_state, type: Array
 
     after_create :maintain_system_group
 

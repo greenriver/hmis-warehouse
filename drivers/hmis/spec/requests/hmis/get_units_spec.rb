@@ -91,6 +91,54 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    describe 'acceptingCeReferrals logic' do
+      let!(:unit) { create(:hmis_unit, project: project) }
+
+      context 'when the unit has no opportunities' do
+        it 'acceptingCeReferrals is false' do
+          _, result = post_graphql(id: project.id) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity')).to be_nil
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'acceptingCeReferrals')).to be_falsy
+        end
+      end
+
+      context 'when the unit has an open opportunity' do
+        let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :open) }
+
+        it 'acceptingCeReferrals is true' do
+          _, result = post_graphql(id: project.id) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'id')).to eq(opportunity.id.to_s)
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'acceptingCeReferrals')).to be_truthy
+        end
+      end
+
+      context 'when the unit has an opportunity with referrals in progress' do
+        let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked) }
+        let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress) }
+
+        it 'acceptingCeReferrals is false' do
+          _, result = post_graphql(id: project.id) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'id')).to eq(opportunity.id.to_s)
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'acceptingCeReferrals')).to be_falsy
+        end
+      end
+
+      context 'when the unit has a closed opportunity, but no open one' do
+        let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :closed) }
+        let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :accepted) }
+
+        it 'acceptingCeReferrals is false' do
+          _, result = post_graphql(id: project.id) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'id')).to eq(opportunity.id.to_s)
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'acceptingCeReferrals')).to be_falsy
+        end
+      end
+    end
+
     context 'when there are many units' do
       before do
         50.times do

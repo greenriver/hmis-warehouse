@@ -1,15 +1,18 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class HealthBase < ApplicationRecord
+class HealthBase < ActiveRecord::Base
+  include CustomApplicationRecord
+
   self.abstract_class = true
   connects_to database: { writing: :health, reading: :health }
   has_paper_trail versions: {class_name: 'Health::HealthVersion'}
 
-  include ArelHelper
   class << self
     attr_accessor :phi_dictionary
 
@@ -21,14 +24,15 @@ class HealthBase < ApplicationRecord
       }
     end
 
-    def phi_attr(attribute, category= nil, description= nil)
+    def phi_attr(attribute, category = nil, description = nil)
       raise ArgumentError, "category (#{category}) must be a ::Phi::Category" unless category < ::Phi::Category
       raise ArgumentError, "attr (#{attr})  must method name as a symbol" unless attribute.is_a?(::Symbol)
+
       self.phi_dictionary_entry[:attrbutes] << ::Phi::Attribute.new(
         self.name,
         attribute,
         category,
-        description
+        description,
       )
     end
 
@@ -37,12 +41,9 @@ class HealthBase < ApplicationRecord
       if (existing = phi_dictionary_entry[:patient_id]) && existing != attribute
         raise ArgumentError, "Cannot set more then one phi_patient per class: class:#{self} existing: #{existing}, new: #{attribute}"
       end
+
       self.phi_dictionary_entry[:table_name] = table_name
       self.phi_dictionary_entry[:patient_id] = attribute
     end
-  end
-
-  def self.needs_migration?
-    ActiveRecord::MigrationContext.new('db/health/migrate', Health::SchemaMigration).needs_migration?
   end
 end

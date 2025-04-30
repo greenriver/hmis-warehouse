@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe Filters::FilterBase, type: :model do
@@ -17,8 +19,7 @@ RSpec.describe Filters::FilterBase, type: :model do
 
   describe 'FilterBase' do
     it 'defaults to nothing if nothing is specified' do
-      filter_params = {
-      }
+      filter_params = {}
       filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
       expect(filter.effective_project_ids).not_to include psh_project.id
       expect(filter.effective_project_ids).not_to include es_project.id
@@ -55,8 +56,7 @@ RSpec.describe Filters::FilterBase, type: :model do
 
   describe 'HudFilterBase' do
     it 'HUD filter does not include any projects if nothing is specified' do
-      filter_params = {
-      }
+      filter_params = {}
       filter = Filters::HudFilterBase.new(user_id: user.id).update(filter_params)
       expect(filter.effective_project_ids).not_to include psh_project.id
       expect(filter.effective_project_ids).not_to include es_project.id
@@ -99,6 +99,53 @@ RSpec.describe Filters::FilterBase, type: :model do
       filter = Filters::HudFilterBase.new(user_id: user.id).update(filter_params)
       expect(filter.effective_project_ids_during_range('2021-01-01'.to_date .. '2021-02-01'.to_date)).not_to include psh_project.id
       expect(filter.effective_project_ids_during_range('2021-01-01'.to_date .. '2021-02-01'.to_date)).to include es_project.id
+    end
+  end
+
+  describe 'date parsing for :on param' do
+    let!(:today) { Date.current }
+    let(:base) { Filters::FilterBase.new(user_id: user.id) }
+    let(:test_date) { Date.new(2025, 4, 27) }
+
+    it 'accepts Date object' do
+      expect { base.update(on: test_date) }.not_to raise_error
+      expect(base.on).to eq test_date
+    end
+
+    it 'accepts US string format' do
+      us_str = test_date.strftime('%b %d, %Y')
+      expect { base.update(on: us_str) }.not_to raise_error
+      expect(base.on).to eq test_date
+    end
+
+    it 'accepts ISO string format' do
+      iso_str = test_date.strftime('%Y-%m-%d')
+      expect { base.update(on: iso_str) }.not_to raise_error
+      expect(base.on).to eq test_date
+    end
+
+    it 'raises on garbage string' do
+      expect { base.update(on: 'notadate') }.to raise_error(ArgumentError)
+    end
+
+    it 'raises on slash date string' do
+      slash_str = test_date.strftime('%m/%d/%Y')
+      expect { base.update(on: slash_str) }.to raise_error(ArgumentError)
+    end
+
+    it 'raises on slash ISO date string' do
+      slash_iso_str = test_date.strftime('%Y/%m/%d')
+      expect { base.update(on: slash_iso_str) }.to raise_error(ArgumentError)
+    end
+
+    it 'raises on alternative US date string' do
+      alt_us_str = test_date.strftime('%d %b %Y')
+      expect { base.update(on: alt_us_str) }.to raise_error(ArgumentError)
+    end
+
+    it 'accepts nil' do
+      expect { base.update(on: nil) }.not_to raise_error
+      expect(base.on).to eq(today)
     end
   end
 end

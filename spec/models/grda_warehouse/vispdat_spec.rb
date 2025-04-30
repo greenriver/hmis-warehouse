@@ -1,9 +1,9 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 include ActiveJob::TestHelper
 
 RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
-  let(:vispdat) { create :vispdat }
-
   describe 'youth?' do
     it 'returns false' do
       expect(vispdat.youth?).to be false
@@ -27,7 +27,7 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
       before(:each) do
         ActiveJob::Base.queue_adapter.enqueued_jobs = []
         ActiveJob::Base.queue_adapter.performed_jobs = []
-        vispdat.update(submitted_at: Time.now)
+        vispdat.update!(submitted_at: Time.now)
       end
 
       it 'queues an email' do
@@ -43,7 +43,7 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
 
       it 'does not queue an email' do
         expect do
-          vispdat.update(nickname: 'Joey')
+          vispdat.update!(nickname: 'Joey')
         end.to_not have_enqueued_job.on_queue('mailers')
       end
     end
