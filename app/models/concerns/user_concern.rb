@@ -483,7 +483,7 @@ module UserConcern
     #
     # @example Find users with similarity ordering
     #   User.text_search('john smith', sort_by_best_match: true)
-    def self.text_search(text, sort_by_best_match: false, similarity_threshold: 0.3)
+    def self.text_search(text, sort_by_best_match: false, similarity_threshold: 0.5)
       similarity_threshold = similarity_threshold.to_f
       raise ArgumentError, 'similarity_threshold must be between 0.0 and 1.0' unless similarity_threshold.between?(0.0, 1.0)
 
