@@ -38,20 +38,6 @@ COMMENT ON EXTENSION hstore IS 'data type for storing sets of (key, value) pairs
 
 
 --
--- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
---
-
-CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
-
-
---
--- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
-
-
---
 -- Name: prevent_modification(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4942,20 +4928,6 @@ CREATE INDEX index_users_on_deleted_at ON public.users USING btree (deleted_at);
 
 
 --
--- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_users_on_email ON public.users USING gin (email public.gin_trgm_ops);
-
-
---
--- Name: index_users_on_first_name; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_users_on_first_name ON public.users USING gin (first_name public.gin_trgm_ops);
-
-
---
 -- Name: index_users_on_invitation_token; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4974,13 +4946,6 @@ CREATE INDEX index_users_on_invitations_count ON public.users USING btree (invit
 --
 
 CREATE INDEX index_users_on_invited_by_id ON public.users USING btree (invited_by_id);
-
-
---
--- Name: index_users_on_last_name; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_users_on_last_name ON public.users USING gin (last_name public.gin_trgm_ops);
 
 
 --
@@ -5142,27 +5107,27 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20250426181347'),
-('20250218131829'),
-('20250217181347'),
-('20250208211846'),
-('20250124171033'),
-('20250124170335'),
-('20241211202350'),
-('20241206145314'),
-('20241205185449'),
-('20241203185952'),
-('20241101132207'),
-('20241101132053'),
-('20241028193644'),
-('20241021194355'),
-('20241018140929'),
-('20241018034506'),
-('20241016202657'),
-('20241011125827'),
-('20240911204731'),
-('20240911201727'),
-('20240829152856'),
+('20230420195221'),
 ('20240710124743'),
-('20230420195221');
+('20240829152856'),
+('20240911201727'),
+('20240911204731'),
+('20241011125827'),
+('20241016202657'),
+('20241018034506'),
+('20241018140929'),
+('20241021194355'),
+('20241028193644'),
+('20241101132053'),
+('20241101132207'),
+('20241203185952'),
+('20241205185449'),
+('20241206145314'),
+('20241211202350'),
+('20250124170335'),
+('20250124171033'),
+('20250208211846'),
+('20250217181347'),
+('20250218131829');
+
 

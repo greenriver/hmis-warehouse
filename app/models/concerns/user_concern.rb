@@ -483,10 +483,7 @@ module UserConcern
     #
     # @example Find users with similarity ordering
     #   User.text_search('john smith', sort_by_best_match: true)
-    def self.text_search(text, sort_by_best_match: false, similarity_threshold: 0.5)
-      similarity_threshold = similarity_threshold.to_f
-      raise ArgumentError, 'similarity_threshold must be between 0.0 and 1.0' unless similarity_threshold.between?(0.0, 1.0)
-
+    def self.text_search(text, sort_by_best_match: false)
       text = text.strip
       return none if text.length < 3 # require at least 3 characters for meaningful search
 
@@ -498,12 +495,7 @@ module UserConcern
           or(arel_table[:last_name].matches("#{term}%")).
           or(arel_table[:email].matches("#{term}%"))
 
-        fuzzy_sql = <<-SQL.squish
-          similarity(first_name, ?) > #{similarity_threshold} OR
-          similarity(last_name, ?) > #{similarity_threshold} OR
-          similarity(email, ?) > #{similarity_threshold}
-        SQL
-        where(prefix_condition).or(where(fuzzy_sql, term, term, term))
+        User.where(prefix_condition)
       end.inject(&:or)
 
       if sort_by_best_match
