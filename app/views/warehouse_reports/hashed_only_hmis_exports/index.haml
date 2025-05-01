@@ -6,8 +6,9 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'exports'
 = render 'filter'
 
-= render_paginated_list(scope: @exports, item_name: 'export', list_partial: 'list')
-= link_to 'Reports', running_warehouse_reports_hashed_only_hmis_exports_path(skip_trackable: true), class: 'jReportBlock', remote: true
+.report-listing= render_paginated_list(scope: @exports, item_name: 'export', list_partial: 'list')
+- if params[:page].blank? || params[:page].to_i == 1
+  = link_to 'Reports', running_warehouse_reports_hashed_only_hmis_exports_path(skip_trackable: true), class: 'jReportBlock', remote: true
 
 = content_for :page_js do
   :javascript
