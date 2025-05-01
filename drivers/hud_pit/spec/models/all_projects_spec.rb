@@ -3,6 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative '../../../datalab_testkit/spec/models/datalab_testkit_context'
@@ -27,7 +28,7 @@ RSpec.describe 'PIT All-Projects with DataLab TestKit data:', type: :model do
       puts "Starting PIT Tests #{Time.current}"
       setup
       puts "Setup Done for PIT Tests #{Time.current}"
-      run(default_pit_filter, HudPit::Generators::Pit::Fy2024::Generator.questions.keys)
+      run(default_pit_filter, HudPit::Generators::Pit::Fy2025::Generator.questions.keys)
       puts "Finished SPM Run Data Lab TestKit #{Time.current}"
     end
 
