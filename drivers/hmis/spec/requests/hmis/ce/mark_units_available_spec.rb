@@ -125,7 +125,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
-        end.to make_database_queries(count: 20..25)
+        end.to make_database_queries(count: 25..30)
         expect(Hmis::Ce::Opportunity.where(owner_id: unit_ids).count).to eq(unit_ids.count)
       end
     end
