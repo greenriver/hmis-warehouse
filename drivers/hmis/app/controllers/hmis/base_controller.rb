@@ -60,7 +60,7 @@ class Hmis::BaseController < ActionController::Base
     {
       user_id: current_hmis_user&.id,
       true_user_id: true_hmis_user&.id,
-      session_id: session.id&.to_s, # maps to session_hash in Hmis::ActivityLog
+      session_id: session&.id&.to_s, # maps to session_hash in Hmis::ActivityLog
       request_id: request.uuid, # maps to request_id on ActivityLog, and X-Request-Id header in Sentry
     }
   end

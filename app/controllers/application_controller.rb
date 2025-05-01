@@ -137,7 +137,7 @@ class ApplicationController < ActionController::Base
   def info_for_paper_trail
     {
       user_id: warden&.user&.id,
-      session_id: session.id&.to_s,
+      session_id: session&.id&.to_s,
       request_id: request.uuid,
     }
   end
