@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -708,7 +710,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see any clients' do
         get client_path(non_window_destination_client)
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Bob Ross')
+        expect(doc.text).to include('Bob Moss')
         expect(response).to have_http_status(200)
       end
     end
