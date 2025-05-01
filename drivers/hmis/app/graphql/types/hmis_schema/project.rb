@@ -24,6 +24,7 @@ module Types
     include Types::HmisSchema::HasExternalFormSubmissions
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasCurrentLivingSituations
+    include Types::HmisSchema::HasCeOpportunities
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -114,9 +115,8 @@ module Types
     field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, method: :occurrence_point_form_instances, description: 'Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)'
     field :service_types, [Types::HmisSchema::ServiceType], null: false, method: :available_service_types, description: 'Service types that are collected for this Project'
 
-    field :ce_opportunities, Types::HmisSchema::CeOpportunity.page_type, null: false do
-      filters_argument Types::HmisSchema::CeOpportunity, omit: [:project, :project_type], type_name: 'ProjectCeOpportunity'
-    end
+    ce_opportunities_field(:ce_opportunities, filter_args: { omit: [:project, :project_type, :organization, :available_on_date, :workflow_template], type_name: 'ProjectCeOpportunity' })
+
     field :ce_referrals, Types::HmisSchema::CeReferral.page_type, null: false do
       filters_argument Types::HmisSchema::CeReferral, omit: [:project, :project_type], type_name: 'ProjectCeReferral'
     end
@@ -259,12 +259,8 @@ module Types
       resolve_external_form_submissions(scope, **args)
     end
 
-    def ce_opportunities(filters: nil) # not for batch
-      raise unless Hmis::Ce.configuration.enabled?
-
-      scope = object.ce_opportunities
-      scope = scope.where(status: filters&.status) if filters&.status.present?
-      scope.order(created_at: :desc)
+    def ce_opportunities(**args) # Don't resolve in batch
+      resolve_ce_opportunities(object.ce_opportunities, **args)
     end
 
     def ce_referrals(filters: nil) # not for batch

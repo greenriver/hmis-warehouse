@@ -760,10 +760,12 @@ type CeOpportunity {
   candidates(limit: Int, offset: Int): CeCandidatesPaginated!
   candidatesGeneratedAt: ISO8601DateTime
   categories: [String!]!
+  dateAvailable: ISO8601Date
   eligibilityRequirements: [CeMatchRule!]
   expiresAt: ISO8601DateTime
   id: ID!
   name: String!
+  organizationName: String!
   priorityScheme: CeMatchRule
   projectId: ID!
   projectName: String!
@@ -774,11 +776,36 @@ type CeOpportunity {
   """
   referral: CeReferral
   status: CeOpportunityStatus!
+  unit: Unit
+}
+
+input CeOpportunityFilterOptions {
+  availableOnDate: ISO8601Date
+  organization: [ID!]
+  project: [ID!]
+  projectType: [ProjectType!]
+  status: [CeOpportunityStatus!]
+  workflowTemplate: [WorkflowDefinitionTemplate!]
 }
 
 input CeOpportunityInput {
   name: String!
   templateId: ID!
+}
+
+"""
+Opportunity Sorting Options
+"""
+enum CeOpportunitySortOption {
+  """
+  Date Available, earliest first
+  """
+  DATE_AVAILABLE_EARLIEST_FIRST
+
+  """
+  Date Available, latest first
+  """
+  DATE_AVAILABLE_LATEST_FIRST
 }
 
 enum CeOpportunityStatus {
@@ -997,7 +1024,7 @@ type Client {
   dischargeStatus: DischargeStatus
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
-  eligibleCeOpportunities(filters: ClientEligibleCeOpportunityFilterOptions, limit: Int, offset: Int): CeOpportunitiesPaginated!
+  eligibleCeOpportunities(filters: ClientEligibleCeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   emailAddresses: [ClientContactPoint!]!
   employmentEducations(limit: Int, offset: Int): EmploymentEducationsPaginated!
   enabledFeatures: [ClientDashboardFeature!]!
@@ -1317,6 +1344,7 @@ enum ClientDashboardFeature {
 }
 
 input ClientEligibleCeOpportunityFilterOptions {
+  organization: [ID!]
   project: [ID!]
   projectType: [ProjectType!]
 }
@@ -8971,7 +8999,7 @@ type Project {
   active: Boolean!
   affiliatedProjects: [Project!]!
   assessments(filters: AssessmentsForProjectFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
-  ceOpportunities(filters: ProjectCeOpportunityFilterOptions, limit: Int, offset: Int): CeOpportunitiesPaginated!
+  ceOpportunities(filters: ProjectCeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
   ceReferrals(filters: ProjectCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   contactInformation: String
@@ -9335,6 +9363,7 @@ type Query {
     """
     role: AssessmentRole
   ): FormDefinition
+  ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceOpportunity(id: ID!): CeOpportunity
   ceReferral(id: ID!): CeReferral
   ceReferralStep(id: ID!): CeReferralStep
@@ -13118,6 +13147,31 @@ enum WorkerResponse {
   (1) Yes
   """
   YES
+}
+
+"""
+Workflow Definition Templates
+"""
+enum WorkflowDefinitionTemplate {
+  """
+  Admin Approve Denial
+  """
+  admin_approve_denial
+
+  """
+  Enrollment Creator
+  """
+  enrollment_creator
+
+  """
+  No Tasks
+  """
+  no_tasks
+
+  """
+  One Task
+  """
+  one_task
 }
 
 """

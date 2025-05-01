@@ -19,6 +19,7 @@ module Types
     include Types::HmisSchema::HasClients
     include Types::HmisSchema::HasApplicationUsers
     include Types::HmisSchema::HasReferralPostings
+    include Types::HmisSchema::HasCeOpportunities
     include Types::Admin::HasFormRules
     include ::Hmis::Concerns::HmisArelHelper
 
@@ -553,6 +554,13 @@ module Types
       raise unless Hmis::Ce.configuration.enabled?
 
       Hmis::WorkflowExecution::Step.viewable_by(current_user).find(id)
+    end
+
+    # Globally available CE opportunities gated by admin permission
+    ce_opportunities_field :ce_opportunities
+    def ce_opportunities(**args)
+      # TODO(#7506) - gated by admin permission
+      resolve_ce_opportunities(Hmis::Ce::Opportunity.all, **args)
     end
   end
 end
