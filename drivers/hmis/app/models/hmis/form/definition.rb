@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 # Versioned form definition. Contains a structured list of questions, information about how to render them, and information about available options and initial values. Nested recursive structure similar to FHIR Questionnaire.
 #
 # The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
@@ -114,6 +116,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :CLIENT_DETAIL,
     # Other/misc forms
     :FILE, # should maybe be considered a data collection feature, but different because its at Client-level (not Project)
+    :CE_REFERRAL_STEP,
   ].freeze
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }

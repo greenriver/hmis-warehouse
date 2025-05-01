@@ -4,10 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-#  Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative 'login_and_permissions'
@@ -211,7 +208,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       receiving_household_id: receiving_enrollment.household_id,
       joining_enrollment_inputs: [
         {
-          enrollment_id: 'fake-enrollment',
+          enrollment_id: '9999', # fake enrollment ID that doesn't match any enrollment in the database
           relationship_to_hoh: 'SPOUSE_OR_PARTNER',
         },
       ],
