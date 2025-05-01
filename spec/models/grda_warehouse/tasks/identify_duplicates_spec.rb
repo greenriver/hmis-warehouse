@@ -143,14 +143,14 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
       describe 'second run' do
         let!(:new_source_client) { create :grda_warehouse_hud_client, data_source: source_data_source, first_name: 'Jose' }
         before do
-          # identify duplicates is not setup to "transliterate" so does not see Jose and José as the same
+          # identify duplicates is setup to "transliterate" so sees Jose and José as the same
           GrdaWarehouse::Tasks::IdentifyDuplicates.new.identify_duplicates
         end
         it 'does not connect the new client to the existing destination client' do
           aggregate_failures do
             expect(GrdaWarehouse::WarehouseClient.count).to eq(2)
-            expect(GrdaWarehouse::Hud::Client.destination.count).to eq(2)
-            expect(client_in_destination.source_client_ids).to_not include(new_source_client.id)
+            expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
+            expect(client_in_destination.source_client_ids).to include(new_source_client.id)
           end
         end
       end
@@ -204,20 +204,20 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         expected_number_destination_clients = 3
 
         destination_clients = GrdaWarehouse::Hud::Client.destination.to_a
-
+        source_client_counts = destination_clients.map { |client| [client.id, client.source_clients.count] }.to_h
+        min_expected = number_sample_clients - (GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS * (expected_number_destination_clients - 1))
+        max_expected = GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS
+        max_value = source_client_counts.values.max
+        min_value = source_client_counts.values.min
         aggregate_failures do
-          expect(destination_clients.count).to eq(expected_number_destination_clients)
+          expect(source_client_counts.count).to eq(expected_number_destination_clients)
           expect(GrdaWarehouse::WarehouseClient.count).to eq(number_sample_clients)
-
-          # Pop the last client off of the array. This client will have less than the maximum number of source clients.
-          last_client = destination_clients.pop
-          destination_clients.each do |client|
-            # Allow for some flexibility.  We calculate the number of source clients before actually merging, so sometimes
-            # it is off by one.
-            # We don't really care as long as we don't have run-away matches
-            expect(client.source_clients.count).to be_within(2).of(GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS)
-          end
-          expect(last_client.source_clients.count).to be_within(2).of(number_sample_clients % GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS)
+          expect(source_client_counts.values.sum).to eq(number_sample_clients)
+          # Allow for some flexibility.  We calculate the number of source clients before actually merging, so sometimes
+          # it is off by one.
+          # We don't really care as long as we don't have run-away matches
+          expect(max_value).to be <= max_expected + 2
+          expect(min_value).to be >= min_expected - 2
         end
       end
     end

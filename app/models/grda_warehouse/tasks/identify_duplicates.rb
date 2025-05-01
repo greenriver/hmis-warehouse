@@ -29,6 +29,15 @@ module GrdaWarehouse::Tasks
       @notifier.ping(msg) if @send_notifications
     end
 
+    # Deduplicates client records by:
+    # 1. Restoring any previously deleted destination clients still referenced.
+    # 2. Loading all unprocessed clients (not yet linked in warehouse_clients).
+    # 3. For each unprocessed client:
+    #    - If a match is found among existing destinations, update the destination and link it.
+    #    - If no match, create a new destination client and link it.
+    # 4. Invalidates service history for affected clients.
+    # 5. Finalizes (accepts) any exact matches that were previously proposed
+    # 6. Logs the deduplication run.
     def identify_duplicates
       restore_previously_deleted_destinations
 
@@ -46,7 +55,7 @@ module GrdaWarehouse::Tasks
       #   create the associated WarehouseClient
 
       unprocessed_count = unprocessed.count
-      Rails.logger.info 'Matching #unprocessed_count} unprocessed clients'
+      Rails.logger.info "Matching #{unprocessed_count} unprocessed clients"
       matched = 0
       new_created = 0
 
@@ -81,17 +90,19 @@ module GrdaWarehouse::Tasks
 
             destination_client = destination_clients_by_id[destination_id]
             # Set SSN & DOB if we have it in the incoming client, but not in the destination
-            destination_client.dob = client.dob if client.dob.present? && destination_client.dob.blank?
-            destination_client.ssn = client.ssn if client.ssn.present? && destination_client.ssn.blank?
+            destination_client.dob ||= client.dob if client&.dob.present?
+            destination_client.ssn ||= client.ssn if client&.ssn.present?
+            destination_client.first_name ||= client.first_name if client&.first_name.present?
+            destination_client.last_name ||= client.last_name if client&.last_name.present?
+
             # set non-nullable fields, these aren't used because of the column limitation on import
             # but Postgres complains if they aren't there
             destination_client.personal_id = client.personal_id
             destination_client.data_source_id = @dnd_warehouse_data_source.id
-            destination_client_updates << destination_client
+            destination_client_updates << destination_client if destination_client.changed?
           else
             new_created += 1
             destination_client = client.dup
-            destination_client.id = nil
             destination_client.data_source_id = @dnd_warehouse_data_source.id
             destination_client.apply_housing_release_status
             new_destination_clients << destination_client
@@ -110,7 +121,7 @@ module GrdaWarehouse::Tasks
           destination_client_updates.uniq { |m| m[:id] }, # ensure no duplicate rows
           on_duplicate_key_update: {
             conflict_target: [:id],
-            columns: [:SSN, :DOB],
+            columns: [:SSN, :DOB, :FirstName, :LastName],
           },
           validate: false,
         )
@@ -286,14 +297,14 @@ module GrdaWarehouse::Tasks
       results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
         with client_one_name as (
         SELECT warehouse_clients.destination_id as client_one_name_id,
-          concat(regexp_replace(lower(trim(clients."FirstName")), '[^a-z0-9]', '', 'g'), '_',
-          regexp_replace(lower(trim(clients."LastName")), '[^a-z0-9]', '', 'g')) as client_one_name_name
+          concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
+          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as client_one_name_name
           from #{limits}
         ),
         client_two_name as (
         SELECT warehouse_clients.destination_id as client_two_name_id,
-          concat(regexp_replace(lower(trim(clients."FirstName")), '[^a-z0-9]', '', 'g'), '_',
-          regexp_replace(lower(trim(clients."LastName")), '[^a-z0-9]', '', 'g')) as client_two_name_name
+          concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
+          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as client_two_name_name
           from #{limits}
         )
 
@@ -376,7 +387,7 @@ module GrdaWarehouse::Tasks
             clients."SSN" as client_two_ssn
             from "Client" as clients
             #{limits}
-            and clients.id in (#{unprocessed.select(:id).to_sql})
+            and clients.id in (#{unprocessed_ids.join(',')})
           )
 
           SELECT DISTINCT
@@ -407,19 +418,19 @@ module GrdaWarehouse::Tasks
       results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
         with client_one_name as (
         SELECT coalesce(warehouse_clients.destination_id, clients.id) as client_one_name_id,
-          concat(regexp_replace(lower(trim(clients."FirstName")), '[^a-z0-9]', '', 'g'), '_',
-          regexp_replace(lower(trim(clients."LastName")), '[^a-z0-9]', '', 'g')) as client_one_name_name
+          concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
+          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as client_one_name_name
           from "Client" as clients
           left outer join warehouse_clients on (clients.id = warehouse_clients.source_id OR clients.id = warehouse_clients.destination_id)
           #{limits}
         ),
         client_two_name as (
         SELECT clients.id as client_two_name_id,
-          concat(regexp_replace(lower(trim(clients."FirstName")), '[^a-z0-9]', '', 'g'), '_',
-          regexp_replace(lower(trim(clients."LastName")), '[^a-z0-9]', '', 'g')) as client_two_name_name
+          concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
+          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as client_two_name_name
           from "Client" as clients
           #{limits}
-          and clients.id in (#{unprocessed.select(:id).to_sql})
+          and clients.id in (#{unprocessed_ids.join(',')})
         )
 
         SELECT DISTINCT
@@ -457,7 +468,7 @@ module GrdaWarehouse::Tasks
             from
             "Client" as clients
             #{limits}
-            and clients.id in (#{unprocessed.select(:id).to_sql})
+            and clients.id in (#{unprocessed_ids.join(',')})
         )
 
         SELECT DISTINCT
@@ -524,31 +535,32 @@ module GrdaWarehouse::Tasks
     end
 
     # Find potential client merge candidates by looking for matches across multiple criteria
-    # @return [Hash] A set of client ID pairs that are candidates for merging
+    # @return [Array<Array<Integer>>] Array of [destination_id, source_id] pairs that are candidates for merging
     # @note Only returns matches if auto deduplication is enabled in config
     private def find_merge_candidates_for_unprocessed
       # Never return obvious matches if auto deduplication is disabled
       unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
         @logger.info 'Auto deduplication disabled, returning empty set'
-        return {}
+        return []
       end
 
       # Find all potential matches
       matches = {}
-      if GrdaWarehouse::Config.get(:enable_auto_deduplication)
-        exact_ssn_matches_for_unprocessed.each do |id_pair|
-          matches[id_pair] ||= 0
-          matches[id_pair] += 1
-        end
-        exact_name_matches_for_unprocessed.each do |id_pair|
-          matches[id_pair] ||= 0
-          matches[id_pair] += 1
-        end
-        exact_dob_matches_for_unprocessed.each do |id_pair|
-          matches[id_pair] ||= 0
-          matches[id_pair] += 1
-        end
+      return matches if unprocessed_ids.empty?
+
+      exact_ssn_matches_for_unprocessed.each do |id_pair|
+        matches[id_pair] ||= 0
+        matches[id_pair] += 1
       end
+      exact_name_matches_for_unprocessed.each do |id_pair|
+        matches[id_pair] ||= 0
+        matches[id_pair] += 1
+      end
+      exact_dob_matches_for_unprocessed.each do |id_pair|
+        matches[id_pair] ||= 0
+        matches[id_pair] += 1
+      end
+
       matches.select { |_, v| v > 1 }.keys
     end
 
@@ -658,9 +670,11 @@ module GrdaWarehouse::Tasks
 
     # figure out who doesn't yet have an entry in warehouse clients
     private def unprocessed
-      GrdaWarehouse::Hud::Client.where(
-        id: GrdaWarehouse::Hud::Client.source.pluck(:id) - GrdaWarehouse::WarehouseClient.pluck(:source_id),
-      )
+      GrdaWarehouse::Hud::Client.where(id: unprocessed_ids)
+    end
+
+    private def unprocessed_ids
+      GrdaWarehouse::Hud::Client.source.pluck(:id) - GrdaWarehouse::WarehouseClient.pluck(:source_id)
     end
 
     # fetch a list of existing clients from the DND Warehouse DataSource (current destinations)
