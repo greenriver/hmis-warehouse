@@ -908,6 +908,7 @@ Rails.application.routes.draw do
   end
 
   get 'healthz' => 'system_status#operational'
+  get 'bootz' => 'system_status#details'
 
   root 'root#index'
 end
