@@ -60,13 +60,13 @@ module GrdaWarehouse::Tasks
       new_created = 0
 
       # Find all potential matches
-      more_than_one_match = find_merge_candidates_for_unprocessed
-      found_ids = more_than_one_match.flatten.uniq.to_set
+      more_than_one_match = find_merge_candidates_for_unprocessed.sort
+      more_than_one_match = more_than_one_match.map(&:reverse).to_h
 
-      # At this point more_than_one_match contains pairs of destination client id and source client id where the
+      # At this point more_than_one_match contains pairs of source client id and destination client id where the
       # source client should be merged into the destination client.
       # If the source client does not exist in any of the pairs, a new destination client should be created for it.
-      destination_clients_by_id = GrdaWarehouse::Hud::Client.where(id: found_ids.to_a).index_by(&:id)
+      destination_clients_by_id = GrdaWarehouse::Hud::Client.destination.where(id: more_than_one_match.values).index_by(&:id)
 
       unprocessed.find_in_batches do |batch|
         matched_ids = []
@@ -77,9 +77,14 @@ module GrdaWarehouse::Tasks
 
         batch.each do |client|
           destination_client = nil
-          if found_ids.include?(client.id)
-            matched_pair = more_than_one_match.find { |pair| pair.include?(client.id) }
-            destination_id = (matched_pair - [client.id]).first # We don't know the order of the pair
+          if more_than_one_match.key?(client.id)
+            matched += 1
+            # Pick the first matching pair that includes this unmatched client
+            # Scenarios:
+            # 1. Simple: 1 destination, 1 unmatched source client with matching PII (will find the one pair)
+            # 2. 2 destinations share one of three PII fields, 1 source client that matches one of the two destinations (will find the matching destination)
+            # 3. 2 with identical PII, previously split to indicate they are not the same person, 1 source client with matching PII (will create a single pair with one of the destination clients).  This is ok, because we know the destination clients are not the same, but we don't know which the source should be connected to, so just pick one (we're sorting above to always pick the same one)
+            destination_id = more_than_one_match[client.id]
             matched_ids << destination_id
             new_warehouse_clients[client.id] = GrdaWarehouse::WarehouseClient.new(
               id_in_source: client.personal_id,
@@ -376,11 +381,11 @@ module GrdaWarehouse::Tasks
       SQL
       results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
         with client_one as (
-          SELECT coalesce(warehouse_clients.destination_id, clients.id) as client_one_id,
+          SELECT clients.id as client_one_id,
             clients."SSN" as client_one_ssn
             from "Client" as clients
-            left outer join warehouse_clients on (clients.id = warehouse_clients.source_id OR clients.id = warehouse_clients.destination_id)
             #{limits}
+            and clients.data_source_id in (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
           ),
           client_two as (
           SELECT clients.id as client_two_id,
@@ -417,15 +422,15 @@ module GrdaWarehouse::Tasks
       SQL
       results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
         with client_one_name as (
-        SELECT coalesce(warehouse_clients.destination_id, clients.id) as client_one_name_id,
+        SELECT clients.id as client_one_id,
           concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
           regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as client_one_name_name
           from "Client" as clients
-          left outer join warehouse_clients on (clients.id = warehouse_clients.source_id OR clients.id = warehouse_clients.destination_id)
           #{limits}
+          and clients.data_source_id in (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
         ),
         client_two_name as (
-        SELECT clients.id as client_two_name_id,
+        SELECT clients.id as client_two_id,
           concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
           regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as client_two_name_name
           from "Client" as clients
@@ -434,17 +439,17 @@ module GrdaWarehouse::Tasks
         )
 
         SELECT DISTINCT
-          client_one_name_id,
-          client_two_name_id
+          client_one_id,
+          client_two_id
         FROM client_one_name
         JOIN client_two_name ON (
           -- Match on normalized name if both have it
           client_one_name_name = client_two_name_name
         )
-        WHERE client_one_name_id != client_two_name_id
+        WHERE client_one_id != client_two_id
       SQL
       # return an array of ID pairs
-      results.map { |r| [r['client_one_name_id'], r['client_two_name_id']] }
+      results.map { |r| [r['client_one_id'], r['client_two_id']] }
     end
 
     def exact_dob_matches_for_unprocessed
@@ -455,15 +460,15 @@ module GrdaWarehouse::Tasks
       SQL
       results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
         with client_one_dob as (
-          SELECT coalesce(warehouse_clients.destination_id, clients.id) as client_one_dob_id,
+          SELECT clients.id as client_one_id,
             clients."DOB" as client_one_dob_dob
             from
             "Client" as clients
-            left outer join warehouse_clients on (clients.id = warehouse_clients.source_id OR clients.id = warehouse_clients.destination_id)
             #{limits}
+            and clients.data_source_id in (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
         ),
         client_two_dob as (
-          SELECT clients.id as client_two_dob_id,
+          SELECT clients.id as client_two_id,
             clients."DOB" as client_two_dob_dob
             from
             "Client" as clients
@@ -472,16 +477,16 @@ module GrdaWarehouse::Tasks
         )
 
         SELECT DISTINCT
-          client_one_dob_id,
-          client_two_dob_id
+          client_one_id,
+          client_two_id
         FROM client_one_dob
         JOIN client_two_dob ON (
           -- Match on DOB if both have it
           client_one_dob_dob = client_two_dob_dob
         )
-        WHERE client_one_dob_id != client_two_dob_id
+        WHERE client_one_id != client_two_id
       SQL
-      results.map { |r| [r['client_one_dob_id'], r['client_two_dob_id']] }
+      results.map { |r| [r['client_one_id'], r['client_two_id']] }
     end
 
     private def merge_history
@@ -573,7 +578,12 @@ module GrdaWarehouse::Tasks
       destination_count = counts[destination_id].to_i
       source_count = counts[source_id].to_i
       # If adding one more source client would exceed the limit, reject the merge
-      destination_count + source_count > MAX_SOURCE_CLIENTS
+      value = destination_count + source_count > MAX_SOURCE_CLIENTS
+
+      # Prevent ever merging 50 clients in production
+      raise "will_exceed_source_counts? #{destination_id} #{source_id} #{destination_count} #{source_count} #{value}" if value && Rails.env.production?
+
+      value
     end
 
     # Groups candidate merges into chains to process them efficiently
