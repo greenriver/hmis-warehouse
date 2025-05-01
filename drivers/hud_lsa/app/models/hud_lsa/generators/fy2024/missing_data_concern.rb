@@ -67,9 +67,8 @@ module HudLsa::Generators::Fy2024::MissingDataConcern
     scope = viewable_projects(user).joins(:organization).
       left_outer_joins(:funders).
       where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types).
-      where(HousingType: nil).
+      where(HousingType: [nil, '']).
       housing_type_required.
-
       where(ProjectID: enrollment_limit)
     scope = scope.where(p_t[:id].in(project_ids)) if project_ids.any?
     # There are a few required project descriptor fields.  Without these the report won't run cleanly
@@ -82,7 +81,7 @@ module HudLsa::Generators::Fy2024::MissingDataConcern
       distinct.
       merge(viewable_projects(user).hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: enrollment_limit).
-      where(Geocode: nil)
+      where(Geocode: [nil, ''])
     scope = scope.in_coc(coc_code: filter.coc_codes) if filter&.coc_codes.present?
     scope = scope.where(p_t[:id].in(project_ids)) if project_ids.any?
     missing_data_rows(scope)
@@ -94,7 +93,7 @@ module HudLsa::Generators::Fy2024::MissingDataConcern
       distinct.
       merge(viewable_projects(user).hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: enrollment_limit).
-      where(GeographyType: nil)
+      where(GeographyType: [nil, ''])
     scope = scope.in_coc(coc_code: filter.coc_codes) if filter&.coc_codes.present?
     scope = scope.where(p_t[:id].in(project_ids)) if project_ids.any?
     missing_data_rows(scope)
@@ -106,7 +105,7 @@ module HudLsa::Generators::Fy2024::MissingDataConcern
       distinct.
       merge(viewable_projects(user).hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: enrollment_limit).
-      where(Zip: nil)
+      where(Zip: [nil, ''])
     scope = scope.in_coc(coc_code: filter.coc_codes) if filter&.coc_codes.present?
     scope = scope.where(p_t[:id].in(project_ids)) if project_ids.any?
     missing_data_rows(scope)
@@ -138,7 +137,7 @@ module HudLsa::Generators::Fy2024::MissingDataConcern
       distinct.
       merge(viewable_projects(user).hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: enrollment_limit).
-      where(CoCCode: nil)
+      where(CoCCode: [nil, ''])
     scope = scope.where(p_t[:id].in(project_ids)) if project_ids.any?
     missing_data_rows(scope)
   end
@@ -150,7 +149,7 @@ module HudLsa::Generators::Fy2024::MissingDataConcern
       joins(:project_cocs, :inventories, :organization).
       left_outer_joins(:funders).
       merge(GrdaWarehouse::Hud::ProjectCoc.where(pc_t[:CoCCode].not_eq(nil))).
-      merge(GrdaWarehouse::Hud::Inventory.where(CoCCode: nil)).
+      merge(GrdaWarehouse::Hud::Inventory.where(CoCCode: [nil, ''])).
       distinct
     scope = scope.in_coc(coc_code: filter.coc_codes) if filter&.coc_codes.present?
     scope = scope.where(p_t[:id].in(project_ids)) if project_ids.any?
@@ -163,7 +162,7 @@ module HudLsa::Generators::Fy2024::MissingDataConcern
       distinct.
       merge(viewable_projects(user).hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: enrollment_limit).
-      where(HouseholdType: nil)
+      where(HouseholdType: [nil, ''])
     scope = scope.in_coc(coc_code: filter.coc_codes) if filter&.coc_codes.present?
     scope = scope.where(p_t[:id].in(project_ids)) if project_ids.any?
     missing_data_rows(scope)
