@@ -94,9 +94,6 @@ module HudPit::Generators::Pit::Fy2025
           hh_id = get_hh_id(last_service_history_enrollment)
           household_ages = ages_for(hh_id, @generator.filter.on)
           household_type = household_types[hh_id]
-          # https://files.hudexchange.info/resources/documents/Reporting-Gender-for-the-PIT-Count.pdf
-          more_than_one_gender = HudPit::Fy2025::PitClient.more_than_one_gender(source_client)
-          pit_gender = source_client.pit_gender
           # Only count clients once (where one category is Multiple Races)
           pit_race = source_client.pit_race
           processed_source_clients << source_client.id
@@ -124,17 +121,7 @@ module HudPit::Generators::Pit::Fy2025
             hoh_veteran: hoh_veteran,
             head_of_household: enrollment.RelationshipToHoH == 1,
             relationship_to_hoh: enrollment.RelationshipToHoH,
-            more_than_one_gender: more_than_one_gender,
-            female: source_client.Woman,
-            male: source_client.Man,
-            culturally_specific: source_client.CulturallySpecific,
-            different_identity: source_client.DifferentIdentity,
-            non_binary: source_client.NonBinary,
-            transgender: source_client.Transgender,
-            questioning: source_client.Questioning,
-            gender_none: source_client.GenderNone,
             pit_race: pit_race,
-            pit_gender: pit_gender,
             am_ind_ak_native: source_client.AmIndAKNative,
             asian: source_client.Asian,
             black_af_american: source_client.BlackAfAmerican,
