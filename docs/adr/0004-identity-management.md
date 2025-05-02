@@ -3,7 +3,7 @@
 
 ## Status
 
-- Current Status: Proposed
+- Current Status: Approved
 - Date of last update: 2025-04-29
 - Decision-makers: OP engineering team, DevOps team
 
