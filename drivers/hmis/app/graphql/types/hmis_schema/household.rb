@@ -58,7 +58,9 @@ module Types
     end
 
     def current_staff_assignments
-      load_ar_association(object, :staff_assignments)
+      assignments = load_ar_association(object, :staff_assignments)
+      # Sort in-memory to avoid n+1. Equivalent of: order(created_at: :desc, id: :desc)
+      assignments.to_a.sort_by { |sa| [-sa.created_at.to_i, -sa.id] }
     end
 
     # This field results in N+1 because it is paginated.

@@ -16,7 +16,7 @@ module Hmis::Ce
 
     has_many :referrals, class_name: 'Hmis::Ce::Referral', dependent: :restrict_with_exception
     has_many :categorizations, class_name: 'Hmis::Ce::OpportunityCategorization', foreign_key: :opportunity_id
-    has_many :categories, -> { order(:name) }, through: :categorizations
+    has_many :categories, through: :categorizations
     belongs_to :owner, polymorphic: true, optional: true # Hmis::Unit, ...
     has_one :active_referral, -> { active }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
     has_one :active_or_accepted_referral, -> { active_or_accepted }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id

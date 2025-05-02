@@ -185,9 +185,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                                              })
 
         expect do
-          _, result = post_graphql(**adjusted_variables) { query }
-          expect(result.dig('data', 'project', 'enrollments', 'nodes').size).to eq(enrollments.size), result.inspect
-        end.to make_database_queries(count: 10..55) # Query count is high due to optional fields, especially "last contact date". Can maybe optimize further
+          response, result = post_graphql(**adjusted_variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'project', 'enrollments', 'nodes').size).to eq(enrollments.size)
+        end.to make_database_queries(count: 10..35) # Query count is high due to optional fields, especially "last contact date". Can maybe optimize further
       end
     end
   end

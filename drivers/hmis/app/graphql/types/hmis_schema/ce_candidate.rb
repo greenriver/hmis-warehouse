@@ -15,7 +15,7 @@ module Types
     field :priority_score, Integer, null: false
 
     def client
-      # TODO(#7573) - fix n+1, see commented-out test in drivers/hmis/spec/requests/hmis/ce/ce_opportunity_spec.rb
+      # TODO(#7573) - fix n+1, see 'xit' test in drivers/hmis/spec/requests/hmis/ce/ce_opportunity_spec.rb
       Hmis::Hud::Client.viewable_by(current_user).find_by(id: object.client_id)
     end
   end
