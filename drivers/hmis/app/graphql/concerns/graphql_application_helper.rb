@@ -50,16 +50,11 @@ module GraphqlApplicationHelper
 
   # Helper to resolve the active enrollment for this client at the specified project on the specified date.
   # Include WIP enrollments. If there are multiple enrollments, choose the one with the older entry date.
+  # For efficiency, assume the caller has already verified user permission to see enrollments at the project.
   #
   # This is in this module because its shared between query and mutation code.
   def load_open_enrollment_for_client(client, project_id:, open_on_date:)
-    # Confirm the user has access to view enrollments in the specified project
-    project = Hmis::Hud::Project.find_by(id: project_id)
-    return nil unless project
-    return nil unless current_user.can_view_enrollment_details_for?(project) || current_user.can_view_limited_enrollment_details_for?(project)
-
-    # Load all enrollments for the client, skipping visibility check since we'll filter by project below,
-    # and we know the user has enrollment access in this project already. This is to avoid n+1
+    # Load all enrollments for the client, skipping visibility check since we'll filter by project below, to avoid n+1
     enrollments = load_ar_association(client, :enrollments_with_exits)
 
     # Filter down by project and date

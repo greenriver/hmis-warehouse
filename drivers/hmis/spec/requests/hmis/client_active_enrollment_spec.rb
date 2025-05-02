@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -118,7 +120,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(clients.size).to eq(20)
         # make sure each of them resolved an activeEnrollment
         expect(clients.map { |c| c[:activeEnrollment] }.compact.size).to eq(20)
-      end.to make_database_queries(count: 10..35) # makes 29, but leaving some wiggle room
+      end.to make_database_queries(count: 10..25) # makes 20, but leaving some wiggle room
     end
   end
 
