@@ -1,7 +1,18 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+###
+# CensusReport aggregates and shapes census data for HUD projects, organizations, data sources, or project types.
+#
+# - Accepts a filter object to determine user, date range, aggregation level, and other scoping.
+# - Produces nested JSON structures for reporting/charting, including client and bed counts.
+# - Supports aggregation by project, organization, data source, or project type, with confidentiality and permission checks.
+# - Provides detail views and prior year averages for reporting.
 ###
 
 module Censuses
@@ -139,6 +150,16 @@ module Censuses
       [count, prefix, 'Project'.pluralize(count)].compact.join(' ')
     end
 
+    # Aggregates census data for a given dimension (project, organization, data source, or project type) over a date range.
+    #
+    # Params:
+    # - start_date: Date, beginning of the range (inclusive)
+    # - end_date: Date, end of the range (inclusive)
+    # - data_source_or_project_type: ID or key for the data source or project type
+    # - organization_id: ID for the organization or 'all'
+    # - project_id: ID for the project or 'all'
+    # - dimension_label: String label for the dimension (for chart/report display)
+    # - dimension_scope: ActiveRecord scope for the census data to aggregate
     private def compute_dimension(start_date, end_date, data_source_or_project_type, organization_id, project_id, dimension_label, dimension_scope)
       # Move the start of the range to include "yesterday"
       yesterday = 0

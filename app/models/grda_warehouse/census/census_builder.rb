@@ -1,9 +1,19 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# CensusBuilder is responsible for populating the nightly_census_by_projects table.
+# It aggregates nightly client and bed counts for each project over a date range,
+# batching by month or year, and inserts the results for efficient reporting.
+#
+# This process is the source of data for GrdaWarehouse::Census::ByProject,
+# which is used by reporting and analytics (e.g., CensusReport).
+#
+# The main entry point for this process is GrdaWarehouse::Tasks::CensusImport#run!.
 module GrdaWarehouse::Census
   class CensusBuilder
     def create_census(start_date, end_date)

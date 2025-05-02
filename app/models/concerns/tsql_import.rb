@@ -1,9 +1,11 @@
-###
+# frozen_string_literal: true
+
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# DEPRECATION WARNING: This module may be deprecated in favor of the activerecord-import gem
 module TsqlImport
   extend ActiveSupport::Concern
   included do
