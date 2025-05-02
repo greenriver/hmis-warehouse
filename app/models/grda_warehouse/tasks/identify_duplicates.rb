@@ -144,7 +144,7 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::ClientMatch.accept_exact_matches!
       # Record completed run
       completed_at = DateTime.now
-      GrdaWarehouse::IdentifyDuplicatesLog.create(
+      GrdaWarehouse::IdentifyDuplicatesLog.create!(
         started_at: started_at,
         completed_at: completed_at,
         to_match: unprocessed_count,
