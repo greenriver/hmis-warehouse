@@ -395,7 +395,7 @@ module HudPit::Generators::Pit::Fy2025
           title: 'Adults with HIV/AIDS',
           query: a_t[:hiv_aids].eq(true),
         },
-        # Adjusted in 2025 to match 2023 version of adult_dv_survivors_currently_fleeing
+        # Adjusted in 2024 to match 2023 version of adult_dv_survivors_currently_fleeing
         # Interpretation of the following is that it should only include people who
         # were homeless because they were fleeing
         # https://www.hud.gov/sites/dfiles/OCHCO/documents/2023-11cpdn.pdf
