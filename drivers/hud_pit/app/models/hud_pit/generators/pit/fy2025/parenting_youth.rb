@@ -34,7 +34,7 @@ module HudPit::Generators::Pit::Fy2025
       calcs = super
       # The following calculations should only be run for the HoH for parenting youth
       # per HUD guidance from 11/2021
-      # Updated 4/2025 to include both HoH and spouse clients per the following guidance
+      # Updated 4/2024 to include both HoH and spouse clients per the following guidance
       # •	HUD Notice CPD-2023-11: “Parenting youth are youth who identify as the parent or legal guardian of one or more children who are present with or sleeping in the same place as that youth parent, where there is no person over age 24 in the household”. “CoCs must report data on persons in Youth Households, including the gender, race, and ethnicity for parenting youth and unaccompanied youth, as outlined in Appendix C. However, while gender, race, and ethnicity are reported for all unaccompanied youth, CoCs will only report the gender, race, and ethnicity on the parents in the parenting youth households.”
       # •	Also, Appendix C to HUD Notice CPD-2023-11shows who should be counted for each item. Throughout the categories for Gender and Race/Ethnicity, it indicates that the data collection is for “youth parents only”. In other places HUD refers for “Head of Household” and HUD didn’t use that language here.
       [
