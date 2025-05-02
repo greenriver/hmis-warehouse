@@ -1,11 +1,12 @@
-- @job_reports.each do |run_at, report|
-  %tr{class: 'jIncompleteReport'}
-    %td= run_at
-    %td= report.user&.name
-    %td= report.version
-    %td= render 'spinner'
-    %td= render 'parameters', report: report
-    %td
+- if params[:page].blank? || params[:page].to_i == 1
+  - @job_reports.each do |run_at, report|
+    %tr{class: 'jIncompleteReport'}
+      %td= run_at
+      %td= report.user&.name
+      %td= report.version
+      %td= render 'spinner'
+      %td= render 'parameters', report: report
+      %td
 - list.each do |report|
   %tr
     %td

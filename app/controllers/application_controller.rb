@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'application_responder'
 
 class ApplicationController < ActionController::Base
@@ -135,7 +137,7 @@ class ApplicationController < ActionController::Base
   def info_for_paper_trail
     {
       user_id: warden&.user&.id,
-      session_id: request.env['rack.session.record']&.session_id,
+      session_id: session&.id&.to_s,
       request_id: request.uuid,
     }
   end
