@@ -100,22 +100,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       # TODO(#7573) - fix n+1 and reinstate this test
-      # context 'with many referrals' do
-      #   before do
-      #     30.times do
-      #       in_progress_referral = create(:hmis_ce_referral, project: project, workflow_template: workflow_template)
-      #       in_progress_referral.workflow_engine.start_workflow!(user: hmis_user) # start workflow so that it has a step in progress
-      #     end
-      #   end
-      #
-      #   it 'queries the db a reasonable amount' do
-      #     expect do
-      #       response, result = post_graphql(**variables) { query }
-      #       expect(response.status).to eq(200), result.inspect
-      #       expect(result.dig('data', 'project', 'ceReferrals', 'nodesCount')).to eq(32), result.inspect
-      #     end.to make_database_queries(count: 20..25)
-      #   end
-      # end
+      context 'with many referrals' do
+        before do
+          30.times do
+            in_progress_referral = create(:hmis_ce_referral, project: project, workflow_template: workflow_template)
+            in_progress_referral.workflow_engine.start_workflow!(user: hmis_user) # start workflow so that it has a step in progress
+          end
+        end
+
+        xit 'queries the db a reasonable amount' do
+          expect do
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'project', 'ceReferrals', 'nodesCount')).to eq(32), result.inspect
+          end.to make_database_queries(count: 20..25)
+        end
+      end
     end
   end
 end
