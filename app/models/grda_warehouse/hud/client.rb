@@ -2228,7 +2228,7 @@ module GrdaWarehouse::Hud
       end
 
       Rails.logger.info "Queueing cleanup for clients: #{to_clean.inspect}"
-      GrdaWarehouse::Tasks::ClientCleanup.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 6).run_for_clients(to_clean)
+      ClientCleanupJob.set(priority: 10).perform_later(to_clean.uniq)
       Rails.logger.info '=== Completed client split ==='
 
       client_names
@@ -2308,7 +2308,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::ClientMatch.processed_or_candidate.
           where(destination_client_id: m.id).destroy_all
       end
-      GrdaWarehouse::Tasks::ClientCleanup.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 6).run_for_clients(to_clean)
+      ClientCleanupJob.set(priority: 10).perform_later(to_clean.uniq)
       moved
     rescue Health::MedicaidIdConflict => e
       @notifier.ping(

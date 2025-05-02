@@ -31,7 +31,7 @@ module GrdaWarehouse::Tasks
     end
 
     # a helper method so client cleanup can be called with .delay
-    # GrdaWarehouse::Tasks::ClientCleanup.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run_for_clients(to_clean)
+    # ClientCleanupJob.set(priority: 10).perform_later(to_clean)
     def self.run_for_clients(client_ids)
       new(destination_ids: Array.wrap(client_ids)).run!
     end
