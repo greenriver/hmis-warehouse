@@ -168,8 +168,12 @@ module GrdaWarehouse::Tasks
     # @return [void]
     def match_existing!
       user = User.setup_system_user
-      @logger.info '=== Starting match_existing! ==='
-
+      if GrdaWarehouse::Config.get(:enable_auto_deduplication)
+        @logger.info '=== Starting match_existing! ==='
+      else
+        @logger.info '=== match_existing! not running, auto deduplication is disabled ==='
+        return
+      end
       # candidates now contains a hash keyed on client ids with arrays of destination client ids that will be
       # used as the source for merges into the key client id.
       # At this point the `key => ids` combinations have been grouped so any merges that would have

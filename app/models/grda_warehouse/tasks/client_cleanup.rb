@@ -65,14 +65,16 @@ module GrdaWarehouse::Tasks
       fix_incorrect_ages_in_service_history
       add_missing_ages_to_service_history
       fix_incorrect_household_ids
-      fix_incorrect_enrollment_coc_household_ids
       rebuild_service_history_for_incorrect_clients
+      Rails.cache.write('client_cleanup_last_run', Time.current, expires_in: 30.minutes)
     end
 
     # Find any heads of households where the same client has a duplicate HouseholdID
     # Update all members of the household where the HoH enrollment is closed with a new HouseholdID
     # where the members enrollment date falls between the HoH Entry and Exit dates inclusive
     def fix_incorrect_household_ids
+      return if recently_ran?
+
       incorrect_households = GrdaWarehouse::Hud::Enrollment.heads_of_households.
         joins(:project).
         merge(
@@ -128,23 +130,6 @@ module GrdaWarehouse::Tasks
         log "Not updating #{to_update} enrollments (dry-run)"
       else
         log "Updated #{to_update} enrollments with incorrect HouseholdIDs"
-      end
-    end
-
-    # Set any EnrollmentCoC.HouseholdIDs that don't match their
-    # enrollments, to whatever is in their enrollment
-    private def fix_incorrect_enrollment_coc_household_ids
-      batch_size = 10_000
-      ids = GrdaWarehouse::Hud::EnrollmentCoc.joins(:enrollment).where(
-        ec_t[:HouseholdID].not_eq(e_t[:HouseholdID]).
-        or(ec_t[:HouseholdID].eq(nil).and(e_t[:HouseholdID].not_eq(nil))),
-      ).pluck(:id, e_t[:HouseholdID])
-      ids.each_slice(batch_size) do |batch|
-        GrdaWarehouse::Hud::EnrollmentCoc.import(
-          [:id, :HouseholdID],
-          batch,
-          on_duplicate_key_update: { conflict_target: [:id], columns: [:HouseholdID] },
-        )
       end
     end
 
@@ -209,7 +194,7 @@ module GrdaWarehouse::Tasks
       adder = GrdaWarehouse::Tasks::ServiceHistory::Add.new
       log "Rebuilding service history for #{adder.clients_needing_update_count} clients"
       adder.run!
-      adder.class.wait_for_processing
+      adder.class.wait_for_processing(max_wait_seconds: 60)
     end
 
     # Find any clients at data sources that come from HMIS systems
@@ -898,7 +883,21 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::Hud::Client.where(id: @clients).update_all(DateDeleted: @soft_delete_date, source_hash: nil)
     end
 
+    # Sometimes we end up with dozens of client cleanup jobs in the queue, some cleanup tasks
+    # don't need to run every time, if we've run in the past 30 minutes, we can skip
+    private def recently_ran?
+      last_run = Rails.cache.read('client_cleanup_last_run')
+
+      return false if last_run.nil?
+
+      recent = last_run > 30.minutes.ago
+      log("Client cleanup last run was #{last_run}, skipping") if recent
+      recent
+    end
+
     def fix_incorrect_ages_in_service_history
+      return if recently_ran?
+
       log 'Finding any clients with incorrect ages in the last 3 years of service history and invalidating them.'
       incorrect_age_clients = Set.new
       less_than_zero = Set.new
@@ -931,6 +930,8 @@ module GrdaWarehouse::Tasks
     end
 
     def add_missing_ages_to_service_history
+      return if recently_ran?
+
       log 'Finding any clients with DOBs with service histories missing ages...'
       with_dob = GrdaWarehouse::Hud::Client.destination.where.not(DOB: nil).pluck(:id)
       without_dob = service_history_source.where.not(record_type: 'first').
