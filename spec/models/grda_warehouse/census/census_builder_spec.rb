@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require_relative '../../../../drivers/hud_spm_report/spec/models/fy2024/shared_context'
+require_relative '../../../shared_contexts/hud_enrollment_builders'
 
 RSpec.describe GrdaWarehouse::Census::CensusBuilder, type: :model do
-  include_context 'SPM test setup'
+  include_context 'HUD enrollment builders'
 
   let(:start_date) { '2024-06-01'.to_date }
   let(:end_date) { '2024-07-30'.to_date }

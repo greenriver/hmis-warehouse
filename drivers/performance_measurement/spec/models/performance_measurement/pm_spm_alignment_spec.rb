@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require_relative '../../../../hud_spm_report/spec/models/fy2024/shared_context'
+require_relative '../../../../../spec/shared_contexts/hud_enrollment_builders'
 
 RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
-  include_context 'SPM test setup'
+  include_context 'HUD enrollment builders'
 
   # Common variables
   let(:test_start_date) { '2022-10-01'.to_date }
@@ -646,8 +646,6 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
   end
 
   describe 'result_calculation#client_sum method' do
-    include_context 'SPM test setup'
-
     before do
       # Create projects
       @es_project = create_project(project_type: 0) # ES-EE
@@ -724,8 +722,6 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
   end
 
   describe 'result_calculation#client_sum project-level calculation' do
-    include_context 'SPM test setup'
-
     before do
       # Create two projects
       @es_project = create_project(project_type: 0) # ES-EE
@@ -799,8 +795,6 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
   end
 
   describe 'result_calculation#client_data method' do
-    include_context 'SPM test setup'
-
     before do
       # Create two projects
       @es_project = create_project(project_type: 0) # ES-EE

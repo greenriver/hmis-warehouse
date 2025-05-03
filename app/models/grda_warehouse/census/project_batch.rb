@@ -20,7 +20,7 @@ module GrdaWarehouse::Census
     end
 
     def build_census_batch
-      populations = GrdaWarehouse::Census.census_populations.map { |p| p[:population] }
+      populations = GrdaWarehouse::Census.census_populations.map { |p| p[:population] }.uniq
       populations.each do |population|
         scope = GrdaWarehouse::ServiceHistoryEnrollment.public_send(population)
         add_clients_to_census_buckets(get_client_and_project_counts(scope), population)
@@ -29,7 +29,7 @@ module GrdaWarehouse::Census
       @by_count.each do |project_id, census_collection|
         inventories = GrdaWarehouse::Hud::Project.find(project_id).inventories.within_range(@start_date..@end_date)
         census_collection.each do |date, census_item|
-          filtered_inventory = inventories.select { |inventory| inventory_active_on_date?(inventory, date) }
+          filtered_inventory = inventories.filter { |inventory| inventory_active_on_date?(inventory, date) }
           beds = filtered_inventory.map(&:beds).compact
           beds = [0] if beds.empty?
           # preserve behavior of returning 0 if any bed values are nil (rather than compact.sum)
@@ -39,17 +39,21 @@ module GrdaWarehouse::Census
     end
 
     def inventory_active_on_date?(inventory, date)
-      # Treat infoDate as the start date
+      # Always active if all dates are blank
+      if inventory.InformationDate.blank? &&
+         inventory.InventoryStartDate.blank? &&
+         inventory.InventoryEndDate.blank?
+        return true
+      end
+
+      # Determine the effective start date (InfoDate takes precedence)
       start_date = inventory.InformationDate || inventory.InventoryStartDate
       end_date = inventory.InventoryEndDate
 
-      # Always active if no dates at all
-      return true if !start_date && !end_date
-
-      # Active from start_date onward if no end_date
+      # If we have a start date but no end date, active from start onward
       return true if start_date && !end_date && start_date <= date
 
-      # Active between start_date and end_date (inclusive)
+      # If we have both start and end dates, check if date is in range (inclusive)
       return true if start_date && end_date && date.between?(start_date, end_date)
 
       false
