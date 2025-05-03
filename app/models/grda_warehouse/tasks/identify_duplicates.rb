@@ -198,7 +198,7 @@ module GrdaWarehouse::Tasks
               @logger.info "Attempting merge of #{source_id} into #{destination_id}"
               # merge_from must be called on a destination client, "source" can be a destination or array of source clients
               # This will log an error if the destination does not have at least one source client
-              destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current)
+              destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current, cleanup: false)
             rescue Exception => e
               @logger.error "Merge failed: #{e.message}\n#{e.backtrace.join("\n")}"
               Sentry.capture_exception_with_info(
@@ -211,6 +211,7 @@ module GrdaWarehouse::Tasks
             end
           end
         end
+        ClientCleanupJob.set(priority: 6).perform_later(batch.flatten)
       end
       @logger.info '=== Completed match_existing! ==='
       return unless @run_post_processing

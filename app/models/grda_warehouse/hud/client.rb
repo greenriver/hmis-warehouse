@@ -2228,7 +2228,7 @@ module GrdaWarehouse::Hud
       end
 
       Rails.logger.info "Queueing cleanup for clients: #{to_clean.inspect}"
-      ClientCleanupJob.set(priority: 10).perform_later(to_clean.uniq)
+      ClientCleanupJob.set(priority: 6).perform_later(to_clean.uniq)
       Rails.logger.info '=== Completed client split ==='
 
       client_names
@@ -2239,7 +2239,7 @@ module GrdaWarehouse::Hud
     # if it's a destination record, all of its sources will move and it will be deleted
     #
     # returns the source client records that moved
-    def merge_from(other_client, reviewed_by:, reviewed_at:, client_match_id: nil)
+    def merge_from(other_client, reviewed_by:, reviewed_at:, client_match_id: nil, cleanup: true)
       raise 'only works for destination_clients' unless destination?
 
       setup_notifier('PatientMerger') unless @notifier
@@ -2308,7 +2308,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::ClientMatch.processed_or_candidate.
           where(destination_client_id: m.id).destroy_all
       end
-      ClientCleanupJob.set(priority: 10).perform_later(to_clean.uniq)
+      ClientCleanupJob.set(priority: 6).perform_later(to_clean.uniq) if cleanup
       moved
     rescue Health::MedicaidIdConflict => e
       @notifier.ping(
