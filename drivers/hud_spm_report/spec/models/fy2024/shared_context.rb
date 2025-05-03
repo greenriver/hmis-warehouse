@@ -6,7 +6,6 @@ require_relative '../../../../../spec/shared_contexts/hud_enrollment_builders'
 # Shared context for SPM testing
 RSpec.shared_context 'SPM test setup', shared_context: :metadata do
   include_context 'HUD enrollment builders'
-  let(:user) { create(:user) }
   let(:default_filter) do
     Filters::HudFilterBase.new(
       user_id: user.id,
@@ -16,12 +15,6 @@ RSpec.shared_context 'SPM test setup', shared_context: :metadata do
       enforce_one_year_range: false,
     )
   end
-
-  let!(:destination_data_source) { create :destination_data_source }
-  let!(:data_source) { create(:source_data_source) }
-
-  # Setup CoC organization
-  let!(:organization) { create(:hud_organization, data_source: data_source) }
 
   def setup_report(project_ids, questions = ['Measure 1'])
     filter = default_filter.dup
