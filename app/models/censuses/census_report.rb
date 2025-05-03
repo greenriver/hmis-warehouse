@@ -6,15 +6,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-###
-# CensusReport aggregates and shapes census data for HUD projects, organizations, data sources, or project types.
-#
-# - Accepts a filter object to determine user, date range, aggregation level, and other scoping.
-# - Produces nested JSON structures for reporting/charting, including client and bed counts.
-# - Supports aggregation by project, organization, data source, or project type, with confidentiality and permission checks.
-# - Provides detail views and prior year averages for reporting.
-###
-
+# Generates aggregated census reports with client and bed counts by date.
+# Supports filtering by project, organization, data source, or project type.
+# Produces JSON structures for charting and analysis.
 module Censuses
   class CensusReport
     include ArelHelper

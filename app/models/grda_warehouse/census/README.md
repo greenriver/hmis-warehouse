@@ -4,7 +4,14 @@ The term **"Census"** in this context refers to a custom reporting concept speci
 
 ## What is the Census Report?
 
-The Census report aggregates nightly client and bed counts for each project, broken down by population (e.g., veterans, children, adults, all clients, etc.), using service and inventory data. This data is periodically rebuilt in batches and used for internal reporting and analytics.
+The Census system tracks nightly client and bed counts by project and population type (veterans, children, adults). Data is periodically rebuilt from service and inventory records for use in reports and charts.
+
+## Key components:
+- `CensusBuilder`: Populates the nightly_census_by_projects table
+- `ByProject`: ActiveRecord model for querying census data
+- `CensusReport`: Generates reports from the census data
+
+For implementation details, see the code in this directory.
 
 ## Where is the Data Used?
 

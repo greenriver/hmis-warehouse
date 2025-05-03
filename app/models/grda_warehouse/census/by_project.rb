@@ -5,11 +5,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# nightly_census_by_projects is a materialized table populated by GrdaWarehouse::Census::CensusBuilder.
-# It aggregates nightly client and bed counts for each project, built from service and inventory data.
-# This model is used for reporting and analytics (e.g., CensusReport)
-#
-# Data is periodically rebuilt in batches to reflect the latest service and inventory records.
+# ActiveRecord model for the nightly_census_by_projects materialized table.
+# Provides access to precomputed client and bed counts by project and date.
 module GrdaWarehouse::Census
   class ByProject < Base
     include TsqlImport
