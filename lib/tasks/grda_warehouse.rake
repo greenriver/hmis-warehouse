@@ -414,7 +414,7 @@ namespace :grda_warehouse do
     rescue StandardError => e
       puts e.message
     end
-    IdentifyExternalClientsJob.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).run_all!
+    IdentifyExternalClientsJob.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).run_all! unless Delayed::Job.queued?('IdentifyExternalClientsJob')
 
     # Store S3 paths for files that don't have them so OP analytics can use them
     GrdaWarehouse::ClientFile.delay.maintain_urls
