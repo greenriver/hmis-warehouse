@@ -13,31 +13,12 @@ class ClientCleanupJob < BaseJob
   WAIT_MINUTES = 1
 
   def perform(ids)
-    running_jobs = Delayed::Job.jobs_for_class('ClientCleanupJob').running.count
-    if running_jobs > 1
-
-      requeue_job
-      return
+    lock_obtained = nil
+    with_advisory_lock('client_cleanup_job', timeout_seconds: 0) do
+      GrdaWarehouse::Tasks::ClientCleanup.run_for_clients(ids)
+      lock_obtained = true
     end
-
-    GrdaWarehouse::Tasks::ClientCleanup.run_for_clients(ids)
-  end
-
-  private def requeue_job
-    # Re-queue this job before processing if another report is running for the same class
-    # This should help prevent tying up delayed job workers when someone kicks off a dozen of the same report.
-    a_t = Delayed::Job.arel_table
-    job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%").or(a_t[:id].eq(job_id))).first
-    return unless job_object
-
-    Rails.logger.info("ClientCleanupJob already running...re-queuing job for #{WAIT_MINUTES} minutes from now")
-    new_job = job_object.dup
-    new_job.update(
-      locked_at: nil,
-      locked_by: nil,
-      run_at: Time.current + WAIT_MINUTES.minutes,
-      attempts: 0,
-    )
+    requeue_at(Time.current + WAIT_MINUTES.minutes, "ClientCleanupJob already running...re-queuing job for #{WAIT_MINUTES} minutes from now") unless lock_obtained
   end
 
   def priority

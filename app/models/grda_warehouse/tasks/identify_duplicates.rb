@@ -295,41 +295,42 @@ module GrdaWarehouse::Tasks
         uniq
     end
 
+    # Finds pairs of destination clients (client_one) and source clients (client_two) with exactly matching normalized names
+    # (case-insensitive, unaccented, non-alphanumeric removed).
+    # Returns an array of [destination_client_id, source_client_id] pairs.
     def exact_name_matches
       limits = <<-SQL
         "Client" as clients
         inner join warehouse_clients on clients.id = warehouse_clients.source_id
         where clients."DateDeleted" is NULL
         and clients.data_source_id != #{GrdaWarehouse::DataSource.warehouse_id} -- not a destination client
-        and (clients."FirstName" is not null and clients."FirstName" != ''
-        or clients."LastName" is not null and clients."LastName" != '')
+        and #{name_presence_sql('clients')}
       SQL
+      normalization = name_normalization_sql('clients')
       results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
-        with client_one_name as (
-        SELECT warehouse_clients.destination_id as client_one_name_id,
-          concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
-          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as client_one_name_name
+        with destination_name as (
+          SELECT warehouse_clients.destination_id as destination_id,
+            #{normalization} as destination_normalized_name
           from #{limits}
         ),
-        client_two_name as (
-        SELECT warehouse_clients.destination_id as client_two_name_id,
-          concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
-          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as client_two_name_name
+        source_name as (
+          SELECT warehouse_clients.destination_id as source_id,
+            #{normalization} as source_normalized_name
           from #{limits}
         )
 
         SELECT DISTINCT
-          client_one_name_id,
-          client_two_name_id
-        FROM client_one_name
-        JOIN client_two_name ON (
+          destination_id,
+          source_id
+        FROM destination_name
+        JOIN source_name ON (
           -- Match on normalized name if both have it
-          client_one_name_name = client_two_name_name
+          destination_normalized_name = source_normalized_name
         )
-        WHERE client_one_name_id < client_two_name_id  -- Avoid duplicate pairs
+        WHERE destination_id < source_id  -- Avoid duplicate pairs
       SQL
       # return an array of ID pairs
-      results.map { |r| [r['client_one_name_id'], r['client_two_name_id']] }
+      results.map { |r| [r['destination_id'], r['source_id']] }
     end
 
     def exact_dob_matches
@@ -422,22 +423,20 @@ module GrdaWarehouse::Tasks
     def exact_name_matches_for_unprocessed
       limits = <<-SQL
         where clients."DateDeleted" is NULL
-        and (clients."FirstName" is not null and clients."FirstName" != ''
-        or clients."LastName" is not null and clients."LastName" != '')
+        and #{name_presence_sql('clients')}
       SQL
+      normalization = name_normalization_sql('clients')
       results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
         with client_one_name as (
         SELECT clients.id as client_one_id,
-          concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
-          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as client_one_name_name
+          #{normalization} as client_one_normalized_name
           from "Client" as clients
           #{limits}
           and clients.data_source_id in (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
         ),
         client_two_name as (
         SELECT clients.id as client_two_id,
-          concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
-          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as client_two_name_name
+          #{normalization} as client_two_normalized_name
           from "Client" as clients
           #{limits}
           and clients.id in (#{unprocessed_ids.join(',')})
@@ -449,7 +448,7 @@ module GrdaWarehouse::Tasks
         FROM client_one_name
         JOIN client_two_name ON (
           -- Match on normalized name if both have it
-          client_one_name_name = client_two_name_name
+          client_one_normalized_name = client_two_normalized_name
         )
         WHERE client_one_id != client_two_id
       SQL
@@ -695,6 +694,27 @@ module GrdaWarehouse::Tasks
     # fetch a list of existing clients from the DND Warehouse DataSource (current destinations)
     private def client_destinations
       GrdaWarehouse::Hud::Client.destination
+    end
+
+    # Returns a SQL expression for normalized client name (lowercased, unaccented, non-alphanumeric removed, null-safe).
+    private def name_normalization_sql(prefix = 'clients')
+      <<-SQL.squish
+        concat(
+          coalesce(regexp_replace(lower(trim(unaccent(#{prefix}."FirstName"))), '[^a-z0-9]', '', 'g'), ''),
+          '_',
+          coalesce(regexp_replace(lower(trim(unaccent(#{prefix}."LastName"))), '[^a-z0-9]', '', 'g'), '')
+        )
+      SQL
+    end
+
+    private def name_presence_sql(prefix = 'clients')
+      <<-SQL.squish
+        (
+          (#{prefix}."FirstName" is not null and trim(#{prefix}."FirstName") != '')
+          or
+          (#{prefix}."LastName" is not null and trim(#{prefix}."LastName") != '')
+        )
+      SQL
     end
   end
 end
