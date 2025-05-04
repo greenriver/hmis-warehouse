@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https: //github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 DEFAULT_DEST_ATTR = {
@@ -852,6 +860,89 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
           expect(1).to eq(@dest_attr[col])
         end
+      end
+    end
+  end
+
+  describe 'recently_ran?' do
+    let(:cleanup) { GrdaWarehouse::Tasks::ClientCleanup.new }
+    let(:memory_store) { ActiveSupport::Cache.lookup_store(:memory_store) }
+    let(:cache) { Rails.cache }
+
+    before do
+      allow(Rails).to receive(:cache).and_return(memory_store)
+      Rails.cache.clear
+    end
+
+    before do
+      Rails.cache.delete('client_cleanup_last_run')
+    end
+
+    it 'returns false when cache is empty' do
+      expect(cleanup.send(:recently_ran?)).to be false
+    end
+
+    it 'returns true when last run was within 30 minutes' do
+      Rails.cache.write('client_cleanup_last_run', Time.current)
+      expect(cleanup.send(:recently_ran?)).to be true
+    end
+
+    it 'returns false when last run was more than 30 minutes ago' do
+      Rails.cache.write('client_cleanup_last_run', 31.minutes.ago)
+      expect(cleanup.send(:recently_ran?)).to be false
+    end
+  end
+
+  describe 'methods that check recently_ran?' do
+    let(:cleanup) { GrdaWarehouse::Tasks::ClientCleanup.new }
+
+    let(:memory_store) { ActiveSupport::Cache.lookup_store(:memory_store) }
+    let(:cache) { Rails.cache }
+
+    before do
+      allow(Rails).to receive(:cache).and_return(memory_store)
+      Rails.cache.clear
+    end
+
+    describe '#fix_incorrect_household_ids' do
+      it 'runs when recently_ran? is false' do
+        allow(Rails.cache).to receive(:read).with('client_cleanup_last_run').and_return(nil)
+        expect(Rails.logger).to_not receive(:info).with(/skipping/i)
+        cleanup.fix_incorrect_household_ids
+      end
+
+      it 'does not run when recently_ran? is true' do
+        allow(Rails.cache).to receive(:read).with('client_cleanup_last_run').and_return(Time.current)
+        expect(Rails.logger).to receive(:info).with(/Client cleanup last run was .*, skipping/i).twice
+        cleanup.fix_incorrect_household_ids
+      end
+    end
+
+    describe '#fix_incorrect_ages_in_service_history' do
+      it 'runs when recently_ran? is false' do
+        allow(Rails.cache).to receive(:read).with('client_cleanup_last_run').and_return(nil)
+        expect(Rails.logger).to_not receive(:info).with(/skipping/i)
+        cleanup.fix_incorrect_ages_in_service_history
+      end
+
+      it 'does not run when recently_ran? is true' do
+        allow(Rails.cache).to receive(:read).with('client_cleanup_last_run').and_return(Time.current)
+        expect(Rails.logger).to receive(:info).with(/Client cleanup last run was .*, skipping/i).twice
+        cleanup.fix_incorrect_ages_in_service_history
+      end
+    end
+
+    describe '#add_missing_ages_to_service_history' do
+      it 'runs when recently_ran? is false' do
+        allow(Rails.cache).to receive(:read).with('client_cleanup_last_run').and_return(nil)
+        expect(Rails.logger).to_not receive(:info).with(/skipping/i)
+        cleanup.add_missing_ages_to_service_history
+      end
+
+      it 'does not run when recently_ran? is true' do
+        allow(Rails.cache).to receive(:read).with('client_cleanup_last_run').and_return(Time.current)
+        expect(Rails.logger).to receive(:info).with(/Client cleanup last run was .*, skipping/i).twice
+        cleanup.add_missing_ages_to_service_history
       end
     end
   end
