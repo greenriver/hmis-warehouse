@@ -295,9 +295,9 @@ module GrdaWarehouse::Tasks
         uniq
     end
 
-    # Finds pairs of destination clients (client_one) and source clients (client_two) with exactly matching normalized names
+    # Finds pairs of destination clients with exactly matching normalized names
     # (case-insensitive, unaccented, non-alphanumeric removed).
-    # Returns an array of [destination_client_id, source_client_id] pairs.
+    # Returns an array of [client_one_id, client_two_id] pairs.
     def exact_name_matches
       limits = <<-SQL
         "Client" as clients
@@ -308,29 +308,29 @@ module GrdaWarehouse::Tasks
       SQL
       normalization = name_normalization_sql('clients')
       results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
-        with destination_name as (
-          SELECT warehouse_clients.destination_id as destination_id,
-            #{normalization} as destination_normalized_name
+        with client_one as (
+          SELECT warehouse_clients.destination_id as client_one_id,
+            #{normalization} as client_one_normalized_name
           from #{limits}
         ),
-        source_name as (
-          SELECT warehouse_clients.destination_id as source_id,
-            #{normalization} as source_normalized_name
+        client_two as (
+          SELECT warehouse_clients.destination_id as client_two_id,
+            #{normalization} as client_two_normalized_name
           from #{limits}
         )
 
         SELECT DISTINCT
-          destination_id,
-          source_id
-        FROM destination_name
-        JOIN source_name ON (
+          client_one_id,
+          client_two_id
+        FROM client_one
+        JOIN client_two ON (
           -- Match on normalized name if both have it
-          destination_normalized_name = source_normalized_name
+          client_one_normalized_name = client_two_normalized_name
         )
-        WHERE destination_id < source_id  -- Avoid duplicate pairs
+        WHERE client_one_id < client_two_id  -- Avoid duplicate pairs
       SQL
       # return an array of ID pairs
-      results.map { |r| [r['destination_id'], r['source_id']] }
+      results.map { |r| [r['client_one_id'], r['client_two_id']] }
     end
 
     def exact_dob_matches
@@ -707,7 +707,7 @@ module GrdaWarehouse::Tasks
       SQL
     end
 
-    private def name_presence_sql(prefix = 'clients')
+    private def name_presence_sql(prefix)
       <<-SQL.squish
         (
           (#{prefix}."FirstName" is not null and trim(#{prefix}."FirstName") != '')
