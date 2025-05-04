@@ -14,6 +14,7 @@ class ClientCleanupJob < BaseJob
 
   def perform(ids)
     running_jobs = Delayed::Job.jobs_for_class('ClientCleanupJob').running.count
+    # allow up to 2 jobs to run at once, to avoid overwhelming the workers
     if running_jobs > 1
 
       requeue_job

@@ -244,7 +244,11 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    # Use a CTE to find potential matches based on multiple criteria
+    # Finds pairs of destination client IDs with exact SSN matches among source clients.
+    # Uses a CTE to efficiently compare all source clients and returns pairs of destination IDs
+    # where the SSN is valid and matches.
+    #
+    # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
     def exact_ssn_matches
       # Use a CTE to find potential matches based on multiple criteria
       # This keeps the heavy lifting in the database
@@ -266,72 +270,82 @@ module GrdaWarehouse::Tasks
       SQL
       results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
         with client_one as (
-          SELECT warehouse_clients.destination_id as client_one_id,
-            clients."SSN" as client_one_ssn
+          SELECT warehouse_clients.destination_id as destination_one_id,
+            clients."SSN" as destination_one_ssn
             from #{limits}
           ),
           client_two as (
-          SELECT warehouse_clients.destination_id as client_two_id,
-            clients."SSN" as client_two_ssn
+          SELECT warehouse_clients.destination_id as destination_two_id,
+            clients."SSN" as destination_two_ssn
             from #{limits}
           )
 
           SELECT DISTINCT
-              client_one_id,
-              client_two_id,
-              client_one_ssn as ssn,
-              client_two_ssn as ssn2
+              destination_one_id,
+              destination_two_id,
+              destination_one_ssn as ssn,
+              destination_two_ssn as ssn2
             FROM client_one
             JOIN client_two ON (
               -- Match on SSN if both have it
-              client_one_ssn = client_two_ssn
+              destination_one_ssn = destination_two_ssn
             )
-            WHERE client_one_id < client_two_id  -- Avoid duplicate pairs
+            WHERE destination_one_id < destination_two_id  -- Avoid duplicate pairs
       SQL
       # return an array of ID pairs
       results.
         select { |r| ::HudUtility2024.valid_social?(r['ssn']) }.
-        map { |r| [r['client_one_id'], r['client_two_id']] }.
+        map { |r| [r['destination_one_id'], r['destination_two_id']] }.
         uniq
     end
 
+    # Finds pairs of destination client IDs with exact normalized name matches among source clients.
+    # Uses a CTE to compare all source clients and returns pairs of destination IDs
+    # where the normalized (lowercased, stripped, unaccented) first and last names match.
+    #
+    # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
     def exact_name_matches
       limits = <<-SQL
         "Client" as clients
         inner join warehouse_clients on clients.id = warehouse_clients.source_id
         where clients."DateDeleted" is NULL
         and clients.data_source_id != #{GrdaWarehouse::DataSource.warehouse_id} -- not a destination client
-        and (clients."FirstName" is not null and clients."FirstName" != ''
-        or clients."LastName" is not null and clients."LastName" != '')
+        and (clients."FirstName" is not null and trim(clients."FirstName") != ''
+        and clients."LastName" is not null and trim(clients."LastName") != '')
       SQL
       results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
         with client_one_name as (
-        SELECT warehouse_clients.destination_id as client_one_name_id,
+        SELECT warehouse_clients.destination_id as destination_one_id,
           concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
-          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as client_one_name_name
+          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as destination_one_name
           from #{limits}
         ),
         client_two_name as (
-        SELECT warehouse_clients.destination_id as client_two_name_id,
+        SELECT warehouse_clients.destination_id as destination_two_id,
           concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
-          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as client_two_name_name
+          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as destination_two_name
           from #{limits}
         )
 
         SELECT DISTINCT
-          client_one_name_id,
-          client_two_name_id
+          destination_one_id,
+          destination_two_id
         FROM client_one_name
         JOIN client_two_name ON (
           -- Match on normalized name if both have it
-          client_one_name_name = client_two_name_name
+          destination_one_name = destination_two_name
         )
-        WHERE client_one_name_id < client_two_name_id  -- Avoid duplicate pairs
+        WHERE destination_one_id < destination_two_id  -- Avoid duplicate pairs
       SQL
       # return an array of ID pairs
-      results.map { |r| [r['client_one_name_id'], r['client_two_name_id']] }
+      results.map { |r| [r['destination_one_id'], r['destination_two_id']] }
     end
 
+    # Finds pairs of destination client IDs with exact date of birth matches among source clients.
+    # Uses a CTE to compare all source clients and returns pairs of destination IDs
+    # where the DOB is present, after 1920, and matches.
+    #
+    # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
     def exact_dob_matches
       limits = <<-SQL
         "Client" as clients
@@ -343,31 +357,34 @@ module GrdaWarehouse::Tasks
       SQL
       results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
         with client_one_dob as (
-          SELECT warehouse_clients.destination_id as client_one_dob_id,
-            clients."DOB" as client_one_dob_dob
+          SELECT warehouse_clients.destination_id as destination_one_id,
+            clients."DOB" as destination_one_dob
             from #{limits}
         ),
         client_two_dob as (
-          SELECT warehouse_clients.destination_id as client_two_dob_id,
-            clients."DOB" as client_two_dob_dob
+          SELECT warehouse_clients.destination_id as destination_two_id,
+            clients."DOB" as destination_two_dob
             from #{limits}
         )
 
         SELECT DISTINCT
-          client_one_dob_id,
-          client_two_dob_id
+          destination_one_id,
+          destination_two_id
         FROM client_one_dob
         JOIN client_two_dob ON (
           -- Match on DOB if both have it
-          client_one_dob_dob = client_two_dob_dob
+          destination_one_dob = destination_two_dob
         )
-        WHERE client_one_dob_id < client_two_dob_id  -- Avoid duplicate pairs
+        WHERE destination_one_id < destination_two_id  -- Avoid duplicate pairs
       SQL
-      results.map { |r| [r['client_one_dob_id'], r['client_two_dob_id']] }
+      results.map { |r| [r['destination_one_id'], r['destination_two_id']] }
     end
 
-    # When looking to match unprocessed clients, we expand the search to any client, even if they do not have a warehouse_client record
-    # NOTE: This may not be correct
+    # Finds pairs of destination and unprocessed source client IDs with exact SSN matches.
+    # Expands the search to any client, even those without a warehouse_client record.
+    # Only returns pairs where the SSN is valid and matches.
+    #
+    # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
     def exact_ssn_matches_for_unprocessed
       # Use a CTE to find potential matches based on multiple criteria
       # This keeps the heavy lifting in the database
@@ -386,77 +403,85 @@ module GrdaWarehouse::Tasks
       SQL
       results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
         with client_one as (
-          SELECT clients.id as client_one_id,
-            clients."SSN" as client_one_ssn
+          SELECT clients.id as destination_client_id,
+            clients."SSN" as destination_client_ssn
             from "Client" as clients
             #{limits}
             and clients.data_source_id in (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
           ),
           client_two as (
-          SELECT clients.id as client_two_id,
-            clients."SSN" as client_two_ssn
+          SELECT clients.id as source_client_id,
+            clients."SSN" as source_client_ssn
             from "Client" as clients
             #{limits}
             and clients.id in (#{unprocessed_ids.join(',')})
           )
 
           SELECT DISTINCT
-              client_one_id,
-              client_two_id,
-              client_one_ssn as ssn,
-              client_two_ssn as ssn2
+              destination_client_id,
+              source_client_id,
+              destination_client_ssn as ssn,
+              source_client_ssn as ssn2
             FROM client_one
             JOIN client_two ON (
               -- Match on SSN if both have it
-              client_one_ssn = client_two_ssn
+              destination_client_ssn = source_client_ssn
             )
-            WHERE client_one_id != client_two_id
+            WHERE destination_client_id != source_client_id
       SQL
       # return an array of ID pairs
       results.
         select { |r| ::HudUtility2024.valid_social?(r['ssn']) }.
-        map { |r| [r['client_one_id'], r['client_two_id']] }.
+        map { |r| [r['destination_client_id'], r['source_client_id']] }.
         uniq
     end
 
+    # Finds pairs of destination and unprocessed source client IDs with exact normalized name matches.
+    # Expands the search to any client, even those without a warehouse_client record.
+    #
+    # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
     def exact_name_matches_for_unprocessed
       limits = <<-SQL
         where clients."DateDeleted" is NULL
-        and (clients."FirstName" is not null and clients."FirstName" != ''
-        or clients."LastName" is not null and clients."LastName" != '')
+        and (clients."FirstName" is not null and trim(clients."FirstName") != ''
+        and clients."LastName" is not null and trim(clients."LastName") != '')
       SQL
       results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
         with client_one_name as (
-        SELECT clients.id as client_one_id,
+        SELECT clients.id as destination_client_id,
           concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
-          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as client_one_name_name
+          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as destination_client_name
           from "Client" as clients
           #{limits}
           and clients.data_source_id in (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
         ),
         client_two_name as (
-        SELECT clients.id as client_two_id,
+        SELECT clients.id as source_client_id,
           concat(regexp_replace(lower(trim(unaccent(clients."FirstName"))), '[^a-z0-9]', '', 'g'), '_',
-          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as client_two_name_name
+          regexp_replace(lower(trim(unaccent(clients."LastName"))), '[^a-z0-9]', '', 'g')) as source_client_name
           from "Client" as clients
           #{limits}
           and clients.id in (#{unprocessed_ids.join(',')})
         )
 
         SELECT DISTINCT
-          client_one_id,
-          client_two_id
+          destination_client_id,
+          source_client_id
         FROM client_one_name
         JOIN client_two_name ON (
           -- Match on normalized name if both have it
-          client_one_name_name = client_two_name_name
+          destination_client_name = source_client_name
         )
-        WHERE client_one_id != client_two_id
+        WHERE destination_client_id != source_client_id
       SQL
       # return an array of ID pairs
-      results.map { |r| [r['client_one_id'], r['client_two_id']] }
+      results.map { |r| [r['destination_client_id'], r['source_client_id']] }
     end
 
+    # Finds pairs of destination and unprocessed source client IDs with exact date of birth matches.
+    # Expands the search to any client, even those without a warehouse_client record.
+    #
+    # @return [Array<Array<Integer>>] Array of [destination_client_id, source_client_id] pairs
     def exact_dob_matches_for_unprocessed
       limits = <<-SQL
         where clients."DateDeleted" is NULL
@@ -465,16 +490,16 @@ module GrdaWarehouse::Tasks
       SQL
       results = GrdaWarehouse::Hud::Client.connection.execute(<<-SQL)
         with client_one_dob as (
-          SELECT clients.id as client_one_id,
-            clients."DOB" as client_one_dob_dob
+          SELECT clients.id as destination_client_id,
+            clients."DOB" as destination_client_dob
             from
             "Client" as clients
             #{limits}
             and clients.data_source_id in (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
         ),
         client_two_dob as (
-          SELECT clients.id as client_two_id,
-            clients."DOB" as client_two_dob_dob
+          SELECT clients.id as source_client_id,
+            clients."DOB" as source_client_dob
             from
             "Client" as clients
             #{limits}
@@ -482,20 +507,16 @@ module GrdaWarehouse::Tasks
         )
 
         SELECT DISTINCT
-          client_one_id,
-          client_two_id
+          destination_client_id,
+          source_client_id
         FROM client_one_dob
         JOIN client_two_dob ON (
           -- Match on DOB if both have it
-          client_one_dob_dob = client_two_dob_dob
+          destination_client_dob = source_client_dob
         )
-        WHERE client_one_id != client_two_id
+        WHERE destination_client_id != source_client_id
       SQL
-      results.map { |r| [r['client_one_id'], r['client_two_id']] }
-    end
-
-    private def merge_history
-      @merge_history ||= GrdaWarehouse::ClientMergeHistory.new
+      results.map { |r| [r['destination_client_id'], r['source_client_id']] }
     end
 
     # Find potential client merge candidates by looking for matches across multiple criteria
