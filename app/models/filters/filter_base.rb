@@ -191,7 +191,7 @@ module Filters
       ensure_dates_work if valid?
       self
     end
-    alias set_from_params update
+    alias_method :set_from_params, :update
 
     private def safe_to_date(val)
       case val.presence
@@ -277,7 +277,7 @@ module Filters
     def to_h
       for_params[:filters]
     end
-    alias inspect to_h
+    alias_method :inspect, :to_h
 
     def known_params
       [
