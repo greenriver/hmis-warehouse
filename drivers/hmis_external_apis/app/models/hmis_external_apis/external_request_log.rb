@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisExternalApis
   class ExternalRequestLog < GrdaWarehouseBase
     has_one :external_id
@@ -19,6 +21,10 @@ module HmisExternalApis
 
     scope :failed, -> do
       where(arel_table[:http_status].eq(nil).or(arel_table[:http_status].gt(300)))
+    end
+
+    scope :successful, -> do
+      where(arel_table[:http_status].lt(300))
     end
 
     scope :url_like, ->(str) { where('lower(url) LIKE ?', "%#{str.downcase}%") }

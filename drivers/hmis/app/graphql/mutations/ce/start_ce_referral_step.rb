@@ -20,9 +20,15 @@ module Mutations
       referral.opportunity.with_lock do
         engine = referral.workflow_engine
         step = engine.active_steps.find(step_id)
+
+        # TODO(#7395): permission
+
         engine.start_step!(step, user: current_user)
       end
-      { step: step }
+
+      {
+        step: step.reload,
+      }
     end
   end
 end

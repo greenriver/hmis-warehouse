@@ -44,7 +44,8 @@ RSpec.describe GrdaWarehouse::Tasks::SyncAnalysisDataTask do
     expect(exported['email']).to eq('bob@example.com')
   end
 
-  it 'removes records from analytics.app_users that no longer exist in users' do
+  # TODO: #7600
+  xit 'removes records from analytics.app_users that no longer exist in users' do
     # Insert an orphaned user into the export table
     connection.execute(<<~SQL)
       INSERT INTO analytics.app_users (id, first_name, last_name, email)

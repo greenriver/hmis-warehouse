@@ -89,13 +89,18 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
               formDefinition {
                 id
               }
+              swimlane
+              assignees {
+                id
+                name
+              }
             }
           }
         }
       GRAPHQL
     end
 
-    context 'with valid input' do
+    context 'with a workflow that has been started' do
       before do
         # Start the workflow to make the first step available
         referral.workflow_engine.start_workflow!(user: hmis_user)
@@ -110,31 +115,44 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
         }
       end
 
-      it 'starts the step' do
-        _, result = post_graphql(**variables) { mutation }
-        step_data = result.dig('data', 'startCeReferralStep', 'step')
+      context 'with valid input' do
+        it 'starts the step' do
+          _, result = post_graphql(**variables) { mutation }
+          step_data = result.dig('data', 'startCeReferralStep', 'step')
 
-        expect(step_data['status']).to eq('in_progress')
-        expect(step_data['name']).to eq('Client Acceptance')
-        expect(step.reload.status).to eq('in_progress')
-      end
+          expect(step_data['status']).to eq('in_progress')
+          expect(step_data['name']).to eq('Client Acceptance')
+          expect(step_data.dig('swimlane')).to eq(swimlane.name)
+          expect(step.reload.status).to eq('in_progress')
+        end
 
-      it 'includes form definition in response' do
-        _, result = post_graphql(**variables) { mutation }
-        step_data = result.dig('data', 'startCeReferralStep', 'step')
+        it 'assigns the user and returns the assignee' do
+          _, result = post_graphql(**variables) { mutation }
+          step_data = result.dig('data', 'startCeReferralStep', 'step')
 
-        expect(step_data['formDefinition']['id']).to eq(client_acceptance_task.form_definitions.sole.id.to_s)
-      end
+          expect(step_data['assignees']).to contain_exactly(
+            a_hash_including('id' => hmis_user.id.to_s, 'name' => hmis_user.name),
+          )
+          expect(step.reload.assignments.sole.user).to eq(hmis_user)
+        end
 
-      it 'creates an audit event' do
-        expect do
-          post_graphql(**variables) { mutation }
-        end.to change(Hmis::WorkflowExecution::AuditEvent, :count).by(1)
+        it 'includes form definition in response' do
+          _, result = post_graphql(**variables) { mutation }
+          step_data = result.dig('data', 'startCeReferralStep', 'step')
 
-        audit_event = Hmis::WorkflowExecution::AuditEvent.last
-        expect(audit_event.event_type).to eq('start_step')
-        expect(audit_event.user).to eq(hmis_user)
-        expect(audit_event.step).to eq(step)
+          expect(step_data['formDefinition']['id']).to eq(client_acceptance_task.form_definitions.sole.id.to_s)
+        end
+
+        it 'creates an audit event' do
+          expect do
+            post_graphql(**variables) { mutation }
+          end.to change(Hmis::WorkflowExecution::AuditEvent, :count).by(1)
+
+          audit_event = Hmis::WorkflowExecution::AuditEvent.last
+          expect(audit_event.event_type).to eq('start_step')
+          expect(audit_event.user).to eq(hmis_user)
+          expect(audit_event.step).to eq(step)
+        end
       end
     end
   end
