@@ -470,19 +470,15 @@ module UserConcern
       "Account deactivated by #{name} on #{version.created_at}"
     end
 
-    # Search for users by name or email using both prefix matching and fuzzy matching
+    # Search for users by name or email using prefix matching
     #
     # @param text [String] the search query
     # @param sort_by_best_match [Boolean] whether to order results by similarity to query
-    # @param similarity_threshold [Float] minimum similarity score (0.0 to 1.0) for fuzzy matches
     #
     # @return [ActiveRecord::Relation] matching users
     #
     # @example Find users matching 'john'
     #   User.text_search('john')
-    #
-    # @example Find users with similarity ordering
-    #   User.text_search('john smith', sort_by_best_match: true)
     def self.text_search(text, sort_by_best_match: false)
       text = text.strip
       return none if text.length < 3 # require at least 3 characters for meaningful search
