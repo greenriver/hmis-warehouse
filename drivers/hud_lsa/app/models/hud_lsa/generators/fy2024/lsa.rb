@@ -149,7 +149,7 @@ module HudLsa::Generators::Fy2024
     # Confirm the chosen projects are not missing critical data.
     # Any structural failures that will cause the run to fail should be caught here
     private def preflight_passes?
-      issues = missing_data(user).except(:show_missing_data)
+      issues = missing_data(user, project_ids: filter.effective_project_ids_during_range(export_date_range), filter: filter).except(:show_missing_data)
       issue_project_ids = issues.values.flatten.map { |r| r[:id] }.uniq & filter.effective_project_ids_during_range(export_date_range)
       return true if issue_project_ids.empty?
 
