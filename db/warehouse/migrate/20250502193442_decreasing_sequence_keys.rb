@@ -10,10 +10,9 @@ class DecreasingSequenceKeys < ActiveRecord::Migration[7.1]
         INNER JOIN information_schema.columns AS cols ON tbls.table_name = cols.table_name
         INNER JOIN information_schema."sequences" AS seq on seq.sequence_name = concat(tbls.table_name, '_id_seq')
       WHERE
-        tbls.table_catalog = 'development_openpath_warehouse'
-        AND tbls.table_schema = 'public'
+        tbls.table_schema = 'public'
         AND cols.column_name = 'id'
-        AND cols.table_name NOT IN ('ClientUnencrypted', 'Site', 'bi_data_sources', 'bi_lookups_ethnicities', 'bi_lookups_funding_sources')
+        AND seq.increment::integer = -1
     SQL
 
     tables = GrdaWarehouseBase.connection.execute(sql)
