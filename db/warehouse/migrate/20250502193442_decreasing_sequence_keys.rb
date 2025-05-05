@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DecreasingSequenceKeys < ActiveRecord::Migration[7.1]
   def up
     sql = <<-SQL
@@ -14,18 +16,19 @@ class DecreasingSequenceKeys < ActiveRecord::Migration[7.1]
         AND cols.table_name NOT IN ('ClientUnencrypted', 'Site', 'bi_data_sources', 'bi_lookups_ethnicities', 'bi_lookups_funding_sources')
     SQL
 
-    tables = GrdaWarehouseBase.connection.execute( sql )
+    tables = GrdaWarehouseBase.connection.execute(sql)
     tables.each do |table|
       next if table['increment'] == '1'
+
       puts "Processing table: #{table['table_name']}"
       puts "Sequence name: #{table['sequence_name']}"
 
-      max_id = GrdaWarehouseBase.connection.execute( "SELECT MAX(id) FROM #{table['table_name']}" ).first['max'].to_i
+      max_id = GrdaWarehouseBase.connection.execute("SELECT MAX(id) FROM #{table['table_name']}").first['max'].to_i
       puts "Max ID: #{max_id}"
-      GrdaWarehouseBase.connection.execute( "ALTER SEQUENCE #{table['sequence_name']} INCREMENT BY 1" )
-      puts "Sequence now increments by 1"
-      GrdaWarehouseBase.connection.execute( "SELECT setval('#{table['sequence_name']}', #{max_id} )" )
-      puts "Sequence restarted"
+      GrdaWarehouseBase.connection.execute("ALTER SEQUENCE #{table['sequence_name']} INCREMENT BY 1")
+      puts 'Sequence now increments by 1'
+      GrdaWarehouseBase.connection.execute("SELECT setval('#{table['sequence_name']}', #{max_id})")
+      puts "Sequence restarted at #{max_id}"
     end
   end
 end
