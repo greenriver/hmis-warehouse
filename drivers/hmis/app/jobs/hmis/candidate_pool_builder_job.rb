@@ -16,7 +16,7 @@ module Hmis
 
       log("Running the CE match engine for #{Hmis::Hud::Client.hmis.count} HMIS clients")
       clients = Hmis::Hud::Client.hmis
-      Hmis::Ce::Match::CandidatePool.all.each do |pool|
+      Hmis::Ce::Match::CandidatePool.all.find_each do |pool|
         Hmis::Ce::Match::Engine.call(pool, clients)
       end
     end
