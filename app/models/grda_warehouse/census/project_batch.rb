@@ -40,14 +40,12 @@ module GrdaWarehouse::Census
 
     def inventory_active_on_date?(inventory, date)
       # Always active if all dates are blank
-      if inventory.InformationDate.blank? &&
-         inventory.InventoryStartDate.blank? &&
+      if inventory.InventoryStartDate.blank? &&
          inventory.InventoryEndDate.blank?
         return true
       end
 
-      # Determine the effective start date (InfoDate takes precedence)
-      start_date = inventory.InformationDate || inventory.InventoryStartDate
+      start_date = inventory.InventoryStartDate
       end_date = inventory.InventoryEndDate
 
       # If we have a start date but no end date, active from start onward

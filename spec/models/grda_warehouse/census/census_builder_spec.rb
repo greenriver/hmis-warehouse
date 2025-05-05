@@ -55,26 +55,6 @@ RSpec.describe GrdaWarehouse::Census::CensusBuilder, type: :model do
         expect(records.pluck(:beds).uniq).to eq([10])
       end
 
-      it 'uses InformationDate when both InformationDate and InventoryStartDate are present' do
-        create(:hud_inventory,
-               ProjectID: @project.project_id,
-               data_source: @project.data_source,
-               InformationDate: start_date + 5.days,
-               InventoryStartDate: start_date + 10.days,
-               InventoryEndDate: end_date,
-               BedInventory: 7)
-
-        subject.create_census(start_date, end_date)
-
-        # Should be 0 beds before InformationDate
-        record_before = GrdaWarehouse::Census::ByProject.find_by(project_id: @project.id, date: start_date + 4.days)
-        expect(record_before.beds).to eq(0)
-
-        # Should be 7 beds on and after InformationDate
-        record_on = GrdaWarehouse::Census::ByProject.find_by(project_id: @project.id, date: start_date + 5.days)
-        expect(record_on.beds).to eq(7)
-      end
-
       it 'counts beds on boundary dates (inclusive)' do
         create(:hud_inventory,
                ProjectID: @project.project_id,
@@ -150,30 +130,6 @@ RSpec.describe GrdaWarehouse::Census::CensusBuilder, type: :model do
 
         # Days 26+: no inventory (0 beds)
         record_after = GrdaWarehouse::Census::ByProject.find_by(project_id: @project.id, date: start_date + 26.days)
-        expect(record_after.beds).to eq(0)
-      end
-
-      it 'handles inventories with only InformationDate correctly' do
-        create(:hud_inventory,
-               ProjectID: @project.project_id,
-               data_source: @project.data_source,
-               InformationDate: start_date + 10.days,
-               InventoryStartDate: nil,
-               InventoryEndDate: end_date - 10.days,
-               BedInventory: 6)
-
-        subject.create_census(start_date, end_date)
-
-        # Before InformationDate
-        record_before = GrdaWarehouse::Census::ByProject.find_by(project_id: @project.id, date: start_date + 9.days)
-        expect(record_before.beds).to eq(0)
-
-        # Between InformationDate and EndDate
-        record_between = GrdaWarehouse::Census::ByProject.find_by(project_id: @project.id, date: start_date + 15.days)
-        expect(record_between.beds).to eq(6)
-
-        # After EndDate
-        record_after = GrdaWarehouse::Census::ByProject.find_by(project_id: @project.id, date: end_date - 5.days)
         expect(record_after.beds).to eq(0)
       end
     end
