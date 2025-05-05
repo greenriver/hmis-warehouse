@@ -21,10 +21,6 @@ module CustomApplicationRecord
       find(safe_id)
     end
 
-    def needs_migration?
-      ActiveRecord::Migration.check_all_pending!
-    end
-
     def replace_scope(name, body, &block)
       singleton_class.undef_method name
       scope name, body, &block
