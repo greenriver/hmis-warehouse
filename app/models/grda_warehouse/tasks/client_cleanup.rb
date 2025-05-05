@@ -786,7 +786,7 @@ module GrdaWarehouse::Tasks
     def clients_to_munge
       return @destination_ids if @destination_ids.present?
 
-      log "Check any client who's source has changed"
+      log 'Check any client whose source has changed'
       to_update = GrdaWarehouse::WarehouseClient.destination_needs_cleanup.distinct.pluck(:destination_id)
       log "...found #{to_update.size}."
       to_update
