@@ -1113,7 +1113,8 @@ CREATE TABLE public.hmis_activity_logs (
     header_project_id bigint,
     created_at timestamp without time zone NOT NULL,
     processed_at date,
-    resolved_at timestamp without time zone
+    resolved_at timestamp without time zone,
+    request_id character varying
 );
 
 
@@ -5122,6 +5123,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250501151733'),
+('20250501135342'),
 ('20250218131829'),
 ('20250217181347'),
 ('20250208211846'),
