@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class ClientsController < ApplicationController
   include AjaxModalRails::Controller
   include ClientController
@@ -176,7 +178,7 @@ class ClientsController < ApplicationController
   # Create new warehouse_clients to link source and destination
   # Queue update to service history
   def unmerge
-    to_unmerge = client_params['unmerge']&.reject(&:empty?)
+    to_unmerge = client_params['unmerge']&.reject(&:empty?) # Set of source client ids
     redirect_to({ action: :edit }, alert: 'No clients selected.') and return unless to_unmerge
 
     hmis_receiver = client_params['hmis_receiver']

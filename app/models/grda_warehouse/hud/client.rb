@@ -2171,29 +2171,44 @@ module GrdaWarehouse::Hud
     end
 
     def split(client_ids, hmis_receiver_id, health_receiver_id, current_user)
+      Rails.logger.info '=== Starting client split ==='
+      Rails.logger.info "Original client: #{id}"
+      Rails.logger.info "Clients to split: #{client_ids.inspect}"
+      Rails.logger.info "HMIS receiver: #{hmis_receiver_id}"
+      Rails.logger.info "Health receiver: #{health_receiver_id}"
+
       client_names = []
       to_clean = [id]
       dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
 
       GrdaWarehouse::Hud::Base.transaction do
         client_ids.each do |client_id|
+          Rails.logger.info "Processing split for client: #{client_id}"
           c = self.class.find(client_id)
-          c.warehouse_client_source.destroy if c.warehouse_client_source.present?
+          Rails.logger.info "Found source client: #{c.inspect}"
+
+          if c.warehouse_client_source.present?
+            Rails.logger.info "Destroying warehouse client source for: #{client_id}"
+            c.warehouse_client_source.destroy
+          end
+
           destination_client = c.dup
           destination_client.data_source = dnd_warehouse_data_source
           destination_client.save
+          Rails.logger.info "Created new destination client: #{destination_client.id}"
 
           receive_hmis = hmis_receiver_id == client_id
           receive_health = health_receiver_id == client_id
 
-          GrdaWarehouse::ClientSplitHistory.create(
+          split_history = GrdaWarehouse::ClientSplitHistory.create(
             split_from: id,
             split_into: destination_client.id,
             receive_hmis: receive_hmis,
             receive_health: receive_health,
           )
+          Rails.logger.info "Created split history record: #{split_history.inspect}"
 
-          GrdaWarehouse::WarehouseClient.create(
+          warehouse_client = GrdaWarehouse::WarehouseClient.create(
             id_in_source: c.PersonalID,
             source_id: c.id,
             destination_id: destination_client.id,
@@ -2203,9 +2218,17 @@ module GrdaWarehouse::Hud
             reviewd_by: current_user.id,
             approved_at: Time.now,
           )
+          Rails.logger.info "Created warehouse client record: #{warehouse_client.inspect}"
 
-          destination_client.move_dependent_hmis_items(id, destination_client.id) if receive_hmis
-          destination_client.move_dependent_health_items(id, destination_client.id) if receive_health
+          if receive_hmis
+            Rails.logger.info "Moving HMIS items from #{id} to #{destination_client.id}"
+            destination_client.move_dependent_hmis_items(id, destination_client.id)
+          end
+
+          if receive_health
+            Rails.logger.info "Moving health items from #{id} to #{destination_client.id}"
+            destination_client.move_dependent_health_items(id, destination_client.id)
+          end
 
           to_clean << destination_client.id
           to_clean << client_id
@@ -2213,7 +2236,10 @@ module GrdaWarehouse::Hud
           client_names << c.full_name
         end
       end
-      GrdaWarehouse::Tasks::ClientCleanup.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run_for_clients(to_clean)
+
+      Rails.logger.info "Queueing cleanup for clients: #{to_clean.inspect}"
+      ClientCleanupJob.set(priority: 6).perform_later(to_clean.uniq)
+      Rails.logger.info '=== Completed client split ==='
 
       client_names
     end
@@ -2223,7 +2249,7 @@ module GrdaWarehouse::Hud
     # if it's a destination record, all of its sources will move and it will be deleted
     #
     # returns the source client records that moved
-    def merge_from(other_client, reviewed_by:, reviewed_at:, client_match_id: nil)
+    def merge_from(other_client, reviewed_by:, reviewed_at:, client_match_id: nil, cleanup: true)
       raise 'only works for destination_clients' unless destination?
 
       setup_notifier('PatientMerger') unless @notifier
@@ -2292,7 +2318,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::ClientMatch.processed_or_candidate.
           where(destination_client_id: m.id).destroy_all
       end
-      GrdaWarehouse::Tasks::ClientCleanup.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run_for_clients(to_clean)
+      ClientCleanupJob.set(priority: 6).perform_later(to_clean.uniq) if cleanup
       moved
     rescue Health::MedicaidIdConflict => e
       @notifier.ping(
