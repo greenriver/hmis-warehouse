@@ -1,7 +1,7 @@
 = render 'breadcrumbs'
-- title = "#{@user.name} Audit Log"
+- title = "Audit Log"
 - content_for :title, title
-%h1= title
+= render_display_title "#{@user.name} Audit Log"
 = render 'admin/audits/user_tabs'
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'action'
