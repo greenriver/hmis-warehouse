@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Importing
   class RunDailyImportsJob < BaseJob
     include ActionView::Helpers::DateHelper
@@ -144,22 +146,24 @@ module Importing
 
         warm_cache
 
-        ReportingSetupJob.set(priority: 15).perform_later
+        ReportingSetupJob.set(priority: 15).perform_later unless Delayed::Job.queued?('ReportingSetupJob')
 
         @notifier.ping('Rebuilding reporting tables...')
         GrdaWarehouse::Report::Base.update_fake_materialized_views
         @notifier.ping('...done rebuilding reporting tables')
 
-        # Pre-calculate the dashboards
-        @notifier.ping('Updating dashboards')
-        Reporting::PopulationDashboardPopulateJob.set(priority: 10).perform_later(sub_population: 'all')
+        # Pre-calculate the dashboards (unless already queued)
+        unless Delayed::Job.queued?('Reporting::PopulationDashboardPopulateJob')
+          @notifier.ping('Updating dashboards')
+          Reporting::PopulationDashboardPopulateJob.set(priority: 10).perform_later(sub_population: 'all')
+        end
 
         # Remove any expired export jobs
         PruneDocumentExportsJob.perform_later
         Health::PruneDocumentExportsJob.perform_later
 
         YouthFollowUpsJob.set(priority: 10).perform_later
-        SystemCohortsJob.set(priority: 10).perform_later
+        SystemCohortsJob.set(priority: 10).perform_later unless Delayed::Job.queued?('SystemCohortsJob')
         AccessGroup.delayed_system_group_maintenance
         Collection.delayed_system_group_maintenance
         GrdaWarehouse::Cohort.delay.maintain_auto_maintained!

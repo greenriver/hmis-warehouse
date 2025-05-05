@@ -22,7 +22,8 @@ module GrdaWarehouse::Tasks
       with_lock do
         GrdaWarehouseBase.transaction do
           sync_app_users
-          prune_removed_users
+          # TODO: #7600 - delete breaks for some reason
+          # prune_removed_users
         end
       end
     end

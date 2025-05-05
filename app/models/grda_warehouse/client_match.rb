@@ -6,6 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse
   class ClientMatch < GrdaWarehouseBase
     belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client'
@@ -60,6 +62,8 @@ module GrdaWarehouse
     # In addition, if either the source or destination client no longer
     # exists, we'll delete the match
     def self.accept_exact_matches!
+      return unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
+
       candidate.preload(:source_client, :destination_client).
         find_each do |match|
           sc = match.source_client
