@@ -16,29 +16,47 @@ class ClientAccessControl::ClientsController < ApplicationController
 
   helper ClientHelper
 
-  before_action :require_can_access_some_client_search!, only: [:index, :simple]
+  before_action :require_can_access_some_client_search!, only: [:index, :search, :simple]
   before_action :require_can_access_some_version_of_clients!, only: [:show, :service_range, :rollup, :image]
   before_action :require_can_view_enrollment_details!, only: [:enrollment_details]
-  before_action :require_can_see_this_client_demographics!, except: [:index, :simple, :appropriate, :new, :from_source]
+  before_action :require_can_see_this_client_demographics!, except: [:index, :search, :simple, :appropriate, :new, :from_source]
   before_action :set_client, only: [:show, :service_range, :rollup, :image, :enrollment_details]
   before_action :require_can_create_clients!, only: [:new]
   before_action :set_search_client, only: [:simple, :appropriate, :from_source]
   before_action :set_client_start_date, only: [:show, :rollup]
   after_action :log_client, only: [:show]
 
+  def search
+    search_query = current_user.client_search_queries.find(params[:id])
+    @query = search_query.params['q']
+    clients = perform_search(search_query.params.symbolize_keys)
+    render_client_list(clients)
+  end
+
   def index
-    @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
-    # search
-    @clients = client_scope.none
+    clients = perform_search(params)
+    @query = params[:q]
+    render_client_list(clients)
+  end
+
+  def perform_search(search_params)
     if current_user.can_use_strict_search?
-      @clients = client_source.strict_search(strict_search_params, client_scope: client_search_scope)
-    elsif ! current_user.using_acls? && (current_user.can_access_window_search? || current_user.can_search_own_clients?) && params[:q].present?
+      safe_params = search_params.slice(:first_name, :last_name, :dob, :ssn)
+      client_source.strict_search(safe_params, client_scope: client_search_scope)
+    elsif ! current_user.using_acls? && (current_user.can_access_window_search? || current_user.can_search_own_clients?) && search_params[:q].present?
       # TODO: START_ACL remove after ACL migration is complete
-      @clients = client_source.text_search(params[:q], client_scope: client_search_scope, sorted: sorted)
+      client_source.text_search(search_params[:q], client_scope: client_search_scope, sorted: sorted)
       # END_ACL
-    elsif current_user.can_search_own_clients? && params[:q].present?
-      @clients = client_source.text_search(params[:q], client_scope: client_search_scope, sorted: sorted)
+    elsif current_user.can_search_own_clients? && search_params[:q].present?
+      client_source.text_search(search_params[:q], client_scope: client_search_scope, sorted: sorted)
+    else
+      client_source.none
     end
+  end
+
+  def render_client_list(clients)
+    @clients = clients
+    @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
     preloads = [
       :processed_service_history,
       :vispdats,
@@ -76,6 +94,7 @@ class ClientAccessControl::ClientsController < ApplicationController
       sort_filter_index
       # END_ACL
     end
+    render action: 'index'
   end
 
   def show
