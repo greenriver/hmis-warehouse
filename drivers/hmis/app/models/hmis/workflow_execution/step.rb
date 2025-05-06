@@ -20,13 +20,8 @@ module Hmis::WorkflowExecution
 
     scope :open, -> { where(status: ['available', 'in_progress']) }
 
-    scope :order_by_status, -> do
-      # Used for returning the "current" step of a referral, prioritizing in-progress steps over available steps.
-      step_t = Hmis::WorkflowExecution::Step.arel_table
-
-      # Prioritize in_progress steps over available ones
-      order(Arel::Nodes::Case.new.when(step_t[:status].eq('in_progress')).then(1).else(2)).
-        order(step_t[:id]) # Fallback to order by ID so it's determinate
+    def open?
+      [:available, :in_progress].include?(status.to_sym)
     end
 
     # note, step status is not intended to be manipulated outside of the workflow engine

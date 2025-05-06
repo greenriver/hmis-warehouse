@@ -60,7 +60,8 @@ module Types
 
     def current_step_name
       # There can be multiple steps currently in progress, but we're only going to show one in the project referrals table
-      step = load_ar_association(object, :current_step)
+      step = load_ar_association(object, :steps).filter(&:open?).
+        min_by { |s| [s.status.to_sym == :in_progress ? 1 : 2, s.id] }
       return if step.nil?
 
       load_ar_association(step, :node)&.name
