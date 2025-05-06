@@ -6,12 +6,12 @@
 
 # frozen_string_literal: true
 
-module  HudPit::Generators::Pit::Fy2024
+module  HudPit::Generators::Pit::Fy2025
   class Generator < ::HudReports::GeneratorBase
     cattr_accessor :write_detail_path
 
     def self.fiscal_year
-      'FY 2024'
+      'FY 2025'
     end
 
     def self.generic_title
@@ -78,15 +78,15 @@ module  HudPit::Generators::Pit::Fy2024
 
     def self.questions
       [
-        HudPit::Generators::Pit::Fy2024::AdultAndChild,
-        HudPit::Generators::Pit::Fy2024::Children,
-        HudPit::Generators::Pit::Fy2024::Adults,
-        HudPit::Generators::Pit::Fy2024::AdditionalHomelessPopulations,
-        HudPit::Generators::Pit::Fy2024::UnaccompaniedYouth,
-        HudPit::Generators::Pit::Fy2024::ParentingYouth,
-        HudPit::Generators::Pit::Fy2024::VeteranAdultAndChild,
-        HudPit::Generators::Pit::Fy2024::VeteranAdults,
-        HudPit::Generators::Pit::Fy2024::Projects,
+        HudPit::Generators::Pit::Fy2025::AdultAndChild,
+        HudPit::Generators::Pit::Fy2025::Children,
+        HudPit::Generators::Pit::Fy2025::Adults,
+        HudPit::Generators::Pit::Fy2025::AdditionalHomelessPopulations,
+        HudPit::Generators::Pit::Fy2025::UnaccompaniedYouth,
+        HudPit::Generators::Pit::Fy2025::ParentingYouth,
+        HudPit::Generators::Pit::Fy2025::VeteranAdultAndChild,
+        HudPit::Generators::Pit::Fy2025::VeteranAdults,
+        HudPit::Generators::Pit::Fy2025::Projects,
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
@@ -102,12 +102,12 @@ module  HudPit::Generators::Pit::Fy2024
 
     def self.table_classes
       [
-        HudPit::Fy2022::PitClient,
+        HudPit::Fy2025::PitClient,
       ].freeze
     end
 
     def self.client_class(_question)
-      HudPit::Fy2022::PitClient
+      HudPit::Fy2025::PitClient
     end
   end
 end

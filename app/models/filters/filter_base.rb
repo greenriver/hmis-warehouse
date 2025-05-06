@@ -955,6 +955,13 @@ module Filters
       }.invert.freeze
     end
 
+    def self.age_range(key)
+      age_ranges = ::Filters::Criteria::FilterForAge::AGE_RANGES
+      return age_ranges.fetch(key) if age_ranges.key?(key)
+
+      raise ArgumentError, "Unknown age range key: #{key}"
+    end
+
     def self.available_census_age_ranges
       {
         zero_to_four: '0 - 4',

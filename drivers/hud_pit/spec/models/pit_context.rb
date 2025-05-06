@@ -3,6 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+# frozen_string_literal: true
 
 RSpec.shared_context 'datalab pit context', shared_context: :metadata do
   def shared_filter_spec
@@ -30,7 +31,7 @@ RSpec.shared_context 'datalab pit context', shared_context: :metadata do
   end
 
   def run(filter, question_numbers)
-    klass = HudPit::Generators::Pit::Fy2024::Generator
+    klass = HudPit::Generators::Pit::Fy2025::Generator
     report = ::HudReports::ReportInstance.from_filter(
       filter,
       klass.title,
