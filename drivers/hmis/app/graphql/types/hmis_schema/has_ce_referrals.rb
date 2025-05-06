@@ -46,8 +46,8 @@ module Types
 
         if filters.respond_to?(:on_current_step_since) && filters&.on_current_step_since.present?
           step_table = Hmis::WorkflowExecution::Step.arel_table
-          scope = scope.joins(:current_steps).where(step_table[:updated_at].lt(filters.on_current_step_since))
-          # todo @martha how does this work with multiple steps? needs spec
+          # add distinct to make sure the join doesn't cause duplicates in the scope, since there can be multiple current_steps
+          scope = scope.joins(:current_steps).where(step_table[:updated_at].lt(filters.on_current_step_since)).distinct
         end
 
         scope.order(created_at: :desc, id: :asc)

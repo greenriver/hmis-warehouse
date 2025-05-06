@@ -162,6 +162,7 @@ module Types
             { code: other_funder, label: other_funder }
           end
       when 'WORKFLOW_DEFINITION_TEMPLATES'
+        # used by the dropdown in the modal when you manually create an opportunity (which will be removed)
         return [] unless Hmis::Ce.configuration.enabled?
 
         # TODO(#7502) - templates are shared across data sources
