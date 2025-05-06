@@ -42,7 +42,7 @@ module Mutations
         opportunity_ids = opportunity_ids_to_update(opportunity_scope: Hmis::Ce::Opportunity.where(id: result.ids))
 
         # If there are any, run the match engine/candidate generation job
-        Hmis::MatchCandidatesJob.perform_later(opportunity_ids: opportunity_ids, backoff_time: 24.hours) if opportunity_ids.any?
+        Hmis::MatchCandidatesJob.perform_later(opportunity_ids: opportunity_ids) if opportunity_ids.any?
       end
 
       { units: Hmis::Unit.where(id: unit_ids) } # we don't need the preloads this time, so fresh query instead of reload
