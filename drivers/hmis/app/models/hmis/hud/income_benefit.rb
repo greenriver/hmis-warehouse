@@ -11,8 +11,6 @@ class Hmis::Hud::IncomeBenefit < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
   include ::HmisStructure::IncomeBenefit
   include ::Hmis::Hud::Concerns::Shared
-  # FIXME: #7576
-  include ::Hmis::Hud::Concerns::WithStrictAttributes
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   include ::Hmis::Hud::Concerns::FormSubmittable
