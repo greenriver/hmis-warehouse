@@ -203,8 +203,8 @@ module Types
     end
 
     def active_enrollment(project_id:, open_on_date:)
-      project = Hmis::Hud::Project.find(project_id)
-      return nil unless current_user.can_view_enrollment_details_for?(project) || current_user.can_view_limited_enrollment_details_for?(project)
+      project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: project_id)
+      return nil unless project.present? && current_user.can_view_enrollment_details_for?(project)
 
       load_open_enrollment_for_client(
         object,
