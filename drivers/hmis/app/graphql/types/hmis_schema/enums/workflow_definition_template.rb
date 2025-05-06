@@ -10,7 +10,7 @@ module Types
   class HmisSchema::Enums::WorkflowDefinitionTemplate < Types::BaseEnum
     description 'Workflow Definition Templates'
 
-    # Used by the CE Referrals filter. Seems to be working well in the application, but something is breaking in tests todo @martha
+    # Used by the CE Referrals filter
     Hmis::WorkflowDefinition::Template.published.
       or(Hmis::WorkflowDefinition::Template.retired).
       group_by(&:identifier).map do |identifier, templates|
