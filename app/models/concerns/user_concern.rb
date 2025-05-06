@@ -470,15 +470,41 @@ module UserConcern
       "Account deactivated by #{name} on #{version.created_at}"
     end
 
-    def self.text_search(text)
-      return none unless text.present?
+    # Search for users by name or email using prefix matching
+    #
+    # @param text [String] the search query
+    # @param sort_by_best_match [Boolean] whether to order results by similarity to query
+    #
+    # @return [ActiveRecord::Relation] matching users
+    #
+    # @example Find users matching 'john'
+    #   User.text_search('john')
+    def self.text_search(text, sort_by_best_match: false)
+      text = text.strip
+      return none if text.length < 3 # require at least 3 characters for meaningful search
 
-      query = "%#{text}%"
-      where(
-        arel_table[:last_name].matches(query).
-        or(arel_table[:first_name].matches(query)).
-        or(arel_table[:email].matches(query)),
-      )
+      terms = text.split(/[\s,]+/).map(&:strip).reject(&:blank?)
+      return none if terms.empty?
+
+      scope = terms.map do |term|
+        prefix_condition = arel_table[:first_name].matches("#{term}%").
+          or(arel_table[:last_name].matches("#{term}%")).
+          or(arel_table[:email].matches("#{term}%"))
+
+        User.where(prefix_condition)
+      end.inject(&:or)
+
+      if sort_by_best_match
+        sql = <<-SQL.squish
+          similarity(
+            CONCAT_WS(' ', first_name, last_name, email),
+            ?
+          ) DESC
+        SQL
+        scope.order(Arel.sql(sanitize_sql_array([sql, text])))
+      else
+        scope
+      end
     end
 
     def self.setup_system_user

@@ -23,9 +23,7 @@ module Hmis::Hud::Processors
       # (not a project ID). In that case, we leave everything as-is without any db changes to either verified-by field.
       # See the hack described in HmisSchema::CurrentLivingSituation for more detail on why this works this way.
 
-      # First check if the value is an integer; otherwise Hmis::Hud::Project.find_by will raise due to StrictAttributes
-      is_valid_int = Hmis::StrictInteger::INT_RGX.match?(verified_by_project_id.to_s)
-      verified_by_project = Hmis::Hud::Project.find_by(id: verified_by_project_id) if is_valid_int
+      verified_by_project = Hmis::Hud::Project.find_by(id: verified_by_project_id)
 
       if verified_by_project
         # We collect project ID onto the non-HUD field `verified_by_project_id`,

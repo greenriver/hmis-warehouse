@@ -42,6 +42,8 @@ module Mutations
         [client.id, enrollment]
       end
 
+      errors = HmisErrors::Errors.new
+
       Hmis::Hud::Service.transaction do
         clients.each do |client|
           # Look for Enrollment at the project that is open on the service date
@@ -64,12 +66,14 @@ module Mutations
             entry_date_errors = Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(enrollment)
             # Ignore informational warnings (e.g. >30 days ago). Keep out-of-range warnings (e.g. existing overlapping enrollment)
             entry_date_errors.reject! { |e| e.warning? && e.type == :information }
-            error_out(entry_date_errors.first.full_message) unless entry_date_errors.empty?
+            errors.push(*entry_date_errors)
+            raise ActiveRecord::Rollback if errors.any?
 
             # Attempt to assign this enrollment to a unit if this project has units. This is AC-specific for now, and does
             # not support specifying the unit type. Needs improvement if/when we expand unit capabilities.
             if project_has_units
-              error_out('Failed to enroll client because there are no available units.') if available_units.empty?
+              errors.add :base, :invalid, full_message: 'Failed to enroll client because there are no available units' if available_units.empty?
+              raise ActiveRecord::Rollback if errors.any?
 
               enrollment.assign_unit(unit: available_units.pop, start_date: input.date_provided, user: current_user)
             end
@@ -105,12 +109,9 @@ module Mutations
         end
       end
 
-      { success: true }
-    end
+      return { success: false, errors: errors } if errors.any?
 
-    def error_out(msg)
-      # error out with user-facing error message
-      raise HmisErrors::ApiError.new(msg, display_message: msg)
+      { success: true }
     end
   end
 end
