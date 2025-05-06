@@ -54,7 +54,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
           expect(result.dig('data', 'markUnitsAvailable', 'units', 0, 'latestOpportunity', 'name')).to eq("Unit #{unit.id} - #{unit_type.description}")
           unit.reload
         end.to change(Hmis::Ce::Opportunity, :count).by(1).
-          and change(Delayed::Job.jobs_for_class('CandidatePoolBuilderJob'), :count).from(0).to(1)
+          and change(Delayed::Job.jobs_for_class('MatchCandidateJob'), :count).from(0).to(1)
         expect(unit.latest_opportunity).to be_present
       end
     end
@@ -125,7 +125,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
-        end.to make_database_queries(count: 25..30)
+        end.to make_database_queries(count: 20..30)
         expect(Hmis::Ce::Opportunity.where(owner_id: unit_ids).count).to eq(unit_ids.count)
       end
     end

@@ -34,9 +34,9 @@ module Mutations
           build_opportunity_for_unit(unit, template)
         end
 
-        Hmis::Ce::Opportunity.import!(opportunities)
-
-        Hmis::MatchCandidatesJob.perform_later(opportunities: opportunities, backoff_time: 24.hours)
+        result = Hmis::Ce::Opportunity.import!(opportunities)
+        opportunity_ids = result.ids
+        Hmis::MatchCandidatesJob.perform_later(opportunity_ids: opportunity_ids, backoff_time: 24.hours)
       end
 
       { units: Hmis::Unit.where(id: unit_ids) } # we don't need the preloads this time, so fresh query instead of reload
