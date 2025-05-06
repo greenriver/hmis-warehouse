@@ -49,13 +49,16 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
     context 'with valid input' do
       it 'creates a new opportunity' do
         expect do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result.inspect
-          expect(result.dig('data', 'markUnitsAvailable', 'units', 0, 'latestOpportunity', 'name')).to eq("Unit #{unit.id} - #{unit_type.description}")
+          perform_enqueued_jobs do
+            response, result = post_graphql(**variables) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'markUnitsAvailable', 'units', 0, 'latestOpportunity', 'name')).to eq("Unit #{unit.id} - #{unit_type.description}")
+          end
           unit.reload
-        end.to change(Hmis::Ce::Opportunity, :count).by(1).
-          and change(Delayed::Job.jobs_for_class('MatchCandidateJob'), :count).from(0).to(1)
+        end.to change(Hmis::Ce::Opportunity, :count).by(1)
+
         expect(unit.latest_opportunity).to be_present
+        expect(unit.latest_opportunity.candidate_pool).to be_present
       end
     end
 
