@@ -325,13 +325,23 @@ namespace :grda_warehouse do
     TaskQueue.queue_unprocessed!
     GrdaWarehouse::ProjectGroup.maintain_project_lists!
 
+    # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
     if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
-      # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
-      Hmis::AutoExitJob.perform_now
+      begin
+        Hmis::AutoExitJob.perform_now
+      rescue StandardError => e
+        Sentry.capture_exception(e)
+        Rails.logger.error(e.message)
+      end
     end
 
     # Purge old soft-deleted records. Enable on production when we have confidence job is correct
-    PurgeSoftDeletedRecordsJob.perform_now(dry_run: false) if DateTime.current.hour == 5 && !Rails.env.production?
+    begin
+      PurgeSoftDeletedRecordsJob.perform_now(dry_run: false) if DateTime.current.hour == 5 && !Rails.env.production?
+    rescue StandardError => e
+      Sentry.capture_exception(e)
+      Rails.logger.error(e.message)
+    end
 
     # Run CSG Engage export if ready
     MaReports::CsgEngage::Report.run_if_ready if RailsDrivers.loaded.include?(:ma_reports)
