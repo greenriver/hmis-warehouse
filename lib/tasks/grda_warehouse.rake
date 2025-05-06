@@ -331,8 +331,8 @@ namespace :grda_warehouse do
     end
 
     if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
-      # Run the CE match engine daily in the early morning
-      Hmis::CandidatePoolBuilderJob.perform_later
+      # Generate CE candidate pools and run the match engine daily in the early morning
+      Hmis::MatchCandidatesJob.perform_later
     end
 
     # Purge old soft-deleted records. Enable on production when we have confidence job is correct

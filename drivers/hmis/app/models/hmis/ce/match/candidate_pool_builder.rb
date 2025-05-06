@@ -4,6 +4,10 @@
 
 module Hmis::Ce::Match
   class CandidatePoolBuilder
+    def initialize(opportunities)
+      @opportunities = opportunities
+    end
+
     # Optimization TBD. Assumes a relatively small number of active opportunities (1,000 or less)
     def perform
       with_lock do
@@ -31,7 +35,7 @@ module Hmis::Ce::Match
       grouped = {}
 
       all_rules = Hmis::Ce::Match::Rule.preload(:owner).order(:owner_type, :id).to_a
-      active_opportunities.preload(project: [:organization, :funders]).each do |opportunity|
+      @opportunities.preload(project: [:organization, :funders]).each do |opportunity|
         rules = all_rules.filter { |rule| rule.applies_to_opportunity?(opportunity) }
         key = []
         key << (rules.filter(&:priority_scheme?).first&.expression || '0')
@@ -52,12 +56,8 @@ module Hmis::Ce::Match
       end
       grouped.each do |key, opportunities|
         pool = current_pools.fetch(key)
-        active_opportunities.where(id: opportunities.map(&:id)).update_all(candidate_pool_id: pool.id)
+        @opportunities.where(id: opportunities.map(&:id)).update_all(candidate_pool_id: pool.id)
       end
-    end
-
-    def active_opportunities
-      Hmis::Ce::Opportunity.active
     end
 
     def now
