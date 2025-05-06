@@ -38,7 +38,7 @@ module Types
       arg :project_type, [HmisSchema::Enums::ProjectType]
       arg :workflow_template, [String]
       arg :organization, [ID]
-      arg :on_current_step_since, GraphQL::Types::ISO8601Date
+      arg :on_current_step_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
     end
 
     def steps
