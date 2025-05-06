@@ -11,6 +11,8 @@ module Hmis::Ce
   class Referral < GrdaWarehouseBase
     include SimpleStateMachine
 
+    has_paper_trail
+
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
     belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance'
     has_many :notes, class_name: 'Hmis::Ce::ReferralNote'
@@ -20,6 +22,9 @@ module Hmis::Ce
     belongs_to :target_enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
     has_one :target_project, class_name: 'Hmis::Hud::Project', through: :opportunity, source: :project
     has_many :swimlanes, through: :workflow_instance, class_name: 'Hmis::WorkflowDefinition::Swimlane'
+
+    has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance
+    has_many :current_steps, -> { open.preload(:node).order_by_updated_at }, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :steps
 
     # TODO(#7395): permissions
     scope :viewable_by, ->(_user) { all }

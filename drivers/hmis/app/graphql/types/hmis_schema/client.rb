@@ -25,6 +25,7 @@ module Types
     include Types::HmisSchema::HasHudMetadata
     include Types::HmisSchema::HasScanCardCodes
     include Types::HmisSchema::HasCeOpportunities
+    include Types::HmisSchema::HasCeReferrals
     include ::Hmis::Concerns::HmisArelHelper
 
     def self.configuration
@@ -90,10 +91,10 @@ module Types
       :eligible_ce_opportunities,
       filter_args: { omit: [:status, :available_on_date, :workflow_template], type_name: 'ClientEligibleCeOpportunity' },
     )
-
-    field :ce_referrals, Types::HmisSchema::CeReferral.page_type, null: false do
-      filters_argument Types::HmisSchema::CeReferral
-    end
+    ce_referrals_field(
+      :ce_referrals,
+      filter_args: { omit: [:workflow_template, :on_current_step_since], type_name: 'ClientCeReferral' },
+    )
 
     field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
       argument :project_id, ID, required: true
@@ -422,17 +423,8 @@ module Types
       resolve_ce_opportunities(Hmis::Ce::Opportunity.for_client(object), **args)
     end
 
-    def ce_referrals(filters: nil)
-      raise unless Hmis::Ce.configuration.enabled?
-
-      scope = object.ce_referrals.viewable_by(current_user)
-      scope = scope.where(status: filters&.status) if filters&.status.present?
-
-      opportunity_table = Hmis::Ce::Opportunity.arel_table
-      scope = scope.joins(:opportunity).where(opportunity_table[:project_id].in(filters&.project)) if filters&.project.present?
-
-      scope = scope.joins(opportunity: :project).where(p_t[:project_type].in(filters&.project_type)) if filters&.project_type.present?
-      scope.order(created_at: :desc, id: :asc)
+    def ce_referrals(**args)
+      resolve_ce_referrals(object.ce_referrals, **args)
     end
   end
 end

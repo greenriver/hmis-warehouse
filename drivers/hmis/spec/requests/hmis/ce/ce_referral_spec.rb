@@ -37,6 +37,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 name
               }
             }
+            updatedBy {
+              id
+              name
+            }
           }
         }
       GRAPHQL

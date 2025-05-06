@@ -857,7 +857,8 @@ type CeReferral {
   client: Client
   clientId: ID!
   createdAt: ISO8601DateTime!
-  currentStepName: String
+  currentStepTime: ISO8601DateTime
+  currentSteps: [CeReferralStep!]
   id: ID!
   opportunity: CeOpportunity!
   referredBy: ApplicationUser
@@ -865,15 +866,20 @@ type CeReferral {
   steps: [CeReferralStep!]!
   swimlanes: [CeReferralSwimlane!]!
   targetEnrollment: Enrollment
+  targetOrganizationName: String!
   targetProjectId: ID!
   targetProjectName: String!
   targetProjectType: ProjectType!
+  updatedBy: ApplicationUser
 }
 
 input CeReferralFilterOptions {
+  onCurrentStepSince: ISO8601Date
+  organization: [ID!]
   project: [ID!]
   projectType: [ProjectType!]
   status: [CeReferralStatus!]
+  workflowTemplate: [WorkflowDefinitionTemplate!]
 }
 
 input CeReferralParticipantInput {
@@ -1009,7 +1015,7 @@ type Client {
   alerts: [ClientAlert!]!
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(filters: ClientAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
-  ceReferrals(filters: CeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
+  ceReferrals(filters: ClientCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   contactPoints: [ClientContactPoint!]!
   createdBy: ApplicationUser
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
@@ -1267,6 +1273,13 @@ type ClientAuditEventsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+input ClientCeReferralFilterOptions {
+  organization: [ID!]
+  project: [ID!]
+  projectType: [ProjectType!]
+  status: [CeReferralStatus!]
 }
 
 type ClientContactPoint {
@@ -9367,6 +9380,7 @@ type Query {
   ceOpportunity(id: ID!): CeOpportunity
   ceReferral(id: ID!): CeReferral
   ceReferralStep(id: ID!): CeReferralStep
+  ceReferrals(filters: CeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
 
   """
   Client lookup

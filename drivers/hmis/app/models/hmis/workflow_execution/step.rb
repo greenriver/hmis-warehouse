@@ -7,6 +7,8 @@ module Hmis::WorkflowExecution
   class Step < GrdaWarehouseBase
     include SimpleStateMachine
 
+    has_paper_trail
+
     belongs_to :instance, class_name: 'Hmis::WorkflowExecution::Instance'
     belongs_to :node, class_name: 'Hmis::WorkflowDefinition::Node'
     belongs_to :task, class_name: 'Hmis::WorkflowDefinition::Task', foreign_key: 'node_id'
@@ -17,6 +19,14 @@ module Hmis::WorkflowExecution
 
     # TODO(#7395): permissions
     scope :viewable_by, ->(_user) { all }
+
+    scope :open, -> { where(status: ['available', 'in_progress']) }
+
+    scope :order_by_updated_at, -> do
+      # Used for returning the "current" steps of a referral, ordered by length of time the referral has been on this step
+      # TODO(#7647) - use more accurate timestamp field rather than updated_at
+      order(:updated_at).order(:id) # Fallback to order by ID so it's determinate
+    end
 
     # note, step status is not intended to be manipulated outside of the workflow engine
     state_machine_config column: 'status' do

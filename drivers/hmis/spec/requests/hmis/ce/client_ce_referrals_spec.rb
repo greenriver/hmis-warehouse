@@ -24,7 +24,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'project ceReferrals query' do
     let(:query) do
       <<~GRAPHQL
-        query GetClientCeReferrals($id: ID!, $limit: Int = 25, $offset: Int = 0, $filters: CeReferralFilterOptions = null) {
+        query GetClientCeReferrals($id: ID!, $limit: Int = 25, $offset: Int = 0, $filters: ClientCeReferralFilterOptions = null) {
           client(id: $id) {
             id
             ceReferrals(limit: $limit, offset: $offset, filters: $filters) {

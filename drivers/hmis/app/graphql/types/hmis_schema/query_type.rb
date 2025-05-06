@@ -20,6 +20,7 @@ module Types
     include Types::HmisSchema::HasApplicationUsers
     include Types::HmisSchema::HasReferralPostings
     include Types::HmisSchema::HasCeOpportunities
+    include Types::HmisSchema::HasCeReferrals
     include Types::Admin::HasFormRules
     include ::Hmis::Concerns::HmisArelHelper
 
@@ -557,10 +558,15 @@ module Types
     end
 
     # Globally available CE opportunities gated by admin permission
-    ce_opportunities_field :ce_opportunities
+    ce_opportunities_field
     def ce_opportunities(**args)
       # TODO(#7506) - gated by admin permission
       resolve_ce_opportunities(Hmis::Ce::Opportunity.all, **args)
+    end
+
+    ce_referrals_field
+    def ce_referrals(**args)
+      resolve_ce_referrals(Hmis::Ce::Referral.all, **args)
     end
   end
 end
