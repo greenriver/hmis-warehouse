@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateClientSearches < ActiveRecord::Migration[7.1]
   def change
     create_table :client_search_queries do |t|

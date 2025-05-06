@@ -44,7 +44,7 @@ class ClientAccessControl::ClientsController < ApplicationController
     end
   end
 
-  def perform_search(search_params)
+  protected def perform_search(search_params)
     if current_user.can_use_strict_search?
       safe_params = search_params.slice(:first_name, :last_name, :dob, :ssn)
       client_source.strict_search(safe_params, client_scope: client_search_scope)
@@ -59,7 +59,7 @@ class ClientAccessControl::ClientsController < ApplicationController
     end
   end
 
-  def render_client_list(clients)
+  protected def render_client_list(clients)
     @clients = clients
     @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
     preloads = [
@@ -98,8 +98,9 @@ class ClientAccessControl::ClientsController < ApplicationController
       # TODO: START_ACL remove after ACL migration is complete
       sort_filter_index
       # END_ACL
+    else
+      render action: 'index'
     end
-    render action: 'index'
   end
 
   def show
