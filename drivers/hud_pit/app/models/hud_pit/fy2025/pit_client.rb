@@ -8,8 +8,8 @@
 
 # This is a wrapper around PIT Clients to associate version-specific logic with a name space,
 # it does not use STI as there is no per-instance behavior associated with these models
-module HudPit::Fy2024
-  class PitClient < HudPit::Fy2022::PitClient
+module HudPit::Fy2025
+  class PitClient < HudPit::Fy2024::PitClient
     def self.pit_race(client)
       # HUD specified a different vocabulary for PIT races that allows Hispanic/Latina/e/o to be both a single race,
       # and be combined with another race response without triggering the multi-racial label
@@ -26,12 +26,6 @@ module HudPit::Fy2024
       else
         'Hispanic/Latina/e/o'
       end
-    end
-
-    def self.more_than_one_gender(client)
-      @gender_fields ||= HudUtility2024.gender_known_ids.map { |id| HudUtility2024.gender_id_to_field_name[id] }
-      genders = @gender_fields.select { |f| client.send(f).to_i == 1 }
-      genders.count > 1
     end
 
     private_class_method def self.race_fields(client, exclude: ['HispanicLatinaeo'])
