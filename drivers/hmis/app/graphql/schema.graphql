@@ -785,7 +785,7 @@ input CeOpportunityFilterOptions {
   project: [ID!]
   projectType: [ProjectType!]
   status: [CeOpportunityStatus!]
-  workflowTemplate: [WorkflowDefinitionTemplate!]
+  workflowTemplate: [String!]
 }
 
 input CeOpportunityInput {
@@ -879,7 +879,7 @@ input CeReferralFilterOptions {
   project: [ID!]
   projectType: [ProjectType!]
   status: [CeReferralStatus!]
-  workflowTemplate: [WorkflowDefinitionTemplate!]
+  workflowTemplate: [String!]
 }
 
 input CeReferralParticipantInput {
@@ -7198,6 +7198,11 @@ enum PickListType {
   Templates for CE workflow definitions
   """
   WORKFLOW_DEFINITION_TEMPLATES
+
+  """
+  Templates for CE workflow definitions by identifier
+  """
+  WORKFLOW_DEFINITION_TEMPLATE_IDENTIFIERS
 }
 
 """
@@ -13161,31 +13166,6 @@ enum WorkerResponse {
   (1) Yes
   """
   YES
-}
-
-"""
-Workflow Definition Templates
-"""
-enum WorkflowDefinitionTemplate {
-  """
-  Admin Approve Denial
-  """
-  admin_approve_denial
-
-  """
-  Enrollment Creator
-  """
-  enrollment_creator
-
-  """
-  No Tasks
-  """
-  no_tasks
-
-  """
-  One Task
-  """
-  one_task
 }
 
 """

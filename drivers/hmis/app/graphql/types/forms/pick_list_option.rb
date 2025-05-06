@@ -162,12 +162,20 @@ module Types
             { code: other_funder, label: other_funder }
           end
       when 'WORKFLOW_DEFINITION_TEMPLATES'
-        # used by the dropdown in the modal when you manually create an opportunity (which will be removed)
+        # used by the dropdown in the modal when you manually create an opportunity (will be removed)
         return [] unless Hmis::Ce.configuration.enabled?
 
         # TODO(#7502) - templates are shared across data sources
         Hmis::WorkflowDefinition::Template.all.map do |template|
           { code: template.id, label: template.name }
+        end
+      when 'WORKFLOW_DEFINITION_TEMPLATE_IDENTIFIERS'
+        # used by dropdowns for filters when filtering referral/opportunity by workflow template.
+        # Here we want to group templates by identifier in case there are multiple/past versions.
+        Hmis::WorkflowDefinition::Template.published.or(Hmis::WorkflowDefinition::Template.retired).
+          group_by(&:identifier).map do |identifier, templates|
+          description = templates.max_by(&:updated_at).name
+          { code: identifier, label: description }
         end
       end
     end

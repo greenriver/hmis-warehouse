@@ -36,7 +36,7 @@ module Types
       arg :status, [HmisSchema::Enums::CeReferralStatus]
       arg :project, [ID]
       arg :project_type, [HmisSchema::Enums::ProjectType]
-      arg :workflow_template, [HmisSchema::Enums::WorkflowDefinitionTemplate]
+      arg :workflow_template, [String]
       arg :organization, [ID]
       arg :on_current_step_since, GraphQL::Types::ISO8601Date
     end

@@ -67,6 +67,29 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GRAPHQL
     end
 
+    context 'when querying by workflow template' do
+      let!(:referral) { create(:hmis_ce_referral, workflow_template: workflow_template_1) }
+      let!(:referral2) { create(:hmis_ce_referral, workflow_template: workflow_template_1) }
+      let!(:referral3) { create(:hmis_ce_referral, workflow_template: workflow_template_2) }
+
+      let(:variables) do
+        {
+          filters: {
+            workflowTemplate: [workflow_template_1.identifier],
+          },
+        }
+      end
+
+      it 'returns only referrals with that workflow template' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        expect(referrals.size).to eq(2)
+        expect(referrals.map { |r| r['id'] }).to contain_exactly(referral.id.to_s, referral2.id.to_s)
+      end
+    end
+
     context 'when querying by time on current step' do
       let!(:referral) { create(:hmis_ce_referral, workflow_template: workflow_template) }
       let!(:referral2) { create(:hmis_ce_referral, workflow_template: workflow_template) }

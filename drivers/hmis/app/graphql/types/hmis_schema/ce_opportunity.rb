@@ -35,7 +35,7 @@ module Types
       arg :project_type, [HmisSchema::Enums::ProjectType]
       arg :organization, [ID]
       arg :available_on_date, GraphQL::Types::ISO8601Date
-      arg :workflow_template, [HmisSchema::Enums::WorkflowDefinitionTemplate]
+      arg :workflow_template, [String]
     end
 
     def candidates

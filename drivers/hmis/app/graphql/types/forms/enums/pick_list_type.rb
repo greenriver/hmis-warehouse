@@ -52,5 +52,6 @@ module Types
     value 'AUDITABLE_USERS', 'Current and historical user accounts'
     value 'CONTINUUM_PROJECTS', 'Continuum Projects'
     value 'WORKFLOW_DEFINITION_TEMPLATES', 'Templates for CE workflow definitions'
+    value 'WORKFLOW_DEFINITION_TEMPLATE_IDENTIFIERS', 'Templates for CE workflow definitions by identifier'
   end
 end
