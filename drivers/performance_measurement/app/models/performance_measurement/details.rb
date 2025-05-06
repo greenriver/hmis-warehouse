@@ -441,6 +441,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_in_es_bed_in_period,
           detail_columns: [
             'days_in_es_bed_in_period',
+            'days_in_es_bed_details_in_period',
           ],
         },
         sh_average_bed_utilization: {
@@ -459,6 +460,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_in_sh_bed_in_period,
           detail_columns: [
             'days_in_sh_bed_in_period',
+            'days_in_sh_bed_details_in_period',
           ],
         },
         th_average_bed_utilization: {
@@ -477,6 +479,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_in_th_bed_in_period,
           detail_columns: [
             'days_in_th_bed_in_period',
+            'days_in_th_bed_details_in_period',
           ],
         },
         rrh_average_bed_utilization: {

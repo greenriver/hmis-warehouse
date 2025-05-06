@@ -12,8 +12,8 @@ class HudNumericalityValidator < ActiveModel::EachValidator
   # Integer value "500.00" -> 500
   # Decimal or integer value "500." -> 500
 
-  INT_RGX = /\A-?\d+(\.0*)?\z/
-  DEC_RGX = /\A-?(\d+(\.\d*)?|\.\d+)\z/
+  # INT_RGX = /\A-?\d+(\.0*)?\z/
+  # DEC_RGX = /\A-?(\d+(\.\d*)?|\.\d+)\z/
 
   def validate_each(record, attribute, _value)
     raw_value = record.read_attribute_before_type_cast(attribute) # Validate the raw value, since validations run after typecasting
