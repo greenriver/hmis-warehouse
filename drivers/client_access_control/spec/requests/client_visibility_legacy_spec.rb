@@ -17,6 +17,12 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     doc.css("[data-test-client-id='#{warehouse_client.source_id}']").any?
   end
 
+  def post_and_follow_search(params = {}, follow_redirect: true)
+    post client_search_queries_path, params: params
+    follow_redirect! if follow_redirect
+    [response, Nokogiri::HTML(response.body)]
+  end
+
   context 'when config b is in effect' do
     before do
       GrdaWarehouse::Config.delete_all
@@ -29,7 +35,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        get clients_path(q: 'bob')
+        response, = post_and_follow_search({ q: 'bob' }, follow_redirect: false)
         expect(response).to redirect_to(new_user_session_path)
         # expect(response.body).to include('Sorry you are not authorized to do that.')
         # expect(response).to have_http_status(200)
@@ -43,8 +49,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see all clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -56,8 +61,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -76,8 +80,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -97,8 +100,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see window clients in search results' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -129,8 +131,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           user.add_viewable(non_window_visible_data_source)
         end
         it 'user can see one client in expected data source and any window clients' do
-          get clients_path(q: 'bob')
-          doc = Nokogiri::HTML(response.body)
+          response, doc = post_and_follow_search({ q: 'bob' })
           expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
@@ -154,7 +155,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        get clients_path(q: 'bob')
+        response, = post_and_follow_search({ q: 'bob' }, follow_redirect: false)
         expect(response).to redirect_to(new_user_session_path)
       end
     end
@@ -166,8 +167,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see all clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -179,8 +179,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can search only window clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -225,8 +224,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -242,8 +240,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see window clients in search results' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -252,8 +249,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           user.add_viewable(non_window_visible_data_source)
         end
         it 'user can see one client in expected data source and any window clients' do
-          get clients_path(q: 'bob')
-          doc = Nokogiri::HTML(response.body)
+          response, doc = post_and_follow_search({ q: 'bob' })
           expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
@@ -281,7 +277,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        get clients_path(q: 'bob')
+        response, = post_and_follow_search({ q: 'bob' }, follow_redirect: false)
         expect(response).to redirect_to(new_user_session_path)
         # expect(response.body).to include('Sorry you are not authorized to do that.')
         # expect(response).to have_http_status(200)
@@ -295,8 +291,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see all clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -308,8 +303,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -328,8 +322,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -345,8 +338,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see window clients in search results' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -355,8 +347,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           user.add_viewable(non_window_visible_data_source)
         end
         it 'user can see one client in expected data source and any window clients' do
-          get clients_path(q: 'bob')
-          doc = Nokogiri::HTML(response.body)
+          response, doc = post_and_follow_search({ q: 'bob' })
           expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
@@ -374,7 +365,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        get clients_path(q: 'bob')
+        response, = post_and_follow_search({ q: 'bob' }, follow_redirect: false)
         expect(response).to redirect_to(new_user_session_path)
         # expect(response.body).to include('Sorry you are not authorized to do that.')
         # expect(response).to have_http_status(200)
@@ -388,8 +379,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see all clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -401,8 +391,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -421,8 +410,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -438,8 +426,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see window clients in search results' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -448,8 +435,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           user.add_viewable(non_window_visible_data_source)
         end
         it 'user can see one client in expected data source and any window clients' do
-          get clients_path(q: 'bob')
-          doc = Nokogiri::HTML(response.body)
+          response, doc = post_and_follow_search({ q: 'bob' })
           expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
@@ -469,7 +455,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        get clients_path(q: 'bob')
+        response, = post_and_follow_search({ q: 'bob' }, follow_redirect: false)
         expect(response).to redirect_to(new_user_session_path)
         # expect(response.body).to include('Sorry you are not authorized to do that.')
         # expect(response).to have_http_status(200)
@@ -483,8 +469,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see all clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -496,8 +481,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -527,8 +511,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -544,8 +527,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see window clients in search results' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -554,8 +536,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           user.add_viewable(non_window_visible_data_source)
         end
         it 'user can see one client in expected data source and any window clients' do
-          get clients_path(q: 'bob')
-          doc = Nokogiri::HTML(response.body)
+          response, doc = post_and_follow_search({ q: 'bob' })
           expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
@@ -580,8 +561,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can search for all clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -691,7 +671,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        get clients_path(q: 'bob')
+        response, = post_and_follow_search({ q: 'bob' }, follow_redirect: false)
         expect(response).to redirect_to(new_user_session_path)
         # expect(response.body).to include('Sorry you are not authorized to do that.')
         # expect(response).to have_http_status(200)
@@ -704,7 +684,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can not search for clients' do
-        get clients_path(q: 'bob')
+        response, = post_and_follow_search({ q: 'bob' })
         expect(response).to redirect_to(user.my_root_path)
       end
       it 'user can see any clients' do
@@ -720,7 +700,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can not search for clients' do
-        get clients_path(q: 'bob')
+        response, = post_and_follow_search({ q: 'bob' })
         expect(response).to redirect_to(user.my_root_path)
       end
       it 'user cannot see client dashboard for window client' do
@@ -749,8 +729,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -766,8 +745,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see window clients in search results' do
-        get clients_path(q: 'bob')
-        doc = Nokogiri::HTML(response.body)
+        response, doc = post_and_follow_search({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -776,8 +754,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           user.add_viewable(non_window_visible_data_source)
         end
         it 'user can see one client in expected data source and any window clients' do
-          get clients_path(q: 'bob')
-          doc = Nokogiri::HTML(response.body)
+          response, doc = post_and_follow_search({ q: 'bob' })
           expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
@@ -800,7 +777,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can not search for all clients' do
-        get clients_path(q: 'bob')
+        response, = post_and_follow_search({ q: 'bob' })
         expect(response).to redirect_to(user.my_root_path)
       end
       it 'user can not see directory information for window client (search is required)' do

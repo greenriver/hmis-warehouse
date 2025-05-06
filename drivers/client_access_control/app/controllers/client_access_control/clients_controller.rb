@@ -34,9 +34,14 @@ class ClientAccessControl::ClientsController < ApplicationController
   end
 
   def index
-    clients = perform_search(params)
-    @query = params[:q]
-    render_client_list(clients)
+    safe_params = params.permit(:first_name, :last_name, :dob, :ssn, :q).to_h.compact_blank.presence
+    if safe_params
+      # handle legacy get requests for search
+      query = current_user.client_search_queries.find_or_create_by_params!(safe_params)
+      redirect_to client_search_query_path(id: query.id), status: :moved_permanently
+    else
+      render_client_list(client_source.none)
+    end
   end
 
   def perform_search(search_params)

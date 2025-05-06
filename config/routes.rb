@@ -435,8 +435,8 @@ Rails.application.routes.draw do
   end
 
   resources :client_search_queries, only: [:create], controller: 'clients/search_queries'
-  #get "/clients/:query_id/search", to: 'ClientAccessControl::ClientsController#index', as: 'search_query_path'
-  get "/clients/:id/search", to: 'client_access_control/clients#search', as: 'client_search_query'
+  # get "/clients/:query_id/search", to: 'ClientAccessControl::ClientsController#index', as: 'search_query_path'
+  get '/clients/:id/search', to: 'client_access_control/clients#search', as: 'client_search_query'
   resources :clients, only: [:create, :update, :edit] do
     member do
       # get :appropriate
