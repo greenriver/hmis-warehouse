@@ -47,7 +47,7 @@ class Hmis::Hud::CustomCaseNote < Hmis::Hud::Base
     where(id: viewable_scope.select(:id))
   end
 
-  scope :ordered_by_date, -> { where.not(information_date: nil).order(information_date: :asc) }
+  scope :with_date_ordered, -> { where.not(information_date: nil).order(information_date: :asc) }
 
   def self.hud_key
     :CustomCaseNoteID

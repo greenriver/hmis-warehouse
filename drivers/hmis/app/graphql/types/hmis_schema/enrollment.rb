@@ -460,7 +460,7 @@ module Types
         load_ar_association(object, :custom_services_ordered_by_date).last,
         load_ar_association(object, :cls_ordered_by_date).last,
         load_ar_association(object, :custom_assessments_ordered_by_date).last,
-        load_ar_association(object, :custom_case_notes_ordered_by_date).last,
+        load_ar_association(object, :custom_case_notes_with_date_ordered).last,
       ].compact.
         max_by { |entity| Hmis::Hud::Enrollment.contact_date_for_entity(entity) }
 

@@ -48,7 +48,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :custom_services_ordered_by_date, -> { order(:date_provided) }, **hmis_enrollment_relation('CustomService')
 
   has_many :custom_case_notes, **hmis_enrollment_relation('CustomCaseNote'), inverse_of: :enrollment, dependent: :destroy
-  has_many :custom_case_notes_ordered_by_date, -> { ordered_by_date }, **hmis_enrollment_relation('CustomCaseNote')
+  has_many :custom_case_notes_with_date_ordered, -> { with_date_ordered }, **hmis_enrollment_relation('CustomCaseNote')
 
   # All services (combined view of HUD and Custom services)
   has_many :hmis_services, **hmis_enrollment_relation('HmisService'), inverse_of: :enrollment
