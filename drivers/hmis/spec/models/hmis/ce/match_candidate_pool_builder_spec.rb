@@ -3,8 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
-  let(:organization) { create :hmis_hud_organization }
-  let(:project) { create :hmis_hud_project, organization: organization }
+  let!(:organization) { create :hmis_hud_organization }
+  let!(:project) { create :hmis_hud_project, organization: organization }
   let!(:opportunity) { create(:hmis_ce_opportunity, project: project) }
   let(:builder) { described_class.new(Hmis::Ce::Opportunity.active) }
 
