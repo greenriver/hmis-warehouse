@@ -191,7 +191,7 @@ module Filters
       ensure_dates_work if valid?
       self
     end
-    alias set_from_params update
+    alias_method :set_from_params, :update
 
     private def safe_to_date(val)
       case val.presence
@@ -277,7 +277,7 @@ module Filters
     def to_h
       for_params[:filters]
     end
-    alias inspect to_h
+    alias_method :inspect, :to_h
 
     def known_params
       [
@@ -953,6 +953,13 @@ module Filters
         sixty_two_to_sixty_four: '62 - 64',
         over_sixty_four: '65+',
       }.invert.freeze
+    end
+
+    def self.age_range(key)
+      age_ranges = ::Filters::Criteria::FilterForAge::AGE_RANGES
+      return age_ranges.fetch(key) if age_ranges.key?(key)
+
+      raise ArgumentError, "Unknown age range key: #{key}"
     end
 
     def self.available_census_age_ranges
