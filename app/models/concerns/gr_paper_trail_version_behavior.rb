@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# paper trail class for application-db records (users, groups, etc)
-# Note, warehouse records have a different version table/model
+# Common paper trail version behavior shared across app and health database records
+# Note: warehouse records use a different version table/model
 module GrPaperTrailVersionBehavior
   extend ActiveSupport::Concern
   include PaperTrail::VersionConcern

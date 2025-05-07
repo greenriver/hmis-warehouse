@@ -6,7 +6,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class HealthBaseDb < ActiveRecord::Base
+class HealthDbBase < ActiveRecord::Base
   self.abstract_class = true
   connects_to database: { writing: :health, reading: :health }
 end
