@@ -120,7 +120,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(clients.size).to eq(20)
         # make sure each of them resolved an activeEnrollment
         expect(clients.map { |c| c[:activeEnrollment] }.compact.size).to eq(20)
-      end.to make_database_queries(count: 10..25) # makes 20, but leaving some wiggle room
+      end.to make_database_queries(count: 15..20)
     end
   end
 
