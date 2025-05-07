@@ -102,10 +102,18 @@ class User < ApplicationRecord
 
   def populate_external_reporting_permissions!
     # Projects
-    permission = :can_view_assigned_reports
-    ids = GrdaWarehouse::Hud::Project.viewable_by(self, permission: permission).pluck(:id)
-    batch = ids.uniq.map do |item_id|
-      GrdaWarehouse::ExternalReportingProjectPermission.new(user_id: id, email: email, project_id: item_id, permission: permission)
+    permissions = [
+      :can_view_assigned_reports,
+      :can_view_full_ssn,
+      :can_view_full_dob,
+      :can_view_client_name,
+    ]
+    batch = []
+    permissions.each do |permission|
+      ids = GrdaWarehouse::Hud::Project.viewable_by(self, permission: permission).pluck(:id)
+      batch += ids.uniq.map do |item_id|
+        GrdaWarehouse::ExternalReportingProjectPermission.new(user_id: id, email: email, project_id: item_id, permission: permission)
+      end
     end
     GrdaWarehouse::ExternalReportingProjectPermission.transaction do
       GrdaWarehouse::ExternalReportingProjectPermission.where(user_id: id).delete_all
