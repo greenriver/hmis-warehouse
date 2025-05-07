@@ -55,25 +55,17 @@ module RackAttackRequestHelpers
   end
 
   def authenticated?
-    warden_user.present?
+    # If we explicitly added a parameter to avoid updating last_request_at, honor it
+    return false if env['QUERY_STRING'].include?('skip_trackable=true')
+
+    rack_session = env['rack.session']
+    return false unless rack_session
+
+    # Check session variable to check if the user is logged in. This avoids db queries
+    rack_session['warden.user.user.key'].present? || rack_session['warden.user.hmis_user.key'].present?
   end
 
   protected
-
-  WARDEN_CHECK_EXCLUDE_URLS = ['/hmis/app_settings', '/hmis/user', '/messages/poll'].to_set.freeze
-  private_constant :WARDEN_CHECK_EXCLUDE_URLS
-  memoize def warden_user
-    # Avoid calling warden for user status endpoints. Calling warden here bumps
-    # last_request_at, regardless of skip_trackable in the controller. This means
-    # sessions may not expire as expected
-    strip_path = path.split('.', 2)[0]
-    return nil if strip_path.in?(WARDEN_CHECK_EXCLUDE_URLS)
-
-    # If we explicitly added a parameter to avoid updating last_request_at, honor it
-    return nil if env['QUERY_STRING'].include?('skip_trackable=true')
-
-    env['warden']&.user.presence || env['warden']&.user(:hmis_user).presence
-  end
 
   def internal_lb_check?
     env['HTTP_USER_AGENT'] == 'ELB-HealthChecker/2.0' && path.include?('status') && trusted_proxy?
