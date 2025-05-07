@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'memery'
+require 'singleton'
 
 # app-specific helper methods
 module RackAttackRequestHelpers
@@ -166,38 +167,72 @@ end
 #   [ 429, headers, ["Throttled\n"]]
 # end
 
-SlackSendMonitorClass = Struct.new(:sends, :last_sent, :throttle_window_seconds, :max_sends, :lifetime_sends, :lifetime_attempts) do
-  def init
+class SlackNotificationRateLimiter
+  include Singleton
+  include Memery
+
+  attr_accessor :sends, :last_sent, :throttle_window_seconds, :max_sends, :lifetime_sends, :lifetime_attempts
+
+  def initialize
+    @mutex = Mutex.new
     self.sends = 0
-    self.last_sent = Time.zone.now
+    self.last_sent = Time.current
     # Max sends to slack is once every 10 seconds per process
     self.throttle_window_seconds = 10
     self.max_sends = 1
     self.lifetime_sends = 0
     self.lifetime_attempts = 0
-    self
   end
 
   def percent_sent
-    return 0.0 if lifetime_attempts == 0
+    @mutex.synchronize do
+      return 0.0 if lifetime_attempts == 0
 
-    (lifetime_sends.to_f / lifetime_attempts * 100).round(1)
+      (lifetime_sends.to_f / lifetime_attempts * 100).round(1)
+    end
   end
 
   def needs_throttling?
-    (delta < throttle_window_seconds) && sends > max_sends
+    @mutex.synchronize do
+      (delta < throttle_window_seconds) && sends > max_sends
+    end
   end
 
   def needs_reset?
-    delta > throttle_window_seconds
+    @mutex.synchronize do
+      delta > throttle_window_seconds
+    end
   end
 
   def delta
-    Time.zone.now - SlackSendMonitor.last_sent
+    Time.current - last_sent
+  end
+
+  def increment_sends
+    @mutex.synchronize do
+      self.sends += 1
+      self.lifetime_sends += 1
+    end
+  end
+
+  def increment_attempts
+    @mutex.synchronize do
+      self.lifetime_attempts += 1
+    end
+  end
+
+  def update_last_sent
+    @mutex.synchronize do
+      self.last_sent = Time.current
+    end
+  end
+
+  def reset_sends
+    @mutex.synchronize do
+      self.sends = 0
+    end
   end
 end
-
-SlackSendMonitor = SlackSendMonitorClass.new.init
 
 ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish, _request_id, payload|
   request = payload[:request]
@@ -229,12 +264,13 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
   # ... get a record on disk
   Rails.logger.warn JSON.generate(data)
 
-  SlackSendMonitor.lifetime_attempts += 1
-  next if SlackSendMonitor.needs_throttling?
+  monitor = SlackNotificationRateLimiter.instance
+  monitor.increment_attempts
+  next if monitor.needs_throttling?
 
-  SlackSendMonitor.sends = 0 if SlackSendMonitor.needs_reset?
+  monitor.reset_sends if monitor.needs_reset?
 
-  Rails.logger.debug { "Slack sending percentage is #{SlackSendMonitor.percent_sent}%" }
+  Rails.logger.debug { "Slack sending percentage is #{monitor.percent_sent}%" }
 
   # ... and now try to send to somewhere useful
   if defined?(Slack::Notifier) && ENV['EXCEPTION_WEBHOOK_URL'].present?
@@ -261,7 +297,6 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
   end
 
   # mark a send even if it's not enabled above to facilitate testing
-  SlackSendMonitor.last_sent = Time.zone.now
-  SlackSendMonitor.sends += 1
-  SlackSendMonitor.lifetime_sends += 1
+  monitor.update_last_sent
+  monitor.increment_sends
 end
