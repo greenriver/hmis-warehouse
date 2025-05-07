@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Superset
   def self.table_name_prefix
     'superset_'
@@ -28,6 +30,9 @@ module Superset
   # NOTE: this needs to be kept in sync with
   # https://github.com/greenriver/superset-sync/blob/main/docker/superset/superset_config.py
   def self.available_superset_roles
+    return Superset::Api.new.roles['result'].map { |role| role['name'] } if Superset::Api.new.available?
+
+    # Fallback to the default roles if the API is not available
     [
       'Green River Admin',
       'Warehouse Admin',
