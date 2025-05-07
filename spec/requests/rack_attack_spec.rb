@@ -31,6 +31,9 @@ RSpec.describe Rack::Attack, type: :request do
     status_encountered = false
 
     case mode
+    when :frozen
+      time_advance = 0
+      freeze_time
     when :slow
       time_advance = 1
     when :default
@@ -42,10 +45,11 @@ RSpec.describe Rack::Attack, type: :request do
     begin
       (requests_to_send + 1).times do |cnt|
         # travel to hour boundary so we always start at 00:00, manually advancing time every loop
-        travel_to(Time.current.beginning_of_hour + (cnt * time_advance).seconds)
+        travel_to(Time.current.beginning_of_hour + (cnt * time_advance).seconds) unless time_advance.zero?
         block.arity == 1 ? yield(cnt) : yield
         requests_sent += 1
         status_encountered = response.status == throttled_status
+        # puts [cnt, response.status, SlackNotificationRateLimiter.instance.lifetime_sends, SlackNotificationRateLimiter.instance.lifetime_attempts].inspect
         break if status_encountered
       end
     ensure
@@ -186,12 +190,17 @@ RSpec.describe Rack::Attack, type: :request do
     let(:path) { '/' }
 
     it 'does not send api requests to sentry for every throttle event' do
-      throttled_at = 50
-      till_throttled(requests_to_send: throttled_at, throttled_status: -999) { get(path, headers: headers) }
+      throttled_at = 20
       monitor = SlackNotificationRateLimiter.instance
-      expect(monitor.lifetime_attempts).to be > 20
-      expect(monitor.lifetime_sends).to be > 1
-      expect(monitor.percent_sent).to be < 12 # fuzzy, we see timing variation in CI
+      monitor.reset
+      till_throttled(requests_to_send: throttled_at, throttled_status: -999, mode: :frozen) { get(path, headers: headers) }
+      aggregate_failures 'checking response' do
+        expect(monitor.lifetime_attempts).to(eq(11)) # (throttled_at + 1 (21)) - allowed requests (10)
+        expect(monitor.lifetime_sends).to(eq(1)) # we expect send to occur once per 10 seconds
+        expect(monitor.lifetime_percent_sent).to(eq(
+          ((1.0/11) * 100).round(1)
+        ))
+      end
     end
   end
 end

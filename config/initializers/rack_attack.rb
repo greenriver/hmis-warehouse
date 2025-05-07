@@ -167,6 +167,10 @@ end
 #   [ 429, headers, ["Throttled\n"]]
 # end
 
+# Rate limits Slack notifications to prevent overwhelming the Slack API
+# - Enforces a maximum of 1 notification per 10 seconds per process
+# - Tracks lifetime statistics for monitoring notification patterns
+# - Thread-safe implementation using mutex for concurrent access
 class SlackNotificationRateLimiter
   include Singleton
   include Memery
@@ -184,7 +188,7 @@ class SlackNotificationRateLimiter
     self.lifetime_attempts = 0
   end
 
-  def percent_sent
+  def lifetime_percent_sent
     @mutex.synchronize do
       return 0.0 if lifetime_attempts == 0
 
@@ -194,42 +198,32 @@ class SlackNotificationRateLimiter
 
   def needs_throttling?
     @mutex.synchronize do
-      (delta < throttle_window_seconds) && sends > max_sends
+      self.lifetime_attempts += 1
+      now = Time.current
+      if (now - last_sent) > throttle_window_seconds
+        self.sends = 0
+        self.last_sent = now
+        false
+      else
+        sends >= max_sends
+      end
     end
   end
 
-  def needs_reset?
-    @mutex.synchronize do
-      delta > throttle_window_seconds
-    end
-  end
-
-  def delta
-    Time.current - last_sent
-  end
-
-  def increment_sends
+  def track_record_send
     @mutex.synchronize do
       self.sends += 1
       self.lifetime_sends += 1
-    end
-  end
-
-  def increment_attempts
-    @mutex.synchronize do
-      self.lifetime_attempts += 1
-    end
-  end
-
-  def update_last_sent
-    @mutex.synchronize do
       self.last_sent = Time.current
     end
   end
 
-  def reset_sends
+  def reset
     @mutex.synchronize do
       self.sends = 0
+      self.last_sent = Time.current
+      self.lifetime_sends = 0
+      self.lifetime_attempts = 0
     end
   end
 end
@@ -265,12 +259,9 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
   Rails.logger.warn JSON.generate(data)
 
   monitor = SlackNotificationRateLimiter.instance
-  monitor.increment_attempts
   next if monitor.needs_throttling?
 
-  monitor.reset_sends if monitor.needs_reset?
-
-  Rails.logger.debug { "Slack sending percentage is #{monitor.percent_sent}%" }
+  Rails.logger.debug { "Slack sending percentage is #{monitor.lifetime_percent_sent}%" }
 
   # ... and now try to send to somewhere useful
   if defined?(Slack::Notifier) && ENV['EXCEPTION_WEBHOOK_URL'].present?
@@ -297,6 +288,5 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
   end
 
   # mark a send even if it's not enabled above to facilitate testing
-  monitor.update_last_sent
-  monitor.increment_sends
+  monitor.track_record_send
 end
