@@ -933,10 +933,8 @@ module PerformanceMeasurement::ResultCalculation
 
       reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
       reporting_inventory = inventory_sum(:ave_bed_capacity_per_night, :reporting, project_id: project&.project_id, project_type: project_type)
-      puts "reporting_inventory: #{reporting_inventory}"
       comparison_days = client_sum(field, :comparison, project_id: project&.project_id)
       comparison_inventory = inventory_sum(:ave_bed_capacity_per_night, :comparison, project_id: project&.project_id, project_type: project_type)
-      puts "comparison_inventory: #{comparison_inventory}"
 
       reporting_denominator = reporting_inventory
       reporting_numerator = reporting_days / reporting_day_count.to_f

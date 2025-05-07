@@ -180,11 +180,10 @@ RSpec.describe PerformanceMeasurement::Report, type: :model do
         result = report.result_for(:es_average_bed_utilization)
 
         # Calculate expected utilization:
-        # - 2 inventory records with 5 beds each (10 beds total)
-        # - 5 clients stayed the entire time the inventory was active
-        # - Utilization = 50%
-        expected_utilization = 50
-        puts [GrdaWarehouse::ServiceHistoryService.minimum(:date), GrdaWarehouse::ServiceHistoryService.maximum(:date)].inspect
+        # - 2 inventory records with 5 beds each (10 beds total) active for ~8 months (245 days * 10 beds = 2,450 bed-days)
+        # - 5 clients stayed the entire year (5 * 365 = 1,825 days)
+        # - Utilization = 1,825 bed-days / 245 inventory days = 7.4 people per day
+        expected_utilization = (7.4 / 10) * 100
         expect(result.primary_value).to be_within(0.1).of(expected_utilization)
       end
     end
