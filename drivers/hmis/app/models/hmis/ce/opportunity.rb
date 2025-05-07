@@ -42,7 +42,7 @@ module Hmis::Ce
       end
     end
 
-    # TODO(#7395): permissions
+    # TODO(#7506): permissions
     scope :viewable_by, ->(_user) { all }
 
     scope :active, -> { where.not(status: 'closed') }

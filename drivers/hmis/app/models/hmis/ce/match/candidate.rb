@@ -7,7 +7,7 @@ module Hmis::Ce::Match
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool'
     belongs_to :client, class_name: 'Hmis::Hud::Client'
 
-    # TODO(#7395): permissions
+    # TODO(#7506): permissions
     scope :viewable_by, ->(_user) { all }
 
     # order by descending priority, NULL values last. Use id as a tie-breaker

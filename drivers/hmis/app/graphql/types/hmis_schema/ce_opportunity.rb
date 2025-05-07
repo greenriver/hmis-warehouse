@@ -39,7 +39,7 @@ module Types
     end
 
     def referral
-      # TODO(#7395): permissions - ensure that user has permission to view referrals at this project
+      # TODO(#7506): permissions - ensure that user has permission to view referrals at this project
       # return nil unless current_permission?(permission: :can_view_referrals, entity: project)
 
       load_ar_association(object, :active_or_accepted_referral)

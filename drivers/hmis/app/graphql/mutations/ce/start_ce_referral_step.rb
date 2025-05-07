@@ -21,7 +21,7 @@ module Mutations
         engine = referral.workflow_engine
         step = engine.active_steps.find(step_id)
 
-        # TODO(#7395): permission
+        # TODO(#7506): permission
 
         engine.start_step!(step, user: current_user)
       end

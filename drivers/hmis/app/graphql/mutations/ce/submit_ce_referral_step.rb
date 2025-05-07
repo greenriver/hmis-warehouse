@@ -31,7 +31,7 @@ module Mutations
         step = engine.active_steps.find(step_id)
         step.form_definition = form_definition
 
-        # TODO(#7395): permission
+        # TODO(#7506): permission
 
         validations = engine.validate_step(step, submitted_values: input)
         errors.push(*validations)

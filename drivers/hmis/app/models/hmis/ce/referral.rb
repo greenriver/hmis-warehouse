@@ -21,7 +21,7 @@ module Hmis::Ce
     has_one :target_project, class_name: 'Hmis::Hud::Project', through: :opportunity, source: :project
     has_many :swimlanes, through: :workflow_instance, class_name: 'Hmis::WorkflowDefinition::Swimlane'
 
-    # TODO(#7395): permissions
+    # TODO(#7506): permissions
     scope :viewable_by, ->(_user) { all }
 
     scope :active, -> { where.not(status: ['accepted', 'rejected']) }
