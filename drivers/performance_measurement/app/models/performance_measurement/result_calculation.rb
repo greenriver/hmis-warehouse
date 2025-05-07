@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+#
+# frozen_string_literal: true
 
 module PerformanceMeasurement::ResultCalculation
   extend ActiveSupport::Concern
@@ -905,19 +905,50 @@ module PerformanceMeasurement::ResultCalculation
 
     def average_bed_utilization(detail, meth, project_type:, project: nil)
       field = detail[:calculation_column]
-      day_count = filter.range.count
+
+      # The number of days in the reporting range that intersect with the inventory range
+      if project
+        min_date = [project.hud_project.inventories.within_range(filter.range).minimum(i_t[:InventoryStartDate]), filter.range.first].compact.max
+        max_date = [project.hud_project.inventories.within_range(filter.range).maximum(i_t[:InventoryEndDate]), filter.range.last].compact.min
+      else
+        inventory_scope = projects.joins(hud_project: :inventories).
+          merge(GrdaWarehouse::Hud::Inventory.within_range(filter.range)).
+          merge(GrdaWarehouse::Hud::Project.send(project_type))
+        min_date = [inventory_scope.minimum(i_t[:InventoryStartDate]), filter.range.first].compact.max
+        max_date = [inventory_scope.maximum(i_t[:InventoryEndDate]), filter.range.last].compact.min
+      end
+      reporting_day_count = (min_date..max_date).count
+      # The number of days in the comparison range that intersect with the inventory range
+      if project
+        min_date = [project.hud_project.inventories.within_range(filter.comparison_range).minimum(i_t[:InventoryStartDate]), filter.comparison_range.first].compact.max
+        max_date = [project.hud_project.inventories.within_range(filter.comparison_range).maximum(i_t[:InventoryEndDate]), filter.comparison_range.last].compact.min
+      else
+        inventory_scope = projects.joins(hud_project: :inventories).
+          merge(GrdaWarehouse::Hud::Inventory.within_range(filter.comparison_range)).
+          merge(GrdaWarehouse::Hud::Project.send(project_type))
+        min_date = [inventory_scope.minimum(i_t[:InventoryStartDate]), filter.comparison_range.first].compact.max
+        max_date = [inventory_scope.maximum(i_t[:InventoryEndDate]), filter.comparison_range.last].compact.min
+      end
+      comparison_day_count = (min_date..max_date).count
+
       reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
       reporting_inventory = inventory_sum(:ave_bed_capacity_per_night, :reporting, project_id: project&.project_id, project_type: project_type)
+      puts "reporting_inventory: #{reporting_inventory}"
       comparison_days = client_sum(field, :comparison, project_id: project&.project_id)
       comparison_inventory = inventory_sum(:ave_bed_capacity_per_night, :comparison, project_id: project&.project_id, project_type: project_type)
+      puts "comparison_inventory: #{comparison_inventory}"
 
       reporting_denominator = reporting_inventory
-      reporting_numerator = reporting_days / day_count.to_f
+      reporting_numerator = reporting_days / reporting_day_count.to_f
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
 
       comparison_denominator = comparison_inventory
-      comparison_numerator = comparison_days / day_count.to_f
+      comparison_numerator = comparison_days / comparison_day_count.to_f
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
+
+      # Ensure if there are more than 0 days, but less than one, we report an average of 1
+      reporting_numerator = 1 if reporting_numerator.positive? && reporting_numerator < 1
+      comparison_numerator = 1 if comparison_numerator.positive? && comparison_numerator < 1
 
       progress = calculate_processed(detail[:goal_calculation], reporting_percent)
       PerformanceMeasurement::Result.new(

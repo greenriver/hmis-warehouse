@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe PerformanceMeasurement::Report, type: :model do
@@ -150,6 +152,94 @@ RSpec.describe PerformanceMeasurement::Report, type: :model do
     end
   end
 
+  describe 'inventory date range scenarios' do
+    describe 'when inventory starts and ends 2 months into and before the report period' do
+      before(:each) do
+        # Adjust the inventory to start and end 2 months into and before the report period
+        GrdaWarehouse::Hud::Inventory.update_all(InventoryStartDate: '2022-03-01', InventoryEndDate: '2022-10-31')
+
+        # Run report for full year
+        run!(default_filter)
+      end
+
+      it 'calculates average daily inventory correctly for truncated range' do
+        range = Filters::DateRange.new(start: Date.parse('2022-01-01'), end: Date.parse('2022-12-31'))
+
+        # Should only count beds for the 8 months the inventory was active
+        expected_days = (Date.parse('2022-10-31') - Date.parse('2022-03-01')).to_i
+        expected_average = (expected_days.to_f * 10 / expected_days).round
+
+        actual_average = GrdaWarehouse::Hud::Inventory.all.map { |i| i.average_daily_inventory(range: range, field: :BedInventory) }.sum
+        expect(actual_average).to eq(expected_average)
+      end
+
+      it 'calculates bed utilization correctly in the report' do
+        report = report_class.last
+
+        # Get the ES bed utilization result
+        result = report.result_for(:es_average_bed_utilization)
+
+        # Calculate expected utilization:
+        # - 2 inventory records with 5 beds each (10 beds total)
+        # - 5 clients stayed the entire time the inventory was active
+        # - Utilization = 50%
+        expected_utilization = 50
+        puts [GrdaWarehouse::ServiceHistoryService.minimum(:date), GrdaWarehouse::ServiceHistoryService.maximum(:date)].inspect
+        expect(result.primary_value).to be_within(0.1).of(expected_utilization)
+      end
+    end
+
+    describe 'when inventory starts and ends after the report period' do
+      before(:each) do
+        GrdaWarehouse::Hud::Inventory.update_all(InventoryStartDate: '2023-01-01', InventoryEndDate: '2023-12-31')
+
+        # Run report for full year
+        run!(default_filter)
+      end
+
+      it 'finds no inventory' do
+        range = Filters::DateRange.new(start: Date.parse('2022-01-01'), end: Date.parse('2022-12-31'))
+
+        actual_average = GrdaWarehouse::Hud::Inventory.all.map { |i| i.average_daily_inventory(range: range, field: :BedInventory) }.sum
+        expect(actual_average).to eq(0)
+      end
+    end
+
+    describe 'when inventory ends before the report period start' do
+      before(:each) do
+        GrdaWarehouse::Hud::Inventory.update_all(InventoryStartDate: '2023-01-01', InventoryEndDate: '2023-12-31')
+
+        # Run report for full year
+        run!(default_filter)
+      end
+
+      it 'finds no inventory' do
+        range = Filters::DateRange.new(start: Date.parse('2021-01-01'), end: Date.parse('2021-12-31'))
+
+        actual_average = GrdaWarehouse::Hud::Inventory.all.map { |i| i.average_daily_inventory(range: range, field: :BedInventory) }.sum
+        expect(actual_average).to eq(0)
+      end
+    end
+
+    describe 'when inventory has no end date and overlaps the report period' do
+      before(:each) do
+        GrdaWarehouse::Hud::Inventory.update_all(InventoryStartDate: '2022-06-01', InventoryEndDate: nil)
+
+        # Run report for full year
+        run!(default_filter)
+      end
+
+      it 'finds expected inventory' do
+        range = Filters::DateRange.new(start: Date.parse('2022-01-01'), end: Date.parse('2022-12-31'))
+
+        expected_days = (Date.parse('2022-12-31') - Date.parse('2022-06-01')).to_i
+        expected_average = (expected_days.to_f * 10 / expected_days).round
+        actual_average = GrdaWarehouse::Hud::Inventory.all.map { |i| i.average_daily_inventory(range: range, field: :BedInventory) }.sum
+        expect(actual_average).to eq(expected_average)
+      end
+    end
+  end
+
   def default_setup_path
     'drivers/performance_measurement/spec/fixtures/files/default'
   end
@@ -160,6 +250,7 @@ RSpec.describe PerformanceMeasurement::Report, type: :model do
       end: Date.parse('2022-12-31'),
       project_type_codes: HudUtility2024.residential_project_type_numbers_by_code.keys,
       coc_codes: ['XX-501'],
+      coc_code: 'XX-501',
     }
   end
 
@@ -187,6 +278,7 @@ RSpec.describe PerformanceMeasurement::Report, type: :model do
   end
 
   def cleanup
-    # We don't need to do anything here currently
+    HmisCsvImporter::Utility.clear!
+    GrdaWarehouse::Utility.clear!
   end
 end
