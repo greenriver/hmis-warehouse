@@ -6,8 +6,8 @@
 
 # ### HIPAA Risk Assessment
 # Risk: Audit-log containing PHI
-class Health::HealthVersion < GrPaperTrail::Version
-  establish_connection DB_HEALTH
+class Health::HealthVersion < HealthBaseDb
+  include ::GrPaperTrailVersionBehavior
 
   # phi_attr :object, Phi::Bulk # contains serialize model data that depends on the model
   # phi_attr :object_changes, Phi::Bulk # contains serialize model data that depends on the model
