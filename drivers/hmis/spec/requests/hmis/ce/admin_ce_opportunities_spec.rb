@@ -39,20 +39,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GRAPHQL
     end
 
-    context 'when sorting by date available' do
+    context 'when querying for opportunities' do
       let(:today) { Date.current }
       let!(:opportunity) { create :hmis_ce_opportunity, project: project, created_at: today }
       let!(:opportunity2) { create :hmis_ce_opportunity, project: project, created_at: today - 1.day }
       let!(:opportunity3) { create :hmis_ce_opportunity, project: project, created_at: today - 2.days }
 
-      let(:variables) do
-        {
-          sortOrder: 'DATE_AVAILABLE_EARLIEST_FIRST',
-        }
-      end
-
-      it 'returns the opportunities sorted by date available' do
-        response, result = post_graphql(**variables) { query }
+      it 'default sorts by date available' do
+        response, result = post_graphql { query }
         expect(response.status).to eq(200), result.inspect
 
         opportunities = result.dig('data', 'ceOpportunities', 'nodes')

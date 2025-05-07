@@ -29,6 +29,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 id
               }
             }
+            currentSteps {
+              id
+            }
             swimlanes {
               id
               name
@@ -66,6 +69,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'name' => opportunity.name,
           'status' => opportunity.status,
         )
+
+        # Verify that step and currentStep scopes don't mess with each other
+        expect(referral_data['currentSteps'].count).to eq(0)
 
         steps = referral_data['steps']
         expect(steps).to be_an(Array)

@@ -33,7 +33,7 @@ module Types
 
       private
 
-      def scoped_ce_opportunities(scope, user: current_user, sort_order: :date_available_earliest_first, filters: nil)
+      def scoped_ce_opportunities(scope, user: current_user, sort_order: nil, filters: nil)
         raise unless Hmis::Ce.configuration.enabled? # TODO(#7506) permissions
 
         scope = scope.viewable_by(user)
@@ -45,6 +45,7 @@ module Types
         scope = scope.available_on_date(filters&.available_on_date) if filters.respond_to?(:available_on_date) && filters&.available_on_date.present?
         scope = scope.where(workflow_template_identifier: filters&.workflow_template) if filters.respond_to?(:workflow_template) && filters&.workflow_template.present?
 
+        sort_order ||= :date_available_earliest_first
         scope.sort_by_option(sort_order)
       end
     end
