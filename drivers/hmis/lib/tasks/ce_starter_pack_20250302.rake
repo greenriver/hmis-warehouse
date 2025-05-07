@@ -315,7 +315,8 @@ task ce_starter_pack_20250302: [:environment] do
 
   # Create candidates for opportunities. First create some opportunities using the frontend
   puts 'Building a candidate pool'
-  Hmis::Ce::Match::CandidatePoolBuilder.new.perform
+  opportunities = Hmis::Ce::Opportunity.active
+  Hmis::Ce::Match::CandidatePoolBuilder.new(opportunities).perform
 
   puts 'Running the CE match engine'
   clients = Hmis::Hud::Client.hmis.limit(100) # modify this if you want to include different or specific clients

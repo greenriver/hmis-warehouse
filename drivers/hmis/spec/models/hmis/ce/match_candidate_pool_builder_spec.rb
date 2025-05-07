@@ -3,10 +3,10 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
-  let(:builder) { described_class.new }
-  let!(:opportunity) { create(:hmis_ce_opportunity) }
-  let(:project) { opportunity.project }
-  let(:organization) { project.organization }
+  let!(:organization) { create :hmis_hud_organization }
+  let!(:project) { create :hmis_hud_project, organization: organization }
+  let!(:opportunity) { create(:hmis_ce_opportunity, project: project) }
+  let(:builder) { described_class.new(Hmis::Ce::Opportunity.active) }
 
   describe '#perform' do
     context 'with active opportunities' do
@@ -39,6 +39,20 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
         expect { builder.perform }.to change(Hmis::Ce::Match::CandidatePool, :count).by(0)
         expect(Hmis::Ce::Match::CandidatePool.exists?(old_pool.id)).to be false
+      end
+    end
+
+    context 'when passed specific opportunities' do
+      let!(:opportunity2) { create(:hmis_ce_opportunity, project: project) }
+      let(:builder) { described_class.new(Hmis::Ce::Opportunity.where(id: [opportunity2.id])) }
+
+      it 'does not impact the non-included opportunity' do
+        expect do
+          builder.perform
+          opportunity.reload
+          opportunity2.reload
+        end.to change(opportunity2, :candidate_pool).from(nil).
+          and not_change(opportunity, :candidate_pool).from(nil)
       end
     end
   end
