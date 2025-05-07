@@ -10,6 +10,6 @@
 # Note, warehouse records have a different version table/model
 module GrPaperTrail
   class Version < ActiveRecord::Base
-    include PaperTrail::VersionConcern
+    include ::GrPaperTrailVersionBehavior
   end
 end
