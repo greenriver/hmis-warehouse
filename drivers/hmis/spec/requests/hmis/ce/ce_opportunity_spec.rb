@@ -17,6 +17,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:candidate_pool) { create :hmis_ce_match_candidate_pool }
   let(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool }
 
+  let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project, :can_view_units]) }
+
   describe 'ce_opportunity query' do
     let(:query) do
       <<~GRAPHQL
@@ -260,7 +262,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodesCount')).to eq(200)
-        end.to make_database_queries(count: 30..40)
+        end.to make_database_queries(count: 25..30)
       end
     end
 
@@ -329,6 +331,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'does not throw, but returns no opportunity' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'ceOpportunity')).to be_nil
+      end
+    end
+
+    describe 'without permission' do
+      before do
+        remove_permissions(access_control, :can_view_units)
+      end
+
+      it 'does not return the opportunity' do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
         expect(result.dig('data', 'ceOpportunity')).to be_nil

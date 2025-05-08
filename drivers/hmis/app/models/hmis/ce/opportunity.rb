@@ -42,8 +42,9 @@ module Hmis::Ce
       end
     end
 
-    # TODO(#7506): permissions
-    scope :viewable_by, ->(_user) { all }
+    scope :viewable_by, ->(user) do
+      joins(:project).merge(Hmis::Hud::Project.with_access(user, :can_view_units))
+    end
 
     scope :active, -> { where.not(status: 'closed') }
 
