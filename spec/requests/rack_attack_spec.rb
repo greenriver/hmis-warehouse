@@ -185,6 +185,10 @@ RSpec.describe Rack::Attack, type: :request do
   context 'sentry notification rate limiting' do
     let(:path) { '/' }
 
+    before do
+      SentryNotificationRateLimiter.instance.reset
+    end
+
     it 'rate limits notifications to Sentry' do
       throttled_at = 20 # throttled at 10 currently
       allow(Sentry).to receive(:capture_message)

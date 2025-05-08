@@ -185,6 +185,10 @@ class SentryNotificationRateLimiter
       true # cached result we don't care about
     end
   end
+
+  def reset
+    @cache.clear
+  end
 end
 
 ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish, _request_id, payload|
