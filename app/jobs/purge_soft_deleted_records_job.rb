@@ -24,7 +24,7 @@ class PurgeSoftDeletedRecordsJob < BaseJob
   def perform(retain_at: 1.year.ago, max_deleted: 10_000_000, models: warehouse_models, dry_run: true)
     raise 'all models must be paranoid' unless models.all?(&:paranoid?)
 
-    setup_notifier("Purging soft-deleted records (#{dry_run ? 'dry run' : 'live run'})")
+    Rails.logger.info "Purging soft-deleted records (#{dry_run ? 'dry run' : 'live run'})"
 
     with_lock do
       @total_deleted = 0
@@ -42,7 +42,7 @@ class PurgeSoftDeletedRecordsJob < BaseJob
       end
     end
 
-    log("Total records deleted: #{@total_deleted}") unless @dry_run
+    Rails.logger.info "Total records deleted: #{@total_deleted}" unless @dry_run
     @total_deleted
   end
 
@@ -127,11 +127,7 @@ class PurgeSoftDeletedRecordsJob < BaseJob
     @total_deleted += size
     return unless @total_deleted >= @max_deleted
 
-    log("Reached maximum deletion limit of #{@max_deleted} records, halting job.")
+    Rails.logger.info "Reached maximum deletion limit of #{@max_deleted} records, halting job."
     throw :halt
-  end
-
-  def log(str)
-    @notifier.ping(str) # logs to cloudwatch
   end
 end

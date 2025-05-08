@@ -29,8 +29,6 @@ module HmisExternalApis::AcHmis
       self.records_needing_processing = []
       self.actor_id = actor_id
 
-      setup_notifier('Fetch changes from AC Data Warehouse')
-
       collect_records_to_inspect
       fetch_clients
       fetch_mci_unique_ids
@@ -53,7 +51,7 @@ module HmisExternalApis::AcHmis
 
       # On a daily bases there are usually <50 records needing processing, log the IDs to cloudwatch to help with debugging
       destination_ids_needing_processing = records_needing_processing.map { |r| r['clientId'] }
-      debug_msg "Considering #{count} records: #{destination_ids_needing_processing.first(50).join(', ')}"
+      Rails.logger.info "Considering #{count} records: #{destination_ids_needing_processing.first(50).join(', ')}"
     end
 
     def fetch_clients
@@ -124,10 +122,10 @@ module HmisExternalApis::AcHmis
       end
 
       # log these all to cloudwatch
-      debug_msg "Inserted #{inserted_mci_uniq_ids.size} MCI unique IDs: #{inserted_mci_uniq_ids.first(50).join(', ')}"
-      debug_msg "Updated #{updated_mci_uniq_ids.size} MCI unique IDs: #{updated_mci_uniq_ids.first(50).join(', ')}"
-      debug_msg "Ignored #{no_change_count} MCI unique IDs"
-      debug_msg "Skipped #{unrecognized_destination_id_count} unrecognized Client IDs in response"
+      Rails.logger.info "Inserted #{inserted_mci_uniq_ids.size} MCI unique IDs: #{inserted_mci_uniq_ids.first(50).join(', ')}"
+      Rails.logger.info "Updated #{updated_mci_uniq_ids.size} MCI unique IDs: #{updated_mci_uniq_ids.first(50).join(', ')}"
+      Rails.logger.info "Ignored #{no_change_count} MCI unique IDs"
+      Rails.logger.info "Skipped #{unrecognized_destination_id_count} unrecognized Client IDs in response"
     end
 
     def merge_clients_by_mci_unique_id
@@ -138,9 +136,9 @@ module HmisExternalApis::AcHmis
         having('count(*) > 1').
         select('value, array_agg(source_id ORDER BY source_id) AS client_ids')
 
-      debug_msg "Found #{merge_sets.length} duplicate MCI unique IDs"
+      Rails.logger.info "Found #{merge_sets.length} duplicate MCI unique IDs"
 
-      debug_msg 'Enqueuing dedup jobs for each one'
+      Rails.logger.info 'Enqueuing dedup jobs for each one'
 
       merge_sets.each do |set|
         Hmis::MergeClientsJob.perform_later(client_ids: set.client_ids, actor_id: actor_id)
@@ -157,7 +155,7 @@ module HmisExternalApis::AcHmis
         record['mci_unique_id_date_time'] = Time.zone.parse(record['mciUniqIdDate'])
 
         if record['last_modified_date_time'] < since
-          debug_msg "Got to the end of the changes we're interested in. Finishing up"
+          Rails.logger.info "Got to the end of the changes we're interested in. Finishing up"
           break
         end
 
@@ -167,10 +165,6 @@ module HmisExternalApis::AcHmis
 
         yield record
       end
-    end
-
-    def debug_msg(str)
-      @notifier.ping(str)
     end
 
     def data_warehouse_api
