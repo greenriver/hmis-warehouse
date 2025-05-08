@@ -2,6 +2,8 @@
 
 module Clients
   class SearchQueriesController < ApplicationController
+    before_action :require_can_access_some_client_search!
+
     def create
       query = search_query_scope.find_or_create_by_params!(safe_params)
       redirect_to client_search_query_path(id: query.id)
@@ -14,13 +16,7 @@ module Clients
     end
 
     def safe_params
-      params.permit(
-        :q,
-        :first_name,
-        :last_name,
-        :dob,
-        :ssn,
-      )
+      params.permit(:q, client: [:first_name, :last_name, :dob, :ssn])
     end
   end
 end

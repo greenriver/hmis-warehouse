@@ -26,40 +26,68 @@ class ClientAccessControl::ClientsController < ApplicationController
   before_action :set_client_start_date, only: [:show, :rollup]
   after_action :log_client, only: [:show]
 
-  def search
-    search_query = current_user.client_search_queries.find(params[:id])
-    @query = search_query.params['q']
-    clients = perform_search(search_query.params.symbolize_keys)
-    render_client_list(clients)
-  end
-
   def index
-    safe_params = params.permit(:first_name, :last_name, :dob, :ssn, :q).to_h.compact_blank.presence
+    safe_params = params.permit(:q, client: [:first_name, :last_name, :dob, :ssn]).presence
     if safe_params
       # handle legacy get requests for search
       query = current_user.client_search_queries.find_or_create_by_params!(safe_params)
       redirect_to client_search_query_path(id: query.id), status: :moved_permanently
     else
-      render_client_list(client_source.none)
+      # render empty search
+      perform_search
     end
   end
 
-  protected def perform_search(search_params)
+  def search
+    search_query = current_user.client_search_queries.find(params[:id])
+    perform_search(search_query.params)
+  end
+
+  protected def perform_search(search_params = {})
     if current_user.can_use_strict_search?
-      safe_params = search_params.slice(:first_name, :last_name, :dob, :ssn)
-      client_source.strict_search(safe_params, client_scope: client_search_scope)
-    elsif ! current_user.using_acls? && (current_user.can_access_window_search? || current_user.can_search_own_clients?) && search_params[:q].present?
-      # TODO: START_ACL remove after ACL migration is complete
-      client_source.text_search(search_params[:q], client_scope: client_search_scope, sorted: sorted)
-      # END_ACL
-    elsif current_user.can_search_own_clients? && search_params[:q].present?
-      client_source.text_search(search_params[:q], client_scope: client_search_scope, sorted: sorted)
+      perform_strict_search(search_params)
+    elsif can_text_search?
+      perform_text_search(search_params)
     else
-      client_source.none
+      not_found!
     end
   end
 
-  protected def render_client_list(clients)
+  protected def perform_strict_search(search_params)
+    criteria = search_params[:client].slice(:first_name, :last_name, :dob, :ssn).presence
+    @client = client_source.new(criteria || {}) # populates form inputs
+    if criteria
+      clients = client_source.strict_search(criteria, client_scope: client_search_scope)
+    else
+      clients = client_source.none
+    end
+    assign_client_list_vars(clients)
+    render 'strict_search'
+  end
+
+  protected def perform_text_search(search_params)
+    @query = search_params['q'].presence # populates form input
+    if @query
+      clients = client_source.text_search(@query, client_scope: client_search_scope, sorted: sorted)
+    else
+      clients = client_source.none
+    end
+    assign_client_list_vars(clients)
+    sort_filter_index
+    render 'index'
+  end
+
+  protected def can_text_search?
+    return true if current_user.can_search_own_clients?
+
+    if !current_user.using_acls?
+      return true if current_user.can_access_window_search?
+    end
+    false
+  end
+
+  # sets various instance variables for to render the client list
+  protected def assign_client_list_vars(clients)
     @clients = clients
     @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
     preloads = [
@@ -88,19 +116,6 @@ class ClientAccessControl::ClientsController < ApplicationController
       preload(preloads)
 
     @pagy, @clients = pagy(@clients)
-
-    if current_user.can_use_strict_search?
-      @client = client_source.new(strict_search_params)
-      render 'strict_search'
-    elsif current_user.can_search_own_clients?
-      sort_filter_index
-    elsif ! current_user.using_acls? && (current_user.can_access_window_search? || current_user.can_search_own_clients?)
-      # TODO: START_ACL remove after ACL migration is complete
-      sort_filter_index
-      # END_ACL
-    else
-      render action: 'index'
-    end
   end
 
   def show

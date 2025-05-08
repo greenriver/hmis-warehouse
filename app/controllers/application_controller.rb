@@ -111,6 +111,10 @@ class ApplicationController < ActionController::Base
 
   private
 
+  def not_found!(msg='Not Found')
+    raise ActionController::RoutingError.new(msg)
+  end
+
   # don't extend the user's session if its an ajax request.
   def skip_timeout
     request.env['devise.skip_trackable'] = true if request.xhr?
