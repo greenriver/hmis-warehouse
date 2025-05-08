@@ -156,6 +156,28 @@ Rack::Attack.tap do |config|
       request.request_ip
     end
   end
+
+  # Goal: Prevent excessive creation of search queries
+  config.throttle(
+    'per-ip limit on search query creation',
+    limit: 30,
+    period: 1.minute,
+  ) do |request|
+    if request.tracking_enabled? && request.authenticated? && request.post? && request.path == '/client_search_queries'
+      request.request_ip
+    end
+  end
+
+  # Goal: Prevent excessive viewing of search results
+  config.throttle(
+    'per-ip limit on search result viewing',
+    limit: 30,
+    period: 1.minute,
+  ) do |request|
+    if request.tracking_enabled? && request.authenticated? && request.get? && request.path =~ /^\/clients\/\d+\/search$/
+      request.request_ip
+    end
+  end
 end
 # rubocop:enable Style/IfUnlessModifier
 

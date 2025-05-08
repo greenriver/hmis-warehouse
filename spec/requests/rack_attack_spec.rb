@@ -140,6 +140,31 @@ RSpec.describe Rack::Attack, type: :request do
         expect(requests_sent).to eq(throttled_at)
       end
     end
+
+    describe 'and creating search queries' do
+      let(:path) { client_search_queries_path }
+
+      it 'throttles excessive search query creation' do
+        throttled_at = 30
+        requests_sent = till_throttled(requests_to_send: throttled_at, mode: :slow) do |i|
+          post(path, params: { q: "test search #{i}" })
+        end
+        expect(requests_sent).to eq(throttled_at)
+      end
+    end
+
+    describe 'and viewing search results' do
+      let(:search_query) { create(:grda_warehouse_client_search_query, user: user) }
+      let(:path) { client_search_query_path(id: search_query.id) }
+
+      it 'throttles excessive search result viewing' do
+        throttled_at = 30
+        requests_sent = till_throttled(requests_to_send: throttled_at) do
+          get(path)
+        end
+        expect(requests_sent).to eq(throttled_at)
+      end
+    end
   end
 
   context 'system_status_requests' do
