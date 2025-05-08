@@ -31,8 +31,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       expect(response).to redirect_to(new_user_session_path)
     end
 
-    it 'doesn\'t allow search' do
-      post client_search_queries_path, params: { q: 'test' }
+    it 'doesn\'t allow search results' do
+      query = create(:grda_warehouse_client_search_query, user: user)
+      get client_search_query_path(id: query.id)
       expect(response).to redirect_to(new_user_session_path)
     end
 
@@ -103,9 +104,10 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       expect(response).to redirect_to(user.my_root_path)
     end
 
-    it 'doesn\'t allow search' do
+    it 'doesn\'t allow search results' do
       sign_in user
-      post client_search_queries_path, params: { q: 'test' }
+      query = create(:grda_warehouse_client_search_query, user: user)
+      get client_search_query_path(id: query.id)
       expect(response).to redirect_to(user.my_root_path)
     end
 
@@ -209,8 +211,12 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'allows viewing search results' do
       sign_in user
       query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'test' })
-      get client_search_query_path(id: query.id)
-      expect(response).to have_http_status(200)
+      original_updated_at = query.updated_at
+      travel 1.hour do
+        get client_search_query_path(id: query.id)
+        expect(response).to have_http_status(200)
+        expect(query.reload.updated_at).to be > original_updated_at
+      end
     end
 
     it 'handles text search' do

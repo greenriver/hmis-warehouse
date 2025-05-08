@@ -7,6 +7,7 @@ class CreateClientSearches < ActiveRecord::Migration[7.1]
       t.jsonb :params, null: false
       t.string :fingerprint, null: false
       t.datetime :created_at, null: false
+      t.datetime :updated_at, null: false
     end
     add_index :client_search_queries, [:user_id, :fingerprint], name: 'uidx_client_search_queries', unique: true
   end

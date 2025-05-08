@@ -40,6 +40,7 @@ class ClientAccessControl::ClientsController < ApplicationController
 
   def search
     search_query = current_user.client_search_queries.find(params[:id])
+    search_query.touch
     perform_search(search_query.params)
   end
 
@@ -82,9 +83,11 @@ class ClientAccessControl::ClientsController < ApplicationController
   protected def can_text_search?
     return true if current_user.can_search_own_clients?
 
+    # TODO: START_ACL remove after ACL migration is complete
     if !current_user.using_acls?
       return true if current_user.can_access_window_search?
     end
+    # END_ACL
     false
   end
 
