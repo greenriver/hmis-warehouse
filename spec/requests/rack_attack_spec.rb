@@ -46,7 +46,6 @@ RSpec.describe Rack::Attack, type: :request do
         block.arity == 1 ? yield(cnt) : yield
         requests_sent += 1
         status_encountered = response.status == throttled_status
-        # puts [cnt, response.status, SlackNotificationRateLimiter.instance.lifetime_sends, SlackNotificationRateLimiter.instance.lifetime_attempts].inspect
         break if status_encountered
       end
     ensure

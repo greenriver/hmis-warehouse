@@ -178,8 +178,8 @@ class SentryNotificationRateLimiter
   end
 
   def notify(data)
-    matched = data.fetch('rack.attack.matched', 'no-match')
-    key = Digest::MD5.hexdigest(matched)
+    # the key should be constant; key off the name of matched rule
+    key = data.fetch('rack.attack.matched', 'no-match')
     @cache.fetch(key, expires_in: 10.seconds) do
       Sentry.capture_message('Rack attack event', extra: data)
       true # cached result we don't care about
