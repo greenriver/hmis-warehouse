@@ -59,16 +59,17 @@ module GrdaWarehouse
       end
 
       # Validate string lengths
-      params.each do |key, value|
+      validate_string_lengths(params)
+    end
+
+    def validate_string_lengths(hash, prefix = nil)
+      hash.each do |key, value|
         case value
         when String
-          errors.add(:params, "#{key} is too long (max #{MAX_STRING_LENGTH} characters)") if value.length > MAX_STRING_LENGTH
+          field = prefix ? "#{prefix}.#{key}" : key
+          errors.add(:params, "#{field} is too long (max #{MAX_STRING_LENGTH} characters)") if value.length > MAX_STRING_LENGTH
         when Hash
-          value.each do |subkey, subvalue|
-            if subvalue.is_a?(String)
-              errors.add(:params, "#{key}.#{subkey} is too long (max #{MAX_STRING_LENGTH} characters)") if subvalue.length > MAX_STRING_LENGTH
-            end
-          end
+          validate_string_lengths(value, prefix ? "#{prefix}.#{key}" : key)
         end
       end
     end
