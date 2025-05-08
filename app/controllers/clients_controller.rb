@@ -7,6 +7,10 @@
 # frozen_string_literal: true
 
 class ClientsController < ApplicationController
+  before_action do
+    raise 'This controller is unused; the actual controller is client_access_control/clients_controller. We keep this old controller because we may need it some day.'
+  end
+
   include AjaxModalRails::Controller
   include ClientController
   include ClientShowPages

@@ -49,12 +49,14 @@ class ClientAccessControl::ClientsController < ApplicationController
     elsif can_text_search?
       perform_text_search(search_params)
     else
-      not_found!
+      raise "Search permission check should make this impossible"
     end
   end
 
   protected def perform_strict_search(search_params)
-    criteria = search_params[:client].slice(:first_name, :last_name, :dob, :ssn).presence
+    criteria = search_params['client']&.slice('first_name', 'last_name', 'dob', 'ssn').presence
+    criteria = criteria&.symbolize_keys
+
     @client = client_source.new(criteria || {}) # populates form inputs
     if criteria
       clients = client_source.strict_search(criteria, client_scope: client_search_scope)
@@ -203,18 +205,6 @@ class ClientAccessControl::ClientsController < ApplicationController
         :health_receiver,
         merge: [],
         unmerge: [],
-      )
-  end
-
-  private def strict_search_params
-    return {} unless params[:client].present?
-
-    params.require(:client).
-      permit(
-        :first_name,
-        :last_name,
-        :dob,
-        :ssn,
       )
   end
 
