@@ -31,9 +31,6 @@ RSpec.describe Rack::Attack, type: :request do
     status_encountered = false
 
     case mode
-    when :frozen
-      time_advance = 0
-      freeze_time
     when :slow
       time_advance = 1
     when :default
@@ -186,21 +183,18 @@ RSpec.describe Rack::Attack, type: :request do
     end
   end
 
-  context 'being kind to the sentry api' do
+  context 'sentry notification rate limiting' do
     let(:path) { '/' }
 
-    it 'does not send api requests to sentry for every throttle event' do
-      throttled_at = 20
-      monitor = SlackNotificationRateLimiter.instance
-      monitor.reset
-      till_throttled(requests_to_send: throttled_at, throttled_status: -999, mode: :frozen) { get(path, headers: headers) }
-      aggregate_failures 'checking response' do
-        expect(monitor.lifetime_attempts).to(eq(11)) # (throttled_at + 1 (21)) - allowed requests (10)
-        expect(monitor.lifetime_sends).to(eq(1)) # we expect send to occur once per 10 seconds
-        expect(monitor.lifetime_percent_sent).to(eq(
-          ((1.0/11) * 100).round(1)
-        ))
-      end
+    it 'rate limits notifications to Sentry' do
+      throttled_at = 20 # throttled at 10 currently
+      allow(Sentry).to receive(:capture_message)
+
+      # Send multiple requests in quick succession
+      till_throttled(requests_to_send: throttled_at, throttled_status: -999) { get(path, headers: headers) }
+
+      # Verify that Sentry was called only once for similar events
+      expect(Sentry).to have_received(:capture_message).once
     end
   end
 end

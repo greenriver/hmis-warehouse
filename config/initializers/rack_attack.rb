@@ -167,63 +167,22 @@ end
 #   [ 429, headers, ["Throttled\n"]]
 # end
 
-# Rate limits Slack notifications to prevent overwhelming the Slack API
-# - Enforces a maximum of 1 notification per 10 seconds per process
-# - Tracks lifetime statistics for monitoring notification patterns
-# - Thread-safe implementation using mutex for concurrent access
-class SlackNotificationRateLimiter
+# Rate limits Sentry notifications to prevent overwhelming the Sentry API
+# - Uses Rails cache to deduplicate similar notifications within a time window
+# - Thread-safe implementation using cache for concurrent access
+class SentryNotificationRateLimiter
   include Singleton
-  include Memery
-
-  attr_accessor :sends, :last_sent, :throttle_window_seconds, :max_sends, :lifetime_sends, :lifetime_attempts
 
   def initialize
-    @mutex = Mutex.new
-    self.sends = 0
-    self.last_sent = Time.current
-    # Max sends to slack is once every 10 seconds per process
-    self.throttle_window_seconds = 10
-    self.max_sends = 1
-    self.lifetime_sends = 0
-    self.lifetime_attempts = 0
+    @cache = ActiveSupport::Cache::MemoryStore.new
   end
 
-  def lifetime_percent_sent
-    @mutex.synchronize do
-      return 0.0 if lifetime_attempts == 0
-
-      (lifetime_sends.to_f / lifetime_attempts * 100).round(1)
-    end
-  end
-
-  def needs_throttling?
-    @mutex.synchronize do
-      self.lifetime_attempts += 1
-      now = Time.current
-      if (now - last_sent) > throttle_window_seconds
-        self.sends = 0
-        self.last_sent = now
-        false
-      else
-        sends >= max_sends
-      end
-    end
-  end
-
-  def track_record_send
-    @mutex.synchronize do
-      self.sends += 1
-      self.lifetime_sends += 1
-      self.last_sent = Time.current
-    end
-  end
-
-  def reset
-    @mutex.synchronize do
-      self.sends = 0
-      self.last_sent = Time.current
-      self.lifetime_sends = 0
-      self.lifetime_attempts = 0
+  def notify(data)
+    matched = data.fetch('rack.attack.matched', 'no-match')
+    key = Digest::MD5.hexdigest(matched)
+    @cache.fetch(key, expires_in: 10.seconds) do
+      Sentry.capture_message('Rack attack event', extra: data)
+      true # cached result we don't care about
     end
   end
 end
@@ -258,35 +217,6 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
   # ... get a record on disk
   Rails.logger.warn JSON.generate(data)
 
-  monitor = SlackNotificationRateLimiter.instance
-  next if monitor.needs_throttling?
-
-  Rails.logger.debug { "Slack sending percentage is #{monitor.lifetime_percent_sent}%" }
-
-  # ... and now try to send to somewhere useful
-  if defined?(Slack::Notifier) && ENV['EXCEPTION_WEBHOOK_URL'].present?
-    notifier_config = Rails.application.config_for(:exception_notifier).fetch(:slack, nil)
-    notifier = Slack::Notifier.new(
-      notifier_config[:webhook_url],
-      channel: notifier_config[:channel],
-      username: 'Rack-Attack',
-    )
-
-    fields = data.map do |k, v|
-      { title: k.to_s, value: v.to_s }
-    end
-    attachment = {
-      fallback: JSON.pretty_generate(data),
-      color: :warning,
-      fields: fields,
-    }
-    notifier.ping(
-      text: '*Rack attack event*',
-      attachments: [attachment],
-      http_options: { open_timeout: 1 },
-    )
-  end
-
-  # mark a send even if it's not enabled above to facilitate testing
-  monitor.track_record_send
+  # Send to Sentry with rate limiting
+  SentryNotificationRateLimiter.instance.notify(data)
 end
