@@ -13,7 +13,7 @@ module GrdaWarehouse
     alias_attribute :s3_access_key_id, :username
     alias_attribute :s3_prefix, :path
 
-    # Can't use alias_attribute here due to deprecation warning. Using explicit getter/setter methods
+    # Can't use alias_attribute here due to RemoteCredential's use of attr_encrypted(:password)
     def s3_secret_access_key = password
     def s3_secret_access_key=(value)
       self.password = value
