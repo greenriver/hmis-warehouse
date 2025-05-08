@@ -284,15 +284,16 @@ module Types
     end
 
     def self.geocodes_picklist
-      # NOTE: HMIS currently only supports one state installations
-      state = GrdaWarehouse::Config.relevant_state_codes&.first
-      Rails.cache.fetch(['GEOCODES', state], expires_in: 1.days) do
-        JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{state}.json"))
-      end.map do |obj|
-        {
-          code: obj['geocode'],
-          label: "#{obj['geocode']} - #{obj['name']}",
-        }
+      GrdaWarehouse::Config.relevant_state_codes.flat_map do |state|
+        Rails.cache.fetch(['GEOCODES', state], expires_in: 1.days) do
+          JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{state}.json"))
+        end.map do |obj|
+          {
+            code: obj['geocode'],
+            label: "#{obj['geocode']} - #{obj['name']}",
+            group_label: state,
+          }
+        end
       end
     end
 
