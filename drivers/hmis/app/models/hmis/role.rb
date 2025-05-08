@@ -211,9 +211,10 @@ class Hmis::Role < ::ApplicationRecord
         category: 'Project Access',
         sub_category: 'Referrals',
       },
-      can_view_eligible_client_opportunities: {
+      can_view_client_eligible_opportunities: {
         description: 'Ability to view the Client page showing all Opportunities a client is eligible for. This is a global permission (not per-project).',
         administrative: true,
+        global: true,
         access: [:viewable],
         category: 'Administration',
         sub_category: 'Referrals',

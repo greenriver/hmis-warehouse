@@ -1272,7 +1272,7 @@ CREATE TABLE public.hmis_roles (
     can_view_own_referrals boolean DEFAULT false,
     can_perform_any_referral_tasks boolean DEFAULT false,
     can_perform_own_referral_tasks boolean DEFAULT false,
-    can_view_eligible_client_opportunities boolean DEFAULT false,
+    can_view_client_eligible_opportunities boolean DEFAULT false,
     can_assign_referral_tasks boolean DEFAULT false
 );
 
