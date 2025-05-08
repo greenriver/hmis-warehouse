@@ -4,8 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Hmis
   class MergeClientsJob < BaseJob
+    include NotifierConfig
     attr_accessor :clients
     attr_accessor :client_to_retain
     attr_accessor :clients_needing_reference_updates
@@ -14,6 +17,8 @@ module Hmis
 
     def perform(client_ids:, actor_id:)
       raise 'You cannot merge less than two clients' if Array.wrap(client_ids).length < 2
+
+      setup_notifier('HMIS Client Merge Job')
 
       self.actor = User.find(actor_id)
       self.clients = Hmis::Hud::Client.
@@ -221,8 +226,9 @@ module Hmis
         where.not(value: current_ids_for_retained_client).
         order(:id).reverse.index_by(&:value) # de-duplicate by value, take first id
 
-      mci_ids.where(id: records_by_value.values.map(&:id)).
-        update_all(source_id: client_to_retain.id)
+      mci_ids.where(id: records_by_value.values.map(&:id)).each do |external_id|
+        external_id.update!(source_id: client_to_retain.id)
+      end
     end
 
     # Note: WarehouseChangesJob process kicks off MergeClientsJob for clients that
@@ -298,10 +304,17 @@ module Hmis
 
         t = candidate.arel_table
 
-        candidate.
+        candidate_scope = candidate.
           where(t['PersonalID'].in(personal_ids)).
-          where(t['data_source_id'].eq(data_source_id)).
-          update_all(PersonalID: client_to_retain.personal_id)
+          where(t['data_source_id'].eq(data_source_id))
+
+        # Special logging for Enrollment, so we know which Enrollments came from which client in the case of un-merging. TODO(#7444) store this in the audit trail somewhere.
+        if candidate == Hmis::Hud::Enrollment && candidate_scope.exists?
+          pre_merge_enrollments = candidate_scope.pluck(:id, :PersonalID)
+          debug_msg("Updating #{candidate_scope.size} Enrollments to point to Client #{client_to_retain.id} (PersonalID: #{client_to_retain.personal_id}). Pre-merge enrollments [pk, PersonalID]: #{pre_merge_enrollments.inspect}")
+        end
+
+        candidate_scope.update_all(PersonalID: client_to_retain.personal_id)
       end
     end
 
@@ -314,6 +327,10 @@ module Hmis
         filter { |a| a.options[:dependent] == :destroy }.
         map(&:name)
       scope.preload(*preloads).each(&:destroy!)
+    end
+
+    def debug_msg(str)
+      @notifier.ping(str) # logs to cloudwatch
     end
   end
 end
