@@ -12,6 +12,7 @@ module Hmis::Ce
     include SimpleStateMachine
 
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
+    has_one :project, class_name: 'Hmis::Hud::Project', through: :opportunity
     belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance'
     has_many :notes, class_name: 'Hmis::Ce::ReferralNote'
     has_many :participants, class_name: 'Hmis::Ce::ReferralParticipant'
@@ -20,9 +21,27 @@ module Hmis::Ce
     belongs_to :target_enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
     has_one :target_project, class_name: 'Hmis::Hud::Project', through: :opportunity, source: :project
     has_many :swimlanes, through: :workflow_instance, class_name: 'Hmis::WorkflowDefinition::Swimlane'
+    has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :steps
 
-    # TODO(#7506): permissions
-    scope :viewable_by, ->(_user) { all }
+    scope :viewable_by, ->(user) do
+      # What makes a referral viewable by a user?
+      # - If they have can_view_referrals at the target project, OR
+      # - If they have can_view_own_referrals, AND are assigned a step in the referral.
+
+      # Start with base scope that does all necessary joins, for structural compatibility when we `or` the scopes later
+      base_scope = joins(:project).left_outer_joins(:steps).left_outer_joins(steps: :assignments)
+
+      # Projects in which the user can_view_referrals
+      access_through_project = base_scope.
+        merge(Hmis::Hud::Project.with_access(user, :can_view_referrals))
+
+      # Referrals that have a step assigned to this user, in projects in which the user can_view_own_referrals
+      own_referrals = base_scope.
+        merge(Hmis::Hud::Project.with_access(user, :can_view_own_referrals)).
+        merge(Hmis::WorkflowExecution::Step.assigned_with_existing_join(user))
+
+      access_through_project.or(own_referrals).distinct
+    end
 
     scope :active, -> { where.not(status: ['accepted', 'rejected']) }
     scope :active_or_accepted, -> { where.not(status: 'rejected') }

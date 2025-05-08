@@ -18,6 +18,13 @@ module Hmis::WorkflowExecution
     # TODO(#7506): permissions
     scope :viewable_by, ->(_user) { all }
 
+    scope :assigned_with_existing_join, ->(user) do
+      # special scope that assumes an existing join to the StepAssignment table.
+      # This gets around structural compatibility issues, see Hmis::Ce::Referral.viewable_by
+      where(Hmis::WorkflowExecution::StepAssignment.arel_table[:user_id].eq(user.id)).
+        where.not(status: 'unavailable')
+    end
+
     # note, step status is not intended to be manipulated outside of the workflow engine
     state_machine_config column: 'status' do
       state :unavailable, initial: true
