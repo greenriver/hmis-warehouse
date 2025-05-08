@@ -8,7 +8,7 @@ RSpec.describe GrdaWarehouse::RemoteCredentials::Sftp do
       sftp = described_class.new(
         host: 'sftp.example.com',
         private_key: 'key123',
-        port: '22'
+        port: '22',
       )
       expect(sftp.host).to eq('sftp.example.com')
       expect(sftp.private_key).to eq('key123')

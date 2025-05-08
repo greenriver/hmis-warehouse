@@ -10,7 +10,7 @@ RSpec.describe GrdaWarehouse::RemoteCredentials::Oauth do
         client_secret: 'secret123',
         token_url: 'https://oauth.example.com/token',
         base_url: 'https://api.example.com',
-        oauth_scope: 'read write'
+        oauth_scope: 'read write',
       )
       expect(oauth.client_secret).to eq('secret123')
     end

@@ -8,7 +8,7 @@ RSpec.describe BuiltForZeroReport::Credential do
       credential = described_class.new(
         endpoint: 'https://api.example.com',
         apikey: 'key123',
-        community_id: 'comm123'
+        community_id: 'comm123',
       )
       expect(credential.apikey).to eq('key123')
       expect(credential.community_id).to eq('comm123')

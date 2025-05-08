@@ -15,6 +15,7 @@ module GrdaWarehouse
 
     # Can't use alias_attribute here due to RemoteCredential's use of attr_encrypted(:password)
     def s3_secret_access_key = password
+
     def s3_secret_access_key=(value)
       self.password = value
     end

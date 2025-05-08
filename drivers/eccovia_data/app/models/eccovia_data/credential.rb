@@ -15,6 +15,7 @@ module EccoviaData
 
     # Can't use alias_attribute here due to RemoteCredential's use of attr_encrypted(:password)
     def apikey = password
+
     def apikey=(value)
       self.password = value
     end
