@@ -27,7 +27,7 @@ class ClientAccessControl::ClientsController < ApplicationController
   after_action :log_client, only: [:show]
 
   def index
-    safe_params = params.permit(:q, client: [:first_name, :last_name, :dob, :ssn]).presence
+    safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
     if safe_params
       # handle legacy get requests for search
       query = current_user.client_search_queries.find_or_create_by_params!(safe_params)
@@ -54,7 +54,7 @@ class ClientAccessControl::ClientsController < ApplicationController
   end
 
   protected def perform_strict_search(search_params)
-    criteria = search_params['client']&.slice('first_name', 'last_name', 'dob', 'ssn').presence
+    criteria = search_params['client']&.slice(*GrdaWarehouse::ClientSearchQuery::ALLOWED_CLIENT_PARAMS).presence
     criteria = criteria&.symbolize_keys
 
     @client = client_source.new(criteria || {}) # populates form inputs
