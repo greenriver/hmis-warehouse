@@ -8,7 +8,8 @@
 
 class ClientsController < ApplicationController
   before_action do
-    raise 'This controller is unused; the actual controller is client_access_control/clients_controller. We keep this old controller because we may need it some day.'
+    # We keep this old controller because we may need it some day
+    raise 'This controller is unused; the actual controller is client_access_control/clients_controller'
   end
 
   include AjaxModalRails::Controller
