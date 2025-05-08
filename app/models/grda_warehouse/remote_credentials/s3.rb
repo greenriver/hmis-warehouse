@@ -11,7 +11,6 @@ require 'net/http'
 module GrdaWarehouse
   class RemoteCredentials::S3 < GrdaWarehouse::RemoteCredential
     alias_attribute :s3_access_key_id, :username
-    alias_method :s3_secret_access_key, :password
     alias_attribute :s3_prefix, :path
 
     # Can't use alias_attribute here due to deprecation warning. Using explicit getter/setter methods
