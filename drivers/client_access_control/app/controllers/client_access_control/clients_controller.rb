@@ -49,7 +49,7 @@ class ClientAccessControl::ClientsController < ApplicationController
     elsif can_text_search?
       perform_text_search(search_params)
     else
-      raise "Search permission check should make this impossible"
+      raise 'Search permission check should make this impossible'
     end
   end
 

@@ -17,7 +17,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     doc.css("[data-test-client-id='#{warehouse_client.source_id}']").any?
   end
 
-  def post_and_follow_search(params = {}, follow_redirect: true)
+  def post_search_query(params = {}, follow_redirect: true)
     post client_search_queries_path, params: params
     follow_redirect! if follow_redirect
     [response, Nokogiri::HTML(response.body)]
@@ -35,10 +35,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        response, = post_and_follow_search({ q: 'bob' }, follow_redirect: false)
+        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        get client_search_query_path(id: query.id)
         expect(response).to redirect_to(new_user_session_path)
-        # expect(response.body).to include('Sorry you are not authorized to do that.')
-        # expect(response).to have_http_status(200)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -49,7 +48,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see all clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -61,7 +60,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -80,7 +79,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -100,7 +99,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see window clients in search results' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -131,7 +130,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           user.add_viewable(non_window_visible_data_source)
         end
         it 'user can see one client in expected data source and any window clients' do
-          response, doc = post_and_follow_search({ q: 'bob' })
+          response, doc = post_search_query({ q: 'bob' })
           expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
@@ -155,7 +154,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        response, = post_and_follow_search({ q: 'bob' }, follow_redirect: false)
+        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        get client_search_query_path(id: query.id)
         expect(response).to redirect_to(new_user_session_path)
       end
     end
@@ -167,7 +167,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see all clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -179,7 +179,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can search only window clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -224,7 +224,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -240,7 +240,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see window clients in search results' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -249,7 +249,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           user.add_viewable(non_window_visible_data_source)
         end
         it 'user can see one client in expected data source and any window clients' do
-          response, doc = post_and_follow_search({ q: 'bob' })
+          response, doc = post_search_query({ q: 'bob' })
           expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
@@ -277,10 +277,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        response, = post_and_follow_search({ q: 'bob' }, follow_redirect: false)
+        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        get client_search_query_path(id: query.id)
         expect(response).to redirect_to(new_user_session_path)
-        # expect(response.body).to include('Sorry you are not authorized to do that.')
-        # expect(response).to have_http_status(200)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -291,7 +290,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see all clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -303,7 +302,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -322,7 +321,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -338,7 +337,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see window clients in search results' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -347,7 +346,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           user.add_viewable(non_window_visible_data_source)
         end
         it 'user can see one client in expected data source and any window clients' do
-          response, doc = post_and_follow_search({ q: 'bob' })
+          response, doc = post_search_query({ q: 'bob' })
           expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
@@ -365,10 +364,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        response, = post_and_follow_search({ q: 'bob' }, follow_redirect: false)
+        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        get client_search_query_path(id: query.id)
         expect(response).to redirect_to(new_user_session_path)
-        # expect(response.body).to include('Sorry you are not authorized to do that.')
-        # expect(response).to have_http_status(200)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -379,7 +377,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see all clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -391,7 +389,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -410,7 +408,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -426,7 +424,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see window clients in search results' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -435,7 +433,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           user.add_viewable(non_window_visible_data_source)
         end
         it 'user can see one client in expected data source and any window clients' do
-          response, doc = post_and_follow_search({ q: 'bob' })
+          response, doc = post_search_query({ q: 'bob' })
           expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
@@ -455,10 +453,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        response, = post_and_follow_search({ q: 'bob' }, follow_redirect: false)
+        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        get client_search_query_path(id: query.id)
         expect(response).to redirect_to(new_user_session_path)
-        # expect(response.body).to include('Sorry you are not authorized to do that.')
-        # expect(response).to have_http_status(200)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -469,7 +466,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see all clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -481,7 +478,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -511,7 +508,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -527,7 +524,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see window clients in search results' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -536,7 +533,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           user.add_viewable(non_window_visible_data_source)
         end
         it 'user can see one client in expected data source and any window clients' do
-          response, doc = post_and_follow_search({ q: 'bob' })
+          response, doc = post_search_query({ q: 'bob' })
           expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
@@ -561,7 +558,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can search for all clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
@@ -671,10 +668,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        response, = post_and_follow_search({ q: 'bob' }, follow_redirect: false)
+        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        get client_search_query_path(id: query.id)
         expect(response).to redirect_to(new_user_session_path)
-        # expect(response.body).to include('Sorry you are not authorized to do that.')
-        # expect(response).to have_http_status(200)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -684,7 +680,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can not search for clients' do
-        response, = post_and_follow_search({ q: 'bob' })
+        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        get client_search_query_path(id: query.id)
         expect(response).to redirect_to(user.my_root_path)
       end
       it 'user can see any clients' do
@@ -700,7 +697,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can not search for clients' do
-        response, = post_and_follow_search({ q: 'bob' })
+        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        get client_search_query_path(id: query.id)
         expect(response).to redirect_to(user.my_root_path)
       end
       it 'user cannot see client dashboard for window client' do
@@ -729,7 +727,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see only window clients' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -745,7 +743,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can see window clients in search results' do
-        response, doc = post_and_follow_search({ q: 'bob' })
+        response, doc = post_search_query({ q: 'bob' })
         expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
@@ -754,7 +752,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           user.add_viewable(non_window_visible_data_source)
         end
         it 'user can see one client in expected data source and any window clients' do
-          response, doc = post_and_follow_search({ q: 'bob' })
+          response, doc = post_search_query({ q: 'bob' })
           expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
@@ -777,7 +775,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can not search for all clients' do
-        response, = post_and_follow_search({ q: 'bob' })
+        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        get client_search_query_path(id: query.id)
         expect(response).to redirect_to(user.my_root_path)
       end
       it 'user can not see directory information for window client (search is required)' do

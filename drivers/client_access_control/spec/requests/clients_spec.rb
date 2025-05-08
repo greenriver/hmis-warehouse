@@ -19,7 +19,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
   end
 
   # Helper for new search flow
-  def post_and_follow_search(params = {}, follow_redirect: true)
+  def post_search_query(params = {}, follow_redirect: true)
     post client_search_queries_path, params: params
     follow_redirect! if follow_redirect
     [response, Nokogiri::HTML(response.body)]

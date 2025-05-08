@@ -7,10 +7,7 @@
 # frozen_string_literal: true
 
 class ClientsController < ApplicationController
-  before_action do
-    # We keep this old controller because we may need it some day
-    raise 'This controller is unused; the actual controller is client_access_control/clients_controller'
-  end
+  before_action :handle_unused_search, only: [:index]
 
   include AjaxModalRails::Controller
   include ClientController
@@ -305,4 +302,9 @@ class ClientsController < ApplicationController
     datepart table, part, date
   end
   helper_method :dp
+
+  protected def handle_unused_search
+    # We keep this old action because we may need it some day
+    raise 'This action is unused; the search is actually in client_access_control/clients_controller'
+  end
 end
