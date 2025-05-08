@@ -420,7 +420,10 @@ module Types
     def eligible_ce_opportunities(filters: nil)
       raise unless Hmis::Ce.configuration.enabled?
 
-      scope = Hmis::Ce::Opportunity.viewable_by(current_user).for_client(object)
+      # todo @martha - this will cause merge conflicts, and likely need something like dangerous_skip_permission_check
+      access_denied! unless current_user.can_view_client_eligible_opportunities?
+
+      scope = Hmis::Ce::Opportunity.for_client(object)
       scope = scope.where(project_id: filters.project) if filters&.project.present?
 
       scope = scope.joins(:project).where(p_t[:project_type].in(filters&.project_type)) if filters&.project_type.present?
