@@ -11,11 +11,19 @@ require 'net/http'
 module GrdaWarehouse
   class RemoteCredentials::S3 < GrdaWarehouse::RemoteCredential
     alias_attribute :s3_access_key_id, :username
-    alias_method :s3_secret_access_key, :password
     alias_attribute :s3_prefix, :path
 
     validates :region, presence: true
     validates :bucket, presence: true
+
+    # Alias attribute does not work for password, so we need to define a getter and setter
+    def s3_secret_access_key
+      password
+    end
+
+    def s3_secret_access_key=(value)
+      self.password = value
+    end
 
     def s3
       @s3 ||= if s3_secret_access_key.present? && s3_secret_access_key != 'unknown'
