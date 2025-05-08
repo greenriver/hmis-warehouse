@@ -32,7 +32,9 @@ module Types
       arg :project_type, [HmisSchema::Enums::ProjectType]
     end
 
-    def candidates
+    def candidates # not for batch
+      return Hmis::Ce::Match::Candidate.none unless current_permission?(permission: :can_view_prioritized_client_lists, entity: object.project)
+
       Hmis::Ce::Match::Candidate.
         for_opportunity(object).
         order(priority_score: :desc, client_id: :desc)

@@ -17,7 +17,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:candidate_pool) { create :hmis_ce_match_candidate_pool }
   let(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool }
 
-  let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project, :can_view_units]) }
+  let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project, :can_view_units, :can_view_prioritized_client_lists]) }
 
   describe 'ce_opportunity query' do
     let(:query) do
@@ -208,6 +208,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'status' => 'in_progress',
           )
         end
+
+        it 'returns no candidates when user lacks permission to see prioritized client lists' do
+          remove_permissions(access_control, :can_view_prioritized_client_lists)
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodes')).to be_empty
+        end
       end
     end
 
@@ -262,7 +269,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodesCount')).to eq(200)
-        end.to make_database_queries(count: 25..30)
+        end.to make_database_queries(count: 30..35)
       end
     end
 
