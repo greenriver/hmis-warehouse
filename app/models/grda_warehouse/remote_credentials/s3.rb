@@ -14,6 +14,12 @@ module GrdaWarehouse
     alias_method :s3_secret_access_key, :password
     alias_attribute :s3_prefix, :path
 
+    # Can't use alias_attribute here due to deprecation warning. Using explicit getter/setter methods
+    def s3_secret_access_key = password
+    def s3_secret_access_key=(value)
+      self.password = value
+    end
+
     validates :region, presence: true
     validates :bucket, presence: true
 
