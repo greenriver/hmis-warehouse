@@ -26,7 +26,7 @@ module Types
     field :categories, [String], null: false
     field :active, Boolean, null: false, method: :active?
     field :candidates_generated_at, GraphQL::Types::ISO8601DateTime, null: true
-    field :date_available, GraphQL::Types::ISO8601Date, null: true
+    field :date_available, GraphQL::Types::ISO8601Date, null: false
     field :unit, HmisSchema::Unit, null: true
 
     available_filter_options do
