@@ -8,30 +8,18 @@
 
 require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
+require 'nokogiri'
+require_relative '../support/client_search_context'
 
 RSpec.describe ClientAccessControl::ClientsController, type: :request do
   include_context 'visibility test context'
+  include_context 'client search helpers'
+
   let!(:config) { create :config_b }
   let!(:user) { create :acl_user }
 
   before do
     Collection.maintain_system_groups
-  end
-
-  def decrypted_redirect_id(response)
-    uri = URI(response.location)
-    match = /\A\/client_searches\/([^\/]+)\z/.match(uri.path)
-    raise "Unexpected redirect path: #{uri.path}" unless match
-
-    encrypted_id = match[1]
-    GrdaWarehouse::ClientSearchQueryIdProtector.instance.decrypt(encrypted_id)
-  end
-
-  # Helper for new search flow
-  def post_search_query(params = {}, follow_redirect: true)
-    post client_search_queries_path, params: params
-    follow_redirect! if follow_redirect
-    [response, Nokogiri::HTML(response.body)]
   end
 
   describe 'logged out' do
@@ -104,8 +92,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
   describe 'logged in, no permissions' do
     # FIXME: find_client in the controller 404s when there are no data sources visible in the window
-
-    let(:user) { create :acl_user }
 
     it 'doesn\'t allow index' do
       sign_in user

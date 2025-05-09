@@ -10,6 +10,7 @@ require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
 require 'nokogiri'
 require 'vcr'
+require_relative '../support/client_search_context'
 
 VCR.configure do |c|
   c.cassette_library_dir = 'spec/vcr'
@@ -19,6 +20,7 @@ end
 
 RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true do
   include_context 'visibility test context'
+  include_context 'client search helpers'
 
   configs_variations = []
   GrdaWarehouse::Config.available_cas_methods.values.product( # cas available method

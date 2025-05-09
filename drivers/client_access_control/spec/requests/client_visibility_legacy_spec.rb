@@ -9,18 +9,14 @@
 require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
 require 'nokogiri'
+require_relative '../support/client_search_context'
 
 RSpec.describe ClientAccessControl::ClientsController, type: :request do
   include_context 'visibility test context'
+  include_context 'client search helpers'
 
   def doc_has_client?(doc, warehouse_client)
     doc.css("[data-test-client-id='#{warehouse_client.source_id}']").any?
-  end
-
-  def post_search_query(params = {}, follow_redirect: true)
-    post client_search_queries_path, params: params
-    follow_redirect! if follow_redirect
-    [response, Nokogiri::HTML(response.body)]
   end
 
   context 'when config b is in effect' do

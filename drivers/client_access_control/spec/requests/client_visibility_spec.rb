@@ -9,9 +9,11 @@
 require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
 require 'nokogiri'
+require_relative '../support/client_search_context'
 
 RSpec.describe ClientAccessControl::ClientsController, type: :request do
   include_context 'visibility test context'
+  include_context 'client search helpers'
 
   context 'when config b is in effect' do
     before do
@@ -875,13 +877,5 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         end
       end
     end
-  end
-
-  # Helper for new search flow
-  # Usage: response, doc = post_search_query(q: 'bob')
-  def post_search_query(params = {}, follow_redirect: true)
-    post client_search_queries_path, params: params
-    follow_redirect! if follow_redirect
-    [response, Nokogiri::HTML(response.body)]
   end
 end
