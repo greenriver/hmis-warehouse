@@ -173,11 +173,10 @@ module Types
           { code: template.id, label: template.name }
         end
       when 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED'
-        # Unique CE workflow template identifiers, retired workflows with no currently published version.
+        # Unique CE workflow template identifiers, including retired workflows with no currently published version.
         # Used for filtering on existing/historical referrals.
         base_scope = Hmis::WorkflowDefinition::Template.where(template_type: :ce_referral)
-        base_scope.published.or(base_scope.retired).
-          group_by(&:identifier).map do |identifier, templates|
+        base_scope.published.or(base_scope.retired).group_by(&:identifier).map do |identifier, templates|
           description = templates.find { |t| t.status.to_sym == :published }&.name || templates.max_by(&:version).name
           { code: identifier, label: description }
         end
