@@ -48,34 +48,34 @@ RSpec.describe GrdaWarehouse::ClientSearchQuery, type: :model do
 
   describe 'validations' do
     it 'is valid with valid params' do
-      query = described_class.new(user: user, params: valid_params)
+      query = described_class.new(params: valid_params, created_by: user)
       expect(query).to be_valid
     end
 
     it 'is invalid with invalid top-level parameters' do
       params = valid_params.merge('invalid_param' => 'value')
-      query = described_class.new(user: user, params: params)
+      query = described_class.new(params: params)
       expect(query).not_to be_valid
       expect(query.errors[:params]).to include(/contains invalid parameters/)
     end
 
     it 'is invalid with invalid client parameters' do
       params = valid_params.deep_merge('client' => { 'invalid_field' => 'value' })
-      query = described_class.new(user: user, params: params)
+      query = described_class.new(params: params)
       expect(query).not_to be_valid
       expect(query.errors[:params]).to include(/contains invalid client parameters/)
     end
 
     it 'is invalid with string exceeding max length' do
       params = valid_params.deep_merge('q' => 'a' * 101)
-      query = described_class.new(user: user, params: params)
+      query = described_class.new(params: params)
       expect(query).not_to be_valid
       expect(query.errors[:params]).to include(/is too long/)
     end
 
     it 'is invalid with client string exceeding max length' do
       params = valid_params.deep_merge('client' => { 'first_name' => 'a' * 101 })
-      query = described_class.new(user: user, params: params)
+      query = described_class.new(params: params)
       expect(query).not_to be_valid
       expect(query.errors[:params]).to include(/first_name is too long/)
     end
@@ -121,30 +121,22 @@ RSpec.describe GrdaWarehouse::ClientSearchQuery, type: :model do
   describe '.find_or_create_by_params!' do
     it 'creates a new query with valid params' do
       expect do
-        described_class.for_user(user).find_or_create_by_params!(valid_params)
+        described_class.find_or_create_by_params!(valid_params, user: user)
       end.to change(described_class, :count).by(1)
     end
 
     it 'reuses existing query with same params' do
-      described_class.for_user(user).find_or_create_by_params!(valid_params)
+      described_class.find_or_create_by_params!(valid_params, user: user)
       expect do
-        described_class.for_user(user).find_or_create_by_params!(valid_params)
+        described_class.find_or_create_by_params!(valid_params, user: user)
       end.not_to change(described_class, :count)
     end
 
     it 'creates new query with different params' do
-      described_class.for_user(user).find_or_create_by_params!(valid_params)
+      described_class.find_or_create_by_params!(valid_params, user: user)
       new_params = valid_params.deep_merge('q' => 'different search')
       expect do
-        described_class.for_user(user).find_or_create_by_params!(new_params)
-      end.to change(described_class, :count).by(1)
-    end
-
-    it 'creates separate queries for different users' do
-      other_user = create(:user)
-      described_class.for_user(user).find_or_create_by_params!(valid_params)
-      expect do
-        described_class.for_user(other_user).find_or_create_by_params!(valid_params)
+        described_class.find_or_create_by_params!(new_params, user: user)
       end.to change(described_class, :count).by(1)
     end
   end

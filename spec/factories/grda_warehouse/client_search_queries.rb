@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :grda_warehouse_client_search_query, class: 'GrdaWarehouse::ClientSearchQuery' do
-    association :user
+    association :created_by, factory: :user
     params { { q: 'test search' } }
     fingerprint { GrdaWarehouse::ClientSearchQuery.generate_fingerprint(params) }
     created_at { Time.current }

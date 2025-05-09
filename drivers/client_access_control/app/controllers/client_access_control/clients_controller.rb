@@ -30,7 +30,7 @@ class ClientAccessControl::ClientsController < ApplicationController
     safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
     if safe_params
       # handle legacy get requests for search
-      query = current_user.client_search_queries.find_or_create_by_params!(safe_params)
+      query = GrdaWarehouse::ClientSearchQuery.find_or_create_by_params!(safe_params)
       redirect_to client_search_query_path(id: query.id), status: :moved_permanently
     else
       # render empty search
@@ -39,7 +39,7 @@ class ClientAccessControl::ClientsController < ApplicationController
   end
 
   def search
-    search_query = current_user.client_search_queries.find(params[:id])
+    search_query = GrdaWarehouse::ClientSearchQuery.find(params[:id])
     search_query.touch
     perform_search(search_query.params)
   end

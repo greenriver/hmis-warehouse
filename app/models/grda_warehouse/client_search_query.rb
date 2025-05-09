@@ -2,7 +2,7 @@
 
 module GrdaWarehouse
   class ClientSearchQuery < GrdaWarehouseBase
-    belongs_to :user
+    belongs_to :created_by, class_name: 'User'
 
     MAX_STRING_LENGTH = 100
     ALLOWED_PARAMS = ['q', 'client'].freeze
@@ -10,18 +10,23 @@ module GrdaWarehouse
 
     validate :validate_params
 
-    scope :for_user, ->(user) { where(user: user) }
-
     # @param params [ActionController::Parameters] request params
     # @return [ActionController::Parameters, nil] Permitted parameters or nil if no valid params present
     def self.permit_params(params)
       params.permit(*ALLOWED_PARAMS, client: ALLOWED_CLIENT_PARAMS).presence
     end
 
-    def self.find_or_create_by_params!(params)
+    def self.find_or_create_by_params!(params, user: )
       norm = normalize_params(params.to_h)
       fingerprint = generate_fingerprint(norm)
-      where(fingerprint: fingerprint).first_or_create!(params: norm)
+
+      upsert(
+        { fingerprint: fingerprint, params: norm, created_by_id: user.id },
+        unique_by: :fingerprint,
+        on_duplicate: Arel.sql('params = EXCLUDED.params, created_by_id = EXCLUDED.created_by_id')
+      )
+
+      find_by!(fingerprint: fingerprint)
     end
 
     def self.generate_fingerprint(params)

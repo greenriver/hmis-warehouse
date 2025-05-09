@@ -32,7 +32,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
 
     it 'doesn\'t allow search results' do
-      query = create(:grda_warehouse_client_search_query, user: user)
+      query = create(:grda_warehouse_client_search_query)
       get client_search_query_path(id: query.id)
       expect(response).to redirect_to(new_user_session_path)
     end
@@ -346,12 +346,12 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'handles search request' do
       sign_in user
       post client_search_queries_path, params: { q: 'test' }
-      expect(response).to redirect_to(client_search_query_path(id: user.client_search_queries.sole.id))
+      expect(response).to redirect_to(client_search_query_path(id: GrdaWarehouse::ClientSearchQuery.last.id))
     end
 
     it 'allows viewing search results' do
       sign_in user
-      query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'test' })
+      query = create(:grda_warehouse_client_search_query, params: { q: 'test' })
       get client_search_query_path(id: query.id)
       expect(response).to have_http_status(200)
     end
@@ -443,12 +443,12 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'handles search request' do
       sign_in user
       post client_search_queries_path, params: { q: 'test' }
-      expect(response).to redirect_to(client_search_query_path(id: user.client_search_queries.sole.id))
+      expect(response).to redirect_to(client_search_query_path(id: GrdaWarehouse::ClientSearchQuery.last.id))
     end
 
     it 'allows viewing search results' do
       sign_in user
-      query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'test' })
+      query = create(:grda_warehouse_client_search_query, params: { q: 'test' })
       get client_search_query_path(id: query.id)
       expect(response).to have_http_status(200)
     end
@@ -537,12 +537,12 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'handles search request' do
       sign_in user
       post client_search_queries_path, params: { q: 'test' }
-      expect(response).to redirect_to(client_search_query_path(id: user.client_search_queries.sole.id))
+      expect(response).to redirect_to(client_search_query_path(id: GrdaWarehouse::ClientSearchQuery.last.id))
     end
 
     it 'allows viewing search results' do
       sign_in user
-      query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'test' })
+      query = create(:grda_warehouse_client_search_query, params: { q: 'test' })
       get client_search_query_path(id: query.id)
       expect(response).to have_http_status(200)
     end
