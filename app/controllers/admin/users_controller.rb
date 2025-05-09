@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Admin
   class UsersController < ApplicationController
     include ViewableEntities # TODO: START_ACL remove when ACL transition complete
@@ -90,51 +92,51 @@ module Admin
       end
 
       existing_health_roles = @user.health_roles.to_a
-      begin
-        User.transaction do
-          @user.skip_reconfirmation!
-          # Associations don't play well with acts_as_paranoid, so manually clean up user ACLs
-          @user.user_group_members.where.not(user_group_id: assigned_user_group_ids).destroy_all unless changing_to_acls?
 
-          # TODO: START_ACL remove when ACL transition complete
-          # Associations don't play well with acts_as_paranoid, so manually clean up user roles
-          if ! user_using_or_changing_to_acls?
-            @user.user_roles.where.not(role_id: user_params[:legacy_role_ids]&.select(&:present?)).destroy_all
-            @user.access_groups.not_system.
-              where.not(id: user_params[:access_group_ids]&.select(&:present?)).each do |g|
-                # Don't remove or add system groups
-                next if g.system?
+      User.transaction do
+        @user.skip_reconfirmation!
+        # Associations don't play well with acts_as_paranoid, so manually clean up user ACLs
+        @user.user_group_members.where.not(user_group_id: assigned_user_group_ids).destroy_all unless changing_to_acls?
 
-                g.remove(@user)
-              end
-          end
-          # END_ACL
-          @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
+        # TODO: START_ACL remove when ACL transition complete
+        # Associations don't play well with acts_as_paranoid, so manually clean up user roles
+        if ! user_using_or_changing_to_acls?
+          @user.user_roles.where.not(role_id: user_params[:legacy_role_ids]&.select(&:present?)).destroy_all
+          @user.access_groups.not_system.
+            where.not(id: user_params[:access_group_ids]&.select(&:present?)).each do |g|
+              # Don't remove or add system groups
+              next if g.system?
 
-          # The User Group data is not captured for update when using the Role-Based view. This means it will not be included
-          # in the params when switching from Role-Based permissions to ACLs. In order to prevent wiping out any existing
-          # user_group_id data, we need to ignore this param when changing to an ACL based permissions.
-          # The reverse is true for the access_group_ids field.
-          params_to_update = user_params
-          params_to_update = params_to_update.except(:user_group_ids) if changing_to_acls?
-          params_to_update = params_to_update.except(:access_group_ids) if changing_to_role_based?
-          @user.update!(params_to_update)
-
-          # if we have a user to copy user groups from, add them
-          copy_user_groups if user_using_or_changing_to_acls?
-          # TODO: START_ACL remove when ACL transition complete
-          # Restore any health roles we previously had
-          if ! user_using_or_changing_to_acls?
-            @user.legacy_roles = (@user.legacy_roles + existing_health_roles).uniq
-            @user.set_viewables viewable_params
-          end
-          # END_ACL
+              g.remove(@user)
+            end
         end
-      rescue Exception
-        flash[:error] = 'Please review the form problems below'
-        render :edit
-        return
+        # END_ACL
+        @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
+
+        # The User Group data is not captured for update when using the Role-Based view. This means it will not be included
+        # in the params when switching from Role-Based permissions to ACLs. In order to prevent wiping out any existing
+        # user_group_id data, we need to ignore this param when changing to an ACL based permissions.
+        # The reverse is true for the access_group_ids field.
+        params_to_update = user_params
+        params_to_update = params_to_update.except(:user_group_ids) if changing_to_acls?
+        params_to_update = params_to_update.except(:access_group_ids) if changing_to_role_based?
+        @user.update!(params_to_update)
+
+        # if we have a user to copy user groups from, add them
+        copy_user_groups if user_using_or_changing_to_acls?
+        # TODO: START_ACL remove when ACL transition complete
+        # Restore any health roles we previously had
+        if ! user_using_or_changing_to_acls?
+          @user.legacy_roles = (@user.legacy_roles + existing_health_roles).uniq
+          @user.set_viewables viewable_params
+        end
+        # END_ACL
       end
+      # rescue Exception
+      #   flash[:error] = 'Please review the form problems below'
+      #   render :edit
+      #   return
+
       # Queue recomputation of external report access
       @user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
       respond_with(@user, location: edit_admin_user_path(@user)) unless @redirecting
@@ -162,9 +164,9 @@ module Admin
     def title_for_show
       @user.name
     end
-    alias title_for_edit title_for_show
-    alias title_for_destroy title_for_show
-    alias title_for_update title_for_show
+    alias_method :title_for_edit, :title_for_show
+    alias_method :title_for_destroy, :title_for_show
+    alias_method :title_for_update, :title_for_show
 
     def title_for_index
       'User List'
