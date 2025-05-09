@@ -24,6 +24,8 @@ class PurgeSoftDeletedRecordsJob < BaseJob
   def perform(retain_at: 1.year.ago, max_deleted: 10_000_000, models: warehouse_models, dry_run: true)
     raise 'all models must be paranoid' unless models.all?(&:paranoid?)
 
+    Rails.logger.info "Purging soft-deleted records (#{dry_run ? 'dry run' : 'live run'})"
+
     with_lock do
       @total_deleted = 0
       @max_deleted = max_deleted
@@ -39,6 +41,8 @@ class PurgeSoftDeletedRecordsJob < BaseJob
         end
       end
     end
+
+    Rails.logger.info "Total records deleted: #{@total_deleted}" unless @dry_run
     @total_deleted
   end
 
@@ -121,6 +125,9 @@ class PurgeSoftDeletedRecordsJob < BaseJob
 
   def check_max_deleted(size)
     @total_deleted += size
-    throw :halt if @total_deleted >= @max_deleted
+    return unless @total_deleted >= @max_deleted
+
+    Rails.logger.info "Reached maximum deletion limit of #{@max_deleted} records, halting job."
+    throw :halt
   end
 end

@@ -88,6 +88,10 @@ module HudUtility2024
     no_yes_reasons_for_missing_data(*args)
   end
 
+  def rrh_sub_type_sso_only
+    1
+  end
+
   def project_type_with_sub_type(type, sub_type = nil)
     [
       project_type(type),
