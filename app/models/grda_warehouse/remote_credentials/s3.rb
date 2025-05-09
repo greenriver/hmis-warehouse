@@ -23,15 +23,6 @@ module GrdaWarehouse
     validates :region, presence: true
     validates :bucket, presence: true
 
-    # Alias attribute does not work for password, so we need to define a getter and setter
-    def s3_secret_access_key
-      password
-    end
-
-    def s3_secret_access_key=(value)
-      self.password = value
-    end
-
     def s3
       @s3 ||= if s3_secret_access_key.present? && s3_secret_access_key != 'unknown'
         AwsS3.new(
