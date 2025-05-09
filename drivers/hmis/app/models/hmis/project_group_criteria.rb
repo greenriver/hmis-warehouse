@@ -7,27 +7,14 @@
 # frozen_string_literal: true
 
 module Hmis
-  class ProjectGroupCriteria < OpenStruct
-    # include ActiveModel::Model
-    # include ActiveModel::Attributes
-    # include ActiveModel::Validations
+  class ProjectGroupCriteria
+    include ActiveModel::Model
+    include ActiveModel::Validations
 
-    # Define attributes with their types
-    # attribute :coc_codes, Array
-    # attribute :data_source_ids, Array
-    # attribute :organization_ids, Array
-    # attribute :project_ids, Array
-    # attribute :funder_ids, Array
-    # attribute :project_type_numbers, Array
-    # attribute :project_group_ids, Array
-    # attribute :hmis_participation_status, Array
-    # attribute :ce_participation_access_point, :boolean
-    # attribute :project_status, :string
-
-    # Validations
-    # validates :hmis_participation_status, inclusion: { in: [0, 1, 2], allow_nil: true, message: 'must be 0, 1, or 2' }
-    # validates :project_status, inclusion: { in: ['open', 'closed', 'all'], allow_nil: true, message: "must be 'open', 'closed', or 'all'" }
-    # validate :validate_array_of_integers
+    # Define attributes
+    attr_accessor :coc_codes, :data_source_ids, :organization_ids, :project_ids,
+                  :funder_ids, :project_type_numbers, :project_group_ids,
+                  :hmis_participation_status, :ce_participation_access_point, :project_status
 
     # Allowed attributes for validation
     ALLOWED_ATTRIBUTES = [
@@ -43,44 +30,106 @@ module Hmis
       :project_status,
     ].freeze
 
-    # Initialize with a JSON blob
-    def initialize(json_blob = '{}')
-      parsed_data = JSON.parse(json_blob, symbolize_names: true)
-      validate_keys!(parsed_data)
-      super(parsed_data)
+    FILTER_ATTRIBUTES = [
+      # coc_codes
+      :data_source_ids,
+      :organization_ids,
+      :project_ids,
+      :funder_ids,
+      :project_type_numbers,
+      # project_group_ids
+      # hmis_participation_status
+      # ce_participation_access_point
+      # project_status
+    ].freeze
+
+    # Validations
+    validates :hmis_participation_status, inclusion: { in: [0, 1, 2], allow_nil: true, message: 'must be 0, 1, or 2' }
+    validates :project_status, inclusion: { in: ['open', 'closed', 'all'], allow_nil: true, message: "must be 'open', 'closed', or 'all'" }
+    validate :validate_array_attributes
+
+    # Initialize with a hash or JSON blob
+    def initialize(input = {})
+      attributes = parse_input(input)
+      attributes.each do |key, value|
+        send("#{key}=", value) if ALLOWED_ATTRIBUTES.include?(key)
+      end
+
+      # Ensure all attributes are initialized
+      ALLOWED_ATTRIBUTES.each do |attr|
+        send("#{attr}=", send(attr) || default_value_for(attr))
+      end
     end
 
-    # Optional: Add custom methods for specific fields if needed
-    def open_projects_only?
-      project_status == 'open'
+    # Convert the object to a hash
+    def to_h
+      ALLOWED_ATTRIBUTES.index_with { |attr| send(attr) }
     end
 
-    def closed_projects_only?
-      project_status == 'closed'
+    # Convert the object to JSON
+    def to_json(*_args)
+      to_h.to_json
+    end
+
+    # Mark the object as non-persisted (required by Rails forms)
+    def persisted?
+      false
+    end
+
+    # Provide a unique key for the form (optional, but useful for nested forms)
+    def to_key
+      nil
+    end
+
+    # Filter class is used for populating pick-lists in the form
+    def filter
+      @filter ||= begin
+        options = to_h.slice(*FILTER_ATTRIBUTES)
+        ::Filters::FilterBase.new(user_id: User.setup_system_user.id).set_from_params(options)
+      end
     end
 
     private
 
-    # Ensure only allowed keys are present in the JSON blob
-    def validate_keys!(attributes)
-      # invalid_keys = attributes.keys - ALLOWED_ATTRIBUTES
-      # raise ArgumentError, "Invalid attributes: #{invalid_keys.join(', ')}" if invalid_keys.any?
+    # Parse input as either JSON or a hash
+    def parse_input(input)
+      case input
+      when String
+        JSON.parse(input, symbolize_names: true)
+      when Hash
+        input.deep_symbolize_keys
+      else
+        raise ArgumentError, 'Input must be a JSON string or a Hash'
+      end
     end
 
-    # Validate that specific attributes are arrays of integers
-    def validate_array_of_integers
+    # Default values for attributes
+    def default_value_for(attr)
+      case attr
+      when :coc_codes, :data_source_ids, :organization_ids, :project_ids,
+           :funder_ids, :project_type_numbers, :project_group_ids, :hmis_participation_status
+        []
+      when :ce_participation_access_point
+        false
+      when :project_status
+        'all'
+      end
+    end
+
+    # Validate that specific attributes are arrays
+    def validate_array_attributes
       [
+        :coc_codes,
         :data_source_ids,
         :organization_ids,
         :project_ids,
         :funder_ids,
         :project_type_numbers,
         :project_group_ids,
+        :hmis_participation_status,
       ].each do |attr|
         value = send(attr)
-        next unless value.present?
-
-        errors.add(attr, 'must be an array of integers') unless value.is_a?(Array) && value.all? { |v| v.is_a?(Integer) }
+        errors.add(attr, 'must be an array') unless value.is_a?(Array)
       end
     end
   end

@@ -58,7 +58,7 @@ module Hmis
     end
 
     def parsed_inclusion_criteria
-      @parsed_inclusion_criteria ||= Hmis::ProjectGroupCriteria.new(inclusion_criteria.to_json)
+      @parsed_inclusion_criteria ||= Hmis::ProjectGroupCriteria.new(inclusion_criteria)
     end
 
     def parsed_exclusion_criteria= criteria
@@ -66,7 +66,7 @@ module Hmis
     end
 
     def parsed_exclusion_criteria
-      @parsed_exclusion_criteria ||= Hmis::ProjectGroupCriteria.new(exclusion_criteria.to_json)
+      @parsed_exclusion_criteria ||= Hmis::ProjectGroupCriteria.new(exclusion_criteria)
     end
 
     def self.maintain_project_lists!

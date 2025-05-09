@@ -11,7 +11,7 @@ module HmisAdmin
     include EnforceHmisEnabled
 
     before_action :require_hmis_admin_access! # for now, only HMIS admins can view/edit these
-    before_action :set_project_group, only: [:edit, :update, :destroy]
+    before_action :set_project_group, only: [:edit, :destroy]
 
     def index
       @project_groups = Hmis::ProjectGroup.all
