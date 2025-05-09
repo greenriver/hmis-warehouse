@@ -18,6 +18,15 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     Collection.maintain_system_groups
   end
 
+  def decrypted_redirect_id(response)
+    uri = URI(response.location)
+    match = /\A\/client_searches\/([^\/]+)\z/.match(uri.path)
+    raise "Unexpected redirect path: #{uri.path}" unless match
+
+    encrypted_id = match[1]
+    GrdaWarehouse::ClientSearchQueryIdProtector.instance.decrypt(encrypted_id)
+  end
+
   # Helper for new search flow
   def post_search_query(params = {}, follow_redirect: true)
     post client_search_queries_path, params: params
@@ -33,7 +42,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     it 'doesn\'t allow search results' do
       query = create(:grda_warehouse_client_search_query)
-      get client_search_query_path(id: query.id)
+      get client_search_query_path(id: query.encrypted_id)
       expect(response).to redirect_to(new_user_session_path)
     end
 
@@ -107,7 +116,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'doesn\'t allow search results' do
       sign_in user
       query = create(:grda_warehouse_client_search_query, created_by: user)
-      get client_search_query_path(id: query.id)
+      get client_search_query_path(id: query.encrypted_id)
       expect(response).to redirect_to(user.my_root_path)
     end
 
@@ -192,20 +201,23 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'handles legacy GET search request' do
       sign_in user
       get clients_path, params: { q: 'test' }
-      expect(response).to redirect_to(client_search_query_path(id: user.client_search_queries.sole.id))
+      decrypted_id = decrypted_redirect_id(response)
+      expect(decrypted_id).to(eq(GrdaWarehouse::ClientSearchQuery.sole.fingerprint))
     end
 
     it 'handles POST search request' do
       sign_in user
       post client_search_queries_path, params: { q: 'test' }
-      expect(response).to redirect_to(client_search_query_path(id: user.client_search_queries.sole.id))
+      decrypted_id = decrypted_redirect_id(response)
+      expect(decrypted_id).to(eq(GrdaWarehouse::ClientSearchQuery.sole.fingerprint))
     end
 
     it 'reuses existing search query for same params' do
       sign_in user
       query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'test' })
       post client_search_queries_path, params: { q: 'test' }
-      expect(response).to redirect_to(client_search_query_path(id: query.id))
+      decrypted_id = decrypted_redirect_id(response)
+      expect(decrypted_id).to(eq(query.fingerprint))
     end
 
     it 'allows viewing search results' do
@@ -213,7 +225,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'test' })
       original_updated_at = query.updated_at
       travel 1.hour do
-        get client_search_query_path(id: query.id)
+        get client_search_query_path(id: query.encrypted_id)
         expect(response).to have_http_status(200)
         expect(query.reload.updated_at).to be > original_updated_at
       end
@@ -313,20 +325,17 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           ssn: '123456789',
         },
       }
-      expect(response).to redirect_to(client_search_query_path(id: user.client_search_queries.sole.id))
+      decrypted_id = decrypted_redirect_id(response)
+      expect(decrypted_id).to(eq(GrdaWarehouse::ClientSearchQuery.sole.fingerprint))
     end
 
     it 'renders strict search template' do
       sign_in user
-      query = create(:grda_warehouse_client_search_query,
-                     user: user,
-                     params: {
-                       client: {
-                         first_name: 'John',
-                         last_name: 'Doe',
-                       },
-                     })
-      get client_search_query_path(id: query.id)
+      query = create(
+        :grda_warehouse_client_search_query,
+        params: { client: { first_name: 'John', last_name: 'Doe' } },
+      )
+      get client_search_query_path(id: query.encrypted_id)
       expect(response).to render_template('strict_search')
     end
   end
@@ -346,13 +355,14 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'handles search request' do
       sign_in user
       post client_search_queries_path, params: { q: 'test' }
-      expect(response).to redirect_to(client_search_query_path(id: GrdaWarehouse::ClientSearchQuery.last.id))
+      decrypted_id = decrypted_redirect_id(response)
+      expect(decrypted_id).to(eq(GrdaWarehouse::ClientSearchQuery.sole.fingerprint))
     end
 
     it 'allows viewing search results' do
       sign_in user
       query = create(:grda_warehouse_client_search_query, params: { q: 'test' })
-      get client_search_query_path(id: query.id)
+      get client_search_query_path(id: query.encrypted_id)
       expect(response).to have_http_status(200)
     end
 
@@ -443,13 +453,14 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'handles search request' do
       sign_in user
       post client_search_queries_path, params: { q: 'test' }
-      expect(response).to redirect_to(client_search_query_path(id: GrdaWarehouse::ClientSearchQuery.last.id))
+      decrypted_id = decrypted_redirect_id(response)
+      expect(decrypted_id).to(eq(GrdaWarehouse::ClientSearchQuery.sole.fingerprint))
     end
 
     it 'allows viewing search results' do
       sign_in user
       query = create(:grda_warehouse_client_search_query, params: { q: 'test' })
-      get client_search_query_path(id: query.id)
+      get client_search_query_path(id: query.encrypted_id)
       expect(response).to have_http_status(200)
     end
 
@@ -537,13 +548,14 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'handles search request' do
       sign_in user
       post client_search_queries_path, params: { q: 'test' }
-      expect(response).to redirect_to(client_search_query_path(id: GrdaWarehouse::ClientSearchQuery.last.id))
+      decrypted_id = decrypted_redirect_id(response)
+      expect(decrypted_id).to(eq(GrdaWarehouse::ClientSearchQuery.sole.fingerprint))
     end
 
     it 'allows viewing search results' do
       sign_in user
       query = create(:grda_warehouse_client_search_query, params: { q: 'test' })
-      get client_search_query_path(id: query.id)
+      get client_search_query_path(id: query.encrypted_id)
       expect(response).to have_http_status(200)
     end
 

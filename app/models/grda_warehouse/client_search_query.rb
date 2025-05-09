@@ -25,14 +25,14 @@ module GrdaWarehouse
       params.permit(*ALLOWED_PARAMS, client: ALLOWED_CLIENT_PARAMS).presence
     end
 
-    def self.find_or_create_by_params!(params, user: )
+    def self.find_or_create_by_params!(params, user:)
       norm = normalize_params(params.to_h)
       fingerprint = generate_fingerprint(norm)
 
       upsert(
         { fingerprint: fingerprint, params: norm, created_by_id: user.id },
         unique_by: :fingerprint,
-        on_duplicate: Arel.sql('params = EXCLUDED.params, created_by_id = EXCLUDED.created_by_id')
+        on_duplicate: Arel.sql('params = EXCLUDED.params, created_by_id = EXCLUDED.created_by_id'),
       )
 
       find_by!(fingerprint: fingerprint)
