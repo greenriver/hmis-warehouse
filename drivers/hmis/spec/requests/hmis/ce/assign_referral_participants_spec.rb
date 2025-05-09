@@ -6,6 +6,9 @@ require_relative '../../../support/ce_spec_helper'
 RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
   include_context 'ce spec helper'
 
+  let!(:hmis_user_access) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_assign_referral_tasks, :can_perform_any_referral_tasks]) }
+  let!(:hmis_user2_access) { create_access_control(hmis_user2, ds1, with_permission: [:can_perform_any_referral_tasks]) }
+
   before(:each) do
     hmis_login(user)
   end
@@ -194,6 +197,33 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
 
       it 'raises an error' do
         expect_gql_error(post_graphql(**variables) { mutation }, message: 'Not found')
+      end
+    end
+
+    context 'with no permission' do
+      let!(:hmis_user_access) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals]) }
+
+      it 'raises an error' do
+        expect_gql_error(post_graphql(**variables) { mutation }, message: 'access denied')
+      end
+    end
+
+    context 'when the assigned user does not have permission' do
+      let!(:hmis_user2_access) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals]) }
+
+      it 'raises an error' do
+        expect_gql_error(post_graphql(**variables) { mutation }, message: 'Not found')
+      end
+    end
+
+    context 'when the assigned user has permission to do their own tasks' do
+      let!(:hmis_user2_access) { create_access_control(hmis_user2, ds1, with_permission: [:can_perform_own_referral_tasks]) }
+
+      it 'successfully creates participants' do
+        expect do
+          response, result = post_graphql(**variables) { mutation }
+          expect(response.status).to eq(200), result.inspect
+        end.to change(Hmis::Ce::ReferralParticipant, :count).by(2)
       end
     end
   end
