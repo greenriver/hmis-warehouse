@@ -66,6 +66,10 @@ module Hmis::Ce
       !accepted? && !rejected?
     end
 
+    def self.apply_filters(input)
+      Hmis::Filter::CeReferralFilter.new(input).filter_scope(self)
+    end
+
     private
 
     def unique_referral_per_opportunity

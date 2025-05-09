@@ -11,8 +11,6 @@ module Types
     module HasCeReferrals
       extend ActiveSupport::Concern
 
-      include ::Hmis::Concerns::HmisArelHelper
-
       class_methods do
         def ce_referrals_field(name = :ce_referrals, description = nil, filter_args: {}, **override_options, &block)
           default_field_options = { type: Types::HmisSchema::CeReferral.page_type, null: false, description: description }
@@ -36,20 +34,7 @@ module Types
         raise unless Hmis::Ce.configuration.enabled? # TODO(#7506) permissions
 
         scope = scope.viewable_by(user)
-
-        scope = scope.where(status: filters&.status) if filters&.status.present?
-
-        opportunity_table = Hmis::Ce::Opportunity.arel_table
-        scope = scope.joins(:opportunity).where(opportunity_table[:project_id].in(filters&.project)) if filters.respond_to?(:project) && filters&.project.present?
-        scope = scope.joins(opportunity: :project).where(p_t[:project_type].in(filters&.project_type)) if filters.respond_to?(:project_type) && filters&.project_type.present?
-        scope = scope.joins(:opportunity).where(opportunity_table[:workflow_template_identifier].in(filters&.workflow_template)) if filters.respond_to?(:workflow_template) && filters&.workflow_template.present?
-
-        if filters.respond_to?(:on_current_step_since) && filters&.on_current_step_since.present?
-          step_table = Hmis::WorkflowExecution::Step.arel_table
-          # add distinct to make sure the join doesn't cause duplicates in the scope, since there can be multiple current_steps
-          scope = scope.joins(:current_steps).where(step_table[:updated_at].lt(filters.on_current_step_since)).distinct
-        end
-
+        scope = scope.apply_filters(filters) if filters.present?
         scope.order(created_at: :desc, id: :asc)
       end
     end
