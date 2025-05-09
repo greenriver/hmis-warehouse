@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddCePermissions < ActiveRecord::Migration[7.1]
   def up
     ::Hmis::Role.ensure_permissions_exist

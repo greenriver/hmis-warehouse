@@ -18,7 +18,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
-  let!(:other_project) { create(:hmis_hud_project, project_type: 2) }
+  let!(:other_project) { create(:hmis_hud_project, project_type: 2, data_source: ds1) }
   let!(:other_project_referral) { create(:hmis_ce_referral, project: other_project, client: client) }
 
   describe 'project ceReferrals query' do

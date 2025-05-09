@@ -15,6 +15,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         :can_view_project,
         :can_view_enrollment_details,
         :can_view_client_eligible_opportunities,
+        :can_view_prioritized_client_lists,
       ]
     )
   end
