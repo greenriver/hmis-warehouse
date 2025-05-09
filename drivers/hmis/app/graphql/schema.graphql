@@ -9488,6 +9488,7 @@ type Query {
 type QueryAccess {
   canAdministerHmis: Boolean!
   canAdministrateConfig: Boolean!
+  canAssignReferralTasks: Boolean!
   canAuditClients: Boolean!
   canAuditEnrollments: Boolean!
   canAuditUsers: Boolean!
@@ -9515,12 +9516,16 @@ type QueryAccess {
   canManageScanCards: Boolean!
   canManageUnits: Boolean!
   canMergeClients: Boolean!
+  canPerformAnyReferralTasks: Boolean!
+  canPerformOwnReferralTasks: Boolean!
   canSplitHouseholds: Boolean!
+  canStartReferrals: Boolean!
   canTransferEnrollments: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
   canViewClientAlerts: Boolean!
   canViewClientContactInfo: Boolean!
+  canViewClientEligibleOpportunities: Boolean!
   canViewClientName: Boolean!
   canViewClientPhoto: Boolean!
   canViewClients: Boolean!
@@ -9533,8 +9538,11 @@ type QueryAccess {
   canViewLimitedEnrollmentDetails: Boolean!
   canViewMyDashboard: Boolean!
   canViewOpenEnrollmentSummary: Boolean!
+  canViewOwnReferrals: Boolean!
   canViewPartialSsn: Boolean!
+  canViewPrioritizedClientLists: Boolean!
   canViewProject: Boolean!
+  canViewReferrals: Boolean!
   canViewUnits: Boolean!
   id: ID!
 }
