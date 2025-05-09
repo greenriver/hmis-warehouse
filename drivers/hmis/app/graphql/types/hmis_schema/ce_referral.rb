@@ -18,7 +18,7 @@ module Types
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
 
     field :current_steps, [HmisSchema::CeReferralStep], null: true
-    field :current_step_time, GraphQL::Types::ISO8601DateTime, null: true
+    field :days_on_current_steps, Integer, null: true
     field :updated_by, Application::User, null: true
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true
     field :swimlanes, [HmisSchema::CeReferralSwimlane], null: false
@@ -68,9 +68,13 @@ module Types
       load_ar_association(object, :current_steps)
     end
 
-    def current_step_time
-      # TODO(#7647) - use more accurate timestamp field rather than updated_at
-      load_ar_association(object, :current_steps).to_a.min_by(&:updated_at)&.updated_at
+    def days_on_current_steps
+      # If there are multiple open steps, use the oldest one
+      oldest_open_step = load_ar_association(object, :current_steps).to_a.min_by(&:updated_at)
+      return nil if oldest_open_step.nil?
+
+      # how many days ago was this step last updated. # TODO(#7647) - use more accurate timestamp field rather than updated_at
+      (Date.current - oldest_open_step.updated_at.to_date).to_i
     end
 
     def updated_by

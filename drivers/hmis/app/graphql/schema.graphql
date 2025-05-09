@@ -857,8 +857,8 @@ type CeReferral {
   client: Client
   clientId: ID!
   createdAt: ISO8601DateTime!
-  currentStepTime: ISO8601DateTime
   currentSteps: [CeReferralStep!]
+  daysOnCurrentSteps: Int
   id: ID!
   opportunity: CeOpportunity!
   referredBy: ApplicationUser

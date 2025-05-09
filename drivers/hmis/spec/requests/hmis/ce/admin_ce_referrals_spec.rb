@@ -44,7 +44,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 id
               }
               targetOrganizationName
-              currentStepTime
+              daysOnCurrentSteps
               currentSteps {
                 id
                 name
