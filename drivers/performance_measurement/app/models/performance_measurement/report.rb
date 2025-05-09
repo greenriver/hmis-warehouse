@@ -196,7 +196,7 @@ module PerformanceMeasurement
     def title
       Translation.translate('CoC Performance Measurement Dashboard')
     end
-    alias instance_title title
+    alias_method :instance_title, :title
 
     private def public_s3_directory
       'performance_measurement'
@@ -270,7 +270,9 @@ module PerformanceMeasurement
               field: :BedInventory,
             )
           end.sum
-          project.update("#{period}_ave_bed_capacity_per_night" => average_capacity)
+          # If we have an average of less than 1, count it as 1, anything else is rounded
+          average_capacity = 1 if average_capacity.positive? && average_capacity < 1
+          project.update("#{period}_ave_bed_capacity_per_night" => average_capacity.round)
         end
       end
     end

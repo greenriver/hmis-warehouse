@@ -30,9 +30,16 @@ module Superset
   # NOTE: this needs to be kept in sync with
   # https://github.com/greenriver/superset-sync/blob/main/docker/superset/superset_config.py
   def self.available_superset_roles
-    return Superset::Api.new.roles['result'].map { |role| role['name'] } if Superset::Api.new.available?
-
+    begin
+      return Superset::Api.new.roles['result'].map { |role| role['name'] } if Superset::Api.new.available?
+    rescue Curl::Err::HostResolutionError => e
+      Rails.logger.error("Error fetching Superset roles: #{e.message}, using default roles")
+    end
     # Fallback to the default roles if the API is not available
+    default_roles
+  end
+
+  def self.default_roles
     [
       'Green River Admin',
       'Warehouse Admin',

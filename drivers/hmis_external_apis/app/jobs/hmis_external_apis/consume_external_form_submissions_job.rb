@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # retrieve and process external form submissions
 class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
@@ -37,6 +39,7 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
   protected
 
   def log_error(message, object_key:)
+    Sentry.capture_message("external form submission #{object_key}: #{message}")
     Rails.logger.error("external form submission #{object_key}: #{message}")
   end
 
