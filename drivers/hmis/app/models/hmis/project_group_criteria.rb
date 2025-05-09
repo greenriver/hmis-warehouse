@@ -93,6 +93,8 @@ module Hmis
 
     # Parse input as either JSON or a hash
     def parse_input(input)
+      return [] if input.nil? || input.empty?
+
       case input
       when String
         JSON.parse(input, symbolize_names: true)

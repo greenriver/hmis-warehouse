@@ -10,5 +10,6 @@
   = ic.input :project_type_numbers, collection: @project_group.parsed_inclusion_criteria.filter.available_project_type_numbers, selected: @project_group.parsed_inclusion_criteria.project_type_numbers, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types', as: :select_two
   = ic.input :data_source_ids, collection: GrdaWarehouse::DataSource.hmis.options_for_select(user: current_user), selected: @project_group.parsed_inclusion_criteria.data_source_ids, as: :select_two, input_html: {multiple: true, placeholder: 'Choose Data Sources' }, label: 'Data Sources'
 
--# %h3 Exclusion Criteria
--# = f.simple_fields_for :exclusion_criteria do |ec|
+%h3 Exclusion Criteria
+= f.simple_fields_for :exclusion_criteria do |ec|
+  = ec.input :project_ids, collection: [], as: :select_two, input_html: { multiple: true, data: { 'collection-path' => api_projects_path(selected_project_ids: @project_group.parsed_exclusion_criteria.project_ids) }, placeholder: 'Choose Projects'}, label: 'Projects to Exclude'
