@@ -14,6 +14,7 @@ module Hmis
     include ::Hmis::Concerns::HmisArelHelper
 
     validates :name, presence: true, uniqueness: true
+    # validate :validate_criteria_json
     # TODO validates configuration shape
     # TODO validates project_must_belong_to_hmis_data_source
 
@@ -26,8 +27,18 @@ module Hmis
     has_many :hmis_access_groups, through: :hmis_group_viewable_entities
     has_many :hmis_access_controls, through: :hmis_access_groups
 
-    scope :viewable_by, ->(_user) do
-      none # TODO
+    scope :viewable_by, ->(user) do
+      # We will likely expand visibility of project groups later, for now only HMIS admins can see them.
+      return all if HmisEnforcement.hmis_admin_visible?(user)
+
+      none
+    end
+
+    scope :editable_by, ->(user) do
+      # We may expand editability of project groups later, for now only HMIS admins can edit them.
+      return all if HmisEnforcement.hmis_admin_visible?(user)
+
+      none
     end
 
     # Search for project groups by group name or project name
@@ -42,6 +53,22 @@ module Hmis
         )
     end
 
+    def parsed_inclusion_criteria= criteria
+      self.inclusion_criteria = criteria.to_json
+    end
+
+    def parsed_inclusion_criteria
+      @parsed_inclusion_criteria ||= Hmis::ProjectGroupCriteria.new(inclusion_criteria.to_json)
+    end
+
+    def parsed_exclusion_criteria= criteria
+      self.exclusion_criteria = criteria.to_json
+    end
+
+    def parsed_exclusion_criteria
+      @parsed_exclusion_criteria ||= Hmis::ProjectGroupCriteria.new(exclusion_criteria.to_json)
+    end
+
     def self.maintain_project_lists!
       find_each(&:maintain_projects!)
     end
@@ -52,6 +79,7 @@ module Hmis
     end
 
     def effective_project_ids
+      parsed_exclusion_criteria.project_ids
       # TODO calculate effective project ids based on configuration
 
       # Add a class for project criteria that can evaluate itself
@@ -78,6 +106,10 @@ module Hmis
       # }
 
       # pg.exclusion_criteria = {} # same shape, but acts as exclusion
+    end
+
+    def describe_criteria_as_html
+      'TODO'
     end
   end
 end

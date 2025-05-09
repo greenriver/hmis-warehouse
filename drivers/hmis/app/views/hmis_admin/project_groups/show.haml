@@ -1,0 +1,21 @@
+- title = "Project Group: #{@project_group.name}"
+= content_for(:title, title)
+= render 'breadcrumbs'
+
+%h1 Project Group Details
+
+%dl
+  %dt Name
+  %dd= @project_group.name
+
+  %dt Inclusion Criteria
+  %dd
+    %pre= JSON.pretty_generate(@project_group.inclusion_criteria || {})
+
+  %dt Exclusion Criteria
+  %dd
+    %pre= JSON.pretty_generate(@project_group.exclusion_criteria || {})
+
+.actions
+  = link_to 'Edit', edit_hmis_project_group_path(@project_group), class: 'btn btn-primary'
+  = link_to 'Back', hmis_admin_project_groups_path, class: 'btn btn-secondary'

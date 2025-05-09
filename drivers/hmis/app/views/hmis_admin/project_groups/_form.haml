@@ -1,0 +1,38 @@
+= f.error_notification
+
+.form-inputs.well
+  = f.input :name
+  %p Choices below will add to the selection of projects.  For instance, if you choose a single project and the project type ES, you will end up with a project group with all emergency shelter projects and the single chosen project.
+  %p Confidential projects must be added individually, adding an organization, data source, or project type, will not add any confidential projects.
+  .row
+    .col-sm-6
+      = f.input :project_ids, collection: [], as: :select_two, input_html: { multiple: true, data: { 'collection-path' => api_projects_path(selected_project_ids: @project_group.parsed_inclusion_criteria.project_ids) }, placeholder: 'Choose Projects'}, label: 'Projects'
+    -# TODO talk to Elliot first -- should I be using the warehouse Filter object to back this? it seems like it has all the methods we need, but we need some other ones too
+    -# .col-sm-6
+    -#   = f.input :organization_ids, collection: @project_group.filter.organization_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true, placeholder: 'Choose Organizations' }, label: 'Organizations', required: false
+  -# .row
+  -#   .col-sm-6
+  -#     = f.input :project_type_numbers, collection: @project_group.filter.available_project_type_numbers, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types', as: :select_two
+  -#   .col-sm-6
+  -#     = f.input :data_source_ids, collection: @project_group.filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Data Sources' }, label: 'Data Sources'
+-# %h3 Access
+-# .form-inputs.well
+-#   -# if everyone is using Access Controls, hide this section, but keep it in the form
+-#   -# so we don't lose data during the change over
+-#   - hint_text = ''
+-#   - hint_text = 'This method of access is being deprecated, to be replaced with the field below' if User.anyone_using_acls?
+-#   %div{ class: (User.all_using_acls? && 'd-none') }
+-#     = f.input :users, collection: @groups, as: :grouped_select_two, group_method: :last, selected: @group_ids, input_html: {multiple: :multiple, placeholder: 'Please choose'}, label: 'Users and groups', hint: hint_text
+-#   -# if no one is using Access Controls, hide this section, but keep it in the form
+-#   -# so we don't lose data during the change over
+-#   %div{ class: (!User.anyone_using_acls? && 'd-none') }
+-#     - unless User.all_using_acls?
+-#       %p The following is the new mechanism for adding access to project groups.  During the transition period, please assign both methods of access.
+-#     - users = @project_group.users_with_access(access_type: :edit)
+-#     - if users.count > 0
+-#       %p The following users already have access to edit this project group:
+-#       %ul
+-#         - users.each do |u|
+-#           %li= u.name_with_email
+-#     = f.input :editor_ids, collection:  User.active.not_system, as: :select_two, selected: @editor_ids, input_html: {multiple: :multiple, placeholder: 'Please choose'}, label: 'Users with direct edit access to this group'
+-# = render 'invisible_project_warning'

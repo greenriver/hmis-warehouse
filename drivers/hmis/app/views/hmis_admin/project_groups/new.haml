@@ -1,0 +1,9 @@
+- title = "New HMIS Project Group"
+= content_for(:title, title)
+= render 'breadcrumbs'
+%h1= title
+
+= simple_form_for @project_group, as: :filters, url: hmis_admin_project_groups_path() do |f|
+  = render 'form', f: f
+  .form-actions
+  = f.button :submit, class: 'btn btn-primary', value: 'Create Project Group'

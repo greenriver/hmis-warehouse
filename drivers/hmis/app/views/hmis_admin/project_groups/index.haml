@@ -1,0 +1,33 @@
+- title = 'HMIS Project Groups'
+= content_for(:title, title)
+%h1= content_for :title
+
+
+- @prompt = "Search project groups..."
+.row.mb-4
+  .col-sm-8
+    = render 'search_form'
+  .col-sm-4.text-right
+    = link_to new_hmis_admin_project_group_path, class: 'btn btn-primary mb-2' do
+      %span.icon-plus
+      Add Project Group
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'project group'
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Name
+          %th Project Count
+          %th Universe
+      %tbody
+        - @project_groups.each do |group|
+          %tr
+            %td
+              = link_to group.name, edit_hmis_admin_project_group_path(group)
+            %th= group.projects.count
+            %td.reports.report-parameters-all
+              = group.describe_criteria_as_html
+  = render 'common/pagination_bottom', item_name: 'project group'
+- else
+  .none-found There are no project groups.

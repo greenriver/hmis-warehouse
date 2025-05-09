@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Encapsulate the specifics of the menus on the site.
 # site_menu method returns what should show up on the site-level menu
 class Menu::Menu
@@ -611,7 +613,23 @@ class Menu::Menu
           title: Translation.translate('Access Controls'),
         ),
       )
+
+      data_menu = Menu::Item.new(
+        user: user,
+        title: 'Data',
+        id: 'hmis-data',
+      )
+
+      data_menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_project_groups_path,
+          title: 'Project Groups',
+        ),
+      )
       menu.add_child(access_menu)
+      menu.add_child(data_menu)
     end
 
     menu
