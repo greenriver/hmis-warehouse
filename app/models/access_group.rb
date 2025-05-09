@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # AccessGroup is part of the "legacy" permissions model
 #
 # Entities in an AccessGroup are the target for user role-permissions. The permission applied to an AccessGroup are
@@ -201,10 +203,10 @@ class AccessGroup < ApplicationRecord
         scope.where.not(entity_id: ids).destroy_all
         # Allow re-use of previous assignments
         (ids - scope.pluck(:entity_id)).each do |id|
-          scope.with_deleted.
+          entity = scope.with_deleted.
             where(entity_id: id).
-            first_or_create.
-            restore
+            first_or_create
+          entity.restore if entity.deleted?
         end
       end
     end
