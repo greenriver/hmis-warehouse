@@ -100,6 +100,10 @@ module Hmis::Ce
       end
     end
 
+    def self.apply_filters(input)
+      Hmis::Filter::CeOpportunityFilter.new(input).filter_scope(self)
+    end
+
     def active?
       !closed?
     end

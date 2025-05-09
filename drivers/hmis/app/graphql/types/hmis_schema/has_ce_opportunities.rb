@@ -37,13 +37,7 @@ module Types
         raise unless Hmis::Ce.configuration.enabled? # TODO(#7506) permissions
 
         scope = scope.viewable_by(user)
-
-        scope = scope.where(status: filters&.status) if filters.respond_to?(:status) && filters&.status.present?
-        scope = scope.where(project_id: filters&.project) if filters.respond_to?(:project) && filters&.project.present?
-        scope = scope.joins(:project).where(p_t[:project_type].in(filters&.project_type)) if filters.respond_to?(:project_type) && filters&.project_type.present?
-        scope = scope.joins(project: :organization).where(o_t[:id].in(filters&.organization)) if filters.respond_to?(:organization) && filters&.organization.present?
-        scope = scope.available_on_date(filters&.available_on_date) if filters.respond_to?(:available_on_date) && filters&.available_on_date.present?
-        scope = scope.where(workflow_template_identifier: filters&.workflow_template) if filters.respond_to?(:workflow_template) && filters&.workflow_template.present?
+        scope = scope.apply_filters(filters) if filters.present?
 
         sort_order ||= :date_available_earliest_first
         scope.sort_by_option(sort_order)
