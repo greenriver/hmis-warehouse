@@ -15,7 +15,6 @@
 module HmisExternalApis::AcHmis
   class WarehouseChangesJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-    include NotifierConfig
     include ArelHelper
 
     attr_accessor :since, :records_needing_processing, :clients, :external_ids, :merge_sets, :actor_id
@@ -165,6 +164,10 @@ module HmisExternalApis::AcHmis
 
         yield record
       end
+    end
+
+    def debug_msg(str)
+      Rails.logger.info(str)
     end
 
     def data_warehouse_api
