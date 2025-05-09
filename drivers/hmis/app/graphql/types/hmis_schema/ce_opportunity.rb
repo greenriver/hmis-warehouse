@@ -42,11 +42,12 @@ module Types
         order(priority_score: :desc, client_id: :desc)
     end
 
-    def referral
-      # TODO(#7506): permissions - ensure that user has permission to view referrals at this project
-      # return nil unless current_permission?(permission: :can_view_referrals, entity: project)
+    def referral # todo @martha - This isn't currently resolved in batch, maybe we can simplify by not using data loaders.
+      # But the logic for access lives in the viewable_by scope currently
+      referral = load_ar_association(object, :active_or_accepted_referral)
+      return if referral.nil?
 
-      load_ar_association(object, :active_or_accepted_referral)
+      load_ar_scope(scope: Hmis::Ce::Referral.viewable_by(current_user), id: referral.id)
     end
 
     def project_name
