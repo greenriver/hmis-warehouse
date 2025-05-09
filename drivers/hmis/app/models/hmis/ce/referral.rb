@@ -38,7 +38,11 @@ module Hmis::Ce
       # Referrals that have a step assigned to this user, in projects in which the user can_view_own_referrals
       own_referrals = base_scope.
         merge(Hmis::Hud::Project.with_access(user, :can_view_own_referrals)).
-        merge(Hmis::WorkflowExecution::Step.assigned_with_existing_join(user))
+        merge(
+          Hmis::WorkflowExecution::Step.
+            where(Hmis::WorkflowExecution::StepAssignment.arel_table[:user_id].eq(user.id)).
+            where.not(status: 'unavailable'),
+        )
 
       access_through_project.or(own_referrals).distinct
     end
