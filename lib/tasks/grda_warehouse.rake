@@ -342,7 +342,7 @@ namespace :grda_warehouse do
 
     # Purge old soft-deleted records. Enable on production when we have confidence job is correct
     begin
-      PurgeSoftDeletedRecordsJob.perform_later(dry_run: false) if DateTime.current.hour == 5
+      PurgeSoftDeletedRecordsJob.set(priority: 15).perform_later(dry_run: false) if DateTime.current.hour == 5
     rescue StandardError => e
       Sentry.capture_exception(e)
       Rails.logger.error(e.message)
