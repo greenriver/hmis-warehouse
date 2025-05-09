@@ -8,7 +8,7 @@ module GrdaWarehouse
       # text should be a fingerprint digest
       raise "Input must contain only alphanumeric characters" unless text.match?(/\A[a-zA-Z0-9]+\z/)
 
-      salt = SecureRandom.hex(8) # 16 chars of salt
+      salt = random_salt
       encryptor = build_encryptor(salt)
       encrypted = encryptor.encrypt_and_sign(text)
       payload = "#{salt}:#{encrypted}"
@@ -27,6 +27,10 @@ module GrdaWarehouse
     end
 
     private
+
+    def random_salt
+      SecureRandom.hex(8) # 16 chars of salt
+    end
 
     def key
       prop = AppConfigProperty.find_by(key: 'client_search/key')

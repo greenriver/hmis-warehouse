@@ -35,7 +35,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
         expect(response).to redirect_to(new_user_session_path)
       end
@@ -154,7 +154,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
         expect(response).to redirect_to(new_user_session_path)
       end
@@ -277,7 +277,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
         expect(response).to redirect_to(new_user_session_path)
       end
@@ -364,7 +364,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
         expect(response).to redirect_to(new_user_session_path)
       end
@@ -453,7 +453,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
         expect(response).to redirect_to(new_user_session_path)
       end
@@ -668,7 +668,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
-        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
         expect(response).to redirect_to(new_user_session_path)
       end
@@ -680,7 +680,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can not search for clients' do
-        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
         expect(response).to redirect_to(user.my_root_path)
       end
@@ -697,7 +697,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can not search for clients' do
-        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
         expect(response).to redirect_to(user.my_root_path)
       end
@@ -775,7 +775,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         sign_in user
       end
       it 'user can not search for all clients' do
-        query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'bob' })
+        query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
         get client_search_query_path(id: query.id)
         expect(response).to redirect_to(user.my_root_path)
       end

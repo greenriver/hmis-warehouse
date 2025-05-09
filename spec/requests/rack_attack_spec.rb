@@ -181,7 +181,7 @@ RSpec.describe Rack::Attack, type: :request do
     end
 
     describe 'and viewing search results' do
-      let(:search_query) { create(:grda_warehouse_client_search_query, user: user) }
+      let(:search_query) { create(:grda_warehouse_client_search_query, created_by: user) }
       let(:path) { client_search_query_path(id: search_query.id) }
 
       it 'throttles excessive search result viewing' do

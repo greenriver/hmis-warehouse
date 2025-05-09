@@ -106,7 +106,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     it 'doesn\'t allow search results' do
       sign_in user
-      query = create(:grda_warehouse_client_search_query, user: user)
+      query = create(:grda_warehouse_client_search_query, created_by: user)
       get client_search_query_path(id: query.id)
       expect(response).to redirect_to(user.my_root_path)
     end
@@ -203,14 +203,14 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     it 'reuses existing search query for same params' do
       sign_in user
-      query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'test' })
+      query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'test' })
       post client_search_queries_path, params: { q: 'test' }
       expect(response).to redirect_to(client_search_query_path(id: query.id))
     end
 
     it 'allows viewing search results' do
       sign_in user
-      query = create(:grda_warehouse_client_search_query, user: user, params: { q: 'test' })
+      query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'test' })
       original_updated_at = query.updated_at
       travel 1.hour do
         get client_search_query_path(id: query.id)
