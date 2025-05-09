@@ -16,6 +16,12 @@ module Hmis::WorkflowExecution
     has_many :assignments, class_name: 'Hmis::WorkflowExecution::StepAssignment', dependent: :destroy
 
     # TODO(#7506): permissions
+    # # todo @martha - this scope might not make sense, since permissions are closely related to referrals,
+    # but we want to keep referral code out of the execution code.
+    # The thing that makes a step viewable IS the referral - you have to join to the referral to see if any of the
+    # OTHER steps on this referral are assigned to this user.
+    # untested/not working/not sure we want to add...
+    # referral = Hmis::Ce::Referral.find_by(workflow_instance_id: step.instance_id)
     scope :viewable_by, ->(_user) { all }
 
     scope :assigned_with_existing_join, ->(user) do
