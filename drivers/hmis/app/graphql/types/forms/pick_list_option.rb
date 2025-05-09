@@ -162,19 +162,23 @@ module Types
             { code: other_funder, label: other_funder }
           end
       when 'WORKFLOW_DEFINITION_TEMPLATES'
-        # used by the dropdown in the modal when you manually create an opportunity (will be removed)
+        # TODO(#7522) - rename CE_WORKFLOW_TEMPLATE_IDENTIFIERS;
+        #  return identifiers and not IDs; only return published templates; only return CE templates
+        # TODO(#7502) - templates are shared across data sources
+        # Unique ce workflow template identifiers that are currently published.
+        # Used for configuring which template to use for a project/resource/group/etc
         return [] unless Hmis::Ce.configuration.enabled?
 
-        # TODO(#7502) - templates are shared across data sources
         Hmis::WorkflowDefinition::Template.all.map do |template|
           { code: template.id, label: template.name }
         end
-      when 'WORKFLOW_DEFINITION_TEMPLATE_IDENTIFIERS'
-        # used by dropdowns for filters when filtering referral/opportunity by workflow template.
-        # Here we want to group templates by identifier in case there are multiple/past versions.
-        Hmis::WorkflowDefinition::Template.published.or(Hmis::WorkflowDefinition::Template.retired).
+      when 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED'
+        # Unique CE workflow template identifiers, retired workflows with no currently published version.
+        # Used for filtering on existing/historical referrals.
+        base_scope = Hmis::WorkflowDefinition::Template.where(template_type: :ce_referral)
+        base_scope.published.or(base_scope.retired).
           group_by(&:identifier).map do |identifier, templates|
-          description = templates.max_by(&:updated_at).name
+          description = templates.find { |t| t.status.to_sym == :published }&.name || templates.max_by(&:version).name
           { code: identifier, label: description }
         end
       end

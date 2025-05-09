@@ -7100,6 +7100,11 @@ enum PickListType {
   Grouped HUD CE Event types
   """
   CE_EVENTS
+
+  """
+  Templates for CE workflow definitions, including fully retired workflows
+  """
+  CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED
   CLIENT_AUDIT_EVENT_RECORD_TYPES
   COC
 
@@ -7198,11 +7203,6 @@ enum PickListType {
   Templates for CE workflow definitions
   """
   WORKFLOW_DEFINITION_TEMPLATES
-
-  """
-  Templates for CE workflow definitions by identifier
-  """
-  WORKFLOW_DEFINITION_TEMPLATE_IDENTIFIERS
 }
 
 """
