@@ -6,6 +6,12 @@
 
 # frozen_string_literal: true
 
+###
+# WarehouseChangesJob is responsible for fetching changes to client MCI Unique IDs
+# from the AC Data Warehouse Changes API. It processes these changes and
+# updates the MCI Unique ID ExternalId values accordingly.
+#
+# See this doc for more details https://docs.google.com/document/d/1Gcz9-t_utRcqGV9xCzQvTehjQOCqqPv_5-JY_IhhL4Q/edit?tab=t.0#heading=h.kpe3ch74jsjj
 module HmisExternalApis::AcHmis
   class WarehouseChangesJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
@@ -31,7 +37,7 @@ module HmisExternalApis::AcHmis
 
     private
 
-    # It's more efficent to get all the records we're interested in before
+    # It's more efficient to get all the records we're interested in before
     # hitting the database to avoid excessive queries.
     def collect_records_to_inspect
       Rails.logger.info 'Collecting records to inspect'
@@ -42,7 +48,9 @@ module HmisExternalApis::AcHmis
         records_needing_processing << record
       end
 
-      Rails.logger.info "Considering #{count} records"
+      # On a daily bases there are usually <50 records needing processing, log the IDs to cloudwatch to help with debugging
+      destination_ids_needing_processing = records_needing_processing.map { |r| r['clientId'] }
+      Rails.logger.info "Considering #{count} records: #{destination_ids_needing_processing.first(50).join(', ')}"
     end
 
     def fetch_clients
@@ -74,8 +82,8 @@ module HmisExternalApis::AcHmis
     def upsert_changes
       Rails.logger.info 'Upserting discovered changes'
 
-      insert_count = 0
-      update_count = 0
+      inserted_mci_uniq_ids = []
+      updated_mci_uniq_ids = []
       no_change_count = 0
       unrecognized_destination_id_count = 0
 
@@ -96,7 +104,7 @@ module HmisExternalApis::AcHmis
           external_id = external_ids[client.id] # mci unique id
 
           if external_id.blank?
-            insert_count += 1
+            inserted_mci_uniq_ids << record['mciUniqId']
             HmisExternalApis::ExternalId.create!(
               value: record['mciUniqId'],
               source: client,
@@ -104,7 +112,7 @@ module HmisExternalApis::AcHmis
               remote_credential: data_warehouse_api.send(:creds),
             )
           elsif external_id.value != record['mciUniqId']
-            update_count += 1
+            updated_mci_uniq_ids << record['mciUniqId']
             external_id.update_attribute(:value, record['mciUniqId'])
           else
             no_change_count += 1
@@ -112,10 +120,11 @@ module HmisExternalApis::AcHmis
         end
       end
 
-      debug_msg "Inserted #{insert_count} MCI unique IDs"
-      debug_msg "Updated #{update_count} MCI unique IDs"
-      debug_msg "Ignored #{no_change_count} MCI unique IDs"
-      debug_msg "Skipped #{unrecognized_destination_id_count} unrecognized Client IDs in response"
+      # log these all to cloudwatch
+      Rails.logger.info "Inserted #{inserted_mci_uniq_ids.size} MCI unique IDs: #{inserted_mci_uniq_ids.first(50).join(', ')}"
+      Rails.logger.info "Updated #{updated_mci_uniq_ids.size} MCI unique IDs: #{updated_mci_uniq_ids.first(50).join(', ')}"
+      Rails.logger.info "Ignored #{no_change_count} MCI unique IDs"
+      Rails.logger.info "Skipped #{unrecognized_destination_id_count} unrecognized Client IDs in response"
     end
 
     def merge_clients_by_mci_unique_id
@@ -126,9 +135,9 @@ module HmisExternalApis::AcHmis
         having('count(*) > 1').
         select('value, array_agg(source_id ORDER BY source_id) AS client_ids')
 
-      debug_msg "Found #{merge_sets.length} duplicate MCI unique IDs"
+      Rails.logger.info "Found #{merge_sets.length} duplicate MCI unique IDs"
 
-      debug_msg 'Enqueuing dedup jobs for each one'
+      Rails.logger.info 'Enqueuing dedup jobs for each one'
 
       merge_sets.each do |set|
         Hmis::MergeClientsJob.perform_later(client_ids: set.client_ids, actor_id: actor_id)
@@ -145,7 +154,7 @@ module HmisExternalApis::AcHmis
         record['mci_unique_id_date_time'] = Time.zone.parse(record['mciUniqIdDate'])
 
         if record['last_modified_date_time'] < since
-          debug_msg "Got to the end of the changes we're interested in. Finishing up"
+          Rails.logger.info "Got to the end of the changes we're interested in. Finishing up"
           break
         end
 
