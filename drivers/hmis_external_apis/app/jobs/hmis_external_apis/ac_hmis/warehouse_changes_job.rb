@@ -4,15 +4,16 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisExternalApis::AcHmis
   class WarehouseChangesJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-    include NotifierConfig
     include ArelHelper
 
     attr_accessor :since, :records_needing_processing, :clients, :external_ids, :merge_sets, :actor_id
 
-    NAMESPACE = 'ac_hmis_mci_unique_id'.freeze
+    NAMESPACE = 'ac_hmis_mci_unique_id'
 
     def perform(since: Time.now - 3.days, actor_id:)
       return unless HmisExternalApis::AcHmis::DataWarehouseApi.enabled?
@@ -20,8 +21,6 @@ module HmisExternalApis::AcHmis
       self.since = since
       self.records_needing_processing = []
       self.actor_id = actor_id
-
-      setup_notifier('Fetch changes from AC Data Warehouse')
 
       collect_records_to_inspect
       fetch_clients
@@ -159,7 +158,7 @@ module HmisExternalApis::AcHmis
     end
 
     def debug_msg(str)
-      @notifier.ping(str)
+      Rails.logger.info(str)
     end
 
     def data_warehouse_api
