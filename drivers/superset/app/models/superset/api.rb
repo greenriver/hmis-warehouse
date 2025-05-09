@@ -24,7 +24,7 @@ class Superset::Api
 
   # Returns true if all required environment variables are present.
   def available?
-    @host && @username && @password
+    @host.present? && @username.present? && @password.present?
   end
 
   # Performs a GET request to the given API path with optional query parameters.

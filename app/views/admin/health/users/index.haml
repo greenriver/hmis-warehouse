@@ -38,8 +38,8 @@
                       %td
                         .form-group.check_boxes.optional.user_roles
                           - Role.health.each do |role|
-                            - id = "users[#{user.id}]roles[#{role.id}]"
-                            - name = "users[#{user.id}]roles[]"
+                            - id = "users[#{user.id}][roles][#{role.id}]"
+                            - name = "users[#{user.id}][roles][]"
                             %span.checkbox
                               %label{for: id}
                                 = check_box_tag(id, 1, user.health_roles.where(name: role.name).any?, id: id, class: "check_boxes optional")

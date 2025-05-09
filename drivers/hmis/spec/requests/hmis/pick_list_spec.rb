@@ -151,6 +151,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(response.status).to eq 200
     options = result.dig('data', 'pickList')
     expect(options[0]['code']).to eq('509001')
+    expected_size = JSON.parse(File.read('drivers/hmis/lib/pick_list_data/geocodes/geocodes-VT.json')).size
+    expect(options.size).to eq(expected_size)
+  end
+
+  context 'when there are multiple relevant states' do
+    before do
+      GrdaWarehouse::Config.instance_variable_set(:@relevant_state_codes, nil) # reset the cached instance variable
+      allow(GrdaWarehouse::Config).to receive(:get).with(:relevant_state_codes).and_return('VT,MA')
+    end
+
+    it 'returns geocodes grouped by state' do
+      response, result = post_graphql(pick_list_type: 'GEOCODE') { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      vt_size = JSON.parse(File.read('drivers/hmis/lib/pick_list_data/geocodes/geocodes-VT.json')).size
+      ma_size = JSON.parse(File.read('drivers/hmis/lib/pick_list_data/geocodes/geocodes-MA.json')).size
+      expect(options.size).to eq(vt_size + ma_size)
+      expect(options.first['groupLabel']).to eq('VT')
+      expect(options.last['groupLabel']).to eq('MA')
+    end
   end
 
   it 'returns grouped service type pick list' do
