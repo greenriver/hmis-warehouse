@@ -13,6 +13,13 @@ module GrdaWarehouse
     alias_attribute :s3_access_key_id, :username
     alias_attribute :s3_prefix, :path
 
+    # Can't use alias_attribute here due to RemoteCredential's use of attr_encrypted(:password)
+    def s3_secret_access_key = password
+
+    def s3_secret_access_key=(value)
+      self.password = value
+    end
+
     validates :region, presence: true
     validates :bucket, presence: true
 
