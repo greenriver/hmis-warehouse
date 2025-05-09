@@ -7,13 +7,7 @@ module Clients
     def create
       safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
       query = GrdaWarehouse::ClientSearchQuery.find_or_create_by_params!(safe_params, user: current_user)
-      redirect_to client_search_query_path(id: query.id)
-    end
-
-    protected
-
-    def search_query_scope
-      current_user.client_search_queries
+      redirect_to client_search_query_path(id: query.encrypted_id)
     end
   end
 end

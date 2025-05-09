@@ -10,6 +10,15 @@ module GrdaWarehouse
 
     validate :validate_params
 
+    def encrypted_id
+      ClientSearchQueryIdProtector.instance.encrypt(fingerprint)
+    end
+
+    def self.find_by_encrypted_id(id)
+      fingerprint = ClientSearchQueryIdProtector.instance.decrypt(id)
+      where(fingerprint: fingerprint).first!
+    end
+
     # @param params [ActionController::Parameters] request params
     # @return [ActionController::Parameters, nil] Permitted parameters or nil if no valid params present
     def self.permit_params(params)
