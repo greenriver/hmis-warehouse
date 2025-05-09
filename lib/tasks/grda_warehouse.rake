@@ -340,7 +340,7 @@ namespace :grda_warehouse do
       Hmis::MatchCandidatesJob.perform_later
     end
 
-    # Purge old soft-deleted records. Enable on production when we have confidence job is correct
+    # Purge old soft-deleted records
     begin
       PurgeSoftDeletedRecordsJob.set(priority: 15).perform_later(dry_run: false) if DateTime.current.hour == 5
     rescue StandardError => e
