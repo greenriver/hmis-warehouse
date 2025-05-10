@@ -8,12 +8,6 @@ RSpec.shared_context 'client search helpers' do
     [response, Nokogiri::HTML(response.body)]
   end
 
-  # Get search results using a query ID
-  def view_search_results(query)
-    get client_search_query_path(id: query.encrypted_id)
-    [response, Nokogiri::HTML(response.body)]
-  end
-
   # Extract and decrypt the redirected query ID
   def decrypted_redirect_id(response)
     uri = URI(response.location)
