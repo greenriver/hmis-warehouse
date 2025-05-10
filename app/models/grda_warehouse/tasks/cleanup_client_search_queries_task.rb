@@ -7,6 +7,10 @@
 ###
 
 module GrdaWarehouse::Tasks
+  # Maintenance task to remove old client search queries
+  #
+  # This task is responsible for cleaning up client search queries that are older
+  # than the configured retention period
   class CleanupClientSearchQueriesTask
     RETENTION_PERIOD = 2.years
 

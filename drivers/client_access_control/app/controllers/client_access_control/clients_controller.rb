@@ -40,6 +40,11 @@ class ClientAccessControl::ClientsController < ApplicationController
 
   def search
     search_query = GrdaWarehouse::ClientSearchQuery.find_by_encrypted_id(params[:id])
+    if search_query.nil?
+      flash[:error] = 'Search query not found'
+      redirect_to clients_path
+      return
+    end
     search_query.touch
     perform_search(search_query.params)
   end

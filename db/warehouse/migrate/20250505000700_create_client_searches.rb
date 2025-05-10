@@ -6,7 +6,7 @@ class CreateClientSearches < ActiveRecord::Migration[7.1]
       t.timestamps
       t.references :created_by, null: false, index: false
       t.jsonb :params, null: false
-      t.string :fingerprint, null: false
+      t.string :fingerprint, null: false, comment: 'hash of normalized search parameters used for deduplication and efficient query retrieval'
     end
     add_index :client_search_queries, :fingerprint, name: 'uidx_client_search_queries', unique: true
   end

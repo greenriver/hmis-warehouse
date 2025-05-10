@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Clients
+  # This controller is responsible for securely storing client search parameters
   class SearchQueriesController < ApplicationController
     before_action :require_can_access_some_client_search!
 

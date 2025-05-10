@@ -188,14 +188,14 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       sign_in user
       get clients_path, params: { q: 'test' }
       decrypted_id = decrypted_redirect_id(response)
-      expect(decrypted_id).to(eq(GrdaWarehouse::ClientSearchQuery.sole.fingerprint))
+      expect(decrypted_id).to eq(GrdaWarehouse::ClientSearchQuery.sole.id.to_s)
     end
 
     it 'handles POST search request' do
       sign_in user
       post client_search_queries_path, params: { q: 'test' }
       decrypted_id = decrypted_redirect_id(response)
-      expect(decrypted_id).to(eq(GrdaWarehouse::ClientSearchQuery.sole.fingerprint))
+      expect(decrypted_id).to eq(GrdaWarehouse::ClientSearchQuery.sole.id.to_s)
     end
 
     it 'reuses existing search query for same params' do
@@ -203,7 +203,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'test' })
       post client_search_queries_path, params: { q: 'test' }
       decrypted_id = decrypted_redirect_id(response)
-      expect(decrypted_id).to(eq(query.fingerprint))
+      expect(decrypted_id).to eq(query.id.to_s)
     end
 
     it 'allows viewing search results' do
@@ -312,7 +312,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         },
       }
       decrypted_id = decrypted_redirect_id(response)
-      expect(decrypted_id).to(eq(GrdaWarehouse::ClientSearchQuery.sole.fingerprint))
+      expect(decrypted_id).to eq(GrdaWarehouse::ClientSearchQuery.sole.id.to_s)
     end
 
     it 'renders strict search template' do
@@ -342,7 +342,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       sign_in user
       post client_search_queries_path, params: { q: 'test' }
       decrypted_id = decrypted_redirect_id(response)
-      expect(decrypted_id).to(eq(GrdaWarehouse::ClientSearchQuery.sole.fingerprint))
+      expect(decrypted_id).to eq(GrdaWarehouse::ClientSearchQuery.sole.id.to_s)
     end
 
     it 'allows viewing search results' do
@@ -440,7 +440,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       sign_in user
       post client_search_queries_path, params: { q: 'test' }
       decrypted_id = decrypted_redirect_id(response)
-      expect(decrypted_id).to(eq(GrdaWarehouse::ClientSearchQuery.sole.fingerprint))
+      expect(decrypted_id).to eq(GrdaWarehouse::ClientSearchQuery.sole.id.to_s)
     end
 
     it 'allows viewing search results' do
@@ -535,7 +535,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       sign_in user
       post client_search_queries_path, params: { q: 'test' }
       decrypted_id = decrypted_redirect_id(response)
-      expect(decrypted_id).to(eq(GrdaWarehouse::ClientSearchQuery.sole.fingerprint))
+      expect(decrypted_id).to eq(GrdaWarehouse::ClientSearchQuery.sole.id.to_s)
     end
 
     it 'allows viewing search results' do
