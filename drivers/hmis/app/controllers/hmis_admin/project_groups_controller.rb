@@ -11,7 +11,7 @@ module HmisAdmin
     include EnforceHmisEnabled
 
     before_action :require_hmis_admin_access! # for now, only HMIS admins can view/edit these
-    before_action :set_project_group, only: [:edit, :destroy]
+    before_action :set_project_group, only: [:edit, :update, :destroy, :show]
 
     def index
       @project_groups = Hmis::ProjectGroup.all
@@ -38,16 +38,26 @@ module HmisAdmin
       respond_with(@project_group, location: edit_hmis_admin_project_group_path(@project_group.id))
     end
 
-    # GET /hmis/project_groups/:id/edit
     def edit
     end
 
-    # PATCH/PUT /hmis/project_groups/:id
+    def show
+    end
+
     def update
-      if @project_group.update(project_group_params)
-        redirect_to hmis_project_group_path(@project_group), notice: 'Project Group was successfully updated.'
-      else
-        render :edit, status: :unprocessable_entity
+      p = project_group_params
+
+      @project_group.name = p[:name]
+      @project_group.inclusion_criteria = p[:inclusion_criteria].to_json
+      @project_group.exclusion_criteria = p[:exclusion_criteria].to_json
+
+      project_group_source.transaction do
+        @project_group.save!
+        @project_group.maintain_projects!
+        redirect_to hmis_admin_project_group_path(@project_group), notice: 'Project Group was successfully updated.'
+      rescue Exception => e
+        flash[:error] = e.message
+        render action: :edit
       end
     end
 
@@ -63,14 +73,22 @@ module HmisAdmin
         includes(:projects).order(name: :asc)
     end
 
-    # Find the project group by ID
     def set_project_group
       @project_group = Hmis::ProjectGroup.find(params[:id])
     end
 
-    # Strong parameters for updating project group
     def project_group_params
-      params.require(:project_group).permit(:name, :inclusion_criteria, :exclusion_criteria)
+      permitted_criteria_params = {
+        project_ids: [],
+        data_source_ids: [],
+        organization_ids: [],
+        project_type_numbers: [],
+      }
+      params.require(:filters).permit(
+        :name,
+        inclusion_criteria: permitted_criteria_params,
+        exclusion_criteria: permitted_criteria_params,
+      )
     end
   end
 end

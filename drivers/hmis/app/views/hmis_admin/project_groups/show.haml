@@ -2,20 +2,33 @@
 = content_for(:title, title)
 = render 'breadcrumbs'
 
-%h1 Project Group Details
+%h1.d-flex.justify-content-between.align-items-center
+  = "HMIS Project Group: #{@project_group.name}"
+  = link_to 'Edit', edit_hmis_admin_project_group_path(@project_group), class: 'btn btn-primary'
 
-%dl
-  %dt Name
-  %dd= @project_group.name
-
-  %dt Inclusion Criteria
-  %dd
-    %pre= JSON.pretty_generate(@project_group.inclusion_criteria || {})
-
-  %dt Exclusion Criteria
-  %dd
-    %pre= JSON.pretty_generate(@project_group.exclusion_criteria || {})
-
-.actions
-  = link_to 'Edit', edit_hmis_project_group_path(@project_group), class: 'btn btn-primary'
-  = link_to 'Back', hmis_admin_project_groups_path, class: 'btn btn-secondary'
+.row
+  .col-sm-6
+    .well
+      %h3 Project Group Rules
+      %dl
+        %dt Inclusion Criteria
+        %dd
+          = @project_group.parsed_inclusion_criteria.describe_criteria_as_html
+        %br
+        %dt Exclusion Criteria
+        %dd
+          = @project_group.parsed_exclusion_criteria.describe_criteria_as_html || 'No exclusions'
+  .col-sm-6
+    .well
+      %h3 Included Projects
+      %dl
+        %dt Project Count
+        %dd.mb-4= @project_group.projects.count
+        %dt Projects
+        %dd
+          - if @project_group.projects.count > 0
+            - @project_group.projects.map(&:ProjectName).sort.each do |name|
+              = name
+              %br
+          - else
+            There are no projects in this group.

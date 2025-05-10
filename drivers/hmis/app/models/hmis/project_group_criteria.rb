@@ -8,6 +8,7 @@
 
 module Hmis
   class ProjectGroupCriteria
+    include ::Hmis::Concerns::HmisArelHelper
     include ActiveModel::Model
     include ActiveModel::Validations
 
@@ -87,6 +88,31 @@ module Hmis
         options = to_h.slice(*FILTER_ATTRIBUTES)
         ::Filters::FilterBase.new(user_id: User.setup_system_user.id).set_from_params(options)
       end
+    end
+
+    def effective_project_ids
+      ids = []
+      ids << Hmis::Hud::Project.hmis.where(id: project_ids.compact_blank).pluck(:id) if project_ids.compact_blank.any?
+      ids << Hmis::Hud::Organization.hmis.joins(:projects).where(id: organization_ids.compact_blank).pluck(p_t[:id]) if organization_ids.compact_blank.any?
+      ids << GrdaWarehouse::DataSource.hmis.joins(:projects).where(id: data_source_ids.compact_blank).pluck(p_t[:id]) if data_source_ids.compact_blank.any?
+      ids << Hmis::Hud::Project.hmis.where(project_type: project_type_numbers.compact_blank).pluck(:id) if project_type_numbers.compact_blank.any?
+      ids.flatten.uniq
+    end
+
+    def describe_criteria_as_html
+      return '' if project_ids.blank? && organization_ids.blank? && data_source_ids.blank? && project_type_numbers.blank?
+
+      criteria = []
+      criteria << "Projects: #{Hmis::Hud::Project.hmis.where(id: project_ids.compact_blank).pluck(:ProjectName).join(', ')}" if project_ids.compact_blank.any?
+      criteria << "Organizations: #{Hmis::Hud::Organization.hmis.where(id: organization_ids.compact_blank).pluck(:OrganizationName).join(', ')}" if organization_ids.compact_blank.any?
+      criteria << "Data Sources: #{GrdaWarehouse::DataSource.hmis.where(id: data_source_ids.compact_blank).pluck(:name).join(', ')}" if data_source_ids.compact_blank.any?
+      criteria << "Project Types: #{project_type_names.join(', ')}" if project_type_names.any?
+
+      criteria.join('<br>').html_safe
+    end
+
+    def project_type_names
+      project_type_numbers.compact_blank.uniq.map { |pt| HudUtility2024.project_type(pt.to_i) }
     end
 
     private

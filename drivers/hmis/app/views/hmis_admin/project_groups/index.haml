@@ -24,7 +24,7 @@
         - @project_groups.each do |group|
           %tr
             %td
-              = link_to group.name, edit_hmis_admin_project_group_path(group)
+              = link_to group.name, hmis_admin_project_group_path(group)
             %th= group.projects.count
             %td.reports.report-parameters-all
               = group.describe_criteria_as_html
