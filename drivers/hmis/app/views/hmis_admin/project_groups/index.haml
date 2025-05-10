@@ -17,17 +17,14 @@
     %table.table.table-striped
       %thead
         %tr
-          %th Name
+          %th Project Group Name
           %th Project Count
-          %th Universe
       %tbody
         - @project_groups.each do |group|
           %tr
             %td
               = link_to group.name, hmis_admin_project_group_path(group)
             %th= group.projects.count
-            %td.reports.report-parameters-all
-              = group.describe_criteria_as_html
   = render 'common/pagination_bottom', item_name: 'project group'
 - else
   .none-found There are no project groups.

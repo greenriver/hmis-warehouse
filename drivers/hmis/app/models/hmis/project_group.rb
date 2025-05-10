@@ -83,9 +83,5 @@ module Hmis
       excluded_project_ids = parsed_exclusion_criteria.effective_project_ids
       included_project_ids - excluded_project_ids
     end
-
-    def describe_criteria_as_html
-      'TODO'
-    end
   end
 end
