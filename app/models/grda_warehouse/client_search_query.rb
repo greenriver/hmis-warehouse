@@ -36,9 +36,14 @@ module GrdaWarehouse
       params.permit(*ALLOWED_PARAMS, client: ALLOWED_CLIENT_PARAMS).presence
     end
 
-    def self.find_or_create_by_params!(params, user:)
+    def self.find_or_create_by_params(params, user:)
       norm = normalize_params(params.to_h)
       fingerprint = generate_fingerprint(norm)
+
+      # Validate params first
+      instance = new(params: norm)
+      instance.validate_params
+      return instance if instance.errors.any?
 
       upsert(
         { fingerprint: fingerprint, params: norm, created_by_id: user.id },
@@ -67,8 +72,6 @@ module GrdaWarehouse
         end
       end.reject { |_, v| v.blank? }.sort.to_h
     end
-
-    private
 
     def validate_params
       return if params.blank?

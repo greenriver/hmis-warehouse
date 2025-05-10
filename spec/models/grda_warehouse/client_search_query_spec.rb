@@ -146,25 +146,25 @@ RSpec.describe GrdaWarehouse::ClientSearchQuery, type: :model do
     end
   end
 
-  describe '.find_or_create_by_params!' do
+  describe '.find_or_create_by_params' do
     it 'creates a new query with valid params' do
       expect do
-        described_class.find_or_create_by_params!(valid_params, user: user)
+        described_class.find_or_create_by_params(valid_params, user: user)
       end.to change(described_class, :count).by(1)
     end
 
     it 'reuses existing query with same params' do
-      described_class.find_or_create_by_params!(valid_params, user: user)
+      described_class.find_or_create_by_params(valid_params, user: user)
       expect do
-        described_class.find_or_create_by_params!(valid_params, user: user)
+        described_class.find_or_create_by_params(valid_params, user: user)
       end.not_to change(described_class, :count)
     end
 
     it 'creates new query with different params' do
-      described_class.find_or_create_by_params!(valid_params, user: user)
+      described_class.find_or_create_by_params(valid_params, user: user)
       new_params = valid_params.deep_merge('q' => 'different search')
       expect do
-        described_class.find_or_create_by_params!(new_params, user: user)
+        described_class.find_or_create_by_params(new_params, user: user)
       end.to change(described_class, :count).by(1)
     end
   end

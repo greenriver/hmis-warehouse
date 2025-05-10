@@ -30,8 +30,10 @@ class ClientAccessControl::ClientsController < ApplicationController
     safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
     if safe_params
       # handle legacy get requests for search
-      query = GrdaWarehouse::ClientSearchQuery.find_or_create_by_params!(safe_params, user: current_user)
-      redirect_to client_search_query_path(id: query.encrypted_id), status: :moved_permanently
+      search_query = GrdaWarehouse::ClientSearchQuery.find_or_create_by_params(safe_params, user: current_user)
+      return handle_invalid_query('Search query not valid') unless search_query.valid?
+
+      redirect_to client_search_query_path(id: search_query.encrypted_id), status: :moved_permanently
     else
       # render empty search
       perform_search
@@ -40,11 +42,8 @@ class ClientAccessControl::ClientsController < ApplicationController
 
   def search
     search_query = GrdaWarehouse::ClientSearchQuery.find_by_encrypted_id(params[:id])
-    if search_query.nil?
-      flash[:error] = 'Search query not found'
-      redirect_to clients_path
-      return
-    end
+    return handle_invalid_query('Search query not found') if search_query.nil?
+
     search_query.touch
     perform_search(search_query.params)
   end
@@ -236,4 +235,10 @@ class ClientAccessControl::ClientsController < ApplicationController
     datepart table, part, date
   end
   helper_method :dp
+
+  private def handle_invalid_query(message)
+    flash[:error] = message
+    redirect_to clients_path
+    return
+  end
 end
