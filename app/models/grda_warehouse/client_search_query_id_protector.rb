@@ -25,8 +25,8 @@ module GrdaWarehouse
 
     def encrypt(text)
       raise 'Input must be a non-empty string.' unless text.is_a?(String) && text.present?
-      # text should be a fingerprint digest
-      raise 'Input must contain only alphanumeric characters' unless text.match?(/\A[a-z0-9]+\z/i)
+      # text should be a id or uuid
+      raise 'Input must contain only alphanumeric characters or hyphens' unless text =~ /\A[a-z0-9-]+\z/i
 
       encrypted_data = @encryptor.encrypt_and_sign(text)
       Base64.urlsafe_encode64(encrypted_data, padding: false)

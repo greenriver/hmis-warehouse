@@ -32,7 +32,7 @@ RSpec.describe GrdaWarehouse::ClientSearchQueryIdProtector do
 
     it 'raises an error for invalid input' do
       expect { protector.encrypt('invalid input with spaces') }.to raise_error(/Input must contain only alphanumeric characters/)
-      expect { protector.encrypt('invalid-with-dash') }.to raise_error(/Input must contain only alphanumeric characters/)
+      expect { protector.encrypt('') }.to raise_error(/Input must be a non-empty string/)
     end
   end
 

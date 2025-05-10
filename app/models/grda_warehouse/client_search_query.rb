@@ -38,13 +38,13 @@ module GrdaWarehouse
 
     def self.find_or_create_by_params(params, user:)
       norm = normalize_params(params.to_h)
-      fingerprint = generate_fingerprint(norm)
 
       # Validate params first
       instance = new(params: norm)
       instance.validate_params
       return instance if instance.errors.any?
 
+      fingerprint = generate_fingerprint(norm)
       upsert(
         { fingerprint: fingerprint, params: norm, created_by_id: user.id },
         unique_by: :fingerprint,
