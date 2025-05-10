@@ -3,22 +3,10 @@
 = render 'breadcrumbs'
 
 .row
-  .col-sm-6
+  .col-sm-10
     %h1= title
+    .mt-8
     = simple_form_for @project_group, as: :filters, url: hmis_admin_project_group_path(@project_group) do |f|
       = render 'form', f: f
       .form-actions.d-flex
         = f.button :submit, class: 'btn btn-primary ml-auto', value: 'Save Project Group'
-
-  .col-sm-6.pt-2
-    - if @project_group.projects.exists?
-      %h3 Summary
-      .well
-        %dl
-          %dt Project Count
-          %dd.mb-4= @project_group.projects.count
-          %dt Projects
-          %dd
-            - @project_group.projects.map(&:ProjectName).sort.each do |name|
-              = name
-              %br
