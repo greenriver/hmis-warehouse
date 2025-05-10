@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.shared_context "client search helpers" do
+RSpec.shared_context 'client search helpers' do
   # Perform a search via POST and return response and parsed doc
   def post_search_query(params = {}, follow_redirect: true)
     post client_search_queries_path, params: params
