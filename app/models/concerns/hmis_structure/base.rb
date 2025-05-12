@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module HmisStructure::Base
   extend ActiveSupport::Concern
@@ -18,6 +18,7 @@ module HmisStructure::Base
 
     def imported_item_type(importer_log_id)
       # NOTE: add additional years here as the spec changes, always the newest first for performance
+      return '2026' if RailsDrivers.loaded.include?(:hmis_csv_twenty_twenty_six) && imported_items_2026.where(importer_log_id: importer_log_id).exists?
       return '2024' if RailsDrivers.loaded.include?(:hmis_csv_twenty_twenty_four) && imported_items_2024.where(importer_log_id: importer_log_id).exists?
       # Handle classes that didn't exist previously
       return '2024' if self.class.in?([GrdaWarehouse::Hud::HmisParticipation, GrdaWarehouse::Hud::CeParticipation])
@@ -35,8 +36,18 @@ module HmisStructure::Base
       :DateDeleted
     end
 
+    # Set the default version
+    # NOTE: this needs to be updated with each FY change
     def hud_csv_version
-      @hud_csv_version ||= '2024'
+      # Move to 2026 in production after 2026-10-01
+      @hud_csv_version ||= if Rails.env.production? && Date.current < Date.new(2026, 10, 1)
+        '2024'
+        # move to 2026 everywhere else after 2025-09-01
+      elsif Date.current < Date.new(2025, 9, 1)
+        '2024'
+      else
+        '2026'
+      end
     end
 
     # default name for a CSV file

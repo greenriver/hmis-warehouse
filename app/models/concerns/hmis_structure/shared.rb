@@ -6,12 +6,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisStructure::Shared
   extend ActiveSupport::Concern
 
   # Alias CamelCase HUD CSV column names to snake_case for Rails convention
   included do
-    ['2022', '2024'].each do |version|
+    ['2022', '2024', '2026'].each do |version|
       configuration = hmis_configuration(version: version)
       next unless configuration.present? # Allow for adding new models
 
