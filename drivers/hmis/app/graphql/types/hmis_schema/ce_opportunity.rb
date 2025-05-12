@@ -41,8 +41,7 @@ module Types
         order(priority_score: :desc, client_id: :desc)
     end
 
-    def referral # todo @martha - This isn't currently resolved in batch, maybe we can simplify by not using data loaders.
-      # But the logic for access lives in the viewable_by scope currently
+    def referral
       referral = load_ar_association(object, :active_or_accepted_referral)
       return if referral.nil?
 

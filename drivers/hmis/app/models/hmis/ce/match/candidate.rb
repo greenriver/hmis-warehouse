@@ -7,14 +7,6 @@ module Hmis::Ce::Match
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool'
     belongs_to :client, class_name: 'Hmis::Hud::Client'
 
-    # TODO(#7506): permissions
-    # todo @martha - this scope might not make sense, since permissions are checked a level above.
-    # Similar to Step, the thing that governs permission to see Candidacy is the Project, but there is no direct way to join,
-    # since candidates belong to candidate pools that may be associated with multiple projects.
-    # untested/notworking:
-    # joins(candidate_pool: :project).merge(Hmis::Hud::Project.with_access(user, :can_view_prioritized_client_lists))
-    scope :viewable_by, ->(_user) { all }
-
     # order by descending priority, NULL values last. Use id as a tie-breaker
     scope :prioritized, -> {
       order(
