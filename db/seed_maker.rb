@@ -21,7 +21,6 @@ class SeedMaker
     end
   end
 
-
   # For new deployments, call `production_seed_first_user` to create an initial user and associated access
   def production_seed_first_user(email:, first_name:, last_name:)
     raise "User #{email} already exists" if User.exists?(email: email)
@@ -55,8 +54,6 @@ class SeedMaker
     puts "Created initial admin email: #{user.email}  password: #{user.password}"
     user
   end
-
-
 
   # Not automatically called on deployment, but will be called for new installations
   # as part of the `production_seed_first_user` setup process
