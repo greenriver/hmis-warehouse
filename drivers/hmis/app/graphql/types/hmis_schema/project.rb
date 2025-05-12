@@ -262,7 +262,7 @@ module Types
     def ce_opportunities(filters: nil) # not for batch
       raise unless Hmis::Ce.configuration.enabled?
 
-      scope = object.ce_opportunities
+      scope = object.ce_opportunities.viewable_by(current_user)
       scope = scope.where(status: filters&.status) if filters&.status.present?
       scope.order(created_at: :desc)
     end
@@ -270,7 +270,7 @@ module Types
     def ce_referrals(filters: nil) # not for batch
       raise unless Hmis::Ce.configuration.enabled?
 
-      scope = object.ce_referrals
+      scope = object.ce_referrals.viewable_by(current_user)
       scope = scope.where(status: filters&.status) if filters&.status.present?
       scope.order(created_at: :desc)
     end

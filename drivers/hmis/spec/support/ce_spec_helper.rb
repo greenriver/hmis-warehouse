@@ -7,7 +7,17 @@ RSpec.shared_context 'ce spec helper' do
   include_context 'hmis base setup'
 
   let!(:ds_access_control) do
-    create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details, :can_view_referrals])
+    create_access_control(
+      hmis_user,
+      ds1,
+      with_permission: [
+        :can_view_clients,
+        :can_view_project,
+        :can_view_enrollment_details,
+        :can_view_referrals,
+        :can_view_units,
+      ],
+    )
   end
 
   before(:each) do
